@@ -1,0 +1,37 @@
+=======================
+=       Poezio        =
+=======================
+Homepage: http://codingteam.net/projet/poezio
+
+Poezio is a console Jabber client. Its goal is to use anonymous
+connections to let the user join MultiUserChats. This way, the user
+don't have to create a Jabber account, exactly like people are using
+IRC. It doesn't handle contact list at all.
+
+=======================
+	Authors
+=======================
+Florent Le Coz (louiz') <louizatakk@fedoraproject.org> (main developper)
+
+=======================
+    Contact/support
+=======================
+Jabber ChatRoom:   poezio@conference.codingteam.net
+Forum: 		   http://codingteam.net/project/poezio/forum
+Report a bug:	   http://codingteam.net/project/poezio/bugs/add
+
+=======================
+	License
+=======================
+Poezio is Free Software.
+(learn more: http://www.gnu.org/philosophy/free-sw.html)
+
+Poezio is released under the Gnu GPLv3 license
+Please read the COPYING file for details
+
+=======================
+	Thanks
+=======================
+= People =
+ xbright (Handler and MultiUserChat classes)
+ chickenzilla (Config class)
