@@ -21,6 +21,31 @@ from handler import Handler
 import curses
 from curses import textpad
 
+class Tab(curses.Window):
+    """
+    The whole "screen" that can be seen at once in the terminal.
+    It contains an userlist, an input zone and a chat zone, all
+    related to one single chat room.
+    """
+    def __init__(self, stdscr, name=None):
+        """
+        name is the name of the Tab, and it's also
+        the JID of the chatroom.
+        A particular tab is the "Info" tab which has no
+        name (None). This info tab should be unique.
+        The stdscr should be passed to know the size of the
+        terminal
+        """
+        self.name = name
+        self.size = (self.height, self.width) = stdscr.getmaxyx()
+        
+
+    def resize(self, y, x):
+        """
+        Resize the whole tabe. i.e. all its sub-windows
+        """
+        pass
+
 class Gui(object):
     """
     Graphical user interface using ncurses
@@ -41,13 +66,20 @@ class Gui(object):
         curses.endwin()
 
     def init_curses(self):
-        curses.initscr()
-        self.stdscr = curses.newwin(1, 1000, 0, 0)
+        self.stdscr=       curses.initscr()
+#        self.stdscr = curses.newwin(1, 1000, 0, 0)
         curses.noecho()
         curses.cbreak()
-        curses.meta(True)
-        self.stdscr.keypad(1)
+#        curses.meta(True)
+#        self.stdscr.keypad(1)
         self.input = textpad.Textbox(self.stdscr)
+
+    def main_loop(self, stdscr):
+        while 1:
+            key = stdscr.getch()
+            if key == curses.KEY_RESIZE:
+                pass
+            self.input.do_command(key)
 
     def on_message(self, jid, msg, subject, typ, stanza):
         print "on_message", jid, msg, subject, typ
@@ -60,20 +92,10 @@ class Gui(object):
 
     def get_input(self):
         return self.stdscr.getch()
-def sigwinch_handler(n, frame):
-    fd = open('fion', 'a')
-    fd.write(str(n)+ '\n')
-    fd.close()
+
+def main(stdscr):
+    gui = Gui()
+    gui.main_loop(stdscr)
 
 if __name__ == '__main__':
-    gui = Gui()
-    import signal
-    signal.signal(signal.SIGWINCH, sigwinch_handler)
-    while 1:
-        key = gui.stdscr.getch()
-        if key == curses.KEY_RESIZE:
-            print "FION"
-            import sys
-            sys.exit()
-        gui.input.do_command(key)
-
+    curses.wrapper(main)
