@@ -21,7 +21,7 @@ from handler import Handler
 import curses
 from curses import textpad
 
-class Tab(curses.Window):
+class Tab(object):
     """
     The whole "screen" that can be seen at once in the terminal.
     It contains an userlist, an input zone and a chat zone, all
@@ -38,7 +38,9 @@ class Tab(curses.Window):
         """
         self.name = name
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        
+#        self.window = curses.newwin(0, 0)#, self.height, self.width)
+        self.input = textpad.Textbox(stdscr)
+#        self.window.refresh()
 
     def resize(self, y, x):
         """
@@ -67,19 +69,16 @@ class Gui(object):
 
     def init_curses(self):
         self.stdscr=       curses.initscr()
-#        self.stdscr = curses.newwin(1, 1000, 0, 0)
         curses.noecho()
         curses.cbreak()
-#        curses.meta(True)
-#        self.stdscr.keypad(1)
-        self.input = textpad.Textbox(self.stdscr)
+        self.current_tab = Tab(self.stdscr)
 
     def main_loop(self, stdscr):
         while 1:
             key = stdscr.getch()
             if key == curses.KEY_RESIZE:
                 pass
-            self.input.do_command(key)
+            self.current_tab.input.do_command(key)
 
     def on_message(self, jid, msg, subject, typ, stanza):
         print "on_message", jid, msg, subject, typ
