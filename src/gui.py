@@ -52,26 +52,26 @@ class Gui(object):
     """
     Graphical user interface using ncurses
     """
-    def __init__(self):
+    def __init__(self, stdscr):
         self.handler = Handler()
 
         self.handler.connect('on-muc-message-received', self.on_message)
         self.handler.connect('join-room', self.on_join_room)
         self.handler.connect('on-muc-presence-changed', self.on_presence)
 
-        self.init_curses()
+        self.init_curses(stdscr)
 
-    def __del__(self):
-        curses.nocbreak();
-        self.stdscr.keypad(0);
-        curses.echo()
-        curses.endwin()
+    # def __del__(self):
+    #     curses.nocbreak();
+    #     self.stdscr.keypad(0);
+    #     curses.echo()
+    #     curses.endwin()
 
-    def init_curses(self):
-        self.stdscr=       curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        self.current_tab = Tab(self.stdscr)
+    def init_curses(self, stdscr):
+#        self.stdscr=       curses.initscr()
+        # curses.noecho()
+        # curses.cbreak()
+        self.current_tab = Tab(stdscr)
 
     def main_loop(self, stdscr):
         while 1:
@@ -93,7 +93,7 @@ class Gui(object):
         return self.stdscr.getch()
 
 def main(stdscr):
-    gui = Gui()
+    gui = Gui(stdscr)
     gui.main_loop(stdscr)
 
 if __name__ == '__main__':
