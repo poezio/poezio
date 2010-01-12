@@ -25,35 +25,105 @@ import sys
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
+        self._resize(height, width, y, x, parent_win)
+
+    def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
-        self.win = parent_win.subwin(height, width, y, x)
+        try:
+            self.win = parent_win.subwin(height, width, y, x)
+        except:
+            pass
 
 class UserList(Win):
     def __init__(self, height, width, y, x, parent_win):
         Win.__init__(self, height, width, y, x, parent_win)
         self.list = []
-        for name in ["kikoo", "louiz", "mrk", "fion", "bite"]:
-            self.add_user(name)
-        self.win.attron(curses.color_pair(2))
-        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self.win.attroff(curses.color_pair(2))
-        self.win.refresh()
 
     def add_user(self, name):
         """
         add an user to the list
         """
-        self.win.addstr(len(self.list), 2, name)
         self.list.append(name)
+
+    def refresh(self):
+        self.win.clear()
+        self.win.attron(curses.color_pair(2))
+        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
+        self.win.attroff(curses.color_pair(2))
+        y = 0
+        for name in self.list:
+            self.win.addstr(y, 1, name)
+            y += 1
+        self.win.refresh()
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+        self.refresh()
 
 class Info(Win):
     def __init__(self, height, width, y, x, parent_win):
         Win.__init__(self, height, width, y, x, parent_win)
+        self.txt = ""
 #        self.win.bkgd(ord('p'), curses.COLOR_BLUE)
 
     def set_info(self, text):
-        self.win.addstr(0, 0, text + " "*(self.width-len(text)-1)
+        self.txt = text
+        self.refresh()
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+        self.refresh()
+
+    def refresh(self):
+        try:
+            self.win.addstr(0, 0, self.txt + " "*(self.width-len(self.txt)-1)
                         , curses.color_pair(1))
+        except:
+            pass
+
+class TextWin(Win):
+    def __init__(self, height, width, y, x, parent_win):
+        Win.__init__(self, height, width, y, x, parent_win)
+        self.lines = []
+
+    def add_line(self, time, nick, text):
+        self.lines.append((time, nick, text))
+        self.refresh()
+
+    def refresh(self):
+        self.win.clear()
+        y = 0
+        for line in self.lines[-self.height:]:
+            self.win.addstr(y, 0, line[0] + " : " + line[1] + ": " + line[2])
+            y += 1
+        self.win.refresh()
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+        self.refresh()
+
+class Input(Win):
+    """
+    """
+    def __init__(self, height, width, y, x, stdscr):
+        Win.__init__(self, height, width, y, x, stdscr)
+        self.input = curses.textpad.Textbox(self.win)
+        self.input.tripspaces = False
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+        txt = self.input.gather()
+        self.input = curses.textpad.Textbox(self.win)
+        self.input.tripspaces = False
+        self.win.clear()
+#        self.win.addstr(txt)
+
+    def do_command(self, key):
+        self.input.do_command(key)
+        self.win.refresh()
+
+    def gettext(self):
+        return self.input.gather()
 
 class Tab(object):
     """
@@ -72,19 +142,45 @@ class Tab(object):
         """
         self.name = name
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        self.user_win = UserList(self.height-1, self.width/7, 0, 6*(self.width/7), stdscr)#        self.contact_win = stdscr.subwin(7, 7)#self.height-1, self.width/3, 0, 2*(self.width/3))
-        self.topic_win = Info(1, self.width, 0, 0, stdscr)
-        self.topic_win.set_info("Salon machin - Blablablbla, le topic blablabla")
-        self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
-        self.info_win.set_info("FION")
 
-        # stdscr.addstr("stdscr [%s, %s]\n" % (self.height, self.width))
-        # stdscr.addstr("contact [%s, %s][%s, %s]" % (self.height-1, self.width/3, 0, 2*(self.width/3)))
-    def resize(self, y, x):
+        self.user_win = UserList(self.height-3, self.width/7, 1, 6*(self.width/7), stdscr)
+        self.topic_win = Info(1, self.width, 0, 0, stdscr)
+        self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
+        self.text_win = TextWin(self.height-3, (self.width/7)*6, 1, 0, stdscr)
+        self.input = Input(1, self.width, self.height-1, 0, stdscr)
+#        self.text_win.refresh()
+
+        # debug
+        self.topic_win.set_info("Salon machin - Blablablbla, le topic blablabla")
+        self.info_win.set_info("FION")
+        for name in ["pipi", "caca", "louiz", "mRk", "restrict", "jacko"]:
+            self.user_win.add_user(name)
+        self.refresh()
+
+    def resize(self, stdscr):
         """
         Resize the whole tabe. i.e. all its sub-windows
         """
-        pass
+        self.size = (self.height, self.width) = stdscr.getmaxyx()
+        self.user_win.resize(self.height-3, self.width/7, 1, 6*(self.width/7), stdscr)
+        self.topic_win.resize(1, self.width, 0, 0, stdscr)
+        self.info_win.resize(1, self.width, self.height-2, 0, stdscr)
+        self.text_win.resize(self.height-3, (self.width/7)*6, 1, 0, stdscr)
+        self.input.resize(1, self.width, self.height-1, 0, stdscr)
+        self.refresh()
+
+    def refresh(self):
+        self.text_win.refresh()
+        self.user_win.refresh()
+        self.topic_win.refresh()
+        self.info_win.refresh()
+
+    def do_command(self, key):
+        self.input.do_command(key)
+#        self.input_win.refresh()
+
+    def send_message(self):
+        self.text_win.add_line("NOW", "louiz'", self.input.gettext())
 
 class Gui(object):
     """
@@ -99,16 +195,11 @@ class Gui(object):
 
         self.init_curses(stdscr)
 
-    # def __del__(self):
-    #     curses.nocbreak();
-    #     self.stdscr.keypad(0);
-    #     curses.echo()
-    #     curses.endwin()
-
     def init_curses(self, stdscr):
 #        self.stdscr=       curses.initscr()
         # curses.noecho()
         # curses.cbreak()
+        stdscr.leaveok(True)
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
         curses.init_pair(2, curses.COLOR_BLUE, 0)
         self.current_tab = Tab(stdscr)
@@ -117,11 +208,14 @@ class Gui(object):
         while 1:
             stdscr.refresh()
             key = stdscr.getch()
-#            print key
-#            stdscr.addstr("f")
             if key == curses.KEY_RESIZE:
-                sys.exit()
-            self.current_tab.input.do_command(key)
+                self.current_tab.resize(stdscr)
+            elif key == 10:
+                self.current_tab.send_message()
+            self.current_tab.do_command(key)
+            # else:
+            #     sys.exit()
+#            self.current_tab.input.do_command(key)
 
     def on_message(self, jid, msg, subject, typ, stanza):
         print "on_message", jid, msg, subject, typ
