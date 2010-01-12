@@ -21,6 +21,40 @@ from handler import Handler
 import curses
 from curses import textpad
 
+import sys
+
+class Win(object):
+    def __init__(self, height, width, y, x, parent_win):
+        self.height, self.width, self.x, self.y = height, width, x, y
+        self.win = parent_win.subwin(height, width, y, x)
+
+class UserList(Win):
+    def __init__(self, height, width, y, x, parent_win):
+        Win.__init__(self, height, width, y, x, parent_win)
+        self.list = []
+        for name in ["kikoo", "louiz", "mrk", "fion", "bite"]:
+            self.add_user(name)
+        self.win.attron(curses.color_pair(2))
+        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
+        self.win.attroff(curses.color_pair(2))
+        self.win.refresh()
+
+    def add_user(self, name):
+        """
+        add an user to the list
+        """
+        self.win.addstr(len(self.list), 2, name)
+        self.list.append(name)
+
+class Info(Win):
+    def __init__(self, height, width, y, x, parent_win):
+        Win.__init__(self, height, width, y, x, parent_win)
+#        self.win.bkgd(ord('p'), curses.COLOR_BLUE)
+
+    def set_info(self, text):
+        self.win.addstr(0, 0, text + " "*(self.width-len(text)-1)
+                        , curses.color_pair(1))
+
 class Tab(object):
     """
     The whole "screen" that can be seen at once in the terminal.
@@ -38,10 +72,14 @@ class Tab(object):
         """
         self.name = name
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-#        self.window = curses.newwin(0, 0)#, self.height, self.width)
-        self.input = textpad.Textbox(stdscr)
-#        self.window.refresh()
+        self.user_win = UserList(self.height-1, self.width/7, 0, 6*(self.width/7), stdscr)#        self.contact_win = stdscr.subwin(7, 7)#self.height-1, self.width/3, 0, 2*(self.width/3))
+        self.topic_win = Info(1, self.width, 0, 0, stdscr)
+        self.topic_win.set_info("Salon machin - Blablablbla, le topic blablabla")
+        self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
+        self.info_win.set_info("FION")
 
+        # stdscr.addstr("stdscr [%s, %s]\n" % (self.height, self.width))
+        # stdscr.addstr("contact [%s, %s][%s, %s]" % (self.height-1, self.width/3, 0, 2*(self.width/3)))
     def resize(self, y, x):
         """
         Resize the whole tabe. i.e. all its sub-windows
@@ -71,13 +109,18 @@ class Gui(object):
 #        self.stdscr=       curses.initscr()
         # curses.noecho()
         # curses.cbreak()
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(2, curses.COLOR_BLUE, 0)
         self.current_tab = Tab(stdscr)
 
     def main_loop(self, stdscr):
         while 1:
+            stdscr.refresh()
             key = stdscr.getch()
+#            print key
+#            stdscr.addstr("f")
             if key == curses.KEY_RESIZE:
-                pass
+                sys.exit()
             self.current_tab.input.do_command(key)
 
     def on_message(self, jid, msg, subject, typ, stanza):
