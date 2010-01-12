@@ -23,6 +23,8 @@ from curses import textpad
 
 import sys
 
+from connection import *
+
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
         self._resize(height, width, y, x, parent_win)
@@ -190,7 +192,7 @@ class Gui(object):
         self.handler = Handler()
 
         self.handler.connect('on-muc-message-received', self.on_message)
-        self.handler.connect('join-room', self.on_join_room)
+        self.handler.connect('gui-join-room', self.on_join_room)
         self.handler.connect('on-muc-presence-changed', self.on_presence)
 
         self.init_curses(stdscr)
@@ -234,4 +236,15 @@ def main(stdscr):
     gui.main_loop(stdscr)
 
 if __name__ == '__main__':
+    resource = config.get('resource')
+    server = config.get('server')
+    connection = Connection(server, resource)
+    connection.start()
+    rooms = config.get('rooms').split(':')
+    from time import sleep
+    print connection.online
+    sleep(2)
+    print connection.online
+    for room in rooms:
+        connection.send_join_room(room.split('/')[0], room.split('/')[1])
     curses.wrapper(main)

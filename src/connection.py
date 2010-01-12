@@ -49,7 +49,7 @@ class Connection(Thread):
         """
         connect to server
         """
-        self.client = xmpp.Client(self.server)
+        self.client = xmpp.Client(self.server, debug=[])
         if not self.connect_to_server(self.server, self.port):
             log.error('Could not connect to server')
             sys.exit(-1)
@@ -59,6 +59,9 @@ class Connection(Thread):
         self.client.sendInitPresence()
         self.online = 1      # 2 when confirmation of auth is received
         self.register_handlers()
+        self.muc = MultiUserChat(self.client)
+        while 1:
+            self.process()
 
     def connect_to_server(self, server, port):
         # TODO proxy stuff
@@ -102,6 +105,9 @@ class Connection(Thread):
 #        print '[%s] in room {%s}. (%s - %s)'% (nick_from, room_from, affil, role)
         self.handler.emit('xmpp-presence-handler', presence=presence)
 
+    def send_join_room(self, room, nick):
+        self.handler.emit('join-room', room=room, nick=nick)
+
     def handler_iq(self, connection, iq):
         pass
 
@@ -110,6 +116,7 @@ class Connection(Thread):
             self.client.Process(timeout)
         else:
             log.warning('disconnecting...')
+
 
 if __name__ == '__main__':
     resource = config.get('resource')
@@ -124,6 +131,3 @@ if __name__ == '__main__':
     for room in rooms:
         connection.send_join_room(room.split('/')[0], room.split('/')[1])
         i = 17
-    while i:
-        connection.process()
-        i -= 1
