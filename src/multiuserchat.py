@@ -55,6 +55,7 @@ class MultiUserChat(object):
 
     def join_room(self, room, nick):
         """Join a new room"""
+        print "banane"
         self.rooms.append(room)
         self.rn[room] = nick
 

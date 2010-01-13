@@ -21,6 +21,10 @@ from handler import Handler
 import curses
 from curses import textpad
 
+import locale
+locale.setlocale(locale.LC_ALL, '')
+code = locale.getpreferredencoding()
+
 import sys
 
 from connection import *
@@ -39,6 +43,9 @@ class Win(object):
 class UserList(Win):
     def __init__(self, height, width, y, x, parent_win):
         Win.__init__(self, height, width, y, x, parent_win)
+        self.win.attron(curses.color_pair(2))
+        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
+        self.win.attroff(curses.color_pair(2))
         self.list = []
 
     def add_user(self, name):
@@ -77,6 +84,7 @@ class Info(Win):
         self.refresh()
 
     def refresh(self):
+        self.win.clear()
         try:
             self.win.addstr(0, 0, self.txt + " "*(self.width-len(self.txt)-1)
                         , curses.color_pair(1))
@@ -110,22 +118,50 @@ class Input(Win):
     def __init__(self, height, width, y, x, stdscr):
         Win.__init__(self, height, width, y, x, stdscr)
         self.input = curses.textpad.Textbox(self.win)
-        self.input.tripspaces = False
+        self.input.stripspaces = False
+        self.input.insert_mode = True
+        self.txt = ''
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
-        txt = self.input.gather()
         self.input = curses.textpad.Textbox(self.win)
-        self.input.tripspaces = False
+        self.input.insert_mode = True
+        self.input.stripspaces = False
         self.win.clear()
-#        self.win.addstr(txt)
+        self.win.addstr(self.txt)
 
     def do_command(self, key):
         self.input.do_command(key)
+#        self.win.refresh()
+#        self.text = self.input.gather()
+
+    # def insert_char(self, key):
+    #     if self.insert:
+    #         self.text = self.text[:self.pos]+key+self.text[self.pos:]
+    #     else:
+    #         self.text = self.text[:self.pos]+key+self.text[self.pos+1:]
+    #     self.pos += 1
+    #     pass
+
+    def get_text(self):
+        return self.input.gather()
+
+    def save_text(self):
+        self.txt = self.input.gather()
+#        self.win.clear()
+#        self.win.addstr(self.txt)
+
+    def refresh(self):
+#        self.win.clear()
+#        self.win.addstr(self.text)
+#        self.win.move(0, len(self.text)-1)
         self.win.refresh()
 
-    def gettext(self):
-        return self.input.gather()
+    def clear_text(self):
+        self.win.clear()
+        self.txt = ''
+        self.pos = 0
+        self.refresh()
 
 class Tab(object):
     """
@@ -133,7 +169,7 @@ class Tab(object):
     It contains an userlist, an input zone and a chat zone, all
     related to one single chat room.
     """
-    def __init__(self, stdscr, name=None):
+    def __init__(self, stdscr, name='info'):
         """
         name is the name of the Tab, and it's also
         the JID of the chatroom.
@@ -150,13 +186,9 @@ class Tab(object):
         self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
         self.text_win = TextWin(self.height-3, (self.width/7)*6, 1, 0, stdscr)
         self.input = Input(1, self.width, self.height-1, 0, stdscr)
-#        self.text_win.refresh()
 
+        self.info_win.set_info(name)
         # debug
-        self.topic_win.set_info("Salon machin - Blablablbla, le topic blablabla")
-        self.info_win.set_info("FION")
-        for name in ["pipi", "caca", "louiz", "mRk", "restrict", "jacko"]:
-            self.user_win.add_user(name)
         self.refresh()
 
     def resize(self, stdscr):
@@ -172,17 +204,17 @@ class Tab(object):
         self.refresh()
 
     def refresh(self):
+        self.text_win.add_line("fion", "fion", "refresh")
         self.text_win.refresh()
         self.user_win.refresh()
         self.topic_win.refresh()
         self.info_win.refresh()
+        self.input.refresh()
 
     def do_command(self, key):
         self.input.do_command(key)
-#        self.input_win.refresh()
-
-    def send_message(self):
-        self.text_win.add_line("NOW", "louiz'", self.input.gettext())
+#        self.input.save_text()
+        self.input.refresh()
 
 class Gui(object):
     """
@@ -191,20 +223,44 @@ class Gui(object):
     def __init__(self, stdscr):
         self.handler = Handler()
 
+        self.commands = {
+            'join': self.command_join,
+            'quit': self.command_quit,
+            }
+
         self.handler.connect('on-muc-message-received', self.on_message)
         self.handler.connect('gui-join-room', self.on_join_room)
         self.handler.connect('on-muc-presence-changed', self.on_presence)
 
         self.init_curses(stdscr)
+        self.stdscr = stdscr
+
+    def execute(self):
+        line = self.current_tab.input.get_text()
+        self.current_tab.input.clear_text()
+        if line.strip().startswith('/'):
+            command = line.strip()[:].split()[0][1:]
+            args = line.strip()[:].split()[1:]
+            if command in self.commands.keys():
+                func = self.commands[command]
+                func(args)
+            return
+        self.current_tab.text_win.add_line("NOW", "louiz'", line)
+        # TODO, send message to jabber
+
+    def command_join(self, args):
+        room = args[0]
+        self.on_join_room(room, "poezio")
+
+    def command_quit(self, args):
+        sys.exit()
 
     def init_curses(self, stdscr):
-#        self.stdscr=       curses.initscr()
-        # curses.noecho()
-        # curses.cbreak()
         stdscr.leaveok(True)
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
-        curses.init_pair(2, curses.COLOR_BLUE, 0)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
         self.current_tab = Tab(stdscr)
+        self.tabs = [self.current_tab]
 
     def main_loop(self, stdscr):
         while 1:
@@ -213,23 +269,23 @@ class Gui(object):
             if key == curses.KEY_RESIZE:
                 self.current_tab.resize(stdscr)
             elif key == 10:
-                self.current_tab.send_message()
-            self.current_tab.do_command(key)
-            # else:
-            #     sys.exit()
-#            self.current_tab.input.do_command(key)
+                self.execute()
+            else:
+                self.current_tab.do_command(key)
 
     def on_message(self, jid, msg, subject, typ, stanza):
         print "on_message", jid, msg, subject, typ
 
     def on_join_room(self, room, nick):
+        sys.stderr.write(room)
+        self.current_tab = Tab(self.stdscr, room)
+        self.tabs.append(self.current_tab)
+#        self.current_tab.resize()
+        self.current_tab.refresh()
         print "on_join_room", room, nick
 
     def on_presence(self, jid, priority, show, status, stanza):
         print "on presence", jid, priority, show, status
-
-    def get_input(self):
-        return self.stdscr.getch()
 
 def main(stdscr):
     gui = Gui(stdscr)
@@ -240,11 +296,7 @@ if __name__ == '__main__':
     server = config.get('server')
     connection = Connection(server, resource)
     connection.start()
-    rooms = config.get('rooms').split(':')
-    from time import sleep
-    print connection.online
-    sleep(2)
-    print connection.online
-    for room in rooms:
-        connection.send_join_room(room.split('/')[0], room.split('/')[1])
     curses.wrapper(main)
+    # rooms = config.get('rooms').split(':')
+    # for room in rooms:
+    #     connection.send_join_room(room.split('/')[0], room.split('/')[1])
