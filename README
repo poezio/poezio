@@ -35,3 +35,61 @@ Please read the COPYING file for details
 = People =
  xbright (Handler and MultiUserChat classes)
  chickenzilla (Config class)
+
+======================
+       The code
+======================
+
+Classes:
+  - Connection *receives* messages from the Jabber network
+  - MultiUserChat *sends* messages to the Jabber network
+  - Gui displays everything on the screen and gets the user inputs
+  - Handler is the "link" between all these classes :
+a class emits a signal and the others classes listen to this signal
+and do what they have to do whenever this signal is emitted by any class
+
+Q: Why not use Connection to receive AND send the messages to Jabber network?
+A: I like it this way.
+
+Q: Could you please make a nice ASCII art, so I could understand all
+   the beauty and the complexity of this awesome software ?
+A: Of course, here it is:
+
+ 		 ___________________________
+                /                           \
+		|			    |
+		|      Jabber Network	    |
+		|   (roomchats and people   |
+		|          in them) 	    |
+		|	     		    |
+		\__________________________/
+		    |			^
+		    | receive	  send  |         ____ Poezio ____
+		    v			|
+           /----------------\	/-----------------\
+	   |		    |   |		  |
+	   |   Connection   |   |  MultiUserChat  |
+	   |   		    |	|  		  |
+	   \----------------/   \-----------------/
+	   	^ |emit		    emit | ^
+		| |	 /---------\     | |
+ 	connect	\ \----> |         |<----/ / connect
+		 \______ | Handler |______/
+		 	 | 	   |
+			 \---------/
+			     | ^
+  		     connect | | emit
+			     v |
+			 /---------\
+			 |	   |
+			 |   Gui   |
+			 |   	   |
+			 \---------/
+			     | ^
+		      Screen | | Keyboard
+			     v |
+			 /---------\
+			 |	   |
+			 |   YOU   |
+			 |   	   |
+			 \---------/
