@@ -21,6 +21,7 @@ from xmpp import NS_MUC_ADMIN
 from xmpp.protocol import Presence, Iq, Message, JID
 
 from handler import Handler
+from config import config
 
 def get_stripped_jid(jid):
     """Return the stripped JID (bare representation)"""
@@ -42,20 +43,22 @@ class MultiUserChat(object):
 
         self.handler = Handler()
         self.handler.connect('join-room', self.join_room)
-        self.handler.connect('quit-room', self.quit_room)
-        self.handler.connect('on-disconnected', self.on_disconnect)
-        self.handler.connect('xmpp-iq-handler', self.on_iq)
-        self.handler.connect('xmpp-presence-handler', self.on_presence)
-        self.handler.connect('xmpp-message-handler', self.on_message)
-        self.handler.connect('eject-user', self.eject_user)
-        self.handler.connect('change-user-role', self.change_role)
-        self.handler.connect('change-user-affiliation', self.change_aff)
-        self.handler.connect('change-subject', self.change_subject)
-        self.handler.connect('change-nick', self.change_nick)
+        self.handler.connect('on-connected', self.on_connected)
+
+    def on_connected(self):
+        rooms = config.get('rooms').split(':')
+        for room in rooms:
+            [roomname, nick] = room.split('/')
+            self.handler.emit('join-room', room=roomname, nick=nick)
+
+    def send_message(self, room, message):
+        mes = Message(to=room)
+        mes.setBody(message)
+        mes.setType('groupchat')
+        self.connection.send(mes)
 
     def join_room(self, room, nick):
         """Join a new room"""
-        print "banane"
         self.rooms.append(room)
         self.rn[room] = nick
 

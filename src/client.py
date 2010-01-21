@@ -17,17 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+#sys.stderr = open('errors', 'w') # never print anyerror
+#sys.stdout = open('salut', 'w')
+
 from connection import Connection
 from multiuserchat import MultiUserChat
 from config import config
 from handler import Handler
 from gui import Gui
+from curses import wrapper, initscr
 
 class Client(object):
     """
     Main class
-    Do what should be done automatically by the Client:
-    join the rooms at startup, for example
+    Just read some configuration and instantiate the classes
     """
     def __init__(self):
         self.handler = Handler()
@@ -35,22 +39,15 @@ class Client(object):
         self.resource = config.get('resource')
         self.server = config.get('server')
         self.connection = Connection(self.server, self.resource)
+
+        self.stdscr = initscr()
         self.connection.start()
-
-        self.muc = MultiUserChat(self.connection.client)
-        self.gui = Gui()
-        self.rooms = config.get('rooms').split(':')
-
-        import time
-        time.sleep(1)           # remove
-        for room in self.rooms:
-            self.handler.emit('join-room', room = room.split('/')[0], nick=room.split('/')[1])
-        while 1:
-            self.connection.process()
-
+        self.gui = Gui(self.stdscr, MultiUserChat(self.connection.client))
 
 def main():
     client = Client()
+    client.gui.main_loop(client.stdscr)
+    sys.exit()
 
 if __name__ == '__main__':
     main()

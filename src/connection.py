@@ -28,7 +28,8 @@ from handler import Handler
 
 class Connection(Thread):
     """
-    Handles all network transactions
+    Receives everything from Jabber and emits the
+    appropriate signals
     """
     def __init__(self, server, resource):
         Thread.__init__(self)
@@ -47,6 +48,7 @@ class Connection(Thread):
 
     def run(self):
         """
+        run in a thread
         connect to server
         """
         self.client = xmpp.Client(self.server, debug=[])
@@ -59,7 +61,6 @@ class Connection(Thread):
         self.client.sendInitPresence()
         self.online = 1      # 2 when confirmation of auth is received
         self.register_handlers()
-        self.muc = MultiUserChat(self.client)
         while 1:
             self.process()
 
@@ -75,38 +76,25 @@ class Connection(Thread):
             return None
 
     def register_handlers(self):
+        """
+        register handlers from xmpppy signals
+        """
         self.client.RegisterHandler('message', self.handler_message)
         self.client.RegisterHandler('presence', self.handler_presence)
-        self.client.RegisterHandler('iq', self.handler_iq)
-
-    def handler_message(self, connection, message):
-        # body = message.getTag('body').getData()
-        # fro = str(message.getAttr('from'))
-        # room, nick = fro.split('/')
-        # print 'Message from %s in %s :' % (nick, room), body
-        self.handler.emit('xmpp-message-handler', message=message)
+        self.client.RegisterHandler('iq',         self.handler_iq)
 
     def handler_presence(self, connection, presence):
-        affil, role = u'', u''
-        fro = presence.getFrom()#presence.getAttr('from')
-        room_from, nick_from = fro.getStripped().encode('utf-8'), fro.getResource().encode('utf-8')
+        fro = presence.getFrom()
         to = presence.getAttr('to')
-        room_to, nick_to = to.getStripped().encode('utf-8'), to.getResource().encode('utf-8')
         if fro == to:           # own presence
             self.online = 2
             self.jid = to
-            print 'Authentification confirmation received!'
+            self.handler.emit('on-connected')
             return
-        for x in presence.getTags('x'):
-            if x.getTag('item'):
-                affil = x.getTagAttr('item', 'affiliation').encode('utf-8')
-                role = x.getTagAttr('item', 'role').encode('utf-8')
-                break
-#        print '[%s] in room {%s}. (%s - %s)'% (nick_from, room_from, affil, role)
-        self.handler.emit('xmpp-presence-handler', presence=presence)
+        self.handler.emit('room-presence', stanza=presence)
 
-    def send_join_room(self, room, nick):
-        self.handler.emit('join-room', room=room, nick=nick)
+    def handler_message(self, connection, message):
+        self.handler.emit('room-message', stanza=message)
 
     def handler_iq(self, connection, iq):
         pass
@@ -116,7 +104,7 @@ class Connection(Thread):
             self.client.Process(timeout)
         else:
             log.warning('disconnecting...')
-
+            sys.exit()
 
 if __name__ == '__main__':
     resource = config.get('resource')
