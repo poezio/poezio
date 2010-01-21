@@ -47,7 +47,7 @@ class User(object):
         self.role = role
 
     def change_nick(self, nick):
-        self.nick = nick
+        self.nick = nick.encode('utf-8')
 
 class Room(object):
     """
@@ -61,7 +61,7 @@ class Room(object):
         self.topic = ''
 
     def add_message(self, nick, msg):
-        self.lines.append((datetime.now(), nick, msg.encode('utf-8')))
+        self.lines.append((datetime.now(), nick.encode('utf-8'), msg.encode('utf-8')))
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
@@ -131,6 +131,9 @@ class Gui(object):
         curses.noecho()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) # Admin
+        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK) # Participant
+        curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK) # Visitor
 
     def on_connected(self):
         pass
