@@ -52,7 +52,7 @@ class UserList(Win):
             self.win.addstr(y, 1, user.nick)
             self.win.attroff(curses.color_pair(color))
             y += 1
-        self.win.refresh()
+        self.win.noutrefresh()
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -68,8 +68,8 @@ class Info(Win):
         self.win.clear()
         self.win.addstr(0, 0, room_name + " "*(self.width-len(room_name)-1)
                         , curses.color_pair(1))
-#        self.win.addstr(0, 0, "fion")
-        self.win.refresh()
+        self.win.noutrefresh()
+
 
 class TextWin(Win):
     def __init__(self, height, width, y, x, parent_win):
@@ -86,7 +86,7 @@ class TextWin(Win):
             elif len(line) == 3:
                 self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] " + line[1]+": "+line[2])
             y += 1
-        self.win.refresh()
+        self.win.noutrefresh()
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -115,7 +115,7 @@ class Input(Win):
         self.txt = self.input.gather()
 
     def refresh(self):
-        self.win.refresh()
+        self.win.noutrefresh()
 
     def clear_text(self):
         self.win.clear()

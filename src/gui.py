@@ -159,10 +159,11 @@ class Gui(object):
             if room_from == room.name:
                 room.add_message(nick_from, stanza.getBody())
                 if room == self.rooms[0]:
-                    # self.window.text_win.refresh(room.lines)
-                    # self.window.user_win.refresh(room.users)
-                    # self.window.input.refresh()
-                    self.window.refresh(self.rooms[0])
+                    self.window.text_win.refresh(room.lines)
+                    self.window.user_win.refresh(room.users)
+                    self.window.input.refresh()
+#                    self.window.refresh(self.rooms[0])
+                    curses.doupdate()
                 break
 
     def room_presence(self, stanza):
@@ -174,6 +175,7 @@ class Gui(object):
                 if room == self.rooms[0]:
                     self.window.text_win.refresh(room.lines)
                     self.window.user_win.refresh(room.users)
+                    curses.doupdate()
                 break
 
     def execute(self):
@@ -201,7 +203,7 @@ class Gui(object):
 
     def main_loop(self, stdscr):
         while 1:
-            stdscr.refresh()
+            curses.doupdate()
             # self.window.input.refresh()
             key = stdscr.getch()
             if key == curses.KEY_RESIZE:
