@@ -21,7 +21,7 @@ import sys
 
 import xmpp
 from config import config
-from logging import log
+from logging import logger
 from threading import Thread
 from multiuserchat import MultiUserChat
 from handler import Handler
@@ -40,23 +40,23 @@ class Connection(Thread):
         self.online = 0         # 1:connected, 2:auth confirmed
         self.jid = ''           # we don't know our jid yet (anon account)
         if not self.server:
-            log.error('You should set a server in the configuration file')
+            logger.error('You should set a server in the configuration file')
         self.port = int(config.get('port'))
         if not self.port:
-            log.warning('No port set in configuration file, defaulting to 5222')
+            logger.warning('No port set in configuration file, defaulting to 5222')
             self.port = 5222
+        self.client = xmpp.Client(self.server, debug=[])
 
     def run(self):
         """
         run in a thread
         connect to server
         """
-        self.client = xmpp.Client(self.server, debug=[])
         if not self.connect_to_server(self.server, self.port):
-            log.error('Could not connect to server')
+            logger.error('Could not connect to server')
             sys.exit(-1)
         if not self.authenticate():
-            log.error('Could not authenticate to server')
+            logger.error('Could not authenticate to server')
             sys.exit(-1)
         self.client.sendInitPresence()
         self.online = 1      # 2 when confirmation of auth is received

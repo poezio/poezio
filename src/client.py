@@ -18,15 +18,15 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-#sys.stderr = open('errors', 'w') # never print anyerror
-#sys.stdout = open('salut', 'w')
-
 from connection import Connection
 from multiuserchat import MultiUserChat
 from config import config
 from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
+
+logfile = config.get('logfile')
+#sys.stderr = open(logfile, 'a') # print the errors in the logfile
 
 class Client(object):
     """

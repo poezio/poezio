@@ -19,6 +19,7 @@
 
 from config import config
 import sys
+from datetime import datetime
 
 class Logger(object):
     """
@@ -29,17 +30,16 @@ class Logger(object):
         self.logfile = config.get('logfile')
 
     def warning(self, msg):
-        # change me
-        # add timestamp and stuff like that, it's cool
-        print 'Warning/error ' + msg
         if self.logfile:
             fd = open(self.logfile, 'a')
-            fd.write(msg+'\n')
+            fd.write(datetime.now().strftime("%H:%M:%S") + ' Warning [' + msg + ']')
             fd.close()
 
     def error(self, msg):
-        # change me too
-        self.warning(msg)
+        if self.logfile:
+            fd = open(self.logfile, 'a')
+            fd.write(datetime.now().strftime("%H:%M:%S") + ' Error [' + msg + ']')
+            fd.close()
         sys.exit(-1)
 
-log = Logger()
+logger = Logger()

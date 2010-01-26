@@ -33,6 +33,10 @@ class Config(RawConfigParser):
     def get(self, option):
         return RawConfigParser.get(self, self.defsection, option)
 
+    def rget(self, option):
+	res = self.get(option)
+	print res
+
     def getint(self, option):
         return int(self.get(option))
 
@@ -46,8 +50,9 @@ class Config(RawConfigParser):
         RawConfigParser.set(self, self.defsection, option, value)
 
     def save(self):
-        with copen(self.filename, "w", "utf-8", "ignore") as f:
-            RawConfigParser.write(self, f)
+        f = copen(self.filename, "w", "utf-8", "ignore")
+        RawConfigParser.write(self, f)
+	f.close()	
 
     def setAndSave(self, option, value):
         self.set(option, value)

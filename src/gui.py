@@ -24,6 +24,8 @@ from curses import textpad
 import locale
 from datetime import datetime
 
+from logging import logger
+
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
@@ -119,12 +121,20 @@ class Gui(object):
             'prev': self.rotate_rooms_right,
             }
 
-
         self.handler = Handler()
         self.handler.connect('on-connected', self.on_connected)
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+
+    def current_room(self):
+	return self.rooms[0]
+
+    def get_room_by_name(self, name):
+	for room in self.rooms:
+	    if room.name == name:
+		return room
+	return None
 
     def init_curses(self, stdscr):
         curses.start_color()
@@ -135,48 +145,50 @@ class Gui(object):
         curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK) # Participant
         curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK) # Visitor
 
+    def reset_curses(self):
+	curses.echo()
+
     def on_connected(self):
         pass
 
     def join_room(self, room, nick):
         self.rooms.insert(0, Room(room, nick))
-        self.window.refresh(self.rooms[0])
+        self.window.refresh(self.current_room())
 
     def rotate_rooms_left(self, args):
         self.rooms.append(self.rooms.pop(0))
-        self.window.refresh(self.rooms[0])
+        self.window.refresh(self.current_room())
 
     def rotate_rooms_right(self, args):
         self.rooms.insert(0, self.rooms.pop())
-        self.window.refresh(self.rooms[0])
+        self.window.refresh(self.current_room())
 
     def room_message(self, stanza):
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
         room_from = stanza.getFrom().getStripped()
         nick_from = stanza.getFrom().getResource()
-        for room in self.rooms:
-            if room_from == room.name:
-                room.add_message(nick_from, stanza.getBody())
-                if room == self.rooms[0]:
-                    self.window.text_win.refresh(room.lines)
-                    self.window.user_win.refresh(room.users)
-                    self.window.input.refresh()
-#                    self.window.refresh(self.rooms[0])
-                    curses.doupdate()
-                break
+	room = self.get_room_by_name(name)
+	if not room:
+	    return logger.warning("message received for a non-existing room: %s" % (name))
+        room.add_message(nick_from, stanza.getBody())
+        if room == self.current_room():
+            self.window.text_win.refresh(room.lines)
+            self.window.user_win.refresh(room.users)
+            self.window.input.refresh()
+            curses.doupdate()
 
     def room_presence(self, stanza):
         from_nick = stanza.getFrom().getResource()
         from_room = stanza.getFrom().getStripped()
-        for room in self.rooms:
-            if from_room == room.name:
-                room.on_presence(stanza, from_nick)
-                if room == self.rooms[0]:
-                    self.window.text_win.refresh(room.lines)
-                    self.window.user_win.refresh(room.users)
-                    curses.doupdate()
-                break
+	room = self.get_room_by_name()
+	if not room:
+	    return logger.warning("presence received for a non-existing room: %s" % (name))
+        room.on_presence(stanza, from_nick)
+        if room == self.current_rooom():
+	        self.window.text_win.refresh(room.lines)
+                self.window.user_win.refresh(room.users)
+                curses.doupdate()
 
     def execute(self):
         line = self.window.input.get_text()
@@ -190,8 +202,9 @@ class Gui(object):
                 func = self.commands[command]
                 func(args)
             return
-        if self.rooms[0].name != 'Info':
-            self.muc.send_message(self.rooms[0].name, line)
+        if self.current_room().name != 'Info':
+            self.muc.send_message(self.current_room().name, line)
+	self.window.input.refresh()
 
     def command_join(self, args):
         room = args[0]
@@ -199,6 +212,7 @@ class Gui(object):
         self.join_room(room, 'poezio')
 
     def command_quit(self, args):
+	self.reset_curses()
         sys.exit()
 
     def main_loop(self, stdscr):
