@@ -25,9 +25,6 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
-logfile = config.get('logfile')
-#sys.stderr = open(logfile, 'a') # print the errors in the logfile
-
 class Client(object):
     """
     Main class
@@ -36,8 +33,8 @@ class Client(object):
     def __init__(self):
         self.handler = Handler()
 
-        self.resource = config.get('resource')
-        self.server = config.get('server')
+        self.resource = config.get('resource', 'poezio')
+        self.server = config.get('server', 'louiz.org')
         self.connection = Connection(self.server, self.resource)
 
         self.stdscr = initscr()

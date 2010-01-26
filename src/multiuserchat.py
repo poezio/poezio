@@ -46,7 +46,11 @@ class MultiUserChat(object):
         self.handler.connect('on-connected', self.on_connected)
 
     def on_connected(self):
-        rooms = config.get('rooms').split(':')
+        rooms = config.get('rooms', '')
+        if rooms == '':
+            return
+        else:
+            rooms = rooms.split(':')
         for room in rooms:
             [roomname, nick] = room.split('/')
             self.handler.emit('join-room', room=roomname, nick=nick)

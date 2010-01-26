@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConfigParser import RawConfigParser
+from ConfigParser import RawConfigParser, NoOptionError
+# from logging import logger
 
 class Config(RawConfigParser):
     """
@@ -30,18 +31,40 @@ class Config(RawConfigParser):
         RawConfigParser.__init__(self, None)
         RawConfigParser.read(self, file_name)
 
-    def get(self, option):
+    def get(self, option, default):
+        """
+        get a value from the config but return
+        a default value if it is not found
+        The type of default defines the type
+        returned
+        """
+	try:
+            if type(default) == int:
+                res = self.getint(option)
+            elif type(default) == float:
+                res = self.getfloat(option)
+            elif type(default) == bool:
+                res = self.getbool(option)
+            else:
+                res = self.getstr(option)
+        except NoOptionError:
+            # TODO
+        #     logger.info('No value found in config file "%s" from option [%s]. Defaulting to "%s"' \
+        #                     % (self.file_name, option, default))
+            return default
+        return res
+
+    def _get(self, option):
         return RawConfigParser.get(self, self.defsection, option)
 
-    def rget(self, option):
-	res = self.get(option)
-	print res
+    def getstr(self, option):
+        return self._get(option)
 
     def getint(self, option):
-        return int(self.get(option))
+        return int(self._get(option))
 
     def getfloat(self, option):
-        return float(self.get(option))
+        return float(self._get(option))
 
     def getboolean(self, option):
         return RawConfigParser.getboolean(self, self.defsection, option)
@@ -52,7 +75,7 @@ class Config(RawConfigParser):
     def save(self):
         f = copen(self.filename, "w", "utf-8", "ignore")
         RawConfigParser.write(self, f)
-	f.close()	
+	f.close()
 
     def setAndSave(self, option, value):
         self.set(option, value)

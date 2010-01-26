@@ -39,12 +39,7 @@ class Connection(Thread):
         self.resource = resource
         self.online = 0         # 1:connected, 2:auth confirmed
         self.jid = ''           # we don't know our jid yet (anon account)
-        if not self.server:
-            logger.error('You should set a server in the configuration file')
-        self.port = int(config.get('port'))
-        if not self.port:
-            logger.warning('No port set in configuration file, defaulting to 5222')
-            self.port = 5222
+        self.port = config.get('port', 5222)
         self.client = xmpp.Client(self.server, debug=[])
 
     def run(self):
@@ -105,17 +100,3 @@ class Connection(Thread):
         else:
             log.warning('disconnecting...')
             sys.exit()
-
-if __name__ == '__main__':
-    resource = config.get('resource')
-    server = config.get('server')
-    connection = Connection(server, resource)
-    connection.start()
-    rooms = config.get('rooms').split(':')
-    from time import sleep
-    print connection.online
-    sleep(2)
-    print connection.online
-    for room in rooms:
-        connection.send_join_room(room.split('/')[0], room.split('/')[1])
-        i = 17

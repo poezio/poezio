@@ -26,6 +26,8 @@ from datetime import datetime
 
 from logging import logger
 
+from random import randrange
+
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
@@ -41,6 +43,7 @@ class User(object):
     def __init__(self, nick, affiliation, show, status, role):
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
+        self.color = randrange(2, 10)
 
     def update(self, affiliation, show, status, role):
         self.affiliation = None
@@ -63,7 +66,15 @@ class Room(object):
         self.topic = ''
 
     def add_message(self, nick, msg):
-        self.lines.append((datetime.now(), nick.encode('utf-8'), msg.encode('utf-8')))
+        if not msg:
+            logger.info('msg is None..., %s' % (nick))
+            return
+        lines = msg.split('\n')
+        # first line has the nick and timestamp but others don't
+        self.lines.append((datetime.now(), nick.encode('utf-8'), lines.pop(0).encode('utf-8')))
+        if len(lines) > 0:
+            for line in lines:
+                self.lines.append((line.encode('utf-8')))
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
@@ -89,7 +100,7 @@ class Room(object):
                     user.change_nick(stanza.getNick())
                     self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
                     return
-                if status == 'offline':
+                if status == 'offline' or role == 'none':
                     self.users.remove(user)
                     self.add_info('%s has left the room' % (nick))
                     return
@@ -144,6 +155,10 @@ class Gui(object):
         curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) # Admin
         curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK) # Participant
         curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK) # Visitor
+        curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(8, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 
     def reset_curses(self):
 	curses.echo()
@@ -168,12 +183,19 @@ class Gui(object):
             return  # ignore all messages not comming from a MUC
         room_from = stanza.getFrom().getStripped()
         nick_from = stanza.getFrom().getResource()
-	room = self.get_room_by_name(name)
+        if not nick_from:
+            nick_from = ''
+	room = self.get_room_by_name(room_from)
 	if not room:
 	    return logger.warning("message received for a non-existing room: %s" % (name))
-        room.add_message(nick_from, stanza.getBody())
+        body = stanza.getBody()
+        if not body:
+            body = stanza.getSubject()
+            room.add_info("%s changed the subject to: %s" % (nick_from, stanza.getSubject()))
+        else:
+            room.add_message(nick_from, body)
         if room == self.current_room():
-            self.window.text_win.refresh(room.lines)
+            self.window.text_win.refresh(room.lines, room.users)
             self.window.user_win.refresh(room.users)
             self.window.input.refresh()
             curses.doupdate()
@@ -181,12 +203,12 @@ class Gui(object):
     def room_presence(self, stanza):
         from_nick = stanza.getFrom().getResource()
         from_room = stanza.getFrom().getStripped()
-	room = self.get_room_by_name()
+	room = self.get_room_by_name(from_room)
 	if not room:
 	    return logger.warning("presence received for a non-existing room: %s" % (name))
         room.on_presence(stanza, from_nick)
-        if room == self.current_rooom():
-	        self.window.text_win.refresh(room.lines)
+        if room == self.current_room():
+	        self.window.text_win.refresh(room.lines, room.users)
                 self.window.user_win.refresh(room.users)
                 curses.doupdate()
 
@@ -218,7 +240,6 @@ class Gui(object):
     def main_loop(self, stdscr):
         while 1:
             curses.doupdate()
-            # self.window.input.refresh()
             key = stdscr.getch()
             if key == curses.KEY_RESIZE:
                 self.window.resize(stdscr)

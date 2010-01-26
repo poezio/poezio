@@ -18,6 +18,22 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import curses
+from logging import logger
+
+def get_next_line(str, length):
+    pos = str.rfind(' ', 0, 30)
+    if pos == -1:
+        return str[:length], str[length:]
+    else:
+        return str[:pos], str[pos+1:]
+
+def cut_line(str, length):
+    tab = []
+    while len(str) > length:
+        cut, str = get_next_line(str, length)
+        tab.append(cut)
+    tab.append(str)
+    return tab
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
@@ -37,8 +53,8 @@ class UserList(Win):
         self.win.vline(0, 0, curses.ACS_VLINE, self.height)
         self.win.attroff(curses.color_pair(2))
         self.color_dict = {'moderator': 3,
-                           'participant':4,
-                           'visitor':5}
+                           'participant':2,
+                           'visitor':4}
 
     def refresh(self, users):
         self.win.clear()
@@ -70,22 +86,45 @@ class Info(Win):
                         , curses.color_pair(1))
         self.win.noutrefresh()
 
-
 class TextWin(Win):
     def __init__(self, height, width, y, x, parent_win):
         Win.__init__(self, height, width, y, x, parent_win)
         self.win.idlok(True)
         self.pos = 0
 
-    def refresh(self, lines):
+    def refresh(self, lines, users):
         self.win.clear()
         y = 0
-        for line in lines[-self.height:]:
+        # logger.info(str(self.height))
+        # logger.info(str(lines[-self.height/2:]))
+        for line in lines[-self.height:]: # FIXME
             if len(line) == 2:
-                self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] *" + line[1]+"*")
+                try:
+                    self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] *" + line[1]+"*")
+                except:
+                    logger.error(str(line))
+                    raise
+                y += 1
             elif len(line) == 3:
-                self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] " + line[1]+": "+line[2])
-            y += 1
+                for user in users:
+                    if user.nick == line[1]:
+                        break
+                self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] <")
+                length = len('['+line[0].strftime("%H:%M:%S") + "] <")
+                self.win.attron(curses.color_pair(user.color))
+                self.win.addstr(y, length,line[1])
+                self.win.attroff(curses.color_pair(user.color))
+                self.win.addstr(y, length+len(line[1]), ">: ")
+                remaining_width = self.width-(length+len(line[1])+3)
+                tab = cut_line(line[2], remaining_width-1)
+                for l in tab:
+                    try:
+                        self.win.addstr(y, length+len(line[1])+3, l)
+                        y += 1
+                    except:pass
+            elif len(line) == 1:
+                self.win.addstr(y, 0, line[0])
+                y += 1
         self.win.noutrefresh()
 
     def resize(self, height, width, y, x, stdscr):
@@ -155,7 +194,7 @@ class Window(object):
         self.input.resize(1, self.width, self.height-1, 0, stdscr)
 
     def refresh(self, room):
-        self.text_win.refresh(room.lines)
+        self.text_win.refresh(room.lines, room.users)
         self.user_win.refresh(room.users)
         self.topic_win.refresh(room.topic)
         self.info_win.refresh(room.name)
