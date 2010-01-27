@@ -142,9 +142,11 @@ class TextWin(object):
                     break
             win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
             length = len('['+line[0].strftime("%H:%M:%S") + "] <")
-            win.attron(curses.color_pair(user.color))
+            try:win.attron(curses.color_pair(user.color))
+            except:pass
             win.addstr(line[1])
-            win.attroff(curses.color_pair(user.color))
+            try:win.attroff(curses.color_pair(user.color))
+            except:pass
             win.addstr("> ")
             win.addstr(line[2])
 
@@ -175,11 +177,19 @@ class Input(Win):
         self.input.insert_mode = True
         self.win.clear()
 
+    def key_dc(self):
+        """delete char"""
+        if self.pos == len(self.text):
+            return
+        (y, x) = self.win.getyx()
+        self.text = self.text[:self.pos]+self.text[self.pos+1:]
+        self.win.delch(y, x-1)
+
     def key_up(self):
         self.win.clear()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
-        self.win.addstr(self.history[self.histo_pos+1])
+        self.win.addstr(self.history[self.histo_pos+1].encode('utf-8'))
         self.text = self.history[self.histo_pos+1]
         self.pos = len(self.text)
         self.refresh()
@@ -188,7 +198,7 @@ class Input(Win):
         self.win.clear()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
-            self.win.addstr(self.history[self.histo_pos])
+            self.win.addstr(self.history[self.histo_pos].encode('utf-8'))
             self.text = self.history[self.histo_pos]
             self.pos = len(self.text)
         else:
@@ -242,7 +252,7 @@ class Input(Win):
         self.pos = 0
         self.history.append(txt)
         self.histo_pos = len(self.history)-1
-        return txt
+        return txt.encode('utf-8')
 
     def save_text(self):
         self.txt = self.input.gather()

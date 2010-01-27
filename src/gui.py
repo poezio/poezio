@@ -145,10 +145,10 @@ class Gui(object):
         while 1:
             curses.doupdate()
             key = stdscr.getkey()
-            if key == curses.KEY_RESIZE:
-                self.window.resize(stdscr)
-            elif str(key) in self.key_func.keys():
+            if str(key) in self.key_func.keys():
                 self.key_func[key]()
+            elif len(key) >= 4:
+                continue
             elif ord(key) == 10:
                 self.execute()
             else:

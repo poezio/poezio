@@ -25,7 +25,8 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
-sys.stderr = open('/dev/null', 'a')
+if len(sys.argv) == 1:          # not debug, so hide any error message
+    sys.stderr = open('/dev/null', 'a')
 
 class Client(object):
     """
