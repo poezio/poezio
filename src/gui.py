@@ -152,7 +152,7 @@ class Gui(object):
                 continue
             elif ord(key) == 10:
                 self.execute()
-            elif ord(key) == 8:
+            elif ord(key) == 8 or ord(key) == 127:
                 self.window.input.key_backspace()
             else:
                 if ord(key) > 190 and ord(key) < 225:
