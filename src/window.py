@@ -183,7 +183,8 @@ class Input(Win):
             return
         (y, x) = self.win.getyx()
         self.text = self.text[:self.pos]+self.text[self.pos+1:]
-        self.win.delch(y, x-1)
+        self.win.delch(y, x)
+        self.refresh()
 
     def key_up(self):
         self.win.clear()

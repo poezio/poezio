@@ -155,7 +155,10 @@ class Gui(object):
             elif ord(key) == 8 or ord(key) == 127:
                 self.window.input.key_backspace()
             else:
-                if ord(key) > 190 and ord(key) < 225:
+                if ord(key) == 27 and ord(stdscr.getkey()) == 91 \
+                        and ord(stdscr.getkey()) == 51: # FIXME: ugly ugly workaroung.
+                    self.window.input.key_dc()
+                elif ord(key) > 190 and ord(key) < 225:
                     key = key+stdscr.getkey()
                 elif ord(key) == 226:
                     key = key+stdscr.getkey()
