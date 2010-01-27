@@ -241,8 +241,11 @@ class Input(Win):
 
     def do_command(self, key):
         (y, x) = self.win.getyx()
-        self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]
-        self.win.insstr(key)
+        try:
+            self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]
+            self.win.insstr(key)
+        except:
+            return
         self.win.move(y, x+1)
         self.pos += 1
 

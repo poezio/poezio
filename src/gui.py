@@ -90,7 +90,7 @@ class Room(object):
              return self.add_info("%s is in the room" % (nick))
         change_nick = stanza.getStatusCode() == '303'
         for user in self.users:
-            if user.nick.encode('utf-8') == nick.encode('utf-8'):
+            if user.nick == nick:
                 if change_nick:
                     user.change_nick(stanza.getNick())
                     return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
@@ -132,6 +132,7 @@ class Gui(object):
             "KEY_END": self.window.input.key_end,
             "KEY_HOME": self.window.input.key_home,
             "KEY_DOWN": self.window.input.key_down,
+            "KEY_DC": self.window.input.key_dc,
             "KEY_BACKSPACE": self.window.input.key_backspace
             }
 
@@ -151,6 +152,8 @@ class Gui(object):
                 continue
             elif ord(key) == 10:
                 self.execute()
+            elif ord(key) == 8:
+                self.window.input.key_backspace()
             else:
                 if ord(key) > 190 and ord(key) < 225:
                     key = key+stdscr.getkey()
@@ -250,7 +253,7 @@ class Gui(object):
             if command in self.commands.keys():
                 func = self.commands[command]
                 func(args)
-            return
+                return
         if self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
 	self.window.input.refresh()

@@ -96,7 +96,9 @@ class Connection(Thread):
 
     def process(self, timeout=10):
         if self.online:
-            self.client.Process(timeout)
+            try:self.client.Process(timeout)
+            except:
+                pass
         else:
             log.warning('disconnecting...')
             sys.exit()
