@@ -85,7 +85,7 @@ class Room(object):
         role = stanza.getRole()
         if not self.joined:
              self.users.append(User(nick, affiliation, show, status, role))
-             if nick.encode('utf-8') == self.own_nick.encode('utf-8'):
+             if nick.encode('utf-8') == self.own_nick:
                  self.joined = True
              return self.add_info("%s is in the room" % (nick))
         change_nick = stanza.getStatusCode() == '303'
