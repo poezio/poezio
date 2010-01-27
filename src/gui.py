@@ -69,16 +69,17 @@ class Room(object):
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
-        lines = msg.split('\n')
+        # lines = msg.split('\n')
         # first line has the nick and timestamp but others don't
-        self.lines.append((datetime.now(), nick.encode('utf-8'), lines.pop(0).encode('utf-8')))
-        if len(lines) > 0:
-            for line in lines:
-                self.lines.append((line.encode('utf-8')))
+        self.lines.append((datetime.now(), nick.encode('utf-8'), msg.encode('utf-8')))
+        # if len(lines) > 0:
+        #     for line in lines:
+        #         self.lines.append((line.encode('utf-8')))
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
         self.lines.append((datetime.now(), info.encode('utf-8')))
+        return info.encode('utf-8')
 
     def on_presence(self, stanza, nick):
         """
@@ -89,26 +90,22 @@ class Room(object):
         role = stanza.getRole()
         if not self.joined:
              self.users.append(User(nick, affiliation, show, status, role))
-             if nick == self.own_nick:
+             if nick.encode('utf-8') == self.own_nick.encode('utf-8'):
                  self.joined = True
-             self.add_info("%s is in the room" % (nick))
-             return
+             return self.add_info("%s is in the room" % (nick))
         change_nick = stanza.getStatusCode() == '303'
         for user in self.users:
-            if user.nick == nick:
+            if user.nick.encode('utf-8') == nick.encode('utf-8'):
                 if change_nick:
                     user.change_nick(stanza.getNick())
-                    self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
-                    return
+                    return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
                 if status == 'offline' or role == 'none':
                     self.users.remove(user)
-                    self.add_info('%s has left the room' % (nick))
-                    return
+                    return self.add_info('%s has left the room' % (nick))
                 user.update(affiliation, show, status, role)
-                self.add_info('%s, status : %s, %s, %s, %s' % (nick, affiliation, role, show, status))
-                return
+                return self.add_info('%s, status : %s, %s, %s, %s' % (nick, affiliation, role, show, status))
         self.users.append(User(nick, affiliation, show, status, role))
-        self.add_info('%s joined the room %s' % (nick, self.name))
+        return self.add_info('%s joined the room %s' % (nick, self.name))
 
 class Gui(object):
     """
@@ -118,9 +115,10 @@ class Gui(object):
 
         self.init_curses(stdscr)
         self.stdscr = stdscr
-        self.stdscr.leaveok(True)
+        self.stdscr.leaveok(1)
         self.rooms = [Room('Info', '')]         # current_room is self.rooms[0]
         self.window = Window(stdscr)
+        self.window.text_win.new_win('Info')
         self.window.refresh(self.rooms[0])
 
         self.muc = muc
@@ -162,20 +160,24 @@ class Gui(object):
 
     def reset_curses(self):
 	curses.echo()
+        curses.endwin()
 
     def on_connected(self):
         pass
 
     def join_room(self, room, nick):
+        self.window.text_win.new_win(room)
         self.rooms.insert(0, Room(room, nick))
         self.window.refresh(self.current_room())
 
     def rotate_rooms_left(self, args):
         self.rooms.append(self.rooms.pop(0))
+        self.stdscr.touchwin()
         self.window.refresh(self.current_room())
 
     def rotate_rooms_right(self, args):
         self.rooms.insert(0, self.rooms.pop())
+#        self.stdscr.touchwin()
         self.window.refresh(self.current_room())
 
     def room_message(self, stanza):
@@ -194,9 +196,9 @@ class Gui(object):
             room.add_info("%s changed the subject to: %s" % (nick_from, stanza.getSubject()))
         else:
             room.add_message(nick_from, body)
+            self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8')))
         if room == self.current_room():
-            self.window.text_win.refresh(room.lines, room.users)
-            self.window.user_win.refresh(room.users)
+            self.window.text_win.refresh(room.name)
             self.window.input.refresh()
             curses.doupdate()
 
@@ -206,9 +208,10 @@ class Gui(object):
 	room = self.get_room_by_name(from_room)
 	if not room:
 	    return logger.warning("presence received for a non-existing room: %s" % (name))
-        room.on_presence(stanza, from_nick)
+        msg = room.on_presence(stanza, from_nick)
+        self.window.text_win.add_line(room, (datetime.now(), msg))
         if room == self.current_room():
-	        self.window.text_win.refresh(room.lines, room.users)
+	        self.window.text_win.refresh(room.name)
                 self.window.user_win.refresh(room.users)
                 curses.doupdate()
 
@@ -240,10 +243,24 @@ class Gui(object):
     def main_loop(self, stdscr):
         while 1:
             curses.doupdate()
-            key = stdscr.getch()
-            if key == curses.KEY_RESIZE:
+            key = stdscr.getkey()
+            if ord(key) == 195:
+                n = stdscr.getkey()
+                key = key+n
+                self.window.input.win.addstr(key)
+                self.window.input.add_char(key)
+                self.window.input.win.refresh()
+            elif ord(key) == 226:
+                n = stdscr.getkey()
+                m = stdscr.getkey()
+                key = key+n+m
+                self.window.input.win.addstr(key)
+                self.window.input.add_char(key)
+                self.window.input.win.refresh()
+
+            elif key == curses.KEY_RESIZE:
                 self.window.resize(stdscr)
-            elif key == 10:
+            elif ord(key) == 10:
                 self.execute()
             else:
-                self.window.do_command(key)
+                self.window.do_command(ord(key))

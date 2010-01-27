@@ -21,7 +21,7 @@ import curses
 from logging import logger
 
 def get_next_line(str, length):
-    pos = str.rfind(' ', 0, 30)
+    pos = str.rfind(' ', 0, length)
     if pos == -1:
         return str[:length], str[length:]
     else:
@@ -45,6 +45,8 @@ class Win(object):
             self.win = parent_win.subwin(height, width, y, x)
         except:
             pass
+    def refresh(self):
+        self.win.noutrefresh()
 
 class UserList(Win):
     def __init__(self, height, width, y, x, parent_win):
@@ -63,12 +65,15 @@ class UserList(Win):
         self.win.attroff(curses.color_pair(2))
         y = 0
         for user in users:
-            color = self.color_dict[user.role]
+            try:
+                color = self.color_dict[user.role]
+            except:
+                color = 1
             self.win.attron(curses.color_pair(color))
             self.win.addstr(y, 1, user.nick)
             self.win.attroff(curses.color_pair(color))
             y += 1
-        self.win.noutrefresh()
+        self.win.refresh()
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -84,48 +89,70 @@ class Info(Win):
         self.win.clear()
         self.win.addstr(0, 0, room_name + " "*(self.width-len(room_name)-1)
                         , curses.color_pair(1))
-        self.win.noutrefresh()
+        self.win.refresh()
 
-class TextWin(Win):
+class TextWin(object):
+    """
+    keep a dict of {winname: window}
+    when a new message is received in a room, just add
+    the line at the bottom (and scroll if needed)
+    when the current room is changed, just refresh the
+    associated window
+    When the term is resized, rebuild ALL the windows
+    (the complete lines lists are keeped in the Room class)
+    """
     def __init__(self, height, width, y, x, parent_win):
-        Win.__init__(self, height, width, y, x, parent_win)
-        self.win.idlok(True)
-        self.pos = 0
+        self.height = height
+        self.width = width
+        self.y = y
+        self.x = x
+        self.parent_win = parent_win
+        self.wins = {}
 
-    def refresh(self, lines, users):
-        self.win.clear()
-        y = 0
-        # logger.info(str(self.height))
-        # logger.info(str(lines[-self.height/2:]))
-        for line in lines[-self.height:]: # FIXME
-            if len(line) == 2:
-                try:
-                    self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] *" + line[1]+"*")
-                except:
-                    logger.error(str(line))
-                    raise
-                y += 1
-            elif len(line) == 3:
-                for user in users:
-                    if user.nick == line[1]:
-                        break
-                self.win.addstr(y, 0, '['+line[0].strftime("%H:%M:%S") + "] <")
-                length = len('['+line[0].strftime("%H:%M:%S") + "] <")
-                self.win.attron(curses.color_pair(user.color))
-                self.win.addstr(y, length,line[1])
-                self.win.attroff(curses.color_pair(user.color))
-                self.win.addstr(y, length+len(line[1]), ">: ")
-                remaining_width = self.width-(length+len(line[1])+3)
-                tab = cut_line(line[2], remaining_width-1)
-                for l in tab:
-                    try:
-                        self.win.addstr(y, length+len(line[1])+3, l)
-                        y += 1
-                    except:pass
-            elif len(line) == 1:
-                self.win.addstr(y, 0, line[0])
-                y += 1
-        self.win.noutrefresh()
+    def rebuild(self, lines):
+        """
+        called when the terminal is resized.
+        resize all the windows, clear them and rewrite
+        the lines in them
+        """
+        pass # TODO
+
+    def redraw(self, room):
+        """
+        called when the buffer changes or is
+        resized (a complete redraw is needed)
+        """
+        win = self.wins[room.name].win
+        win.clear()
+        win.move(0, 0)
+        for line in room.lines:
+            self.add_line(room, line)
+
+    def refresh(self, winname):
+        self.wins[winname].refresh()
+
+    def add_line(self, room, line):
+        win = self.wins[room.name].win
+        users = room.users
+        if len(line) == 2:
+            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] *" + line[1]+"*")
+        elif len(line) == 3:
+            for user in users:
+                if user.nick == line[1]:
+                    break
+            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
+            length = len('['+line[0].strftime("%H:%M:%S") + "] <")
+            win.attron(curses.color_pair(user.color))
+            win.addstr(line[1])
+            win.attroff(curses.color_pair(user.color))
+            win.addstr("> ")
+            win.addstr(line[2])
+
+    def new_win(self, winname):
+        newwin = Win(self.height, self.width, self.y, self.x, self.parent_win)
+        newwin.win.idlok(True)
+        newwin.win.scrollok(True)
+        self.wins[winname] = newwin
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -137,6 +164,8 @@ class Input(Win):
         Win.__init__(self, height, width, y, x, stdscr)
         self.input = curses.textpad.Textbox(self.win)
         self.input.insert_mode = True
+        self.win.keypad(True)
+        self.text = ''
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -144,16 +173,23 @@ class Input(Win):
         self.input.insert_mode = True
         self.win.clear()
 
+    def add_char(self, char):
+        self.text += char
+
     def do_command(self, key):
+        self.text += chr(key)
         self.input.do_command(key)
 
     def get_text(self):
-        return self.input.gather()
+        txt = self.text
+        self.text = ''
+        return txt
 
     def save_text(self):
         self.txt = self.input.gather()
 
     def refresh(self):
+#        return
         self.win.noutrefresh()
 
     def clear_text(self):
@@ -180,7 +216,6 @@ class Window(object):
         self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
         self.text_win = TextWin(self.height-3, (self.width/7)*6, 1, 0, stdscr)
         self.input = Input(1, self.width, self.height-1, 0, stdscr)
-        # debug
 
     def resize(self, stdscr):
         """
@@ -194,7 +229,8 @@ class Window(object):
         self.input.resize(1, self.width, self.height-1, 0, stdscr)
 
     def refresh(self, room):
-        self.text_win.refresh(room.lines, room.users)
+        self.text_win.redraw(room)
+        self.text_win.refresh(room.name)
         self.user_win.refresh(room.users)
         self.topic_win.refresh(room.topic)
         self.info_win.refresh(room.name)
