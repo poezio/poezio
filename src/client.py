@@ -25,6 +25,8 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
+sys.stderr = open('/dev/null', 'a')
+
 class Client(object):
     """
     Main class

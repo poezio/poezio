@@ -69,12 +69,7 @@ class Room(object):
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
-        # lines = msg.split('\n')
-        # first line has the nick and timestamp but others don't
         self.lines.append((datetime.now(), nick.encode('utf-8'), msg.encode('utf-8')))
-        # if len(lines) > 0:
-        #     for line in lines:
-        #         self.lines.append((line.encode('utf-8')))
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
@@ -130,11 +125,39 @@ class Gui(object):
             'prev': self.rotate_rooms_right,
             }
 
+        self.key_func = {
+            "KEY_LEFT": self.window.input.key_left,
+            "KEY_RIGHT": self.window.input.key_right,
+            "KEY_UP": self.window.input.key_up,
+            "KEY_END": self.window.input.key_end,
+            "KEY_HOME": self.window.input.key_home,
+            "KEY_DOWN": self.window.input.key_down,
+            "KEY_BACKSPACE": self.window.input.key_backspace
+            }
+
         self.handler = Handler()
         self.handler.connect('on-connected', self.on_connected)
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+
+    def main_loop(self, stdscr):
+        while 1:
+            curses.doupdate()
+            key = stdscr.getkey()
+            if key == curses.KEY_RESIZE:
+                self.window.resize(stdscr)
+            elif str(key) in self.key_func.keys():
+                self.key_func[key]()
+            elif ord(key) == 10:
+                self.execute()
+            else:
+                if ord(key) > 190 and ord(key) < 225:
+                    key = key+stdscr.getkey()
+                elif ord(key) == 226:
+                    key = key+stdscr.getkey()
+                    key = key+stdscr.getkey()
+                self.window.do_command(key)
 
     def current_room(self):
 	return self.rooms[0]
@@ -148,6 +171,7 @@ class Gui(object):
     def init_curses(self, stdscr):
         curses.start_color()
         curses.noecho()
+        stdscr.keypad(True)
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) # Admin
@@ -209,11 +233,11 @@ class Gui(object):
 	if not room:
 	    return logger.warning("presence received for a non-existing room: %s" % (name))
         msg = room.on_presence(stanza, from_nick)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
         if room == self.current_room():
-	        self.window.text_win.refresh(room.name)
-                self.window.user_win.refresh(room.users)
-                curses.doupdate()
+            self.window.text_win.add_line(room, (datetime.now(), msg))
+            self.window.text_win.refresh(room.name)
+            self.window.user_win.refresh(room.users)
+            curses.doupdate()
 
     def execute(self):
         line = self.window.input.get_text()
@@ -239,28 +263,3 @@ class Gui(object):
     def command_quit(self, args):
 	self.reset_curses()
         sys.exit()
-
-    def main_loop(self, stdscr):
-        while 1:
-            curses.doupdate()
-            key = stdscr.getkey()
-            if ord(key) == 195:
-                n = stdscr.getkey()
-                key = key+n
-                self.window.input.win.addstr(key)
-                self.window.input.add_char(key)
-                self.window.input.win.refresh()
-            elif ord(key) == 226:
-                n = stdscr.getkey()
-                m = stdscr.getkey()
-                key = key+n+m
-                self.window.input.win.addstr(key)
-                self.window.input.add_char(key)
-                self.window.input.win.refresh()
-
-            elif key == curses.KEY_RESIZE:
-                self.window.resize(stdscr)
-            elif ord(key) == 10:
-                self.execute()
-            else:
-                self.window.do_command(ord(key))

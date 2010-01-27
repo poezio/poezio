@@ -162,10 +162,12 @@ class Input(Win):
     """
     def __init__(self, height, width, y, x, stdscr):
         Win.__init__(self, height, width, y, x, stdscr)
-        self.input = curses.textpad.Textbox(self.win)
-        self.input.insert_mode = True
-        self.win.keypad(True)
-        self.text = ''
+        # self.input = curses.textpad.Textbox(self.win)
+        # self.input.insert_mode = True
+        self.history = []
+        self.text = u''
+        self.pos = 0
+        self.histo_pos = 0
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
@@ -173,16 +175,73 @@ class Input(Win):
         self.input.insert_mode = True
         self.win.clear()
 
-    def add_char(self, char):
-        self.text += char
+    def key_up(self):
+        self.win.clear()
+        if self.histo_pos >= 0:
+            self.histo_pos -= 1
+        self.win.addstr(self.history[self.histo_pos+1])
+        self.text = self.history[self.histo_pos+1]
+        self.pos = len(self.text)
+        self.refresh()
+
+    def key_down(self):
+        self.win.clear()
+        if self.histo_pos < len(self.history)-1:
+            self.histo_pos += 1
+            self.win.addstr(self.history[self.histo_pos])
+            self.text = self.history[self.histo_pos]
+            self.pos = len(self.text)
+        else:
+            self.histo_pos = len(self.history)-1
+            self.text = u''
+            self.pos = 0
+        self.refresh()
+
+    def key_home(self):
+        self.pos = 0
+        self.win.move(0, 0)
+        self.refresh()
+
+    def key_end(self):
+        self.pos = len(self.text)
+        self.win.move(0, len(self.text))
+        self.refresh()
+
+    def key_left(self):
+        (y, x) = self.win.getyx()
+        if self.pos > 0:
+            self.pos -= 1
+            self.win.move(y, x-1)
+            self.refresh()
+
+    def key_right(self):
+        (y, x) = self.win.getyx()
+        if self.pos < len(self.text):
+            self.pos += 1
+            self.win.move(y, x+1)
+            self.refresh()
+
+    def key_backspace(self):
+        (y, x) = self.win.getyx()
+        if len(self.text) > 0 and self.pos != 0:
+            self.text = self.text[:self.pos-1]+self.text[self.pos:]
+            self.pos -= 1
+            self.win.delch(y, x-1)
+            self.refresh()
 
     def do_command(self, key):
-        self.text += chr(key)
-        self.input.do_command(key)
+        (y, x) = self.win.getyx()
+        self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]
+        self.win.insstr(key)
+        self.win.move(y, x+1)
+        self.pos += 1
 
     def get_text(self):
         txt = self.text
-        self.text = ''
+        self.text = u''
+        self.pos = 0
+        self.history.append(txt)
+        self.histo_pos = len(self.history)-1
         return txt
 
     def save_text(self):
