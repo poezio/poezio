@@ -240,6 +240,10 @@ class Input(Win):
 
     def do_command(self, key):
         (y, x) = self.win.getyx()
+        if x == self.width-1:
+            self.win.delch(0, 0)
+            self.win.move(y, x)
+            x -= 1
         try:
             self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]
             self.win.insstr(key)
@@ -247,6 +251,7 @@ class Input(Win):
             return
         self.win.move(y, x+1)
         self.pos += 1
+        self.refresh()
 
     def get_text(self):
         txt = self.text
@@ -260,7 +265,6 @@ class Input(Win):
         self.txt = self.input.gather()
 
     def refresh(self):
-#        return
         self.win.noutrefresh()
 
     def clear_text(self):
