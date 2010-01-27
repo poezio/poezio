@@ -25,8 +25,10 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
-if len(sys.argv) == 1:          # not debug, so hide any error message
+if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
+    import signal
     sys.stderr = open('/dev/null', 'a')
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 class Client(object):
     """

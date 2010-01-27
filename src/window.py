@@ -164,8 +164,6 @@ class Input(Win):
     """
     def __init__(self, height, width, y, x, stdscr):
         Win.__init__(self, height, width, y, x, stdscr)
-        # self.input = curses.textpad.Textbox(self.win)
-        # self.input.insert_mode = True
         self.history = []
         self.text = u''
         self.pos = 0

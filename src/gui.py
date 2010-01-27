@@ -154,6 +154,8 @@ class Gui(object):
                 self.execute()
             elif ord(key) == 8 or ord(key) == 127:
                 self.window.input.key_backspace()
+            elif ord(key) < 32:
+                continue
             else:
                 if ord(key) == 27 and ord(stdscr.getkey()) == 91 \
                         and ord(stdscr.getkey()) == 51: # FIXME: ugly ugly workaroung.
@@ -202,12 +204,10 @@ class Gui(object):
 
     def rotate_rooms_left(self, args):
         self.rooms.append(self.rooms.pop(0))
-        self.stdscr.touchwin()
         self.window.refresh(self.current_room())
 
     def rotate_rooms_right(self, args):
         self.rooms.insert(0, self.rooms.pop())
-#        self.stdscr.touchwin()
         self.window.refresh(self.current_room())
 
     def room_message(self, stanza):

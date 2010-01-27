@@ -77,6 +77,7 @@ class Connection(Thread):
         self.client.RegisterHandler('message', self.handler_message)
         self.client.RegisterHandler('presence', self.handler_presence)
         self.client.RegisterHandler('iq',         self.handler_iq)
+        self.client.RegisterHandler('error',         self.handler_error)
 
     def handler_presence(self, connection, presence):
         fro = presence.getFrom()
@@ -93,6 +94,11 @@ class Connection(Thread):
 
     def handler_iq(self, connection, iq):
         pass
+
+    def handler_error(self, connection, error):
+        import sys
+        print "TOUCHE FION"
+        sys.exit()
 
     def process(self, timeout=10):
         if self.online:
