@@ -276,7 +276,7 @@ class Gui(object):
         self.window.input.clear_text()
         if line == "":
             return
-        if line.strip().startswith('/'):
+        if line.startswith('/'):
             command = line.strip()[:].split()[0][1:]
             args = line.strip()[:].split()[1:]
             if command in self.commands.keys():
@@ -299,7 +299,8 @@ class Gui(object):
     def information(self, msg):
         room = self.get_room_by_name("Info")
         info = room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), info))
+        if self.current_room() == room:
+            self.window.text_win.add_line(room, (datetime.now(), info))
 
     def command_quit(self, args):
 	self.reset_curses()

@@ -27,7 +27,7 @@ from curses import wrapper, initscr
 
 if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
     import signal
-    sys.stderr = open('/dev/null', 'a')
+    sys.stderr = open('logs', 'a')
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 class Client(object):
