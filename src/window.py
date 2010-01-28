@@ -1,4 +1,4 @@
-$#!/usr/bin/python
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 #
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
