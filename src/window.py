@@ -297,10 +297,10 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        self.user_win.resize(self.height-3, self.width/7, 1, 6*(self.width/7), stdscr)
+        self.user_win.resize(self.height-3, self.width/9, 1, 11*(self.width/12), stdscr)
         self.topic_win.resize(1, self.width, 0, 0, stdscr)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr)
-        self.text_win.resize(self.height-3, (self.width/7)*6, 1, 0, stdscr)
+        self.text_win.resize(self.height-3, (self.width/12)*11, 1, 0, stdscr)
         self.input.resize(1, self.width, self.height-1, 0, stdscr)
 
     def refresh(self, room):

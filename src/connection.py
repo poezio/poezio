@@ -85,7 +85,7 @@ class Connection(Thread):
         if fro == to:           # own presence
             self.online = 2
             self.jid = to
-            self.handler.emit('on-connected')
+            self.handler.emit('on-connected', jid=fro)
             return
         self.handler.emit('room-presence', stanza=presence)
 
@@ -93,12 +93,12 @@ class Connection(Thread):
         self.handler.emit('room-message', stanza=message)
 
     def handler_iq(self, connection, iq):
-        pass
+        self.handler.emit('room-iq', stanza=iq)
 
     def handler_error(self, connection, error):
-        import sys
-        print "TOUCHE FION"
+        print "fion"
         sys.exit()
+#        self.handler.emit('room-iq', stanza=iq)
 
     def process(self, timeout=10):
         if self.online:

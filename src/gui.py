@@ -96,13 +96,23 @@ class Room(object):
                     user.change_nick(stanza.getNick())
                     return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
                 if kick:
+                    self.users.remove(user)
                     reason = stanza.getReason().encode('utf-8') or ''
-                    by = stanza.getActor().encode('utf-8') or ''
+                    try:
+                        by = stanza.getActor().encode('utf-8')
+                    except:
+                        by = None
                     if nick == self.own_nick:
                         self.joined = False
-                        return self.add_info('You have been kicked by %s. Reason: %s' % (by, reason))
+                        if by:
+                            return self.add_info('You have been kicked by %s. Reason: %s' % (by, reason))
+                        else:
+                            return self.add_info('You have been kicked. Reason: %s' % (reason))
                     else:
-                        return self.add_info('%s has been kicked by %s. Reason: %s' % (nick, by, reason))
+                        if by:
+                            return self.add_info('%s has been kicked by %s. Reason: %s' % (nick, by, reason))
+                        else:
+                            return self.add_info('%s has been kicked. Reason: %s' % (nick, reason))
                 if status == 'offline' or role == 'none':
                     self.users.remove(user)
                     return self.add_info('%s has left the room' % (nick))
@@ -154,6 +164,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+        self.handler.connect('room-iq', self.room_iq)
 
     def main_loop(self, stdscr):
         while 1:
@@ -211,8 +222,9 @@ class Gui(object):
 	curses.echo()
         curses.endwin()
 
-    def on_connected(self):
+    def on_connected(self, jid):
         self.information("Welcome on Poezio \o/ !")
+        self.information("Your JID is %s" % jid)
         pass
 
     def join_room(self, room, nick):
@@ -229,6 +241,8 @@ class Gui(object):
         self.window.refresh(self.current_room())
 
     def room_message(self, stanza):
+        if len(sys.argv) > 1:
+            self.information(str(stanza))
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
         room_from = stanza.getFrom().getStripped()
@@ -263,13 +277,17 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
-	    return logger.warning("presence received for a non-existing room: %s" % (name))
+	    self.information("presence received for a non-existing room: %s" % (name))
         msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
             self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             curses.doupdate()
+
+    def room_iq(self, iq):
+        if len(sys.argv) > 1:
+            self.information(str(iq))
 
     def execute(self):
         line = self.window.input.get_text()
@@ -301,6 +319,8 @@ class Gui(object):
         info = room.add_info(msg)
         if self.current_room() == room:
             self.window.text_win.add_line(room, (datetime.now(), info))
+            self.window.text_win.refresh(room.name)
+            curses.doupdate()
 
     def command_quit(self, args):
 	self.reset_curses()

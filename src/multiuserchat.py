@@ -17,7 +17,7 @@
 
 # Implementation of the XEP-0045: Multi-User Chat.
 
-from xmpp import NS_MUC_ADMIN
+from xmpp import NS_MUC_ADMIN, NS_MUC
 from xmpp.protocol import Presence, Iq, Message, JID
 
 from handler import Handler
@@ -41,11 +41,14 @@ class MultiUserChat(object):
         self.rooms = []
         self.rn = {}
 
+        self.own_jid = None
+
         self.handler = Handler()
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('on-connected', self.on_connected)
 
-    def on_connected(self):
+    def on_connected(self, jid):
+        self.own_jid = jid
         rooms = config.get('rooms', '')
         if rooms == '':
             return
@@ -67,6 +70,9 @@ class MultiUserChat(object):
         self.rn[room] = nick
 
         pres = Presence(to='%s/%s' % (room, nick))
+        pres.setFrom('%s'%self.own_jid)
+        pres.addChild(name='x', namespace=NS_MUC)
+        open('fion', 'w').write(str(pres))
         self.connection.send(pres)
 
     def quit_room(self, room, nick):

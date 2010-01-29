@@ -32,6 +32,7 @@ class Handler(Singleton):
                 'on-connected': list(),
                 # At the end of a successful connection process.
                 # emitted when presence confirmation is received
+                # Args: jid
 
                 'join-room': list(),
                 # Join a room.
@@ -43,6 +44,10 @@ class Handler(Singleton):
 
                 'room-message': list(),
                 # A message is received
+                # Args: the stanza object
+
+                'room-iq': list(),
+                # An iq is received
                 # Args: the stanza object
 
                 # 'xmpp-presence-handler': list(),
