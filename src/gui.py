@@ -67,6 +67,10 @@ class Room(object):
         self.lines = []         # (time, nick, msg) or (time, info)
         self.topic = ''
 
+    def disconnect(self):
+        self.joined = False
+        self.users = []
+
     def add_message(self, nick, msg):
         if not msg:
             logger.info('msg is None..., %s' % (nick))
@@ -78,6 +82,16 @@ class Room(object):
         self.lines.append((datetime.now(), info.encode('utf-8')))
         return info.encode('utf-8')
 
+    def get_user_by_name(self, nick):
+        fd = open('fion', 'w')
+        fd.write(nick)
+        # fd.write('Looking for %s\n' % nick)
+        for user in self.users:
+            # fd.write(user.nick)
+            if user.nick == nick:
+                return user
+        return None
+
     def on_presence(self, stanza, nick):
         """
         """
@@ -85,46 +99,51 @@ class Room(object):
         show = stanza.getShow()
         status = stanza.getStatus()
         role = stanza.getRole()
-        if not self.joined:
+        if not self.joined:     # user in the room BEFORE us.
              self.users.append(User(nick, affiliation, show, status, role))
              if nick.encode('utf-8') == self.own_nick:
                  self.joined = True
              return self.add_info("%s is in the room" % (nick))
         change_nick = stanza.getStatusCode() == '303'
         kick = stanza.getStatusCode() == '307'
-        for user in self.users:
-            if user.nick == nick:
-                if change_nick:
-                    if  user.nick == self.own_nick:
-                        self.own_nick = stanza.getNick().encode('utf-8')
-                    user.change_nick(stanza.getNick())
+        user = self.get_user_by_name(nick)
+        # New user
+        if not user:
+            self.users.append(User(nick, affiliation, show, status, role))
+            return self.add_info('%s joined the room %s' % (nick, self.name))
+        # nick change
+        if change_nick:
+            if user.nick == self.own_nick:
+                self.own_nick = stanza.getNick().encode('utf-8')
+            user.change_nick(stanza.getNick())
+            return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
+        # kick
+        if kick:
+            self.users.remove(user)
+            reason = stanza.getReason().encode('utf-8') or ''
+            try:
+                by = stanza.getActor().encode('utf-8')
+            except:
+                by = None
+            if nick == self.own_nick:
+                self.disconnect()
+                if by:
+                    return self.add_info('You have been kicked by %s. Reason: %s' % (by, reason))
+                else:
+                    return self.add_info('You have been kicked. Reason: %s' % (reason))
+            else:
+                if by:
+                    return self.add_info('%s has been kicked by %s. Reason: %s' % (nick, by, reason))
+                else:
+                    return self.add_info('%s has been kicked. Reason: %s' % (nick, reason))
+        # user quit
+        if status == 'offline' or role == 'none':
+            self.users.remove(user)
+            return self.add_info('%s has left the room' % (nick))
+        # status change
+        user.update(affiliation, show, status, role)
+        return self.add_info('%s, status : %s, %s, %s, %s' % (nick, affiliation, role, show, status))
 
-                    return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
-                if kick:
-                    self.users.remove(user)
-                    reason = stanza.getReason().encode('utf-8') or ''
-                    try:
-                        by = stanza.getActor().encode('utf-8')
-                    except:
-                        by = None
-                    if nick == self.own_nick:
-                        self.joined = False
-                        if by:
-                            return self.add_info('You have been kicked by %s. Reason: %s' % (by, reason))
-                        else:
-                            return self.add_info('You have been kicked. Reason: %s' % (reason))
-                    else:
-                        if by:
-                            return self.add_info('%s has been kicked by %s. Reason: %s' % (nick, by, reason))
-                        else:
-                            return self.add_info('%s has been kicked. Reason: %s' % (nick, reason))
-                if status == 'offline' or role == 'none':
-                    self.users.remove(user)
-                    return self.add_info('%s has left the room' % (nick))
-                user.update(affiliation, show, status, role)
-                return self.add_info('%s, status : %s, %s, %s, %s' % (nick, affiliation, role, show, status))
-        self.users.append(User(nick, affiliation, show, status, role))
-        return self.add_info('%s joined the room %s' % (nick, self.name))
 
 class Gui(object):
     """
@@ -147,7 +166,8 @@ class Gui(object):
             'quit': self.command_quit,
             'next': self.rotate_rooms_left,
             'prev': self.rotate_rooms_right,
-            'nick': self.command_nick,
+            'part': self.command_part,
+            'nick': self.command_nick
             }
 
         self.key_func = {
@@ -289,6 +309,7 @@ class Gui(object):
             self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
+            self.window.text_win.refresh()
             curses.doupdate()
 
     def room_iq(self, iq):
@@ -314,19 +335,45 @@ class Gui(object):
 	self.window.input.refresh()
 
     def command_join(self, args):
-        info = args[0].split('/')
-        if len(info) == 1:
-            nick = config.get('default_nick', 'Poezio')
+        if len(args) == 0:
+            r = self.current_room()
+            if r.name == 'Info':
+                return
+            room = r.name
+            nick = r.own_nick
         else:
-            nick = info[1]
-        room = info[0]
-        r = self.get_room_by_name(room)
+            info = args[0].split('/')
+            if len(info) == 1:
+                nick = config.get('default_nick', 'Poezio')
+            else:
+                nick = info[1]
+            if info[0] == '':   # happens with /join /nickname, wich is OK
+                r = self.current_room()
+                if r.name == 'Info':
+                    return
+                room = r.name
+            else:
+                room = info[0]
+            r = self.get_room_by_name(room)
         if r and r.joined:                   # if we are already in the room
             self.information("already in room [%s]" % room)
             return
         self.muc.join_room(room, nick)
-        if not r: # if the room window exist, we don't recreate it.
+        if not r: # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
+
+    def command_part(self, args):
+        reason = None
+        room = self.current_room()
+        if room.name == 'Info':
+            return
+        if len(args):
+            msg = ' '.join(args)
+        else:
+            msg = None
+        self.muc.quit_room(room.name, room.own_nick, msg)
+        self.rooms.remove(self.current_room())
+        self.window.refresh(self.current_room())
 
     def command_nick(self, args):
         if len(args) != 1:

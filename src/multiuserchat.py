@@ -77,17 +77,16 @@ class MultiUserChat(object):
             pres.addChild(name='x', namespace=NS_MUC)
         self.connection.send(pres)
 
-    def quit_room(self, room, nick):
+    def quit_room(self, room, nick, msg=None):
         """Quit a room"""
         if room is None and nick is None:
             self.on_disconnect()
             return
 
         pres = Presence(to='%s/%s' % (room, nick), typ='unavailable')
+        if msg:
+            pres.setStatus(msg)
         self.connection.send(pres)
-
-        self.rooms.remove(unicode(room))
-        del self.rn[room]
 
     def on_disconnect(self):
         """Called at disconnection"""
@@ -95,9 +94,6 @@ class MultiUserChat(object):
             pres = Presence(to='%s/%s' % (room, self.rn[room]),
                             typ='unavailable')
             self.connection.send(pres)
-
-        self.rooms = []
-        self.rn = {}
 
     def on_iq(self, iq):
         """Receive a MUC iq notification"""
