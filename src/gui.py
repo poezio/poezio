@@ -95,7 +95,10 @@ class Room(object):
         for user in self.users:
             if user.nick == nick:
                 if change_nick:
+                    if  user.nick == self.own_nick:
+                        self.own_nick = stanza.getNick().encode('utf-8')
                     user.change_nick(stanza.getNick())
+
                     return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
                 if kick:
                     self.users.remove(user)
@@ -144,6 +147,7 @@ class Gui(object):
             'quit': self.command_quit,
             'next': self.rotate_rooms_left,
             'prev': self.rotate_rooms_right,
+            'nick': self.command_nick,
             }
 
         self.key_func = {
@@ -294,6 +298,7 @@ class Gui(object):
     def execute(self):
         line = self.window.input.get_text()
         self.window.input.clear_text()
+        self.window.input.refresh()
         curses.doupdate()
         if line == "":
             return
@@ -322,6 +327,15 @@ class Gui(object):
         self.muc.join_room(room, nick)
         if not r: # if the room window exist, we don't recreate it.
             self.join_room(room, nick)
+
+    def command_nick(self, args):
+        if len(args) != 1:
+            return
+        nick = args[0]
+        room = self.current_room()
+        if not room.joined or room.name == "Info":
+            return
+        self.muc.change_nick(room.name, nick)
 
     def information(self, msg):
         room = self.get_room_by_name("Info")

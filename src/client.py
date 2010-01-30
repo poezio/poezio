@@ -25,7 +25,7 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
-sys.stderr = open('logs', 'a')
+# sys.stderr = open('logs', 'a')
 if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
     import signal
     signal.signal(signal.SIGINT, signal.SIG_IGN)
