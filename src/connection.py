@@ -98,7 +98,6 @@ class Connection(Thread):
     def handler_error(self, connection, error):
         print "fion"
         sys.exit()
-#        self.handler.emit('room-iq', stanza=iq)
 
     def process(self, timeout=10):
         if self.online:

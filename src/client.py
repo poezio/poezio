@@ -25,9 +25,9 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
+sys.stderr = open('logs', 'a')
 if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
     import signal
-    sys.stderr = open('logs', 'a')
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 class Client(object):

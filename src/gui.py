@@ -28,6 +28,8 @@ from logging import logger
 
 from random import randrange
 
+from config import config
+
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
@@ -292,6 +294,7 @@ class Gui(object):
     def execute(self):
         line = self.window.input.get_text()
         self.window.input.clear_text()
+        curses.doupdate()
         if line == "":
             return
         if line.startswith('/'):
@@ -306,13 +309,19 @@ class Gui(object):
 	self.window.input.refresh()
 
     def command_join(self, args):
-        room = args[0]
+        info = args[0].split('/')
+        if len(info) == 1:
+            nick = config.get('default_nick', 'Poezio')
+        else:
+            nick = info[1]
+        room = info[0]
         r = self.get_room_by_name(room)
-        if r:                   # if we are already in the room
+        if r and r.joined:                   # if we are already in the room
             self.information("already in room [%s]" % room)
             return
-        self.muc.join_room(room, "poezio")
-        self.join_room(room, 'poezio')
+        self.muc.join_room(room, nick)
+        if not r: # if the room window exist, we don't recreate it.
+            self.join_room(room, nick)
 
     def information(self, msg):
         room = self.get_room_by_name("Info")

@@ -64,15 +64,17 @@ class MultiUserChat(object):
         mes.setType('groupchat')
         self.connection.send(mes)
 
-    def join_room(self, room, nick):
+    def join_room(self, room, nick, password=None):
         """Join a new room"""
-        self.rooms.append(room)
-        self.rn[room] = nick
+        # self.rooms.append(room)
+        # self.rn[room] = nick
 
         pres = Presence(to='%s/%s' % (room, nick))
         pres.setFrom('%s'%self.own_jid)
-        pres.addChild(name='x', namespace=NS_MUC)
-        open('fion', 'w').write(str(pres))
+        if password:
+            pres.addChild(name='x', namespace=NS_MUC)
+        else:
+            pres.addChild(name='x', namespace=NS_MUC)
         self.connection.send(pres)
 
     def quit_room(self, room, nick):

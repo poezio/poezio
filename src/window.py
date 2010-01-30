@@ -185,6 +185,8 @@ class Input(Win):
         self.refresh()
 
     def key_up(self):
+        if not len(self.history):
+            return
         self.win.clear()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
@@ -194,6 +196,8 @@ class Input(Win):
         self.refresh()
 
     def key_down(self):
+        if not len(self.history):
+            return
         self.win.clear()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
