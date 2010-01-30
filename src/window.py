@@ -135,7 +135,10 @@ class TextWin(object):
         win = self.wins[room.name].win
         users = room.users
         if len(line) == 2:
-            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] *" + line[1]+"*")
+            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] ")
+            win.attron(curses.color_pair(8))
+            win.addstr(line[1])
+            win.attroff(curses.color_pair(8))
         elif len(line) == 3:
             for user in users:
                 if user.nick == line[1]:

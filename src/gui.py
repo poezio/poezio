@@ -162,12 +162,14 @@ class Gui(object):
         self.muc = muc
 
         self.commands = {
-            'join': self.command_join,
-            'quit': self.command_quit,
-            'next': self.rotate_rooms_left,
-            'prev': self.rotate_rooms_right,
-            'part': self.command_part,
-            'nick': self.command_nick
+            'help': (self.command_help, 'OLOL, this is SOOO recursive'),
+            'join': (self.command_join, 'Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join'),
+            'quit': (self.command_quit, 'Usage: /quit\nQuit: Just disconnect from the server and exit poezio.'),
+            'exit': (self.command_quit, 'Usage: /exit\nExit: Just disconnect from the server and exit poezio.'),
+            'next': (self.rotate_rooms_left, 'Usage: /next\nNext: Go to the next room.'),
+            'prev': (self.rotate_rooms_right, 'Usage: /prev\nPrev: Go to the previous room.'),
+            'part': (self.command_part, 'Usage: /part [message]\nPart: disconnect from a room. You can specify an optionnal message.'),
+            'nick': (self.command_nick, 'Usage: /nick <nickname>\nNick: Change your nickname in the current room')
             }
 
         self.key_func = {
@@ -327,12 +329,29 @@ class Gui(object):
             command = line.strip()[:].split()[0][1:]
             args = line.strip()[:].split()[1:]
             if command in self.commands.keys():
-                func = self.commands[command]
+                func = self.commands[command][0]
                 func(args)
                 return
         if self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
 	self.window.input.refresh()
+
+    def command_help(self, args):
+        room = self.current_room()
+        if len(args) == 0:
+            msg = 'Available commands are:'
+            for command in self.commands.keys():
+                msg += "%s " % command
+            msg += "\nType /help <command_name> to know what each command does"
+        if len(args) == 1:
+            if args[0] in self.commands.keys():
+                msg = self.commands[args[0]][1]
+            else:
+                msg = 'Unknown command : %s' % args[0]
+        room.add_info(msg)
+        self.window.text_win.add_line(room, (datetime.now(), msg))
+        self.window.text_win.refresh(room.name)
+        self.window.input.refresh()
 
     def command_join(self, args):
         if len(args) == 0:
@@ -371,7 +390,8 @@ class Gui(object):
             msg = ' '.join(args)
         else:
             msg = None
-        self.muc.quit_room(room.name, room.own_nick, msg)
+        if room.joined:
+            self.muc.quit_room(room.name, room.own_nick, msg)
         self.rooms.remove(self.current_room())
         self.window.refresh(self.current_room())
 
