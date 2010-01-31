@@ -7,16 +7,19 @@ MANDIR=$(DATADIR)/man
 INSTALL=install
 
 all: 	Makefile
+	cd src/xmpppy-0.5.0rc1 && pwd && python setup.py build && cp -r xmpp ..
+
 clean:	Makefile
 
 install:
-	$(INSTALL) -d $(LOCALEDIR) $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src
+	$(INSTALL) -d $(LOCALEDIR) $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src $(DATADIR)/poezio/src/xmpp
 
 	$(INSTALL) -m644 data/* $(DATADIR)/poezio/data/
 
 	for sourcefile in `find src/ -maxdepth 1 -type f | grep -v '.svn' | grep -v '.pyc'` ; do \
 		$(INSTALL) -m644 $$sourcefile $(DATADIR)/poezio/src; \
 	done
+	$(INSTALL) -m644 src/xmpp/* $(DATADIR)/poezio/src/xmpp/
 
 	echo "#!/bin/sh" > $(BINDIR)/poezio
 	echo "cd $(DATADIR)/poezio/src/ && python client.py" >> $(BINDIR)/poezio

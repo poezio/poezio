@@ -65,7 +65,7 @@ class Connection(Thread):
 
     def authenticate(self, anon=True):
         if anon:
-            return self.client.auth(None, None, self.resource)
+            return self.client.auth(None, "", self.resource)
         else:
             log.error('Non-anonymous connections not handled currently')
             return None
