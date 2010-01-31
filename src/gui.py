@@ -84,7 +84,7 @@ class Room(object):
             return info.encode('utf-8')
         except:                 # I JUST FUCKING HATE THIS .encode.decode.shit !!!
             self.lines.append((datetime.now(), info))
-            return info.encode('utf-8')
+            return info
 
     def get_user_by_name(self, nick):
         for user in self.users:
@@ -143,7 +143,7 @@ class Room(object):
             return self.add_info(_('%s has left the room') % (nick))
         # status change
         user.update(affiliation, show, status, role)
-        return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'b':affiliation, 'b':role, 'c':show, 'd':status})
+        return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
 
 
 class Gui(object):
@@ -365,8 +365,8 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
+        msg = room.add_info(msg)
+        self.window.text_win.add_line(room, msg)
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
 

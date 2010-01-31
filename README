@@ -11,6 +11,36 @@ Poezio's commands are design to be (if possible) like well known IRC
 clients (weechat, irssi, mirc).
 
 =======================
+	Install
+=======================
+You just need python
+the xmpppy lib is provided with poezio, as many
+distributions still use xmpppy 0.4.1 which doesn't
+work with anonymous connexion.
+This will be eventually fixed latter on.
+
+Before launching poezio you need to type
+make
+in order to build the xmpppy library.
+
+you can then launch poezio with
+sh launch.sh
+
+or you can install it with (as root or with sudo)
+make install
+(`make uninstall` works, don't worry ;))
+you can then launch poezio
+
+You can edit the config file (~/.config/poezio/poezio.cfg by default)
+or data/default_config.cfg (if you want to edit the config before the
+first launch)
+
+See the online documentation for more information:
+http://codingteam.net/project/poezio/doc
+
+Please DO report any bug that you encounter.
+
+=======================
 	Authors
 =======================
 Florent Le Coz (louiz') <louizatakk@fedoraproject.org> (main developper)
@@ -36,7 +66,6 @@ Please read the COPYING file for details
 =======================
 = People =
  xbright (Handler and MultiUserChat classes)
- chickenzilla (Config class)
 
 ======================
        The code

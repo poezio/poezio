@@ -29,6 +29,7 @@ if len(sys.argv) == 1:          # not debug, so hide any error message and disab
     import signal
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     sys.stderr = open('/dev/null', 'w')
+    sys.stdout = open('/dev/null', 'w')
 
 class Client(object):
     """
