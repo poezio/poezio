@@ -264,7 +264,6 @@ class Gui(object):
     def on_connected(self, jid):
         self.information("Welcome on Poezio \o/ !")
         self.information("Your JID is %s" % jid)
-        fd.close()
 
     def join_room(self, room, nick):
         self.window.text_win.new_win(room)
