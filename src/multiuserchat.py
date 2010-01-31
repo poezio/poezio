@@ -197,3 +197,10 @@ class MultiUserChat(object):
         """Change the nickname"""
         pres = Presence(to='%s/%s' % (room, nick))
         self.connection.send(pres)
+
+    def change_show(self, room, nick, show, status):
+        pres = Presence(to='%s/%s' % (room, nick))
+        pres.setShow(show)
+        if status:
+            pres.setStatus(status)
+        self.connection.send(pres)

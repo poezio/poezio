@@ -169,7 +169,11 @@ class Gui(object):
             'next': (self.rotate_rooms_left, 'Usage: /next\nNext: Go to the next room.'),
             'prev': (self.rotate_rooms_right, 'Usage: /prev\nPrev: Go to the previous room.'),
             'part': (self.command_part, 'Usage: /part [message]\nPart: disconnect from a room. You can specify an optionnal message.'),
-            'show': (self.command_show, 'Usage: /show <show> [status]\nStatus: Change your availability and (optionnaly) your status. The <show> argument is one off "dnd, busy, away, afk, "'),
+            'show': (self.command_show, 'Usage: /show <availability> [status]\nShow: Change your availability and (optionnaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message'),
+            'away': (self.command_away, 'Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent do "/show away [message]"'),
+            'busy': (self.command_busy, 'Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent do "/show busy [message]"'),
+            'avail': (self.command_avail, 'Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
+            'available': (self.command_avail, 'Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
             'nick': (self.command_nick, 'Usage: /nick <nickname>\nNick: Change your nickname in the current room')
             }
 
@@ -203,8 +207,6 @@ class Gui(object):
             except:
                 self.window.resize(stdscr)
                 self.window.refresh(self.current_room())
-            # print key
-            # sys.exit()
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
             elif str(key) == 'KEY_RESIZE':
@@ -377,7 +379,7 @@ class Gui(object):
                 nick = config.get('default_nick', 'Poezio')
             else:
                 nick = info[1]
-            if info[0] == '':   # happens with /join /nickname, wich is OK
+            if info[0] == '':   # happens with /join /nickname, which is OK
                 r = self.current_room()
                 if r.name == 'Info':
                     return
@@ -393,7 +395,42 @@ class Gui(object):
             self.join_room(room, nick)
 
     def command_show(self, args):
-        pass
+        possible_show = {'avail':'None',
+                         'available':'None',
+                         'ok':'None',
+                         'here':'None',
+                         'chat':'chat',
+                         'away':'away',
+                         'afk':'away',
+                         'dnd':'dnd',
+                         'busy':'dnd',
+                         'xa':'xa'
+                         }
+        if len(args) < 1:
+            return
+        if not args[0] in possible_show.keys():
+            self.command_help(['show'])
+            return
+        show = possible_show[args[0]]
+        if len(args) > 1:
+            msg = ' '.join(args[1:])
+        else:
+            msg = None
+        for room in self.rooms:
+            if room.joined:
+                self.muc.change_show(room.name, room.own_nick, show, msg)
+
+    def command_away(self, args):
+        args.insert(0, 'away')
+        self.command_show(args)
+
+    def command_busy(self, args):
+        args.insert(0, 'busy')
+        self.command_show(args)
+
+    def command_avail(self, args):
+        args.insert(0, 'available')
+        self.command_show(args)
 
     def command_part(self, args):
         reason = None
