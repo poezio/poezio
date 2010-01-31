@@ -300,6 +300,7 @@ class Gui(object):
             room.topic = stanza.getSubject().encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
+                self.window.text_win.refresh(room.name)
             curses.doupdate()
         else:
             room.add_message(nick_from, body)
