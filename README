@@ -19,8 +19,8 @@ Florent Le Coz (louiz') <louizatakk@fedoraproject.org> (main developper)
     Contact/support
 =======================
 Jabber ChatRoom:   poezio@conference.codingteam.net
-Forum: 		   http://codingteam.net/project/poezio/forum
-Report a bug:	   http://codingteam.net/project/poezio/bugs/add
+Forum:             http://codingteam.net/project/poezio/forum
+Report a bug:      http://codingteam.net/project/poezio/bugs/add
 
 =======================
 	License
@@ -57,41 +57,41 @@ Q: Could you please make a nice ASCII art, so I could understand all
    the beauty and the complexity of this awesome software ?
 A: Of course, here it is:
 
- 		 ___________________________
+                 ___________________________
                 /                           \
-		|			    |
-		|      Jabber Network	    |
-		|   (roomchats and people   |
-		|          in them) 	    |
-		|	     		    |
-		\__________________________/
-		    |			^
-		    | receive	  send  |         ____ Poezio ____
-		    v			|
-           /----------------\	/-----------------\
-	   |		    |   |		  |
-	   |   Connection   |   |  MultiUserChat  |
-	   |   		    |	|  		  |
+                |                           |
+                |     Jabber Network        |
+                |   (roomchats and people   |
+                |        in them)           |
+		|                           |
+                \__________________________/
+                    |                   ^
+                    | receive     send  |          ____ Poezio ____
+                    v                   |
+           /----------------\   /-----------------\
+	   |                |   |                 |
+           |   Connection   |   |  MultiUserChat  |
+           |                |   |                 |
 	   \----------------/   \-----------------/
-	   	^ |emit		    emit | ^
-		| |	 /---------\     | |
- 	connect	\ \----> |         |<----/ / connect
+                ^ |emit             emit | ^
+                | |      /---------\     | |
+       connect  \ \----> |         |<----/ / connect
 		 \______ | Handler |______/
-		 	 | 	   |
-			 \---------/
-			     | ^
-  		     connect | | emit
-			     v |
+                         |         |
+                         \---------/
+                             | ^
+                     connect | | emit
+                             v |
 			 /---------\
-			 |	   |
+			 |         |
 			 |   Gui   |
-			 |   	   |
-			 \---------/
-			     | ^
-		      Screen | | Keyboard
-			     v |
+                         |         |
+                         \---------/
+                             | ^
+                      Screen | | Keyboard
+                             v |
 			 /---------\
-			 |	   |
-			 |   YOU   |
-			 |   	   |
-			 \---------/
+			 |         |
+                         |   YOU   |
+                         |         |
+                         \---------/
