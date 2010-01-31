@@ -197,8 +197,11 @@ class Input(Win):
         self.win.clear()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
-        self.win.addstr(self.history[self.histo_pos+1].encode('utf-8'))
         self.text = self.history[self.histo_pos+1]
+        if len(self.text) >= self.width-1:
+            self.win.addstr(self.history[self.histo_pos+1][:self.width-1].encode('utf-8'))
+        else:
+            self.win.addstr(self.history[self.histo_pos+1].encode('utf-8'))
         self.pos = len(self.text)
         self.refresh()
 
@@ -208,8 +211,11 @@ class Input(Win):
         self.win.clear()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
-            self.win.addstr(self.history[self.histo_pos].encode('utf-8'))
             self.text = self.history[self.histo_pos]
+            if len(self.text) >= self.width-1:
+                self.win.addstr(self.history[self.histo_pos][:self.width-1].encode('utf-8'))
+            else:
+                self.win.addstr(self.history[self.histo_pos].encode('utf-8'))
             self.pos = len(self.text)
         else:
             self.histo_pos = len(self.history)-1
