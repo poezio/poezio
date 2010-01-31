@@ -120,10 +120,12 @@ class TextWin(object):
         win = self.wins[room.name].win
         users = room.users
         if len(line) == 2:
-            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] ")
-            win.attron(curses.color_pair(8))
-            win.addstr(line[1])
-            win.attroff(curses.color_pair(8))
+            try:
+                win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] ")
+                win.attron(curses.color_pair(8))
+                win.addstr(line[1])
+                win.attroff(curses.color_pair(8))
+            except:             # exception happens on resize, but it doesn't change anything...
         elif len(line) == 3:
             for user in users:
                 if user.nick == line[1]:
