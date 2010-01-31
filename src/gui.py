@@ -163,7 +163,7 @@ class Gui(object):
 
         self.commands = {
             'help': (self.command_help, 'OLOL, this is SOOO recursive'),
-            'join': (self.command_join, 'Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join'),
+            'join': (self.command_join, 'Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join'),
             'quit': (self.command_quit, 'Usage: /quit\nQuit: Just disconnect from the server and exit poezio.'),
             'exit': (self.command_quit, 'Usage: /exit\nExit: Just disconnect from the server and exit poezio.'),
             'next': (self.rotate_rooms_left, 'Usage: /next\nNext: Go to the next room.'),
@@ -174,6 +174,7 @@ class Gui(object):
             'busy': (self.command_busy, 'Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent do "/show busy [message]"'),
             'avail': (self.command_avail, 'Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
             'available': (self.command_avail, 'Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
+            'bookmark': (self.command_bookmark, 'Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)'),
             'nick': (self.command_nick, 'Usage: /nick <nickname>\nNick: Change your nickname in the current room')
             }
 
@@ -263,7 +264,7 @@ class Gui(object):
     def on_connected(self, jid):
         self.information("Welcome on Poezio \o/ !")
         self.information("Your JID is %s" % jid)
-        pass
+        fd.close()
 
     def join_room(self, room, nick):
         self.window.text_win.new_win(room)
@@ -393,6 +394,27 @@ class Gui(object):
         self.muc.join_room(room, nick)
         if not r: # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
+
+    def command_bookmark(self, args):
+        bookmarked = config.get('rooms', '')
+        nick = None
+        if len(args) == 0:
+            room = self.current_room()
+            if room.name == 'Info':
+                return
+            roomname = room.name
+            if room.joined:
+                nick = room.own_nick
+        else:
+            info = args[0].split('/')
+            if len(info) == 2:
+                nick = info[1]
+            roomname = info[0]
+        if nick:
+            res = roomname+'/'+nick
+        else:
+            res = roomname
+        config.setAndSave('rooms', bookmarked+':'+res)
 
     def command_show(self, args):
         possible_show = {'avail':'None',

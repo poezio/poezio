@@ -55,7 +55,14 @@ class MultiUserChat(object):
         else:
             rooms = rooms.split(':')
         for room in rooms:
-            [roomname, nick] = room.split('/')
+            args = room.split('/')
+            if args[0] == '':
+                return
+            roomname = args[0]
+            if len(args) == 2:
+                nick = args[1]
+            else:
+                nick = config.get('default_nick', 'poezio')
             self.handler.emit('join-room', room=roomname, nick=nick)
 
     def send_message(self, room, message):

@@ -48,9 +48,6 @@ class Config(RawConfigParser):
             else:
                 res = self.getstr(option)
         except NoOptionError:
-            # TODO
-        #     logger.info('No value found in config file "%s" from option [%s]. Defaulting to "%s"' \
-        #                     % (self.file_name, option, default))
             return default
         return res
 
@@ -73,7 +70,7 @@ class Config(RawConfigParser):
         RawConfigParser.set(self, self.defsection, option, value)
 
     def save(self):
-        f = copen(self.filename, "w", "utf-8", "ignore")
+        f = open(self.file_name, "w")
         RawConfigParser.write(self, f)
 	f.close()
 
