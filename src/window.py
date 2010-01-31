@@ -125,7 +125,7 @@ class TextWin(object):
                 win.attron(curses.color_pair(8))
                 win.addstr(line[1])
                 win.attroff(curses.color_pair(8))
-            except:             # exception happens on resize, but it doesn't change anything...
+            except:pass # exception happens on resize, but it doesn't change anything...
         elif len(line) == 3:
             for user in users:
                 if user.nick == line[1]:
