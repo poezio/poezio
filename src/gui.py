@@ -83,12 +83,8 @@ class Room(object):
         return info.encode('utf-8')
 
     def get_user_by_name(self, nick):
-        fd = open('fion', 'w')
-        fd.write(nick)
-        # fd.write('Looking for %s\n' % nick)
         for user in self.users:
-            # fd.write(user.nick)
-            if user.nick == nick:
+            if user.nick == nick.encode('utf-8'):
                 return user
         return None
 
@@ -103,10 +99,13 @@ class Room(object):
              self.users.append(User(nick, affiliation, show, status, role))
              if nick.encode('utf-8') == self.own_nick:
                  self.joined = True
+                 return self.add_info("Your nickname is %s" % (nick))
              return self.add_info("%s is in the room" % (nick))
         change_nick = stanza.getStatusCode() == '303'
         kick = stanza.getStatusCode() == '307'
         user = self.get_user_by_name(nick)
+        if change_nick and not user:
+            return self.add_info('WTF: change nick for %s but user unknown'% nick)
         # New user
         if not user:
             self.users.append(User(nick, affiliation, show, status, role))
@@ -262,7 +261,7 @@ class Gui(object):
         curses.endwin()
 
     def on_connected(self, jid):
-        self.information("Welcome on Poezio \o/ !")
+        self.information("Welcome on Poezio \o/!")
         self.information("Your JID is %s" % jid)
 
     def join_room(self, room, nick):
