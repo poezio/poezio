@@ -152,6 +152,8 @@ class TextWin(object):
     def resize(self, height, width, y, x, stdscr):
         for winname in self.wins.keys():
             self.wins[winname]._resize(height, width, y, x, stdscr)
+            self.wins[winname].win.idlok(True)
+            self.wins[winname].win.scrollok(True)
 
 class Input(Win):
     """
