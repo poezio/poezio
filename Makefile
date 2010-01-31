@@ -11,7 +11,7 @@ all: 	Makefile
 
 clean:	Makefile
 
-install:
+install:all
 	$(INSTALL) -d $(LOCALEDIR) $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src $(DATADIR)/poezio/src/xmpp
 
 	$(INSTALL) -m644 data/* $(DATADIR)/poezio/data/
