@@ -41,10 +41,10 @@ class Win(object):
 
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
-        try:
-            self.win = parent_win.subwin(height, width, y, x)
-        except:
-            pass
+        # try:
+        self.win = parent_win.subwin(height, width, y, x)
+        # except:
+
     def refresh(self):
         self.win.noutrefresh()
 
@@ -143,15 +143,18 @@ class TextWin(object):
             for user in users:
                 if user.nick == line[1]:
                     break
-            win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
-            length = len('['+line[0].strftime("%H:%M:%S") + "] <")
-            try:win.attron(curses.color_pair(user.color))
+            try:
+                try:win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
+                except:pass         # exception happens on resize, but it doesn't change anything...
+                length = len('['+line[0].strftime("%H:%M:%S") + "] <")
+                try:win.attron(curses.color_pair(user.color))
+                except:pass
+                win.addstr(line[1])
+                try:win.attroff(curses.color_pair(user.color))
+                except:pass
+                win.addstr("> ")
+                win.addstr(line[2])
             except:pass
-            win.addstr(line[1])
-            try:win.attroff(curses.color_pair(user.color))
-            except:pass
-            win.addstr("> ")
-            win.addstr(line[2])
 
     def new_win(self, winname):
         newwin = Win(self.height, self.width, self.y, self.x, self.parent_win)
@@ -160,7 +163,8 @@ class TextWin(object):
         self.wins[winname] = newwin
 
     def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
+        for winname in self.wins.keys():
+            self.wins[winname]._resize(height, width, y, x, stdscr)
 
 class Input(Win):
     """
@@ -316,10 +320,10 @@ class Window(object):
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
 
-        self.user_win = UserList(self.height-3, self.width/7, 1, 6*(self.width/7), stdscr)
+        self.user_win = UserList(self.height-3, self.width/10, 1, 9*(self.width/10), stdscr)
         self.topic_win = Info(1, self.width, 0, 0, stdscr)
         self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
-        self.text_win = TextWin(self.height-3, (self.width/7)*6, 1, 0, stdscr)
+        self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr)
         self.input = Input(1, self.width, self.height-1, 0, stdscr)
 
     def resize(self, stdscr):
@@ -327,10 +331,10 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        self.user_win.resize(self.height-3, self.width/9, 1, 11*(self.width/12), stdscr)
+        self.user_win.resize(self.height-3, self.width/10, 1, 9*(self.width/10), stdscr)
         self.topic_win.resize(1, self.width, 0, 0, stdscr)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr)
-        self.text_win.resize(self.height-3, (self.width/12)*11, 1, 0, stdscr)
+        self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr)
         self.input.resize(1, self.width, self.height-1, 0, stdscr)
 
     def refresh(self, room):

@@ -198,11 +198,18 @@ class Gui(object):
     def main_loop(self, stdscr):
         while 1:
             curses.doupdate()
-            key = stdscr.getkey()
+            try:
+                key = stdscr.getkey()
+            except:
+                self.window.resize(stdscr)
+                self.window.refresh(self.current_room())
             # print key
             # sys.exit()
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
+            elif str(key) == 'KEY_RESIZE':
+                self.window.resize(stdscr)
+                self.window.refresh(self.current_room())
             elif len(key) >= 4:
                 continue
             elif ord(key) == 10:
