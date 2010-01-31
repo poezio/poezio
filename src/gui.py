@@ -84,7 +84,7 @@ class Room(object):
             return info.encode('utf-8')
         except:                 # I JUST FUCKING HATE THIS .encode.decode.shit !!!
             self.lines.append((datetime.now(), info))
-            return info
+            return info.encode('utf-8')
 
     def get_user_by_name(self, nick):
         for user in self.users:
@@ -104,7 +104,7 @@ class Room(object):
              if nick.encode('utf-8') == self.own_nick:
                  self.joined = True
                  return self.add_info(_("Your nickname is %s") % (nick))
-             return self.add_info(_("%s is in the room") % (nick))
+             return self.add_info(_("%s is in the room") % (nick.encode-('utf-8')))
         change_nick = stanza.getStatusCode() == '303'
         kick = stanza.getStatusCode() == '307'
         user = self.get_user_by_name(nick)
@@ -322,7 +322,10 @@ class Gui(object):
         else:
             msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
-            self.window.text_win.add_line(room, (datetime.now(), msg))
+            try:
+                self.window.text_win.add_line(room, (datetime.now(), msg))
+            except:
+                pass
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
@@ -362,7 +365,6 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-#        open('fion', 'w').write(msg)
         room.add_info(msg)
         self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)

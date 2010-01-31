@@ -55,9 +55,11 @@ class UserList(Win):
             except:
                 color = 1
             self.win.attron(curses.color_pair(color))
-            self.win.addstr(y, 1, user.nick)
+            self.win.addnstr(y, 1, user.nick, self.width-1)
             self.win.attroff(curses.color_pair(color))
             y += 1
+            if y == self.height:
+                break
         self.win.refresh()
 
     def resize(self, height, width, y, x, stdscr):
