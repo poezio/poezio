@@ -215,26 +215,49 @@ class Input(Win):
 
     def key_home(self):
         self.pos = 0
+        if len(self.text) >= self.width-1:
+            txt = self.text[:self.width-1]
+            self.clear_text()
+            self.win.addstr(txt)
         self.win.move(0, 0)
         self.refresh()
 
     def key_end(self):
         self.pos = len(self.text)
-        self.win.move(0, len(self.text))
+        if len(self.text) >= self.width-1:
+            txt = self.text[-(self.width-1):]
+            self.clear_text()
+            self.win.addstr(txt)
+            self.win.move(0, self.width-1)
+        else:
+            self.win.move(0, len(self.text))
         self.refresh()
 
     def key_left(self):
         (y, x) = self.win.getyx()
         if self.pos > 0:
             self.pos -= 1
-            self.win.move(y, x-1)
+            if x == 0:
+                txt = self.text[self.pos:self.pos+self.width-1]
+                self.clear_text()
+                self.win.addstr(txt)
+                self.win.move(y, 0)
+            else:
+                self.win.move(y, x-1)
             self.refresh()
 
     def key_right(self):
         (y, x) = self.win.getyx()
         if self.pos < len(self.text):
             self.pos += 1
-            self.win.move(y, x+1)
+            if x == self.width-1:
+                txt = self.text[self.pos-(self.width-1):self.pos]
+                open('fion', 'w').write(txt)
+                self.clear_text()
+                self.win.addstr(txt)
+                self.win.move(y, self.width-1)
+            else:
+                self.win.move(y, x+1)
             self.refresh()
 
     def key_backspace(self):
@@ -249,7 +272,7 @@ class Input(Win):
         (y, x) = self.win.getyx()
         if x == self.width-1:
             self.win.delch(0, 0)
-            self.win.move(y, x)
+            self.win.move(y, x-1)
             x -= 1
         try:
             self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]

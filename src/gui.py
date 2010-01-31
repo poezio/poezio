@@ -169,6 +169,7 @@ class Gui(object):
             'next': (self.rotate_rooms_left, 'Usage: /next\nNext: Go to the next room.'),
             'prev': (self.rotate_rooms_right, 'Usage: /prev\nPrev: Go to the previous room.'),
             'part': (self.command_part, 'Usage: /part [message]\nPart: disconnect from a room. You can specify an optionnal message.'),
+            'show': (self.command_show, 'Usage: /show <show> [status]\nStatus: Change your availability and (optionnaly) your status. The <show> argument is one off "dnd, busy, away, afk, "'),
             'nick': (self.command_nick, 'Usage: /nick <nickname>\nNick: Change your nickname in the current room')
             }
 
@@ -306,7 +307,10 @@ class Gui(object):
 	room = self.get_room_by_name(from_room)
 	if not room:
 	    self.information("presence received for a non-existing room: %s" % (name))
-        msg = room.on_presence(stanza, from_nick)
+        if stanza.getType() == 'error':
+            msg = "Error: %s" % stanza.getError()
+        else:
+            msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
             self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
@@ -380,6 +384,9 @@ class Gui(object):
         self.muc.join_room(room, nick)
         if not r: # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
+
+    def command_show(self, args):
+        pass
 
     def command_part(self, args):
         reason = None
