@@ -20,6 +20,10 @@
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
+bindtextdomain('poezio')
+textdomain('poezio')
+bind_textdomain_codeset('poezio', 'utf-8')
+
 import locale
 locale.setlocale(locale.LC_ALL, '')
 import sys
@@ -75,8 +79,12 @@ class Room(object):
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
-        self.lines.append((datetime.now(), info.encode('utf-8')))
-        return info.encode('utf-8')
+        try:
+            self.lines.append((datetime.now(), info.encode('utf-8')))
+            return info.encode('utf-8')
+        except:                 # I JUST FUCKING HATE THIS .encode.decode.shit !!!
+            self.lines.append((datetime.now(), info))
+            return info
 
     def get_user_by_name(self, nick):
         for user in self.users:
@@ -162,7 +170,7 @@ class Gui(object):
             'next': (self.rotate_rooms_left, _('Usage: /next\nNext: Go to the next room.')),
             'prev': (self.rotate_rooms_right, _('Usage: /prev\nPrev: Go to the previous room.')),
             'part': (self.command_part, _('Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message.')),
-            'show': (self.command_show, _('Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message')),
+            'show': (self.command_show, _(u'Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message')),
             'away': (self.command_away, _('Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to "/show away [message]"')),
             'busy': (self.command_busy, _('Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to "/show busy [message]"')),
             'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
@@ -354,6 +362,7 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
+#        open('fion', 'w').write(msg)
         room.add_info(msg)
         self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)

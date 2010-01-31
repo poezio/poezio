@@ -3,216 +3,214 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-31 05:55+0100\n"
-"PO-Revision-Date: 2010-01-31 06:07+0100\n"
-"Last-Translator: Florent Le Coz <louizatakk@fedoraproject.org>\n"
+"POT-Creation-Date: 2010-01-31 07:21+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: src/gui.py:98
-#, python-format
-msgid "Your nickname is %s"
-msgstr "Votre pseudo est %s"
-
-#: src/gui.py:99
-#, python-format
-msgid "%s is in the room"
-msgstr "%s est dans le salon"
 
 #: src/gui.py:106
 #, python-format
-msgid "%(nick)s joined the room %(roomname)s"
-msgstr "%(nick)s est entré dans le salon %(roomname)s"
+msgid "Your nickname is %s"
+msgstr ""
 
-#: src/gui.py:112
+#: src/gui.py:107
+#, python-format
+msgid "%s is in the room"
+msgstr ""
+
+#: src/gui.py:114
+#, python-format
+msgid "%(nick)s joined the room %(roomname)s"
+msgstr ""
+
+#: src/gui.py:120
 #, python-format
 msgid "%(old_nick)s is now known as %(new_nick)s"
-msgstr "%(old_nick)s s'appelle maintenant %(new_nick)s"
+msgstr ""
 
-#: src/gui.py:124
+#: src/gui.py:132
 #, python-format
 msgid "You have been kicked by %(by)s. Reason: %(reason)s"
-msgstr "Vous avez été kické(e) par %(by)s. Raison : %(reason)s"
+msgstr ""
 
-#: src/gui.py:126
+#: src/gui.py:134
 #, python-format
 msgid "You have been kicked. Reason: %s"
-msgstr "Vous avez été kické(e). Raison : %s"
+msgstr ""
 
-#: src/gui.py:129
+#: src/gui.py:137
 #, python-format
 msgid "%(nick)s has been kicked by %(by)s. Reason: %(reason)s"
-msgstr "%(nick)s a été kické(e) par %(by)s. Raison : %(reason)s"
+msgstr ""
 
-#: src/gui.py:131
+#: src/gui.py:139
 #, python-format
 msgid "%(nick)s has been kicked. Reason: %(reason)s"
-msgstr "%(nick)s a été kické(e). Raison : %(reason)s"
+msgstr ""
 
-#: src/gui.py:135
+#: src/gui.py:143
 #, python-format
 msgid "%s has left the room"
-msgstr "%s a quitté le salon"
+msgstr ""
 
-#: src/gui.py:138
+#: src/gui.py:146
 #, python-format
 msgid "%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s"
-msgstr "%(nick)s a changé son statut : %(a)s, %(b)s, %(c)s, %(d)s"
+msgstr ""
 
-#: src/gui.py:158
+#: src/gui.py:166
 msgid "OLOL, this is SOOO recursive"
-msgstr "OLOL, this is SOOO recursive"
+msgstr ""
 
-#: src/gui.py:159
+#: src/gui.py:167
 msgid ""
 "Usage: /join [room_name][/nick]\n"
-"Join: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you're looking at (useful if you were kicked). Examples:\n"
+"Join: Join the specified room. You can specify a nickname after a slash (/). "
+"If no nickname is specified, you will use the default_nick in the "
+"configuration file. You can omit the room name: you will then join the room "
+"you're looking at (useful if you were kicked). Examples:\n"
 "/join room@server.tld\n"
 "/join room@server.tld/John\n"
 "/join /me_again\n"
 "/join"
 msgstr ""
-"Utilisation : /join [room_name][/nick]\n"
-"Join : Entre dans le salon spécifié. Vous pouvez spécifier un pseudoname après un slash (/). Si aucun pseudonyme n'est spécifié, vous utiliserez le pseudonyme par défaut (default_nick) du fichier de configuration. Vous pouvez omettre le nom du salon : vous entrerez alors dans le salon que vous êtes en train de voir (utile après avoir été kické). Exemples :\n"
-"/join room@server.tld\n"
-"/join room@server.tld/Martin\n"
-"/join /encore_moi\n"
-"/join"
 
-#: src/gui.py:160
+#: src/gui.py:168
 msgid ""
 "Usage: /quit\n"
 "Quit: Just disconnect from the server and exit poezio."
 msgstr ""
-"Utilisation : /quit\n"
-"Quit : Se déconnecte tout simplement du serveur et quitte poezio."
 
-#: src/gui.py:161
+#: src/gui.py:169
 msgid ""
 "Usage: /exit\n"
 "Exit: Just disconnect from the server and exit poezio."
 msgstr ""
-"Utilisation : /exit\n"
-"Exit : Se déconnecte tout simplement du serveur et quitte poezio."
 
-#: src/gui.py:162
+#: src/gui.py:170
 msgid ""
 "Usage: /next\n"
 "Next: Go to the next room."
 msgstr ""
-"Utilisation : /next\n"
-"Next : Va au salon suivant."
 
-#: src/gui.py:163
+#: src/gui.py:171
 msgid ""
 "Usage: /prev\n"
 "Prev: Go to the previous room."
 msgstr ""
-"Utilisation : /prev\n"
-"Prev : Va au salon précédent."
 
-#: src/gui.py:164
+#: src/gui.py:172
 msgid ""
 "Usage: /part [message]\n"
-"Part: disconnect from a room. You can specify an optionnal message."
+"Part: disconnect from a room. You can specify an optional message."
 msgstr ""
-"Utilisation : /part [message]\n"
-"Part : Se déconnecte d'un salon. Vous pouvez spécifier un message optionnel"
 
-#: src/gui.py:165
+#: src/gui.py:173
 msgid ""
 "Usage: /show <availability> [status]\n"
-"Show: Change your availability and (optionnaly) your status. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [message] argument will be your status message"
+"Show: Change your availability and (optionaly) your status. The "
+"<availability> argument is one of \"avail, available, ok, here, chat, away, "
+"afk, dnd, busy, xa\" and the optional [message] argument will be your status "
+"message"
 msgstr ""
 
-#: src/gui.py:166
+#: src/gui.py:174
 msgid ""
 "Usage: /away [message]\n"
-"Away: Sets your availability to away and (optional) sets your status message. This is equivalent do \"/show away [message]\""
+"Away: Sets your availability to away and (optional) sets your status "
+"message. This is equivalent to \"/show away [message]\""
 msgstr ""
 
-#: src/gui.py:167
+#: src/gui.py:175
 msgid ""
 "Usage: /busy [message]\n"
-"Busy: Sets your availability to busy and (optional) sets your status message. This is equivalent do \"/show busy [message]\""
+"Busy: Sets your availability to busy and (optional) sets your status "
+"message. This is equivalent to \"/show busy [message]\""
 msgstr ""
 
-#: src/gui.py:168
+#: src/gui.py:176
 msgid ""
 "Usage: /avail [message]\n"
-"Avail: Sets your availability to available and (optional) sets your status message. This is equivalent do \"/show available [message]\""
+"Avail: Sets your availability to available and (optional) sets your status "
+"message. This is equivalent to \"/show available [message]\""
 msgstr ""
 
-#: src/gui.py:169
+#: src/gui.py:177
 msgid ""
 "Usage: /available [message]\n"
-"Available: Sets your availability to available and (optional) sets your status message. This is equivalent do \"/show available [message]\""
+"Available: Sets your availability to available and (optional) sets your "
+"status message. This is equivalent to \"/show available [message]\""
 msgstr ""
 
-#: src/gui.py:170
+#: src/gui.py:178
 msgid ""
 "Usage: /bookmark [roomname][/nick]\n"
-"Bookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick)"
+"Bookmark: Bookmark the specified room (you will then auto-join it on each "
+"poezio start). This commands uses the same syntaxe as /nick. Type /help nick "
+"for syntaxe examples. Note that when typing \"/bookmark\" on its own, the "
+"room will be bookmarked with the nickname you're currently using in this "
+"room (instead of default_nick)"
 msgstr ""
 
-#: src/gui.py:171
+#: src/gui.py:179
 msgid ""
 "Usage: /nick <nickname>\n"
 "Nick: Change your nickname in the current room"
 msgstr ""
 
-#: src/gui.py:258
+#: src/gui.py:266
 msgid "Welcome on Poezio \\o/!"
 msgstr ""
 
-#: src/gui.py:259
+#: src/gui.py:267
 #, python-format
 msgid "Your JID is %s"
 msgstr ""
 
-#: src/gui.py:285
+#: src/gui.py:293
 #, python-format
 msgid "message received for a non-existing room: %s"
 msgstr ""
 
-#: src/gui.py:290
+#: src/gui.py:298
 #, python-format
 msgid "%(nick)s changed the subject to: %(subject)s"
 msgstr ""
 
-#: src/gui.py:311
+#: src/gui.py:319
 #, python-format
 msgid "presence received for a non-existing room: %s"
 msgstr ""
 
-#: src/gui.py:313
+#: src/gui.py:321
 #, python-format
 msgid "Error: %s"
 msgstr ""
 
-#: src/gui.py:348
+#: src/gui.py:356
 msgid "Available commands are:"
 msgstr ""
 
-#: src/gui.py:351
+#: src/gui.py:359
 msgid ""
 "\n"
 "Type /help <command_name> to know what each command does"
 msgstr ""
 
-#: src/gui.py:356
+#: src/gui.py:364
 #, python-format
-msgid "Unknown command : %s"
+msgid "Unknown command: %s"
 msgstr ""
 
-#: src/gui.py:384
+#: src/gui.py:393
 #, python-format
 msgid "already in room [%s]"
 msgstr ""
-

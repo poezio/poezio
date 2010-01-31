@@ -84,10 +84,7 @@ if not CONFIG_HOME:
     CONFIG_HOME = environ.get('HOME')+'/.config/'
 CONFIG_PATH = CONFIG_HOME + 'poezio/'
 
-try:
-    makedirs(CONFIG_PATH)
-    copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
-except:
-    pass
+makedirs(CONFIG_PATH)
+copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
 
 config = Config(CONFIG_PATH+'poezio.cfg')

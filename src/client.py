@@ -17,13 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
-                     gettext as _)
-
-bindtextdomain('poezio')
-textdomain('poezio')
-bind_textdomain_codeset('poezio', 'UTF-8')
-
 import sys
 from connection import Connection
 from multiuserchat import MultiUserChat

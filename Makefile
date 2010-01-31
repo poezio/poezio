@@ -1,4 +1,4 @@
-prefix=/usr/local
+prefix=/usr
 LIBDIR=$(DESTDIR)$(prefix)/lib
 BINDIR=$(DESTDIR)$(prefix)/bin
 DATADIR=$(DESTDIR)$(prefix)/share
@@ -18,8 +18,9 @@ install:
 		$(INSTALL) -m644 $$sourcefile $(DATADIR)/poezio/src; \
 	done
 
-	echo "#!/usr/bin/env python" > $(BINDIR)/poezio
+	echo "#!/bin/sh" > $(BINDIR)/poezio
 	echo "cd $(DATADIR)/poezio/src/ && python client.py" >> $(BINDIR)/poezio
+	chmod 755 $(BINDIR)/poezio
 
 	for localename in `find locale/ -maxdepth 1 -type d | grep -v '.svn' | sed 's:locale/::g'` ; do \
 		if [ -d locale/$$localename ]; then \
