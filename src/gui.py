@@ -365,8 +365,8 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        msg = room.add_info(msg)
-        self.window.text_win.add_line(room, msg)
+        room.add_info(msg)
+        self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
 
