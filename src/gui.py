@@ -17,25 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from handler import Handler
-import curses
-from curses import textpad
+from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
+                     gettext as _)
 
 import locale
-from datetime import datetime
-
-from logging import logger
-
-from random import randrange
-
-from config import config
-
 locale.setlocale(locale.LC_ALL, '')
-code = locale.getpreferredencoding()
-
 import sys
 
-from connection import *
+import curses
+from curses import textpad
+from datetime import datetime
+
+from handler import Handler
+from logging import logger
+from random import randrange
+from config import config
 from window import Window
 
 class User(object):
@@ -99,23 +95,21 @@ class Room(object):
              self.users.append(User(nick, affiliation, show, status, role))
              if nick.encode('utf-8') == self.own_nick:
                  self.joined = True
-                 return self.add_info("Your nickname is %s" % (nick))
-             return self.add_info("%s is in the room" % (nick))
+                 return self.add_info(_("Your nickname is %s") % (nick))
+             return self.add_info(_("%s is in the room") % (nick))
         change_nick = stanza.getStatusCode() == '303'
         kick = stanza.getStatusCode() == '307'
         user = self.get_user_by_name(nick)
-        if change_nick and not user:
-            return self.add_info('WTF: change nick for %s but user unknown'% nick)
         # New user
         if not user:
             self.users.append(User(nick, affiliation, show, status, role))
-            return self.add_info('%s joined the room %s' % (nick, self.name))
+            return self.add_info(_('%(nick)s joined the room %(roomname)s') % {'nick':nick, 'roomname': self.name})
         # nick change
         if change_nick:
             if user.nick == self.own_nick:
                 self.own_nick = stanza.getNick().encode('utf-8')
             user.change_nick(stanza.getNick())
-            return self.add_info('%s is now known as %s' % (nick, stanza.getNick()))
+            return self.add_info(_('%(old_nick)s is now known as %(new_nick)s') % {'old_nick':nick, 'new_nick':stanza.getNick()})
         # kick
         if kick:
             self.users.remove(user)
@@ -127,21 +121,21 @@ class Room(object):
             if nick == self.own_nick:
                 self.disconnect()
                 if by:
-                    return self.add_info('You have been kicked by %s. Reason: %s' % (by, reason))
+                    return self.add_info(_('You have been kicked by %(by)s. Reason: %(reason)s') % {'by':by, 'reason':reason})
                 else:
-                    return self.add_info('You have been kicked. Reason: %s' % (reason))
+                    return self.add_info(_('You have been kicked. Reason: %s') % (reason))
             else:
                 if by:
-                    return self.add_info('%s has been kicked by %s. Reason: %s' % (nick, by, reason))
+                    return self.add_info(_('%(nick)s has been kicked by %(by)s. Reason: %(reason)s') % {'nick':nick, 'by':by, 'reason':reason})
                 else:
-                    return self.add_info('%s has been kicked. Reason: %s' % (nick, reason))
+                    return self.add_info(_('%(nick)s has been kicked. Reason: %(reason)s') % {'nick':nick, 'reason':reason})
         # user quit
         if status == 'offline' or role == 'none':
             self.users.remove(user)
-            return self.add_info('%s has left the room' % (nick))
+            return self.add_info(_('%s has left the room') % (nick))
         # status change
         user.update(affiliation, show, status, role)
-        return self.add_info('%s, status : %s, %s, %s, %s' % (nick, affiliation, role, show, status))
+        return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'b':affiliation, 'b':role, 'c':show, 'd':status})
 
 
 class Gui(object):
@@ -161,20 +155,20 @@ class Gui(object):
         self.muc = muc
 
         self.commands = {
-            'help': (self.command_help, 'OLOL, this is SOOO recursive'),
-            'join': (self.command_join, 'Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join'),
-            'quit': (self.command_quit, 'Usage: /quit\nQuit: Just disconnect from the server and exit poezio.'),
-            'exit': (self.command_quit, 'Usage: /exit\nExit: Just disconnect from the server and exit poezio.'),
-            'next': (self.rotate_rooms_left, 'Usage: /next\nNext: Go to the next room.'),
-            'prev': (self.rotate_rooms_right, 'Usage: /prev\nPrev: Go to the previous room.'),
-            'part': (self.command_part, 'Usage: /part [message]\nPart: disconnect from a room. You can specify an optionnal message.'),
-            'show': (self.command_show, 'Usage: /show <availability> [status]\nShow: Change your availability and (optionnaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message'),
-            'away': (self.command_away, 'Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent do "/show away [message]"'),
-            'busy': (self.command_busy, 'Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent do "/show busy [message]"'),
-            'avail': (self.command_avail, 'Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
-            'available': (self.command_avail, 'Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent do "/show available [message]"'),
-            'bookmark': (self.command_bookmark, 'Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)'),
-            'nick': (self.command_nick, 'Usage: /nick <nickname>\nNick: Change your nickname in the current room')
+            'help': (self.command_help, _('OLOL, this is SOOO recursive')),
+            'join': (self.command_join, _('Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join')),
+            'quit': (self.command_quit, _('Usage: /quit\nQuit: Just disconnect from the server and exit poezio.')),
+            'exit': (self.command_quit, _('Usage: /exit\nExit: Just disconnect from the server and exit poezio.')),
+            'next': (self.rotate_rooms_left, _('Usage: /next\nNext: Go to the next room.')),
+            'prev': (self.rotate_rooms_right, _('Usage: /prev\nPrev: Go to the previous room.')),
+            'part': (self.command_part, _('Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message.')),
+            'show': (self.command_show, _('Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message')),
+            'away': (self.command_away, _('Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to "/show away [message]"')),
+            'busy': (self.command_busy, _('Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to "/show busy [message]"')),
+            'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
+            'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
+            'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
+            'nick': (self.command_nick, _('Usage: /nick <nickname>\nNick: Change your nickname in the current room'))
             }
 
         self.key_func = {
@@ -261,8 +255,8 @@ class Gui(object):
         curses.endwin()
 
     def on_connected(self, jid):
-        self.information("Welcome on Poezio \o/!")
-        self.information("Your JID is %s" % jid)
+        self.information(_("Welcome on Poezio \o/!"))
+        self.information(_("Your JID is %s") % jid)
 
     def join_room(self, room, nick):
         self.window.text_win.new_win(room)
@@ -288,12 +282,12 @@ class Gui(object):
             nick_from = ''
 	room = self.get_room_by_name(room_from)
 	if not room:
-	    self.information("message received for a non-existing room: %s" % (name))
+	    self.information(_("message received for a non-existing room: %s") % (name))
             return
         body = stanza.getBody()
         if not body:
             body = stanza.getSubject()
-            info = room.add_info("%s changed the subject to: %s" % (nick_from, stanza.getSubject()))
+            info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':stanza.getSubject()})
             self.window.text_win.add_line(room, (datetime.now(), info))
             room.topic = stanza.getSubject().encode('utf-8').replace('\n', '|')
             if room == self.current_room():
@@ -314,9 +308,9 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
-	    self.information("presence received for a non-existing room: %s" % (name))
+	    self.information(_("presence received for a non-existing room: %s") % (name))
         if stanza.getType() == 'error':
-            msg = "Error: %s" % stanza.getError()
+            msg = _("Error: %s") % stanza.getError()
         else:
             msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
@@ -351,15 +345,15 @@ class Gui(object):
     def command_help(self, args):
         room = self.current_room()
         if len(args) == 0:
-            msg = 'Available commands are:'
+            msg = _('Available commands are:')
             for command in self.commands.keys():
                 msg += "%s " % command
-            msg += "\nType /help <command_name> to know what each command does"
+            msg += _("\nType /help <command_name> to know what each command does")
         if len(args) == 1:
             if args[0] in self.commands.keys():
                 msg = self.commands[args[0]][1]
             else:
-                msg = 'Unknown command : %s' % args[0]
+                msg = _('Unknown command: %s') % args[0]
         room.add_info(msg)
         self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)
@@ -387,7 +381,7 @@ class Gui(object):
                 room = info[0]
             r = self.get_room_by_name(room)
         if r and r.joined:                   # if we are already in the room
-            self.information("already in room [%s]" % room)
+            self.information(_("already in room [%s]") % room)
             return
         self.muc.join_room(room, nick)
         if not r: # if the room window exists, we don't recreate it.

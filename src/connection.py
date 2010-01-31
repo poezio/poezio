@@ -96,14 +96,13 @@ class Connection(Thread):
         self.handler.emit('room-iq', stanza=iq)
 
     def handler_error(self, connection, error):
-        print "fion"
-        sys.exit()
+        pass
 
     def process(self, timeout=10):
         if self.online:
             try:self.client.Process(timeout)
             except:
-                pass
+                pass            # FIXME
         else:
             log.warning('disconnecting...')
             sys.exit()

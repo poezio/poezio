@@ -17,6 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
+                     gettext as _)
+
+bindtextdomain('poezio')
+textdomain('poezio')
+bind_textdomain_codeset('poezio', 'UTF-8')
+
 import sys
 from connection import Connection
 from multiuserchat import MultiUserChat
@@ -25,10 +32,10 @@ from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
 
-# sys.stderr = open('logs', 'a')
 if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
     import signal
     signal.signal(signal.SIGINT, signal.SIG_IGN)
+    sys.stderr = open('/dev/null', 'w')
 
 class Client(object):
     """

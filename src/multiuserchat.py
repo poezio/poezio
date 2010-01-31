@@ -73,9 +73,6 @@ class MultiUserChat(object):
 
     def join_room(self, room, nick, password=None):
         """Join a new room"""
-        # self.rooms.append(room)
-        # self.rn[room] = nick
-
         pres = Presence(to='%s/%s' % (room, nick))
         pres.setFrom('%s'%self.own_jid)
         if password:

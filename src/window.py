@@ -20,21 +20,6 @@
 import curses
 from logging import logger
 
-def get_next_line(str, length):
-    pos = str.rfind(' ', 0, length)
-    if pos == -1:
-        return str[:length], str[length:]
-    else:
-        return str[:pos], str[pos+1:]
-
-def cut_line(str, length):
-    tab = []
-    while len(str) > length:
-        cut, str = get_next_line(str, length)
-        tab.append(cut)
-    tab.append(str)
-    return tab
-
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
         self._resize(height, width, y, x, parent_win)

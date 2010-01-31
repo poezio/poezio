@@ -19,7 +19,8 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 from ConfigParser import RawConfigParser, NoOptionError
-# from logging import logger
+from os import environ, makedirs
+from shutil import copy2
 
 class Config(RawConfigParser):
     """
@@ -78,4 +79,15 @@ class Config(RawConfigParser):
         self.set(option, value)
         self.save()
 
-config = Config('poezio.cfg')
+CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
+if not CONFIG_HOME:
+    CONFIG_HOME = environ.get('HOME')+'/.config/'
+CONFIG_PATH = CONFIG_HOME + 'poezio/'
+
+try:
+    makedirs(CONFIG_PATH)
+    copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
+except:
+    pass
+
+config = Config(CONFIG_PATH+'poezio.cfg')

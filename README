@@ -7,6 +7,8 @@ Poezio is a console Jabber client. Its goal is to use anonymous
 connections to let the user join MultiUserChats. This way, the user
 don't have to create a Jabber account, exactly like people are using
 IRC. It doesn't handle contact list at all.
+Poezio's commands are design to be (if possible) like well known IRC
+clients (weechat, irssi, mirc).
 
 =======================
 	Authors
