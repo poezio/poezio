@@ -81,10 +81,11 @@ class Config(RawConfigParser):
 
 CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
 if not CONFIG_HOME:
-    CONFIG_HOME = environ.get('HOME')+'/.config/'
-CONFIG_PATH = CONFIG_HOME + 'poezio/'
+    CONFIG_HOME = environ.get('HOME')+'/.config'
+CONFIG_PATH = CONFIG_HOME + '/poezio/'
 
-makedirs(CONFIG_PATH)
+try:makedirs(CONFIG_PATH)
+except:pass
 copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
 
 config = Config(CONFIG_PATH+'poezio.cfg')
