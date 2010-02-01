@@ -154,7 +154,6 @@ class Gui(object):
 
         self.init_curses(stdscr)
         self.stdscr = stdscr
-        self.stdscr.leaveok(1)
         self.rooms = [Room('Info', '')]         # current_room is self.rooms[0]
         self.window = Window(stdscr)
         self.window.text_win.new_win('Info')

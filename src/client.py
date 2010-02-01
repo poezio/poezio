@@ -24,14 +24,28 @@ from config import config
 from handler import Handler
 from gui import Gui
 from curses import wrapper, initscr
+import curses
 
-sys.stderr = open('log', 'w')
+import signal
+signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-if len(sys.argv) == 1:          # not debug, so hide any error message and disable C-c
-    import signal
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-    sys.stderr = open('/dev/null', 'w')
-    sys.stdout = open('/dev/null', 'w')
+# disable any printout (this would mess the display)
+stderr = sys.stderr
+sys.stderr = open('/dev/null', 'w')
+sys.stdout = open('/dev/null', 'w')
+
+import traceback
+def exception_handler(type_, value, tb):
+    """
+    on any traceback: exit ncurses and print the traceback
+    then exit the program
+    """
+    curses.echo()
+    curses.endwin()
+    traceback.print_exception(type_, value, tb, None, stderr)
+    sys.exit()
+
+sys.excepthook = exception_handler
 
 class Client(object):
     """
