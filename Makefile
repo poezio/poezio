@@ -21,7 +21,7 @@ install:all
 	done
 	$(INSTALL) -m644 src/xmpp/* $(DATADIR)/poezio/src/xmpp/
 
-	echo "#!/usr/bin/environ sh" > $(BINDIR)/poezio
+	echo "#!/usr/bin/env sh" > $(BINDIR)/poezio
 	echo "cd $(DATADIR)/poezio/src/ && python client.py" >> $(BINDIR)/poezio
 	chmod 755 $(BINDIR)/poezio
 

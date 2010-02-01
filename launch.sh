@@ -1,4 +1,4 @@
-#!/usr/bin/environ sh
+#!/usr/bin/env sh
 
 cd src/ && python client.py "$@"
 
