@@ -72,7 +72,7 @@ class Info(Win):
 
     def refresh(self, room_name):
         self.win.clear()
-        self.win.addstr(0, 0, room_name + " "*(self.width-len(room_name)-1)
+        self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)-1), self.width-1
                         , curses.color_pair(1))
         self.win.refresh()
 
