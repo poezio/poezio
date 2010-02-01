@@ -26,9 +26,7 @@ class Win(object):
 
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
-        # try:
         self.win = parent_win.subwin(height, width, y, x)
-        # except:
 
     def refresh(self):
         self.win.noutrefresh()
@@ -98,9 +96,7 @@ class TextWin(object):
 
     def rebuild(self, lines):
         """
-        called when the terminal is resized.
-        resize all the windows, clear them and rewrite
-        the lines in them
+        deprecated
         """
         pass # TODO
 
@@ -134,7 +130,7 @@ class TextWin(object):
                     break
             try:
                 try:win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
-                except:pass         # exception happens on resize, but it doesn't change anything...
+                except:pass         # exception happens on resize
                 length = len('['+line[0].strftime("%H:%M:%S") + "] <")
                 try:win.attron(curses.color_pair(user.color))
                 except:pass
