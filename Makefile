@@ -1,4 +1,4 @@
-prefix=/usr
+prefix=/usr/local
 LIBDIR=$(DESTDIR)$(prefix)/lib
 BINDIR=$(DESTDIR)$(prefix)/bin
 DATADIR=$(DESTDIR)$(prefix)/share
