@@ -43,9 +43,6 @@ class UserList(Win):
 
     def refresh(self, users):
         self.win.clear()
-        self.win.attron(curses.color_pair(2))
-        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self.win.attroff(curses.color_pair(2))
         y = 0
         for user in users:
             try:
@@ -312,8 +309,10 @@ class Window(object):
         terminal
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-
-        self.user_win = UserList(self.height-3, self.width/10, 1, 9*(self.width/10), stdscr)
+        stdscr.attron(curses.color_pair(2))
+        stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+        stdscr.attroff(curses.color_pair(2))
+        self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr)
         self.topic_win = Info(1, self.width, 0, 0, stdscr)
         self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
         self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr)
@@ -324,7 +323,10 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        self.user_win.resize(self.height-3, self.width/10, 1, 9*(self.width/10), stdscr)
+        stdscr.attron(curses.color_pair(2))
+        stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+        stdscr.attroff(curses.color_pair(2))
+        self.user_win.resize(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr)
         self.topic_win.resize(1, self.width, 0, 0, stdscr)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr)
         self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr)
