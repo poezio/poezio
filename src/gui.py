@@ -175,6 +175,7 @@ class Gui(object):
             'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
+            'set': (self.command_set, _('Usage: /set <option> <value>\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource`')),
             'nick': (self.command_nick, _('Usage: /nick <nickname>\nNick: Change your nickname in the current room'))
             }
 
@@ -323,10 +324,7 @@ class Gui(object):
         else:
             msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
-            try:
-                self.window.text_win.add_line(room, (datetime.now(), msg))
-            except:
-                pass
+            self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
@@ -419,6 +417,20 @@ class Gui(object):
         else:
             res = roomname
         config.setAndSave('rooms', bookmarked+':'+res)
+
+    def command_set(self, args):
+        if len(args) != 2:
+            self.command_help(['set'])
+            return
+        option = args[0]
+        value = args[1]
+        config.setAndSave(option, value)
+        msg = "%s=%s" % (option, value)
+        room = self.current_room()
+        room.add_info(msg)
+        self.window.text_win.add_line(room, (datetime.now(), msg))
+        self.window.text_win.refresh(room.name)
+        self.window.input.refresh()
 
     def command_show(self, args):
         possible_show = {'avail':'None',
