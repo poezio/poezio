@@ -208,6 +208,7 @@ class Gui(object):
             except:
                 self.window.resize(stdscr)
                 self.window.refresh(self.current_room())
+                continue
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
             elif str(key) == 'KEY_RESIZE':
