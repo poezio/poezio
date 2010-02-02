@@ -32,8 +32,9 @@ class Win(object):
         self.win.noutrefresh()
 
 class UserList(Win):
-    def __init__(self, height, width, y, x, parent_win):
+    def __init__(self, height, width, y, x, parent_win, visible):
         Win.__init__(self, height, width, y, x, parent_win)
+        self.visible = visible
         self.win.attron(curses.color_pair(2))
         self.win.vline(0, 0, curses.ACS_VLINE, self.height)
         self.win.attroff(curses.color_pair(2))
@@ -42,6 +43,8 @@ class UserList(Win):
                            'visitor':4}
 
     def refresh(self, users):
+        if not self.visible:
+            return
         self.win.clear()
         y = 0
         for user in users:
@@ -57,20 +60,28 @@ class UserList(Win):
                 break
         self.win.refresh()
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr, visible):
+        self.visible = visible
+        if not visible:
+            return
         self._resize(height, width, y, x, stdscr)
 
 class Info(Win):
-    def __init__(self, height, width, y, x, parent_win):
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
 
     def refresh(self, room_name):
+        if not self.visible:
+            return
         self.win.clear()
-        self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)-1), self.width-1
-                        , curses.color_pair(1))
+        try:
+            self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)-1), self.width-1
+                             , curses.color_pair(1))
+        except:pass
         self.win.refresh()
 
 class TextWin(object):
@@ -83,7 +94,8 @@ class TextWin(object):
     When the term is resized, rebuild ALL the windows
     (the complete lines lists are keeped in the Room class)
     """
-    def __init__(self, height, width, y, x, parent_win):
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
         self.height = height
         self.width = width
         self.y = y
@@ -102,6 +114,8 @@ class TextWin(object):
         called when the buffer changes or is
         resized (a complete redraw is needed)
         """
+        if not self.visible:
+            return
         win = self.wins[room.name].win
         win.clear()
         win.move(0, 0)
@@ -109,9 +123,12 @@ class TextWin(object):
             self.add_line(room, line)
 
     def refresh(self, winname):
-        self.wins[winname].refresh()
+        if self.visible:
+            self.wins[winname].refresh()
 
     def add_line(self, room, line):
+        if not self.visible:
+            return
         win = self.wins[room.name].win
         users = room.users
         if len(line) == 2:
@@ -120,14 +137,14 @@ class TextWin(object):
                 win.attron(curses.color_pair(8))
                 win.addstr(line[1])
                 win.attroff(curses.color_pair(8))
-            except:pass # exception happens on resize, but it doesn't change anything...
+            except:pass
         elif len(line) == 3:
             for user in users:
                 if user.nick == line[1]:
                     break
             try:
                 try:win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
-                except:pass         # exception happens on resize
+                except:pass
                 length = len('['+line[0].strftime("%H:%M:%S") + "] <")
                 try:win.attron(curses.color_pair(user.color))
                 except:pass
@@ -144,7 +161,10 @@ class TextWin(object):
         newwin.win.scrollok(True)
         self.wins[winname] = newwin
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr, visible):
+        self.visible = visible
+        if not visible:
+            return
         for winname in self.wins.keys():
             self.wins[winname]._resize(height, width, y, x, stdscr)
             self.wins[winname].win.idlok(True)
@@ -153,18 +173,23 @@ class TextWin(object):
 class Input(Win):
     """
     """
-    def __init__(self, height, width, y, x, stdscr):
+    def __init__(self, height, width, y, x, stdscr, visible):
         Win.__init__(self, height, width, y, x, stdscr)
+        self.visible = visible
         self.history = []
         self.text = u''
         self.pos = 0
         self.histo_pos = 0
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr, visible):
+        self.visible = visible
+        if not visible:
+            return
         self._resize(height, width, y, x, stdscr)
         self.input = curses.textpad.Textbox(self.win)
         self.input.insert_mode = True
         self.win.clear()
+        self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
 
     def key_dc(self):
         """delete char"""
@@ -285,10 +310,9 @@ class Input(Win):
         self.histo_pos = len(self.history)-1
         return txt.encode('utf-8')
 
-    def save_text(self):
-        self.txt = self.input.gather()
-
     def refresh(self):
+        if not self.visible:
+            return
         self.win.noutrefresh()
 
     def clear_text(self):
@@ -309,28 +333,38 @@ class Window(object):
         terminal
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        stdscr.attron(curses.color_pair(2))
-        stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-        stdscr.attroff(curses.color_pair(2))
-        self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr)
-        self.topic_win = Info(1, self.width, 0, 0, stdscr)
-        self.info_win = Info(1, self.width, self.height-2, 0, stdscr)
-        self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr)
-        self.input = Input(1, self.width, self.height-1, 0, stdscr)
+        if self.height < 10 or self.width < 60:
+            visible = False
+        else:
+            visible = True
+        if visible:
+            stdscr.attron(curses.color_pair(2))
+            stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+            stdscr.attroff(curses.color_pair(2))
+        self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
+        self.topic_win = Info(1, self.width, 0, 0, stdscr, visible)
+        self.info_win = Info(1, self.width, self.height-2, 0, stdscr, visible)
+        self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
+        self.input = Input(1, self.width, self.height-1, 0, stdscr, visible)
 
     def resize(self, stdscr):
         """
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        stdscr.attron(curses.color_pair(2))
-        stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-        stdscr.attroff(curses.color_pair(2))
-        self.user_win.resize(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr)
-        self.topic_win.resize(1, self.width, 0, 0, stdscr)
-        self.info_win.resize(1, self.width, self.height-2, 0, stdscr)
-        self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr)
+        if self.height < 10 or self.width < 60:
+            visible = False
+        else:
+            visible = True
+        if visible:
+            stdscr.attron(curses.color_pair(2))
+            stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+            stdscr.attroff(curses.color_pair(2))
+        self.user_win.resize(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
+        self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
+        self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
+        self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
+        self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
 
     def refresh(self, room):
         self.text_win.redraw(room)

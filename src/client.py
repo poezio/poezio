@@ -18,6 +18,11 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+# disable any printout (this would mess the display)
+stderr = sys.stderr
+sys.stderr = open('/dev/null', 'w')
+sys.stdout = open('/dev/null', 'w')
+
 from connection import Connection
 from multiuserchat import MultiUserChat
 from config import config
@@ -28,11 +33,6 @@ import curses
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-# disable any printout (this would mess the display)
-stderr = sys.stderr
-sys.stderr = open('/dev/null', 'w')
-sys.stdout = open('/dev/null', 'w')
 
 import traceback
 def exception_handler(type_, value, tb):
