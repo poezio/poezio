@@ -176,6 +176,8 @@ class Gui(object):
             'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
             'set': (self.command_set, _('Usage: /set <option> <value>\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource`')),
+            'kick': (self.command_kick, _('Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.')),
+            # 'ban': (self.command_ban, _('Usage: /ban <nick> [reason]\nBan: Ban the user with the specified nickname. You also can give an optional reason.')),
             'nick': (self.command_nick, _('Usage: /nick <nickname>\nNick: Change your nickname in the current room'))
             }
 
@@ -368,6 +370,34 @@ class Gui(object):
         self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
+
+    def command_kick(self, args):
+        if len(args) < 1:
+            self.command_help(['kick'])
+            return
+        nick = args[0]
+        if len(args) >= 2:
+            reason = ' '.join(args[1:])
+        else:
+            reason = ''
+        if self.current_room().name == 'Info' or not self.current_room().joined:
+            return
+        roomname = self.current_room().name
+        self.muc.eject_user(roomname, 'kick', nick, reason)
+
+    # def command_ban(self, args):
+    #     if len(args) < 1:
+    #         self.command_help(['ban'])
+    #         return
+    #     nick = args[0]
+    #     if len(args) >= 2:
+    #         reason = ' '.join(args[1:])
+    #     else:
+    #         reason = None
+    #     if self.current_room().name == 'Info' or not self.current_room().joined:
+    #         return
+    #     roomname = self.current_room().name
+    #     self.muc.eject_user(roomname, 'ban', nick, reason)
 
     def command_join(self, args):
         if len(args) == 0:
