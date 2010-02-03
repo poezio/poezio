@@ -399,7 +399,6 @@ class Gui(object):
     #     roomname = self.current_room().name
     #     self.muc.eject_user(roomname, 'ban', nick, reason)
 
-
     def command_join(self, args):
         if len(args) == 0:
             r = self.current_room()
