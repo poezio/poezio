@@ -18,7 +18,6 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import curses
-from logging import logger
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):

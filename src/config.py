@@ -45,7 +45,7 @@ class Config(RawConfigParser):
             elif type(default) == float:
                 res = self.getfloat(option)
             elif type(default) == bool:
-                res = self.getbool(option)
+                res = self.getboolean(option)
             else:
                 res = self.getstr(option)
         except NoOptionError:
@@ -75,7 +75,7 @@ class Config(RawConfigParser):
         RawConfigParser.write(self, f)
 	f.close()
 
-    def setAndSave(self, option, value):
+    def set_and_save(self, option, value):
         self.set(option, value)
         self.save()
 

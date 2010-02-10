@@ -19,7 +19,7 @@
 
 import sys
 # disable any printout (this would mess the display)
-stderr = sys.stderr
+STDERR = sys.stderr
 sys.stderr = open('/dev/null', 'w')
 sys.stdout = open('/dev/null', 'w')
 
@@ -28,21 +28,22 @@ from multiuserchat import MultiUserChat
 from config import config
 from handler import Handler
 from gui import Gui
-from curses import wrapper, initscr
+from curses import initscr
 import curses
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 import traceback
-def exception_handler(type_, value, tb):
+
+def exception_handler(type_, value, trace):
     """
     on any traceback: exit ncurses and print the traceback
     then exit the program
     """
     curses.echo()
     curses.endwin()
-    traceback.print_exception(type_, value, tb, None, stderr)
+    traceback.print_exception(type_, value, trace, None, STDERR)
     sys.exit()
 
 sys.excepthook = exception_handler
@@ -63,9 +64,18 @@ class Client(object):
         self.connection.start()
         self.gui = Gui(self.stdscr, MultiUserChat(self.connection.client))
 
+    def launch(self):
+        """
+        launch
+        """
+        self.gui.main_loop(self.stdscr)
+
 def main():
+    """
+    main function
+    """
     client = Client()
-    client.gui.main_loop(client.stdscr)
+    client.launch()
     sys.exit()
 
 if __name__ == '__main__':

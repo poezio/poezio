@@ -29,7 +29,6 @@ locale.setlocale(locale.LC_ALL, '')
 import sys
 
 import curses
-from curses import textpad
 from datetime import datetime
 
 from handler import Handler
@@ -48,8 +47,8 @@ class User(object):
         self.color = randrange(2, 10)
 
     def update(self, affiliation, show, status, role):
-        self.affiliation = None
-        self.show = None
+        self.affiliation = affiliation
+        self.show = show
         self.status = status
         self.role = role
 
@@ -75,14 +74,15 @@ class Room(object):
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
-        self.lines.append((datetime.now(), nick.encode('utf-8'), msg.encode('utf-8')))
+        self.lines.append((datetime.now(), nick.encode('utf-8'),
+                           msg.encode('utf-8')))
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
         try:
             self.lines.append((datetime.now(), info.encode('utf-8')))
             return info.encode('utf-8')
-        except:                 # I JUST FUCKING HATE THIS .encode.decode.shit !!!
+        except:
             self.lines.append((datetime.now(), info))
             return info
 
@@ -100,11 +100,11 @@ class Room(object):
         status = stanza.getStatus()
         role = stanza.getRole()
         if not self.joined:     # user in the room BEFORE us.
-             self.users.append(User(nick, affiliation, show, status, role))
-             if nick.encode('utf-8') == self.own_nick:
-                 self.joined = True
-                 return self.add_info(_("Your nickname is %s") % (nick))
-             return self.add_info(_("%s is in the room") % (nick.encode-('utf-8')))
+            self.users.append(User(nick, affiliation, show, status, role))
+            if nick.encode('utf-8') == self.own_nick:
+                self.joined = True
+                return self.add_info(_("Your nickname is %s") % (nick))
+            return self.add_info(_("%s is in the room") % (nick.encode-('utf-8')))
         change_nick = stanza.getStatusCode() == '303'
         kick = stanza.getStatusCode() == '307'
         user = self.get_user_by_name(nick)
@@ -239,7 +239,7 @@ class Gui(object):
                 self.window.do_command(key)
 
     def current_room(self):
-	return self.rooms[0]
+        return self.rooms[0]
 
     def get_room_by_name(self, name):
 	for room in self.rooms:
@@ -293,7 +293,7 @@ class Gui(object):
             nick_from = ''
 	room = self.get_room_by_name(room_from)
 	if not room:
-	    self.information(_("message received for a non-existing room: %s") % (name))
+	    self.information(_("message received for a non-existing room: %s") % (room_from))
             return
         body = stanza.getBody()
         if not body:
@@ -320,7 +320,7 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
-	    self.information(_("presence received for a non-existing room: %s") % (name))
+	    self.information(_("presence received for a non-existing room: %s") % (from_room))
         if stanza.getType() == 'error':
             msg = _("Error: %s") % stanza.getError()
         else:
@@ -446,7 +446,7 @@ class Gui(object):
             res = roomname+'/'+nick
         else:
             res = roomname
-        config.setAndSave('rooms', bookmarked+':'+res)
+        config.set_and_save('rooms', bookmarked+':'+res)
 
     def command_set(self, args):
         if len(args) != 2:
@@ -454,7 +454,7 @@ class Gui(object):
             return
         option = args[0]
         value = args[1]
-        config.setAndSave(option, value)
+        config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         room = self.current_room()
         room.add_info(msg)

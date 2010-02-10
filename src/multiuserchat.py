@@ -50,7 +50,7 @@ class MultiUserChat(object):
     def on_connected(self, jid):
         self.own_jid = jid
         rooms = config.get('rooms', '')
-        if rooms == '':
+        if rooms == '' or type(rooms) != str:
             return
         else:
             rooms = rooms.split(':')

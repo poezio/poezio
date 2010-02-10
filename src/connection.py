@@ -23,7 +23,6 @@ import xmpp
 from config import config
 from logging import logger
 from threading import Thread
-from multiuserchat import MultiUserChat
 from handler import Handler
 
 class Connection(Thread):
@@ -100,7 +99,8 @@ class Connection(Thread):
 
     def process(self, timeout=10):
         if self.online:
-            try:self.client.Process(timeout)
+            try:
+                self.client.Process(timeout)
             except:
                 pass            # FIXME
         else:
