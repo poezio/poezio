@@ -219,8 +219,6 @@ class Input(Win):
         if not visible:
             return
         self._resize(height, width, y, x, stdscr)
-        self.input = curses.textpad.Textbox(self.win)
-        self.input.insert_mode = True
         self.win.clear()
         self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
 
