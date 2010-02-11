@@ -19,9 +19,9 @@
 
 import sys
 # disable any printout (this would mess the display)
-STDERR = sys.stderr
-sys.stderr = open('/dev/null', 'w')
+stderr = sys.stderr
 sys.stdout = open('/dev/null', 'w')
+sys.stderr = open('/dev/null', 'w')
 
 from connection import Connection
 from multiuserchat import MultiUserChat
@@ -43,7 +43,7 @@ def exception_handler(type_, value, trace):
     """
     curses.echo()
     curses.endwin()
-    traceback.print_exception(type_, value, trace, None, STDERR)
+    traceback.print_exception(type_, value, trace, None, stderr)
     sys.exit()
 
 sys.excepthook = exception_handler
@@ -59,8 +59,8 @@ class Client(object):
         self.resource = config.get('resource', 'poezio')
         self.server = config.get('server', 'louiz.org')
         self.connection = Connection(self.server, self.resource)
-
         self.stdscr = initscr()
+
         self.connection.start()
         self.gui = Gui(self.stdscr, MultiUserChat(self.connection.client))
 

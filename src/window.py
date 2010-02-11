@@ -65,7 +65,7 @@ class UserList(Win):
             return
         self._resize(height, width, y, x, stdscr)
 
-class Info(Win):
+class Topic(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
@@ -81,6 +81,40 @@ class Info(Win):
             self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)-1), self.width-1
                              , curses.color_pair(1))
         except:pass
+        self.win.refresh()
+
+class RoomInfo(Win):
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
+        Win.__init__(self, height, width, y, x, parent_win)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr)
+
+    def refresh(self, rooms, current):
+        if not self.visible:
+            return
+        def compare_room(a, b):
+            return a.nb - b.nb
+        self.win.clear()
+        self.win.addnstr(0, 0, current.name+" [", self.width-1
+                             ,curses.color_pair(1))
+        sorted_rooms = sorted(rooms, compare_room)
+        for room in sorted_rooms:
+            if current == room:
+                color = 10
+            else:
+                color = room.color_state
+            try:
+                self.win.addstr(str(room.nb), curses.color_pair(color))
+                self.win.addstr(",", curses.color_pair(1))
+            except:             # end of line
+                break
+        (y, x) = self.win.getyx()
+        try:
+            self.win.addstr(y, x-1, ']'+(' '*((self.width-1)-x)), curses.color_pair(1))
+        except:
+            pass
         self.win.refresh()
 
 class TextWin(object):
@@ -341,8 +375,8 @@ class Window(object):
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
             stdscr.attroff(curses.color_pair(2))
         self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
-        self.topic_win = Info(1, self.width, 0, 0, stdscr, visible)
-        self.info_win = Info(1, self.width, self.height-2, 0, stdscr, visible)
+        self.topic_win = Topic(1, self.width, 0, 0, stdscr, visible)
+        self.info_win = RoomInfo(1, self.width, self.height-2, 0, stdscr, visible)
         self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
         self.input = Input(1, self.width, self.height-1, 0, stdscr, visible)
 
@@ -365,15 +399,21 @@ class Window(object):
         self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
         self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
 
-    def refresh(self, room):
+    def refresh(self, rooms):
+        """
+        'room' is the current one
+        """
+        room = rooms[0]         # get current room
         self.text_win.redraw(room)
         self.text_win.refresh(room.name)
         self.user_win.refresh(room.users)
         self.topic_win.refresh(room.topic)
-        self.info_win.refresh(room.name)
+        self.info_win.refresh(rooms, room)
         self.input.refresh()
 
     def do_command(self, key):
         self.input.do_command(key)
         self.input.refresh()
 
+    def new_room(self, room):
+        self.text_win.new_win(room.name)

@@ -58,9 +58,11 @@ class User(object):
 class Room(object):
     """
     """
-    def __init__(self, name, nick):
+    def __init__(self, name, nick, number):
         self.name = name
         self.own_nick = nick
+        self.color_state = 11   # color used in RoomInfo
+        self.nb = number       # number used in RoomInfo
         self.joined = False     # false until self presence is received
         self.users = []
         self.lines = []         # (time, nick, msg) or (time, info)
@@ -71,6 +73,8 @@ class Room(object):
         self.users = []
 
     def add_message(self, nick, msg):
+        self.set_color_state(12)
+        # TODO check for highlight
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
@@ -91,6 +95,9 @@ class Room(object):
             if user.nick == nick.encode('utf-8'):
                 return user
         return None
+
+    def set_color_state(self, color):
+        self.color_state = color
 
     def on_presence(self, stanza, nick):
         """
@@ -151,13 +158,14 @@ class Gui(object):
     Graphical user interface using ncurses
     """
     def __init__(self, stdscr=None, muc=None):
-
+        self.room_number = 0
         self.init_curses(stdscr)
         self.stdscr = stdscr
-        self.rooms = [Room('Info', '')]         # current_room is self.rooms[0]
+        self.rooms = [Room('Info', '', self.next_room_number())]         # current_room is self.rooms[0]
         self.window = Window(stdscr)
-        self.window.text_win.new_win('Info')
-        self.window.refresh(self.rooms[0])
+        self.window.new_room(self.current_room())
+        self.window.refresh(self.rooms)
+
 
         self.muc = muc
 
@@ -210,13 +218,13 @@ class Gui(object):
                 key = stdscr.getkey()
             except:
                 self.window.resize(stdscr)
-                self.window.refresh(self.current_room())
+                self.window.refresh(self.rooms)
                 continue
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
             elif str(key) == 'KEY_RESIZE':
                 self.window.resize(stdscr)
-                self.window.refresh(self.current_room())
+                self.window.refresh(self.rooms)
             elif len(key) >= 4:
                 continue
             elif ord(key) == 10:
@@ -237,6 +245,11 @@ class Gui(object):
                     key = key+stdscr.getkey()
                     key = key+stdscr.getkey()
                 self.window.do_command(key)
+
+    def next_room_number(self):
+        nb = self.room_number
+        self.room_number += 1
+        return nb
 
     def current_room(self):
         return self.rooms[0]
@@ -260,6 +273,10 @@ class Gui(object):
         curses.init_pair(7, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(8, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_GREEN) # current room
+        curses.init_pair(11, curses.COLOR_WHITE, curses.COLOR_BLUE) # normal room
+        curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_CYAN) # new message room
+        curses.init_pair(13, curses.COLOR_WHITE, curses.COLOR_RED) # highlight room
 
     def reset_curses(self):
 	curses.echo()
@@ -270,17 +287,29 @@ class Gui(object):
         self.information(_("Your JID is %s") % jid)
 
     def join_room(self, room, nick):
-        self.window.text_win.new_win(room)
-        self.rooms.insert(0, Room(room, nick))
-        self.window.refresh(self.current_room())
-
-    def rotate_rooms_left(self, args=None):
-        self.rooms.append(self.rooms.pop(0))
-        self.window.refresh(self.current_room())
+        r = Room(room, nick, self.next_room_number())
+        self.current_room().set_color_state(11)
+        if self.current_room().nb == 0:
+            self.rooms.append(r)
+        else:
+            for ro in self.rooms:
+                if ro.nb == 0:
+                    self.rooms.insert(self.rooms.index(ro), r)
+                    break
+        while self.current_room().nb != r.nb:
+            self.rooms.insert(0, self.rooms.pop())
+        self.window.new_room(r)
+        self.window.refresh(self.rooms)
 
     def rotate_rooms_right(self, args=None):
+        self.current_room().set_color_state(11)
+        self.rooms.append(self.rooms.pop(0))
+        self.window.refresh(self.rooms)
+
+    def rotate_rooms_left(self, args=None):
+        self.current_room().set_color_state(11)
         self.rooms.insert(0, self.rooms.pop())
-        self.window.refresh(self.current_room())
+        self.window.refresh(self.rooms)
 
     def room_message(self, stanza):
         if len(sys.argv) > 1:
@@ -311,6 +340,8 @@ class Gui(object):
         if room == self.current_room():
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
+        else:
+            self.window.info_win.refresh(self.rooms, self.current_room())
         curses.doupdate()
 
     def room_presence(self, stanza):
@@ -384,20 +415,6 @@ class Gui(object):
             return
         roomname = self.current_room().name
         self.muc.eject_user(roomname, 'kick', nick, reason)
-
-    # def command_ban(self, args):
-    #     if len(args) < 1:
-    #         self.command_help(['ban'])
-    #         return
-    #     nick = args[0]
-    #     if len(args) >= 2:
-    #         reason = ' '.join(args[1:])
-    #     else:
-    #         reason = None
-    #     if self.current_room().name == 'Info' or not self.current_room().joined:
-    #         return
-    #     roomname = self.current_room().name
-    #     self.muc.eject_user(roomname, 'ban', nick, reason)
 
     def command_join(self, args):
         if len(args) == 0:
@@ -512,7 +529,7 @@ class Gui(object):
         if room.joined:
             self.muc.quit_room(room.name, room.own_nick, msg)
         self.rooms.remove(self.current_room())
-        self.window.refresh(self.current_room())
+        self.window.refresh(self.rooms)
 
     def command_nick(self, args):
         if len(args) != 1:

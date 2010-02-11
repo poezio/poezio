@@ -22,16 +22,16 @@ import sys
 import xmpp
 from config import config
 from logging import logger
-from threading import Thread
 from handler import Handler
+import threading
 
-class Connection(Thread):
+class Connection(threading.Thread):
     """
     Receives everything from Jabber and emits the
     appropriate signals
     """
     def __init__(self, server, resource):
-        Thread.__init__(self)
+        threading.Thread.__init__(self)
         self.handler = Handler()
 
         self.server = server
