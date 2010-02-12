@@ -201,6 +201,7 @@ class Gui(object):
             "KEY_F(6)": self.rotate_rooms_right,
             "kLFT5": self.rotate_rooms_left,
             "kRIT5": self.rotate_rooms_right,
+            "\t": self.auto_completion,
             "KEY_BACKSPACE": self.window.input.key_backspace
             }
 
@@ -300,6 +301,9 @@ class Gui(object):
             self.rooms.insert(0, self.rooms.pop())
         self.window.new_room(r)
         self.window.refresh(self.rooms)
+
+    def auto_completion(self):
+        self.window.input.auto_completion(self.current_room().users)
 
     def rotate_rooms_right(self, args=None):
         self.current_room().set_color_state(11)

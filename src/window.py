@@ -18,6 +18,7 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import curses
+from config import config
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
@@ -213,6 +214,8 @@ class Input(Win):
         self.text = u''
         self.pos = 0
         self.histo_pos = 0
+        self.hit_list = [] # current possible completion (normal)
+        self.last_key_tab = False # True if we are cycling through possible completion
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -226,6 +229,7 @@ class Input(Win):
         """delete char"""
         if self.pos == len(self.text):
             return
+        self.reset_completion()
         (y, x) = self.win.getyx()
         self.text = self.text[:self.pos]+self.text[self.pos+1:]
         self.win.delch(y, x)
@@ -234,6 +238,7 @@ class Input(Win):
     def key_up(self):
         if not len(self.history):
             return
+        self.reset_completion()
         self.win.clear()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
@@ -248,6 +253,7 @@ class Input(Win):
     def key_down(self):
         if not len(self.history):
             return
+        self.reset_completion()
         self.win.clear()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
@@ -264,6 +270,7 @@ class Input(Win):
         self.refresh()
 
     def key_home(self):
+        self.reset_completion()
         self.pos = 0
         if len(self.text) >= self.width-1:
             txt = self.text[:self.width-1]
@@ -273,6 +280,7 @@ class Input(Win):
         self.refresh()
 
     def key_end(self):
+        self.reset_completion()
         self.pos = len(self.text)
         if len(self.text) >= self.width-1:
             txt = self.text[-(self.width-1):]
@@ -284,6 +292,7 @@ class Input(Win):
         self.refresh()
 
     def key_left(self):
+        self.reset_completion()
         (y, x) = self.win.getyx()
         if self.pos > 0:
             self.pos -= 1
@@ -297,6 +306,7 @@ class Input(Win):
             self.refresh()
 
     def key_right(self):
+        self.reset_completion()
         (y, x) = self.win.getyx()
         if self.pos < len(self.text):
             self.pos += 1
@@ -311,6 +321,7 @@ class Input(Win):
             self.refresh()
 
     def key_backspace(self):
+        self.reset_completion()
         (y, x) = self.win.getyx()
         if len(self.text) > 0 and self.pos != 0:
             self.text = self.text[:self.pos-1]+self.text[self.pos:]
@@ -318,7 +329,93 @@ class Input(Win):
             self.win.delch(y, x-1)
             self.refresh()
 
+    def auto_completion(self, user_list):
+        if self.pos != len(self.text) or len(self.text) == 0:
+            return # we don't complete if cursos is not at the end of line
+        completion_type = config.get('completion', 'normal')
+        if completion_type == 'shell':
+            self.shell_completion(user_list)
+        else:
+            self.normal_completion(user_list)
+
+    def reset_completion(self):
+        self.hit_list = []
+        self.last_key_tab = False
+
+    def normal_completion(self, user_list):
+        after = config.get('after_completion', ',')+" "
+        (y, x) = self.win.getyx()
+        if not self.last_key_tab:
+            # begin is the begining of the nick we want to complete
+            begin = self.text.split()[-1].encode('utf-8').lower()
+            hit_list = []       # list of matching nicks
+            for user in user_list:
+                if user.nick.lower().startswith(begin):
+                    hit_list.append(user.nick)
+            if len(hit_list) == 0:
+                return
+            self.last_key_tab = True
+            self.hit_list = hit_list
+            end = len(begin)
+        else:
+            begin = self.text[:-len(after)].split()[-1].encode('utf-8').lower()
+            self.hit_list.append(self.hit_list.pop(0)) # rotate list
+            end = len(begin) + len(after)
+        x -= end
+        self.win.move(y, x)
+        # remove begin from the line
+        self.win.clrtoeol()
+        self.text = self.text[:-end]
+        nick = self.hit_list[0] # take the first hit
+        self.text += nick+after
+        self.pos = len(self.text)
+        self.win.addstr(nick+after)
+        self.refresh()
+
+    def shell_completion(self, user_list):
+        after = config.get('after_completion', ',')+" "
+        (y, x) = self.win.getyx()
+        begin = self.text.split()[-1].encode('utf-8').lower()
+        hit_list = []       # list of matching nicks
+        for user in user_list:
+            if user.nick.lower().startswith(begin):
+                hit_list.append(user.nick)
+        if len(hit_list) == 0:
+            return
+        end = False
+        nick = ''
+        last_key_tab = self.last_key_tab
+        self.last_key_tab = True
+        if len(hit_list) == 1:
+            nick = hit_list[0] + after
+            self.last_key_tab = False
+        elif last_key_tab:
+            for n in hit_list:
+                if begin.lower() == n.lower():
+                    nick = n+after # user DO want this completion (tabbed twice on it)
+                    self.last_key_tab = False
+        if nick == '':
+            while not end and len(nick) < len(hit_list[0]):
+                nick = hit_list[0][:len(nick)+1]
+                for hit in hit_list:
+                    if not hit.lower().startswith(nick.lower()):
+                        end = True
+                        break
+            if end:
+                nick = nick[:-1]
+        x -= len(begin)
+        self.win.move(y, x)
+        # remove begin from the line
+        self.win.clrtoeol()
+        self.text = self.text[:-len(begin)]
+        self.text += nick
+        self.pos = len(self.text)
+        self.win.addstr(nick)
+        self.refresh()
+
+
     def do_command(self, key):
+        self.reset_completion()
         (y, x) = self.win.getyx()
         if x == self.width-1:
             self.win.delch(0, 0)
