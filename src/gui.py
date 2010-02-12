@@ -346,7 +346,7 @@ class Gui(object):
         if not body:
             body = stanza.getSubject()
             info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':stanza.getSubject()})
-            self.window.text_win.add_line(room, (datetime.now(), info, None))
+            self.window.text_win.add_line(room, (datetime.now(), info))
             room.topic = stanza.getSubject().encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
@@ -375,7 +375,7 @@ class Gui(object):
         else:
             msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
-            self.window.text_win.add_line(room, (datetime.now(), msg, None))
+            self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
@@ -515,7 +515,7 @@ class Gui(object):
         msg = "%s=%s" % (option, value)
         room = self.current_room()
         room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg, None))
+        self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
 
@@ -584,7 +584,7 @@ class Gui(object):
         room = self.get_room_by_name("Info")
         info = room.add_info(msg)
         if self.current_room() == room:
-            self.window.text_win.add_line(room, (datetime.now(), info, None))
+            self.window.text_win.add_line(room, (datetime.now(), info))
             self.window.text_win.refresh(room.name)
             curses.doupdate()
 
