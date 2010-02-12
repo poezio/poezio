@@ -292,6 +292,8 @@ class Gui(object):
         curses.init_pair(11, curses.COLOR_WHITE, curses.COLOR_BLUE) # normal room
         curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_MAGENTA) # new message room
         curses.init_pair(13, curses.COLOR_WHITE, curses.COLOR_RED) # highlight room
+        curses.init_pair(14, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+        curses.init_pair(15, curses.COLOR_WHITE, curses.COLOR_GREEN)
 
     def reset_curses(self):
 	curses.echo()

@@ -38,9 +38,16 @@ class UserList(Win):
         self.win.attron(curses.color_pair(2))
         self.win.vline(0, 0, curses.ACS_VLINE, self.height)
         self.win.attroff(curses.color_pair(2))
-        self.color_dict = {'moderator': 3,
+        self.color_role = {'moderator': 3,
                            'participant':2,
-                           'visitor':4}
+                           'visitor':4
+                           }
+        self.color_show = {'xa':12,
+                           'None':8,
+                           'dnd':13,
+                           'away':14,
+                           'chat':15
+                           }
 
     def refresh(self, users):
         if not self.visible:
@@ -49,12 +56,19 @@ class UserList(Win):
         y = 0
         for user in users:
             try:
-                color = self.color_dict[user.role]
+                role_col = self.color_role[user.role]
             except:
-                color = 1
-            self.win.attron(curses.color_pair(color))
-            self.win.addnstr(y, 1, user.nick, self.width-1)
-            self.win.attroff(curses.color_pair(color))
+                role_col = 1
+            try:
+                show_col = self.color_show[user.show]
+            except:
+                show_col = 8
+            self.win.attron(curses.color_pair(show_col))
+            self.win.addnstr(y, 0, " ", 1)
+            self.win.attroff(curses.color_pair(show_col))
+            self.win.attron(curses.color_pair(role_col))
+            self.win.addnstr(y, 1, user.nick, self.width-2)
+            self.win.attroff(curses.color_pair(role_col))
             y += 1
             if y == self.height:
                 break
