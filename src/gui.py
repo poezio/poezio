@@ -176,6 +176,8 @@ class Gui(object):
             'exit': (self.command_quit, _('Usage: /exit\nExit: Just disconnect from the server and exit poezio.')),
             'next': (self.rotate_rooms_right, _('Usage: /next\nNext: Go to the next room.')),
             'prev': (self.rotate_rooms_left, _('Usage: /prev\nPrev: Go to the previous room.')),
+            'win': (self.command_win, _('Usage: /win <number>\nWin: Go to the specified room.')),
+            'w': (self.command_win, _('Usage: /w <number>\nW: Go to the specified room.')),
             'part': (self.command_part, _('Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message.')),
             'show': (self.command_show, _(u'Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of "avail, available, ok, here, chat, away, afk, dnd, busy, xa" and the optional [message] argument will be your status message')),
             'away': (self.command_away, _('Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to "/show away [message]"')),
@@ -405,6 +407,28 @@ class Gui(object):
         self.window.text_win.add_line(room, (datetime.now(), msg))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
+
+    def command_win(self, args):
+        if len(args) != 1:
+            self.command_help(['win'])
+            return
+        try:
+            nb = int(args[0])
+        except ValueError:
+            self.command_help(['win'])
+            return
+        if self.current_room().nb == nb:
+            return
+        self.current_room().set_color_state(11)
+        start = self.current_room()
+        self.rooms.append(self.rooms.pop(0))
+        while self.current_room().nb != nb:
+            self.rooms.append(self.rooms.pop(0))
+            if self.current_room() == start:
+                self.window.refresh(self.rooms)
+                return
+        self.window.refresh(self.rooms)
+
 
     def command_kick(self, args):
         if len(args) < 1:
