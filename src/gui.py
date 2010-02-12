@@ -73,13 +73,24 @@ class Room(object):
         self.users = []
 
     def add_message(self, nick, msg):
+        color = None
         self.set_color_state(12)
-        # TODO check for highlight
+        if nick != self.own_nick:
+            if self.own_nick in msg:
+                self.set_color_state(13)
+                color = 3
+            else:
+                highlight_words = config.get('highlight_on', '').split(':')
+                for word in highlight_words:
+                    if word.lower() in msg.lower() and word != '':
+                        self.set_color_state(13)
+                        color = 3
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
         self.lines.append((datetime.now(), nick.encode('utf-8'),
-                           msg.encode('utf-8')))
+                           msg.encode('utf-8'), color))
+        return color
 
     def add_info(self, info):
         """ info, like join/quit/status messages"""
@@ -97,7 +108,8 @@ class Room(object):
         return None
 
     def set_color_state(self, color):
-        self.color_state = color
+        if self.color_state < color or color == 11:
+            self.color_state = color
 
     def on_presence(self, stanza, nick):
         """
@@ -276,9 +288,9 @@ class Gui(object):
         curses.init_pair(7, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(8, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_GREEN) # current room
+        curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_CYAN) # current room
         curses.init_pair(11, curses.COLOR_WHITE, curses.COLOR_BLUE) # normal room
-        curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_CYAN) # new message room
+        curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_MAGENTA) # new message room
         curses.init_pair(13, curses.COLOR_WHITE, curses.COLOR_RED) # highlight room
 
     def reset_curses(self):
@@ -334,15 +346,15 @@ class Gui(object):
         if not body:
             body = stanza.getSubject()
             info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':stanza.getSubject()})
-            self.window.text_win.add_line(room, (datetime.now(), info))
+            self.window.text_win.add_line(room, (datetime.now(), info, None))
             room.topic = stanza.getSubject().encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
                 self.window.text_win.refresh(room.name)
             curses.doupdate()
         else:
-            room.add_message(nick_from, body)
-            self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8')))
+            color = room.add_message(nick_from, body)
+            self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
         if room == self.current_room():
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
@@ -363,7 +375,7 @@ class Gui(object):
         else:
             msg = room.on_presence(stanza, from_nick)
         if room == self.current_room():
-            self.window.text_win.add_line(room, (datetime.now(), msg))
+            self.window.text_win.add_line(room, (datetime.now(), msg, None))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
@@ -404,7 +416,7 @@ class Gui(object):
             else:
                 msg = _('Unknown command: %s') % args[0]
         room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
+        self.window.text_win.add_line(room, (datetime.now(), msg, None))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
 
@@ -503,7 +515,7 @@ class Gui(object):
         msg = "%s=%s" % (option, value)
         room = self.current_room()
         room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
+        self.window.text_win.add_line(room, (datetime.now(), msg, None))
         self.window.text_win.refresh(room.name)
         self.window.input.refresh()
 
@@ -572,7 +584,7 @@ class Gui(object):
         room = self.get_room_by_name("Info")
         info = room.add_info(msg)
         if self.current_room() == room:
-            self.window.text_win.add_line(room, (datetime.now(), info))
+            self.window.text_win.add_line(room, (datetime.now(), info, None))
             self.window.text_win.refresh(room.name)
             curses.doupdate()
 

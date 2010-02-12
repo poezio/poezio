@@ -172,7 +172,7 @@ class TextWin(object):
                 win.addstr(line[1])
                 win.attroff(curses.color_pair(8))
             except:pass
-        elif len(line) == 3:
+        elif len(line) == 4:
             for user in users:
                 if user.nick == line[1]:
                     break
@@ -180,13 +180,16 @@ class TextWin(object):
                 try:win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
                 except:pass
                 length = len('['+line[0].strftime("%H:%M:%S") + "] <")
-                try:win.attron(curses.color_pair(user.color))
-                except:pass
-                win.addstr(line[1])
-                try:win.attroff(curses.color_pair(user.color))
-                except:pass
+                if line[1]:
+                    win.attron(curses.color_pair(user.color))
+                    win.addstr(line[1])
+                    win.attroff(curses.color_pair(user.color))
                 win.addstr("> ")
+                if line[3]:
+                    win.attron(curses.color_pair(line[3]))
                 win.addstr(line[2])
+                if line[3]:
+                    win.attroff(curses.color_pair(line[3]))
             except:pass
 
     def new_win(self, winname):
