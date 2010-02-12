@@ -197,7 +197,7 @@ class Gui(object):
             'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
-            'set': (self.command_set, _('Usage: /set <option> <value>\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource`')),
+            'set': (self.command_set, _('Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.')),
             'kick': (self.command_kick, _('Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.')),
             # 'ban': (self.command_ban, _('Usage: /ban <nick> [reason]\nBan: Ban the user with the specified nickname. You also can give an optional reason.')),
             'nick': (self.command_nick, _('Usage: /nick <nickname>\nNick: Change your nickname in the current room'))
@@ -506,11 +506,14 @@ class Gui(object):
         config.set_and_save('rooms', bookmarked+':'+res)
 
     def command_set(self, args):
-        if len(args) != 2:
+        if len(args) != 2 and len(args) != 1:
             self.command_help(['set'])
             return
         option = args[0]
-        value = args[1]
+        if len(args) == 2:
+            value = args[1]
+        else:
+            value = ''
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         room = self.current_room()
