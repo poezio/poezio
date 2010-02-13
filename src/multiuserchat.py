@@ -19,6 +19,9 @@
 
 from xmpp import NS_MUC_ADMIN, NS_MUC
 from xmpp.protocol import Presence, Iq, Message, JID
+import xmpp
+import common
+import threading
 
 from handler import Handler
 from config import config
@@ -34,9 +37,72 @@ def is_jid(jid):
     if JID(jid).getNode() != '':
         return True
 
+class VcardSender(threading.Thread):
+    """
+    avatar sending is really slow (don't know why...)
+    use a thread to send it...
+    """
+    def __init__(self, connection):
+        threading.Thread.__init__(self)
+        self.connection = connection
+        self.handler = Handler()
+
+    def run(self):
+        self.send_vcard()
+
+    def send_vcard(self):
+        """
+        Method stolen from Gajim (thanks)
+        ## Copyright (C) 2006 Dimitur Kirov <dkirov AT gmail.com>
+        ##                    Junglecow J <junglecow AT gmail.com>
+        ## Copyright (C) 2006-2007 Tomasz Melcer <liori AT exroot.org>
+        ##                         Travis Shirk <travis AT pobox.com>
+        ##                         Nikos Kouremenos <kourem AT gmail.com>
+        ## Copyright (C) 2006-2008 Yann Leboulanger <asterix AT lagaule.org>
+        ## Copyright (C) 2007 Julien Pivotto <roidelapluie AT gmail.com>
+        ## Copyright (C) 2007-2008 Brendan Taylor <whateley AT gmail.com>
+        ##                         Jean-Marie Traissard <jim AT lapin.org>
+        ##                         Stephan Erb <steve-e AT h3c.de>
+        ## Copyright (C) 2008 Jonathan Schleifer <js-gajim AT webkeks.org>
+        (one of these people coded this method, probably)
+        """
+        if not self.connection:
+            return
+        vcard = {
+            "FN":"Poezio tester",
+            }
+        photo_file_path = config.get('photo', '../data/poezio_80.png')
+        (image, mime_type, sha1) = common.get_base64_from_file(photo_file_path)
+        if image:
+            vcard['PHOTO'] = {"TYPE":mime_type,"BINVAL":image}
+        iq = xmpp.Iq(typ = 'set')
+        iq2 = iq.setTag(xmpp.NS_VCARD + ' vCard')
+        for i in vcard:
+            if i == 'jid':
+                continue
+            if isinstance(vcard[i], dict):
+                iq3 = iq2.addChild(i)
+                for j in vcard[i]:
+                    iq3.addChild(j).setData(vcard[i][j])
+            elif isinstance(vcard[i], list):
+                for j in vcard[i]:
+                    iq3 = iq2.addChild(i)
+                    for k in j:
+                        iq3.addChild(k).setData(j[k])
+            else:
+                iq2.addChild(i).setData(vcard[i])
+        # id_ = self.connect.getAnId()
+        # iq.setID(id_)
+        self.connection.send(iq)
+        iq = xmpp.Iq(typ = 'set')
+        iq2 = iq.setTag(xmpp.NS_VCARD_UPDATE)
+        iq2.addChild('PHOTO').setData(sha1)
+        self.connection.send(iq)
+
 class MultiUserChat(object):
     def __init__(self, connection):
         self.connection = connection
+        self.vcard_sender = VcardSender(self.connection)
 
         self.rooms = []
         self.rn = {}
@@ -64,6 +130,7 @@ class MultiUserChat(object):
             else:
                 nick = config.get('default_nick', 'poezio')
             self.handler.emit('join-room', room=roomname, nick=nick)
+        self.vcard_sender.start()
 
     def send_message(self, room, message):
         mes = Message(to=room)

@@ -52,7 +52,7 @@ class Connection(threading.Thread):
         if not self.authenticate():
             logger.error('Could not authenticate to server')
             sys.exit(-1)
-        self.client.sendInitPresence()
+        self.client.sendInitPresence(requestRoster=0)
         self.online = 1      # 2 when confirmation of auth is received
         self.register_handlers()
         while 1:
