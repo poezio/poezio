@@ -130,7 +130,9 @@ class Room(object):
         # New user
         if not user:
             self.users.append(User(nick, affiliation, show, status, role))
-            return self.add_info(_('%(nick)s joined the room %(roomname)s') % {'nick':nick, 'roomname': self.name})
+            if not config.get('hide_enter_join', "false") == "true":
+                return self.add_info(_('%(nick)s joined the room %(roomname)s') % {'nick':nick, 'roomname': self.name})
+            return None
         # nick change
         if change_nick:
             if user.nick == self.own_nick:
@@ -159,10 +161,14 @@ class Room(object):
         # user quit
         if status == 'offline' or role == 'none':
             self.users.remove(user)
-            return self.add_info(_('%s has left the room') % (nick))
+            if not config.get('hide_enter_join', "false") == "true":
+                return self.add_info(_('%s has left the room') % (nick))
+            return None
         # status change
         user.update(affiliation, show, status, role)
-        return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+        if not config.get('hide_status_change', "false") == "true":
+            return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+        return None
 
 
 class Gui(object):
@@ -378,12 +384,14 @@ class Gui(object):
             msg = _("Error: %s") % stanza.getError()
         else:
             msg = room.on_presence(stanza, from_nick)
-        if room == self.current_room():
+            if room == self.current_room():
+                self.window.user_win.refresh(room.users)
+        if room == self.current_room() and msg:
             self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
-            curses.doupdate()
+        curses.doupdate()
 
     def room_iq(self, iq):
         if len(sys.argv) > 1:
