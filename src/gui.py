@@ -357,15 +357,14 @@ class Gui(object):
 	    self.information(_("message received for a non-existing room: %s") % (room_from))
             return
         body = stanza.getBody()
-        if not body:
-            body = stanza.getSubject()
-            info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':stanza.getSubject()})
+        subject = stanza.getSubject()
+        if subject:
+            info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject})
             self.window.text_win.add_line(room, (datetime.now(), info))
-            room.topic = stanza.getSubject().encode('utf-8').replace('\n', '|')
+            room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
                 self.window.text_win.refresh(room.name)
-            curses.doupdate()
         else:
             color = room.add_message(nick_from, body)
             self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
