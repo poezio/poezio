@@ -204,7 +204,7 @@ class Gui(object):
             'busy': (self.command_busy, _('Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to "/show busy [message]"')),
             'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
             'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
-            'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /nick. Type /help nick for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
+            'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
             'set': (self.command_set, _('Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.')),
             'kick': (self.command_kick, _('Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.')),
             # 'ban': (self.command_ban, _('Usage: /ban <nick> [reason]\nBan: Ban the user with the specified nickname. You also can give an optional reason.')),
@@ -393,10 +393,6 @@ class Gui(object):
             self.window.text_win.refresh()
         curses.doupdate()
 
-    # def room_iq(self, iq):
-    #     if len(sys.argv) > 1:
-    #         self.information(str(iq))
-
     def execute(self):
         line = self.window.input.get_text()
         self.window.input.clear_text()
@@ -497,7 +493,6 @@ class Gui(object):
             self.join_room(room, nick)
 
     def command_bookmark(self, args):
-        bookmarked = config.get('rooms', '')
         nick = None
         if len(args) == 0:
             room = self.current_room()
@@ -511,10 +506,21 @@ class Gui(object):
             if len(info) == 2:
                 nick = info[1]
             roomname = info[0]
+            if roomname == '':
+                roomname = self.current_room().name
         if nick:
             res = roomname+'/'+nick
         else:
             res = roomname
+        bookmarked = config.get('rooms', '')
+        # check if the room is already bookmarked.
+        # if yes, replace it (i.e., update the associated nick)
+        bookmarked = bookmarked.split(':')
+        for room in bookmarked:
+            if room.split('/')[0] == roomname:
+                bookmarked.remove(room)
+                break
+        bookmarked = ':'.join(bookmarked)
         config.set_and_save('rooms', bookmarked+':'+res)
 
     def command_set(self, args):
