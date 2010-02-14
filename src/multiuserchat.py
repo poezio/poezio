@@ -23,6 +23,9 @@ import xmpp
 import common
 import threading
 
+from time import (altzone, daylight, gmtime, localtime, mktime, strftime,
+        time as time_time, timezone, tzname)
+
 from handler import Handler
 from config import config
 
@@ -69,7 +72,12 @@ class VcardSender(threading.Thread):
         if not self.connection:
             return
         vcard = {
-            "FN":"Poezio tester",
+            "FN":config.get('full_name', ''),
+            "URL":config.get('website', ''),
+            "EMAIL":{
+                "USERID":config.get('email', '')
+                },
+            "DESC":config.get('comment', 'A proud Poezio user')
             }
         photo_file_path = config.get('photo', '../data/poezio_80.png')
         (image, mime_type, sha1) = common.get_base64_from_file(photo_file_path)
@@ -112,6 +120,8 @@ class MultiUserChat(object):
         self.handler = Handler()
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('on-connected', self.on_connected)
+        self.handler.connect('send-version', self.send_version)
+        self.handler.connect('send-time', self.send_time)
 
     def on_connected(self, jid):
         self.own_jid = jid
@@ -275,3 +285,38 @@ class MultiUserChat(object):
         if status:
             pres.setStatus(status)
         self.connection.send(pres)
+
+    def send_version(self, iq_obj):
+        """
+        from gajim and modified
+        """
+        iq_obj = iq_obj.buildReply('result')
+        qp = iq_obj.getTag('query')
+        if config.get('send_poezio_info', 'true') == 'true':
+            qp.setTagData('name', 'Poezio')
+            qp.setTagData('version', '0.6 trunk')
+        else:
+            qp.setTagData('name', 'Unknown')
+            qp.setTagData('version', 'Unknown')
+        if config.get('send_os_info', 'true') == 'true':
+            qp.setTagData('os', common.get_os_info())
+        else:
+            qp.setTagData('os', 'Unknown')
+        self.connection.send(iq_obj)
+        raise xmpp.protocol.NodeProcessed
+
+    def send_time(self, iq_obj):
+        """
+        from gajim
+        """
+        iq_obj = iq_obj.buildReply('result')
+        qp = iq_obj.setTag('time',
+                           namespace="urn:xmpp:time")
+        if config.get('send_time', 'true') == 'true':
+            qp.setTagData('utc', strftime('%Y-%m-%dT%H:%M:%SZ', gmtime()))
+            isdst = localtime().tm_isdst
+            zone = -(timezone, altzone)[isdst] / 60
+            tzo = (zone / 60, abs(zone % 60))
+            qp.setTagData('tzo', '%+03d:%02d' % (tzo))
+            self.connection.send(iq_obj)
+            raise common.xmpp.NodeProcessed

@@ -75,8 +75,8 @@ class Connection(threading.Thread):
         """
         self.client.RegisterHandler('message', self.handler_message)
         self.client.RegisterHandler('presence', self.handler_presence)
-        self.client.RegisterHandler('iq',         self.handler_iq)
-        self.client.RegisterHandler('error',         self.handler_error)
+        self.client.RegisterHandler('iq', self.on_get_time, typ='get', ns="urn:xmpp:time")
+        self.client.RegisterHandler('iq', self.on_get_version, typ='get', ns=xmpp.NS_VERSION)
 
     def handler_presence(self, connection, presence):
         fro = presence.getFrom()
@@ -91,9 +91,6 @@ class Connection(threading.Thread):
     def handler_message(self, connection, message):
         self.handler.emit('room-message', stanza=message)
 
-    def handler_iq(self, connection, iq):
-        self.handler.emit('room-iq', stanza=iq)
-
     def handler_error(self, connection, error):
         pass
 
@@ -106,3 +103,10 @@ class Connection(threading.Thread):
         else:
             log.warning('disconnecting...')
             sys.exit()
+
+    def on_get_version(self, connection, iq):
+        self.handler.emit('send-version', iq_obj=iq)
+
+    def on_get_time(self, connection, iq):
+        open('caca', 'w').write('works')
+        self.handler.emit('send-time', iq_obj=iq)

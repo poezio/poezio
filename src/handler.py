@@ -46,9 +46,13 @@ class Handler(Singleton):
                 # A message is received
                 # Args: the stanza object
 
-                'room-iq': list(),
-                # An iq is received
-                # Args: the stanza object
+                'send-version': list(),
+                # We send our version
+                # Args: the stanza we reply to
+
+                'send-time': list()
+                # We send our time
+                # Args: the stanza we reply to
             }
 
     def connect(self, signal, func):

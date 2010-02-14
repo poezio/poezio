@@ -232,7 +232,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
-        self.handler.connect('room-iq', self.room_iq)
+        # self.handler.connect('room-iq', self.room_iq)
 
     def main_loop(self, stdscr):
         while 1:
@@ -393,9 +393,9 @@ class Gui(object):
             self.window.text_win.refresh()
         curses.doupdate()
 
-    def room_iq(self, iq):
-        if len(sys.argv) > 1:
-            self.information(str(iq))
+    # def room_iq(self, iq):
+    #     if len(sys.argv) > 1:
+    #         self.information(str(iq))
 
     def execute(self):
         line = self.window.input.get_text()

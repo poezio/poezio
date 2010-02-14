@@ -20,8 +20,8 @@
 import sys
 # disable any printout (this would mess the display)
 stderr = sys.stderr
-# sys.stdout = open('/dev/null', 'w')
-# sys.stderr = open('/dev/null', 'w')
+sys.stdout = open('/dev/null', 'w')
+sys.stderr = open('/dev/null', 'w')
 
 from connection import Connection
 from multiuserchat import MultiUserChat
