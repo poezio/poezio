@@ -322,7 +322,7 @@ class Input(Win):
             if x == 0:
                 txt = self.text[self.pos:self.pos+self.width-1]
                 self.clear_text()
-                self.win.addstr(txt)
+                self.win.addstr(txt.encode('utf-8'))
                 self.win.move(y, 0)
             else:
                 self.win.move(y, x-1)
@@ -336,7 +336,7 @@ class Input(Win):
             if x == self.width-1:
                 txt = self.text[self.pos-(self.width-1):self.pos]
                 self.clear_text()
-                self.win.addstr(txt)
+                self.win.addstr(txt.encode('utf-8'))
                 self.win.move(y, self.width-1)
             else:
                 self.win.move(y, x+1)
