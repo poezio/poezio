@@ -369,8 +369,12 @@ class Gui(object):
                 self.window.topic_win.refresh(room.topic)
                 self.window.text_win.refresh(room.name)
         else:
-            color = room.add_message(nick_from, body)
-            self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
+            if body.startswith('/me'):
+                info = room.add_info(nick_from + ' ' + body[4:])
+                self.window.text_win.add_line(room, (datetime.now(), info))
+            else:
+                color = room.add_message(nick_from, body)
+                self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
         if room == self.current_room():
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
