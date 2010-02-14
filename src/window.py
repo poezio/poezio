@@ -335,7 +335,6 @@ class Input(Win):
             self.pos += 1
             if x == self.width-1:
                 txt = self.text[self.pos-(self.width-1):self.pos]
-                open('fion', 'w').write(txt)
                 self.clear_text()
                 self.win.addstr(txt)
                 self.win.move(y, self.width-1)
