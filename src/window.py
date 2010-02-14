@@ -179,9 +179,17 @@ class TextWin(object):
             return
         win = self.wins[room.name].win
         users = room.users
+        win.addstr('\n['+line[0].strftime("%H"))
+        win.attron(curses.color_pair(9))
+        win.addstr(':')
+        win.attroff(curses.color_pair(9))
+        win.addstr(line[0].strftime('%M'))
+        win.attron(curses.color_pair(9))
+        win.addstr(':')
+        win.attroff(curses.color_pair(9))
+        win.addstr(line[0].strftime('%S') + "] ")
         if len(line) == 2:
             try:
-                win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] ")
                 win.attron(curses.color_pair(8))
                 win.addstr(line[1])
                 win.attroff(curses.color_pair(8))
@@ -191,8 +199,6 @@ class TextWin(object):
                 if user.nick == line[1]:
                     break
             try:
-                try:win.addstr('\n['+line[0].strftime("%H:%M:%S") + "] <")
-                except:pass
                 length = len('['+line[0].strftime("%H:%M:%S") + "] <")
                 if line[1]:
                     win.attron(curses.color_pair(user.color))

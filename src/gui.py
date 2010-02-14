@@ -359,7 +359,10 @@ class Gui(object):
         body = stanza.getBody()
         subject = stanza.getSubject()
         if subject:
-            info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject})
+            if nick_from:
+                info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject})
+            else:
+                info = room.add_info(_("The subject is: %(subject)s") % {'subject':subject})
             self.window.text_win.add_line(room, (datetime.now(), info))
             room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
