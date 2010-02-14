@@ -286,16 +286,19 @@ class Gui(object):
     def init_curses(self, stdscr):
         curses.start_color()
         curses.noecho()
+        curses.cbreak()
+        curses.raw()
+        curses.use_default_colors()
         stdscr.keypad(True)
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
-        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) # Admin
-        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK) # Participant
-        curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK) # Visitor
-        curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(7, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(8, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_BLUE, -1)
+        curses.init_pair(3, curses.COLOR_RED, -1) # Admin
+        curses.init_pair(4, curses.COLOR_BLUE, -1) # Participant
+        curses.init_pair(5, curses.COLOR_WHITE, -1) # Visitor
+        curses.init_pair(6, curses.COLOR_CYAN, -1)
+        curses.init_pair(7, curses.COLOR_GREEN, -1)
+        curses.init_pair(8, curses.COLOR_MAGENTA, -1)
+        curses.init_pair(9, curses.COLOR_YELLOW, -1)
         curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_CYAN) # current room
         curses.init_pair(11, curses.COLOR_WHITE, curses.COLOR_BLUE) # normal room
         curses.init_pair(12, curses.COLOR_WHITE, curses.COLOR_MAGENTA) # new message room
@@ -305,6 +308,7 @@ class Gui(object):
 
     def reset_curses(self):
 	curses.echo()
+        curses.nocbreak()
         curses.endwin()
 
     def on_connected(self, jid):
