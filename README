@@ -70,8 +70,9 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 = People =
  Erwan Briand - Handler and MultiUserChat classes
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
+ Ovart - Testing
 = Project =
- Gajim - send_vcard method
+ Gajim - send_vcard method and common.py
 
 ======================
        The code

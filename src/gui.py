@@ -345,7 +345,7 @@ class Gui(object):
 
     def room_message(self, stanza):
         if len(sys.argv) > 1:
-            self.information(str(stanza))
+            self.information(str(stanza).encode('utf-8'))
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
         room_from = stanza.getFrom().getStripped()
@@ -375,7 +375,7 @@ class Gui(object):
             else:
                 color = room.add_message(nick_from, body)
                 self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
-        if room == self.current_room():
+        if room.name == self.current_room().name:
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
         else:
@@ -401,6 +401,7 @@ class Gui(object):
             self.window.text_win.refresh(room.name)
             self.window.user_win.refresh(room.users)
             self.window.text_win.refresh()
+            self.window.input.refresh()
         curses.doupdate()
 
     def execute(self):
