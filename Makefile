@@ -6,7 +6,7 @@ LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
 INSTALL=install
 
-all: 	src/xmpp
+all:
 	cd src/xmpppy-0.5.0rc1 && pwd && python setup.py build && cp -r xmpp ..
 
 clean:	Makefile
