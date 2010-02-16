@@ -353,7 +353,7 @@ class Input(Win):
 
     def auto_completion(self, user_list):
         if self.pos != len(self.text) or len(self.text) == 0:
-            return # we don't complete if cursos is not at the end of line
+            return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
         if completion_type == 'shell':
             self.shell_completion(user_list)
@@ -365,7 +365,10 @@ class Input(Win):
         self.last_key_tab = False
 
     def normal_completion(self, user_list):
-        after = config.get('after_completion', ',')+" "
+        if " " in self.text:
+            after = " " # don't put the "," if it's not the begining of the sentence
+        else:
+            after = config.get('after_completion', ',')+" "
         (y, x) = self.win.getyx()
         if not self.last_key_tab:
             # begin is the begining of the nick we want to complete
@@ -395,6 +398,10 @@ class Input(Win):
         self.refresh()
 
     def shell_completion(self, user_list):
+        if " " in self.text:
+            after = " " # don't put the "," if it's not the begining of the sentence
+        else:
+            after = config.get('after_completion', ',')+" "
         after = config.get('after_completion', ',')+" "
         (y, x) = self.win.getyx()
         begin = self.text.split()[-1].encode('utf-8').lower()
