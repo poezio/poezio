@@ -392,7 +392,7 @@ class Input(Win):
         self.win.clrtoeol()
         self.text = self.text[:-end]
         nick = self.hit_list[0] # take the first hit
-        self.text += nick+after
+        self.text += nick.decode('utf-8') +after
         self.pos = len(self.text)
         self.win.addstr(nick+after)
         self.refresh()
@@ -437,7 +437,7 @@ class Input(Win):
         # remove begin from the line
         self.win.clrtoeol()
         self.text = self.text[:-len(begin)]
-        self.text += nick
+        self.text += nick.decode('utf-8')
         self.pos = len(self.text)
         self.win.addstr(nick)
         self.refresh()
