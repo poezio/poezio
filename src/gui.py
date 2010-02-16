@@ -232,7 +232,6 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
-        # self.handler.connect('room-iq', self.room_iq)
 
     def main_loop(self, stdscr):
         while 1:
@@ -418,7 +417,11 @@ class Gui(object):
                 func = self.commands[command][0]
                 func(args)
                 return
-        if self.current_room().name != 'Info':
+            else:
+                info = self.current_room().add_info(_("Error: unknown command (%s)") % (command))
+                self.window.text_win.add_line(self.current_room(), (datetime.now(), info))
+                self.window.text_win.refresh(self.current_room().name)
+        elif self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
 	self.window.input.refresh()
 
