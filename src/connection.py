@@ -60,7 +60,15 @@ class Connection(threading.Thread):
 
     def connect_to_server(self, server, port):
         # TODO proxy stuff
-        return self.client.connect((server, port))
+        if config.get('use_proxy','false') == 'true':
+            return self.client.connect((server, port),
+                                       {'host': config.get("proxy_server", ""),
+                                        'port': config.get("proxy_port", 1080),
+                                        'user': config.get("proxy_user", ""),
+                                        'password': config.get("proxy_password", "")
+                                        })
+        else:
+            return self.client.connect((server, port))
 
     def authenticate(self, anon=True):
         if anon:
