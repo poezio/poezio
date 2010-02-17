@@ -365,7 +365,7 @@ class Input(Win):
         self.last_key_tab = False
 
     def normal_completion(self, user_list):
-        if " " in self.text:
+        if " " in self.text.strip():
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
             after = config.get('after_completion', ',')+" "
@@ -398,11 +398,10 @@ class Input(Win):
         self.refresh()
 
     def shell_completion(self, user_list):
-        if " " in self.text:
+        if " " in self.text.strip():
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
             after = config.get('after_completion', ',')+" "
-        after = config.get('after_completion', ',')+" "
         (y, x) = self.win.getyx()
         begin = self.text.split()[-1].encode('utf-8').lower()
         hit_list = []       # list of matching nicks
