@@ -228,6 +228,7 @@ class TextWin(object):
             self.wins[winname]._resize(height, width, y, x, stdscr)
             self.wins[winname].win.idlok(True)
             self.wins[winname].win.scrollok(True)
+            self.wins[winname].win.leaveok(1)
 
 class Input(Win):
     """
@@ -248,6 +249,7 @@ class Input(Win):
         if not visible:
             return
         self._resize(height, width, y, x, stdscr)
+        self.win.leaveok(0)
         self.win.clear()
         self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
 
