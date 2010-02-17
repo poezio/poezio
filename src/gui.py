@@ -234,6 +234,7 @@ class Gui(object):
 
     def main_loop(self, stdscr):
         while 1:
+            stdscr.leaveok(1)
             curses.doupdate()
             try:
                 key = stdscr.getkey()
@@ -397,8 +398,6 @@ class Gui(object):
         if room == self.current_room() and msg:
             self.window.text_win.add_line(room, (datetime.now(), msg))
             self.window.text_win.refresh(room.name)
-            self.window.user_win.refresh(room.users)
-            self.window.text_win.refresh()
             self.window.input.refresh()
         curses.doupdate()
 
@@ -406,7 +405,6 @@ class Gui(object):
         line = self.window.input.get_text()
         self.window.input.clear_text()
         self.window.input.refresh()
-        curses.doupdate()
         if line == "":
             return
         if line.startswith('/'):
@@ -422,6 +420,7 @@ class Gui(object):
                 self.window.text_win.refresh(self.current_room().name)
         elif self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
+        curses.doupdate()
 	self.window.input.refresh()
 
     def command_help(self, args):

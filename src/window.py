@@ -27,6 +27,7 @@ class Win(object):
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
         self.win = parent_win.subwin(height, width, y, x)
+        self.win.leaveok(1)
 
     def refresh(self):
         self.win.noutrefresh()
@@ -216,6 +217,7 @@ class TextWin(object):
         newwin = Win(self.height, self.width, self.y, self.x, self.parent_win)
         newwin.win.idlok(True)
         newwin.win.scrollok(True)
+        newwin.win.leaveok(1)
         self.wins[winname] = newwin
 
     def resize(self, height, width, y, x, stdscr, visible):
@@ -232,6 +234,7 @@ class Input(Win):
     """
     def __init__(self, height, width, y, x, stdscr, visible):
         Win.__init__(self, height, width, y, x, stdscr)
+        self.win.leaveok(0)
         self.visible = visible
         self.history = []
         self.text = u''
