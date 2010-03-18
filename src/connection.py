@@ -23,7 +23,9 @@ import xmpp
 from config import config
 from logging import logger
 from handler import Handler
+from common import exception_handler
 import threading
+import thread
 
 class Connection(threading.Thread):
     """
@@ -33,7 +35,7 @@ class Connection(threading.Thread):
     def __init__(self, server, resource):
         threading.Thread.__init__(self)
         self.handler = Handler()
-
+        self.daemon = True      # exit the program when this exits
         self.server = server
         self.resource = resource
         self.online = 0         # 1:connected, 2:auth confirmed
@@ -46,6 +48,7 @@ class Connection(threading.Thread):
         run in a thread
         connect to server
         """
+        sys.excepthook = exception_handler
         if not self.connect_to_server(self.server, self.port):
             logger.error('Could not connect to server')
             sys.exit(-1)
@@ -59,7 +62,6 @@ class Connection(threading.Thread):
             self.process()
 
     def connect_to_server(self, server, port):
-        # TODO proxy stuff
         if config.get('use_proxy','false') == 'true':
             return self.client.connect((server, port),
                                        {'host': config.get("proxy_server", ""),
@@ -81,10 +83,11 @@ class Connection(threading.Thread):
         """
         register handlers from xmpppy signals
         """
-        self.client.RegisterHandler('message', self.handler_message)
-        self.client.RegisterHandler('presence', self.handler_presence)
         self.client.RegisterHandler('iq', self.on_get_time, typ='get', ns="urn:xmpp:time")
         self.client.RegisterHandler('iq', self.on_get_version, typ='get', ns=xmpp.NS_VERSION)
+        self.client.RegisterHandler('presence', self.handler_presence)
+        self.client.RegisterHandler('message', self.handler_delayed_message, ns=xmpp.NS_DELAY, makefirst=True)
+        self.client.RegisterHandler('message', self.handler_message)
 
     def handler_presence(self, connection, presence):
         fro = presence.getFrom()
@@ -96,6 +99,9 @@ class Connection(threading.Thread):
             return
         self.handler.emit('room-presence', stanza=presence)
 
+    def handler_delayed_message(self, connection, message):
+        pass
+
     def handler_message(self, connection, message):
         self.handler.emit('room-message', stanza=message)
 
@@ -104,10 +110,7 @@ class Connection(threading.Thread):
 
     def process(self, timeout=10):
         if self.online:
-            try:
-                self.client.Process(timeout)
-            except:
-                pass            # FIXME
+            self.client.Process(timeout)
         else:
             log.warning('disconnecting...')
             sys.exit()

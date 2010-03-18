@@ -18,8 +18,15 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+from os import environ, makedirs
 from datetime import datetime
 from config import config
+
+CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
+if not CONFIG_HOME:
+    CONFIG_HOME = environ.get('HOME')+'/.config'
+CONFIG_PATH = CONFIG_HOME + '/poezio/'
+
 class Logger(object):
     """
     Appends things to files. Error/information/warning logs
@@ -49,5 +56,19 @@ class Logger(object):
             fd.write(datetime.now().strftime("%H:%M:%S") + ' Error [' + msg + ']\n')
             fd.close()
         sys.exit(-1)
+
+    def message(self, room, nick, msg):
+        """
+        log the message in the appropriate room
+        """
+        if config.get('use_log', 'false') == 'false':
+            return
+        dir = CONFIG_PATH+'logs/'
+        try:
+            makedirs(dir)
+        except:pass
+        fd = open(dir+room, 'a')
+        fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
+        fd.close()
 
 logger = Logger()

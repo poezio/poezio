@@ -46,6 +46,10 @@ class Handler(Singleton):
                 # A message is received
                 # Args: the stanza object
 
+                'room-delayed-message': list(),
+                # A message is received
+                # Args: the stanza object
+
                 'send-version': list(),
                 # We send our version
                 # Args: the stanza we reply to

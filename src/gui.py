@@ -36,140 +36,8 @@ from logging import logger
 from random import randrange
 from config import config
 from window import Window
-
-class User(object):
-    """
-    keep trace of an user in a Room
-    """
-    def __init__(self, nick, affiliation, show, status, role):
-        self.update(affiliation, show, status, role)
-        self.change_nick(nick)
-        self.color = randrange(2, 10)
-
-    def update(self, affiliation, show, status, role):
-        self.affiliation = affiliation
-        self.show = show
-        self.status = status
-        self.role = role
-
-    def change_nick(self, nick):
-        self.nick = nick.encode('utf-8')
-
-class Room(object):
-    """
-    """
-    def __init__(self, name, nick, number):
-        self.name = name
-        self.own_nick = nick
-        self.color_state = 11   # color used in RoomInfo
-        self.nb = number       # number used in RoomInfo
-        self.joined = False     # false until self presence is received
-        self.users = []
-        self.lines = []         # (time, nick, msg) or (time, info)
-        self.topic = ''
-
-    def disconnect(self):
-        self.joined = False
-        self.users = []
-
-    def add_message(self, nick, msg):
-        color = None
-        self.set_color_state(12)
-        if nick != self.own_nick:
-            if self.own_nick in msg:
-                self.set_color_state(13)
-                color = 3
-            else:
-                highlight_words = config.get('highlight_on', '').split(':')
-                for word in highlight_words:
-                    if word.lower() in msg.lower() and word != '':
-                        self.set_color_state(13)
-                        color = 3
-        if not msg:
-            logger.info('msg is None..., %s' % (nick))
-            return
-        self.lines.append((datetime.now(), nick.encode('utf-8'),
-                           msg.encode('utf-8'), color))
-        return color
-
-    def add_info(self, info):
-        """ info, like join/quit/status messages"""
-        try:
-            self.lines.append((datetime.now(), info.encode('utf-8')))
-            return info.encode('utf-8')
-        except:
-            self.lines.append((datetime.now(), info))
-            return info
-
-    def get_user_by_name(self, nick):
-        for user in self.users:
-            if user.nick == nick.encode('utf-8'):
-                return user
-        return None
-
-    def set_color_state(self, color):
-        if self.color_state < color or color == 11:
-            self.color_state = color
-
-    def on_presence(self, stanza, nick):
-        """
-        """
-        affiliation = stanza.getAffiliation()
-        show = stanza.getShow()
-        status = stanza.getStatus()
-        role = stanza.getRole()
-        if not self.joined:     # user in the room BEFORE us.
-            self.users.append(User(nick, affiliation, show, status, role))
-            if nick.encode('utf-8') == self.own_nick:
-                self.joined = True
-                return self.add_info(_("Your nickname is %s") % (nick))
-            return self.add_info(_("%s is in the room") % (nick.encode-('utf-8')))
-        change_nick = stanza.getStatusCode() == '303'
-        kick = stanza.getStatusCode() == '307'
-        user = self.get_user_by_name(nick)
-        # New user
-        if not user:
-            self.users.append(User(nick, affiliation, show, status, role))
-            if not config.get('hide_enter_join', "false") == "true":
-                return self.add_info(_('%(nick)s joined the room %(roomname)s') % {'nick':nick, 'roomname': self.name})
-            return None
-        # nick change
-        if change_nick:
-            if user.nick == self.own_nick:
-                self.own_nick = stanza.getNick().encode('utf-8')
-            user.change_nick(stanza.getNick())
-            return self.add_info(_('%(old_nick)s is now known as %(new_nick)s') % {'old_nick':nick, 'new_nick':stanza.getNick()})
-        # kick
-        if kick:
-            self.users.remove(user)
-            reason = stanza.getReason().encode('utf-8') or ''
-            try:
-                by = stanza.getActor().encode('utf-8')
-            except:
-                by = None
-            if nick == self.own_nick:
-                self.disconnect()
-                if by:
-                    return self.add_info(_('You have been kicked by %(by)s. Reason: %(reason)s') % {'by':by, 'reason':reason})
-                else:
-                    return self.add_info(_('You have been kicked. Reason: %s') % (reason))
-            else:
-                if by:
-                    return self.add_info(_('%(nick)s has been kicked by %(by)s. Reason: %(reason)s') % {'nick':nick, 'by':by, 'reason':reason})
-                else:
-                    return self.add_info(_('%(nick)s has been kicked. Reason: %(reason)s') % {'nick':nick, 'reason':reason})
-        # user quit
-        if status == 'offline' or role == 'none':
-            self.users.remove(user)
-            if not config.get('hide_enter_join', "false") == "true":
-                return self.add_info(_('%s has left the room') % (nick))
-            return None
-        # status change
-        user.update(affiliation, show, status, role)
-        if not config.get('hide_status_change', "false") == "true":
-            return self.add_info(_('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
-        return None
-
+from user import User
+from room import Room
 
 class Gui(object):
     """
@@ -183,7 +51,6 @@ class Gui(object):
         self.window = Window(stdscr)
         self.window.new_room(self.current_room())
         self.window.refresh(self.rooms)
-
 
         self.muc = muc
 
@@ -231,6 +98,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+        self.handler.connect('room-delayed-message', self.room_delayed_message)
 
     def main_loop(self, stdscr):
         while 1:
@@ -285,8 +153,8 @@ class Gui(object):
     def init_curses(self, stdscr):
         curses.start_color()
         curses.noecho()
-        curses.cbreak()
-        curses.raw()
+        # curses.cbreak()
+        # curses.raw()
         curses.use_default_colors()
         stdscr.keypad(True)
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
@@ -342,16 +210,19 @@ class Gui(object):
         self.rooms.insert(0, self.rooms.pop())
         self.window.refresh(self.rooms)
 
-    def room_message(self, stanza):
+    def room_delayed_message(self, stanza):
+        self.room_message(stanza)
+
+    def room_message(self, stanza, date=None):
         if len(sys.argv) > 1:
             self.information(str(stanza).encode('utf-8'))
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
-        room_from = stanza.getFrom().getStripped()
+        if not date:
+            date = datetime.now()
         nick_from = stanza.getFrom().getResource()
-        if not nick_from:
-            nick_from = ''
-	room = self.get_room_by_name(room_from)
+        room_from = stanza.getFrom().getStripped()
+        room = self.get_room_by_name(room_from)
 	if not room:
 	    self.information(_("message received for a non-existing room: %s") % (room_from))
             return
@@ -359,26 +230,17 @@ class Gui(object):
         subject = stanza.getSubject()
         if subject:
             if nick_from:
-                info = room.add_info(_("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject})
+                self.add_info(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, date)
             else:
-                info = room.add_info(_("The subject is: %(subject)s") % {'subject':subject})
-            self.window.text_win.add_line(room, (datetime.now(), info))
+                self.add_info(room, _("The subject is: %(subject)s") % {'subject':subject}, date)
             room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
-                self.window.text_win.refresh(room.name)
         else:
-            if body.startswith('/me'):
-                info = room.add_info(nick_from + ' ' + body[4:])
-                self.window.text_win.add_line(room, (datetime.now(), info))
+            if body.startswith('/me '):
+                self.add_info(room, nick_from + ' ' + body[4:], date)
             else:
-                color = room.add_message(nick_from, body)
-                self.window.text_win.add_line(room, (datetime.now(), nick_from.encode('utf-8'), body.encode('utf-8'), color))
-        if room.name == self.current_room().name:
-            self.window.text_win.refresh(room.name)
-            self.window.input.refresh()
-        else:
-            self.window.info_win.refresh(self.rooms, self.current_room())
+                self.add_message(room, nick_from, body, date)
         curses.doupdate()
 
     def room_presence(self, stanza):
@@ -392,14 +254,85 @@ class Gui(object):
         if stanza.getType() == 'error':
             msg = _("Error: %s") % stanza.getError()
         else:
-            msg = room.on_presence(stanza, from_nick)
+            msg = None
+            affiliation = stanza.getAffiliation()
+            show = stanza.getShow()
+            status = stanza.getStatus()
+            role = stanza.getRole()
+            if not room.joined:     # user in the room BEFORE us.
+                room.users.append(User(from_nick, affiliation, show, status, role))
+                if from_nick.encode('utf-8') == room.own_nick:
+                    room.joined = True
+                    self.add_info(room, _("Your nickname is %s") % (from_nick))
+                else:
+                    self.add_info(room, _("%s is in the room") % (from_nick.encode('utf-8')))
+            else:
+                change_nick = stanza.getStatusCode() == '303'
+                kick = stanza.getStatusCode() == '307'
+                user = room.get_user_by_name(from_nick)
+                # New user
+                if not user:
+                    room.users.append(User(from_nick, affiliation, show, status, role))
+                    if not config.get('hide_enter_join', "false") == "true":
+                        self.add_info(room, _('%(nick)s joined the room %(roomname)s') % {'nick':from_nick, 'roomname': room.name})
+                # nick change
+                elif change_nick:
+                    if user.nick == room.own_nick:
+                        room.own_nick = stanza.getNick().encode('utf-8')
+                    user.change_nick(stanza.getNick())
+                    self.add_info(room, _('%(old_nick)s is now known as %(new_nick)s') % {'old_nick':from_nick, 'new_nick':stanza.getNick()})
+                # kick
+                elif kick:
+                    room.users.remove(user)
+                    reason = stanza.getReason().encode('utf-8') or ''
+                    try:
+                        by = stanza.getActor().encode('utf-8')
+                    except:
+                        by = None
+                    if from_nick == room.own_nick: # we are kicked
+                        room.disconnect()
+                        if by:
+                            self.add_info(room, _('You have been kicked by %(by)s. Reason: %(reason)s') % {'by':by, 'reason':reason})
+                        else:
+                            self.add_info(room, _('You have been kicked. Reason: %s') % (reason))
+                    else:
+                        if by:
+                            self.add_info(room, _('%(nick)s has been kicked by %(by)s. Reason: %(reason)s') % {'nick':from_nick, 'by':by, 'reason':reason})
+                        else:
+                            self.add_info(room, _('%(nick)s has been kicked. Reason: %(reason)s') % {'nick':from_nick, 'reason':reason})
+                # user quit
+                elif status == 'offline' or role == 'none':
+                    room.users.remove(user)
+                    if not config.get('hide_enter_join', "false") == "true":
+                        self.add_info(room, _('%s has left the room') % (from_nick))
+                # status change
+                else:
+                    user.update(affiliation, show, status, role)
+                    if not config.get('hide_status_change', "false") == "true":
+                        self.add_info(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
-        if room == self.current_room() and msg:
-            self.window.text_win.add_line(room, (datetime.now(), msg))
+
+    def add_info(self, room, info, date=None):
+        """
+        add a new information in the specified room
+        (displays it immediately AND saves it for redisplay
+        in futur refresh)
+        """
+        msg = room.add_info(info, date)
+        self.window.text_win.add_line(room, (datetime.now(), msg))
+        if room.name == self.current_room().name:
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
-        curses.doupdate()
+            curses.doupdate()
+        else:
+            self.window.info_win.refresh(self.rooms, self.current_room())
+
+    def add_message(self, room, nick_from, body, date):
+        color = room.add_message(nick_from, body, date)
+        self.window.text_win.add_line(room, (date, nick_from.encode('utf-8'), body.encode('utf-8'), color))
+        if room == self.current_room():
+            self.window.text_win.refresh(room.name)
 
     def execute(self):
         line = self.window.input.get_text()
@@ -415,13 +348,11 @@ class Gui(object):
                 func(args)
                 return
             else:
-                info = self.current_room().add_info(_("Error: unknown command (%s)") % (command))
-                self.window.text_win.add_line(self.current_room(), (datetime.now(), info))
-                self.window.text_win.refresh(self.current_room().name)
+                self.add_info(self.current_room(), _("Error: unknown command (%s)") % (command))
         elif self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
+        self.window.input.refresh()
         curses.doupdate()
-	self.window.input.refresh()
 
     def command_help(self, args):
         room = self.current_room()

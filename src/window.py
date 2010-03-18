@@ -94,7 +94,7 @@ class Topic(Win):
             return
         self.win.clear()
         try:
-            self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)-1), self.width-1
+            self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)), self.width
                              , curses.color_pair(1))
         except:pass
         self.win.refresh()
@@ -113,7 +113,7 @@ class RoomInfo(Win):
         def compare_room(a, b):
             return a.nb - b.nb
         self.win.clear()
-        self.win.addnstr(0, 0, current.name+" [", self.width-1
+        self.win.addnstr(0, 0, current.name+" [", self.width
                              ,curses.color_pair(1))
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
@@ -128,7 +128,7 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, ']'+(' '*((self.width-1)-x)), curses.color_pair(1))
+            self.win.addstr(y, x-1, ']'+(' '*((self.width)-x)), curses.color_pair(1))
         except:
             pass
         self.win.refresh()

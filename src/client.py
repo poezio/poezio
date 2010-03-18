@@ -18,10 +18,10 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+
 # disable any printout (this would mess the display)
-stderr = sys.stderr
-sys.stdout = open('/dev/null', 'w')
-sys.stderr = open('/dev/null', 'w')
+# sys.stdout = open('/dev/null', 'w')
+# sys.stderr = open('/dev/null', 'w')
 
 from connection import Connection
 from multiuserchat import MultiUserChat
@@ -30,21 +30,11 @@ from handler import Handler
 from gui import Gui
 from curses import initscr
 import curses
+import threading
+from common import exception_handler
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-import traceback
-
-def exception_handler(type_, value, trace):
-    """
-    on any traceback: exit ncurses and print the traceback
-    then exit the program
-    """
-    curses.echo()
-    curses.endwin()
-    traceback.print_exception(type_, value, trace, None, stderr)
-    sys.exit()
 
 sys.excepthook = exception_handler
 
@@ -59,10 +49,12 @@ class Client(object):
         self.resource = config.get('resource', 'poezio')
         self.server = config.get('server', 'louiz.org')
         self.connection = Connection(self.server, self.resource)
-        self.stdscr = initscr()
-
+        # self.connection.demon = True
         self.connection.start()
+        # self.connection.run()
+        self.stdscr = initscr()
         self.gui = Gui(self.stdscr, MultiUserChat(self.connection.client))
+        # thread.start_new_thread(self.launch, ())
 
     def launch(self):
         """

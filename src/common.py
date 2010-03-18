@@ -37,6 +37,19 @@ import os
 import mimetypes
 import hashlib
 import subprocess
+import curses
+import traceback
+import sys
+
+def exception_handler(type_, value, trace):
+    """
+    on any traceback: exit ncurses and print the traceback
+    then exit the program
+    """
+    curses.echo()
+    curses.endwin()
+    traceback.print_exception(type_, value, trace, None, sys.stderr)
+    sys.exit(2)
 
 def get_base64_from_file(path):
     if not os.path.isfile(path):
