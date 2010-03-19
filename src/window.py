@@ -152,12 +152,6 @@ class TextWin(object):
         self.parent_win = parent_win
         self.wins = {}
 
-    def rebuild(self, lines):
-        """
-        deprecated
-        """
-        pass # TODO
-
     def redraw(self, room):
         """
         called when the buffer changes or is
@@ -445,7 +439,6 @@ class Input(Win):
         self.pos = len(self.text)
         self.win.addstr(nick)
         self.refresh()
-
 
     def do_command(self, key):
         self.reset_completion()

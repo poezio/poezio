@@ -103,6 +103,7 @@ class Gui(object):
     def main_loop(self, stdscr):
         while 1:
             stdscr.leaveok(1)
+            self.window.input.win.move(0, self.window.input.pos)
             curses.doupdate()
             try:
                 key = stdscr.getkey()
@@ -241,6 +242,7 @@ class Gui(object):
                 self.add_info(room, nick_from + ' ' + body[4:], date)
             else:
                 self.add_message(room, nick_from, body, date)
+        self.window.input.refresh()
         curses.doupdate()
 
     def room_presence(self, stanza):
@@ -312,6 +314,8 @@ class Gui(object):
                         self.add_info(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
+        self.window.input.refresh()
+        curses.doupdate()
 
     def add_info(self, room, info, date=None):
         """
@@ -319,20 +323,24 @@ class Gui(object):
         (displays it immediately AND saves it for redisplay
         in futur refresh)
         """
+        if not date:
+            date = datetime.now()
         msg = room.add_info(info, date)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
+        self.window.text_win.add_line(room, (date, msg))
         if room.name == self.current_room().name:
             self.window.text_win.refresh(room.name)
             self.window.input.refresh()
             curses.doupdate()
-        else:
-            self.window.info_win.refresh(self.rooms, self.current_room())
 
-    def add_message(self, room, nick_from, body, date):
+    def add_message(self, room, nick_from, body, date=None):
+        if not date:
+            date = datetime.now()
         color = room.add_message(nick_from, body, date)
         self.window.text_win.add_line(room, (date, nick_from.encode('utf-8'), body.encode('utf-8'), color))
         if room == self.current_room():
             self.window.text_win.refresh(room.name)
+        else:
+            self.window.info_win.refresh(self.rooms, self.current_room())
 
     def execute(self):
         line = self.window.input.get_text()
