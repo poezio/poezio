@@ -20,6 +20,7 @@
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
+
 bindtextdomain('poezio')
 textdomain('poezio')
 bind_textdomain_codeset('poezio', 'utf-8')
@@ -29,7 +30,13 @@ locale.setlocale(locale.LC_ALL, '')
 import sys
 
 import curses
+import xmpp
 from datetime import datetime
+from time import (altzone, daylight, gmtime, localtime, mktime, strftime,
+                  time as time_time, timezone, tzname)
+from calendar import timegm
+
+import common
 
 from handler import Handler
 from logging import logger
@@ -98,7 +105,6 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
-        self.handler.connect('room-delayed-message', self.room_delayed_message)
 
     def main_loop(self, stdscr):
         while 1:
@@ -211,16 +217,17 @@ class Gui(object):
         self.rooms.insert(0, self.rooms.pop())
         self.window.refresh(self.rooms)
 
-    def room_delayed_message(self, stanza):
-        self.room_message(stanza)
-
     def room_message(self, stanza, date=None):
+        delay_tag = stanza.getTag('delay', namespace='urn:xmpp:delay')
+        if delay_tag and not date:
+            delayed = True
+            date = common.datetime_tuple(delay_tag.getAttr('stamp'))
+        else:
+            delayed = False
         if len(sys.argv) > 1:
             self.information(str(stanza).encode('utf-8'))
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
-        if not date:
-            date = datetime.now()
         nick_from = stanza.getFrom().getResource()
         room_from = stanza.getFrom().getStripped()
         room = self.get_room_by_name(room_from)
@@ -241,7 +248,7 @@ class Gui(object):
             if body.startswith('/me '):
                 self.add_info(room, nick_from + ' ' + body[4:], date)
             else:
-                self.add_message(room, nick_from, body, date)
+                self.add_message(room, nick_from, body, date, delayed)
         self.window.input.refresh()
         curses.doupdate()
 
@@ -332,14 +339,14 @@ class Gui(object):
             self.window.input.refresh()
             curses.doupdate()
 
-    def add_message(self, room, nick_from, body, date=None):
+    def add_message(self, room, nick_from, body, date=None, delayed=False):
         if not date:
             date = datetime.now()
         color = room.add_message(nick_from, body, date)
         self.window.text_win.add_line(room, (date, nick_from.encode('utf-8'), body.encode('utf-8'), color))
         if room == self.current_room():
             self.window.text_win.refresh(room.name)
-        else:
+        elif not delayed:
             self.window.info_win.refresh(self.rooms, self.current_room())
 
     def execute(self):
@@ -374,10 +381,7 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
-        self.window.text_win.refresh(room.name)
-        self.window.input.refresh()
+        self.add_info(room, msg)
 
     def command_win(self, args):
         if len(args) != 1:
@@ -399,7 +403,6 @@ class Gui(object):
                 self.window.refresh(self.rooms)
                 return
         self.window.refresh(self.rooms)
-
 
     def command_kick(self, args):
         if len(args) < 1:
@@ -486,10 +489,7 @@ class Gui(object):
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         room = self.current_room()
-        room.add_info(msg)
-        self.window.text_win.add_line(room, (datetime.now(), msg))
-        self.window.text_win.refresh(room.name)
-        self.window.input.refresh()
+        self.add_info(room, msg)
 
     def command_show(self, args):
         possible_show = {'avail':'None',
@@ -555,10 +555,7 @@ class Gui(object):
     def information(self, msg):
         room = self.get_room_by_name("Info")
         info = room.add_info(msg)
-        if self.current_room() == room:
-            self.window.text_win.add_line(room, (datetime.now(), info))
-            self.window.text_win.refresh(room.name)
-            curses.doupdate()
+        self.add_info(room, msg)
 
     def command_quit(self, args):
 	self.reset_curses()

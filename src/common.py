@@ -186,3 +186,21 @@ def get_os_info():
             return os_info
     os_info = 'N/A'
     return os_info
+
+def datetime_tuple(timestamp):
+    """
+    Convert timestamp using strptime and the format: %Y%m%dT%H:%M:%S
+
+    Because of various datetime formats are used the following exceptions
+    are handled:
+            - Optional milliseconds appened to the string are removed
+            - Optional Z (that means UTC) appened to the string are removed
+            - XEP-082 datetime strings have all '-' cahrs removed to meet
+              the above format.
+    """
+    timestamp = timestamp.split('.')[0]
+    timestamp = timestamp.replace('-', '')
+    timestamp = timestamp.replace('z', '')
+    timestamp = timestamp.replace('Z', '')
+    from datetime import datetime
+    return datetime.strptime(timestamp, '%Y%m%dT%H:%M:%S')

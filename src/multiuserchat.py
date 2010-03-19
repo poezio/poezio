@@ -319,4 +319,4 @@ class MultiUserChat(object):
             tzo = (zone / 60, abs(zone % 60))
             qp.setTagData('tzo', '%+03d:%02d' % (tzo))
             self.connection.send(iq_obj)
-            raise common.xmpp.NodeProcessed
+            raise xmpp.protocol.NodeProcessed

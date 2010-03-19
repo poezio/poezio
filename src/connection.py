@@ -86,8 +86,8 @@ class Connection(threading.Thread):
         self.client.RegisterHandler('iq', self.on_get_time, typ='get', ns="urn:xmpp:time")
         self.client.RegisterHandler('iq', self.on_get_version, typ='get', ns=xmpp.NS_VERSION)
         self.client.RegisterHandler('presence', self.handler_presence)
-        self.client.RegisterHandler('message', self.handler_delayed_message, ns=xmpp.NS_DELAY, makefirst=True)
         self.client.RegisterHandler('message', self.handler_message)
+        # self.client.RegisterHandler('message', self.handler_delayed_message, ns=xmpp.NS_DELAY)
 
     def handler_presence(self, connection, presence):
         fro = presence.getFrom()
@@ -98,12 +98,15 @@ class Connection(threading.Thread):
             self.handler.emit('on-connected', jid=fro)
             return
         self.handler.emit('room-presence', stanza=presence)
+        raise xmpp.protocol.NodeProcessed
 
     def handler_delayed_message(self, connection, message):
-        pass
+        self.handler.emit('room-delayed-message', stanza=message)
+        raise xmpp.protocol.NodeProcessed
 
     def handler_message(self, connection, message):
         self.handler.emit('room-message', stanza=message)
+        raise xmpp.protocol.NodeProcessed
 
     def handler_error(self, connection, error):
         pass
@@ -119,5 +122,4 @@ class Connection(threading.Thread):
         self.handler.emit('send-version', iq_obj=iq)
 
     def on_get_time(self, connection, iq):
-        open('caca', 'w').write('works')
         self.handler.emit('send-time', iq_obj=iq)
