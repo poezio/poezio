@@ -39,7 +39,7 @@ class Room(object):
         self.joined = False
         self.users = []
 
-    def add_message(self, nick, msg, date=None, delayed=False):
+    def add_message(self, nick, msg, date=None):
         if not date:
             date = datetime.now()
         color = None

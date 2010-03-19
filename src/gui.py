@@ -81,6 +81,7 @@ class Gui(object):
            'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
             'set': (self.command_set, _('Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.')),
             'kick': (self.command_kick, _('Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.')),
+            'topic': (self.command_topic, _('Usage: /topic <subject>\nTopic: Change the subject of the room')),
             'nick': (self.command_nick, _('Usage: /nick <nickname>\nNick: Change your nickname in the current room'))
             }
 
@@ -542,6 +543,13 @@ class Gui(object):
             self.muc.quit_room(room.name, room.own_nick, msg)
         self.rooms.remove(self.current_room())
         self.window.refresh(self.rooms)
+
+    def command_topic(self, args):
+        subject = ' '.join(args)
+        room = self.current_room()
+        if not room.joined or room.name == "Info":
+            return
+        self.muc.change_subject(room.name, subject)
 
     def command_nick(self, args):
         if len(args) != 1:
