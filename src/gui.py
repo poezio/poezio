@@ -270,9 +270,6 @@ class Gui(object):
 	room = self.get_room_by_name(from_room)
 	if not room:
             return
-        # if stanza.getType() == 'error':
-        #     print stanza
-        #     msg = _("Error: %s") % stanza.getError()
         else:
             msg = None
             affiliation = stanza.getAffiliation()

@@ -26,8 +26,15 @@ class Win(object):
 
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
-        self.win = parent_win.subwin(height, width, y, x)
-        self.win.leaveok(1)
+        try:
+            self.win = parent_win.subwin(height, width, y, x)
+            self.win.leaveok(1)
+        except:
+            # Happens when the C function subwin fails. The man
+            # doesn't give a reason for this to happen, so I can't
+            # really fix this.
+            # just don't crash when this happens.
+            pass
 
     def refresh(self):
         self.win.noutrefresh()
