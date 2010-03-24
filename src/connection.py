@@ -17,6 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
+                     gettext as _)
+
+
+bindtextdomain('poezio')
+textdomain('poezio')
+bind_textdomain_codeset('poezio', 'utf-8')
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 import sys
 
 import xmpp
@@ -50,10 +60,10 @@ class Connection(threading.Thread):
         """
         sys.excepthook = exception_handler
         if not self.connect_to_server(self.server, self.port):
-            logger.error('Could not connect to server')
+            self.handler.emit('error', msg='Could not connect to server')
             sys.exit(-1)
         if not self.authenticate():
-            logger.error('Could not authenticate to server')
+            self.handler.emit('error', msg='Could not authenticate to server')
             sys.exit(-1)
         self.client.sendInitPresence(requestRoster=0)
         self.online = 1      # 2 when confirmation of auth is received
@@ -74,7 +84,12 @@ class Connection(threading.Thread):
 
     def authenticate(self, anon=True):
         if anon:
-            return self.client.auth(None, "", self.resource)
+            try:
+                self.client.auth(None, "", self.resource)
+                return True
+            except TypeError:
+                self.handler.emit('error', msg=_('Error: Could not authenticate. Please make sure the server you chose (%s) supports anonymous authentication' % (config.get('server', '')))) # TODO msg
+                return None
         else:
             log.error('Non-anonymous connections not handled currently')
             return None

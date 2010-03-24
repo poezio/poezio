@@ -54,7 +54,11 @@ class Handler(Singleton):
                 # We send our version
                 # Args: the stanza we reply to
 
-                'send-time': list()
+                'send-time': list(),
+                # We send our time
+                # Args: the stanza we reply to
+
+                'error': list()
                 # We send our time
                 # Args: the stanza we reply to
             }

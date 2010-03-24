@@ -106,6 +106,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+        self.handler.connect('error', self.information)
 
     def main_loop(self, stdscr):
         while 1:
@@ -260,7 +261,7 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
-	    self.information(_("presence received for a non-existing room: %s") % (from_room))
+            return
         if stanza.getType() == 'error':
             msg = _("Error: %s") % stanza.getError()
         else:
@@ -294,7 +295,10 @@ class Gui(object):
                 # kick
                 elif kick:
                     room.users.remove(user)
-                    reason = stanza.getReason().encode('utf-8') or ''
+                    try:
+                        reason = stanza.getReason().encode('utf-8')
+                    except:
+                        reason = ''
                     try:
                         by = stanza.getActor().encode('utf-8')
                     except:
@@ -444,8 +448,10 @@ class Gui(object):
             self.information(_("already in room [%s]") % room)
             return
         self.muc.join_room(room, nick)
-        if not r: # if the room window exists, we don't recreate it.
+        if not r:   # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
+        else:
+            r.users = []
 
     def command_bookmark(self, args):
         nick = None
@@ -562,7 +568,6 @@ class Gui(object):
 
     def information(self, msg):
         room = self.get_room_by_name("Info")
-        info = room.add_info(msg)
         self.add_info(room, msg)
 
     def command_quit(self, args):

@@ -37,7 +37,6 @@ class Room(object):
 
     def disconnect(self):
         self.joined = False
-        self.users = []
 
     def add_message(self, nick, msg, date=None):
         if not date:
