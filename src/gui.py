@@ -63,7 +63,7 @@ class Gui(object):
 
         self.commands = {
             'help': (self.command_help, _('OLOL, this is SOOO recursive')),
-            'join': (self.command_join, _('Usage: /join [room_name][/nick]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). Examples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join')),
+            'join': (self.command_join, _('Usage: /join [room_name][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / pass')),
             'quit': (self.command_quit, _('Usage: /quit\nQuit: Just disconnect from the server and exit poezio.')),
             'exit': (self.command_quit, _('Usage: /exit\nExit: Just disconnect from the server and exit poezio.')),
             'next': (self.rotate_rooms_right, _('Usage: /next\nNext: Go to the next room.')),
@@ -106,6 +106,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+        self.handler.connect('error-message', self.room_error)
         self.handler.connect('error', self.information)
 
     def main_loop(self, stdscr):
@@ -219,6 +220,15 @@ class Gui(object):
         self.rooms.insert(0, self.rooms.pop())
         self.window.refresh(self.rooms)
 
+    def room_error(self, room, error, msg):
+        r = self.get_room_by_name(room)
+        code = error.getAttr('code')
+        typ = error.getAttr('type')
+        body = error.getTag('text').getData()
+        self.add_info(r, _('Error: %(code)s-%(msg)s: %(body)s' % {'msg':msg, 'code':code, 'body':body}))
+        if code == '401':
+            self.add_info(r, _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+
     def room_message(self, stanza, date=None):
         delay_tag = stanza.getTag('delay', namespace='urn:xmpp:delay')
         if delay_tag and not date:
@@ -226,8 +236,6 @@ class Gui(object):
             date = common.datetime_tuple(delay_tag.getAttr('stamp'))
         else:
             delayed = False
-        if len(sys.argv) > 1:
-            self.information(str(stanza).encode('utf-8'))
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
         nick_from = stanza.getFrom().getResource()
@@ -262,8 +270,9 @@ class Gui(object):
 	room = self.get_room_by_name(from_room)
 	if not room:
             return
-        if stanza.getType() == 'error':
-            msg = _("Error: %s") % stanza.getError()
+        # if stanza.getType() == 'error':
+        #     print stanza
+        #     msg = _("Error: %s") % stanza.getError()
         else:
             msg = None
             affiliation = stanza.getAffiliation()
@@ -424,6 +433,7 @@ class Gui(object):
         self.muc.eject_user(roomname, 'kick', nick, reason)
 
     def command_join(self, args):
+        password = None
         if len(args) == 0:
             r = self.current_room()
             if r.name == 'Info':
@@ -441,13 +451,17 @@ class Gui(object):
                 if r.name == 'Info':
                     return
                 room = r.name
+                if nick == '':
+                    nick = r.own_nick
             else:
                 room = info[0]
             r = self.get_room_by_name(room)
+        if len(args) == 2:       # a password is provided
+            password = args[1]
         if r and r.joined:                   # if we are already in the room
             self.information(_("already in room [%s]") % room)
             return
-        self.muc.join_room(room, nick)
+        self.muc.join_room(room, nick, password)
         if not r:   # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
         else:

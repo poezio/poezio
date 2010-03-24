@@ -88,7 +88,7 @@ class Connection(threading.Thread):
                 self.client.auth(None, "", self.resource)
                 return True
             except TypeError:
-                self.handler.emit('error', msg=_('Error: Could not authenticate. Please make sure the server you chose (%s) supports anonymous authentication' % (config.get('server', '')))) # TODO msg
+                self.handler.emit('error', msg=_('Error: Could not authenticate. Please make sure the server you chose (%s) supports anonymous authentication' % (config.get('server', ''))))
                 return None
         else:
             log.error('Non-anonymous connections not handled currently')
@@ -102,9 +102,16 @@ class Connection(threading.Thread):
         self.client.RegisterHandler('iq', self.on_get_version, typ='get', ns=xmpp.NS_VERSION)
         self.client.RegisterHandler('presence', self.handler_presence)
         self.client.RegisterHandler('message', self.handler_message)
-        # self.client.RegisterHandler('message', self.handler_delayed_message, ns=xmpp.NS_DELAY)
+
+    def error_message(self, stanza):
+        room_name = stanza.getFrom().getStripped()
+        self.handler.emit('error-message', room=room_name, error=stanza.getTag('error'), msg=stanza.getError())
+        raise xmpp.protocol.NodeProcessed
 
     def handler_presence(self, connection, presence):
+        if presence.getType() == 'error':
+            self.error_message(presence)
+            return
         fro = presence.getFrom()
         to = presence.getAttr('to')
         if fro == to:           # own presence
@@ -120,6 +127,9 @@ class Connection(threading.Thread):
         raise xmpp.protocol.NodeProcessed
 
     def handler_message(self, connection, message):
+        if message.getType() == 'error':
+            self.error_message(message)
+            return
         self.handler.emit('room-message', stanza=message)
         raise xmpp.protocol.NodeProcessed
 

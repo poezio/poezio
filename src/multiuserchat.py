@@ -152,10 +152,12 @@ class MultiUserChat(object):
         """Join a new room"""
         pres = Presence(to='%s/%s' % (room, nick))
         pres.setFrom('%s'%self.own_jid)
-        if password:
+        if not password:
             pres.addChild(name='x', namespace=NS_MUC)
         else:
-            pres.addChild(name='x', namespace=NS_MUC)
+            item = pres.addChild(name='x', namespace=NS_MUC)
+            passwd = item.addChild(name='password')
+            passwd.setData(password)
         self.connection.send(pres)
 
     def quit_room(self, room, nick, msg=None):
