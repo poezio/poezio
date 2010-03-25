@@ -112,7 +112,6 @@ class Gui(object):
     def main_loop(self, stdscr):
         while 1:
             stdscr.leaveok(1)
-            self.window.input.win.move(0, self.window.input.pos)
             curses.doupdate()
             try:
                 key = stdscr.getkey()

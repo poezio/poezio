@@ -28,13 +28,14 @@ class Win(object):
         self.height, self.width, self.x, self.y = height, width, x, y
         try:
             self.win = parent_win.subwin(height, width, y, x)
-            self.win.leaveok(1)
         except:
             # Happens when the C function subwin fails. The man
             # doesn't give a reason for this to happen, so I can't
             # really fix this.
             # just don't crash when this happens.
-            pass
+            print parent_win, parent_win.height, parent_win.width, height, width, y, x
+            raise
+        self.win.leaveok(1)
 
     def refresh(self):
         self.win.noutrefresh()
@@ -513,6 +514,7 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
+        open('caca', 'a').write(str(self.size))
         if self.height < 10 or self.width < 60:
             visible = False
         else:
