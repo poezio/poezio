@@ -118,9 +118,6 @@ class Gui(object):
             try:
                 key = stdscr.getkey()
             except:
-                debug("main_loop exception")
-                # self.window.resize(stdscr)
-                # self.window.refresh(self.rooms)
                 continue
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
@@ -256,7 +253,7 @@ class Gui(object):
             room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
-        else:
+        elif body:
             if body.startswith('/me '):
                 self.add_info(room, nick_from + ' ' + body[4:], date)
             else:
@@ -292,7 +289,8 @@ class Gui(object):
                 # New user
                 if not user:
                     room.users.append(User(from_nick, affiliation, show, status, role))
-                    if not config.get('hide_enter_join', "false") == "true":
+                    hide_exit_join = config.get('hide_exit_join', -1)
+                    if hide_exit_join != 0:
                         self.add_info(room, _('%(nick)s joined the room %(roomname)s') % {'nick':from_nick, 'roomname': room.name})
                 # nick change
                 elif change_nick:
@@ -325,12 +323,21 @@ class Gui(object):
                 # user quit
                 elif status == 'offline' or role == 'none':
                     room.users.remove(user)
-                    if not config.get('hide_enter_join', "false") == "true":
+                    hide_exit_join = config.get('hide_exit_join', -1)\
+                        if config.get('hide_exit_join', -1) >= -1\
+                        else -1
+                    if hide_exit_join == -1 or \
+                            user.has_talked_since(hide_exit_join):
                         self.add_info(room, _('%s has left the room') % (from_nick))
                 # status change
                 else:
                     user.update(affiliation, show, status, role)
-                    if not config.get('hide_status_change', "false") == "true":
+                    hide_status_change = config.get('hide_status_change', -1)\
+                        if config.get('hide_status_change', -1) >= -1\
+                        else -1
+                    if hide_status_change == -1 or \
+                            user.has_talked_since(hide_status_change) or\
+                            user.nick == room.own_nick:
                         self.add_info(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
@@ -464,6 +471,7 @@ class Gui(object):
         if not r:   # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
         else:
+            r.own_nick = nick
             r.users = []
 
     def command_bookmark(self, args):

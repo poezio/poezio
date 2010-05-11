@@ -53,11 +53,15 @@ class Room(object):
                     if word.lower() in msg.lower() and word != '':
                         self.set_color_state(13)
                         color = 3
+                        break
         if not msg:
             logger.info('msg is None..., %s' % (nick))
             return
         self.lines.append((date, nick.encode('utf-8'),
                           msg.encode('utf-8'), color))
+        user = self.get_user_by_name(nick)
+        if user:
+            user.set_last_talked(date)
         if self.joined:         # log only NEW messages, not the history received on join
             logger.message(self.name, nick.encode('utf-8'), msg.encode('utf-8'))
         return color

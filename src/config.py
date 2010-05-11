@@ -59,7 +59,10 @@ class Config(RawConfigParser):
         return self._get(option)
 
     def getint(self, option):
-        return int(self._get(option))
+        try:
+            return int(self._get(option))
+        except ValueError:
+            return -1
 
     def getfloat(self, option):
         return float(self._get(option))

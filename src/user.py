@@ -19,12 +19,14 @@
 
 from random import randrange
 from config import config
+from datetime import timedelta, datetime
 
 class User(object):
     """
     keep trace of an user in a Room
     """
     def __init__(self, nick, affiliation, show, status, role):
+        self.last_talked = None
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
         self.color = randrange(2, 10)
@@ -37,3 +39,23 @@ class User(object):
 
     def change_nick(self, nick):
         self.nick = nick.encode('utf-8')
+
+    def set_last_talked(self, time):
+        """
+        time: datetime object
+        """
+        self.last_talked = time
+
+    def has_talked_since(self, t):
+        """
+        get a int
+        Return True if the user talked since the last s seconds
+        """
+        from common import debug
+        if self.last_talked is None:
+            return False
+        delta = timedelta(0, t)
+        debug("Last talk: %s\nDelai:%s\nDelta:%s\n" % (str(self.last_talked), str(t), str(delta)))
+        if datetime.now() - delta > self.last_talked:
+            return False
+        return True

@@ -21,7 +21,7 @@ import sys
 
 # disable any printout (this would mess the display)
 # sys.stdout = open('/dev/null', 'w')
-sys.stderr = open('debug', 'w')
+sys.stderr = open('errors', 'w')
 
 from connection import Connection
 from multiuserchat import MultiUserChat
