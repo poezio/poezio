@@ -21,7 +21,7 @@ import sys
 
 # disable any printout (this would mess the display)
 # sys.stdout = open('/dev/null', 'w')
-# sys.stderr = open('/dev/null', 'w')
+sys.stderr = open('debug', 'w')
 
 from connection import Connection
 from multiuserchat import MultiUserChat
@@ -49,16 +49,13 @@ class Client(object):
         self.resource = config.get('resource', 'poezio')
         self.server = config.get('server', 'louiz.org')
         self.connection = Connection(self.server, self.resource)
-        # self.connection.demon = True
         self.connection.start()
-        # self.connection.run()
         self.stdscr = initscr()
         self.gui = Gui(self.stdscr, MultiUserChat(self.connection.client))
-        # thread.start_new_thread(self.launch, ())
 
     def launch(self):
         """
-        launch
+        launch the gui
         """
         self.gui.main_loop(self.stdscr)
 

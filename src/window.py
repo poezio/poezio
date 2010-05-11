@@ -20,6 +20,8 @@
 import curses
 from config import config
 
+from common import debug
+
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
         self._resize(height, width, y, x, parent_win)
@@ -33,6 +35,9 @@ class Win(object):
             # doesn't give a reason for this to happen, so I can't
             # really fix this.
             # just don't crash when this happens.
+            # (°>       also, a penguin
+            # //\
+            # V_/_
             print parent_win, parent_win.height, parent_win.width, height, width, y, x
             raise
         self.win.leaveok(1)
@@ -121,8 +126,11 @@ class RoomInfo(Win):
         def compare_room(a, b):
             return a.nb - b.nb
         self.win.clear()
-        self.win.addnstr(0, 0, current.name+" [", self.width
+        try:
+            self.win.addnstr(0, 0, current.name+" [", self.width
                              ,curses.color_pair(1))
+        except:
+            pass
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
             if current == room:
@@ -483,7 +491,7 @@ class Input(Win):
 class Window(object):
     """
     The whole "screen" that can be seen at once in the terminal.
-    It contains an userlist, an input zone and a chat zone
+    It contains an userlist, an input zone, a topic zone and a chat zone
     """
     def __init__(self, stdscr):
         """
@@ -514,7 +522,6 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        open('caca', 'a').write(str(self.size))
         if self.height < 10 or self.width < 60:
             visible = False
         else:
@@ -523,11 +530,12 @@ class Window(object):
             stdscr.attron(curses.color_pair(2))
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
             stdscr.attroff(curses.color_pair(2))
-        self.user_win.resize(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
+        text_width = (self.width/10)*9;
         self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
-        self.text_win.resize(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
+        self.text_win.resize(self.height-3, text_width, 1, 0, stdscr, visible)
         self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
+        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, stdscr, visible)
 
     def refresh(self, rooms):
         """

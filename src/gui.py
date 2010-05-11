@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+from common import debug
+
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
@@ -77,7 +79,7 @@ class Gui(object):
             'away': (self.command_away, _('Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to "/show away [message]"')),
             'busy': (self.command_busy, _('Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to "/show busy [message]"')),
             'avail': (self.command_avail, _('Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
-            'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')), 
+            'available': (self.command_avail, _('Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to "/show available [message]"')),
            'bookmark': (self.command_bookmark, _('Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing "/bookmark" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)')),
             'set': (self.command_set, _('Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.')),
             'kick': (self.command_kick, _('Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.')),
@@ -116,8 +118,9 @@ class Gui(object):
             try:
                 key = stdscr.getkey()
             except:
-                self.window.resize(stdscr)
-                self.window.refresh(self.rooms)
+                debug("main_loop exception")
+                # self.window.resize(stdscr)
+                # self.window.refresh(self.rooms)
                 continue
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
@@ -134,7 +137,7 @@ class Gui(object):
                 continue
             else:
                 if ord(key) == 27 and ord(stdscr.getkey()) == 91:
-                    last = ord(stdscr.getkey()) # FIXME: ugly ugly workaroung.
+                    last = ord(stdscr.getkey()) # FIXME: ugly ugly workaround.
                     if last == 51:
                         self.window.input.key_dc()
                     continue

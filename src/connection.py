@@ -45,7 +45,7 @@ class Connection(threading.Thread):
     def __init__(self, server, resource):
         threading.Thread.__init__(self)
         self.handler = Handler()
-        self.daemon = True      # exit the program when this exits
+        self.daemon = True      # exit the program when this thread exits
         self.server = server
         self.resource = resource
         self.online = 0         # 1:connected, 2:auth confirmed
@@ -66,7 +66,7 @@ class Connection(threading.Thread):
             self.handler.emit('error', msg='Could not authenticate to server')
             sys.exit(-1)
         self.client.sendInitPresence(requestRoster=0)
-        self.online = 1      # 2 when confirmation of auth is received
+        self.online = 1      # 2 when confirmation of our auth is received
         self.register_handlers()
         while 1:
             self.process()

@@ -30,7 +30,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# various useful functions
+__doc__ = "various useful functions"
 
 import base64
 import os
@@ -40,6 +40,11 @@ import subprocess
 import curses
 import traceback
 import sys
+
+def debug(s):
+    f = open("debug", 'a')
+    f.write(s+'\n')
+    f.close()
 
 def exception_handler(type_, value, trace):
     """
