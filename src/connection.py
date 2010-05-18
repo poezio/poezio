@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Defines the Connection class
+"""
+
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
@@ -35,7 +39,6 @@ from logging import logger
 from handler import Handler
 from common import exception_handler
 import threading
-import thread
 
 class Connection(threading.Thread):
     """
@@ -77,74 +80,117 @@ class Connection(threading.Thread):
                                        {'host': config.get("proxy_server", ""),
                                         'port': config.get("proxy_port", 1080),
                                         'user': config.get("proxy_user", ""),
-                                        'password': config.get("proxy_password", "")
+                                        'password': config.get("proxy_password",
+                                                               "")
                                         })
         else:
             return self.client.connect((server, port))
 
     def authenticate(self, anon=True):
+        """
+        Authenticate to the server
+        """
         if anon:
             try:
                 self.client.auth(None, "", self.resource)
                 return True
             except TypeError:
-                self.handler.emit('error', msg=_('Error: Could not authenticate. Please make sure the server you chose (%s) supports anonymous authentication' % (config.get('server', ''))))
+                self.handler.emit('error', msg=_('Error: Could not \
+                        authenticate. Please make sure the server you chose \
+                        (%s) supports anonymous authentication'
+                                                 % (config.get('server', ''))))
                 return None
         else:
-            log.error('Non-anonymous connections not handled currently')
+            logger.error('Non-anonymous connections not handled currently')
             return None
 
     def register_handlers(self):
         """
-        register handlers from xmpppy signals
+        registers handlers from xmpppy signals
         """
-        self.client.RegisterHandler('iq', self.on_get_time, typ='get', ns="urn:xmpp:time")
-        self.client.RegisterHandler('iq', self.on_get_version, typ='get', ns=xmpp.NS_VERSION)
+        self.client.RegisterHandler('iq', self.on_get_time, typ='get',
+                                    ns="urn:xmpp:time")
+        self.client.RegisterHandler('iq', self.on_get_version, typ='get',
+                                    ns=xmpp.NS_VERSION)
         self.client.RegisterHandler('presence', self.handler_presence)
         self.client.RegisterHandler('message', self.handler_message)
 
     def error_message(self, stanza):
+        """
+        handles the error messages
+        """
         room_name = stanza.getFrom().getStripped()
-        self.handler.emit('error-message', room=room_name, error=stanza.getTag('error'), msg=stanza.getError())
+        self.handler.emit('error-message', room=room_name,
+                          error=stanza.getTag('error'),
+                          msg=stanza.getError())
         raise xmpp.protocol.NodeProcessed
 
     def handler_presence(self, connection, presence):
+        """
+        handles the presence messages
+        """
+        if not connection:
+            return
         if presence.getType() == 'error':
             self.error_message(presence)
             return
         fro = presence.getFrom()
-        to = presence.getAttr('to')
-        if fro == to:           # own presence
+        toj = presence.getAttr('to')
+        if fro == toj:           # own presence
             self.online = 2
-            self.jid = to
+            self.jid = toj
             self.handler.emit('on-connected', jid=fro)
             return
         self.handler.emit('room-presence', stanza=presence)
         raise xmpp.protocol.NodeProcessed
 
     def handler_delayed_message(self, connection, message):
+        """
+        handles the delayed messages
+        These are received when we join a muc and we are sent the
+        recent history
+        """
+        if not connection:
+            return
         self.handler.emit('room-delayed-message', stanza=message)
         raise xmpp.protocol.NodeProcessed
 
     def handler_message(self, connection, message):
+        """
+        handles the common messages
+        """
+        if not connection:
+            return
         if message.getType() == 'error':
             self.error_message(message)
             return
         self.handler.emit('room-message', stanza=message)
         raise xmpp.protocol.NodeProcessed
 
-    def handler_error(self, connection, error):
-        pass
-
     def process(self, timeout=10):
+        """
+        Main connection loop
+        It just waits for something to process (something is received
+        or something has to be sent)
+        """
         if self.online:
             self.client.Process(timeout)
         else:
-            log.warning('disconnecting...')
+            logger.warning('disconnecting...')
             sys.exit()
 
     def on_get_version(self, connection, iq):
+        """
+        Handles the iq requesting our software version
+        """
+        if not connection:
+            return
         self.handler.emit('send-version', iq_obj=iq)
 
     def on_get_time(self, connection, iq):
+        """
+        handles the iq requesting our  time
+        """
+        if not connection:
+            return
         self.handler.emit('send-time', iq_obj=iq)

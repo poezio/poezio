@@ -30,7 +30,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__doc__ = "various useful functions"
+"""
+various useful functions
+"""
 
 import base64
 import os
@@ -40,11 +42,18 @@ import subprocess
 import curses
 import traceback
 import sys
+import select
+import errno
 
-def debug(s):
-    f = open("debug", 'a')
-    f.write(s+'\n')
-    f.close()
+def debug(string):
+    """
+    Print a string in a file.
+    Useful since debuging cannot be displayed on screen because it's
+    a CLI software
+    """
+    fdes = open("debug", 'a')
+    fdes.write(string+'\n')
+    fdes.close()
 
 def exception_handler(type_, value, trace):
     """
@@ -57,19 +66,25 @@ def exception_handler(type_, value, trace):
     sys.exit(2)
 
 def get_base64_from_file(path):
+    """
+    Convert the content of a file to base64
+    """
     if not os.path.isfile(path):
         return (None, None, "File does not exist")
     size = os.path.getsize(path)
     if size > 16384:
         return (None, None,"File is too big")
-    fd = open(path, 'rb')
-    data = fd.read()
+    fdes = open(path, 'rb')
+    data = fdes.read()
     encoded = base64.encodestring(data)
     sha1 = hashlib.sha1(data).hexdigest()
     mime_type = mimetypes.guess_type(path)[0]
     return (encoded, mime_type, sha1)
 
 def get_output_of_command(command):
+    """
+    Runs a command and returns its output
+    """
     try:
         child_stdin, child_stdout = os.popen2(command)
     except ValueError:
@@ -99,18 +114,16 @@ def is_in_path(command, return_abs_path=False):
             pass
     return False
 
-distro_info = {
+DISTRO_INFO = {
         'Arch Linux': '/etc/arch-release',
         'Aurox Linux': '/etc/aurox-release',
         'Conectiva Linux': '/etc/conectiva-release',
         'CRUX': '/usr/bin/crux',
-        'Debian GNU/Linux': '/etc/debian_release',
         'Debian GNU/Linux': '/etc/debian_version',
         'Fedora Linux': '/etc/fedora-release',
         'Gentoo Linux': '/etc/gentoo-release',
         'Linux from Scratch': '/etc/lfs-release',
         'Mandrake Linux': '/etc/mandrake-release',
-        'Slackware Linux': '/etc/slackware-release',
         'Slackware Linux': '/etc/slackware-version',
         'Solaris/Sparc': '/etc/release',
         'Source Mage': '/etc/sourcemage_version',
@@ -122,52 +135,53 @@ distro_info = {
         # so Redhat is the last
         'Redhat Linux': '/etc/redhat-release'
 }
+
+def temp_failure_retry(func, *args, **kwargs):
+    """
+    workaround for a temporary and specific failure
+    """
+    while True:
+        try:
+            return func(*args, **kwargs)
+        except (os.error, IOError, select.error), ex:
+            if ex.errno == errno.EINTR:
+                continue
+            else:
+                raise
+
 def get_os_info():
-    if os.name == 'nt':         # could not happen, but...
-        ver = sys.getwindowsversion()
-        ver_format = ver[3], ver[0], ver[1]
-        win_version = {
-                (1, 4, 0): '95',
-                (1, 4, 10): '98',
-                (1, 4, 90): 'ME',
-                (2, 4, 0): 'NT',
-                (2, 5, 0): '2000',
-                (2, 5, 1): 'XP',
-                (2, 5, 2): '2003',
-                (2, 6, 0): 'Vista',
-                (2, 6, 1): '7',
-        }
-        if ver_format in win_version:
-            os_info = 'Windows' + ' ' + win_version[ver_format]
-        else:
-            os_info = 'Windows'
-        return os_info
-    elif os.name == 'posix':
+    """
+    Returns a detailed and well formated string containing
+    informations about the operating system
+    """
+    if os.name == 'posix':
         executable = 'lsb_release'
         params = ' --description --codename --release --short'
         full_path_to_executable = is_in_path(executable, return_abs_path = True)
         if full_path_to_executable:
             command = executable + params
-            p = subprocess.Popen([command], shell=True, stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE, close_fds=True)
-            p.wait()
-            output = temp_failure_retry(p.stdout.readline).strip()
+            process = subprocess.Popen([command], shell=True,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       close_fds=True)
+            process.wait()
+            output = temp_failure_retry(process.stdout.readline).strip()
             # some distros put n/a in places, so remove those
             output = output.replace('n/a', '').replace('N/A', '')
             return output
 
         # lsb_release executable not available, so parse files
-        for distro_name in distro_info:
-            path_to_file = distro_info[distro_name]
+        for distro_name in DISTRO_INFO:
+            path_to_file = DISTRO_INFO[distro_name]
             if os.path.exists(path_to_file):
                 if os.access(path_to_file, os.X_OK):
                     # the file is executable (f.e. CRUX)
                     # yes, then run it and get the first line of output.
                     text = get_output_of_command(path_to_file)[0]
                 else:
-                    fd = open(path_to_file)
-                    text = fd.readline().strip() # get only first line
-                    fd.close()
+                    fdes = open(path_to_file)
+                    text = fdes.readline().strip() # get only first line
+                    fdes.close()
                     if path_to_file.endswith('version'):
                         # sourcemage_version and slackware-version files
                         # have all the info we need (name and version of distro)
@@ -179,7 +193,8 @@ def get_os_info():
                     path_to_file.endswith('arch-release'):
                         # file doesn't have version
                         text = distro_name
-                    elif path_to_file.endswith('lfs-release'): # file just has version
+                    elif path_to_file.endswith('lfs-release'):
+                        # file just has version
                         text = distro_name + ' ' + text
                 os_info = text.replace('\n', '')
                 return os_info
