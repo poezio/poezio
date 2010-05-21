@@ -1,0 +1,25 @@
+This file describes the new features in each poezio release.
+For more detailed changelog, see the roadmap:
+http://codingteam.net/project/poezio/roadmap
+
+* Poezio 0.6 - dev
+- Muc error messages are displayed
+- Nickname auto-completion
+- Users status are displayed in the MUC user-list
+- Non-anonymous connection (registered nickname can now be used)
+- An avatar can be set
+- A minimal Vcard can be set
+- Proxies are handled
+- Status changes can be hidden if the user didn't talk for a long time
+- A line displays informations about rooms we are in (new messages, hl, etc)
+- Highlights are handled (we can specify a list of words)
+- Various new commands (topic, kick, set, win)
+- Password-protected MUCs are handled
+- The dates of room history are handled
+- Various Bugfixes
+
+* Poezio 0.5.1 - 2 Feb 2010
+- Little bufix release
+
+* Poezio - 1 Feb 2010
+- Initial release
