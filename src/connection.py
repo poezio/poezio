@@ -110,10 +110,7 @@ class Connection(threading.Thread):
         else:
             password = config.get('password', '')
             jid = config.get('jid', '')
-            from common import debug
-            debug(config.get('server', ''))
             auth = self.client.auth(jid_get_node(jid), password, "salut")
-            debug(repr(auth))
             return auth
 
     def register_handlers(self):
