@@ -306,7 +306,7 @@ Avail: Sets your availability to available and (optional) sets your status
         code = error.getAttr('code')
         typ = error.getAttr('type')
         body = error.getTag('text').getData()
-        self.add_info(r, _('Error: %(code)s-%(msg)s: %(body)s' %
+        self.add_info(room, _('Error: %(code)s-%(msg)s: %(body)s' %
                            {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
             self.add_info(room, _("""To provide a password in order

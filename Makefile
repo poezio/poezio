@@ -22,7 +22,7 @@ install:all
 	$(INSTALL) -m644 src/xmpp/* $(DATADIR)/poezio/src/xmpp/
 
 	echo "#!/usr/bin/env sh" > $(BINDIR)/poezio
-	echo "cd $(DATADIR)/poezio/src/ && python client.py" >> $(BINDIR)/poezio
+	echo "cd $(DATADIR)/poezio/src/ && python poezio.py" >> $(BINDIR)/poezio
 	chmod 755 $(BINDIR)/poezio
 
 	for localename in `find locale/ -maxdepth 1 -type d | grep -v '.svn' | sed 's:locale/::g'` ; do \

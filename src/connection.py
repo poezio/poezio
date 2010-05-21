@@ -49,7 +49,10 @@ class Connection(threading.Thread):
         threading.Thread.__init__(self)
         self.handler = Handler()
         self.daemon = True      # exit the program when this thread exits
-        self.server = server
+        if config.get('jid', '') == '':
+            self.server = server
+        else:
+            self.server = jid_get_domain(config.get('jid', ''))
         self.resource = resource
         self.online = 0         # 1:connected, 2:auth confirmed
         self.jid = ''           # we don't know our jid yet (anon account)
@@ -65,9 +68,10 @@ class Connection(threading.Thread):
         if not self.connect_to_server(self.server, self.port):
             self.handler.emit('error', msg='Could not connect to server')
             sys.exit(-1)
-        if not self.authenticate():
+        if not self.authenticate(config.get('jid', '') == ''):
             self.handler.emit('error', msg='Could not authenticate to server')
             sys.exit(-1)
+        # TODO, become invisible before sendInitPresence
         self.client.sendInitPresence(requestRoster=0)
         self.online = 1      # 2 when confirmation of our auth is received
         self.register_handlers()
@@ -75,6 +79,9 @@ class Connection(threading.Thread):
             self.process()
 
     def connect_to_server(self, server, port):
+        """
+        Connect to the server
+        """
         if config.get('use_proxy','false') == 'true':
             return self.client.connect((server, port),
                                        {'host': config.get("proxy_server", ""),
@@ -99,10 +106,15 @@ class Connection(threading.Thread):
                         authenticate. Please make sure the server you chose \
                         (%s) supports anonymous authentication'
                                                  % (config.get('server', ''))))
-                return None
+                return False
         else:
-            logger.error('Non-anonymous connections not handled currently')
-            return None
+            password = config.get('password', '')
+            jid = config.get('jid', '')
+            from common import debug
+            debug(config.get('server', ''))
+            auth = self.client.auth(jid_get_node(jid), password, "salut")
+            debug(repr(auth))
+            return auth
 
     def register_handlers(self):
         """
@@ -194,3 +206,13 @@ class Connection(threading.Thread):
         if not connection:
             return
         self.handler.emit('send-time', iq_obj=iq)
+
+def jid_get_node(jid):
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getNode()
+
+def jid_get_domain(jid):
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getDomain()
