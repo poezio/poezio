@@ -1,14 +1,15 @@
 =======================
 =       Poezio        =
 =======================
-Homepage: http://codingteam.net/projet/poezio
+Homepage:	http://poezio.eu
+Forge Page:	http://codingteam.net/projet/poezio
 
 Poezio is a console Jabber client. Its goal is to use anonymous
 connections to let the user join MultiUserChats. This way, the user
-don't have to create a Jabber account, exactly like people are using
+doesn't have to create a Jabber account, exactly like people are using
 IRC. It doesn't handle contact list at all.
-Poezio's commands are design to be (if possible) like well known IRC
-clients (weechat, irssi, mirc).
+Poezio's commands are designed to be (if possible) like IRC
+clients (weechat, irssi, etc).
 
 =======================
 	Install
@@ -38,7 +39,8 @@ first launch)
 See the online documentation for more information:
 http://codingteam.net/project/poezio/doc
 
-Please DO report any bug that you encounter.
+Please DO report any bug you encounter and ask for any
+feature you want.
 
 =======================
 	Authors
@@ -71,6 +73,7 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
  Erwan Briand - Handler and MultiUserChat classes
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  Ovart - Testing
+ mathieui - Testing
 = Project =
  Gajim - send_vcard method and common.py
 
@@ -98,36 +101,36 @@ A: Of course, here it is:
                 |                           |
                 |     Jabber Network        |
                 |   (roomchats and people   |
-                |        in them)           |
-		|                           |
+                |       inside them)        |
+                |                           |
                 \__________________________/
                     |                   ^
                     | receive     send  |          ____ Poezio ____
                     v                   |
            /----------------\   /-----------------\
-	   |                |   |                 |
+           |                |   |                 |
            |   Connection   |   |  MultiUserChat  |
            |                |   |                 |
-	   \----------------/   \-----------------/
+           \----------------/   \-----------------/
                 ^ |emit             emit | ^
                 | |      /---------\     | |
        connect  \ \----> |         |<----/ / connect
-		 \______ | Handler |______/
+                 \______ | Handler |______/
                          |         |
                          \---------/
                              | ^
                      connect | | emit
                              v |
-			 /---------\
-			 |         |
-			 |   Gui   |
-                         |         |
-                         \---------/
-                             | ^
-                      Screen | | Keyboard
-                             v |
-			 /---------\
-			 |         |
-                         |   YOU   |
-                         |         |
+          /----------\   /---------\
+          |          |   |         |
+          |  Window  |<--|   Gui   |
+          |   etc    |   |         |
+          \----------/   \---------/
+              |               ^
+              |               | Keyboard
+              |               |
+              \          /---------\
+               \Screen   |         |
+                \        |   YOU   |
+                 ------->|         |
                          \---------/
