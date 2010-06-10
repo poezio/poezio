@@ -40,7 +40,9 @@ class Win(object):
             # V_/_
             print parent_win, parent_win.height, parent_win.width, height, width, y, x
             raise
+        self.win.idlok(1)
         self.win.leaveok(1)
+        self.win.syncok(0)
 
     def refresh(self):
         self.win.noutrefresh()
@@ -50,7 +52,7 @@ class UserList(Win):
         Win.__init__(self, height, width, y, x, parent_win)
         self.visible = visible
         self.win.attron(curses.color_pair(2))
-        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
+        # self.win.vline(0, 0, curses.ACS_VLINE, self.height)
         self.win.attroff(curses.color_pair(2))
         self.color_role = {'moderator': 3,
                            'participant':2,
@@ -66,7 +68,7 @@ class UserList(Win):
     def refresh(self, users):
         if not self.visible:
             return
-        self.win.clear()
+        self.win.erase()
         y = 0
         for user in users:
             try:
@@ -105,7 +107,7 @@ class Topic(Win):
     def refresh(self, room_name):
         if not self.visible:
             return
-        self.win.clear()
+        self.win.erase()
         try:
             self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)), self.width
                              , curses.color_pair(1))
@@ -125,7 +127,7 @@ class RoomInfo(Win):
             return
         def compare_room(a, b):
             return a.nb - b.nb
-        self.win.clear()
+        self.win.erase()
         try:
             self.win.addnstr(0, 0, current.name+" [", self.width
                              ,curses.color_pair(1))
@@ -149,15 +151,21 @@ class RoomInfo(Win):
             pass
         self.win.refresh()
 
-class TextWin(object):
+class TextWin(Win):
     """
-    keep a dict of {winname: window}
-    when a new message is received in a room, just add
-    the line at the bottom (and scroll if needed)
-    when the current room is changed, just refresh the
-    associated window
-    When the term is resized, rebuild ALL the windows
-    (the complete lines lists are keeped in the Room class)
+    # keep a dict of {winname: window}
+    # when a new message is received in a room, just add
+    # the line at the bottom (and scroll if needed)
+    # when the current room is changed, just refresh the
+    # associated window
+    # When the term is resized, rebuild ALL the windows
+    # (the complete lines lists are keeped in the Room class)
+    Nope, don't do that anymore.
+    Weechat is doing it the easy way, and it's working, there's no
+    reason poezio can't do it (it's python, but that shouldn't change
+    anything)
+    Just keep ONE single window for the text area and rewrite EVERYTHING
+    on each change.
     """
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
@@ -166,79 +174,156 @@ class TextWin(object):
         self.y = y
         self.x = x
         self.parent_win = parent_win
-        self.wins = {}
+        Win.__init__(self, height, width, y, x, parent_win)
 
-    def redraw(self, room):
+    def refresh(self, room):
         """
-        called when the buffer changes or is
-        resized (a complete redraw is needed)
         """
-        if not self.visible:
-            return
-        win = self.wins[room.name].win
-        win.clear()
-        win.move(0, 0)
-        for line in room.lines:
-            self.add_line(room, line)
+        # TODO: keep a position in the room, and display
+        # the messages from this position (can be used to scroll)
+        from common import debug
+        y = 0
+        self.win.erase()
+        if room.pos != 0:
+            messages = room.messages[-self.height - room.pos : -room.pos]
+        else:
+            messages = room.messages[-self.height:]
+        for message in messages:
+            # debug(str(message))
+            self.write_time(y, message.time)
+            if message.nickname is not None:
+                x = self.write_nickname(y, message.nickname.encode('utf-8'), message.user)
+            else:
+                x = 11
+                self.win.attron(curses.color_pair(8))
+            y += self.write_text(y, x, message.txt)
+            if message.nickname is None:
+                self.win.attroff(curses.color_pair(8))
+            # self.win.addnstr(y, x, message.txt, 40)
+            # self.win
+            y += 1
+        self.win.refresh()
 
-    def refresh(self, winname):
-        if self.visible:
-            self.wins[winname].refresh()
+    def write_text(self, y, x, txt):
+        """
+        return the number of line written, -1
+        """
+        txt = txt.encode('utf-8')
+        l = 0
+        while txt != '':
+            debug(txt)
+            if txt[:self.width-x].find('\n') != -1:
+                limit = txt[:self.width-x].find('\n')
+                debug("=================="+str(limit))
+            else:
+                limit = self.width-x
+            self.win.addnstr(y+l, x, txt, limit)
+            txt = txt[limit+1:]
+            l += 1
+        return l-1
 
-    def add_line(self, room, line):
-        if not self.visible:
-            return
-        win = self.wins[room.name].win
-        users = room.users
-        win.addstr('\n['+line[0].strftime("%H"))
-        win.attron(curses.color_pair(9))
-        win.addstr(':')
-        win.attroff(curses.color_pair(9))
-        win.addstr(line[0].strftime('%M'))
-        win.attron(curses.color_pair(9))
-        win.addstr(':')
-        win.attroff(curses.color_pair(9))
-        win.addstr(line[0].strftime('%S') + "] ")
-        if len(line) == 2:
-            try:
-                win.attron(curses.color_pair(8))
-                win.addstr(line[1])
-                win.attroff(curses.color_pair(8))
-            except:pass
-        elif len(line) == 4:
-            for user in users:
-                if user.nick == line[1]:
-                    break
-            try:
-                length = len('['+line[0].strftime("%H:%M:%S") + "] <")
-                if line[1]:
-                    win.attron(curses.color_pair(user.color))
-                    win.addstr(line[1])
-                    win.attroff(curses.color_pair(user.color))
-                win.addstr("> ")
-                if line[3]:
-                    win.attron(curses.color_pair(line[3]))
-                win.addstr(line[2])
-                if line[3]:
-                    win.attroff(curses.color_pair(line[3]))
-            except:pass
+    def write_nickname(self, y, nickname, user):
+        """
+        Write the nickname, using the user's color
+        and return the number of written characters
+        """
+        if user:
+            self.win.attron(curses.color_pair(user.color))
+        self.win.addstr(y, 11, nickname)
+        if user:
+            self.win.attroff(curses.color_pair(user.color))
+        self.win.addnstr(y, 11+len(nickname.decode('utf-8')), "> ", 2)
+        return len(nickname.decode('utf-8')) + 13
 
-    def new_win(self, winname):
-        newwin = Win(self.height, self.width, self.y, self.x, self.parent_win)
-        newwin.win.idlok(True)
-        newwin.win.scrollok(True)
-        newwin.win.leaveok(1)
-        self.wins[winname] = newwin
+    def write_time(self, y, time):
+        """
+        Write the date on the yth line of the window
+        """
+        self.win.addnstr(y, 0, '['+time.strftime("%H"), 3)
+        self.win.attron(curses.color_pair(9))
+        self.win.addnstr(y, 3, ':', 1)
+        self.win.attroff(curses.color_pair(9))
+        self.win.addstr(y, 4, time.strftime('%M'), 2)
+        self.win.attron(curses.color_pair(9))
+        self.win.addstr(y, 6, ':', 1)
+        self.win.attroff(curses.color_pair(9))
+        self.win.addstr(y, 7, time.strftime('%S') + "] ", 3)
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self.visible = visible
-        if not visible:
-            return
-        for winname in self.wins.keys():
-            self.wins[winname]._resize(height, width, y, x, stdscr)
-            self.wins[winname].win.idlok(True)
-            self.wins[winname].win.scrollok(True)
-            self.wins[winname].win.leaveok(1)
+        self._resize(height, width, y, x, stdscr)
+
+    # def redraw(self, room):
+    #     """
+    #     called when the buffer changes or is
+    #     resized (a complete redraw is needed)
+    #     """
+    #     if not self.visible:
+    #         return
+    #     win = self.wins[room.name].win
+    #     win.clear()
+    #     win.move(0, 0)
+    #     for line in room.lines:
+    #         self.add_line(room, line)
+
+    # def refresh(self, winname):
+    #     self.
+    #     if self.visible:
+    #         self.wins[winname].refresh()
+
+    # def add_line(self, room, line):
+    #     if not self.visible:
+    #         return
+    #     win = self.wins[room.name].win
+    #     users = room.users
+    #     win.addstr('\n['+line[0].strftime("%H"))
+    #     win.attron(curses.color_pair(9))
+    #     win.addstr(':')
+    #     win.attroff(curses.color_pair(9))
+    #     win.addstr(line[0].strftime('%M'))
+    #     win.attron(curses.color_pair(9))
+    #     win.addstr(':')
+    #     win.attroff(curses.color_pair(9))
+    #     win.addstr(line[0].strftime('%S') + "] ")
+    #     if len(line) == 2:
+    #         try:
+    #             win.attron(curses.color_pair(8))
+    #             win.addstr(line[1])
+    #             win.attroff(curses.color_pair(8))
+    #         except:pass
+    #     elif len(line) == 4:
+    #         for user in users:
+    #             if user.nick == line[1]:
+    #                 break
+    #         try:
+    #             length = len('['+line[0].strftime("%H:%M:%S") + "] <")
+    #             if line[1]:
+    #                 win.attron(curses.color_pair(user.color))
+    #                 win.addstr(line[1])
+    #                 win.attroff(curses.color_pair(user.color))
+    #             win.addstr("> ")
+    #             if line[3]:
+    #                 win.attron(curses.color_pair(line[3]))
+    #             win.addstr(line[2])
+    #             if line[3]:
+    #                 win.attroff(curses.color_pair(line[3]))
+    #         except:pass
+
+    # def new_win(self, winname):
+    #     newwin = Win(self.height, self.width, self.y, self.x, self.parent_win)
+    #     newwin.win.idlok(True)
+    #     newwin.win.scrollok(True)
+    #     newwin.win.leaveok(1)
+    #     self.wins[winname] = newwin
+
+    # def resize(self, height, width, y, x, stdscr, visible):
+    #     self.visible = visible
+    #     if not visible:
+    #         return
+    #     for winname in self.wins.keys():
+    #         self.wins[winname]._resize(height, width, y, x, stdscr)
+    #         self.wins[winname].win.idlok(True)
+    #         self.wins[winname].win.scrollok(True)
+    #         self.wins[winname].win.leaveok(1)
 
 class Input(Win):
     """
@@ -483,10 +568,10 @@ class Input(Win):
     def refresh(self):
         if not self.visible:
             return
-        self.win.noutrefresh()
+        self.win.refresh()
 
     def clear_text(self):
-        self.win.clear()
+        self.win.erase()
 
 class Window(object):
     """
@@ -542,8 +627,8 @@ class Window(object):
         'room' is the current one
         """
         room = rooms[0]         # get current room
-        self.text_win.redraw(room)
-        self.text_win.refresh(room.name)
+        # self.text_win.redraw(room)
+        self.text_win.refresh(room)
         self.user_win.refresh(room.users)
         self.topic_win.refresh(room.topic)
         self.info_win.refresh(rooms, room)
@@ -553,5 +638,5 @@ class Window(object):
         self.input.do_command(key)
         self.input.refresh()
 
-    def new_room(self, room):
-        self.text_win.new_win(room.name)
+    # def new_room(self, room):
+    #     self.text_win.new_win(room.name)

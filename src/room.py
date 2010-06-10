@@ -21,61 +21,88 @@ from datetime import datetime
 from random import randrange
 from config import config
 from logging import logger
+from message import Message
 
 class Room(object):
     """
     """
-    def __init__(self, name, nick, number):
+    number = 0
+    def __init__(self, name, nick, window):
         self.name = name
         self.own_nick = nick
         self.color_state = 11   # color used in RoomInfo
-        self.nb = number       # number used in RoomInfo
+        self.nb = Room.number        # number used in RoomInfo
+        Room.number += 1
         self.joined = False     # false until self presence is received
-        self.users = []
-        self.lines = []         # (time, nick, msg) or (time, info)
+        self.users = []         # User objects
+        self.messages = []         # Message objects
         self.topic = ''
+        self.window = window
+        self.pos = 0            # offset
+
+    def scroll_up(self):
+        self.pos += 14
+
+    def scroll_down(self):
+        self.pos -= 14
+        if self.pos <= 0:
+            self.pos = 0
 
     def disconnect(self):
         self.joined = False
 
-    def add_message(self, nick, msg, date=None):
-        if not date:
-            date = datetime.now()
-        color = None
-        self.set_color_state(12)
-        if nick != self.own_nick and self.joined: # do the highlight thing
-            if self.own_nick in msg:
-                self.set_color_state(13)
-                color = 3
-            else:
-                highlight_words = config.get('highlight_on', '').split(':')
-                for word in highlight_words:
-                    if word.lower() in msg.lower() and word != '':
-                        self.set_color_state(13)
-                        color = 3
-                        break
-        if not msg:
-            logger.info('msg is None..., %s' % (nick))
-            return
-        self.lines.append((date, nick.encode('utf-8'),
-                          msg.encode('utf-8'), color))
-        user = self.get_user_by_name(nick)
-        if user:
-            user.set_last_talked(date)
-        if self.joined:         # log only NEW messages, not the history received on join
-            logger.message(self.name, nick.encode('utf-8'), msg.encode('utf-8'))
-        return color
+    def add_message(self, txt, time=None, nickname=None):
+        """
+        Note that user can be None even if nickname is not None. It happens
+        when we receive an history message said by someone who is not
+        in the room anymore
+        """
+        user = self.get_user_by_name(nickname) if nickname is not None else None
+        time = time if time is not None else datetime.now()
+        from common import debug
+        # debug("add_message: %s, %s, %s, %s" % (str(txt), str(time), str(nickname), str(user)))
+        self.messages.append(Message(txt, time, nickname, user))
 
-    def add_info(self, info, date=None):
-        """ info, like join/quit/status messages"""
-        if not date:
-            date = datetime.now()
-        try:
-            self.lines.append((date, info.encode('utf-8')))
-            return info.encode('utf-8')
-        except:
-            self.lines.append((date, info))
-            return info
+        # def add_message(nick, msg, date=None)
+        # TODO: limit the message kept in memory (configurable)
+
+        # if not date:
+        #     date = datetime.now()
+        # color = None
+        # self.set_color_state(12)
+        # if nick != self.own_nick and self.joined: # do the highlight thing
+        #     if self.own_nick in msg:
+        #         self.set_color_state(13)
+        #         color = 3
+        #     else:
+        #         highlight_words = config.get('highlight_on', '').split(':')
+        #         for word in highlight_words:
+        #             if word.lower() in msg.lower() and word != '':
+        #                 self.set_color_state(13)
+        #                 color = 3
+        #                 break
+        # if not msg:
+        #     logger.info('msg is None..., %s' % (nick))
+        #     return
+        # self.lines.append((date, nick.encode('utf-8'),
+        #                   msg.encode('utf-8'), color))
+        # user = self.get_user_by_name(nick)
+        # if user:
+        #     user.set_last_talked(date)
+        # if self.joined:         # log only NEW messages, not the history received on join
+        #     logger.message(self.name, nick.encode('utf-8'), msg.encode('utf-8'))
+        # return color
+
+    # def add_info(self, info, date=None):
+    #     """ info, like join/quit/status messages"""
+    #     if not date:
+    #         date = datetime.now()
+    #     try:
+    #         self.lines.append((date, info.encode('utf-8')))
+    #         return info.encode('utf-8')
+    #     except:
+    #         self.lines.append((date, info))
+    #         return info
 
     def get_user_by_name(self, nick):
         for user in self.users:

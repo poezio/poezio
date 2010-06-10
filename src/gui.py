@@ -38,24 +38,29 @@ from config import config
 from window import Window
 from user import User
 from room import Room
+from message import Message
+
+from common import debug
+def doupdate():
+    debug("doupdate")
+    curses.doupdate()
 
 class Gui(object):
     """
     User interface using ncurses
     """
     def __init__(self, stdscr=None, muc=None):
-        self.room_number = 0
         self.init_curses(stdscr)
         self.stdscr = stdscr
-        self.rooms = [Room('Info', '', self.next_room_number())]
         self.window = Window(stdscr)
-        self.window.new_room(self.current_room())
-        self.window.refresh(self.rooms)
+        # self.window.new_room(self.current_room())
+        # self.window.refresh(self.rooms)
+        self.rooms = [Room('Info', '', self.window)]
 
         self.muc = muc
 
         self.commands = {
-            'help': (self.command_help, _('OLOL, this is SOOO recursive')),
+            'help': (self.command_help, _('That.')),
             'join': (self.command_join, _("""Usage: /join [room_name][/nick]
 [password]\nJoin: Join the specified room. You can specify a nickname after a
  slash (/). If no nickname is specified, you will use the default_nick in the
@@ -132,6 +137,8 @@ Avail: Sets your availability to available and (optional) sets your status
             "KEY_END": self.window.input.key_end,
             "KEY_HOME": self.window.input.key_home,
             "KEY_DOWN": self.window.input.key_down,
+            "KEY_PPAGE": self.scroll_page_up,
+            "KEY_NPAGE": self.scroll_page_down,
             "KEY_DC": self.window.input.key_dc,
             "KEY_F(5)": self.rotate_rooms_left,
             "KEY_F(6)": self.rotate_rooms_right,
@@ -154,12 +161,14 @@ Avail: Sets your availability to available and (optional) sets your status
         main loop waiting for the user to press a key
         """
         while 1:
-            stdscr.leaveok(1)
-            curses.doupdate()
+            # stdscr.leaveok(1)
+            doupdate()
             try:
                 key = stdscr.getkey()
             except:
                 continue
+            from common import debug
+            # debug(str(key))
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
             elif str(key) == 'KEY_RESIZE':
@@ -186,13 +195,13 @@ Avail: Sets your availability to available and (optional) sets your status
                     key = key+stdscr.getkey()
                 self.window.do_command(key)
 
-    def next_room_number(self):
-        """
-        Increments the room number and returns the new number
-        """
-        nb = self.room_number
-        self.room_number += 1
-        return nb
+    # def next_room_number(self):
+    #     """
+    #     Increments the room number and returns the new number
+    #     """
+    #     nb = self.room_number
+    #     self.room_number += 1
+    #     return nb
 
     def current_room(self):
         """
@@ -215,6 +224,7 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         curses.start_color()
         curses.noecho()
+        curses.curs_set(0)
         # curses.cbreak()
         # curses.raw()
         curses.use_default_colors()
@@ -262,7 +272,7 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         join the specified room (muc), using the specified nick
         """
-        r = Room(room, nick, self.next_room_number())
+        r = Room(room, nick, self.window)
         self.current_room().set_color_state(11)
         if self.current_room().nb == 0:
             self.rooms.append(r)
@@ -273,7 +283,7 @@ Avail: Sets your availability to available and (optional) sets your status
                     break
         while self.current_room().nb != r.nb:
             self.rooms.insert(0, self.rooms.pop())
-        self.window.new_room(r)
+        # self.window.new_room(r)
         self.window.refresh(self.rooms)
 
     def auto_completion(self):
@@ -298,6 +308,14 @@ Avail: Sets your availability to available and (optional) sets your status
         self.rooms.insert(0, self.rooms.pop())
         self.window.refresh(self.rooms)
 
+    def scroll_page_down(self, args=None):
+        self.current_room().scroll_down()
+        self.window.text_win.refresh(self.current_room())
+
+    def scroll_page_up(self, args=None):
+        self.current_room().scroll_up()
+        self.window.text_win.refresh(self.current_room())
+
     def room_error(self, room, error, msg):
         """
         Display the error on the room window
@@ -306,12 +324,10 @@ Avail: Sets your availability to available and (optional) sets your status
         code = error.getAttr('code')
         typ = error.getAttr('type')
         body = error.getTag('text').getData()
-        self.add_info(room, _('Error: %(code)s-%(msg)s: %(body)s' %
-                           {'msg':msg, 'code':code, 'body':body}))
+        self.add_message_to_room(room, _('Error: %(code)s-%(msg)s: %(body)s' %
+                                   {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
-            self.add_info(room, _("""To provide a password in order
- to join the room, type "/join / password" (replace "password"
- by the real password)"""))
+            room.add(_('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
 
     def room_message(self, stanza, date=None):
         """
@@ -335,21 +351,27 @@ Avail: Sets your availability to available and (optional) sets your status
         subject = stanza.getSubject()
         if subject:
             if nick_from:
-                self.add_info(room, _("""%(nick)s changed the subject to:
- %(subject)s""") % {'nick':nick_from, 'subject':subject}, date)
+                self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, date)
+ #                self.add_info(room, _("""%(nick)s changed the subject to:
+ # %(subject)s""") % {'nick':nick_from, 'subject':subject}, date)
             else:
-                self.add_info(room, _("The subject is: %(subject)s") %
-                              {'subject':subject}, date)
+                self.add_message_to_room(room, _("The subject is: %(subject)s") % {'subject':subject}, date)
+                # self.add_info(room, _("The subject is: %(subject)s") %
+                #               {'subject':subject}, date)
             room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
         elif body:
             if body.startswith('/me '):
-                self.add_info(room, nick_from + ' ' + body[4:], date)
+                # FIXME, it should be LIKE an information
+                self.add_message_to_room(room, nick_from + ' ' + body[4:], date)
+                # self.add_info(room, nick_from + ' ' + body[4:], date)
             else:
-                self.add_message(room, nick_from, body, date, delayed)
+                date = date if delayed == True else None
+                self.add_message_to_room(room, body, date, nick_from)
+                # self.add_message(room, nick_from, body, date, delayed)
         self.window.input.refresh()
-        curses.doupdate()
+        doupdate()
 
     def room_presence(self, stanza):
         """
@@ -374,10 +396,14 @@ Avail: Sets your availability to available and (optional) sets your status
                                        role))
                 if from_nick.encode('utf-8') == room.own_nick:
                     room.joined = True
-                    self.add_info(room, _("Your nickname is %s") % (from_nick))
+                    self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                    # self.add_info(room, _("Your nickname is %s") % (from_nick))
                 else:
-                    self.add_info(room, _("%s is in the room") %
-                                  (from_nick.encode('utf-8')))
+                    self.add_message_to_room(room, _("%s is in the room") %
+                                  (from_nick# .encode('utf-8')
+                                   ))
+                    # self.add_info(room, _("%s is in the room") %
+                    #               (from_nick.encode('utf-8')))
             else:
                 change_nick = stanza.getStatusCode() == '303'
                 kick = stanza.getStatusCode() == '307'
@@ -388,17 +414,18 @@ Avail: Sets your availability to available and (optional) sets your status
                                            show, status, role))
                     hide_exit_join = config.get('hide_exit_join', -1)
                     if hide_exit_join != 0:
-                        self.add_info(room, _("""%(nick)s joined the
- room %(roomname)s""") % {'nick':from_nick, 'roomname': room.name})
+                        self.add_message_to_room(room, _("%(nick)s joined the room %(roomname)s") % {'nick':from_nick, 'roomname': room.name})
+                        # self.add_info(room, _("%(nick)s joined the room %(roomname)s") % {'nick':from_nick, 'roomname': room.name})
                 # nick change
                 elif change_nick:
                     if user.nick == room.own_nick:
                         room.own_nick = stanza.getNick().encode('utf-8')
                     user.change_nick(stanza.getNick())
-                    self.add_info(room,
-                                  _('%(old)s is now known as %(new)s') %
-                                  {'old':from_nick,
-                                     'new':stanza.getNick()})
+                    self.add_message_to_room(room, _('%(old)s is now known as %(new)s') % {'old':from_nick, 'new':stanza.getNick()})
+                    # self.add_info(room,
+                    #               _('%(old)s is now known as %(new)s') %
+                    #               {'old':from_nick,
+                    #                  'new':stanza.getNick()})
                 # kick
                 elif kick:
                     room.users.remove(user)
@@ -413,71 +440,86 @@ Avail: Sets your availability to available and (optional) sets your status
                     if from_nick == room.own_nick: # we are kicked
                         room.disconnect()
                         if by:
-                            self.add_info(room, _("""You have been kicked by
- %(by)s. Reason: %(reason)s""") % {'by':by, 'reason':reason})
+                            self.add_message_to_room(room,  _("You have been kicked by %(by)s. Reason: %(reason)s") % {'by':by, 'reason':reason})
+ #                            self.add_info(room, _("""You have been kicked by
+ # %(by)s. Reason: %(reason)s""") % {'by':by, 'reason':reason})
                         else:
-                            self.add_info(room, _("""You have been
- kicked. Reason: %s""") % (reason))
+                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason))
+ #                            self.add_info(room, _("""You have been
+ # kicked. Reason: %s""") % (reason))
                     else:
                         if by:
-                            self.add_info(room, _("""%(nick)s has been kicked
-                                         by %(by)s. Reason: %(reason)s""") %
-                                          {'nick':from_nick, 'by':by, 'reason':reason})
+                            self.add_message_to_room(room, _("%(nick)s has been kicked by %(by)s. Reason: %(reason)s") % {'nick':from_nick, 'by':by, 'reason':reason})
+                            # self.add_info(room, _("""%(nick)s has been kicked
+                            #              by %(by)s. Reason: %(reason)s""") %
+                            #               {'nick':from_nick, 'by':by, 'reason':reason})
                         else:
-                            self.add_info(room, _("""%(nick)s has been kicked.
-                                                 Reason: %(reason)s""") %
-                                          {'nick':from_nick, 'reason':reason})
+                            self.add_message_to_room(room, _("%(nick)s has been kicked. Reason: %(reason)s") % {'nick':from_nick, 'reason':reason})
+                            # self.add_info(room, _("""%(nick)s has been kicked.
+                            #                      Reason: %(reason)s""") %
+                            #               {'nick':from_nick, 'reason':reason})
                 # user quit
                 elif status == 'offline' or role == 'none':
                     room.users.remove(user)
-                    hide_exit_join = config.get('hide_exit_join', -1)\
-                        if config.get('hide_exit_join', -1) >= -1\
-                        else -1
-                    if hide_exit_join == -1 or \
-                            user.has_talked_since(hide_exit_join):
-                        self.add_info(room, _('%s has left the room') % (from_nick))
+                    hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
+                    if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
+                        self.add_message_to_room(room, _('%s has left the room') % (from_nick))
+                        # self.add_info(room, _('%s has left the room') % (from_nick))
                 # status change
                 else:
                     user.update(affiliation, show, status, role)
-                    hide_status_change = config.get('hide_status_change', -1)\
-                        if config.get('hide_status_change', -1) >= -1\
-                        else -1
+                    hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
                     if hide_status_change == -1 or \
                             user.has_talked_since(hide_status_change) or\
                             user.nick == room.own_nick:
-                        self.add_info(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+                        self.add_message_to_room(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+                        # self.add_info(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
         self.window.input.refresh()
-        curses.doupdate()
+        doupdate()
 
-    def add_info(self, room, info, date=None):
+    def add_message_to_room(self, room, txt, time=None, nickname=None):
         """
-        add a new information in the specified room
-        (displays it immediately AND saves it for redisplay
-        in futur refresh)
+        Add the message to the room and refresh the associated component
+        of the interface
         """
-        if not date:
-            date = datetime.now()
-        msg = room.add_info(info, date)
-        self.window.text_win.add_line(room, (date, msg))
-        if room.name == self.current_room().name:
-            self.window.text_win.refresh(room.name)
-            self.window.input.refresh()
-            curses.doupdate()
-
-    def add_message(self, room, nick_from, body, date=None, delayed=False):
-        """
-        Just add a message
-        """
-        if not date:
-            date = datetime.now()
-        color = room.add_message(nick_from, body, date)
-        self.window.text_win.add_line(room, (date, nick_from.encode('utf-8'), body.encode('utf-8'), color))
+        room.add_message(txt, time, nickname)
         if room == self.current_room():
-            self.window.text_win.refresh(room.name)
-        elif not delayed:
+            self.window.text_win.refresh(room)
+        # elif not delayed:
+        else:
             self.window.info_win.refresh(self.rooms, self.current_room())
+
+        # TODO
+
+    # def add_info(self, room, info, date=None):
+    #     """
+    #     add a new information in the specified room
+    #     (displays it immediately AND saves it for redisplay
+    #     in futur refresh)
+    #     """
+    #     if not date:
+    #         date = datetime.now()
+    #     msg = room.add_info(info, date)
+    #     self.window.text_win.add_line(room, (date, msg))
+    #     if room.name == self.current_room().name:
+    #         self.window.text_win.refresh(room.name)
+    #         self.window.input.refresh()
+    #         doupdate()
+
+    # def add_message(self, room, nick_from, body, date=None, delayed=False):
+    #     """
+    #     Just add a message
+    #     """
+    #     if not date:
+    #         date = datetime.now()
+    #     color = room.add_message(nick_from, body, date)
+    #     self.window.text_win.add_line(room, (date, nick_from.encode('utf-8'), body.encode('utf-8'), color))
+    #     if room == self.current_room():
+    #         self.window.text_win.refresh(room.name)
+    #     elif not delayed:
+    #         self.window.info_win.refresh(self.rooms, self.current_room())
 
     def execute(self):
         """
@@ -496,11 +538,12 @@ Avail: Sets your availability to available and (optional) sets your status
                 func(args)
                 return
             else:
-                self.add_info(self.current_room(), _("Error: unknown command (%s)") % (command))
+                self.add_message_to_room(self.current_room(), _("Error: unknown command (%s)") % (command))
+                # self.add_info(self.current_room(), _("Error: unknown command (%s)") % (command))
         elif self.current_room().name != 'Info':
             self.muc.send_message(self.current_room().name, line)
         self.window.input.refresh()
-        curses.doupdate()
+        doupdate()
 
     def command_help(self, args):
         """
@@ -517,7 +560,8 @@ Avail: Sets your availability to available and (optional) sets your status
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        self.add_info(room, msg)
+        self.add_message_to_room(room, msg)
+        # self.add_info(room, msg)
 
     def command_win(self, args):
         """
@@ -648,7 +692,8 @@ Avail: Sets your availability to available and (optional) sets your status
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         room = self.current_room()
-        self.add_info(room, msg)
+        self.add_message_to_room(room, msg)
+        # self.add_info(room, msg)
 
     def command_show(self, args):
         """
@@ -762,7 +807,8 @@ Avail: Sets your availability to available and (optional) sets your status
         Displays an informational message in the "Info" room window
         """
         room = self.get_room_by_name("Info")
-        self.add_info(room, msg)
+        self.add_message_to_room(room, msg)
+        # self.add_info(room, msg)
 
     def command_quit(self, args):
         """
