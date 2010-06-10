@@ -784,8 +784,10 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         /topic [new topic]
         """
-        subject = ' '.join(args)
         room = self.current_room()
+        if len(args) == 0:
+            self.add_message_to_room(room, _("The subject of the topic is: %s") % room.topic)
+        subject = ' '.join(args)
         if not room.joined or room.name == "Info":
             return
         self.muc.change_subject(room.name, subject)
