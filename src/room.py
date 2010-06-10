@@ -40,8 +40,15 @@ class Room(object):
         self.window = window
         self.pos = 0            # offset
 
-    def scroll_up(self):
+    def scroll_up(self, y_x):
+        y, x = y_x
+        if len(self.messages) <= y:
+            return
         self.pos += 14
+        from common import debug
+        debug(str(y_x))
+        if self.pos + y >= len(self.messages):
+            self.pos = len(self.messages) - y+3
 
     def scroll_down(self):
         self.pos -= 14

@@ -313,7 +313,7 @@ Avail: Sets your availability to available and (optional) sets your status
         self.window.text_win.refresh(self.current_room())
 
     def scroll_page_up(self, args=None):
-        self.current_room().scroll_up()
+        self.current_room().scroll_up(self.window.size)
         self.window.text_win.refresh(self.current_room())
 
     def room_error(self, room, error, msg):
@@ -786,7 +786,7 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         room = self.current_room()
         if len(args) == 0:
-            self.add_message_to_room(room, _("The subject of the topic is: %s") % room.topic)
+            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic)
         subject = ' '.join(args)
         if not room.joined or room.name == "Info":
             return
