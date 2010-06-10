@@ -61,26 +61,26 @@ class Room(object):
         time = time if time is not None else datetime.now()
         from common import debug
         # debug("add_message: %s, %s, %s, %s" % (str(txt), str(time), str(nickname), str(user)))
-        self.messages.append(Message(txt, time, nickname, user))
+
+        color = None
+        if nickname is not None:
+            self.set_color_state(12)
+        if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight thing
+            if self.own_nick in txt:
+                self.set_color_state(13)
+                color = 3
+            else:
+                highlight_words = config.get('highlight_on', '').split(':')
+                for word in highlight_words:
+                    if word.lower() in txt.lower() and word != '':
+                        self.set_color_state(13)
+                        color = 3
+                        break
+        self.messages.append(Message(txt, time, nickname, user, color))
 
         # def add_message(nick, msg, date=None)
         # TODO: limit the message kept in memory (configurable)
 
-        # if not date:
-        #     date = datetime.now()
-        # color = None
-        # self.set_color_state(12)
-        # if nick != self.own_nick and self.joined: # do the highlight thing
-        #     if self.own_nick in msg:
-        #         self.set_color_state(13)
-        #         color = 3
-        #     else:
-        #         highlight_words = config.get('highlight_on', '').split(':')
-        #         for word in highlight_words:
-        #             if word.lower() in msg.lower() and word != '':
-        #                 self.set_color_state(13)
-        #                 color = 3
-        #                 break
         # if not msg:
         #     logger.info('msg is None..., %s' % (nick))
         #     return

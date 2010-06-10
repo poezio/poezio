@@ -16,6 +16,8 @@ http://codingteam.net/project/poezio/roadmap
 - Various new commands (topic, kick, set, win)
 - Password-protected MUCs are handled
 - The dates of room history are handled
+- The way the text is displayed on the screen has been rewritten, this fixes
+  the blink and the slowness-over-ssh problems.
 - Various Bugfixes
 
 * Poezio 0.5.1 - 2 Feb 2010

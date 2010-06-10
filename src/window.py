@@ -196,7 +196,7 @@ class TextWin(Win):
             else:
                 x = 11
                 self.win.attron(curses.color_pair(8))
-            y += self.write_text(y, x, message.txt)
+            y += self.write_text(y, x, message.txt, message.color)
             if message.nickname is None:
                 self.win.attroff(curses.color_pair(8))
             # self.win.addnstr(y, x, message.txt, 40)
@@ -204,12 +204,14 @@ class TextWin(Win):
             y += 1
         self.win.refresh()
 
-    def write_text(self, y, x, txt):
+    def write_text(self, y, x, txt, color):
         """
         return the number of line written, -1
         """
         txt = txt.encode('utf-8')
         l = 0
+        if color:
+            self.win.attron(curses.color_pair(color))
         while txt != '':
             debug(txt)
             if txt[:self.width-x].find('\n') != -1:
@@ -220,6 +222,8 @@ class TextWin(Win):
             self.win.addnstr(y+l, x, txt, limit)
             txt = txt[limit+1:]
             l += 1
+        if color:
+            self.win.attroff(curses.color_pair(color))
         return l-1
 
     def write_nickname(self, y, nickname, user):
