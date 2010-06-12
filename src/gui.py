@@ -321,8 +321,8 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         Display the error on the room window
         """
-        # if not error:
-        #     return
+        if not error:
+            return
         room = self.get_room_by_name(room)
         code = error.getAttr('code')
         typ = error.getAttr('type')
