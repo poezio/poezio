@@ -187,8 +187,12 @@ class TextWin(Win):
         for message in messages:
             txt = message.txt
             offset = 11         # length of the time
-            if message.nickname:
-                offset += len(message.nickname) + 2 # + nick + spaces length
+            if message.nickname and len(message.nickname) >= 30:
+                nick = message.nickname[:30]+u'…'
+            else:
+                nick = message.nickname
+            if nick:
+                offset += len(nick) + 2 # + nick + spaces length
             first = True
             while txt != '':
                 # debug(txt)
@@ -198,7 +202,7 @@ class TextWin(Win):
                 else:
                     limit = self.width-offset-1
                 if first and message.user:
-                    line = Line(message.nickname, message.user.color,
+                    line = Line(nick, message.user.color,
                                 message.time,
                                 txt[:limit], message.color,
                                 offset)
@@ -651,7 +655,7 @@ class Window(object):
         Resize the whole tabe. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
-        if self.height < 10 or self.width < 60:
+        if self.height < 10 or self.width < 50:
             visible = False
         else:
             visible = True
