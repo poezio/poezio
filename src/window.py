@@ -184,6 +184,7 @@ class TextWin(Win):
         for message in messages:
             txt = message.txt
             offset = 11         # length of the time
+            debug(str(message.nickname) + ' : '+message.txt + '\n')
             if message.nickname and len(message.nickname) >= 30:
                 nick = message.nickname[:30]+u'…'
             else:
@@ -198,17 +199,14 @@ class TextWin(Win):
                     # debug("=================="+str(limit))
                 else:
                     limit = self.width-offset-1
-                if first and message.user:
-                    line = Line(nick, message.user.color,
-                                message.time,
-                                txt[:limit], message.color,
-                                offset)
-                else:
-                    line = Line(None, None,
-                                message.time,
-                                txt[:limit], message.color,
-                                offset)
-                lines.append(line)
+                if limit == 0:
+                    break
+                color = message.user.color if message.user else None
+                l = Line(nick, color,
+                         message.time,
+                         txt[:limit], message.color,
+                         offset)
+                lines.append(l)
                 txt = txt[limit:]
                 first = False
         return lines[-len(messages):]# return only the needed number of lines
@@ -271,9 +269,11 @@ class TextWin(Win):
         Write the nickname, using the user's color
         and return the number of written characters
         """
-        self.win.attron(curses.color_pair(color))
+        if color:
+            self.win.attron(curses.color_pair(color))
         self.win.addstr(nickname)
-        self.win.attroff(curses.color_pair(color))
+        if color:
+            self.win.attroff(curses.color_pair(color))
         self.win.addnstr("> ", 2)
 
     def write_time(self, time):

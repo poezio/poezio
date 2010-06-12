@@ -70,8 +70,6 @@ class Line(object):
     Line(None, None, None, "http://blablablabla", 0, 23)
     """
     def __init__(self, nickname, nickname_color, time, text, text_color, text_offset):
-        from common import debug
-        # debug("Line: %s, %s, %s '%s', %s, %s\n" % (nickname, nickname_color, str(time), text, text_color, text_offset))
         self.nickname = nickname
         self.nickname_color = nickname_color
         self.time = time
