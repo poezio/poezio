@@ -61,7 +61,7 @@ class Gui(object):
         self.muc = muc
 
         self.commands = {
-            'help': (self.command_help, _('That.')),
+            'help': (self.command_help, u'\_o< KOIN KOIN KOIN'),
             'join': (self.command_join, _("""Usage: /join [room_name][/nick]
 [password]\nJoin: Join the specified room. You can specify a nickname after a
  slash (/). If no nickname is specified, you will use the default_nick in the
@@ -322,6 +322,8 @@ Avail: Sets your availability to available and (optional) sets your status
         Display the error on the room window
         """
         room = self.get_room_by_name(room)
+        if not error:
+            return
         code = error.getAttr('code')
         typ = error.getAttr('type')
         body = error.getTag('text').getData()

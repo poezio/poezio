@@ -129,11 +129,8 @@ class RoomInfo(Win):
         def compare_room(a, b):
             return a.nb - b.nb
         self.win.erase()
-        try:
-            self.win.addnstr(0, 0, current.name+" [", self.width
-                             ,curses.color_pair(1))
-        except:
-            pass
+        self.win.addnstr(0, 0, current.name+" [", self.width
+                         ,curses.color_pair(1))
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
             if current == room:
@@ -212,7 +209,7 @@ class TextWin(Win):
                                 txt[:limit], message.color,
                                 offset)
                 lines.append(line)
-                txt = txt[limit+1:]
+                txt = txt[limit:]
                 first = False
         return lines[-len(messages):]# return only the needed number of lines
 
