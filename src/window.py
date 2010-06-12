@@ -129,7 +129,7 @@ class RoomInfo(Win):
         def compare_room(a, b):
             return a.nb - b.nb
         self.win.erase()
-        self.win.addnstr(0, 0, current.name+" [", self.width
+        self.win.addnstr(0, 0, "[", self.width
                          ,curses.color_pair(1))
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
@@ -144,7 +144,7 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, ']'+(' '*((self.width)-x)), curses.color_pair(1))
+            self.win.addstr(y, x-1, '] '+ current.name+ (' '*((self.width)-x)), curses.color_pair(1))
         except:
             pass
         self.win.refresh()
@@ -184,7 +184,6 @@ class TextWin(Win):
         for message in messages:
             txt = message.txt
             offset = 11         # length of the time
-            debug(str(message.nickname) + ' : '+message.txt + '\n')
             if message.nickname and len(message.nickname) >= 30:
                 nick = message.nickname[:30]+u'…'
             else:
@@ -202,6 +201,8 @@ class TextWin(Win):
                 if limit == 0:
                     break
                 color = message.user.color if message.user else None
+                if not first:
+                    nick = None
                 l = Line(nick, color,
                          message.time,
                          txt[:limit], message.color,
