@@ -42,6 +42,9 @@ http://codingteam.net/project/poezio/doc
 Please DO report any bug you encounter and ask for any
 feature you want.
 
+If you are testing poezio, and get a crash but no error, please
+take a look in the src/errors file.
+
 =======================
 	Authors
 =======================

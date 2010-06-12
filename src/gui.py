@@ -263,7 +263,7 @@ Avail: Sets your availability to available and (optional) sets your status
 
     def on_connected(self, jid):
         """
-        When we are connected authentification confirmation is received
+        We are connected when authentification confirmation is received
         """
         self.information(_("Welcome on Poezio \o/!"))
         self.information(_("Your JID is %s") % jid)

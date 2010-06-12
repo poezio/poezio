@@ -31,18 +31,17 @@ class Win(object):
         try:
             self.win = parent_win.subwin(height, width, y, x)
         except:
-            # Happens when the C function subwin fails. The man
-            # doesn't give a reason for this to happen, so I can't
-            # really fix this.
-            # just don't crash when this happens.
+            # When resizing in a too little height (less than 3 lines)
+            # We don't need to resize the window, since this size
+            # just makes no sense
+            # Just don't crash when this happens.
             # (°>       also, a penguin
             # //\
             # V_/_
-            print parent_win, parent_win.height, parent_win.width, height, width, y, x
-            raise
+            pass
         self.win.idlok(1)
         self.win.leaveok(1)
-        self.win.syncok(0)
+        # self.win.syncok(0)
 
     def refresh(self):
         self.win.noutrefresh()
@@ -175,6 +174,22 @@ class TextWin(Win):
         self.x = x
         self.parent_win = parent_win
         Win.__init__(self, height, width, y, x, parent_win)
+        self.win.scrollok(1)
+
+    def keep_n_lines(self, messages):
+        """
+        Keep just self.win.height lines, no more.
+        So, remove one top line for each "\n" found in the messages
+        """
+        messages = messages[::-1]
+        for m in messages:
+            nb = m.txt.count('\n')
+            # remove the nb top lines
+            for _ in xrange(nb):
+                messages.pop(len(messages)-1) # remove the last one
+                debug(str(nb)+' backslash')
+        debug(str(len(messages)))
+        return messages[::-1]
 
     def refresh(self, room):
         """
@@ -182,29 +197,41 @@ class TextWin(Win):
         # TODO: keep a position in the room, and display
         # the messages from this position (can be used to scroll)
         from common import debug
-        y = 0
+        # y = 0
+        debug("je suis VISIBLE:%s" % self.visible)
+        if not self.visible:
+            return
         self.win.erase()
+        self.win.move(0, 0)
         if room.pos != 0:
             messages = room.messages[-self.height - room.pos : -room.pos]
         else:
             messages = room.messages[-self.height:]
+        # lines = self.keep_n_lines(messages)
+        first = True
         for message in messages:
             # debug(str(message))
-            self.write_time(y, message.time)
-            if message.nickname is not None:
-                x = self.write_nickname(y, message.nickname.encode('utf-8'), message.user)
+            if first:
+                first = False
             else:
-                x = 11
+                self.win.addch('\n')
+            self.write_time(message.time)
+            if message.nickname is not None:
+                # x = 
+                self.write_nickname(message.nickname.encode('utf-8'), message.user)
+            else:
+                # x = 11
                 self.win.attron(curses.color_pair(8))
-            y += self.write_text(y, x, message.txt, message.color)
+            # y += 
+            self.write_text(message.txt, message.color)
             if message.nickname is None:
                 self.win.attroff(curses.color_pair(8))
             # self.win.addnstr(y, x, message.txt, 40)
             # self.win
-            y += 1
+            # y += 1
         self.win.refresh()
 
-    def write_text(self, y, x, txt, color):
+    def write_text(self, txt, color):
         """
         return the number of line written, -1
         """
@@ -212,48 +239,53 @@ class TextWin(Win):
         l = 0
         if color:
             self.win.attron(curses.color_pair(color))
-        while txt != '':
-            debug(txt)
-            if txt[:self.width-x].find('\n') != -1:
-                limit = txt[:self.width-x].find('\n')
-                debug("=================="+str(limit))
-            else:
-                limit = self.width-x
-            self.win.addnstr(y+l, x, txt, limit)
-            txt = txt[limit+1:]
-            l += 1
+        self.win.addstr(txt)
+        # while txt != '':
+        #     # debug(txt)
+        #     if txt[:self.width-x].find('\n') != -1:
+        #         limit = txt[:self.width-x].find('\n')
+        #         # debug("=================="+str(limit))
+        #     else:
+        #         limit = self.width-x
+        #     self.win.addnstr(txt, limit)
+        #     txt = txt[limit+1:]
+        #     l += 1
         if color:
             self.win.attroff(curses.color_pair(color))
-        return l-1
+        # return l-1
 
-    def write_nickname(self, y, nickname, user):
+    def write_nickname(self, nickname, user):
         """
         Write the nickname, using the user's color
         and return the number of written characters
         """
         if user:
             self.win.attron(curses.color_pair(user.color))
-        self.win.addstr(y, 11, nickname)
+        self.win.addstr(nickname)
         if user:
             self.win.attroff(curses.color_pair(user.color))
-        self.win.addnstr(y, 11+len(nickname.decode('utf-8')), "> ", 2)
-        return len(nickname.decode('utf-8')) + 13
+        self.win.addnstr("> ", 2)
+        # return len(nickname.decode('utf-8')) + 13
 
-    def write_time(self, y, time):
+    def write_time(self, time):
         """
         Write the date on the yth line of the window
         """
-        self.win.addnstr(y, 0, '['+time.strftime("%H"), 3)
+        # debug(str(self.win.getmaxyx()))
+        # debug(str(y))
+        # debug('___________________')
+        self.win.addnstr('['+time.strftime("%H"), 3)
         self.win.attron(curses.color_pair(9))
-        self.win.addnstr(y, 3, ':', 1)
+        self.win.addnstr(':', 1)
         self.win.attroff(curses.color_pair(9))
-        self.win.addstr(y, 4, time.strftime('%M'), 2)
+        self.win.addnstr(time.strftime('%M'), 2)
         self.win.attron(curses.color_pair(9))
-        self.win.addstr(y, 6, ':', 1)
+        self.win.addnstr(':', 1)
         self.win.attroff(curses.color_pair(9))
-        self.win.addstr(y, 7, time.strftime('%S') + "] ", 3)
+        self.win.addnstr(time.strftime('%S') + "] ", 3)
 
     def resize(self, height, width, y, x, stdscr, visible):
+        self.visible = visible
         self._resize(height, width, y, x, stdscr)
 
     # def redraw(self, room):
