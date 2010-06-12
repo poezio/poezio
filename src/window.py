@@ -22,6 +22,8 @@ from config import config
 
 from common import debug
 
+from message import Line
+
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
         self._resize(height, width, y, x, parent_win)
@@ -176,70 +178,79 @@ class TextWin(Win):
         Win.__init__(self, height, width, y, x, parent_win)
         self.win.scrollok(1)
 
-    def keep_n_lines(self, messages):
+    def build_lines_from_messages(self, messages):
         """
-        Keep just self.win.height lines, no more.
-        So, remove one top line for each "\n" found in the messages
+        From the n messages (n behing the height of the text area),
+        returns the n last lines (Line object).
         """
-        messages = messages[::-1]
-        for m in messages:
-            nb = m.txt.count('\n')
-            # remove the nb top lines
-            for _ in xrange(nb):
-                messages.pop(len(messages)-1) # remove the last one
-                debug(str(nb)+' backslash')
-        debug(str(len(messages)))
-        return messages[::-1]
+        lines = []
+        for message in messages:
+            txt = message.txt
+            offset = 11         # length of the time
+            if message.nickname:
+                offset += len(message.nickname) + 2 # + nick + spaces length
+            first = True
+            while txt != '':
+                # debug(txt)
+                if txt[:self.width-offset].find('\n') != -1:
+                    limit = txt[:self.width-offset].find('\n')
+                    # debug("=================="+str(limit))
+                else:
+                    limit = self.width-offset-1
+                if first and message.user:
+                    line = Line(message.nickname, message.user.color,
+                                message.time,
+                                txt[:limit], message.color,
+                                offset)
+                else:
+                    line = Line(None, None,
+                                message.time,
+                                txt[:limit], message.color,
+                                offset)
+                lines.append(line)
+                txt = txt[limit+1:]
+                first = False
+        return lines[-len(messages):]# return only the needed number of lines
 
     def refresh(self, room):
         """
+        Build the Line objects from the messages, and then write
+        them in the text area
         """
-        # TODO: keep a position in the room, and display
-        # the messages from this position (can be used to scroll)
         from common import debug
-        # y = 0
-        debug("je suis VISIBLE:%s" % self.visible)
         if not self.visible:
             return
         self.win.erase()
-        self.win.move(0, 0)
         if room.pos != 0:
             messages = room.messages[-self.height - room.pos : -room.pos]
         else:
             messages = room.messages[-self.height:]
         # lines = self.keep_n_lines(messages)
-        first = True
-        for message in messages:
-            # debug(str(message))
-            if first:
-                first = False
-            else:
-                self.win.addch('\n')
-            self.write_time(message.time)
-            if message.nickname is not None:
-                # x = 
-                self.write_nickname(message.nickname.encode('utf-8'), message.user)
-            else:
-                # x = 11
-                self.win.attron(curses.color_pair(8))
-            # y += 
-            self.write_text(message.txt, message.color)
-            if message.nickname is None:
-                self.win.attroff(curses.color_pair(8))
-            # self.win.addnstr(y, x, message.txt, 40)
-            # self.win
-            # y += 1
+        lines = self.build_lines_from_messages(messages)
+        y = 0
+        for line in lines:
+            self.win.move(y, 0)
+            if line.time is not None:
+                self.write_time(line.time)
+            if line.nickname is not None:
+                self.write_nickname(line.nickname.encode('utf-8'), line.nickname_color)
+            # else:
+            #     self.win.attron(curses.color_pair(8))
+            # TODO on information
+            self.write_text(y, line.text_offset, line.text, line.text_color)
+            y += 1
+            # if message.nickname is None:
+            #     self.win.attroff(curses.color_pair(8))
         self.win.refresh()
 
-    def write_text(self, txt, color):
+    def write_text(self, y, x, txt, color):
         """
         return the number of line written, -1
         """
         txt = txt.encode('utf-8')
-        l = 0
         if color:
             self.win.attron(curses.color_pair(color))
-        self.win.addstr(txt)
+        self.win.addstr(y, x, txt)
         # while txt != '':
         #     # debug(txt)
         #     if txt[:self.width-x].find('\n') != -1:
@@ -254,18 +265,15 @@ class TextWin(Win):
             self.win.attroff(curses.color_pair(color))
         # return l-1
 
-    def write_nickname(self, nickname, user):
+    def write_nickname(self, nickname, color):
         """
         Write the nickname, using the user's color
         and return the number of written characters
         """
-        if user:
-            self.win.attron(curses.color_pair(user.color))
+        self.win.attron(curses.color_pair(color))
         self.win.addstr(nickname)
-        if user:
-            self.win.attroff(curses.color_pair(user.color))
+        self.win.attroff(curses.color_pair(color))
         self.win.addnstr("> ", 2)
-        # return len(nickname.decode('utf-8')) + 13
 
     def write_time(self, time):
         """
@@ -282,7 +290,7 @@ class TextWin(Win):
         self.win.attron(curses.color_pair(9))
         self.win.addnstr(':', 1)
         self.win.attroff(curses.color_pair(9))
-        self.win.addnstr(time.strftime('%S') + "] ", 3)
+        self.win.addnstr(time.strftime('%S') + "] ", 4)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible

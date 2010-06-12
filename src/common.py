@@ -52,7 +52,7 @@ def debug(string):
     a CLI software
     """
     fdes = open("debug", 'a')
-    fdes.write(string+'\n')
+    fdes.write(string)
     fdes.close()
 
 def exception_handler(type_, value, trace):

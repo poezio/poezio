@@ -72,7 +72,9 @@ class Room(object):
         color = None
         if nickname is not None:
             self.set_color_state(12)
-        if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight thing
+        else:
+            color = 8
+        if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
             if self.own_nick in txt:
                 self.set_color_state(13)
                 color = 3
