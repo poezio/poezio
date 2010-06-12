@@ -56,6 +56,7 @@ class Gui(object):
         # self.window.new_room(self.current_room())
         # self.window.refresh(self.rooms)
         self.rooms = [Room('Info', '', self.window)]
+        self.ignores = {}
 
         self.muc = muc
 
@@ -343,6 +344,8 @@ Avail: Sets your availability to available and (optional) sets your status
             return  # ignore all messages not comming from a MUC
         nick_from = stanza.getFrom().getResource()
         room_from = stanza.getFrom().getStripped()
+        if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
+            return
         room = self.get_room_by_name(room_from)
 	if not room:
 	    self.information(_("message received for a non-existing room: %s") % (room_from))
@@ -728,10 +731,20 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         /ignore <nick>
         """
-        # TODO
         if len(args) != 1:
-            self.command_help([ignore])
+            self.command_help(['ignore'])
             return
+        if self.current_room().name == 'Info' or not self.current_room().joined:
+            return
+        roomname = self.current_room().name
+        nick = args[0]
+        if not self.ignores.has_key(roomname):
+            self.ignores[roomname] = set() # no need for any order
+        if nick not in self.ignores[roomname]:
+            self.ignores[roomname].add(nick)
+            self.add_message_to_room(self.current_room(), _("%s is now ignored") % nick)
+        else:
+            self.add_message_to_room(self.current_room(), _("%s is already ignored") % nick)
 
     def command_unignore(self, args):
         """
@@ -739,8 +752,19 @@ Avail: Sets your availability to available and (optional) sets your status
         """
         # TODO
         if len(args) != 1:
-            self.command_help([ignore])
+            self.command_help(['unignore'])
             return
+        if self.current_room().name == 'Info' or not self.current_room().joined:
+            return
+        roomname = self.current_room().name
+        nick = args[0]
+        if not self.ignores.has_key(roomname) or (nick not in self.ignores[roomname]):
+            self.add_message_to_room(self.current_room(), _("%s was not ignored") % nick)
+            return
+        self.ignores[roomname].remove(nick)
+        if self.ignores[roomname] == set():
+            del self.ignores[roomname]
+        self.add_message_to_room(self.current_room(), _("%s is now unignored") % nick)
 
     def command_away(self, args):
         """

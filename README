@@ -43,7 +43,7 @@ Please DO report any bug you encounter and ask for any
 feature you want.
 
 If you are testing poezio, and get a crash but no error, please
-take a look in the src/errors file.
+take a look at the src/errors file.
 
 =======================
 	Authors
@@ -73,6 +73,7 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 	Thanks
 =======================
 = People =
+ Link Mauve - Code
  Erwan Briand - Handler and MultiUserChat classes
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  Ovart - Testing
