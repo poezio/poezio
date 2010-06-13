@@ -507,7 +507,7 @@ class Gui(object):
         self.window.input.refresh()
         if line == "":
             return
-        if line.startswith('/'):
+        if line.startswith('/') and not line.startswith('/me '):
             command = line.strip()[:].split()[0][1:]
             args = line.strip()[:].split()[1:]
             if command in self.commands.keys():

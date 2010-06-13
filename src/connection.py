@@ -102,10 +102,7 @@ class Connection(threading.Thread):
                 self.client.auth(None, "", self.resource)
                 return True
             except TypeError:
-                self.handler.emit('error', msg=_('Error: Could not \
-                        authenticate. Please make sure the server you chose \
-                        (%s) supports anonymous authentication'
-                                                 % (config.get('server', ''))))
+                self.handler.emit('error', msg=_('Error: Could not authenticate. Please make sure the server you chose (%s) supports anonymous authentication' % (config.get('server', ''))))
                 return False
         else:
             password = config.get('password', '')
