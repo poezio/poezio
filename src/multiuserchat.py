@@ -149,6 +149,13 @@ class MultiUserChat(object):
         mes.setType('groupchat')
         self.connection.send(mes)
 
+    def send_private_message(self, user_jid, message):
+        from common import debug
+        mes = Message(to=user_jid)
+        mes.setBody(message)
+        mes.setType('chat')
+        self.connection.send(mes)
+
     def join_room(self, room, nick, password=None):
         """Join a new room"""
         pres = Presence(to='%s/%s' % (room, nick))

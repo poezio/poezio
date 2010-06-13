@@ -173,7 +173,10 @@ class Connection(threading.Thread):
         if message.getType() == 'error':
             self.error_message(message)
             return
-        self.handler.emit('room-message', stanza=message)
+        if message.getType() == 'groupchat':
+            self.handler.emit('room-message', stanza=message)
+        else:
+            self.handler.emit('private-message', stanza=message)
         raise xmpp.protocol.NodeProcessed
 
     def process(self, timeout=10):
@@ -213,3 +216,10 @@ def jid_get_domain(jid):
     if isinstance(jid, basestring):
         jid = xmpp.JID(jid)
     return jid.getDomain()
+
+def is_jid_the_same(a, b):
+    if isinstance(a, basestring):
+        a = xmpp.JID(a)
+    if isinstance(b, basestring):
+        b = xmpp.JID(b)
+    return a.bareMatch(b)

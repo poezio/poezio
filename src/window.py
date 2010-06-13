@@ -17,6 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
+                     gettext as _)
+
+bindtextdomain('poezio')
+textdomain('poezio')
+bind_textdomain_codeset('poezio', 'utf-8')
+
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 import curses
 from config import config
 
@@ -108,14 +119,23 @@ class Topic(Win):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, room_name):
+    def refresh(self, topic, jid=None):
         if not self.visible:
             return
         self.win.erase()
-        try:
-            self.win.addnstr(0, 0, room_name + " "*(self.width-len(room_name)), self.width
-                             , curses.color_pair(1))
-        except:pass
+        if not jid:
+            try:
+                self.win.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width
+                                 , curses.color_pair(1))
+            except:
+                pass
+        elif jid:
+            room = jid.split('/')[0]
+            nick = '/'.join(jid.split('/')[1:])
+            topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
+            self.win.addnstr(0, 0, topic.encode('utf-8') + " "*(self.width-len(topic)), self.width-1
+                             , curses.color_pair(15))
+
         self.win.refresh()
 
 class RoomInfo(Win):
@@ -147,9 +167,14 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, '] '+ current.name+ (' '*((self.width)-x)), curses.color_pair(1))
+            self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8') , curses.color_pair(1))
         except:
             pass
+        while True:
+            try:
+                self.win.addstr(' ', curses.color_pair(1))
+            except:
+                break
         self.win.refresh()
 
 class TextWin(Win):
@@ -577,7 +602,7 @@ class Window(object):
         # self.text_win.redraw(room)
         self.text_win.refresh(room)
         self.user_win.refresh(room.users)
-        self.topic_win.refresh(room.topic)
+        self.topic_win.refresh(room.topic, room.jid)
         self.info_win.refresh(rooms, room)
         self.input.refresh()
 

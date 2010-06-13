@@ -27,7 +27,8 @@ class Room(object):
     """
     """
     number = 0
-    def __init__(self, name, nick, window):
+    def __init__(self, name, nick, window, jid=None):
+        self.jid = jid          # used for a private chat. None if it's a MUC
         self.name = name
         self.own_nick = nick
         self.color_state = 11   # color used in RoomInfo
@@ -72,7 +73,10 @@ class Room(object):
         time = time if time is not None else datetime.now()
         color = None
         if nickname is not None:
-            self.set_color_state(12)
+            if not self.jid:
+                self.set_color_state(12)
+            else:
+                self.set_color_state(15)
         else:
             color = 8
         if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight

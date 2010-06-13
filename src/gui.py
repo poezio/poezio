@@ -40,6 +40,8 @@ from user import User
 from room import Room
 from message import Message
 
+from connection import is_jid_the_same
+
 from common import debug
 def doupdate():
     debug("doupdate")
@@ -83,6 +85,8 @@ class Gui(object):
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.")),
             'kick': (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.")),
             'topic': (self.command_topic, _("Usage: /topic <subject> \nTopic: Change the subject of the room")),
+            'query': (self.command_query, _('Usage: /query <nick>\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in.')),
+
             'nick': (self.command_nick, _("Usage: /nick <nickname> \nNick: Change your nickname in the current room"))
             }
 
@@ -109,6 +113,7 @@ class Gui(object):
         self.handler.connect('join-room', self.join_room)
         self.handler.connect('room-presence', self.room_presence)
         self.handler.connect('room-message', self.room_message)
+        self.handler.connect('private-message', self.private_message)
         self.handler.connect('error-message', self.room_error)
         self.handler.connect('error', self.information)
 
@@ -195,7 +200,7 @@ class Gui(object):
                          curses.COLOR_RED) # highlight room
         curses.init_pair(14, curses.COLOR_WHITE,
                          curses.COLOR_YELLOW)
-        curses.init_pair(15, curses.COLOR_WHITE,
+        curses.init_pair(15, curses.COLOR_WHITE, # new message in private room
                          curses.COLOR_GREEN)
 
     def reset_curses(self):
@@ -270,11 +275,54 @@ class Gui(object):
         room = self.get_room_by_name(room)
         code = error.getAttr('code')
         typ = error.getAttr('type')
-        body = error.getTag('text').getData()
+        if error.getTag('text'):
+            body = error.getTag('text').getData()
+        else:
+            body = _('Unknown error')
         self.add_message_to_room(room, _('Error: %(code)s-%(msg)s: %(body)s' %
                                    {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
             room.add(_('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+
+    def private_message(self, stanza):
+        """
+        When a private message is received
+        """
+        jid = stanza.getFrom()
+        nick_from = stanza.getFrom().getResource()
+        room_from = stanza.getFrom().getStripped()
+        room = self.get_room_by_name(jid) # get the tab with the private conversation
+        if not room: # It's the first message we receive: create the tab
+            room = self.open_private_window(room_from, nick_from, False)
+        body = stanza.getBody()
+        self.add_message_to_room(room, body, None, nick_from)
+        self.window.input.refresh()
+        doupdate()
+
+    def open_private_window(self, room_name, user_nick, focus=True):
+        complete_jid = room_name+'/'+user_nick
+        for room in self.rooms: # if the room exists, focus it and return
+            if room.jid:
+                if room.jid == complete_jid:
+                    self.command_win(str(room.nb))
+                    return
+        # create the new tab
+        own_nick = self.get_room_by_name(room_name).own_nick
+        r = Room(complete_jid, own_nick, self.window, complete_jid)
+        # insert it in the rooms
+        if self.current_room().nb == 0:
+            self.rooms.append(r)
+        else:
+            for ro in self.rooms:
+                if ro.nb == 0:
+                    self.rooms.insert(self.rooms.index(ro), r)
+                    break
+        if focus:               # focus the room if needed
+            while self.current_room().nb != r.nb:
+                self.rooms.insert(0, self.rooms.pop())
+        # self.window.new_room(r)
+        self.window.refresh(self.rooms)
+        return r
 
     def room_message(self, stanza, date=None):
         """
@@ -356,8 +404,22 @@ class Gui(object):
                 elif change_nick:
                     if user.nick == room.own_nick:
                         room.own_nick = stanza.getNick().encode('utf-8')
+                        # also change our nick in all private discussion of this room
+                        for _room in self.rooms:
+                            if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
+                                debug(_room.jid)
+                                debug(room.name)
+                                _room.own_nick = stanza.getNick()
                     user.change_nick(stanza.getNick())
                     self.add_message_to_room(room, _('%(old)s is now known as %(new)s') % {'old':from_nick, 'new':stanza.getNick()})
+                    # rename the private tabs if needed
+                    private_room = self.get_room_by_name(stanza.getFrom())
+                    if private_room:
+                        self.add_message_to_room(private_room, _('%(old_nick)s is now known as %(new_nick)s') % {'old_nick':from_nick, 'new_nick':stanza.getNick()})
+                        new_jid = private_room.name.split('/')[0]+'/'+stanza.getNick()
+                        private_room.jid = new_jid
+                        private_room.name = new_jid
+
                 # kick
                 elif kick:
                     room.users.remove(user)
@@ -386,8 +448,22 @@ class Gui(object):
                     hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
                     if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
                         self.add_message_to_room(room, _('%s has left the room') % (from_nick))
+                    private_room = self.get_room_by_name(stanza.getFrom())
+                    if private_room:
+                        self.add_message_to_room(private_room, _('%s has left the room') % (from_nick))
                 # status change
                 else:
+                    # build the message
+                    msg = _('%s changed his/her status: ')% from_nick
+                    if affiliation != user.affiliation:
+                        msg += _('affiliation: %s,') % affiliation
+                    if role != user.role:
+                        msg += _('role: %s,') % role
+                    if show != user.show:
+                        msg += _('show: %s,') % show
+                    if status != user.status:
+                        msg += _('status: %s,') % status
+                    msg = msg[:-1] # remove the last ","
                     hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
                     if (hide_status_change == -1 or \
                             user.has_talked_since(hide_status_change) or\
@@ -397,23 +473,18 @@ class Gui(object):
                                 role != user.role or\
                                 show != user.show or\
                                 status != user.status):
-                        msg = _('%s changed his/her status: ')% from_nick
-                        if affiliation != user.affiliation:
-                            msg += _('affiliation: %s,') % affiliation
-                        if role != user.role:
-                            msg += _('role: %s,') % role
-                        if show != user.show:
-                            msg += _('show: %s,') % show
-                        if status != user.status:
-                            msg += _('status: %s,') % status
-                        # (a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
-                        user.update(affiliation, show, status, role)
-                        msg = msg[:-1] # remove the last ","
+                        # display the message in the room
                         self.add_message_to_room(room, msg)
-
+                    private_room = self.get_room_by_name(stanza.getFrom())
+                    # debug('status change: ' + stanza.getFrom()+'\n')
+                    if private_room: # display the message in private
+                        self.add_message_to_room(private_room, msg)
+                    # finally, effectively change the user status
+                    user.update(affiliation, show, status, role)
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
         self.window.input.refresh()
+        self.window.info_win.refresh(self.rooms, self.current_room())
         doupdate()
 
     def add_message_to_room(self, room, txt, time=None, nickname=None):
@@ -446,7 +517,11 @@ class Gui(object):
             else:
                 self.add_message_to_room(self.current_room(), _("Error: unknown command (%s)") % (command))
         elif self.current_room().name != 'Info':
-            self.muc.send_message(self.current_room().name, line)
+            if self.current_room().jid is not None:
+                self.muc.send_private_message(self.current_room().name, line)
+                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick)
+            else:
+                self.muc.send_message(self.current_room().name, line)
         self.window.input.refresh()
         doupdate()
 
@@ -702,6 +777,17 @@ class Gui(object):
             self.muc.quit_room(room.name, room.own_nick, msg)
         self.rooms.remove(self.current_room())
         self.window.refresh(self.rooms)
+
+    def command_query(self, args):
+        if len(args) != 1:
+            return
+        nick = args[0]
+        room = self.current_room()
+        if room.name == "Info" or room.jid is not None:
+            return
+        for user in room.users:
+            if user.nick == nick:
+                self.open_private_window(room.name, user.nick)
 
     def command_topic(self, args):
         """

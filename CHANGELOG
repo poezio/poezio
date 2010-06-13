@@ -3,6 +3,7 @@ For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
 * Poezio 0.6 - dev
+- Private messages are handled
 - Muc error messages are displayed
 - Nickname auto-completion
 - Users status are displayed in the MUC user-list
@@ -18,6 +19,10 @@ http://codingteam.net/project/poezio/roadmap
 - The dates of room history are handled
 - The way the text is displayed on the screen has been rewritten, this fixes
   the blink and the slowness-over-ssh problems.
+- User lists are ordered
+- Messages can be logged in files
+- Status changes displays only what has really changed
+- Users can be ignored (/ignore, /unignore)
 - Various Bugfixes
 
 * Poezio 0.5.1 - 2 Feb 2010
