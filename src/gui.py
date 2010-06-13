@@ -527,7 +527,7 @@ class Gui(object):
         if not r:   # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
         else:
-            r.own_nick = nick
+            # r.own_nick = nick
             r.users = []
 
     def command_bookmark(self, args):

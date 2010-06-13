@@ -429,7 +429,10 @@ class Input(Win):
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
             end = len(begin) + len(after)
         x -= end
-        self.win.move(y, x)
+        try:
+            self.win.move(y, x)
+        except:
+            pass
         # remove begin from the line
         self.win.clrtoeol()
         self.text = self.text[:-end]

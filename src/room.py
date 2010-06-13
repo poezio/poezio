@@ -66,18 +66,23 @@ class Room(object):
         """
         user = self.get_user_by_name(nickname) if nickname is not None else None
         time = time if time is not None else datetime.now()
-        from common import debug
-        # debug("add_message: %s, %s, %s, %s" % (str(txt), str(time), str(nickname), str(user)))
-
         color = None
         if nickname is not None:
             self.set_color_state(12)
         else:
             color = 8
         if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
-            if self.own_nick in txt:
-                self.set_color_state(13)
-                color = 3
+            try:
+                if self.own_nick.encode('utf-8') in txt:
+                    self.set_color_state(13)
+                    color = 3
+            except UnicodeDecodeError:
+                try:
+                    if self.own_nick in txt:
+                        self.set_color_state(13)
+                        color = 3
+                except:
+                    pass
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
@@ -87,32 +92,6 @@ class Room(object):
                         break
         self.messages.append(Message(txt, time, nickname, user, color))
 
-        # def add_message(nick, msg, date=None)
-        # TODO: limit the message kept in memory (configurable)
-
-        # if not msg:
-        #     logger.info('msg is None..., %s' % (nick))
-        #     return
-        # self.lines.append((date, nick.encode('utf-8'),
-        #                   msg.encode('utf-8'), color))
-        # user = self.get_user_by_name(nick)
-        # if user:
-        #     user.set_last_talked(date)
-        # if self.joined:         # log only NEW messages, not the history received on join
-        #     logger.message(self.name, nick.encode('utf-8'), msg.encode('utf-8'))
-        # return color
-
-    # def add_info(self, info, date=None):
-    #     """ info, like join/quit/status messages"""
-    #     if not date:
-    #         date = datetime.now()
-    #     try:
-    #         self.lines.append((date, info.encode('utf-8')))
-    #         return info.encode('utf-8')
-    #     except:
-    #         self.lines.append((date, info))
-    #         return info
-
     def get_user_by_name(self, nick):
         for user in self.users:
             if user.nick == nick.encode('utf-8'):
@@ -120,5 +99,9 @@ class Room(object):
         return None
 
     def set_color_state(self, color):
+        """
+        Set the color that will be used to display the room's
+        number in the RoomInfo window
+        """
         if self.color_state < color or color == 11:
             self.color_state = color
