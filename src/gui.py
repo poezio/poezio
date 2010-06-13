@@ -388,12 +388,29 @@ class Gui(object):
                         self.add_message_to_room(room, _('%s has left the room') % (from_nick))
                 # status change
                 else:
-                    user.update(affiliation, show, status, role)
                     hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
-                    if hide_status_change == -1 or \
+                    if (hide_status_change == -1 or \
                             user.has_talked_since(hide_status_change) or\
-                            user.nick == room.own_nick:
-                        self.add_message_to_room(room, _('%(nick)s changed his/her status : %(a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+                            user.nick == room.own_nick)\
+                            and\
+                            (affiliation != user.affiliation or\
+                                role != user.role or\
+                                show != user.show or\
+                                status != user.status):
+                        msg = _('%s changed his/her status: ')% from_nick
+                        if affiliation != user.affiliation:
+                            msg += _('affiliation: %s,') % affiliation
+                        if role != user.role:
+                            msg += _('role: %s,') % role
+                        if show != user.show:
+                            msg += _('show: %s,') % show
+                        if status != user.status:
+                            msg += _('status: %s,') % status
+                        # (a)s, %(b)s, %(c)s, %(d)s') % {'nick':from_nick, 'a':affiliation, 'b':role, 'c':show, 'd':status})
+                        user.update(affiliation, show, status, role)
+                        msg = msg[:-1] # remove the last ","
+                        self.add_message_to_room(room, msg)
+
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
         self.window.input.refresh()
