@@ -20,15 +20,13 @@
 """
 Starting point of poezio. Launches both the Connection and Gui
 """
-
 import sys
 
-# import locale
-# locale.setlocale(locale.LC_ALL, '')
-
 # disable any printout (this would mess the display)
-# sys.stdout = open('/dev/null', 'w')
-sys.stderr = open('errors', 'w')
+if len(sys.argv) == 2:
+    sys.stderr = open('errors', 'a')
+else:
+    sys.stderr = open('/dev/null', 'a')
 
 from connection import Connection
 from multiuserchat import MultiUserChat

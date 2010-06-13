@@ -23,18 +23,6 @@ from os.path import isfile
 
 from time import sleep
 
-# if isfile('../locale/poezio.pot'):
-#     localedir = '../locale'
-# else:
-#     localedir = '/usr/share/locale'
-
-# bindtextdomain('poezio', localedir)
-# textdomain('poezio')
-# bind_textdomain_codeset('poezio', 'utf-8')
-
-# import locale
-# locale.setlocale(locale.LC_ALL, '')
-
 import sys
 
 import curses
@@ -51,9 +39,7 @@ from message import Message
 
 from connection import is_jid_the_same
 
-from common import debug
 def doupdate():
-    debug("doupdate")
     curses.doupdate()
 
 class Gui(object):
@@ -64,8 +50,6 @@ class Gui(object):
         self.init_curses(stdscr)
         self.stdscr = stdscr
         self.window = Window(stdscr)
-        # self.window.new_room(self.current_room())
-        # self.window.refresh(self.rooms)
         self.rooms = [Room('Info', '', self.window)]
         self.ignores = {}
 
@@ -131,14 +115,11 @@ class Gui(object):
         main loop waiting for the user to press a key
         """
         while 1:
-            # stdscr.leaveok(1)
             doupdate()
             try:
                 key = stdscr.getkey()
             except:
                 continue
-            from common import debug
-            # debug(str(key))
             if str(key) in self.key_func.keys():
                 self.key_func[key]()
             elif str(key) == 'KEY_RESIZE':
@@ -416,8 +397,6 @@ class Gui(object):
                         # also change our nick in all private discussion of this room
                         for _room in self.rooms:
                             if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
-                                debug(_room.jid)
-                                debug(room.name)
                                 _room.own_nick = stanza.getNick()
                     user.change_nick(stanza.getNick())
                     self.add_message_to_room(room, _('%(old)s is now known as %(new)s') % {'old':from_nick, 'new':stanza.getNick()})
@@ -485,7 +464,6 @@ class Gui(object):
                         # display the message in the room
                         self.add_message_to_room(room, msg)
                     private_room = self.get_room_by_name(stanza.getFrom())
-                    # debug('status change: ' + stanza.getFrom()+'\n')
                     if private_room: # display the message in private
                         self.add_message_to_room(private_room, msg)
                     # finally, effectively change the user status
@@ -788,6 +766,9 @@ class Gui(object):
         self.window.refresh(self.rooms)
 
     def command_query(self, args):
+        """
+        /query
+        """
         if len(args) != 1:
             return
         nick = args[0]

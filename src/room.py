@@ -46,8 +46,6 @@ class Room(object):
         if len(self.messages) <= y:
             return
         self.pos += 14
-        from common import debug
-        debug(str(y_x))
         if self.pos + y >= len(self.messages):
             self.pos = len(self.messages) - y+3
 

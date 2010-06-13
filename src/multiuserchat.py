@@ -23,8 +23,7 @@ import xmpp
 import common
 import threading
 
-from time import (altzone, daylight, gmtime, localtime, mktime, strftime,
-        time as time_time, timezone, tzname)
+from time import (altzone, gmtime, localtime, strftime, timezone)
 
 from handler import Handler
 from config import config
@@ -99,8 +98,6 @@ class VcardSender(threading.Thread):
                         iq3.addChild(k).setData(j[k])
             else:
                 iq2.addChild(i).setData(vcard[i])
-        # id_ = self.connect.getAnId()
-        # iq.setID(id_)
         self.connection.send(iq)
         iq = xmpp.Iq(typ = 'set')
         iq2 = iq.setTag(xmpp.NS_VCARD_UPDATE)
@@ -150,7 +147,6 @@ class MultiUserChat(object):
         self.connection.send(mes)
 
     def send_private_message(self, user_jid, message):
-        from common import debug
         mes = Message(to=user_jid)
         mes.setBody(message)
         mes.setType('chat')
@@ -216,8 +212,6 @@ class MultiUserChat(object):
                                       room=from_,
                                       code=code,
                                       msg=msg)
-
-
 
     def on_presence(self, presence):
         """Receive a MUC presence notification"""

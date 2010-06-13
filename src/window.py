@@ -22,22 +22,11 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 from os.path import isfile
 
-# if isfile('../locale/poezio.pot'):
-#     localedir = '../locale'
-# else:
-#     localedir = '/usr/share/locale'
-
-# bindtextdomain('poezio', localedir)
-# textdomain('poezio')
-# bind_textdomain_codeset('poezio', 'utf-8')
-
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
 import curses
 from config import config
-
-from common import debug
 
 from message import Line
 
@@ -60,7 +49,6 @@ class Win(object):
             pass
         self.win.idlok(1)
         self.win.leaveok(1)
-        # self.win.syncok(0)
 
     def refresh(self):
         self.win.noutrefresh()
@@ -238,7 +226,6 @@ class TextWin(Win):
         Build the Line objects from the messages, and then write
         them in the text area
         """
-        from common import debug
         if not self.visible:
             return
         self.win.erase()
@@ -605,7 +592,6 @@ class Window(object):
         'room' is the current one
         """
         room = rooms[0]         # get current room
-        # self.text_win.redraw(room)
         self.text_win.refresh(room)
         self.user_win.refresh(room.users)
         self.topic_win.refresh(room.topic, room.jid)
@@ -615,6 +601,3 @@ class Window(object):
     def do_command(self, key):
         self.input.do_command(key)
         self.input.refresh()
-
-    # def new_room(self, room):
-    #     self.text_win.new_win(room.name)

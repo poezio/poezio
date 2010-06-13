@@ -33,7 +33,6 @@
 """
 various useful functions
 """
-
 import base64
 import os
 import mimetypes
@@ -60,8 +59,8 @@ def exception_handler(type_, value, trace):
     on any traceback: exit ncurses and print the traceback
     then exit the program
     """
-    curses.echo()
     curses.endwin()
+    curses.echo()
     traceback.print_exception(type_, value, trace, None, sys.stderr)
     sys.exit(2)
 
