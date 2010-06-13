@@ -196,7 +196,9 @@ class TextWin(Win):
                          txt[:limit], message.color,
                          offset)
                 lines.append(l)
-                txt = txt[limit+1:]
+                txt = txt[limit:]
+                if txt.startswith('\n'):
+                    txt = txt[1:]
                 first = False
         return lines[-len(messages):]# return only the needed number of lines
 

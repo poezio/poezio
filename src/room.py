@@ -90,7 +90,7 @@ class Room(object):
                 for word in highlight_words:
                     if word.lower() in txt.lower() and word != '':
                         self.set_color_state(13)
-                        color = 3
+                        color = 2
                         break
         self.messages.append(Message(txt, time, nickname, user, color))
 
