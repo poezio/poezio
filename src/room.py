@@ -64,6 +64,8 @@ class Room(object):
         when we receive an history message said by someone who is not
         in the room anymore
         """
+        if time == None and self.joined:        # don't log the history messages
+            logger.message(self.name, nickname, txt)
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())

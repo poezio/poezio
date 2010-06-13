@@ -68,7 +68,10 @@ class Logger(object):
             makedirs(dir)
         except:pass
         fd = open(dir+room, 'a')
-        fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
+        if nick:
+            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick.encode('utf-8')+': '+msg.encode('utf-8')+'\n')
+        else:
+            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg.encode('utf-8')+'\n')
         fd.close()
 
 logger = Logger()
