@@ -140,7 +140,8 @@ class MultiUserChat(object):
             else:
                 nick = config.get('default_nick', 'poezio')
             self.handler.emit('join-room', room=roomname, nick=nick)
-        self.vcard_sender.start()
+        if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
+            self.vcard_sender.start()   # because the user ALREADY has one on the server
 
     def send_message(self, room, message):
         mes = Message(to=room)

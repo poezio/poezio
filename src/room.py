@@ -65,6 +65,8 @@ class Room(object):
         in the room anymore
         """
         user = self.get_user_by_name(nickname) if nickname is not None else None
+        if user:
+            user.set_last_talked(datetime.now())
         time = time if time is not None else datetime.now()
         color = None
         if nickname is not None:

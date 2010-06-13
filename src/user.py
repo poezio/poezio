@@ -52,10 +52,14 @@ class User(object):
         Return True if the user talked since the last s seconds
         """
         from common import debug
+        debug('anus===========\n')
         if self.last_talked is None:
+            debug('return False1\n')
             return False
         delta = timedelta(0, t)
         debug("Last talk: %s\nDelai:%s\nDelta:%s\n" % (str(self.last_talked), str(t), str(delta)))
         if datetime.now() - delta > self.last_talked:
+            debug('return False2\n')
             return False
+        debug('return True')
         return True
