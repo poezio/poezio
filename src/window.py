@@ -252,9 +252,6 @@ class TextWin(Win):
         """
         Write the date on the yth line of the window
         """
-        # debug(str(self.win.getmaxyx()))
-        # debug(str(y))
-        # debug('___________________')
         self.win.addnstr('['+time.strftime("%H"), 3)
         self.win.attron(curses.color_pair(9))
         self.win.addnstr(':', 1)
@@ -274,6 +271,7 @@ class Input(Win):
     """
     def __init__(self, height, width, y, x, stdscr, visible):
         Win.__init__(self, height, width, y, x, stdscr)
+        curses.curs_set(1)
         self.win.leaveok(0)
         self.visible = visible
         self.history = []
