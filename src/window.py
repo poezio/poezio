@@ -52,9 +52,6 @@ class UserList(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         Win.__init__(self, height, width, y, x, parent_win)
         self.visible = visible
-        self.win.attron(curses.color_pair(2))
-        # self.win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self.win.attroff(curses.color_pair(2))
         self.color_role = {'moderator': 2,
                            'participant':3,
                            'visitor':4
@@ -157,19 +154,8 @@ class RoomInfo(Win):
 
 class TextWin(Win):
     """
-    # keep a dict of {winname: window}
-    # when a new message is received in a room, just add
-    # the line at the bottom (and scroll if needed)
-    # when the current room is changed, just refresh the
-    # associated window
-    # When the term is resized, rebuild ALL the windows
-    # (the complete lines lists are keeped in the Room class)
-    Nope, don't do that anymore.
-    Weechat is doing it the easy way, and it's working, there's no
-    reason poezio can't do it (it's python, but that shouldn't change
-    anything)
     Just keep ONE single window for the text area and rewrite EVERYTHING
-    on each change.
+    on each change. (thanks weechat :o)
     """
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
@@ -202,8 +188,9 @@ class TextWin(Win):
                     limit = txt[:self.width-offset].find('\n')
                 else:
                     limit = self.width-offset-1
-                if limit == 0:
-                    break
+                # if limit == 0:
+                #     txt = txt[1:]
+                #     continue
                 color = message.user.color if message.user else None
                 if not first:
                     nick = None
@@ -212,6 +199,8 @@ class TextWin(Win):
                          txt[:limit], message.color,
                          offset)
                 lines.append(l)
+                if limit == 0:
+                    limit = 1
                 txt = txt[limit:]
                 first = False
         return lines[-len(messages):]# return only the needed number of lines
