@@ -188,9 +188,6 @@ class TextWin(Win):
                     limit = txt[:self.width-offset].find('\n')
                 else:
                     limit = self.width-offset-1
-                # if limit == 0:
-                #     txt = txt[1:]
-                #     continue
                 color = message.user.color if message.user else None
                 if not first:
                     nick = None
@@ -199,9 +196,7 @@ class TextWin(Win):
                          txt[:limit], message.color,
                          offset)
                 lines.append(l)
-                if limit == 0:
-                    limit = 1
-                txt = txt[limit:]
+                txt = txt[limit+1:]
                 first = False
         return lines[-len(messages):]# return only the needed number of lines
 
