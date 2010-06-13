@@ -2,7 +2,10 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
-* Poezio 0.6 - dev
+* Poezio 0.6.1 - 13 Jun 2010
+- Enable tracebacks
+
+* Poezio 0.6 - 13 Jun 2010
 - Private messages are handled
 - Muc error messages are displayed
 - Nickname auto-completion

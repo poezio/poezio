@@ -308,7 +308,7 @@ class MultiUserChat(object):
         qp = iq_obj.getTag('query')
         if config.get('send_poezio_info', 'true') == 'true':
             qp.setTagData('name', 'Poezio')
-            qp.setTagData('version', '0.6')
+            qp.setTagData('version', '0.6.1')
         else:
             qp.setTagData('name', 'Unknown')
             qp.setTagData('version', 'Unknown')
