@@ -358,8 +358,6 @@ class Gui(object):
         Display the presence on the room window and update the
         presence information of the concerned user
         """
-        if len(sys.argv) > 1:
-            self.information(str(stanza))
         from_nick = stanza.getFrom().getResource()
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
@@ -785,7 +783,7 @@ class Gui(object):
         """
         room = self.current_room()
         if len(args) == 0:
-            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic)
+            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic.decode('utf-8'))
         subject = ' '.join(args)
         if not room.joined or room.name == "Info":
             return
