@@ -20,10 +20,16 @@
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
+from os.path import isfile
 
-bindtextdomain('poezio')
-textdomain('poezio')
-bind_textdomain_codeset('poezio', 'utf-8')
+# if isfile('../locale/poezio.pot'):
+#     localedir = '../locale'
+# else:
+#     localedir = '/usr/share/locale'
+
+# bindtextdomain('poezio', localedir)
+# textdomain('poezio')
+# bind_textdomain_codeset('poezio', 'utf-8')
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
@@ -167,7 +173,7 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8') , curses.color_pair(1))
+            self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(1))
         except:
             pass
         while True:

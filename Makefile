@@ -42,5 +42,12 @@ uninstall:
 		rm -f $$gettextfile; \
 	done
 
+mo:
+	for localename in `find locale/ -maxdepth 1 -type d | grep -v '.svn' | sed 's:locale/::g'` ; do \
+		if [ -d locale/$$localename ]; then \
+			msgfmt locale/$$localename/LC_MESSAGES/poezio.po -o locale/$$localename/LC_MESSAGES/poezio.mo -v; \
+		fi \
+	done
+
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot

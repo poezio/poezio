@@ -23,13 +23,16 @@ Defines the Connection class
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
+# from os.path import isfile
 
+# if isfile('../locale/poezio.pot'):
+#     localedir = '../locale'
+# else:
+#     localedir = '/usr/share/locale'
 
-bindtextdomain('poezio')
-textdomain('poezio')
-bind_textdomain_codeset('poezio', 'utf-8')
-import locale
-locale.setlocale(locale.LC_ALL, '')
+# bindtextdomain('poezio', localedir)
+# textdomain('poezio')
+# bind_textdomain_codeset('poezio', 'utf-8')
 
 import sys
 

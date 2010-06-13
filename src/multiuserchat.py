@@ -179,6 +179,16 @@ class MultiUserChat(object):
             pres.setStatus(msg)
         self.connection.send(pres)
 
+    def disconnect(self, rooms, msg):
+        """
+        """
+        for room in rooms:
+            if room.jid is None and room.joined:
+                pres = Presence(to='%s' % room.name,
+                                typ='unavailable')
+                pres.setStatus(msg)
+                self.connection.send(pres)
+
     def on_disconnect(self):
         """Called at disconnection"""
         for room in self.rooms:

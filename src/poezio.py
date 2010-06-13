@@ -23,6 +23,9 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import sys
 
+# import locale
+# locale.setlocale(locale.LC_ALL, '')
+
 # disable any printout (this would mess the display)
 # sys.stdout = open('/dev/null', 'w')
 sys.stderr = open('errors', 'w')

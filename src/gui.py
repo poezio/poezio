@@ -19,13 +19,22 @@
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
+from os.path import isfile
 
-bindtextdomain('poezio')
-textdomain('poezio')
-bind_textdomain_codeset('poezio', 'utf-8')
+from time import sleep
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
+# if isfile('../locale/poezio.pot'):
+#     localedir = '../locale'
+# else:
+#     localedir = '/usr/share/locale'
+
+# bindtextdomain('poezio', localedir)
+# textdomain('poezio')
+# bind_textdomain_codeset('poezio', 'utf-8')
+
+# import locale
+# locale.setlocale(locale.LC_ALL, '')
+
 import sys
 
 import curses
@@ -824,5 +833,12 @@ class Gui(object):
         """
         /quit
         """
+        if len(args):
+            msg = ' '.join(args)
+        else:
+            msg = None
+        if msg:
+            self.muc.disconnect(self.rooms, msg)
+            sleep(0.2)          # :(
 	self.reset_curses()
         sys.exit()
