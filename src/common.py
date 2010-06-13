@@ -33,13 +33,13 @@
 """
 various useful functions
 """
+
 import base64
 import os
 import mimetypes
 import hashlib
 import subprocess
 import curses
-import traceback
 import sys
 import select
 import errno
@@ -53,16 +53,6 @@ def debug(string):
     fdes = open("debug", 'a')
     fdes.write(string)
     fdes.close()
-
-def exception_handler(type_, value, trace):
-    """
-    on any traceback: exit ncurses and print the traceback
-    then exit the program
-    """
-    curses.endwin()
-    curses.echo()
-    traceback.print_exception(type_, value, trace, None, sys.stderr)
-    sys.exit(2)
 
 def get_base64_from_file(path):
     """

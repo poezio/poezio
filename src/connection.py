@@ -30,7 +30,6 @@ import xmpp
 from config import config
 from logging import logger
 from handler import Handler
-from common import exception_handler
 import threading
 
 class Connection(threading.Thread):
@@ -57,7 +56,6 @@ class Connection(threading.Thread):
         run in a thread
         connect to server
         """
-        sys.excepthook = exception_handler
         if not self.connect_to_server(self.server, self.port):
             self.handler.emit('error', msg='Could not connect to server')
             sys.exit(-1)
