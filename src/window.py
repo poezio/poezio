@@ -70,11 +70,19 @@ class UserList(Win):
 
     def refresh(self, users):
         def compare_user(a, b):
-            if self.color_role[a.role] == self.color_role[b.role]:
+            try:
+                arole = self.color_role[a.role]
+            except KeyError:
+                arole = 1
+            try:
+                brole = self.color_role[b.role]
+            except KeyError:
+                brole = 1
+            if arole == brole:
                 if a.nick.lower() < b.nick.lower():
                     return -1
                 return 1
-            return self.color_role[a.role] - self.color_role[b.role]
+            return arole - brole
         if not self.visible:
             return
         self.win.erase()

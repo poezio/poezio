@@ -422,7 +422,7 @@ class Gui(object):
                         if by:
                             self.add_message_to_room(room,  _("You have been kicked by %(by)s. Reason: %(reason)s") % {'by':by, 'reason':reason})
                         else:
-                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason))
+                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason.encode('utf-8')))
                     else:
                         if by:
                             self.add_message_to_room(room, _("%(nick)s has been kicked by %(by)s. Reason: %(reason)s") % {'nick':from_nick, 'by':by, 'reason':reason})
