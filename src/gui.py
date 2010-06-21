@@ -250,11 +250,11 @@ class Gui(object):
 
     def scroll_page_down(self, args=None):
         self.current_room().scroll_down()
-        self.window.text_win.refresh(self.current_room())
+        self.window.refresh(self.rooms)
 
     def scroll_page_up(self, args=None):
         self.current_room().scroll_up(self.window.size)
-        self.window.text_win.refresh(self.current_room())
+        self.window.refresh(self.rooms)
 
     def room_error(self, room, error, msg):
         """
@@ -273,6 +273,7 @@ class Gui(object):
                                    {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
             room.add(_('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+        self.window.refresh(self.rooms)
 
     def private_message(self, stanza):
         """
@@ -350,7 +351,7 @@ class Gui(object):
             else:
                 date = date if delayed == True else None
                 self.add_message_to_room(room, body, date, nick_from)
-        self.window.input.refresh()
+        self.window.refresh(self.rooms)
         doupdate()
 
     def room_presence(self, stanza):
@@ -469,7 +470,6 @@ class Gui(object):
             if room == self.current_room():
                 self.window.user_win.refresh(room.users)
         self.window.input.refresh()
-        self.window.info_win.refresh(self.rooms, self.current_room())
         doupdate()
 
     def add_message_to_room(self, room, txt, time=None, nickname=None):
@@ -482,6 +482,7 @@ class Gui(object):
             self.window.text_win.refresh(room)
         else:
             self.window.info_win.refresh(self.rooms, self.current_room())
+        self.window.input.refresh()
 
     def execute(self):
         """
@@ -594,6 +595,9 @@ class Gui(object):
                     nick = r.own_nick
             else:
                 room = info[0]
+            # if len(room.split('@')) == 1: # no server is provided, like "/join hello"
+            #     serv = self.current_room().name.split('/')[0]
+            #     room += '@' + self.current_room.
             r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
@@ -807,6 +811,7 @@ class Gui(object):
         """
         room = self.get_room_by_name("Info")
         self.add_message_to_room(room, msg)
+        self.window.input.refresh()
 
     def command_quit(self, args):
         """

@@ -577,7 +577,7 @@ class Window(object):
 
     def resize(self, stdscr):
         """
-        Resize the whole tabe. i.e. all its sub-windows
+        Resize the whole window. i.e. all its sub-windows
         """
         self.size = (self.height, self.width) = stdscr.getmaxyx()
         if self.height < 10 or self.width < 50:
