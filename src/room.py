@@ -68,16 +68,15 @@ class Room(object):
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
-        time = time if time is not None else datetime.now()
         color = None
-        if nickname is not None:
+        if not time and nickname is not None:
             if not self.jid:
                 self.set_color_state(12)
             else:
                 self.set_color_state(15)
         else:
             color = 8
-        if nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
+        if not time and nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
             try:
                 if self.own_nick.encode('utf-8') in txt:
                     self.set_color_state(13)
@@ -96,6 +95,7 @@ class Room(object):
                         self.set_color_state(13)
                         color = 2
                         break
+        time = time if time is not None else datetime.now()
         self.messages.append(Message(txt, time, nickname, user, color))
 
     def get_user_by_name(self, nick):

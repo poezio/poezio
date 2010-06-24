@@ -43,7 +43,7 @@ class Message(object):
 class Line(object):
     """
     A line, corresponding to ONE row of the text area.
-    A message is composed of ONE line or more.
+    A message is composed of ONE line or MORE.
     Example:
 
   Text area limit                                     text area limit

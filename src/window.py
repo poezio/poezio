@@ -332,7 +332,7 @@ class Input(Win):
         if not len(self.history):
             return
         self.reset_completion()
-        self.win.clear()
+        self.win.erase()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
         self.text = self.history[self.histo_pos+1]
@@ -347,7 +347,7 @@ class Input(Win):
         if not len(self.history):
             return
         self.reset_completion()
-        self.win.clear()
+        self.win.erase()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
             self.text = self.history[self.histo_pos]
