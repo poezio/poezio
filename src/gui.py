@@ -24,6 +24,7 @@ from os.path import isfile
 from time import sleep
 
 import sys
+import os
 
 import curses
 from datetime import datetime
@@ -584,7 +585,10 @@ class Gui(object):
         else:
             info = args[0].split('/')
             if len(info) == 1:
-                nick = config.get('default_nick', 'Poezio')
+                default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+                nick = config.get('default_nick', '')
+                if nick == '':
+                    nick = default
             else:
                 nick = info[1]
             if info[0] == '':   # happens with /join /nickname, which is OK

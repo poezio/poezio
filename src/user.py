@@ -29,7 +29,7 @@ class User(object):
         self.last_talked = None
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.color = randrange(2, 10)
+        self.color = randrange(2, 10) # assign a random color
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation
@@ -48,7 +48,7 @@ class User(object):
 
     def has_talked_since(self, t):
         """
-        get a int
+        t: int
         Return True if the user talked since the last s seconds
         """
         if self.last_talked is None:

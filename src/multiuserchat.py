@@ -22,6 +22,7 @@ from xmpp.protocol import Presence, Iq, Message, JID
 import xmpp
 import common
 import threading
+import os
 
 from time import (altzone, gmtime, localtime, strftime, timezone)
 
@@ -135,7 +136,10 @@ class MultiUserChat(object):
             if len(args) == 2:
                 nick = args[1]
             else:
-                nick = config.get('default_nick', 'poezio')
+                default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+                nick = config.get('default_nick', '')
+                if nick == '':
+                    nick = default
             self.handler.emit('join-room', room=roomname, nick=nick)
         if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
             self.vcard_sender.start()   # because the user ALREADY has one on the server
