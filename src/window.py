@@ -210,11 +210,21 @@ class TextWin(Win):
             if nick:
                 offset += len(nick) + 2 # + nick + spaces length
             first = True
+            this_line_was_broken_by_space = False
             while txt != '':
                 if txt[:self.width-offset].find('\n') != -1:
                     limit = txt[:self.width-offset].find('\n')
                 else:
-                    limit = self.width-offset-1
+                    # break between words if possible
+                    if len(txt) >= self.width:
+                        limit = txt[:self.width-offset-1].rfind(' ')
+                        this_line_was_broken_by_space = True
+                        if limit <= 0:
+                            limit = self.width-offset-1
+                            this_line_was_broken_by_space = False
+                    else:
+                        limit = self.width-offset-1
+                        this_line_was_broken_by_space = False
                 color = message.user.color if message.user else None
                 if not first:
                     nick = None
@@ -223,7 +233,10 @@ class TextWin(Win):
                          txt[:limit], message.color,
                          offset)
                 lines.append(l)
-                txt = txt[limit:]
+                if this_line_was_broken_by_space:
+                    txt = txt[limit+1:] # jump the space at the start of the line
+                else:
+                    txt = txt[limit:]
                 if txt.startswith('\n'):
                     txt = txt[1:]
                 first = False
