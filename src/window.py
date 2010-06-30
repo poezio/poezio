@@ -216,8 +216,8 @@ class TextWin(Win):
                     limit = txt[:self.width-offset].find('\n')
                 else:
                     # break between words if possible
-                    if len(txt) >= self.width:
-                        limit = txt[:self.width-offset-1].rfind(' ')
+                    if len(txt) >= self.width-offset:
+                        limit = txt[:self.width-offset].rfind(' ')
                         this_line_was_broken_by_space = True
                         if limit <= 0:
                             limit = self.width-offset-1
