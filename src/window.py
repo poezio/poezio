@@ -170,6 +170,10 @@ class RoomInfo(Win):
         try:
             self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(1))
         except:
+            try:
+                self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(1))
+            except:
+                pass
             pass
         while True:
             try:
@@ -201,6 +205,8 @@ class TextWin(Win):
         lines = []
         for message in messages:
             txt = message.txt
+            if not txt:
+                continue
             offset = 11         # length of the time
             if message.nickname and len(message.nickname) >= 30:
                 nick = message.nickname[:30]+u'…'
