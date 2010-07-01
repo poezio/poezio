@@ -22,10 +22,10 @@ from os import environ, makedirs
 from datetime import datetime
 from config import config
 
-CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
-if not CONFIG_HOME:
-    CONFIG_HOME = environ.get('HOME')+'/.config'
-CONFIG_PATH = CONFIG_HOME + '/poezio/'
+DATA_HOME = config.get('log_dir', environ.get("XDG_DATA_HOME"))
+if not DATA_HOME:
+    DATA_HOME = environ.get('HOME')+'/.local/share'
+DATA_PATH = DATA_HOME + '/poezio/'
 
 class Logger(object):
     """
@@ -63,11 +63,15 @@ class Logger(object):
         """
         if config.get('use_log', 'false') == 'false':
             return
-        dir = CONFIG_PATH+'logs/'
+        dir = DATA_PATH+'logs/'
         try:
             makedirs(dir)
-        except:pass
-        fd = open(dir+room, 'a')
+        except OSError:
+            pass
+        try:
+            fd = open(dir+room, 'a')
+        except IOError:
+            return
         if nick:
             fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick.encode('utf-8')+': '+msg.encode('utf-8')+'\n')
         else:

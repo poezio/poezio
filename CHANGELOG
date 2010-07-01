@@ -8,6 +8,7 @@ http://codingteam.net/project/poezio/roadmap
 - default nickname is now $USER
 - Server on /join command can be omitted
 - /query command can now take a message in parameters
+- logs are now save in $XDG_DATA_HOME and this can be configured
 
 * Poezio 0.6.1 - 13 Jun 2010
 - Enable tracebacks
