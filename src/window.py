@@ -168,7 +168,7 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(1))
+            self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(1))
         except:
             pass
         while True:
@@ -308,6 +308,7 @@ class TextWin(Win):
 
 class Input(Win):
     """
+    The line where text is entered
     """
     def __init__(self, height, width, y, x, stdscr, visible):
         Win.__init__(self, height, width, y, x, stdscr)
@@ -380,7 +381,7 @@ class Input(Win):
         if len(self.text) >= self.width-1:
             txt = self.text[:self.width-1]
             self.clear_text()
-            self.win.addstr(txt)
+            self.win.addstr(txt.encode('utf-8'))
         self.win.move(0, 0)
         self.refresh()
 
@@ -390,7 +391,7 @@ class Input(Win):
         if len(self.text) >= self.width-1:
             txt = self.text[-(self.width-1):]
             self.clear_text()
-            self.win.addstr(txt)
+            self.win.addstr(txt.encode('utf-8'))
             self.win.move(0, self.width-1)
         else:
             self.win.move(0, len(self.text))
