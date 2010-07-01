@@ -80,7 +80,7 @@ class Gui(object):
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.")),
             'kick': (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.")),
             'topic': (self.command_topic, _("Usage: /topic <subject> \nTopic: Change the subject of the room")),
-            'query': (self.command_query, _('Usage: /query <nick>\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in.')),
+            'query': (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user')),
 
             'nick': (self.command_nick, _("Usage: /nick <nickname> \nNick: Change your nickname in the current room"))
             }
@@ -788,9 +788,9 @@ class Gui(object):
 
     def command_query(self, args):
         """
-        /query
+        /query <nick> [message]
         """
-        if len(args) != 1:
+        if len(args) < 1:
             return
         nick = args[0]
         room = self.current_room()
@@ -798,7 +798,11 @@ class Gui(object):
             return
         for user in room.users:
             if user.nick == nick:
-                self.open_private_window(room.name, user.nick)
+                r = self.open_private_window(room.name, user.nick)
+        if room and len(args) > 1:
+            msg = ' '.join(args[1:])
+            self.muc.send_private_message(r.name, msg)
+            self.add_message_to_room(r, msg.decode('utf-8'), None, r.own_nick)
 
     def command_topic(self, args):
         """
