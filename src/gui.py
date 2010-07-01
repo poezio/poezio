@@ -232,7 +232,16 @@ class Gui(object):
         """
         Called when Tab is pressed, complete the nickname in the input
         """
-        self.window.input.auto_completion(self.current_room().users)
+        def compare_users(a, b):
+            """
+            Used to sort users by their availability
+            """
+            if a.show == b.show:
+                return 0
+            if a.show is None:
+                return -1
+            return 1
+        self.window.input.auto_completion(sorted(self.current_room().users, compare_users))
 
     def rotate_rooms_right(self, args=None):
         """

@@ -57,3 +57,7 @@ class User(object):
         if datetime.now() - delta > self.last_talked:
             return False
         return True
+
+    def __repr__(self):
+        return "<user.User object nick:%s show:%s(%s) status:%s affiliation:%s>"\
+            % (self.nick, self.show, type(self.show), self.status, self.affiliation)

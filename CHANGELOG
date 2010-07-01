@@ -9,6 +9,7 @@ http://codingteam.net/project/poezio/roadmap
 - Server on /join command can be omitted
 - /query command can now take a message in parameters
 - logs are now save in $XDG_DATA_HOME and this can be configured
+- Available users now have a greater priority on nickname completion
 
 * Poezio 0.6.1 - 13 Jun 2010
 - Enable tracebacks
