@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 from os.path import isfile
@@ -100,7 +99,7 @@ class UserList(Win):
             self.win.addnstr(y, 0, " ", 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
-            self.win.addnstr(y, 1, user.nick, self.width-2)
+            self.win.addnstr(y, 1, user.nick, self.width-1)
             self.win.attroff(curses.color_pair(role_col))
             y += 1
             if y == self.height:

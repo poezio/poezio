@@ -2,6 +2,12 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
+* Poezio 0.6.2 - dev
+- Lines are now broken between words and not in the middle of them
+- /unquery command
+- default nickname is now $USER
+- Server on /join command can be omitted
+
 * Poezio 0.6.1 - 13 Jun 2010
 - Enable tracebacks
 

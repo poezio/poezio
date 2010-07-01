@@ -25,12 +25,13 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
 import sys
+import threading
 
 import xmpp
 from config import config
 from logging import logger
 from handler import Handler
-import threading
+from common import jid_get_node, jid_get_domain, is_jid_the_same
 
 class Connection(threading.Thread):
     """
@@ -194,20 +195,3 @@ class Connection(threading.Thread):
         if not connection:
             return
         self.handler.emit('send-time', iq_obj=iq)
-
-def jid_get_node(jid):
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getNode()
-
-def jid_get_domain(jid):
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getDomain()
-
-def is_jid_the_same(a, b):
-    if isinstance(a, basestring):
-        a = xmpp.JID(a)
-    if isinstance(b, basestring):
-        b = xmpp.JID(b)
-    return a.bareMatch(b)

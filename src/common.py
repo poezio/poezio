@@ -43,6 +43,7 @@ import curses
 import sys
 import select
 import errno
+import xmpp
 
 def debug(string):
     """
@@ -102,6 +103,57 @@ def is_in_path(command, return_abs_path=False):
             # If the user has non directories in his path
             pass
     return False
+
+def get_stripped_jid(jid):
+    """
+    Return the stripped JID (bare representation)
+    nick@server/resource -> nick@server
+    """
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getStripped()
+
+def is_jid(jid):
+    """
+    Return True if this is a valid JID
+    """
+    if xmpp.JID(jid).getNode() != '':
+        return True
+    return False
+
+def jid_get_node(jid):
+    """
+    nick@server/resource -> nick
+    """
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getNode()
+
+def jid_get_domain(jid):
+    """
+    nick@server/resource -> server
+    """
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getDomain()
+
+def jid_get_resource(jid):
+    """
+    nick@server/resource -> resource
+    """
+    if isinstance(jid, basestring):
+        jid = xmpp.JID(jid)
+    return jid.getResource()
+
+def is_jid_the_same(a, b):
+    """
+    Compare two bare jids
+    """
+    if isinstance(a, basestring):
+        a = xmpp.JID(a)
+    if isinstance(b, basestring):
+        b = xmpp.JID(b)
+    return a.bareMatch(b)
 
 DISTRO_INFO = {
         'Arch Linux': '/etc/arch-release',

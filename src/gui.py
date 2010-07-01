@@ -38,7 +38,7 @@ from user import User
 from room import Room
 from message import Message
 
-from connection import is_jid_the_same
+from common import is_jid_the_same, jid_get_domain, is_jid
 
 def doupdate():
     curses.doupdate()
@@ -600,13 +600,18 @@ class Gui(object):
                     nick = r.own_nick
             else:
                 room = info[0]
-            # if len(room.split('@')) == 1: # no server is provided, like "/join hello"
-            #     serv = self.current_room().name.split('/')[0]
-            #     room += '@' + self.current_room.
+            if not is_jid(room): # no server is provided, like "/join hello"
+                # use the server of the current room if available
+                # check if the current room's name has a server
+                if is_jid(self.current_room().name):
+                    room += '@%s' % jid_get_domain(self.current_room().name)
+                else:           # no server could be found, print a message and return
+                    self.information(_("You didn't specify a server for the room you want to join"))
+                    return
             r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
-        if r and r.joined:                   # if we are already in the room
+        if r and r.joined:       # if we are already in the room
             self.information(_("already in room [%s]") % room)
             return
         self.muc.join_room(room, nick, password)

@@ -29,16 +29,8 @@ from time import (altzone, gmtime, localtime, strftime, timezone)
 from handler import Handler
 from config import config
 
-def get_stripped_jid(jid):
-    """Return the stripped JID (bare representation)"""
-    if isinstance(jid, basestring):
-        jid = JID(jid)
-    return jid.getStripped()
-
-def is_jid(jid):
-    """Return True if this is a valid JID"""
-    if JID(jid).getNode() != '':
-        return True
+from common import get_stripped_jid
+from common import is_jid
 
 class VcardSender(threading.Thread):
     """
