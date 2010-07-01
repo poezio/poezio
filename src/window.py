@@ -464,11 +464,11 @@ class Input(Win):
                 return
             self.last_key_tab = True
             self.hit_list = hit_list
-            end = len(begin)
+            end = len(begin.decode('utf-8'))
         else:
             begin = self.text[:-len(after)].split()[-1].encode('utf-8').lower()
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
-            end = len(begin) + len(after)
+            end = len(begin.decode('utf-8')) + len(after)
         x -= end
         try:
             self.win.move(y, x)
@@ -517,11 +517,11 @@ class Input(Win):
                         break
             if end:
                 nick = nick[:-1]
-        x -= len(begin)
+        x -= len(begin.decode('utf-8'))
         self.win.move(y, x)
         # remove begin from the line
         self.win.clrtoeol()
-        self.text = self.text[:-len(begin)]
+        self.text = self.text[:-len(begin.decode('utf-8'))]
         self.text += nick.decode('utf-8')
         self.pos = len(self.text)
         self.win.addstr(nick)
