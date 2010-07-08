@@ -326,6 +326,7 @@ class Input(Win):
         self.visible = visible
         self.history = []
         self.text = u''
+        self.clipboard = None
         self.pos = 0            # cursor position
         self.line_pos = 0 # position (in self.text) of
         # the first char to display on the screen
@@ -341,6 +342,76 @@ class Input(Win):
         self.win.leaveok(0)
         self.win.clear()
         self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
+
+    def jump_word_left(self):
+        """
+        Move the cursor one word to the left
+        """
+        if not len(self.text) or self.pos == 0:
+            return
+        previous_space = self.text[:self.pos+self.line_pos].rfind(' ')
+        if previous_space == -1:
+            previous_space = 0
+        diff = self.pos+self.line_pos-previous_space
+        for i in xrange(diff):
+            self.key_left()
+
+    def jump_word_right(self):
+        """
+        Move the cursor one word to the right
+        """
+        if len(self.text) == self.pos+self.line_pos or not len(self.text):
+            return
+        next_space = self.text.find(' ', self.pos+self.line_pos+1)
+        if next_space == -1:
+            next_space = len(self.text)
+        diff = next_space - (self.pos+self.line_pos)
+        for i in xrange(diff):
+            self.key_right()
+
+    def delete_word(self):
+        """
+        Delete the word just before the cursor
+        """
+        if not len(self.text) or self.pos == 0:
+            return
+        previous_space = self.text[:self.pos+self.line_pos].rfind(' ')
+        if previous_space == -1:
+            previous_space = 0
+        diff = self.pos+self.line_pos-previous_space
+        for i in xrange(diff):
+            self.key_backspace(False)
+        self.rewrite_text()
+
+    def delete_end_of_line(self):
+        """
+        Cut the text from cursor to the end of line
+        """
+        if len(self.text) == self.pos+self.line_pos:
+            return              # nothing to cut
+        self.clipboard = self.text[self.pos+self.line_pos:]
+        self.text = self.text[:self.pos+self.line_pos]
+        self.key_end()
+
+    def delete_begining_of_line(self):
+        """
+        Cut the text from cursor to the begining of line
+        """
+        if self.pos+self.line_pos == 0:
+            return
+        self.clipboard = self.text[:self.pos+self.line_pos]
+        self.text = self.text[self.pos+self.line_pos:]
+        self.key_home()
+
+    def paste_clipboard(self):
+        """
+        Insert what is in the clipboard at the cursor position
+        """
+        if not self.clipboard or len(self.clipboard) == 0:
+            return
+        for letter in self.clipboard:
+            self.do_command(letter)
+        # self.do_command(self.clipboard[-1])
 
     def key_dc(self):
         """
@@ -432,7 +503,7 @@ class Input(Win):
             self.pos += 1
         self.rewrite_text()
 
-    def key_backspace(self):
+    def key_backspace(self, reset=True):
         """
         Delete the char just before the cursor
         """
@@ -442,7 +513,8 @@ class Input(Win):
             return
         self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
         self.key_left()
-        self.rewrite_text()
+        if reset:
+            self.rewrite_text()
 
     def auto_completion(self, user_list):
         """
@@ -535,10 +607,7 @@ class Input(Win):
         self.text += nick.decode('utf-8')
         self.key_end(False)
 
-    def do_command(self, key):
-        from common import debug
-
-        debug("%s\n" % (len(self.text)))
+    def do_command(self, key, reset=True):
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key.decode('utf-8')+self.text[self.pos+self.line_pos:]
         (y, x) = self.win.getyx()
@@ -546,7 +615,8 @@ class Input(Win):
             self.line_pos += 1
         else:
             self.pos += 1
-        self.rewrite_text()
+        if reset:
+            self.rewrite_text()
 
     def get_text(self):
         """

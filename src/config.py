@@ -124,5 +124,5 @@ except OSError:
 parser = argparse.ArgumentParser(prog="poezio", description='An XMPP ncurses client.')
 parser.add_argument('-f', '--file', default=CONFIG_PATH+'poezio.cfg', help='the config file you want to use', metavar="FILE")
 args = parser.parse_args()
-
+print args.file
 config = Config(args.file)

@@ -37,7 +37,7 @@ from window import Window
 from user import User
 from room import Room
 from message import Message
-
+from keyboard import read_char
 from common import is_jid_the_same, jid_get_domain, is_jid
 
 def doupdate():
@@ -96,11 +96,25 @@ class Gui(object):
             "KEY_NPAGE": self.scroll_page_down,
             "KEY_DC": self.window.input.key_dc,
             "KEY_F(5)": self.rotate_rooms_left,
+            "^N": self.rotate_rooms_left,
             "KEY_F(6)": self.rotate_rooms_right,
-            "kLFT5": self.rotate_rooms_left,
-            "kRIT5": self.rotate_rooms_right,
+            "^P": self.rotate_rooms_right,
             "\t": self.auto_completion,
-            "KEY_BACKSPACE": self.window.input.key_backspace
+            "^I": self.auto_completion,
+            "KEY_RESIZE": self.window.resize,
+            "KEY_BACKSPACE": self.window.input.key_backspace,
+            '^J': self.execute,
+            '\n': self.execute,
+            '^D': self.window.input.key_dc,
+            '^W': self.window.input.delete_word,
+            '^K': self.window.input.delete_end_of_line,
+            '^U': self.window.input.delete_begining_of_line,
+            '^Y': self.window.input.paste_clipboard,
+            '^A': self.window.input.key_home,
+            '^E': self.window.input.key_end,
+            'M-f': self.window.input.jump_word_right,
+            '^X': self.go_to_important_room,
+            'M-b': self.window.input.jump_word_left
             }
 
         self.handler = Handler()
@@ -116,37 +130,16 @@ class Gui(object):
         """
         main loop waiting for the user to press a key
         """
-        while 1:
+        while True:
             doupdate()
-            try:
-                key = stdscr.getkey()
-            except:
-                continue
-            if str(key) in self.key_func.keys():
-                self.key_func[key]()
-            elif str(key) == 'KEY_RESIZE':
-                self.window.resize(stdscr)
-                self.window.refresh(self.rooms)
-            elif len(key) >= 4:
-                continue
-            elif ord(key) == 10:
-                self.execute()
-            elif ord(key) == 8 or ord(key) == 127:
-                self.window.input.key_backspace()
-            elif ord(key) < 32:
-                continue
+            char=read_char(stdscr)
+            # search for keyboard shortcut
+            if char in self.key_func.keys():
+                self.key_func[char]()
             else:
-                if ord(key) == 27 and ord(stdscr.getkey()) == 91:
-                    last = ord(stdscr.getkey()) # FIXME: ugly ugly workaround.
-                    if last == 51:
-                        self.window.input.key_dc()
-                    continue
-                elif ord(key) > 190 and ord(key) < 225:
-                    key = key+stdscr.getkey()
-                elif ord(key) == 226:
-                    key = key+stdscr.getkey()
-                    key = key+stdscr.getkey()
-                self.window.do_command(key)
+                # if len(char) > 1:
+                #     continue    # ignore non-handled keyboard shortcuts
+                self.window.do_command(char)
 
     def current_room(self):
         """
@@ -242,6 +235,25 @@ class Gui(object):
                 return -1
             return 1
         self.window.input.auto_completion(sorted(self.current_room().users, compare_users))
+
+    def go_to_important_room(self):
+        """
+        Go to the next room with activity, in this order:
+        - A personal conversation with a new message
+        - A Muc with an highlight
+        - A Muc with any new message
+        """
+        for room in self.rooms:
+            if room.color_state == 15:
+                self.command_win([room.nb])
+                return
+        for room in self.rooms:
+            if room.color_state == 13:
+                self.command_win([room.nb])
+                return
+        for room in self.rooms:
+            if room.color_state == 12:
+                self.command_win([room.nb])
 
     def rotate_rooms_right(self, args=None):
         """
@@ -562,6 +574,7 @@ class Gui(object):
                 self.window.refresh(self.rooms)
                 return
         self.window.refresh(self.rooms)
+        self.current_room().set_color_state(11)
 
     def command_kick(self, args):
         """
