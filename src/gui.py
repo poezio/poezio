@@ -434,11 +434,11 @@ class Gui(object):
                 elif kick:
                     room.users.remove(user)
                     try:
-                        reason = stanza.getReason().encode('utf-8')
+                        reason = stanza.getReason()
                     except:
                         reason = ''
                     try:
-                        by = stanza.getActor().encode('utf-8')
+                        by = stanza.getActor()
                     except:
                         by = None
                     if from_nick == room.own_nick: # we are kicked
@@ -446,7 +446,7 @@ class Gui(object):
                         if by:
                             self.add_message_to_room(room,  _("You have been kicked by %(by)s. Reason: %(reason)s") % {'by':by, 'reason':reason})
                         else:
-                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason.encode('utf-8')))
+                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason))
                     else:
                         if by:
                             self.add_message_to_room(room, _("%(nick)s has been kicked by %(by)s. Reason: %(reason)s") % {'nick':from_nick, 'by':by, 'reason':reason})
@@ -640,6 +640,7 @@ class Gui(object):
         if not r:   # if the room window exists, we don't recreate it.
             self.join_room(room, nick)
         else:
+            r.own_nick = nick
             # r.own_nick = nick
             r.users = []
 
