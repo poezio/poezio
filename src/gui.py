@@ -101,7 +101,7 @@ class Gui(object):
             "^P": self.rotate_rooms_right,
             "\t": self.auto_completion,
             "^I": self.auto_completion,
-            "KEY_RESIZE": self.window.resize,
+            "KEY_RESIZE": self.resize_window,
             "KEY_BACKSPACE": self.window.input.key_backspace,
             '^J': self.execute,
             '\n': self.execute,
@@ -125,6 +125,13 @@ class Gui(object):
         self.handler.connect('private-message', self.private_message)
         self.handler.connect('error-message', self.room_error)
         self.handler.connect('error', self.information)
+
+    def resize_window(self):
+        """
+        Resize the whole screen
+        """
+        self.window.resize(self.stdscr)
+        self.window.refresh(self.rooms)
 
     def main_loop(self, stdscr):
         """
