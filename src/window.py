@@ -549,8 +549,8 @@ class Input(Win):
             begin = self.text.split()[-1].encode('utf-8').lower()
             hit_list = []       # list of matching nicks
             for user in user_list:
-                if user.nick.lower().startswith(begin):
-                    hit_list.append(user.nick)
+                if user.lower().startswith(begin):
+                    hit_list.append(user)
             if len(hit_list) == 0:
                 return
             self.last_key_tab = True
@@ -577,8 +577,8 @@ class Input(Win):
         begin = self.text.split()[-1].encode('utf-8').lower()
         hit_list = []       # list of matching nicks
         for user in user_list:
-            if user.nick.lower().startswith(begin):
-                hit_list.append(user.nick)
+            if user.lower().startswith(begin):
+                hit_list.append(user)
         if len(hit_list) == 0:
             return
         end = False

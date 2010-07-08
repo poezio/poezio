@@ -101,6 +101,7 @@ class Gui(object):
             "^P": self.rotate_rooms_right,
             "\t": self.completion,
             "^I": self.completion,
+            "KEY_BTAB": self.last_words_completion,
             "KEY_RESIZE": self.resize_window,
             "KEY_BACKSPACE": self.window.input.key_backspace,
             '^J': self.execute,
@@ -243,7 +244,7 @@ class Gui(object):
             return 1
         if len(self.window.input.text) == 0:
             self.last_talked_completion()
-        self.window.input.auto_completion(sorted(self.current_room().users, compare_users))
+        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
 
     def last_talked_completion(self):
         """
@@ -254,6 +255,21 @@ class Gui(object):
             if msg.nickname is not None and msg.nickname != self.current_room().own_nick:
                 self.window.input.text = msg.nickname+config.get('after_completion', ',')+" "
                 self.window.input.key_end()
+
+    def last_words_completion(self):
+        """
+        Complete the input with words recently said
+        """
+        # build the list of the recent words
+        char_we_dont_want = [',', '(', ')', '.']
+        words = list()
+        for msg in self.current_room().messages[:-6:-1]:
+            for word in msg.txt.split():
+                for char in char_we_dont_want: # remove the chars we don't want
+                    word = word.replace(char, '')
+                if len(word) > 5:
+                    words.append(word)
+        self.window.input.auto_completion(words)
 
     def go_to_important_room(self):
         """
