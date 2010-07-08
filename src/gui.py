@@ -429,13 +429,15 @@ class Gui(object):
             status = stanza.getStatus()
             role = stanza.getRole()
             if not room.joined:     # user in the room BEFORE us.
-                room.users.append(User(from_nick, affiliation, show, status,
-                                       role))
-                if from_nick.encode('utf-8') == room.own_nick:
-                    room.joined = True
-                    self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
-                else:
-                    self.add_message_to_room(room, _("%s is in the room") % (from_nick))
+                # ignore redondant presence message, see bug #1509
+                if from_nick not in [user.nick for user in room.users]:
+                    room.users.append(User(from_nick, affiliation, show, status,
+                                           role))
+                    if from_nick.encode('utf-8') == room.own_nick:
+                        room.joined = True
+                        self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                    else:
+                        self.add_message_to_room(room, _("%s is in the room") % (from_nick))
             else:
                 change_nick = stanza.getStatusCode() == '303'
                 kick = stanza.getStatusCode() == '307'
