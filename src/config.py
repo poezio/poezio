@@ -24,7 +24,7 @@ from/to the config file
 """
 
 from ConfigParser import RawConfigParser, NoOptionError
-from os import environ, makedirs
+from os import environ, makedirs, path
 from shutil import copy2
 import argparse
 
@@ -117,12 +117,14 @@ if not CONFIG_HOME:
 CONFIG_PATH = CONFIG_HOME + '/poezio/'
 try:
     makedirs(CONFIG_PATH)
-    copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
 except OSError:
     pass
+
+if not path.isfile(CONFIG_PATH+'poezio.cfg'):
+    copy2('../data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
 
 parser = argparse.ArgumentParser(prog="poezio", description='An XMPP ncurses client.')
 parser.add_argument('-f', '--file', default=CONFIG_PATH+'poezio.cfg', help='the config file you want to use', metavar="FILE")
 args = parser.parse_args()
-print args.file
+
 config = Config(args.file)
