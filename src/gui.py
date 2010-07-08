@@ -99,8 +99,8 @@ class Gui(object):
             "^N": self.rotate_rooms_left,
             "KEY_F(6)": self.rotate_rooms_right,
             "^P": self.rotate_rooms_right,
-            "\t": self.auto_completion,
-            "^I": self.auto_completion,
+            "\t": self.completion,
+            "^I": self.completion,
             "KEY_RESIZE": self.resize_window,
             "KEY_BACKSPACE": self.window.input.key_backspace,
             '^J': self.execute,
@@ -228,7 +228,7 @@ class Gui(object):
             self.rooms.insert(0, self.rooms.pop())
         self.window.refresh(self.rooms)
 
-    def auto_completion(self):
+    def completion(self):
         """
         Called when Tab is pressed, complete the nickname in the input
         """
@@ -241,7 +241,19 @@ class Gui(object):
             if a.show is None:
                 return -1
             return 1
+        if len(self.window.input.text) == 0:
+            self.last_talked_completion()
         self.window.input.auto_completion(sorted(self.current_room().users, compare_users))
+
+    def last_talked_completion(self):
+        """
+        If tab is used while the input is empty, insert the nickname
+        of the last person who spoke
+        """
+        for msg in self.current_room().messages[::-1]:
+            if msg.nickname is not None and msg.nickname != self.current_room().own_nick:
+                self.window.input.text = msg.nickname+config.get('after_completion', ',')+" "
+                self.window.input.key_end()
 
     def go_to_important_room(self):
         """
