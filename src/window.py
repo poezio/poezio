@@ -99,7 +99,10 @@ class UserList(Win):
             self.win.addnstr(y, 0, " ", 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
-            self.win.addnstr(y, 1, user.nick, self.width-1)
+            try:
+                self.win.addnstr(y, 1, user.nick, self.width-1)
+            except:
+                pass
             self.win.attroff(curses.color_pair(role_col))
             y += 1
             if y == self.height:
@@ -323,7 +326,9 @@ class Input(Win):
         self.visible = visible
         self.history = []
         self.text = u''
-        self.pos = 0
+        self.pos = 0            # cursor position
+        self.line_pos = 0 # position (in self.text) of
+        # the first char to display on the screen
         self.histo_pos = 0
         self.hit_list = [] # current possible completion (normal)
         self.last_key_tab = False # True if we are cycling through possible completion
@@ -338,16 +343,19 @@ class Input(Win):
         self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
 
     def key_dc(self):
-        """delete char"""
-        if self.pos == len(self.text):
-            return
+        """
+        delete char just after the cursor
+        """
         self.reset_completion()
-        (y, x) = self.win.getyx()
-        self.text = self.text[:self.pos]+self.text[self.pos+1:]
-        self.win.delch(y, x)
-        self.refresh()
+        if self.pos + self.line_pos == len(self.text):
+            return              # end of line, nothing to delete
+        self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
+        self.rewrite_text()
 
     def key_up(self):
+        """
+        Get the previous line in the history
+        """
         if not len(self.history):
             return
         self.reset_completion()
@@ -355,14 +363,12 @@ class Input(Win):
         if self.histo_pos >= 0:
             self.histo_pos -= 1
         self.text = self.history[self.histo_pos+1]
-        if len(self.text) >= self.width-1:
-            self.win.addstr(self.history[self.histo_pos+1][:self.width-1].encode('utf-8'))
-        else:
-            self.win.addstr(self.history[self.histo_pos+1].encode('utf-8'))
-        self.pos = len(self.text)
-        self.refresh()
+        self.key_end()
 
     def key_down(self):
+        """
+        Get the next line in the history
+        """
         if not len(self.history):
             return
         self.reset_completion()
@@ -370,78 +376,79 @@ class Input(Win):
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
             self.text = self.history[self.histo_pos]
-            if len(self.text) >= self.width-1:
-                self.win.addstr(self.history[self.histo_pos][:self.width-1].encode('utf-8'))
-            else:
-                self.win.addstr(self.history[self.histo_pos].encode('utf-8'))
-            self.pos = len(self.text)
+            self.key_end()
         else:
             self.histo_pos = len(self.history)-1
             self.text = u''
             self.pos = 0
-        self.refresh()
+            self.line_pos = 0
+            self.rewrite_text()
 
     def key_home(self):
+        """
+        Go to the begining of line
+        """
         self.reset_completion()
         self.pos = 0
-        if len(self.text) >= self.width-1:
-            txt = self.text[:self.width-1]
-            self.clear_text()
-            self.win.addstr(txt.encode('utf-8'))
-        self.win.move(0, 0)
-        self.refresh()
+        self.line_pos = 0
+        self.rewrite_text()
 
-    def key_end(self):
-        self.reset_completion()
-        self.pos = len(self.text)
+    def key_end(self, reset=False):
+        """
+        Go to the end of line
+        """
+        if reset:
+            self.reset_completion()
         if len(self.text) >= self.width-1:
-            txt = self.text[-(self.width-1):]
-            self.clear_text()
-            self.win.addstr(txt.encode('utf-8'))
-            self.win.move(0, self.width-1)
+            self.pos = self.width-1
+            self.line_pos = len(self.text)-self.pos
         else:
-            self.win.move(0, len(self.text))
-        self.refresh()
+            self.pos = len(self.text)
+            self.line_pos = 0
+        self.rewrite_text()
 
     def key_left(self):
+        """
+        Move the cursor one char to the left
+        """
         self.reset_completion()
         (y, x) = self.win.getyx()
-        if self.pos > 0:
+        if self.pos == self.width-1 and self.line_pos > 0:
+            self.line_pos -= 1
+        elif self.pos >= 1:
             self.pos -= 1
-            if x == 0:
-                txt = self.text[self.pos:self.pos+self.width-1]
-                self.clear_text()
-                self.win.addstr(txt.encode('utf-8'))
-                self.win.move(y, 0)
-            else:
-                self.win.move(y, x-1)
-            self.refresh()
+        self.rewrite_text()
 
     def key_right(self):
+        """
+        Move the cursor one char to the right
+        """
         self.reset_completion()
         (y, x) = self.win.getyx()
-        if self.pos < len(self.text):
+        if self.pos == self.width-1:
+            if self.line_pos + self.width-1 < len(self.text):
+                self.line_pos += 1
+        elif self.pos < len(self.text):
             self.pos += 1
-            if x == self.width-1:
-                txt = self.text[self.pos-(self.width-1):self.pos]
-                self.clear_text()
-                self.win.addstr(txt.encode('utf-8'))
-                self.win.move(y, self.width-1)
-            else:
-                self.win.move(y, x+1)
-            self.refresh()
+        self.rewrite_text()
 
     def key_backspace(self):
+        """
+        Delete the char just before the cursor
+        """
         self.reset_completion()
         (y, x) = self.win.getyx()
-        if len(self.text) > 0 and self.pos != 0:
-            self.text = self.text[:self.pos-1]+self.text[self.pos:]
-            self.pos -= 1
-            self.win.delch(y, x-1)
-            self.refresh()
+        if self.pos == 0:
+            return
+        self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
+        self.key_left()
+        self.rewrite_text()
 
     def auto_completion(self, user_list):
-        if self.pos != len(self.text) or len(self.text) == 0:
+        """
+        Complete the nickname
+        """
+        if self.pos+self.line_pos != len(self.text) or len(self.text) == 0:
             return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
         if completion_type == 'shell':
@@ -450,10 +457,16 @@ class Input(Win):
             self.normal_completion(user_list)
 
     def reset_completion(self):
+        """
+        Reset the completion list (called on ALL keys except tab)
+        """
         self.hit_list = []
         self.last_key_tab = False
 
     def normal_completion(self, user_list):
+        """
+        Normal completion
+        """
         if " " in self.text.strip():
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
@@ -475,21 +488,15 @@ class Input(Win):
             begin = self.text[:-len(after)].split()[-1].encode('utf-8').lower()
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
             end = len(begin.decode('utf-8')) + len(after)
-        x -= end
-        try:
-            self.win.move(y, x)
-        except:
-            pass
-        # remove begin from the line
-        self.win.clrtoeol()
         self.text = self.text[:-end]
         nick = self.hit_list[0] # take the first hit
         self.text += nick.decode('utf-8') +after
-        self.pos = len(self.text)
-        self.win.addstr(nick+after)
-        self.refresh()
+        self.key_end(False)
 
     def shell_completion(self, user_list):
+        """
+        Shell-like completion
+        """
         if " " in self.text.strip():
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
@@ -524,38 +531,43 @@ class Input(Win):
             if end:
                 nick = nick[:-1]
         x -= len(begin.decode('utf-8'))
-        self.win.move(y, x)
-        # remove begin from the line
-        self.win.clrtoeol()
         self.text = self.text[:-len(begin.decode('utf-8'))]
         self.text += nick.decode('utf-8')
-        self.pos = len(self.text)
-        self.win.addstr(nick)
-        self.refresh()
+        self.key_end(False)
 
     def do_command(self, key):
+        from common import debug
+
+        debug("%s\n" % (len(self.text)))
         self.reset_completion()
+        self.text = self.text[:self.pos+self.line_pos]+key.decode('utf-8')+self.text[self.pos+self.line_pos:]
         (y, x) = self.win.getyx()
         if x == self.width-1:
-            self.win.delch(0, 0)
-            self.win.move(y, x-1)
-            x -= 1
-        try:
-            self.text = self.text[:self.pos]+key.decode('utf-8')+self.text[self.pos:]
-            self.win.insstr(key)
-        except:
-            return
-        self.win.move(y, x+1)
-        self.pos += 1
-        self.refresh()
+            self.line_pos += 1
+        else:
+            self.pos += 1
+        self.rewrite_text()
 
     def get_text(self):
+        """
+        Clear the input and return the text entered so far
+        """
         txt = self.text
         self.text = u''
         self.pos = 0
+        self.line_pos = 0
         self.history.append(txt)
         self.histo_pos = len(self.history)-1
         return txt.encode('utf-8')
+
+    def rewrite_text(self):
+        """
+        Refresh the line onscreen, from the pos and pos_line
+        """
+        self.clear_text()
+        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
+        self.win.move(0, self.pos)
+        self.refresh()
 
     def refresh(self):
         if not self.visible:
