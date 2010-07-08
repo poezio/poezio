@@ -26,6 +26,7 @@ from/to the config file
 from ConfigParser import RawConfigParser, NoOptionError
 from os import environ, makedirs
 from shutil import copy2
+import argparse
 
 class Config(RawConfigParser):
     """
@@ -106,6 +107,8 @@ class Config(RawConfigParser):
         RawConfigParser.set(self, self.defsection, option, value)
         self.save()
 
+        import argparse
+
 # creates the configuration directory if it doesn't exist
 # and copy the default config in it
 CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
@@ -118,4 +121,8 @@ try:
 except OSError:
     pass
 
-config = Config(CONFIG_PATH+'poezio.cfg')
+parser = argparse.ArgumentParser(prog="poezio", description='An XMPP ncurses client.')
+parser.add_argument('-f', '--file', default=CONFIG_PATH+'poezio.cfg', help='the config file you want to use', metavar="FILE")
+args = parser.parse_args()
+
+config = Config(args.file)
