@@ -10,9 +10,17 @@ http://codingteam.net/project/poezio/roadmap
 - /query command can now take a message in parameters
 - logs are now save in $XDG_DATA_HOME and this can be configured
 - Available users now have a greater priority on nickname completion
+- utf-8 characters (from the keyboard) are now completely supported
+- Many new keyboard shortcuts (move the cursor, edit the line, switch tabs...)
+- DESTDIR support in Makefile is fixed
+- Completion on recently said words
+- /join command now takes the current server if not specified in the parameters
+- Many Bugfixes
+
 
 * Poezio 0.6.1 - 13 Jun 2010
 - Enable tracebacks
+
 
 * Poezio 0.6 - 13 Jun 2010
 - Private messages are handled
@@ -37,8 +45,10 @@ http://codingteam.net/project/poezio/roadmap
 - Users can be ignored (/ignore, /unignore)
 - Various Bugfixes
 
-* Poezio 0.5.1 - 2 Feb 2010
-- Little bufix release
 
-* Poezio - 1 Feb 2010
+* Poezio 0.5.1 - 2 Feb 2010
+- Little bugfix release
+
+
+* Poezio 0.5 - 1 Feb 2010
 - Initial release
