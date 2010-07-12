@@ -248,6 +248,7 @@ class TextWin(Win):
                 if txt.startswith('\n'):
                     txt = txt[1:]
                 first = False
+        return lines
         return lines[-len(messages):] # return only the needed number of lines
 
     def refresh(self, room):
@@ -258,11 +259,15 @@ class TextWin(Win):
         if not self.visible:
             return
         self.win.erase()
+        # if room.pos != 0:
+        #     messages = room.messages[-self.height - room.pos : -room.pos]
+        # else:
+        #     messages = room.messages[-self.height:]
+        lines = self.build_lines_from_messages(room.messages)
         if room.pos != 0:
-            messages = room.messages[-self.height - room.pos : -room.pos]
+            lines = messages[-self.height-room.pos:-room.pos]
         else:
-            messages = room.messages[-self.height:]
-        lines = self.build_lines_from_messages(messages)
+            lines = lines[-self.height:]
         y = 0
         for line in lines:
             self.win.move(y, 0)
@@ -410,7 +415,9 @@ class Input(Win):
         if not self.clipboard or len(self.clipboard) == 0:
             return
         for letter in self.clipboard:
-            self.do_command(letter)
+            from common import debug
+            debug("%s\n" % letter.encode('utf-8'))
+            self.do_command(letter.encode('utf-8'))
         # self.do_command(self.clipboard[-1])
 
     def key_dc(self):
