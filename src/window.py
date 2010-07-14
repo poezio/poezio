@@ -265,7 +265,7 @@ class TextWin(Win):
         #     messages = room.messages[-self.height:]
         lines = self.build_lines_from_messages(room.messages)
         if room.pos != 0:
-            lines = messages[-self.height-room.pos:-room.pos]
+            lines = lines[-self.height-room.pos:-room.pos]
         else:
             lines = lines[-self.height:]
         y = 0
