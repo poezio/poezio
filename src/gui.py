@@ -665,13 +665,13 @@ class Gui(object):
                 if is_jid(self.current_room().name):
                     room += '@%s' % jid_get_domain(self.current_room().name)
                 else:           # no server could be found, print a message and return
-                    self.information(_("You didn't specify a server for the room you want to join"))
+                    self.add_message_to_room(self.current_room(), _("You didn't specify a server for the room you want to join"))
                     return
             r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
         if r and r.joined:       # if we are already in the room
-            self.information(_("already in room [%s]") % room)
+            self.add_message_to_room(self.current_room(), _("already in room [%s]") % room)
             return
         self.muc.join_room(room, nick, password)
         if not r:   # if the room window exists, we don't recreate it.
@@ -713,7 +713,9 @@ class Gui(object):
                 bookmarked.remove(room)
                 break
         bookmarked = ':'.join(bookmarked)
-        config.set_and_save('rooms', bookmarked+':'+res)
+        bookmarks = bookmarked+':'+res
+        config.set_and_save('rooms', bookmarks)
+        self.add_message_to_room(self.current_room(), _('Your bookmarks are now: %s') % bookmarks)
 
     def command_set(self, args):
         """

@@ -415,10 +415,7 @@ class Input(Win):
         if not self.clipboard or len(self.clipboard) == 0:
             return
         for letter in self.clipboard:
-            from common import debug
-            debug("%s\n" % letter.encode('utf-8'))
             self.do_command(letter.encode('utf-8'))
-        # self.do_command(self.clipboard[-1])
 
     def key_dc(self):
         """
