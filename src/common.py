@@ -33,7 +33,7 @@
 """
 various useful functions
 """
-
+from datetime import datetime, timedelta
 import base64
 import os
 import mimetypes
@@ -44,6 +44,7 @@ import sys
 import select
 import errno
 import xmpp
+import time
 
 def debug(string):
     """
@@ -261,7 +262,8 @@ def datetime_tuple(timestamp):
     """
     timestamp = timestamp.split('.')[0]
     timestamp = timestamp.replace('-', '')
-    timestamp = timestamp.replace('z', '')
-    timestamp = timestamp.replace('Z', '')
-    from datetime import datetime
-    return datetime.strptime(timestamp, '%Y%m%dT%H:%M:%S')
+    ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%SZ')
+    # convert UTC to local time, with DST etc.
+    dst = timedelta(seconds=time.altzone)
+    ret -= dst
+    return ret

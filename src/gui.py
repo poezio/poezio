@@ -377,8 +377,7 @@ class Gui(object):
         """
         Display the message on the room window
         """
-        delay_tag = stanza.getTag('delay', namespace='urn:xmpp:delay')
-        if delay_tag and not date:
+        if delay_tag:
             delayed = True
             date = common.datetime_tuple(delay_tag.getAttr('stamp'))
         else:
