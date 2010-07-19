@@ -351,7 +351,6 @@ class Gui(object):
         doupdate()
 
     def open_private_window(self, room_name, user_nick, focus=True):
-        print anus
         complete_jid = room_name+'/'+user_nick
         for room in self.rooms: # if the room exists, focus it and return
             if room.jid:

@@ -20,39 +20,11 @@
 """
 Starting point of poezio. Launches both the Connection and Gui
 """
+
 import sys
 import traceback
 import curses
-
-class MyStdErr(object):
-    def __init__(self, fd):
-        """
-        Change sys.stderr to something like /dev/null
-        to disable any printout on the screen that would
-        mess everything
-        """
-        self.old_stderr = sys.stderr
-        sys.stderr = fd
-    def restaure(self):
-        """
-        Restaure the good ol' sys.stderr, because we need
-        it in order to print the tracebacks
-        """
-        sys.stderr = self.old_stderr
-
-my_stderr = MyStdErr(open('/dev/null', 'a'))
-
-def exception_handler(type_, value, trace):
-    """
-    on any traceback: exit ncurses and print the traceback
-    then exit the program
-    """
-    global my_stderr
-    my_stderr.restaure()
-    curses.endwin()
-    curses.echo()
-    traceback.print_exception(type_, value, trace, None, sys.stderr)
-    sys.exit(2)
+from common import MyStdErr, exception_handler
 
 sys.excepthook = exception_handler
 

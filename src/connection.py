@@ -31,7 +31,7 @@ import xmpp
 from config import config
 from logging import logger
 from handler import Handler
-from common import jid_get_node, jid_get_domain, is_jid_the_same
+from common import jid_get_node, jid_get_domain, is_jid_the_same, exception_handler
 
 class Connection(threading.Thread):
     """
@@ -125,21 +125,32 @@ class Connection(threading.Thread):
 
     def handler_presence(self, connection, presence):
         """
-        handles the presence messages
+        check if it's a normal or a muc presence
         """
-        from common import debug
-        debug('%s\n' % presence)
-        if not connection:
-            return
-        if presence.getType() == 'error':
-            self.error_message(presence)
-            return
+        x = presence.getTag('x')
+        if x and x.getAttr('xmlns') == 'http://jabber.org/protocol/muc#user':
+            self.handler_muc_presence(connection, presence)
+        else:
+            self.handler_normal_presence(connection, presence)
+
+    def handler_normal_presence(self, connection, presence):
+        """
+        """
         fro = presence.getFrom()
         toj = presence.getAttr('to')
         if fro == toj:           # own presence
             self.online = 2
             self.jid = toj
             self.handler.emit('on-connected', jid=fro)
+
+    def handler_muc_presence(self, connection, presence):
+        """
+        handles the presence messages
+        """
+        if not connection:
+            return
+        if presence.getType() == 'error':
+            self.error_message(presence)
             return
         self.handler.emit('room-presence', stanza=presence)
         raise xmpp.protocol.NodeProcessed
