@@ -630,8 +630,9 @@ class Input(Win):
         self.text = u''
         self.pos = 0
         self.line_pos = 0
-        self.history.append(txt)
-        self.histo_pos = len(self.history)-1
+        if len(txt) != 0:
+            self.history.append(txt)
+            self.histo_pos = len(self.history)-1
         return txt.encode('utf-8')
 
     def rewrite_text(self):

@@ -100,7 +100,7 @@ class Connection(threading.Thread):
             password = config.get('password', '')
             jid = config.get('jid', '')
             auth = self.client.auth(jid_get_node(jid), password, "salut")
-            return auth
+            return True
 
     def register_handlers(self):
         """
@@ -127,6 +127,8 @@ class Connection(threading.Thread):
         """
         handles the presence messages
         """
+        from common import debug
+        debug('%s\n' % presence)
         if not connection:
             return
         if presence.getType() == 'error':
@@ -166,6 +168,7 @@ class Connection(threading.Thread):
             self.handler.emit('room-message', stanza=message)
         else:
             self.handler.emit('private-message', stanza=message)
+
         raise xmpp.protocol.NodeProcessed
 
     def process(self, timeout=10):

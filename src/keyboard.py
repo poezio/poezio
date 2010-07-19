@@ -21,14 +21,17 @@
 Functions to interact with the keyboard
 Mainly, read keys entered and return a string (most
 of the time ONE char, but may be longer if it's a keyboard
-shortcut, like ^A or KEY_RESIZE)
+shortcut, like ^A, M-a or KEY_RESIZE)
 """
+
+from common import debug
 
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
     """
     c = s.getkey()
+    debug(c)
     if len(c) > 4:
         return (None, c)
     return (ord(c), c)
@@ -45,16 +48,16 @@ def read_char(s):
         if first <= 26:         # transform Ctrl+* keys
             char =  "^"+chr(first + 64)
         if first == 27:
-            (_, c) = get_next_byte(s)
+            (first, c) = get_next_byte(s)
             char = "M-"+c
-        return char
+        # return char
     if 194 <= first:
         (code, c) = get_next_byte(s) # 2 bytes char
         char += c
     if 224 <= first:
         (code, c) = get_next_byte(s) # 3 bytes char
         char += c
-    if 240 <= code:
+    if 240 <= first:
         (code, c) = get_next_byte(s) # 4 bytes char
         char += c
     return char

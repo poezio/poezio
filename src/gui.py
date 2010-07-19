@@ -145,8 +145,8 @@ class Gui(object):
             if char in self.key_func.keys():
                 self.key_func[char]()
             else:
-                # if len(char) > 1:
-                #     continue    # ignore non-handled keyboard shortcuts
+                if len(char.decode('utf-8')) > 1:
+                    continue    # ignore non-handled keyboard shortcuts
                 self.window.do_command(char)
 
     def current_room(self):
@@ -343,12 +343,15 @@ class Gui(object):
         room = self.get_room_by_name(jid) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
             room = self.open_private_window(room_from, nick_from, False)
+            if not room:
+                return
         body = stanza.getBody()
         self.add_message_to_room(room, body, None, nick_from)
         self.window.input.refresh()
         doupdate()
 
     def open_private_window(self, room_name, user_nick, focus=True):
+        print anus
         complete_jid = room_name+'/'+user_nick
         for room in self.rooms: # if the room exists, focus it and return
             if room.jid:
@@ -356,7 +359,10 @@ class Gui(object):
                     self.command_win(str(room.nb))
                     return
         # create the new tab
-        own_nick = self.get_room_by_name(room_name).own_nick
+        room = self.get_room_by_name(room_name)
+        if not room:
+            return None
+        own_nick = room.own_nick
         r = Room(complete_jid, own_nick, self.window, complete_jid)
         # insert it in the rooms
         if self.current_room().nb == 0:
@@ -377,6 +383,7 @@ class Gui(object):
         """
         Display the message on the room window
         """
+        delay_tag = stanza.getTag('delay', namespace='urn:xmpp:delay')
         if delay_tag:
             delayed = True
             date = common.datetime_tuple(delay_tag.getAttr('stamp'))
