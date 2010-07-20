@@ -28,7 +28,10 @@ def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
     """
-    c = s.getkey()
+    try:
+        c = s.getkey()
+    except:
+        return "KEY_RESIZE"
     if len(c) > 4:
         return (None, c)
     return (ord(c), c)
