@@ -6,21 +6,20 @@ LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
 INSTALL=install
 
-all:
-	cd src/xmpppy-0.5.0rc1 && pwd && python setup.py build && cp -r xmpp ..
+all: Makefile
 
-clean:	Makefile
+clean:
+	find ./ -name \*.pyc -delete
+	find ./ -name \*~ -delete
 
 install:
-	mkdir -p $(DESTDIR)
-	$(INSTALL) -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp
+	$(INSTALL) -d $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src $(DATADIR)/poezio/src/
 
 	$(INSTALL) -m644 data/* $(DESTDIR)$(DATADIR)/poezio/data/
 
 	for sourcefile in `find src/ -maxdepth 1 -type f -name \*.py` ; do \
 		$(INSTALL) -m644 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
 	done
-	$(INSTALL) -m644 src/xmpp/* $(DESTDIR)$(DATADIR)/poezio/src/xmpp/
 
 	echo "#!/usr/bin/env sh" > $(DESTDIR)$(BINDIR)/poezio
 	echo "cd $(DATADIR)/poezio/src/ && python poezio.py" >> $(DESTDIR)$(BINDIR)/poezio
