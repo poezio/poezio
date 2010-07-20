@@ -104,6 +104,7 @@ class Gui(object):
             "KEY_BTAB": self.last_words_completion,
             "KEY_RESIZE": self.resize_window,
             "KEY_BACKSPACE": self.window.input.key_backspace,
+            '^?': self.window.input.key_backspace,
             '^J': self.execute,
             '\n': self.execute,
             '^D': self.window.input.key_dc,

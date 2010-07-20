@@ -31,7 +31,7 @@ import xmpp
 from config import config
 from logging import logger
 from handler import Handler
-from common import jid_get_node, jid_get_domain, is_jid_the_same, exception_handler
+from common import jid_get_node, jid_get_domain, is_jid_the_same
 
 class Connection(threading.Thread):
     """
@@ -142,6 +142,9 @@ class Connection(threading.Thread):
         """
         fro = presence.getFrom()
         toj = presence.getAttr('to')
+        if presence.getType() == 'error':
+            self.error_message(presence)
+            return
         if fro == toj:           # own presence
             self.online = 2
             self.jid = toj
@@ -152,9 +155,6 @@ class Connection(threading.Thread):
         handles the presence messages
         """
         if not connection:
-            return
-        if presence.getType() == 'error':
-            self.error_message(presence)
             return
         self.handler.emit('room-presence', stanza=presence)
         raise xmpp.protocol.NodeProcessed
