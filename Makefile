@@ -11,6 +11,7 @@ all: Makefile
 clean:
 	find ./ -name \*.pyc -delete
 	find ./ -name \*~ -delete
+	find ./ -name "#*#" -delete
 
 install:
 	$(INSTALL) -d $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src $(DATADIR)/poezio/src/
