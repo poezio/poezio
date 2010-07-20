@@ -44,7 +44,9 @@ def read_char(s):
     (first, char) = get_next_byte(s)
     if first == None: # Keyboard special, like KEY_HOME etc
         return char
-    if first <= 127:  # ASCII char on one byte
+    if first == 127 or first == 8:
+        return "KEY_BACKSPACE"
+    if first < 127:  # ASCII char on one byte
         if first <= 26:         # transform Ctrl+* keys
             char =  "^"+chr(first + 64)
         if first == 27:
