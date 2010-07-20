@@ -127,8 +127,12 @@ class Connection(threading.Thread):
         """
         check if it's a normal or a muc presence
         """
-        x = presence.getTag('x')
-        if x and x.getAttr('xmlns') == 'http://jabber.org/protocol/muc#user':
+        is_muc = False
+        tags = presence.getTags('x')
+        for tag in tags:
+            if tag.getAttr('xmlns') == 'http://jabber.org/protocol/muc#user':
+                is_muc = True
+        if is_muc:
             self.handler_muc_presence(connection, presence)
         else:
             self.handler_normal_presence(connection, presence)
