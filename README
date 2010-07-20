@@ -20,23 +20,16 @@ clients (weechat, irssi, etc).
 =======================
 	Install
 =======================
-You just need python
-the xmpppy lib is provided with poezio, as many
-distributions still use xmpppy 0.4.1 which doesn't
-work with anonymous connexion.
-This will be eventually fixed latter on.
+You need python (with argparse, optionnaly)
+and the xmpppy lib at the 0.5.0 version or higher.
 
-Before launching poezio you need to type
-make
-in order to build the xmpppy library.
-
-you can then launch poezio with
+you can launch poezio with
 sh launch.sh
 
 or you can install it with (as root or with sudo)
 make install
 (`make uninstall` works, don't worry ;))
-you can then launch poezio
+you can then simply launch poezio
 
 You can edit the config file (~/.config/poezio/poezio.cfg by default)
 or data/default_config.cfg (if you want to edit the config before the
@@ -47,9 +40,6 @@ http://codingteam.net/project/poezio/doc
 
 Please DO report any bug you encounter and ask for any
 feature you want.
-
-If you are testing poezio, and get a crash but no error, please
-take a look at the src/errors file.
 
 =======================
 	Authors
