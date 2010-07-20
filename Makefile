@@ -1,4 +1,4 @@
-prefix=/usr/local
+$prefix=/usr/local
 LIBDIR=$(prefix)/lib
 BINDIR=$(prefix)/bin
 DATADIR=$(prefix)/share
@@ -14,7 +14,8 @@ clean:
 	find ./ -name "#*#" -delete
 
 install:
-	$(INSTALL) -d $(BINDIR) $(DATADIR)/poezio $(DATADIR)/poezio/data $(DATADIR)/poezio/src $(DATADIR)/poezio/src/
+	mkdir -p $(DESTDIR)
+	$(INSTALL) -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp
 
 	$(INSTALL) -m644 data/* $(DESTDIR)$(DATADIR)/poezio/data/
 
