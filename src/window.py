@@ -58,7 +58,8 @@ class UserList(Win):
         self.visible = visible
         self.color_role = {'moderator': 2,
                            'participant':3,
-                           'visitor':4
+                           'visitor':5,
+                           'none':5
                            }
         self.color_show = {'xa':12,
                            'None':8,
@@ -72,11 +73,11 @@ class UserList(Win):
             try:
                 arole = self.color_role[a.role]
             except KeyError:
-                arole = 1
+                arole = 5
             try:
                 brole = self.color_role[b.role]
             except KeyError:
-                brole = 1
+                brole = 5
             if arole == brole:
                 if a.nick.lower() < b.nick.lower():
                     return -1
@@ -90,7 +91,7 @@ class UserList(Win):
             try:
                 role_col = self.color_role[user.role]
             except KeyError:
-                role_col = 1
+                role_col = 5
             try:
                 show_col = self.color_show[user.show]
             except KeyError:
@@ -640,7 +641,10 @@ class Input(Win):
         Refresh the line onscreen, from the pos and pos_line
         """
         self.clear_text()
-        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
+        try:                    # FIXME: this try should NOT be needed
+            self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
+        except:
+            pass
         self.win.move(0, self.pos)
         self.refresh()
 
