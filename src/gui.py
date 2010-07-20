@@ -269,7 +269,7 @@ class Gui(object):
                 for char in char_we_dont_want: # remove the chars we don't want
                     word = word.replace(char, '')
                 if len(word) > 5:
-                    words.append(word)
+                    words.append(word.encode('utf-8'))
         self.window.input.auto_completion(words)
 
     def go_to_important_room(self):
