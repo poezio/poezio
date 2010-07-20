@@ -69,11 +69,12 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 	Thanks
 =======================
 = People =
- Link Mauve - Code
+ Link Mauve - Code (a little)
  Erwan Briand - Handler and MultiUserChat classes
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  Ovart - Testing
  mathieui - Testing
+ Gapan - Makefile
 = Project =
  Gajim - send_vcard method and common.py
 

@@ -264,7 +264,7 @@ class Gui(object):
         # build the list of the recent words
         char_we_dont_want = [',', '(', ')', '.']
         words = list()
-        for msg in self.current_room().messages[:-6:-1]:
+        for msg in self.current_room().messages[:-9:-1]:
             for word in msg.txt.split():
                 for char in char_we_dont_want: # remove the chars we don't want
                     word = word.replace(char, '')
