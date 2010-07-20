@@ -31,7 +31,7 @@ def get_next_byte(s):
     try:
         c = s.getkey()
     except:
-        return "KEY_RESIZE"
+        return (None, "KEY_RESIZE")
     if len(c) > 4:
         return (None, c)
     return (ord(c), c)
