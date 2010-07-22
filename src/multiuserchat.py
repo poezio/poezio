@@ -291,7 +291,8 @@ class MultiUserChat(object):
 
     def change_show(self, room, nick, show, status):
         pres = Presence(to='%s/%s' % (room, nick))
-        pres.setShow(show)
+        if show: # if show is None, don't put a <show /> tag. It means "online"
+            pres.setShow(show)
         if status:
             pres.setStatus(status)
         self.connection.send(pres)

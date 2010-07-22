@@ -744,10 +744,10 @@ class Gui(object):
         """
         /show <status> [msg]
         """
-        possible_show = {'avail':'None',
-                         'available':'None',
-                         'ok':'None',
-                         'here':'None',
+        possible_show = {'avail':None,
+                         'available':None,
+                         'ok':None,
+                         'here':None,
                          'chat':'chat',
                          'away':'away',
                          'afk':'away',

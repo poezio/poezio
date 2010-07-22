@@ -2,7 +2,11 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
-* Poezio 0.6.2 - dev
+* Poezio 0.7 - dev
+Complete the MUC support
+- bugfixes
+
+* Poezio 0.6.2 - 21 Jul 2010
 - Lines are now broken between words and not in the middle of them
 - /unquery command
 - default nickname is now $USER
