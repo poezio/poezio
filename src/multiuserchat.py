@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2009, 2010 Erwan Briand
 # Copyright 2010, Florent Le Coz <louizatakk@fedoraproject.org>
 
