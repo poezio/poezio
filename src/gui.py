@@ -387,7 +387,14 @@ class Gui(object):
             delayed = True
             date = common.datetime_tuple(delay_tag.getAttr('stamp'))
         else:
-            delayed = False
+            # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
+            # But it sucks, please, Jabber servers, don't do this :(
+            delay_tag = stanza.getTag('x', namespace='jabber:x:delay')
+            if delay_tag:
+                delayed = True
+                date = common.datetime_tuple(delay_tag.getAttr('stamp'))
+            else:
+                delayed = False
         if stanza.getType() != 'groupchat':
             return  # ignore all messages not comming from a MUC
         nick_from = stanza.getFrom().getResource()

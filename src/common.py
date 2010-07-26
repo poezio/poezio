@@ -264,7 +264,10 @@ def datetime_tuple(timestamp):
     """
     timestamp = timestamp.split('.')[0]
     timestamp = timestamp.replace('-', '')
-    ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%SZ')
+    try:
+        ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%SZ')
+    except ValueError:      # Support the deprecated format, XEP 0091 :(
+        ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%S')
     # convert UTC to local time, with DST etc.
     dst = timedelta(seconds=time.altzone)
     ret -= dst
