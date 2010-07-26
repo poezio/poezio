@@ -202,8 +202,8 @@ class TextWin(Win):
 
     def build_lines_from_messages(self, messages):
         """
-        From the n messages (n behing the height of the text area),
-        returns the n last lines (Line object).
+        From all the existing messages in the window, create the that will
+        be displayed on the screen
         """
         lines = []
         for message in messages:
@@ -236,8 +236,11 @@ class TextWin(Win):
                 color = message.user.color if message.user else None
                 if not first:
                     nick = None
+                    time = None
+                else:
+                    time = message.time
                 l = Line(nick, color,
-                         message.time,
+                         time,
                          txt[:limit], message.color,
                          offset)
                 lines.append(l)
