@@ -284,12 +284,15 @@ class TextWin(Win):
 
     def write_text(self, y, x, txt, color):
         """
-        return the number of line written, -1
+        write the text of a line.
         """
         txt = txt.encode('utf-8')
         if color:
             self.win.attron(curses.color_pair(color))
-        self.win.addstr(y, x, txt)
+        try:
+            self.win.addstr(y, x, txt)
+        except:  # bug 1665
+            pass
         if color:
             self.win.attroff(curses.color_pair(color))
 
