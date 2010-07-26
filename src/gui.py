@@ -441,8 +441,6 @@ class Gui(object):
                     if from_nick.encode('utf-8') == room.own_nick:
                         room.joined = True
                         self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
-                    else:
-                        self.add_message_to_room(room, _("%s is in the room") % (from_nick))
             else:
                 change_nick = stanza.getStatusCode() == '303'
                 kick = stanza.getStatusCode() == '307'
