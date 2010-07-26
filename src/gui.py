@@ -878,6 +878,7 @@ class Gui(object):
         room = self.current_room()
         if len(args) == 0:
             self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic.decode('utf-8'))
+            return
         subject = ' '.join(args)
         if not room.joined or room.name == "Info":
             return
