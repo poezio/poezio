@@ -24,8 +24,10 @@ from time import sleep
 
 import sys
 import os
-
+import re
 import curses
+import webbrowser
+
 from datetime import datetime
 
 import common
@@ -79,6 +81,7 @@ class Gui(object):
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.")),
             'kick': (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.")),
             'topic': (self.command_topic, _("Usage: /topic <subject> \nTopic: Change the subject of the room")),
+            'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with.")),
             'query': (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user')),
 
             'nick': (self.command_nick, _("Usage: /nick <nickname> \nNick: Change your nickname in the current room"))
@@ -565,10 +568,11 @@ class Gui(object):
             return
         if line.startswith('/') and not line.startswith('/me '):
             command = line.strip()[:].split()[0][1:]
-            args = line.strip()[:].split()[1:]
+            arg = line[1+len(command):]
+            # example. on "/link 0 open", command = "link" and arg = "0 open"
             if command in self.commands.keys():
                 func = self.commands[command][0]
-                func(args)
+                func(arg)
                 return
             else:
                 self.add_message_to_room(self.current_room(), _("Error: unknown command (%s)") % (command))
@@ -581,10 +585,11 @@ class Gui(object):
         self.window.input.refresh()
         doupdate()
 
-    def command_help(self, args):
+    def command_help(self, arg):
         """
         /help <command_name>
         """
+        args = arg.split()
         room = self.current_room()
         if len(args) == 0:
             msg = _('Available commands are: ')
@@ -598,10 +603,11 @@ class Gui(object):
                 msg = _('Unknown command: %s') % args[0]
         self.add_message_to_room(room, msg)
 
-    def command_win(self, args):
+    def command_win(self, arg):
         """
         /win <number>
         """
+        args = arg.split()
         if len(args) != 1:
             self.command_help(['win'])
             return
@@ -623,10 +629,11 @@ class Gui(object):
         self.window.refresh(self.rooms)
         self.current_room().set_color_state(11)
 
-    def command_kick(self, args):
+    def command_kick(self, arg):
         """
         /kick <nick> [reason]
         """
+        args = arg.split()
         if len(args) < 1:
             self.command_help(['kick'])
             return
@@ -640,10 +647,11 @@ class Gui(object):
         roomname = self.current_room().name
         self.muc.eject_user(roomname, 'kick', nick, reason)
 
-    def command_join(self, args):
+    def command_join(self, arg):
         """
         /join [room][/nick] [password]
         """
+        args = arg.split()
         password = None
         if len(args) == 0:
             r = self.current_room()
@@ -691,10 +699,11 @@ class Gui(object):
             # r.own_nick = nick
             r.users = []
 
-    def command_bookmark(self, args):
+    def command_bookmark(self, arg):
         """
         /bookmark [room][/nick]
         """
+        args = arg.split()
         nick = None
         if len(args) == 0:
             room = self.current_room()
@@ -727,10 +736,11 @@ class Gui(object):
         config.set_and_save('rooms', bookmarks)
         self.add_message_to_room(self.current_room(), _('Your bookmarks are now: %s') % bookmarks)
 
-    def command_set(self, args):
+    def command_set(self, arg):
         """
         /set <option> [value]
         """
+        args = arg.split()
         if len(args) != 2 and len(args) != 1:
             self.command_help(['set'])
             return
@@ -744,10 +754,11 @@ class Gui(object):
         room = self.current_room()
         self.add_message_to_room(room, msg)
 
-    def command_show(self, args):
+    def command_show(self, arg):
         """
         /show <status> [msg]
         """
+        args = arg.split()
         possible_show = {'avail':None,
                          'available':None,
                          'ok':None,
@@ -773,10 +784,11 @@ class Gui(object):
             if room.joined:
                 self.muc.change_show(room.name, room.own_nick, show, msg)
 
-    def command_ignore(self, args):
+    def command_ignore(self, arg):
         """
         /ignore <nick>
         """
+        args = arg.split()
         if len(args) != 1:
             self.command_help(['ignore'])
             return
@@ -792,10 +804,11 @@ class Gui(object):
         else:
             self.add_message_to_room(self.current_room(), _("%s is already ignored") % nick)
 
-    def command_unignore(self, args):
+    def command_unignore(self, arg):
         """
         /unignore <nick>
         """
+        args = arg.split()
         if len(args) != 1:
             self.command_help(['unignore'])
             return
@@ -811,31 +824,29 @@ class Gui(object):
             del self.ignores[roomname]
         self.add_message_to_room(self.current_room(), _("%s is now unignored") % nick)
 
-    def command_away(self, args):
+    def command_away(self, arg):
         """
         /away [msg]
         """
-        args.insert(0, 'away')
-        self.command_show(args)
+        self.command_show("away "+arg)
 
-    def command_busy(self, args):
+    def command_busy(self, arg):
         """
         /busy [msg]
         """
-        args.insert(0, 'busy')
-        self.command_show(args)
+        self.command_show("busy "+args)
 
-    def command_avail(self, args):
+    def command_avail(self, arg):
         """
         /avail [msg]
         """
-        args.insert(0, 'available')
-        self.command_show(args)
+        self.command_show("available "+args)
 
-    def command_part(self, args):
+    def command_part(self, arg):
         """
         /part [msg]
         """
+        args = arg.split()
         reason = None
         room = self.current_room()
         if room.name == 'Info':
@@ -849,7 +860,7 @@ class Gui(object):
         self.rooms.remove(self.current_room())
         self.window.refresh(self.rooms)
 
-    def command_unquery(self, args):
+    def command_unquery(self, arg):
         """
         /unquery
         """
@@ -858,10 +869,11 @@ class Gui(object):
             self.rooms.remove(room)
             self.window.refresh(self.rooms)
 
-    def command_query(self, args):
+    def command_query(self, arg):
         """
         /query <nick> [message]
         """
+        args = arg.split()
         if len(args) < 1:
             return
         nick = args[0]
@@ -876,10 +888,11 @@ class Gui(object):
             self.muc.send_private_message(r.name, msg)
             self.add_message_to_room(r, msg.decode('utf-8'), None, r.own_nick)
 
-    def command_topic(self, args):
+    def command_topic(self, arg):
         """
         /topic [new topic]
         """
+        args = arg.split()
         room = self.current_room()
         if len(args) == 0:
             self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic.decode('utf-8'))
@@ -889,10 +902,55 @@ class Gui(object):
             return
         self.muc.change_subject(room.name, subject)
 
-    def command_nick(self, args):
+    def command_link(self, arg):
+        """
+        /link <option> <nb>
+        Opens the link in a browser, or join the room, or add the JID, or
+        copy it in the clipboard
+        """
+        args = arg.split()
+        if len(args) > 2:
+            self.add_message_to_room(self.current_room(),
+                                     _("Link: This command takes at most 2 arguments"))
+            return
+        # set the default parameters
+        option = "open"
+        nb = 0
+        # check the provided parameters
+        if len(args) >= 1:
+            try:  # check if the argument is the number
+                nb = int(args[0])
+            except ValueError:  # nope, it's the option
+                option = args[0]
+        if len(args) == 2:
+            try:
+                nb = int(args[0])
+            except ValueError:
+                self.add_message_to_room(self.current_room(),
+                                         _("Link: 2nd parameter should be a number"))
+                return
+        # find the nb-th link in the current buffer
+        i = 0
+        link = None
+        for msg in self.current_room().messages[:-200:-1]:
+            matches = re.findall('"((ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"', msg.txt)
+            for m in matches:
+                if i == nb:
+                    url = m[0]
+                    self.link_open(url)
+                    return
+
+    def url_open(self, url):
+        """
+        Use webbrowser to open the provided link
+        """
+        webbrowser.open(url)
+
+    def command_nick(self, arg):
         """
         /nick <nickname>
         """
+        args = arg.split()
         if len(args) != 1:
             return
         nick = args[0]
@@ -909,12 +967,12 @@ class Gui(object):
         self.add_message_to_room(room, msg)
         self.window.input.refresh()
 
-    def command_quit(self, args):
+    def command_quit(self, arg):
         """
         /quit
         """
-        if len(args):
-            msg = ' '.join(args)
+        if len(arg.strip()) != 0:
+            msg = arg
         else:
             msg = None
         if msg:
@@ -922,3 +980,4 @@ class Gui(object):
             sleep(0.2)          # :(
 	self.reset_curses()
         sys.exit()
+
