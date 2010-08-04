@@ -198,6 +198,8 @@ class Gui(object):
                          curses.COLOR_YELLOW)
         curses.init_pair(15, curses.COLOR_WHITE, # new message in private room
                          curses.COLOR_GREEN)
+        curses.init_pair(16, curses.COLOR_YELLOW,
+                         curses.COLOR_BLUE)
 
     def reset_curses(self):
         """

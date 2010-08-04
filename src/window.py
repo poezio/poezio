@@ -150,6 +150,15 @@ class RoomInfo(Win):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
 
+    def print_scroll_position(self, current_room):
+        """
+        Print, link in Weechat, a -PLUS(n)- where n
+        is the number of available lines to scroll
+        down
+        """
+        if current_room.pos > 0:
+            self.win.addstr(' -PLUS(%s)-' % current_room.pos, curses.color_pair(16) | curses.A_BOLD)
+
     def refresh(self, rooms, current):
         if not self.visible:
             return
@@ -175,6 +184,7 @@ class RoomInfo(Win):
             except:
                 pass
             pass
+        self.print_scroll_position(current)
         while True:
             try:
                 self.win.addstr(' ', curses.color_pair(1))
@@ -259,10 +269,6 @@ class TextWin(Win):
         if not self.visible:
             return
         self.win.erase()
-        # if room.pos != 0:
-        #     messages = room.messages[-self.height - room.pos : -room.pos]
-        # else:
-        #     messages = room.messages[-self.height:]
         lines = self.build_lines_from_messages(room.messages)
         if room.pos + self.height > len(lines):
             room.pos = len(lines) - self.height
