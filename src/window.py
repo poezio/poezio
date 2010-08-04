@@ -160,13 +160,10 @@ class RoomInfo(Win):
                          ,curses.color_pair(1))
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
-            if current == room:
-                color = 10
-            else:
-                color = room.color_state
+            color = room.color_state
             try:
-                self.win.addstr(str(room.nb), curses.color_pair(color))
-                self.win.addstr(",", curses.color_pair(1))
+                self.win.addstr("%s" % str(room.nb), curses.color_pair(color))
+                self.win.addstr(u"|".encode('utf-8'), curses.color_pair(1))
             except:             # end of line
                 break
         (y, x) = self.win.getyx()

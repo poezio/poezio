@@ -215,6 +215,13 @@ class Gui(object):
         self.information(_("Welcome on Poezio \o/!"))
         self.information(_("Your JID is %s") % jid)
 
+    def refresh_window(self):
+        """
+        Refresh everything
+        """
+        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.window.refresh(self.rooms)
+
     def join_room(self, room, nick):
         """
         join the specified room (muc), using the specified nick
@@ -228,9 +235,8 @@ class Gui(object):
                 if ro.nb == 0:
                     self.rooms.insert(self.rooms.index(ro), r)
                     break
-        while self.current_room().nb != r.nb:
-            self.rooms.insert(0, self.rooms.pop())
-        self.window.refresh(self.rooms)
+        self.command_win("%s" % r.nb)
+        self.refresh_window()
 
     def completion(self):
         """
@@ -247,7 +253,8 @@ class Gui(object):
             return 1
         if len(self.window.input.text) == 0:
             self.last_talked_completion()
-        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
+        else:
+            self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
 
     def last_talked_completion(self):
         """
@@ -258,6 +265,7 @@ class Gui(object):
             if msg.nickname is not None and msg.nickname != self.current_room().own_nick:
                 self.window.input.text = msg.nickname+config.get('after_completion', ',')+" "
                 self.window.input.key_end()
+                return
 
     def last_words_completion(self):
         """
@@ -283,39 +291,42 @@ class Gui(object):
         """
         for room in self.rooms:
             if room.color_state == 15:
-                self.command_win([room.nb])
+                self.command_win('%s' % room.nb)
                 return
         for room in self.rooms:
             if room.color_state == 13:
-                self.command_win([room.nb])
+                self.command_win('%s' % room.nb)
                 return
         for room in self.rooms:
             if room.color_state == 12:
-                self.command_win([room.nb])
+                self.command_win('%s' % room.nb)
+                return
 
     def rotate_rooms_right(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(11)
+        self.current_room().set_color_state(common.ROOM_STATE_NONE)
         self.rooms.append(self.rooms.pop(0))
-        self.window.refresh(self.rooms)
+        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.refresh_window()
 
     def rotate_rooms_left(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(11)
+        self.current_room().set_color_state(common.ROOM_STATE_NONE)
         self.rooms.insert(0, self.rooms.pop())
-        self.window.refresh(self.rooms)
+        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.refresh_window()
 
     def scroll_page_down(self, args=None):
         self.current_room().scroll_down()
-        self.window.refresh(self.rooms)
+        self.refresh_window()
 
     def scroll_page_up(self, args=None):
         self.current_room().scroll_up(self.window.size)
-        self.window.refresh(self.rooms)
+        self.refresh_window()
 
     def room_error(self, room, error, msg):
         """
@@ -334,7 +345,7 @@ class Gui(object):
                                    {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
             room.add(_('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
-        self.window.refresh(self.rooms)
+        self.refresh_window()
 
     def private_message(self, stanza):
         """
@@ -358,7 +369,7 @@ class Gui(object):
         for room in self.rooms: # if the room exists, focus it and return
             if room.jid:
                 if room.jid == complete_jid:
-                    self.command_win(str(room.nb))
+                    self.command_win('%s' % room.nb)
                     return
         # create the new tab
         room = self.get_room_by_name(room_name)
@@ -378,7 +389,7 @@ class Gui(object):
             while self.current_room().nb != r.nb:
                 self.rooms.insert(0, self.rooms.pop())
         # self.window.new_room(r)
-        self.window.refresh(self.rooms)
+        self.refresh_window()
         return r
 
     def room_message(self, stanza, date=None):
@@ -424,7 +435,7 @@ class Gui(object):
             else:
                 date = date if delayed == True else None
                 self.add_message_to_room(room, body, date, nick_from)
-        self.window.refresh(self.rooms)
+        self.refresh_window()
         doupdate()
 
     def room_presence(self, stanza):
@@ -497,6 +508,9 @@ class Gui(object):
                             self.add_message_to_room(room,  _("You have been kicked by %(by)s. Reason: %(reason)s") % {'by':by, 'reason':reason})
                         else:
                             self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason))
+                        # try to auto-rejoin
+                        if config.get('autorejoin', 'false') == 'true':
+                            self.muc.join_room(room.name, room.own_nick)
                     else:
                         if by:
                             self.add_message_to_room(room, _("%(nick)s has been kicked by %(by)s. Reason: %(reason)s") % {'nick':from_nick, 'by':by, 'reason':reason})
@@ -618,16 +632,17 @@ class Gui(object):
             return
         if self.current_room().nb == nb:
             return
-        self.current_room().set_color_state(11)
+        self.current_room().set_color_state(common.ROOM_STATE_NONE)
         start = self.current_room()
         self.rooms.append(self.rooms.pop(0))
         while self.current_room().nb != nb:
             self.rooms.append(self.rooms.pop(0))
             if self.current_room() == start:
-                self.window.refresh(self.rooms)
+                self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+                self.refresh_window()
                 return
-        self.window.refresh(self.rooms)
-        self.current_room().set_color_state(11)
+        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.refresh_window()
 
     def command_kick(self, arg):
         """
@@ -858,7 +873,7 @@ class Gui(object):
         if room.joined:
             self.muc.quit_room(room.name, room.own_nick, msg)
         self.rooms.remove(self.current_room())
-        self.window.refresh(self.rooms)
+        self.refresh_window()
 
     def command_unquery(self, arg):
         """
@@ -867,7 +882,7 @@ class Gui(object):
         room = self.current_room()
         if room.jid is not None:
             self.rooms.remove(room)
-            self.window.refresh(self.rooms)
+            self.refresh_window()
 
     def command_query(self, arg):
         """

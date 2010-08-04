@@ -48,6 +48,12 @@ import time
 
 import xmpp
 
+ROOM_STATE_NONE = 11
+ROOM_STATE_CURRENT = 10
+ROOM_STATE_PRIVATE = 15
+ROOM_STATE_MESSAGE = 12
+ROOM_STATE_HL = 13
+
 def debug(string):
     """
     Print a string in a file.
