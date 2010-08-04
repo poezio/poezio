@@ -264,6 +264,10 @@ class TextWin(Win):
         # else:
         #     messages = room.messages[-self.height:]
         lines = self.build_lines_from_messages(room.messages)
+        if room.pos + self.height > len(lines):
+            room.pos = len(lines) - self.height
+            if room.pos < 0:
+                room.pos = 0
         if room.pos != 0:
             lines = lines[-self.height-room.pos:-room.pos]
         else:

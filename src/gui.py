@@ -321,11 +321,11 @@ class Gui(object):
         self.refresh_window()
 
     def scroll_page_down(self, args=None):
-        self.current_room().scroll_down()
+        self.current_room().scroll_down(self.window.text_win.height-1)
         self.refresh_window()
 
     def scroll_page_up(self, args=None):
-        self.current_room().scroll_up(self.window.size)
+        self.current_room().scroll_up(self.window.text_win.height-1)
         self.refresh_window()
 
     def room_error(self, room, error, msg):

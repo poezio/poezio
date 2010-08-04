@@ -42,13 +42,11 @@ class Room(object):
         self.window = window
         self.pos = 0            # offset
 
-    def scroll_up(self, y_x, dist=14):
-        y, x = y_x
-        if len(self.messages) <= y:
-            return
+    def scroll_up(self, dist=14):
+        # The pos can grow a lot over the top of the number of
+        # available lines, it will be fixed on the next refresh of the
+        # screen anyway
         self.pos += dist
-        if self.pos + y >= len(self.messages):
-            self.pos = len(self.messages) - y+3
 
     def scroll_down(self, dist=14):
         self.pos -= dist
