@@ -45,6 +45,7 @@ import sys
 import select
 import errno
 import time
+import traceback
 
 import xmpp
 

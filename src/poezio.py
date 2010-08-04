@@ -21,9 +21,28 @@
 Starting point of poezio. Launches both the Connection and Gui
 """
 
+import threading
 import sys
-import traceback
-import curses
+
+def installThreadExcepthook():
+    """
+    Workaround for sys.excepthook thread bug
+    See http://bugs.python.org/issue1230540
+    Python, you made me sad :(
+    """
+    init_old = threading.Thread.__init__
+    def init(self, *args, **kwargs):
+        init_old(self, *args, **kwargs)
+        run_old = self.run
+        def run_with_except_hook(*args, **kw):
+            try:
+                run_old(*args, **kw)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                sys.excepthook(*sys.exc_info())
+        self.run = run_with_except_hook
+    threading.Thread.__init__ = init
 
 class MyStdErr(object):
     def __init__(self, fd):
@@ -52,11 +71,14 @@ def exception_handler(type_, value, trace):
     curses.endwin()
     curses.echo()
     traceback.print_exception(type_, value, trace, None, sys.stderr)
-    sys.exit(2)
+    import os                   # used to quit the program even from a thread
+    os.abort()
 
 sys.excepthook = exception_handler
 
-import common
+import sys
+import curses
+import signal
 
 from connection import Connection
 from multiuserchat import MultiUserChat
@@ -64,7 +86,6 @@ from config import config
 from gui import Gui
 from curses import initscr
 
-import signal
 signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
 
 def main():
@@ -80,4 +101,5 @@ def main():
     gui.main_loop(stdscr)
 
 if __name__ == '__main__':
+    installThreadExcepthook()
     main()

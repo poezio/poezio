@@ -19,6 +19,7 @@
 from random import randrange
 from config import config
 from datetime import timedelta, datetime
+import curses
 
 class User(object):
     """
@@ -29,6 +30,9 @@ class User(object):
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
         self.color = randrange(2, 10) # assign a random color
+        # if randrange(1) == 0:
+        # self.color = 16
+        # self.color |= curses.A_BOLD
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation

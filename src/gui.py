@@ -141,6 +141,7 @@ class Gui(object):
         """
         main loop waiting for the user to press a key
         """
+        self.refresh_window()
         while True:
             doupdate()
             char=read_char(stdscr)
@@ -163,7 +164,7 @@ class Gui(object):
         returns the room that has this name
         """
         for room in self.rooms:
-            if room.name == name:
+            if room.name.decode('utf-8') == name:
                 return room
         return None
 
@@ -449,6 +450,7 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
+            # common.debug(':(:(:(:(\n')
             return
         else:
             msg = None
