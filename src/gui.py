@@ -354,14 +354,14 @@ class Gui(object):
             room = self.get_room_by_name('Info')
         code = error.getAttr('code')
         typ = error.getAttr('type')
-        # if error.getTag('text'):
-        #     body = error.getTag('text').getData()
-        # else: # No description of the error is provided in the stanza
-        #     # If it's a standard error, use our own messages
-        if code in ERROR_AND_STATUS_CODES.keys():
-            body = ERROR_AND_STATUS_CODES[code]
-        else:
-            body = _('Unknown error')
+        if error.getTag('text'):
+            body = error.getTag('text').getData()
+        else: # No description of the error is provided in the stanza
+            # If it's a standard error, use our own messages
+            if code in ERROR_AND_STATUS_CODES.keys():
+                body = ERROR_AND_STATUS_CODES[code]
+            else:
+                body = _('Unknown error')
         self.add_message_to_room(room, _('Error: %(code)s-%(msg)s: %(body)s' %
                                    {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
