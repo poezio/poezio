@@ -853,13 +853,13 @@ class Gui(object):
         """
         /busy [msg]
         """
-        self.command_show("busy "+args)
+        self.command_show("busy "+arg)
 
     def command_avail(self, arg):
         """
         /avail [msg]
         """
-        self.command_show("available "+args)
+        self.command_show("available "+arg)
 
     def command_part(self, arg):
         """
