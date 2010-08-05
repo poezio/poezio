@@ -41,6 +41,18 @@ from message import Message
 from keyboard import read_char
 from common import is_jid_the_same, jid_get_domain, is_jid
 
+# http://xmpp.org/extensions/xep-0045.html#errorstatus
+ERROR_AND_STATUS_CODES = {
+    '401': 'A password is required',
+    '403': 'You are banned from the room',
+    '404': 'The room does\'nt exist',
+    '405': 'Your are not allowed to create a new room',
+    '406': 'A reserved nick must be used',
+    '407': 'You are not in the member list',
+    '409': 'This nickname is already in use or has been reserved',
+    '503': 'The maximum number of users has been reached',
+    }
+
 def doupdate():
     curses.doupdate()
 
@@ -338,16 +350,24 @@ class Gui(object):
         if not error:
             return
         room = self.get_room_by_name(room)
+        if not room:
+            room = self.get_room_by_name('Info')
         code = error.getAttr('code')
         typ = error.getAttr('type')
-        if error.getTag('text'):
-            body = error.getTag('text').getData()
+        # if error.getTag('text'):
+        #     body = error.getTag('text').getData()
+        # else: # No description of the error is provided in the stanza
+        #     # If it's a standard error, use our own messages
+        if code in ERROR_AND_STATUS_CODES.keys():
+            body = ERROR_AND_STATUS_CODES[code]
         else:
             body = _('Unknown error')
         self.add_message_to_room(room, _('Error: %(code)s-%(msg)s: %(body)s' %
                                    {'msg':msg, 'code':code, 'body':body}))
         if code == '401':
-            room.add(_('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+            self.add_message_to_room(room, _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+        if code == '409':
+            self.add_message_to_room(room, _('You can join the room with specifying an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
     def private_message(self, stanza):
