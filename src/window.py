@@ -129,8 +129,12 @@ class Topic(Win):
         self.win.erase()
         if not jid:
             try:
-                self.win.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width
-                                 , curses.color_pair(1))
+                self.win.addstr(0, 0, topic, curses.color_pair(1))
+                while True:
+                    try:
+                        self.win.addch(' ', curses.color_pair(1))
+                    except:
+                        break
             except:
                 pass
         elif jid:
