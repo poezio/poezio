@@ -55,10 +55,10 @@ class UserList(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         Win.__init__(self, height, width, y, x, parent_win)
         self.visible = visible
-        self.color_role = {'moderator': 2,
-                           'participant':3,
-                           'visitor':5,
-                           'none':5
+        self.color_role = {'moderator': 4,
+                           'participant':5,
+                           'visitor':2,
+                           'none':3
                            }
         self.color_show = {'xa':12,
                            'None':8,

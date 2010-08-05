@@ -29,10 +29,7 @@ class User(object):
         self.last_talked = None
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.color = randrange(2, 10) # assign a random color
-        # if randrange(1) == 0:
-        # self.color = 16
-        # self.color |= curses.A_BOLD
+        self.color = randrange(3, 10) # assign a random color
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation

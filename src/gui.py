@@ -179,10 +179,10 @@ class Gui(object):
         stdscr.keypad(True)
         curses.init_pair(1, curses.COLOR_WHITE,
                          curses.COLOR_BLUE)
-        curses.init_pair(4, curses.COLOR_CYAN, -1)
-        curses.init_pair(2, curses.COLOR_RED, -1) # Admin
-        curses.init_pair(3, curses.COLOR_BLUE, -1) # Participant
-        curses.init_pair(5, curses.COLOR_WHITE, -1) # Visitor
+        curses.init_pair(2, curses.COLOR_WHITE, -1) # Visitor
+        curses.init_pair(3, curses.COLOR_CYAN, -1)
+        curses.init_pair(4, curses.COLOR_RED, -1) # Admin
+        curses.init_pair(5, curses.COLOR_BLUE, -1) # Participant
         curses.init_pair(6, curses.COLOR_CYAN, -1)
         curses.init_pair(7, curses.COLOR_GREEN, -1)
         curses.init_pair(8, curses.COLOR_MAGENTA, -1)
@@ -450,7 +450,6 @@ class Gui(object):
         from_room = stanza.getFrom().getStripped()
 	room = self.get_room_by_name(from_room)
 	if not room:
-            # common.debug(':(:(:(:(\n')
             return
         else:
             msg = None
@@ -461,11 +460,12 @@ class Gui(object):
             if not room.joined:     # user in the room BEFORE us.
                 # ignore redondant presence message, see bug #1509
                 if from_nick not in [user.nick for user in room.users]:
-                    room.users.append(User(from_nick, affiliation, show, status,
-                                           role))
+                    new_user = User(from_nick, affiliation, show, status, role)
+                    room.users.append(new_user)
                     if from_nick.encode('utf-8') == room.own_nick:
                         room.joined = True
                         self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                        new_user.color = 2
             else:
                 change_nick = stanza.getStatusCode() == '303'
                 kick = stanza.getStatusCode() == '307'

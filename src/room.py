@@ -108,7 +108,10 @@ class Room(object):
                 self.set_color_state(common.ROOM_STATE_MESSAGE)
             else:
                 self.set_color_state(common.ROOM_STATE_PRIVATE)
-        color = self.do_highlight(txt, time, nickname)
+        if not nickname:
+            color = 8
+        else:
+            color = self.do_highlight(txt, time, nickname)
         if time:                # History messages are colored to be distinguished
             color = 8
         time = time if time is not None else datetime.now()
