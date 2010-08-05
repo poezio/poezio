@@ -95,8 +95,8 @@ class Gui(object):
             'topic': (self.command_topic, _("Usage: /topic <subject> \nTopic: Change the subject of the room")),
             'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with.")),
             'query': (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user')),
-
-            'nick': (self.command_nick, _("Usage: /nick <nickname> \nNick: Change your nickname in the current room"))
+            'nick': (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room")),
+            'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
             }
 
         self.key_func = {
@@ -606,7 +606,7 @@ class Gui(object):
             return
         if line.startswith('/') and not line.startswith('/me '):
             command = line.strip()[:].split()[0][1:]
-            arg = line[1+len(command):]
+            arg = line[2+len(command):] # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
             if command in self.commands.keys():
                 func = self.commands[command][0]
@@ -685,6 +685,20 @@ class Gui(object):
             return
         roomname = self.current_room().name
         self.muc.eject_user(roomname, 'kick', nick, reason)
+
+    def command_say(self, arg):
+        """
+        /say <message>
+        """
+        line = arg
+        if self.current_room().name != 'Info':
+            if self.current_room().jid is not None:
+                self.muc.send_private_message(self.current_room().name, line)
+                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick)
+            else:
+                self.muc.send_message(self.current_room().name, line)
+        self.window.input.refresh()
+        doupdate()
 
     def command_join(self, arg):
         """
