@@ -72,13 +72,13 @@ class Room(object):
         if not time and nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
             try:
                 if self.own_nick.encode('utf-8') in txt:
-                    self.set_color_state(13)
-                    color = 2
+                    self.set_color_state(common.ROOM_STATE_HL)
+                    color = 4
             except UnicodeDecodeError:
                 try:
                     if self.own_nick in txt:
-                        self.set_color_state(13)
-                        color = 2
+                        self.set_color_state(common.ROOM_STATE_HL)
+                        color = 4
                 except:
                     pass
             else:
@@ -86,7 +86,7 @@ class Room(object):
                 for word in highlight_words:
                     if word.lower() in txt.lower() and word != '':
                         self.set_color_state(common.ROOM_STATE_HL)
-                        color = 2
+                        color = 4
                         break
         return color
 
