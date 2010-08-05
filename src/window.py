@@ -688,9 +688,9 @@ class Window(object):
         else:
             visible = True
         if visible:
-            stdscr.attron(curses.color_pair(3))
+            stdscr.attron(curses.color_pair(5))
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(3))
+            stdscr.attroff(curses.color_pair(5))
         self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
         self.topic_win = Topic(1, self.width, 0, 0, stdscr, visible)
         self.info_win = RoomInfo(1, self.width, self.height-2, 0, stdscr, visible)
@@ -707,9 +707,9 @@ class Window(object):
         else:
             visible = True
         if visible:
-            stdscr.attron(curses.color_pair(3))
+            stdscr.attron(curses.color_pair(5))
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(3))
+            stdscr.attroff(curses.color_pair(5))
         text_width = (self.width/10)*9;
         self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
