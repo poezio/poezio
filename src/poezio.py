@@ -23,6 +23,7 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import threading
 import sys
+import traceback
 
 def installThreadExcepthook():
     """

@@ -150,12 +150,19 @@ class MultiUserChat(object):
         """Join a new room"""
         pres = Presence(to='%s/%s' % (room, nick))
         pres.setFrom('%s'%self.own_jid)
-        if not password:
-            pres.addChild(name='x', namespace=NS_MUC)
-        else:
-            item = pres.addChild(name='x', namespace=NS_MUC)
-            passwd = item.addChild(name='password')
+        x_tag = pres.addChild(name='x', namespace=NS_MUC)
+        if password:
+            passwd = x_tag.addChild(name='password')
             passwd.setData(password)
+        muc_history_length = config.get('muc_history_length', -1)
+        if muc_history_length >= 0:
+            history_tag = x_tag.addChild(name='history')
+            if muc_history_length == 0:
+                history_tag.setAttr('maxchars', 0)
+            else:
+                history_tag.setAttr('maxstanzas', muc_history_length)
+        from common import debug
+        debug('%s\n'% pres)
         self.connection.send(pres)
 
     def quit_room(self, room, nick, msg=None):
