@@ -485,6 +485,11 @@ class Gui(object):
                     if from_nick.encode('utf-8') == room.own_nick:
                         room.joined = True
                         self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                        # Check for a 170 status code
+                        for xtag in stanza.getTags('x'):
+                            for child in xtag.getTags('status'):
+                                if child.getAttr('code') == '170':
+                                    self.add_message_to_room(room, 'Warning: this room is publicly logged')
                         new_user.color = 2
             else:
                 change_nick = stanza.getStatusCode() == '303'
