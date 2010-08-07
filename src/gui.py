@@ -159,7 +159,7 @@ class Gui(object):
             doupdate()
             char=read_char(stdscr)
             try: # if this is not a valide utf-8 char, discard it
-                char.encode('utf-8')
+                char.decode('utf-8')
             except UnicodeDecodeError:
                 continue
             # search for keyboard shortcut
