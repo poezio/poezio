@@ -372,7 +372,10 @@ class Gui(object):
         if code == '401':
             self.add_message_to_room(room, _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
         if code == '409':
-            self.add_message_to_room(room, _('You can join the room with specifying an other nick, by typing "/join /other_nick"'))
+            if config.get('alternative_nickname', '') != '':
+                self.command_join('%s/%s'% (room.name, room.own_nick+config.get('alternative_nickname', '')))
+            else:
+                self.add_message_to_room(room, _('You can join the room with specifying an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
     def private_message(self, stanza):
