@@ -375,7 +375,7 @@ class Gui(object):
             if config.get('alternative_nickname', '') != '':
                 self.command_join('%s/%s'% (room.name, room.own_nick+config.get('alternative_nickname', '')))
             else:
-                self.add_message_to_room(room, _('You can join the room with specifying an other nick, by typing "/join /other_nick"'))
+                self.add_message_to_room(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
     def private_message(self, stanza):
