@@ -69,9 +69,9 @@ class Room(object):
         Set the tab color and returns the txt color
         """
         color = None
-        if not time and nickname != self.own_nick and self.joined and nickname is not None: # do the highlight
+        if not time and nickname.encode('utf-8') != self.own_nick and self.joined and nickname is not None: # do the highlight
             try:
-                if self.own_nick.encode('utf-8') in txt:
+                if self.own_nick in txt.encode('utf-8'):
                     self.set_color_state(common.ROOM_STATE_HL)
                     color = 4
             except UnicodeDecodeError:
