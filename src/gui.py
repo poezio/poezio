@@ -97,6 +97,7 @@ class Gui(object):
             'query': (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user')),
             'nick': (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room")),
             'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
+            'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
             }
 
         self.key_func = {
@@ -157,6 +158,10 @@ class Gui(object):
         while True:
             doupdate()
             char=read_char(stdscr)
+            try: # if this is not a valide utf-8 char, discard it
+                char.encode('utf-8')
+            except UnicodeDecodeError:
+                continue
             # search for keyboard shortcut
             if char in self.key_func.keys():
                 self.key_func[char]()
@@ -645,6 +650,21 @@ class Gui(object):
             else:
                 msg = _('Unknown command: %s') % args[0]
         self.add_message_to_room(room, msg)
+
+    def command_whois(self, arg):
+        """
+        /whois <nickname>
+        """
+        args = arg.split()
+        room = self.current_room()
+        if len(args) != 1:
+            self.add_message_to_room(room, _('whois command takes exactly one argument'))
+            return
+        # check if current room is a MUC
+        if room.jid or room.name == 'Info':
+            return
+        nickname = args[0]
+        self.muc.request_vcard(room.name, nickname)
 
     def command_win(self, arg):
         """

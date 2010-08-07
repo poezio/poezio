@@ -146,6 +146,14 @@ class MultiUserChat(object):
         mes.setType('chat')
         self.connection.send(mes)
 
+    def request_vcard(self, room_name, nickname):
+        """
+        Request the vCard of an user, over a MUC or not
+        """
+        request = Iq(typ='get', to='%s/%s'% (room_name, nickname))
+        vcard_tag = request.addChild(name='vCard', namespace='vcard-temp')
+        self.connection.send(request)
+
     def join_room(self, room, nick, password=None):
         """Join a new room"""
         pres = Presence(to='%s/%s' % (room, nick))
@@ -161,8 +169,6 @@ class MultiUserChat(object):
                 history_tag.setAttr('maxchars', 0)
             else:
                 history_tag.setAttr('maxstanzas', muc_history_length)
-        from common import debug
-        debug('%s\n'% pres)
         self.connection.send(pres)
 
     def quit_room(self, room, nick, msg=None):
