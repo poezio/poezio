@@ -59,5 +59,6 @@ class User(object):
         return True
 
     def __repr__(self):
-        return "<user.User object nick:%s show:%s(%s) status:%s affiliation:%s>"\
-            % (self.nick, self.show, type(self.show), self.status, self.affiliation)
+        return ">%s<" % (self.nick.decode('utf-8'))
+        # return "<user.User object nick:%s show:%s(%s) status:%s affiliation:%s>"\
+        #     % (self.nick.decode('utf-8'), self.show, type(self.show), self.status, self.affiliation)

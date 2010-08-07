@@ -264,28 +264,17 @@ class Gui(object):
         """
         def compare_users(a, b):
             """
-            Used to sort users by their availability
+            Used to sort users by their last_talked
             """
-            if a.show == b.show:
+            if not a.last_talked and b.last_talked:
                 return 0
-            if a.show is None:
+            elif not b.last_talked and a.last_talked:
+                return 1
+            if a.last_talked <  b.last_talked:
+                return 1
+            else:
                 return -1
-            return 1
-        if len(self.window.input.text) == 0:
-            self.last_talked_completion()
-        else:
-            self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
-
-    def last_talked_completion(self):
-        """
-        If tab is used while the input is empty, insert the nickname
-        of the last person who spoke
-        """
-        for msg in self.current_room().messages[::-1]:
-            if msg.nickname is not None and msg.nickname != self.current_room().own_nick:
-                self.window.input.text = msg.nickname+config.get('after_completion', ',')+" "
-                self.window.input.key_end()
-                return
+        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
 
     def last_words_completion(self):
         """

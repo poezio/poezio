@@ -23,8 +23,6 @@ of the time ONE char, but may be longer if it's a keyboard
 shortcut, like ^A, M-a or KEY_RESIZE)
 """
 
-from common import debug
-
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
@@ -54,15 +52,12 @@ def read_char(s):
             (first, c) = get_next_byte(s)
             char = "M-"+c
     if 194 <= first:
-        debug('1\n')
         (code, c) = get_next_byte(s) # 2 bytes char
         char += c
     if 224 <= first:
-        debug('2\n')
         (code, c) = get_next_byte(s) # 3 bytes char
         char += c
     if 240 <= first:
-        debug('3\n')
         (code, c) = get_next_byte(s) # 4 bytes char
         char += c
     return char

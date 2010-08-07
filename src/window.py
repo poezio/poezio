@@ -541,10 +541,10 @@ class Input(Win):
         """
         Complete the nickname
         """
-        if self.pos+self.line_pos != len(self.text) or len(self.text) == 0:
+        if self.pos+self.line_pos != len(self.text): # or len(self.text) == 0
             return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
-        if completion_type == 'shell':
+        if completion_type == 'shell' and self.text != '':
             self.shell_completion(user_list)
         else:
             self.normal_completion(user_list)
@@ -567,7 +567,10 @@ class Input(Win):
         (y, x) = self.win.getyx()
         if not self.last_key_tab:
             # begin is the begining of the nick we want to complete
-            begin = self.text.split()[-1].encode('utf-8').lower()
+            if self.text != '':
+                begin = self.text.split()[-1].encode('utf-8').lower()
+            else:
+                begin = ''
             hit_list = []       # list of matching nicks
             for user in user_list:
                 if user.lower().startswith(begin):
@@ -595,7 +598,10 @@ class Input(Win):
         else:
             after = config.get('after_completion', ',')+" "
         (y, x) = self.win.getyx()
-        begin = self.text.split()[-1].encode('utf-8').lower()
+        if self.text != '':
+            begin = self.text.split()[-1].encode('utf-8').lower()
+        else:
+            begin = ''
         hit_list = []       # list of matching nicks
         for user in user_list:
             if user.lower().startswith(begin):
