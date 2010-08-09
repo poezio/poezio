@@ -476,6 +476,7 @@ class Gui(object):
             show = stanza.getShow()
             status = stanza.getStatus()
             role = stanza.getRole()
+            jid = stanza.getJid()
             if not room.joined:     # user in the room BEFORE us.
                 # ignore redondant presence message, see bug #1509
                 if from_nick not in [user.nick for user in room.users]:
@@ -500,7 +501,10 @@ class Gui(object):
                                            show, status, role))
                     hide_exit_join = config.get('hide_exit_join', -1)
                     if hide_exit_join != 0:
-                        self.add_message_to_room(room, _("%(nick)s joined the room %(roomname)s") % {'nick':from_nick, 'roomname': room.name})
+                        if not jid:
+                            self.add_message_to_room(room, _("%(nick)s joined the room") % {'nick':from_nick})
+                        else:
+                            self.add_message_to_room(room, _("%(nick)s (%(jid)s) joined the room") % {'nick':from_nick, 'jid':jid})
                 # nick change
                 elif change_nick:
                     if user.nick == room.own_nick:
@@ -549,7 +553,10 @@ class Gui(object):
                     room.users.remove(user)
                     hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
                     if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-                        self.add_message_to_room(room, _('%s has left the room') % (from_nick))
+                        if not jid:
+                            self.add_message_to_room(room, _('%s has left the room') % (from_nick))
+                        else:
+                            self.add_message_to_room(room, _('%(nick)s (%(jid)s) has left the room') % {'nick':from_nick, 'jid':jid})
                     private_room = self.get_room_by_name(stanza.getFrom())
                     if private_room:
                         self.add_message_to_room(private_room, _('%s has left the room') % (from_nick))
