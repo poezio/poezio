@@ -181,6 +181,8 @@ class Gui(object):
         returns the room that has this name
         """
         for room in self.rooms:
+            from common import debug
+            debug('-- %s  ?  %s\n' % (room.name, name,))
             if room.name.decode('utf-8') == name:
                 return room
         return None
@@ -436,6 +438,8 @@ class Gui(object):
         if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
             return
         room = self.get_room_by_name(room_from)
+        from common import debug
+        debug('%s\n' % room_from)
 	if not room:
 	    self.information(_("message received for a non-existing room: %s") % (room_from))
             return

@@ -94,13 +94,30 @@ class Config(RawConfigParser):
         """
         return RawConfigParser.getboolean(self, self.defsection, option)
 
-    def save(self):
+    def write_in_file(self, section, option, value):
         """
-        save the configuration in the file
+        Our own way to save write the value in the file
+        Just find the right section, and then find the
+        right option, and edit it.
         """
-        fdes = open(self.file_name, "w")
-        RawConfigParser.write(self, fdes)
-        fdes.close()
+        df = open(self.file_name, 'r')
+        lines_before = [line.strip() for line in df.readlines()]
+        df.close()
+        result_lines = []
+        we_are_in_the_right_section = False
+        for line in lines_before:
+            if line.startswith('['): # check the section
+                if line == '[%s]' % section:
+                    we_are_in_the_right_section = True
+                else:
+                    we_are_in_the_right_section = False
+            if line.startswith(option) and we_are_in_the_right_section:
+                line = '%s = %s' % (option, value)
+            result_lines.append(line)
+        df = open(self.file_name, 'w')
+        for line in result_lines:
+            df.write('%s\n' % line)
+        df.close()
 
     def set_and_save(self, option, value):
         """
@@ -108,9 +125,7 @@ class Config(RawConfigParser):
         to the file
         """
         RawConfigParser.set(self, self.defsection, option, value)
-        self.save()
-
-        import argparse
+        self.write_in_file(self.defsection, option, value)
 
 # creates the configuration directory if it doesn't exist
 # and copy the default config in it
@@ -135,3 +150,10 @@ else:
     filename = CONFIG_PATH+'poezio.cfg'
 
 config = Config(filename)
+
+if __name__ == '__main__':
+    # tests
+    import sys
+    (dummy, filename, section, option, value) = sys.argv
+    conf = Config(sys.argv[1])
+    conf.write_in_file(section, option, value)

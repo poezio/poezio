@@ -105,11 +105,11 @@ class Connection(threading.Thread):
         """
         registers handlers from xmpppy signals
         """
-        # self.client.RegisterHandler('iq', self.on_get_time, typ='get',
-        #                             ns="urn:xmpp:time")
+        self.client.RegisterHandler('iq', self.on_get_time, typ='get',
+                                    ns="urn:xmpp:time")
         self.client.RegisterHandler('iq', self.on_get_vcard)
-        # self.client.RegisterHandler('iq', self.on_get_version, typ='get',
-        #                             ns=xmpp.NS_VERSION)
+        self.client.RegisterHandler('iq', self.on_get_version, typ='get',
+                                    ns=xmpp.NS_VERSION)
         self.client.RegisterHandler('presence', self.handler_presence)
         self.client.RegisterHandler('message', self.handler_message)
 
