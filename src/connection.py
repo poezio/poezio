@@ -64,8 +64,9 @@ class Connection(threading.Thread):
             sys.exit(-1)
         # TODO, become invisible before sendInitPresence
         self.client.sendInitPresence(requestRoster=0)
-        self.online = 1      # 2 when confirmation of our auth is received
         self.register_handlers()
+
+        self.online = 1      # 2 when confirmation of our auth is received
         while 1:
             self.process()
 
@@ -145,7 +146,7 @@ class Connection(threading.Thread):
         if presence.getType() == 'error':
             self.error_message(presence)
             return
-        if fro == toj:           # own presence
+        if not toj or fro == toj:           # own presence
             self.online = 2
             self.jid = toj
             self.handler.emit('on-connected', jid=fro)

@@ -71,10 +71,14 @@ class Logger(object):
             fd = open(dir+room, 'a')
         except IOError:
             return
+        try:
+            msg = msg.encode('utf-8')
+        except:
+            pass
         if nick:
-            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick.encode('utf-8')+': '+msg.encode('utf-8')+'\n')
+            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick.encode('utf-8')+': '+msg+'\n')
         else:
-            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg.encode('utf-8')+'\n')
+            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
         fd.close()
 
 logger = Logger()

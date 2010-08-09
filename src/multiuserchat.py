@@ -74,7 +74,7 @@ class VcardSender(threading.Thread):
         if image:
             vcard['PHOTO'] = {"TYPE":mime_type,"BINVAL":image}
         iq = xmpp.Iq(typ = 'set')
-        iq2 = iq.setTag(xmpp.NS_VCARD + ' vCard')
+        iq2 = iq.addChild('vCard', namespace=xmpp.NS_VCARD)
         for i in vcard:
             if i == 'jid':
                 continue
@@ -91,7 +91,7 @@ class VcardSender(threading.Thread):
                 iq2.addChild(i).setData(vcard[i])
         self.connection.send(iq)
         iq = xmpp.Iq(typ = 'set')
-        iq2 = iq.setTag(xmpp.NS_VCARD_UPDATE)
+        iq2 = iq.addChild('vCard', namespace=xmpp.NS_VCARD_UPDATE)
         iq2.addChild('PHOTO').setData(sha1)
         self.connection.send(iq)
 
@@ -316,7 +316,7 @@ class MultiUserChat(object):
         qp = iq_obj.getTag('query')
         if config.get('send_poezio_info', 'true') == 'true':
             qp.setTagData('name', 'Poezio')
-            qp.setTagData('version', '0.7 dev')
+            qp.setTagData('version', '0.6.3 dev')
         else:
             qp.setTagData('name', 'Unknown')
             qp.setTagData('version', 'Unknown')
