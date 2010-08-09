@@ -117,6 +117,20 @@ class Room(object):
         time = time if time is not None else datetime.now()
         self.messages.append(Message(txt, time, nickname, user, color))
 
+    def remove_line_separator(self):
+        """
+        Remove the line separator
+        """
+        if None in self.messages:
+            self.messages.remove(None)
+
+    def add_line_separator(self):
+        """
+        add a line separator at the end of messages list
+        """
+        if None not in self.messages:
+            self.messages.append(None)
+
     def get_user_by_name(self, nick):
         for user in self.users:
             if user.nick == nick.encode('utf-8'):

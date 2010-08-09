@@ -181,8 +181,6 @@ class Gui(object):
         returns the room that has this name
         """
         for room in self.rooms:
-            from common import debug
-            debug('-- %s  ?  %s\n' % (room.name, name,))
             if room.name.decode('utf-8') == name:
                 return room
         return None
@@ -318,6 +316,7 @@ class Gui(object):
         rotate the rooms list to the right
         """
         self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().remove_line_separator()
         self.rooms.append(self.rooms.pop(0))
         self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
         self.refresh_window()
@@ -327,6 +326,7 @@ class Gui(object):
         rotate the rooms list to the right
         """
         self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().remove_line_separator()
         self.rooms.insert(0, self.rooms.pop())
         self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
         self.refresh_window()
@@ -438,8 +438,6 @@ class Gui(object):
         if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
             return
         room = self.get_room_by_name(room_from)
-        from common import debug
-        debug('%s\n' % room_from)
 	if not room:
 	    self.information(_("message received for a non-existing room: %s") % (room_from))
             return
@@ -594,6 +592,8 @@ class Gui(object):
         Add the message to the room and refresh the associated component
         of the interface
         """
+        if room != self.current_room():
+            room.add_line_separator()
         room.add_message(txt, time, nickname)
         if room == self.current_room():
             self.window.text_win.refresh(room)
@@ -678,6 +678,7 @@ class Gui(object):
         if self.current_room().nb == nb:
             return
         self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().remove_line_separator()
         start = self.current_room()
         self.rooms.append(self.rooms.pop(0))
         while self.current_room().nb != nb:

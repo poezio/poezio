@@ -218,6 +218,9 @@ class TextWin(Win):
         """
         lines = []
         for message in messages:
+            if message == None:  # line separator
+                lines.append(None)
+                continue
             txt = message.txt
             if not txt:
                 continue
@@ -285,6 +288,10 @@ class TextWin(Win):
         y = 0
         for line in lines:
             self.win.move(y, 0)
+            if line == None:
+                self.write_line_separator()
+                y += 1
+                continue
             if line.time is not None:
                 self.write_time(line.time)
             if line.nickname is not None:
@@ -292,6 +299,13 @@ class TextWin(Win):
             self.write_text(y, line.text_offset, line.text, line.text_color)
             y += 1
         self.win.refresh()
+
+    def write_line_separator(self):
+        """
+        """
+        self.win.attron(curses.color_pair(7))
+        self.win.addstr(' -'*(self.width/2))
+        self.win.attroff(curses.color_pair(7))
 
     def write_text(self, y, x, txt, color):
         """
