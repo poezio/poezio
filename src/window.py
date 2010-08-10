@@ -368,7 +368,8 @@ class Input(Win):
         # the first char to display on the screen
         self.histo_pos = 0
         self.hit_list = [] # current possible completion (normal)
-        self.last_key_tab = False # True if we are cycling through possible completion
+        self.last_completion = None # Contains the last nickname completed,
+                                    # if last key was a tab
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -568,18 +569,20 @@ class Input(Win):
         Reset the completion list (called on ALL keys except tab)
         """
         self.hit_list = []
-        self.last_key_tab = False
+        self.last_completion = None
 
     def normal_completion(self, user_list):
         """
         Normal completion
         """
-        if " " in self.text.strip():
-            after = " " # don't put the "," if it's not the begining of the sentence
-        else:
+        if " " not in self.text.strip() or\
+                self.last_completion and self.text == self.last_completion+config.get('after_completion', ',')+" ":
             after = config.get('after_completion', ',')+" "
+            #if " " in self.text.strip() and (not self.last_completion or ' ' in self.last_completion):
+        else:
+            after = " " # don't put the "," if it's not the begining of the sentence
         (y, x) = self.win.getyx()
-        if not self.last_key_tab:
+        if not self.last_completion:
             # begin is the begining of the nick we want to complete
             if self.text != '':
                 begin = self.text.split()[-1].encode('utf-8').lower()
@@ -591,15 +594,15 @@ class Input(Win):
                     hit_list.append(user)
             if len(hit_list) == 0:
                 return
-            self.last_key_tab = True
             self.hit_list = hit_list
             end = len(begin.decode('utf-8'))
         else:
-            begin = self.text[:-len(after)].split()[-1].encode('utf-8').lower()
+            begin = self.text[-len(after)-len(self.last_completion):-len(after)]
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
             end = len(begin.decode('utf-8')) + len(after)
         self.text = self.text[:-end]
         nick = self.hit_list[0] # take the first hit
+        self.last_completion = nick.decode('utf-8')
         self.text += nick.decode('utf-8') +after
         self.key_end(False)
 
@@ -624,16 +627,16 @@ class Input(Win):
             return
         end = False
         nick = ''
-        last_key_tab = self.last_key_tab
-        self.last_key_tab = True
+        last_completion = self.last_completion
+        self.last_completion = True
         if len(hit_list) == 1:
             nick = hit_list[0] + after
-            self.last_key_tab = False
-        elif last_key_tab:
+            self.last_completion = False
+        elif last_completion:
             for n in hit_list:
                 if begin.lower() == n.lower():
                     nick = n+after # user DO want this completion (tabbed twice on it)
-                    self.last_key_tab = False
+                    self.last_completion = False
         if nick == '':
             while not end and len(nick) < len(hit_list[0]):
                 nick = hit_list[0][:len(nick)+1]

@@ -69,7 +69,7 @@ class Room(object):
         Set the tab color and returns the txt color
         """
         color = None
-        if not time and nickname.encode('utf-8') != self.own_nick and self.joined and nickname is not None: # do the highlight
+        if not time and nickname and nickname.encode('utf-8') != self.own_nick and self.joined: # do the highlight
             try:
                 if self.own_nick in txt.encode('utf-8'):
                     self.set_color_state(common.ROOM_STATE_HL)
@@ -101,12 +101,12 @@ class Room(object):
         if user:
             user.set_last_talked(datetime.now())
         color = None
-        if not time and nickname is not None and\
+        if not time and nickname and\
                 nickname != self.own_nick and\
                 self.color_state != common.ROOM_STATE_CURRENT:
-            if not self.jid:
+            if not self.jid and self.color_state != common.ROOM_STATE_HL:
                 self.set_color_state(common.ROOM_STATE_MESSAGE)
-            else:
+            elif self.jid:
                 self.set_color_state(common.ROOM_STATE_PRIVATE)
         if not nickname:
             color = 8

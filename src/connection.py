@@ -140,6 +140,7 @@ class Connection(threading.Thread):
 
     def handler_normal_presence(self, connection, presence):
         """
+        handles the non-MUC presences
         """
         fro = presence.getFrom()
         toj = presence.getAttr('to')

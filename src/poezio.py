@@ -94,7 +94,7 @@ def main():
     main function
     """
     resource = config.get('resource', 'poezio')
-    server = config.get('server', 'louiz.org')
+    server = config.get('server', 'anon.louiz.org:jeproteste.info')
     connection = Connection(server, resource)
     connection.start()
     stdscr = initscr()
