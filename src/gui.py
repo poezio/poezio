@@ -181,8 +181,12 @@ class Gui(object):
         returns the room that has this name
         """
         for room in self.rooms:
-            if room.name.decode('utf-8') == name:
-                return room
+            try:
+                if room.name.decode('utf-8') == name:
+                    return room
+            except UnicodeEncodeError:
+                if room.name == name:
+                    return room
         return None
 
     def init_curses(self, stdscr):
@@ -378,7 +382,7 @@ class Gui(object):
         room_from = stanza.getFrom().getStripped()
         room = self.get_room_by_name(jid) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
-            room = self.open_private_window(room_from, nick_from, False)
+            room = self.open_private_window(room_from, nick_from.encode('utf-8'), False)
             if not room:
                 return
         body = stanza.getBody()
@@ -387,14 +391,14 @@ class Gui(object):
         doupdate()
 
     def open_private_window(self, room_name, user_nick, focus=True):
-        complete_jid = room_name+'/'+user_nick
+        complete_jid = room_name.decode('utf-8')+'/'+user_nick
         for room in self.rooms: # if the room exists, focus it and return
             if room.jid:
                 if room.jid == complete_jid:
                     self.command_win('%s' % room.nb)
                     return
         # create the new tab
-        room = self.get_room_by_name(room_name)
+        room = self.get_room_by_name(room_name.decode('utf-8'))
         if not room:
             return None
         own_nick = room.own_nick
@@ -629,7 +633,7 @@ class Gui(object):
         elif self.current_room().name != 'Info':
             if self.current_room().jid is not None:
                 self.muc.send_private_message(self.current_room().name, line)
-                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick)
+                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick.decode('utf-8'))
             else:
                 self.muc.send_message(self.current_room().name, line)
         self.window.input.refresh()
@@ -762,7 +766,7 @@ class Gui(object):
                 # use the server of the current room if available
                 # check if the current room's name has a server
                 if is_jid(self.current_room().name):
-                    room += '@%s' % jid_get_domain(self.current_room().name)
+                    room += '@%s' % jid_get_domain(self.current_room().name.encode('utf-8'))
                 else:           # no server could be found, print a message and return
                     self.add_message_to_room(self.current_room(), _("You didn't specify a server for the room you want to join"))
                     return
@@ -963,7 +967,7 @@ class Gui(object):
             return
         for user in room.users:
             if user.nick == nick:
-                r = self.open_private_window(room.name, user.nick)
+                r = self.open_private_window(room.name, user.nick.decode('utf-8'))
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
             self.muc.send_private_message(r.name, msg)
