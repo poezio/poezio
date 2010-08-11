@@ -408,8 +408,7 @@ class Gui(object):
                     self.rooms.insert(self.rooms.index(ro), r)
                     break
         if focus:               # focus the room if needed
-            while self.current_room().nb != r.nb:
-                self.rooms.insert(0, self.rooms.pop())
+            self.command_win('%s' % (r.nb))
         # self.window.new_room(r)
         self.refresh_window()
         return r
@@ -675,12 +674,12 @@ class Gui(object):
         """
         args = arg.split()
         if len(args) != 1:
-            self.command_help(['win'])
+            self.command_help('win')
             return
         try:
             nb = int(args[0])
         except ValueError:
-            self.command_help(['win'])
+            self.command_help('win')
             return
         if self.current_room().nb == nb:
             return
@@ -703,7 +702,7 @@ class Gui(object):
         """
         args = arg.split()
         if len(args) < 1:
-            self.command_help(['kick'])
+            self.command_help('kick')
             return
         nick = args[0]
         if len(args) >= 2:
@@ -824,7 +823,7 @@ class Gui(object):
         """
         args = arg.split()
         if len(args) != 2 and len(args) != 1:
-            self.command_help(['set'])
+            self.command_help('set')
             return
         option = args[0]
         if len(args) == 2:
@@ -855,7 +854,7 @@ class Gui(object):
         if len(args) < 1:
             return
         if not args[0] in possible_show.keys():
-            self.command_help(['show'])
+            self.command_help('show')
             return
         show = possible_show[args[0]]
         if len(args) > 1:
@@ -872,7 +871,7 @@ class Gui(object):
         """
         args = arg.split()
         if len(args) != 1:
-            self.command_help(['ignore'])
+            self.command_help('ignore')
             return
         if self.current_room().name == 'Info' or not self.current_room().joined:
             return
@@ -892,7 +891,7 @@ class Gui(object):
         """
         args = arg.split()
         if len(args) != 1:
-            self.command_help(['unignore'])
+            self.command_help('unignore')
             return
         if self.current_room().name == 'Info' or not self.current_room().joined:
             return
@@ -965,8 +964,8 @@ class Gui(object):
         for user in room.users:
             if user.nick == nick:
                 r = self.open_private_window(room.name, user.nick)
-        if room and len(args) > 1:
-            msg = ' '.join(args[1:])
+        if r and len(args) > 1:
+            msg = arg[len(nick)+1:]
             self.muc.send_private_message(r.name, msg)
             self.add_message_to_room(r, msg.decode('utf-8'), None, r.own_nick)
 
