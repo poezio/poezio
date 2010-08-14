@@ -584,7 +584,7 @@ class Input(Win):
         (y, x) = self.win.getyx()
         if not self.last_completion:
             # begin is the begining of the nick we want to complete
-            if self.text != '':
+            if self.text.strip() != '':
                 begin = self.text.split()[-1].encode('utf-8').lower()
             else:
                 begin = ''
