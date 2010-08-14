@@ -223,7 +223,6 @@ class MultiUserChat(object):
     def on_presence(self, presence):
         """Receive a MUC presence notification"""
         from_ = presence.getFrom().__str__()
-
         if get_stripped_jid(from_) in self.rooms:
             self.handler.emit('on-muc-presence-changed',
                                jid=from_.encode('utf-8'),

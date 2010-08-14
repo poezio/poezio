@@ -288,6 +288,8 @@ class Gui(object):
         char_we_dont_want = [',', '(', ')', '.']
         words = list()
         for msg in self.current_room().messages[:-9:-1]:
+            if not msg:
+                continue
             for word in msg.txt.split():
                 for char in char_we_dont_want: # remove the chars we don't want
                     word = word.replace(char, '')
@@ -1018,6 +1020,8 @@ class Gui(object):
         i = 0
         link = None
         for msg in self.current_room().messages[:-200:-1]:
+            if not msg:
+                continue
             matches = re.findall('"((ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"', msg.txt)
             for m in matches:
                 if i == nb:
@@ -1065,4 +1069,3 @@ class Gui(object):
             sleep(0.2)          # :(
 	self.reset_curses()
         sys.exit()
-

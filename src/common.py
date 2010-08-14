@@ -62,7 +62,13 @@ def debug(string):
     a CLI software
     """
     fdes = open("debug", 'a')
-    fdes.write(string)
+    try:
+        fdes.write(string)
+    except:
+        try:
+            fdes.write(string.encode('utf-8'))
+        except:
+            fdes.write(string.encode('utf-8'))
     fdes.close()
 
 def get_base64_from_file(path):

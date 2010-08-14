@@ -220,6 +220,5 @@ class Connection(threading.Thread):
         """
         we received a vcard
         """
-        return
         from common import debug
         debug('\n====\n%s\n\n' % iq)
