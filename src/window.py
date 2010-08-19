@@ -26,7 +26,11 @@ locale.setlocale(locale.LC_ALL, '')
 import curses
 from config import config
 
+from threading import Lock
+
 from message import Line
+
+g_lock = Lock()
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
@@ -84,6 +88,7 @@ class UserList(Win):
             return arole - brole
         if not self.visible:
             return
+        g_lock.acquire()
         self.win.erase()
         y = 0
         for user in sorted(users, compare_user):
@@ -108,6 +113,7 @@ class UserList(Win):
             if y == self.height:
                 break
         self.win.refresh()
+        g_lock.release()
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -126,6 +132,7 @@ class Topic(Win):
     def refresh(self, topic, jid=None):
         if not self.visible:
             return
+        g_lock.acquire()
         self.win.erase()
         if not jid:
             try:
@@ -145,6 +152,7 @@ class Topic(Win):
                              , curses.color_pair(15))
 
         self.win.refresh()
+        g_lock.release()
 
 class RoomInfo(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
@@ -168,6 +176,7 @@ class RoomInfo(Win):
             return
         def compare_room(a, b):
             return a.nb - b.nb
+        g_lock.acquire()
         self.win.erase()
         self.win.addnstr(0, 0, "[", self.width
                          ,curses.color_pair(1))
@@ -195,6 +204,7 @@ class RoomInfo(Win):
             except:
                 break
         self.win.refresh()
+        g_lock.release()
 
 class TextWin(Win):
     """
@@ -275,6 +285,7 @@ class TextWin(Win):
         """
         if not self.visible:
             return
+        g_lock.acquire()
         self.win.erase()
         lines = self.build_lines_from_messages(room.messages)
         if room.pos + self.height > len(lines):
@@ -299,6 +310,7 @@ class TextWin(Win):
             self.write_text(y, line.text_offset, line.text, line.text_color)
             y += 1
         self.win.refresh()
+        g_lock.release()
 
     def write_line_separator(self):
         """
@@ -465,7 +477,6 @@ class Input(Win):
         """
         if not len(self.history):
             return
-        self.reset_completion()
         self.win.erase()
         if self.histo_pos >= 0:
             self.histo_pos -= 1
