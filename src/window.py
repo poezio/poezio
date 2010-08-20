@@ -29,6 +29,7 @@ from config import config
 from threading import Lock
 
 from message import Line
+import theme
 
 g_lock = Lock()
 
@@ -59,16 +60,16 @@ class UserList(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         Win.__init__(self, height, width, y, x, parent_win)
         self.visible = visible
-        self.color_role = {'moderator': 4,
-                           'participant':5,
-                           'visitor':2,
-                           'none':3
+        self.color_role = {'moderator': theme.COLOR_USER_MODERATOR,
+                           'participant':theme.COLOR_USER_PARTICIPANT,
+                           'visitor':theme.COLOR_USER_VISITOR,
+                           'none':theme.COLOR_USER_NONE
                            }
-        self.color_show = {'xa':12,
-                           'None':8,
-                           'dnd':13,
-                           'away':14,
-                           'chat':15
+        self.color_show = {'xa':theme.COLOR_STATUS_XA,
+                           'None':theme.COLOR_STATUS_NONE,
+                           'dnd':theme.COLOR_STATUS_DND,
+                           'away':theme.COLOR_STATUS_AWAY,
+                           'chat':theme.COLOR_STATUS_CHAT
                            }
 
     def refresh(self, users):
@@ -95,11 +96,11 @@ class UserList(Win):
             try:
                 role_col = self.color_role[user.role]
             except KeyError:
-                role_col = 5
+                role_col = theme.COLOR_USER_NONE
             try:
                 show_col = self.color_show[user.show]
             except KeyError:
-                show_col = 8
+                show_col = theme.COLOR_STATUS_NONE
             self.win.attron(curses.color_pair(show_col))
             self.win.addnstr(y, 0, " ", 1)
             self.win.attroff(curses.color_pair(show_col))
@@ -136,10 +137,10 @@ class Topic(Win):
         self.win.erase()
         if not jid:
             try:
-                self.win.addstr(0, 0, topic, curses.color_pair(1))
+                self.win.addstr(0, 0, topic, curses.color_pair(theme.COLOR_TOPIC_BAR))
                 while True:
                     try:
-                        self.win.addch(' ', curses.color_pair(1))
+                        self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
                     except:
                         break
             except:
@@ -149,7 +150,7 @@ class Topic(Win):
             nick = '/'.join(jid.split('/')[1:])
             topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
             self.win.addnstr(0, 0, topic.encode('utf-8') + " "*(self.width-len(topic)), self.width-1
-                             , curses.color_pair(15))
+                             , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
 
         self.win.refresh()
         g_lock.release()
@@ -169,7 +170,7 @@ class RoomInfo(Win):
         down
         """
         if current_room.pos > 0:
-            self.win.addstr(' -PLUS(%s)-' % current_room.pos, curses.color_pair(16) | curses.A_BOLD)
+            self.win.addstr(' -PLUS(%s)-' % current_room.pos, curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
 
     def refresh(self, rooms, current):
         if not self.visible:
@@ -179,28 +180,28 @@ class RoomInfo(Win):
         g_lock.acquire()
         self.win.erase()
         self.win.addnstr(0, 0, "[", self.width
-                         ,curses.color_pair(1))
+                         ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
         sorted_rooms = sorted(rooms, compare_room)
         for room in sorted_rooms:
             color = room.color_state
             try:
                 self.win.addstr("%s" % str(room.nb), curses.color_pair(color))
-                self.win.addstr(u"|".encode('utf-8'), curses.color_pair(1))
+                self.win.addstr(u"|".encode('utf-8'), curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:             # end of line
                 break
         (y, x) = self.win.getyx()
         try:
-            self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(1))
+            self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
         except:
             try:
-                self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(1))
+                self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:
                 pass
             pass
         self.print_scroll_position(current)
         while True:
             try:
-                self.win.addstr(' ', curses.color_pair(1))
+                self.win.addstr(' ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:
                 break
         self.win.refresh()
@@ -315,9 +316,9 @@ class TextWin(Win):
     def write_line_separator(self):
         """
         """
-        self.win.attron(curses.color_pair(7))
+        self.win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
         self.win.addstr(' -'*(self.width/2))
-        self.win.attroff(curses.color_pair(7))
+        self.win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color):
         """
@@ -349,15 +350,35 @@ class TextWin(Win):
         """
         Write the date on the yth line of the window
         """
-        self.win.addnstr('['+time.strftime("%H"), 3)
-        self.win.attron(curses.color_pair(9))
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+        self.win.addnstr('[', 1)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.win.addnstr(time.strftime("%H"), 2)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
         self.win.addnstr(':', 1)
-        self.win.attroff(curses.color_pair(9))
-        self.win.addnstr(time.strftime('%M'), 2)
-        self.win.attron(curses.color_pair(9))
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.win.addnstr(time.strftime("%M"), 2)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
         self.win.addnstr(':', 1)
-        self.win.attroff(curses.color_pair(9))
-        self.win.addnstr(time.strftime('%S') + "] ", 4)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.win.addnstr(time.strftime('%S'), 2)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
+
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+        self.win.addstr(']')
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+
+        self.win.addstr(' ')
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -726,9 +747,9 @@ class Window(object):
         else:
             visible = True
         if visible:
-            stdscr.attron(curses.color_pair(5))
+            stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(5))
+            stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
         self.topic_win = Topic(1, self.width, 0, 0, stdscr, visible)
         self.info_win = RoomInfo(1, self.width, self.height-2, 0, stdscr, visible)
@@ -745,9 +766,9 @@ class Window(object):
         else:
             visible = True
         if visible:
-            stdscr.attron(curses.color_pair(5))
+            stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
             stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(5))
+            stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         text_width = (self.width/10)*9;
         self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)

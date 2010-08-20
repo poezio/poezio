@@ -23,6 +23,7 @@ from logging import logger
 from message import Message
 
 import common
+import theme
 
 class Room(object):
     """
@@ -32,7 +33,7 @@ class Room(object):
         self.jid = jid          # used for a private chat. None if it's a MUC
         self.name = name
         self.own_nick = nick
-        self.color_state = common.ROOM_STATE_NONE   # color used in RoomInfo
+        self.color_state = theme.COLOR_TAB_NORMAL   # color used in RoomInfo
         self.nb = Room.number        # number used in RoomInfo
         Room.number += 1
         self.joined = False     # false until self presence is received
@@ -68,25 +69,25 @@ class Room(object):
         """
         Set the tab color and returns the txt color
         """
-        color = None
+        color = theme.COLOR_NORMAL_TEXT
         if not time and nickname and nickname.encode('utf-8') != self.own_nick and self.joined: # do the highlight
             try:
                 if self.own_nick in txt.encode('utf-8'):
-                    self.set_color_state(common.ROOM_STATE_HL)
-                    color = 4
+                    self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                    color = theme.COLOR_HIGHLIGHT_TEXT
             except UnicodeDecodeError:
                 try:
                     if self.own_nick in txt:
-                        self.set_color_state(common.ROOM_STATE_HL)
-                        color = 4
+                        self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                        color = theme.COLOR_HIGHLIGHT_TEXT
                 except:
                     pass
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word.lower() in txt.lower() and word != '':
-                        self.set_color_state(common.ROOM_STATE_HL)
-                        color = 4
+                        self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                        color = theme.COLOR_HIGHLIGHT_TEXT
                         break
         return color
 
@@ -100,20 +101,20 @@ class Room(object):
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
-        color = None
+        color = theme.COLOR_NORMAL_TEXT
         if not time and nickname and\
                 nickname != self.own_nick and\
-                self.color_state != common.ROOM_STATE_CURRENT:
-            if not self.jid and self.color_state != common.ROOM_STATE_HL:
-                self.set_color_state(common.ROOM_STATE_MESSAGE)
+                self.color_state != theme.COLOR_TAB_CURRENT:
+            if not self.jid and self.color_state != theme.COLOR_TAB_HIGHLIGHT:
+                self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
             elif self.jid:
-                self.set_color_state(common.ROOM_STATE_PRIVATE)
+                self.set_color_state(theme.COLOR_TAB_PRIVATE)
         if not nickname:
-            color = 8
+            color = theme.COLOR_INFORMATION_TEXT
         else:
             color = self.do_highlight(txt, time, nickname)
         if time:                # History messages are colored to be distinguished
-            color = 8
+            color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
         self.messages.append(Message(txt, time, nickname, user, color))
 

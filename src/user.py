@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from random import randrange
+from random import randrange, choice
 from config import config
 from datetime import timedelta, datetime
 import curses
+import theme
 
 class User(object):
     """
@@ -29,7 +30,7 @@ class User(object):
         self.last_talked = None
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.color = randrange(3, 10) # assign a random color
+        self.color = choice(theme.LIST_COLOR_NICKNAMES)
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation
@@ -60,5 +61,3 @@ class User(object):
 
     def __repr__(self):
         return ">%s<" % (self.nick.decode('utf-8'))
-        # return "<user.User object nick:%s show:%s(%s) status:%s affiliation:%s>"\
-        #     % (self.nick.decode('utf-8'), self.show, type(self.show), self.status, self.affiliation)

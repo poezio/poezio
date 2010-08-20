@@ -31,6 +31,7 @@ import webbrowser
 from datetime import datetime
 
 import common
+import theme
 
 from handler import Handler
 from config import config
@@ -98,6 +99,7 @@ class Gui(object):
             'nick': (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room")),
             'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
+            'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.')),
             }
 
         self.key_func = {
@@ -193,35 +195,10 @@ class Gui(object):
         """
         ncurses initialization
         """
-        curses.start_color()
+        theme.init_colors()
         curses.noecho()
         curses.curs_set(0)
-        curses.use_default_colors()
         stdscr.keypad(True)
-        curses.init_pair(1, curses.COLOR_WHITE,
-                         curses.COLOR_BLUE)
-        curses.init_pair(2, curses.COLOR_WHITE, -1) # Visitor
-        curses.init_pair(3, curses.COLOR_CYAN, -1)
-        curses.init_pair(4, curses.COLOR_RED, -1) # Admin
-        curses.init_pair(5, curses.COLOR_BLUE, -1) # Participant
-        curses.init_pair(6, curses.COLOR_CYAN, -1)
-        curses.init_pair(7, curses.COLOR_GREEN, -1)
-        curses.init_pair(8, curses.COLOR_MAGENTA, -1)
-        curses.init_pair(9, curses.COLOR_YELLOW, -1)
-        curses.init_pair(10, curses.COLOR_WHITE,
-                         curses.COLOR_CYAN) # current room
-        curses.init_pair(11, curses.COLOR_WHITE,
-                         curses.COLOR_BLUE) # normal room
-        curses.init_pair(12, curses.COLOR_WHITE,
-                         curses.COLOR_MAGENTA) # new message room
-        curses.init_pair(13, curses.COLOR_WHITE,
-                         curses.COLOR_RED) # highlight room
-        curses.init_pair(14, curses.COLOR_WHITE,
-                         curses.COLOR_YELLOW)
-        curses.init_pair(15, curses.COLOR_WHITE, # new message in private room
-                         curses.COLOR_GREEN)
-        curses.init_pair(16, curses.COLOR_YELLOW,
-                         curses.COLOR_BLUE)
 
     def reset_curses(self):
         """
@@ -243,7 +220,7 @@ class Gui(object):
         """
         Refresh everything
         """
-        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
         self.window.refresh(self.rooms)
 
     def join_room(self, room, nick):
@@ -251,7 +228,7 @@ class Gui(object):
         join the specified room (muc), using the specified nick
         """
         r = Room(room, nick, self.window)
-        self.current_room().set_color_state(11)
+        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
         if self.current_room().nb == 0:
             self.rooms.append(r)
         else:
@@ -305,15 +282,15 @@ class Gui(object):
         - A Muc with any new message
         """
         for room in self.rooms:
-            if room.color_state == 15:
+            if room.color_state == theme.COLOR_TAB_PRIVATE:
                 self.command_win('%s' % room.nb)
                 return
         for room in self.rooms:
-            if room.color_state == 13:
+            if room.color_state == theme.COLOR_TAB_HIGHLIGHT:
                 self.command_win('%s' % room.nb)
                 return
         for room in self.rooms:
-            if room.color_state == 12:
+            if room.color_state == theme.COLOR_TAB_NEW_MESSAGE:
                 self.command_win('%s' % room.nb)
                 return
 
@@ -321,20 +298,20 @@ class Gui(object):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
         self.current_room().remove_line_separator()
         self.rooms.append(self.rooms.pop(0))
-        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
         self.refresh_window()
 
     def rotate_rooms_left(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
         self.current_room().remove_line_separator()
         self.rooms.insert(0, self.rooms.pop())
-        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
         self.refresh_window()
 
     def scroll_page_down(self, args=None):
@@ -495,7 +472,7 @@ class Gui(object):
                             for child in xtag.getTags('status'):
                                 if child.getAttr('code') == '170':
                                     self.add_message_to_room(room, 'Warning: this room is publicly logged')
-                        new_user.color = 2
+                        new_user.color = theme.COLOR_OWN_NICK
             else:
                 change_nick = stanza.getStatusCode() == '303'
                 kick = stanza.getStatusCode() == '307'
@@ -674,6 +651,11 @@ class Gui(object):
         nickname = args[0]
         self.muc.request_vcard(room.name, nickname)
 
+    def command_theme(self, arg):
+        """
+        """
+        theme.reload_theme()
+
     def command_win(self, arg):
         """
         /win <number>
@@ -689,17 +671,17 @@ class Gui(object):
             return
         if self.current_room().nb == nb:
             return
-        self.current_room().set_color_state(common.ROOM_STATE_NONE)
+        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
         self.current_room().remove_line_separator()
         start = self.current_room()
         self.rooms.append(self.rooms.pop(0))
         while self.current_room().nb != nb:
             self.rooms.append(self.rooms.pop(0))
             if self.current_room() == start:
-                self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+                self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
                 self.refresh_window()
                 return
-        self.current_room().set_color_state(common.ROOM_STATE_CURRENT)
+        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
         self.refresh_window()
 
     def command_kick(self, arg):
