@@ -39,13 +39,6 @@ class Message(object):
     def __str__(self):
         return self.__repr__()
 
-class SeparatorLine(Message):
-    """
-    Just a separator between read and not-yet-read messages
-    """
-    def __init__(self):
-        Message.__init__(self, '')
-
 class Line(object):
     """
     A line, corresponding to ONE row of the text area.
