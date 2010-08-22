@@ -118,7 +118,11 @@ class Connection(threading.Thread):
         """
         handles the error messages
         """
-        room_name = stanza.getFrom().getStripped()
+        from_ = stanza.getFrom()
+        if not from_:
+            room_name = ''
+        else:
+            room_name = from_.getStripped()
         self.handler.emit('error-message', room=room_name,
                           error=stanza.getTag('error'),
                           msg=stanza.getError())

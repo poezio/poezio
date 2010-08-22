@@ -655,6 +655,7 @@ class Gui(object):
         """
         """
         theme.reload_theme()
+        self.resize_window()
 
     def command_win(self, arg):
         """

@@ -102,7 +102,7 @@ class UserList(Win):
             except KeyError:
                 show_col = theme.COLOR_STATUS_NONE
             self.win.attron(curses.color_pair(show_col))
-            self.win.addnstr(y, 0, " ", 1)
+            self.win.addnstr(y, 0, theme.STATUS_CHAR, 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
             try:
@@ -773,8 +773,8 @@ class Window(object):
         self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
         self.text_win.resize(self.height-3, text_width, 1, 0, stdscr, visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
         self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, stdscr, visible)
+        self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
 
     def refresh(self, rooms):
         """

@@ -22,8 +22,10 @@ used when drawing the interface (mainly colors)
 """
 
 import curses
-import inspect
+import shutil
+import glob
 import imp
+import os
 from config import config
 
 ## Define the default colors
@@ -64,7 +66,7 @@ COLOR_OWN_NICK = 72
 
 # Status color
 COLOR_STATUS_XA = 40
-COLOR_STATUS_NONE = 0
+COLOR_STATUS_NONE = 72
 COLOR_STATUS_DND = 50
 COLOR_STATUS_AWAY = 70
 COLOR_STATUS_CHAT = 30
@@ -74,6 +76,9 @@ COLOR_INFORMATION_BAR = 15
 COLOR_TOPIC_BAR = 15
 COLOR_PRIVATE_ROOM_BAR = 33
 COLOR_SCROLLABLE_NUMBER = 16
+
+# Chars
+STATUS_CHAR = ' '
 
 def init_colors():
     """
@@ -100,14 +105,25 @@ def init_colors():
     reload_theme()
 
 def reload_theme():
-    current_module = __import__(inspect.getmodulename(__file__))
-    path = config.get('theme_file', '../default.theme')
+    themes_dir = config.get('themes_dir',
+                            os.path.join(os.environ.get('XDG_DATA_HOME') or os.path.join(os.environ.get('HOME'), '.local', 'share'), 'poezio', 'themes'))
     try:
-        theme = imp.load_source('theme', path)
-    except:
+        os.makedirs(themes_dir)
+        # if the directory didn't exist, copy the default themes
+        themes = glob.glob('../data/themes/*')
+        for filename in themes:
+            shutil.copy2(filename, themes_dir)
+    except OSError:
+        pass
+    theme_name = config.get('theme_file', '')
+    if not theme_name:
+        return
+    try:
+        theme = imp.load_source('theme', os.path.join(themes_dir, theme_name))
+    except:                     # TODO warning: theme not found
         return
     for var in dir(theme):
-        if var.startswith('COLOR_'):
+        if var.startswith('COLOR_') or var.startswith('STATUS_'):
             globals()[var] = getattr(theme, var)
 
 if __name__ == '__main__':

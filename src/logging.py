@@ -18,13 +18,11 @@
 
 import sys
 from os import environ, makedirs
+import os
 from datetime import datetime
 from config import config
 
-DATA_HOME = config.get('log_dir', environ.get("XDG_DATA_HOME"))
-if not DATA_HOME:
-    DATA_HOME = environ.get('HOME')+'/.local/share'
-DATA_PATH = DATA_HOME + '/poezio/'
+DATA_HOME = config.get('log_dir', os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio'))
 
 class Logger(object):
     """
