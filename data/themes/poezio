@@ -1,0 +1,70 @@
+# A theme file. (the Default one)
+# For more informations, see http://codingteam.net/project/poezio/doc/TheThemes
+
+# Message text color
+COLOR_NORMAL_TEXT = 0
+COLOR_INFORMATION_TEXT = 76
+COLOR_HIGHLIGHT_TEXT = 77
+
+# User list color
+COLOR_USER_VISITOR = 78
+COLOR_USER_PARTICIPANT = 73
+COLOR_USER_NONE = 80
+COLOR_USER_MODERATOR = 77
+
+# The character printed in color (COLOR_STATUS_*) before the nickname
+# in the user list
+CHAR_STATUS = ' '
+
+# Separators
+COLOR_VERTICAL_SEPARATOR = 73
+COLOR_NEW_TEXT_SEPARATOR = 75
+
+# Time
+COLOR_TIME_SEPARATOR = 79
+COLOR_TIME_BRACKETS = 74
+COLOR_TIME_NUMBERS = 0
+
+# Tabs
+COLOR_TAB_NORMAL = 15
+COLOR_TAB_CURRENT = 24
+COLOR_TAB_NEW_MESSAGE = 42
+COLOR_TAB_HIGHLIGHT = 51
+COLOR_TAB_PRIVATE = 33
+
+# Nickname colors
+LIST_COLOR_NICKNAMES = [
+    73, 74, 75, 76, 77, 79
+    ]
+COLOR_OWN_NICK = 78
+
+# Status color
+COLOR_STATUS_XA = 40
+COLOR_STATUS_NONE = 72
+COLOR_STATUS_DND = 50
+COLOR_STATUS_AWAY = 70
+COLOR_STATUS_CHAT = 30
+
+# Bars
+COLOR_INFORMATION_BAR = 15
+COLOR_TOPIC_BAR = 15
+COLOR_PRIVATE_ROOM_BAR = 33
+COLOR_SCROLLABLE_NUMBER = 16
+
+# Strings for special messages (like join, quit, nick change, etc)
+
+# Special messages
+CHAR_JOIN = '---->'
+CHAR_QUIT = '<----'
+CHAR_KICK = '-!-'
+
+COLOR_JOIN_CHAR = 73
+COLOR_QUIT_CHAR = 77
+COLOR_KICK_CHAR = 77
+
+# words between ()
+COLOR_CURLYBRACKETED_WORD = 72
+# words between {}
+COLOR_ACCOLADE_WORD = 74
+# words between []
+COLOR_BRACKETED_WORD = 73
