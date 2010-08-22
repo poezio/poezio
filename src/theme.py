@@ -64,9 +64,9 @@ COLOR_TAB_PRIVATE = 33
 
 # Nickname colors
 LIST_COLOR_NICKNAMES = [
-    73, 74, 75, 76, 77, 78, 79
+    73, 74, 75, 76, 77, 79
     ]
-COLOR_OWN_NICK = 72
+COLOR_OWN_NICK = 78
 
 # Status color
 COLOR_STATUS_XA = 40
