@@ -102,7 +102,7 @@ class UserList(Win):
             except KeyError:
                 show_col = theme.COLOR_STATUS_NONE
             self.win.attron(curses.color_pair(show_col))
-            self.win.addnstr(y, 0, theme.STATUS_CHAR, 1)
+            self.win.addnstr(y, 0, theme.CHAR_STATUS, 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
             try:
@@ -267,7 +267,8 @@ class TextWin(Win):
                 l = Line(nick, color,
                          time,
                          txt[:limit], message.color,
-                         offset)
+                         offset,
+                         message.colorized)
                 lines.append(l)
                 if this_line_was_broken_by_space:
                     txt = txt[limit+1:] # jump the space at the start of the line
@@ -308,7 +309,7 @@ class TextWin(Win):
                 self.write_time(line.time)
             if line.nickname is not None:
                 self.write_nickname(line.nickname.encode('utf-8'), line.nickname_color)
-            self.write_text(y, line.text_offset, line.text, line.text_color)
+            self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
             y += 1
         self.win.refresh()
         g_lock.release()
@@ -320,19 +321,49 @@ class TextWin(Win):
         self.win.addstr(' -'*(self.width/2))
         self.win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
-    def write_text(self, y, x, txt, color):
+    def write_text(self, y, x, txt, color, colorized):
         """
         write the text of a line.
         """
         txt = txt.encode('utf-8')
-        if color:
-            self.win.attron(curses.color_pair(color))
-        try:
-            self.win.addstr(y, x, txt)
-        except:  # bug 1665
-            pass
-        if color:
-            self.win.attroff(curses.color_pair(color))
+        if not colorized:
+            if color:
+                self.win.attron(curses.color_pair(color))
+            try:
+                self.win.addstr(y, x, txt)
+            except:  # bug 1665
+                pass
+            if color:
+                self.win.attroff(curses.color_pair(color))
+
+        else:                   # Special messages like join or quit
+            from common import debug
+            special_words = {
+                theme.CHAR_JOIN: theme.COLOR_JOIN_CHAR,
+                theme.CHAR_QUIT: theme.COLOR_QUIT_CHAR,
+                theme.CHAR_KICK: theme.COLOR_KICK_CHAR,
+                }
+            for word in txt.split():
+                if word in special_words.keys():
+                    self.win.attron(curses.color_pair(special_words[word]))
+                    self.win.addstr(word)
+                    self.win.attroff(curses.color_pair(special_words[word]))
+                elif word.startswith('(') and word.endswith(')'):
+                    self.win.addstr('(', curses.color_pair(color))
+                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_CURLYBRACKETED_WORD))
+                    self.win.addstr(')', curses.color_pair(color))
+                elif word.startswith('{') and word.endswith('}'):
+                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_ACCOLADE_WORD))
+                elif word.startswith('[') and word.endswith(']'):
+                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
+                else:
+                    self.win.attron(curses.color_pair(color))
+                    self.win.addstr(word)
+                    self.win.attroff(curses.color_pair(color))
+                try:
+                    self.win.addstr(' ')
+                except:
+                    pass
 
     def write_nickname(self, nickname, color):
         """
@@ -712,10 +743,7 @@ class Input(Win):
         Refresh the line onscreen, from the pos and pos_line
         """
         self.clear_text()
-        try:                    # FIXME: this try should NOT be needed
-            self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
-        except:
-            pass
+        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
         self.win.move(0, self.pos)
         self.refresh()
 

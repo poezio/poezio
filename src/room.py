@@ -91,7 +91,7 @@ class Room(object):
                         break
         return color
 
-    def add_message(self, txt, time=None, nickname=None):
+    def add_message(self, txt, time=None, nickname=None, colorized=False):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -116,7 +116,7 @@ class Room(object):
         if time:                # History messages are colored to be distinguished
             color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
-        self.messages.append(Message(txt, time, nickname, user, color))
+        self.messages.append(Message(txt, time, nickname, user, color, colorized))
 
     def remove_line_separator(self):
         """

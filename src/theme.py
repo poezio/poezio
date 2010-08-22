@@ -42,6 +42,10 @@ COLOR_USER_PARTICIPANT = 73
 COLOR_USER_NONE = 80
 COLOR_USER_MODERATOR = 77
 
+# The character printed in color (COLOR_STATUS_*) before the nickname
+# in the user list
+CHAR_STATUS = ' '
+
 # Separators
 COLOR_VERTICAL_SEPARATOR = 73
 COLOR_NEW_TEXT_SEPARATOR = 75
@@ -77,8 +81,24 @@ COLOR_TOPIC_BAR = 15
 COLOR_PRIVATE_ROOM_BAR = 33
 COLOR_SCROLLABLE_NUMBER = 16
 
-# Chars
-STATUS_CHAR = ' '
+# Strings for special messages (like join, quit, nick change, etc)
+
+# Special messages
+CHAR_JOIN = '---->'
+CHAR_QUIT = '<----'
+CHAR_KICK = '-!-'
+
+COLOR_JOIN_CHAR = 73
+COLOR_QUIT_CHAR = 77
+COLOR_KICK_CHAR = 77
+
+# words between ()
+COLOR_CURLYBRACKETED_WORD = 72
+# words between {}
+COLOR_ACCOLADE_WORD = 74
+# words between []
+COLOR_BRACKETED_WORD = 73
+
 
 def init_colors():
     """
@@ -123,7 +143,7 @@ def reload_theme():
     except:                     # TODO warning: theme not found
         return
     for var in dir(theme):
-        if var.startswith('COLOR_') or var.startswith('STATUS_'):
+        if var.startswith('COLOR_') or var.startswith('CHAR_'):
             globals()[var] = getattr(theme, var)
 
 if __name__ == '__main__':

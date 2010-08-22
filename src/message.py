@@ -21,21 +21,25 @@ from datetime import datetime
 class Message(object):
     """
     A message with all the associated data (nickname, time, color, etc)
+    The color can be a single number OR a list of numbers, for
+    specials cases like join or quit messages.
     """
-    def __init__(self, txt, time=None, nickname=None, user=None, color=None):
+    def __init__(self, txt, time=None, nickname=None, user=None, color=None, colorized=False):
         """
         time is a datetime object, None means 'now'.
         If no nickname is specified, it's an information.
         user is an User object (used for the color, etc)
+
         """
         self.txt = txt
         self.nickname = nickname
         self.time = time
         self.user = user
         self.color = color
+        self.colorized = colorized
 
     def __repr__(self):
-        return "<Message txt=%s, nickname=%s, time=%s, user=%s>" % (self.txt, self.nickname, str(self.time), str(self.user))
+        return "<Message txt=%s, nickname=%s, time=%s, user=%s, colorized=%s>" % (self.txt, self.nickname, str(self.time), str(self.user), self.colorized)
     def __str__(self):
         return self.__repr__()
 
@@ -43,6 +47,8 @@ class Line(object):
     """
     A line, corresponding to ONE row of the text area.
     A message is composed of ONE line or MORE.
+    The same particularity for colors in Message class applies
+    here too.
     Example:
 
   Text area limit                                     text area limit
@@ -67,10 +73,11 @@ class Line(object):
     Line(None, None, None, "informations here:", 0, 23)
     Line(None, None, None, "http://blablablabla", 0, 23)
     """
-    def __init__(self, nickname, nickname_color, time, text, text_color, text_offset):
+    def __init__(self, nickname, nickname_color, time, text, text_color, text_offset, colorized=False):
         self.nickname = nickname
         self.nickname_color = nickname_color
         self.time = time
         self.text = text
         self.text_color = text_color
         self.text_offset = text_offset
+        self.colorized = colorized

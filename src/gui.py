@@ -484,9 +484,9 @@ class Gui(object):
                     hide_exit_join = config.get('hide_exit_join', -1)
                     if hide_exit_join != 0:
                         if not jid:
-                            self.add_message_to_room(room, _("%(nick)s joined the room") % {'nick':from_nick})
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] joined the room") % {'nick':from_nick, 'spec':theme.CHAR_JOIN}, colorized=True)
                         else:
-                            self.add_message_to_room(room, _("%(nick)s (%(jid)s) joined the room") % {'nick':from_nick, 'jid':jid})
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] (%(jid)s) joined the room") % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid}, colorized=True)
                 # nick change
                 elif change_nick:
                     if user.nick == room.own_nick:
@@ -496,11 +496,11 @@ class Gui(object):
                             if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
                                 _room.own_nick = stanza.getNick()
                     user.change_nick(stanza.getNick())
-                    self.add_message_to_room(room, _('%(old)s is now known as %(new)s') % {'old':from_nick, 'new':stanza.getNick()})
+                    self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':stanza.getNick()}, colorized=True)
                     # rename the private tabs if needed
                     private_room = self.get_room_by_name(stanza.getFrom())
                     if private_room:
-                        self.add_message_to_room(private_room, _('%(old_nick)s is now known as %(new_nick)s') % {'old_nick':from_nick, 'new_nick':stanza.getNick()})
+                        self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':stanza.getNick()}, colorized=True)
                         new_jid = private_room.name.split('/')[0]+'/'+stanza.getNick()
                         private_room.jid = new_jid
                         private_room.name = new_jid
@@ -519,29 +519,29 @@ class Gui(object):
                     if from_nick == room.own_nick: # we are kicked
                         room.disconnect()
                         if by:
-                            self.add_message_to_room(room,  _("You have been kicked by %(by)s. Reason: %(reason)s") % {'by':by, 'reason':reason})
+                            self.add_message_to_room(room,  _("%(spec) [You] have been kicked by [%(by)s]. Reason: {%(reason)s}") % {'spec': theme.CHAR_KICK, 'by':by, 'reason':reason}, colorized=True)
                         else:
-                            self.add_message_to_room(room, _("You have been kicked. Reason: %s") % (reason))
+                            self.add_message_to_room(room, _("%(spec)s [You] have been kicked. Reason: %(reason)s") % {'reason':reason, 'spec':theme.CHAR_KICK}, colorized=True)
                         # try to auto-rejoin
                         if config.get('autorejoin', 'false') == 'true':
                             self.muc.join_room(room.name, room.own_nick)
                     else:
                         if by:
-                            self.add_message_to_room(room, _("%(nick)s has been kicked by %(by)s. Reason: %(reason)s") % {'nick':from_nick, 'by':by, 'reason':reason})
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] has been kicked by %(by)s. Reason: %(reason)s") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by, 'reason':reason}, colorized=True)
                         else:
-                            self.add_message_to_room(room, _("%(nick)s has been kicked. Reason: %(reason)s") % {'nick':from_nick, 'reason':reason})
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] has been kicked. Reason: %(reason)s") % {'nick':from_nick, 'reason':reason, 'spec':theme.CHAR_KICK}, colorized=True)
                 # user quit
                 elif status == 'offline' or role == 'none':
                     room.users.remove(user)
                     hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
                     if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
                         if not jid:
-                            self.add_message_to_room(room, _('%s has left the room') % (from_nick))
+                            self.add_message_to_room(room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
                         else:
-                            self.add_message_to_room(room, _('%(nick)s (%(jid)s) has left the room') % {'nick':from_nick, 'jid':jid})
+                            self.add_message_to_room(room, _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid}, colorized=True)
                     private_room = self.get_room_by_name(stanza.getFrom())
                     if private_room:
-                        self.add_message_to_room(private_room, _('%s has left the room') % (from_nick))
+                        self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_KICK}, colorized=True)
                 # status change
                 else:
                     # build the message
@@ -576,14 +576,14 @@ class Gui(object):
         self.window.input.refresh()
         doupdate()
 
-    def add_message_to_room(self, room, txt, time=None, nickname=None):
+    def add_message_to_room(self, room, txt, time=None, nickname=None, colorized=False):
         """
         Add the message to the room and refresh the associated component
         of the interface
         """
         if room != self.current_room():
             room.add_line_separator()
-        room.add_message(txt, time, nickname)
+        room.add_message(txt, time, nickname, colorized)
         if room == self.current_room():
             self.window.text_win.refresh(room)
         else:
