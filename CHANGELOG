@@ -3,7 +3,7 @@ For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
 * Poezio 0.7 - dev
-Complete the MUC support
+"Complete the MUC support"
 - /say command
 - Warn user about publicly logged rooms
 - Possibility to limit the number of history messages received from MUC
@@ -12,6 +12,7 @@ Complete the MUC support
 - Possibility to use a modified nickname automatically when a nick is reserved
 - A line indicates the new messages in the window
 - bugfixes
+
 
 * Poezio 0.6.2 - 21 Jul 2010
 - Lines are now broken between words and not in the middle of them
