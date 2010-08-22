@@ -4,6 +4,7 @@ http://codingteam.net/project/poezio/roadmap
 
 * Poezio 0.7 - dev
 "Complete the MUC support"
+- All poezio colors can be changed with a theme file
 - /say command
 - Warn user about publicly logged rooms
 - Possibility to limit the number of history messages received from MUC
@@ -11,6 +12,7 @@ http://codingteam.net/project/poezio/roadmap
 - The number of lines available to scroll down is displayed
 - Possibility to use a modified nickname automatically when a nick is reserved
 - A line indicates the new messages in the window
+- Information messages are more colored
 - bugfixes
 
 
