@@ -60,7 +60,7 @@ class Logger(object):
         """
         if config.get('use_log', 'false') == 'false':
             return
-        dir = DATA_PATH+'logs/'
+        dir = DATA_HOME+'logs/'
         try:
             makedirs(dir)
         except OSError:
