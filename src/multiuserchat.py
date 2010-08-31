@@ -1,4 +1,3 @@
-# Copyright 2009, 2010 Erwan Briand
 # Copyright 2010, Florent Le Coz <louizatakk@fedoraproject.org>
 
 # This program is free software: you can redistribute it and/or modify
@@ -13,331 +12,92 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Implementation of the XEP-0045: Multi-User Chat.
+"""
+Implementation of the XEP-0045: Multi-User Chat.
+Add some facilities that are not available on the XEP_0045
+sleek plugin
+"""
 
-from xmpp import NS_MUC_ADMIN, NS_MUC
-from xmpp.protocol import Presence, Iq, Message, JID
-import xmpp
-import common
-import threading
-import os
+import sleekxmpp
 
-from time import (altzone, gmtime, localtime, strftime, timezone)
+from xml.etree import cElementTree as ET
 
-from handler import Handler
-from config import config
 
-from common import get_stripped_jid
-from common import is_jid
+from common import debug
 
-class VcardSender(threading.Thread):
+def send_private_message(xmpp, jid, line):
     """
-    avatar sending is really slow (don't know why...)
-    use a thread to send it...
+    Send a private message
     """
-    def __init__(self, connection):
-        threading.Thread.__init__(self)
-        self.connection = connection
-        self.handler = Handler()
+    msg = xmpp.makeMessage(jid)
+    msg['to'] = jid
+    msg['type'] = 'chat'
+    msg['body'] = line
+    msg.send()
 
-    def run(self):
-        self.send_vcard()
+def send_groupchat_message(xmpp, jid, line):
+    """
+    Send a message to the groupchat
+    """
+    msg = xmpp.makeMessage(jid)
+    msg['type'] = 'groupchat'
+    msg['body'] = line
+    msg.send()
 
-    def send_vcard(self):
-        """
-        Method stolen from Gajim (thanks)
-        ## Copyright (C) 2006 Dimitur Kirov <dkirov AT gmail.com>
-        ##                    Junglecow J <junglecow AT gmail.com>
-        ## Copyright (C) 2006-2007 Tomasz Melcer <liori AT exroot.org>
-        ##                         Travis Shirk <travis AT pobox.com>
-        ##                         Nikos Kouremenos <kourem AT gmail.com>
-        ## Copyright (C) 2006-2008 Yann Leboulanger <asterix AT lagaule.org>
-        ## Copyright (C) 2007 Julien Pivotto <roidelapluie AT gmail.com>
-        ## Copyright (C) 2007-2008 Brendan Taylor <whateley AT gmail.com>
-        ##                         Jean-Marie Traissard <jim AT lapin.org>
-        ##                         Stephan Erb <steve-e AT h3c.de>
-        ## Copyright (C) 2008 Jonathan Schleifer <js-gajim AT webkeks.org>
-        (one of these people coded this method, probably)
-        """
-        if not self.connection:
-            return
-        vcard = {
-            "FN":config.get('full_name', ''),
-            "URL":config.get('website', ''),
-            "EMAIL":{
-                "USERID":config.get('email', '')
-                },
-            "DESC":config.get('comment', 'A proud Poezio user')
-            }
-        photo_file_path = config.get('photo', '../data/poezio_80.png')
-        (image, mime_type, sha1) = common.get_base64_from_file(photo_file_path)
-        if image:
-            vcard['PHOTO'] = {"TYPE":mime_type,"BINVAL":image}
-        iq = xmpp.Iq(typ = 'set')
-        iq2 = iq.addChild('vCard', namespace=xmpp.NS_VCARD)
-        for i in vcard:
-            if i == 'jid':
-                continue
-            if isinstance(vcard[i], dict):
-                iq3 = iq2.addChild(i)
-                for j in vcard[i]:
-                    iq3.addChild(j).setData(vcard[i][j])
-            elif isinstance(vcard[i], list):
-                for j in vcard[i]:
-                    iq3 = iq2.addChild(i)
-                    for k in j:
-                        iq3.addChild(k).setData(j[k])
-            else:
-                iq2.addChild(i).setData(vcard[i])
-        self.connection.send(iq)
-        iq = xmpp.Iq(typ = 'set')
-        iq2 = iq.addChild('vCard', namespace=xmpp.NS_VCARD_UPDATE)
-        iq2.addChild('PHOTO').setData(sha1)
-        self.connection.send(iq)
+def change_show(xmpp, jid, own_nick, show, status):
+    """
+    Change our 'Show'
+    """
+    pres = xmpp.makePresence(pto='%s/%s' % (jid, own_nick),
+                             pfrom=xmpp.fulljid)
+    if show: # if show is None, don't put a <show /> tag. It means "online"
+        pres['type'] = show
+    if status:
+        pres['status'] = status
+    debug('Change presence: %s\n' % (pres))
+    pres.send()
 
-class MultiUserChat(object):
-    def __init__(self, connection):
-        self.connection = connection
-        self.vcard_sender = VcardSender(self.connection)
+def change_subject(xmpp, jid, subject):
+    """
+    Change the room subject
+    """
+    msg = xmpp.makeMessage(jid)
+    msg['type'] = 'groupchat'
+    msg['subject'] = subject
+    msg['from'] = xmpp.jid
+    msg.send()
 
-        self.rooms = []
-        self.rn = {}
+def change_nick(xmpp, jid, nick):
+    """
+    Change our own nick in a room
+    """
+    xmpp.makePresence(pto='%s/%s' % (jid, nick),
+                            pfrom=xmpp.jid).send()
 
-        self.own_jid = None
+def join_groupchat(xmpp, jid, nick, password=None):
+    """
+    Join the groupchat
+    """
+    xmpp.plugin['xep_0045'].joinMUC(jid, nick, password)
 
-        self.handler = Handler()
-        self.handler.connect('join-room', self.join_room)
-        self.handler.connect('on-connected', self.on_connected)
-        self.handler.connect('send-version', self.send_version)
-        self.handler.connect('send-time', self.send_time)
+def leave_groupchat(xmpp, jid, own_nick, msg):
+    """
+    Leave the groupchat
+    """
+    xmpp.plugin['xep_0045'].leaveMUC(jid, own_nick, msg)
 
-    def on_connected(self, jid):
-        self.own_jid = jid
-        rooms = config.get('rooms', '')
-        if rooms == '' or type(rooms) != str:
-            return
-        else:
-            rooms = rooms.split(':')
-        for room in rooms:
-            args = room.split('/')
-            if args[0] == '':
-                return
-            roomname = args[0]
-            if len(args) == 2:
-                nick = args[1]
-            else:
-                default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-                nick = config.get('default_nick', '')
-                if nick == '':
-                    nick = default
-            self.handler.emit('join-room', room=roomname, nick=nick)
-        if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
-            self.vcard_sender.start()   # because the user ALREADY has one on the server
-
-    def send_message(self, room, message):
-        mes = Message(to=room)
-        mes.setBody(message)
-        mes.setType('groupchat')
-        self.connection.send(mes)
-
-    def send_private_message(self, user_jid, message):
-        mes = Message(to=user_jid)
-        mes.setBody(message)
-        mes.setType('chat')
-        self.connection.send(mes)
-
-    def request_vcard(self, room_name, nickname):
-        """
-        Request the vCard of an user, over a MUC or not
-        """
-        request = Iq(typ='get', to='%s/%s'% (room_name, nickname))
-        vcard_tag = request.addChild(name='vCard', namespace='vcard-temp')
-        self.connection.send(request)
-
-    def join_room(self, room, nick, password=None):
-        """Join a new room"""
-        pres = Presence(to='%s/%s' % (room, nick))
-        pres.setFrom('%s'%self.own_jid)
-        x_tag = pres.addChild(name='x', namespace=NS_MUC)
-        if password:
-            passwd = x_tag.addChild(name='password')
-            passwd.setData(password)
-        muc_history_length = config.get('muc_history_length', -1)
-        if muc_history_length >= 0:
-            history_tag = x_tag.addChild(name='history')
-            if muc_history_length == 0:
-                history_tag.setAttr('maxchars', 0)
-            else:
-                history_tag.setAttr('maxstanzas', muc_history_length)
-        self.connection.send(pres)
-
-    def quit_room(self, room, nick, msg=None):
-        """Quit a room"""
-        if room is None and nick is None:
-            self.on_disconnect()
-            return
-
-        pres = Presence(to='%s/%s' % (room, nick), typ='unavailable')
-        if msg:
-            pres.setStatus(msg)
-        self.connection.send(pres)
-
-    def disconnect(self, rooms, msg):
-        """
-        """
-        for room in rooms:
-            if room.jid is None and room.joined:
-                pres = Presence(to='%s' % room.name,
-                                typ='unavailable')
-                pres.setStatus(msg)
-                self.connection.send(pres)
-
-    def on_disconnect(self):
-        """Called at disconnection"""
-        for room in self.rooms:
-            pres = Presence(to='%s/%s' % (room, self.rn[room]),
-                            typ='unavailable')
-            self.connection.send(pres)
-
-    def on_iq(self, iq):
-        """Receive a MUC iq notification"""
-        from_ = iq.getFrom().__str__()
-
-        if get_stripped_jid(from_) in self.rooms:
-            children = iq.getChildren()
-            for child in children:
-                if child.getName() == 'error':
-                    code = int(child.getAttr('code'))
-                    msg = None
-
-                    echildren = child.getChildren()
-                    for echild in echildren:
-                        if echild.getName() == 'text':
-                            msg = echild.getData()
-
-                    self.handler.emit('on-muc-error',
-                                      room=from_,
-                                      code=code,
-                                      msg=msg)
-
-    def on_presence(self, presence):
-        """Receive a MUC presence notification"""
-        from_ = presence.getFrom().__str__()
-        if get_stripped_jid(from_) in self.rooms:
-            self.handler.emit('on-muc-presence-changed',
-                               jid=from_.encode('utf-8'),
-                               priority=presence.getPriority(),
-                               show=presence.getShow(),
-                               status=presence.getStatus(),
-                               stanza=presence
-                              )
-
-    def on_message(self, message):
-        """Receive a MUC message notification"""
-        from_ = message.getFrom().__str__().encode('utf-8')
-
-        if get_stripped_jid(from_) in self.rooms:
-            body_ = message.getBody()
-            type_ = message.getType()
-            subj_ = message.getSubject()
-            self.handler.emit('on-muc-message-received',
-                              jid=from_, msg=body_, subject=subj_,
-                              typ=type_, stanza=message)
-
-    def eject_user(self, room, action, nick, reason):
-        """Eject an user from a room"""
-        iq = Iq(typ='set', to=room)
-        query = iq.addChild('query', namespace=NS_MUC_ADMIN)
-        item = query.addChild('item')
-
-        if action == 'kick':
-            item.setAttr('role', 'none')
-            if is_jid(nick):
-                item.setAttr('jid', nick)
-            else:
-                item.setAttr('nick', nick)
-        elif action == 'ban':
-            item.setAttr('affiliation', 'outcast')
-            item.setAttr('jid', nick)
-
-        if reason is not None:
-            rson = item.addChild('reason')
-            rson.setData(reason)
-
-        self.connection.send(iq)
-
-    def change_role(self, room, nick, role):
-        """Change the role of an user"""
-        iq = Iq(typ='set', to=room)
-        query = iq.addChild('query', namespace=NS_MUC_ADMIN)
-        item = query.addChild('item')
-        item.setAttr('nick', nick)
-        item.setAttr('role', role)
-
-        self.connection.send(iq)
-
-    def change_aff(self, room, jid, aff):
-        """Change the affiliation of an user"""
-        iq = Iq(typ='set', to=room)
-        query = iq.addChild('query', namespace=NS_MUC_ADMIN)
-        item = query.addChild('item')
-        item.setAttr('jid', jid)
-        item.setAttr('affiliation', aff)
-
-        self.connection.send(iq)
-
-    def change_subject(self, room, subject):
-        """Change the subject of a room"""
-        message = Message(typ='groupchat', to=room)
-        subj = message.addChild('subject')
-        subj.setData(subject)
-
-        self.connection.send(message)
-
-    def change_nick(self, room, nick):
-        """Change the nickname"""
-        pres = Presence(to='%s/%s' % (room, nick))
-        self.connection.send(pres)
-
-    def change_show(self, room, nick, show, status):
-        pres = Presence(to='%s/%s' % (room, nick))
-        if show: # if show is None, don't put a <show /> tag. It means "online"
-            pres.setShow(show)
-        if status:
-            pres.setStatus(status)
-        self.connection.send(pres)
-
-    def send_version(self, iq_obj):
-        """
-        from gajim and modified
-        """
-        iq_obj = iq_obj.buildReply('result')
-        qp = iq_obj.getTag('query')
-        if config.get('send_poezio_info', 'true') == 'true':
-            qp.setTagData('name', 'Poezio')
-            qp.setTagData('version', '0.6.3 dev')
-        else:
-            qp.setTagData('name', 'Unknown')
-            qp.setTagData('version', 'Unknown')
-        if config.get('send_os_info', 'true') == 'true':
-            qp.setTagData('os', common.get_os_info())
-        else:
-            qp.setTagData('os', 'Unknown')
-        self.connection.send(iq_obj)
-        raise xmpp.protocol.NodeProcessed
-
-    def send_time(self, iq_obj):
-        """
-        from gajim
-        """
-        iq_obj = iq_obj.buildReply('result')
-        qp = iq_obj.setTag('time',
-                           namespace="urn:xmpp:time")
-        if config.get('send_time', 'true') == 'true':
-            qp.setTagData('utc', strftime('%Y-%m-%dT%H:%M:%SZ', gmtime()))
-            isdst = localtime().tm_isdst
-            zone = -(timezone, altzone)[isdst] / 60
-            tzo = (zone / 60, abs(zone % 60))
-            qp.setTagData('tzo', '%+03d:%02d' % (tzo))
-            self.connection.send(iq_obj)
-            raise xmpp.protocol.NodeProcessed
+def eject_user(xmpp, jid, nick, reason):
+    """
+    (try to) Eject an user from the room
+    """
+    iq = xmpp.makeIqSet()
+    query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
+    item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'nick':nick, 'role':'none'})
+    if reason:
+        reason_el = ET.Element('{http://jabber.org/protocol/muc#admin}reason')
+        reason_el.text = reason
+        item.append(reason_el)
+    query.append(item)
+    iq.append(query)
+    iq['to'] = jid
+    return iq.send()

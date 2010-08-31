@@ -17,6 +17,8 @@
 
 from singleton import Singleton
 
+#Todo, it's not a singleton. Oh, also, remove-me
+
 class Handler(Singleton):
     """
     This class is the global handler for the software's signals.

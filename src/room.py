@@ -19,7 +19,7 @@
 from datetime import datetime
 from random import randrange
 from config import config
-from logging import logger
+from logger import logger
 from message import Message
 
 import common

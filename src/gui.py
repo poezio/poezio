@@ -33,6 +33,7 @@ from datetime import datetime
 import common
 import theme
 
+import multiuserchat as muc
 from handler import Handler
 from config import config
 from window import Window
@@ -40,7 +41,7 @@ from user import User
 from room import Room
 from message import Message
 from keyboard import read_char
-from common import is_jid_the_same, jid_get_domain, is_jid
+from common import is_jid_the_same, jid_get_domain, jid_get_resource, is_jid
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -61,14 +62,13 @@ class Gui(object):
     """
     User interface using ncurses
     """
-    def __init__(self, stdscr=None, muc=None):
-        self.init_curses(stdscr)
-        self.stdscr = stdscr
-        self.window = Window(stdscr)
+    def __init__(self, xmpp):
+        self.stdscr = curses.initscr()
+        self.init_curses(self.stdscr)
+        self.xmpp = xmpp
+        self.window = Window(self.stdscr)
         self.rooms = [Room('Info', '', self.window)]
         self.ignores = {}
-
-        self.muc = muc
 
         self.commands = {
             'help': (self.command_help, u'\_o< KOIN KOIN KOIN'),
@@ -136,14 +136,230 @@ class Gui(object):
             'M-b': self.window.input.jump_word_left
             }
 
-        self.handler = Handler()
-        self.handler.connect('on-connected', self.on_connected)
-        self.handler.connect('join-room', self.join_room)
-        self.handler.connect('room-presence', self.room_presence)
-        self.handler.connect('room-message', self.room_message)
-        self.handler.connect('private-message', self.private_message)
-        self.handler.connect('error-message', self.room_error)
-        self.handler.connect('error', self.information)
+        # Add handlers
+        self.xmpp.add_event_handler("session_start", self.on_connected)
+        self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
+        self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
+        self.xmpp.add_event_handler("message", self.on_message)
+        # self.handler = Handler()
+        # self.handler.connect('on-connected', self.on_connected)
+        # self.handler.connect('join-room', self.join_room)
+        # self.handler.connect('room-presence', self.room_presence)
+        # self.handler.connect('room-message', self.room_message)
+        # self.handler.connect('private-message', self.private_message)
+        # self.handler.connect('error-message', self.room_error)
+        # self.handler.connect('error', self.information)
+
+    def on_connected(self, event):
+        """
+        Called when we are connected and authenticated
+        """
+        self.information(_("Welcome on Poezio \o/!"))
+        self.information(_("Your JID is %s") % self.xmpp.fulljid)
+
+        rooms = config.get('rooms', '')
+        if rooms == '' or not isinstance(rooms, str):
+            return
+        rooms = rooms.split(':')
+        for room in rooms:
+            args = room.split('/')
+            if args[0] == '':
+                return
+            roomname = args[0]
+            if len(args) == 2:
+                nick = args[1]
+            else:
+                default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+                nick = config.get('default_nick', '')
+                if nick == '':
+                    nick = default
+            self.open_new_room(roomname, nick)
+            muc.join_groupchat(self.xmpp, roomname, nick)
+        # Todo: SEND VCARD
+        return
+        if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
+            self.vcard_sender.start()   # because the user ALREADY has one on the server
+
+    def on_groupchat_presence(self, presence):
+        """
+        Triggered whenever a presence stanza is received from a user in a multi-user chat room.
+        Display the presence on the room window and update the
+        presence information of the concerned user
+        """
+        from_nick = presence['from'].resource
+        from_room = presence['from'].bare
+	room = self.get_room_by_name(from_room)
+        code = presence.find('{jabber:client}status')
+        status_codes = set([s.attrib['code'] for s in presence.findall('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}status')])
+        # Check if it's not an error presence.
+        if presence['type'] == 'error':
+            return self.room_error(presence, from_room)
+	if not room:
+            return
+        else:
+            msg = None
+            affiliation = presence['muc']['affiliation']
+            show = presence['muc']['type']
+            status = presence['status']
+            role = presence['muc']['role']
+            jid = presence['muc']['jid']
+            typ = presence['type']
+            if not room.joined:     # user in the room BEFORE us.
+                # ignore redondant presence message, see bug #1509
+                if from_nick not in [user.nick for user in room.users]:
+                    new_user = User(from_nick, affiliation, show, status, role)
+                    room.users.append(new_user)
+                    if from_nick.encode('utf-8') == room.own_nick:
+                        room.joined = True
+                        new_user.color = theme.COLOR_OWN_NICK
+                        self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                        if '170' in status_codes:
+                            self.add_message_to_room(room, 'Warning: this room is publicly logged')
+            else:
+                change_nick = '303' in status_codes
+                kick = '307' in status_codes and typ == 'unavailable'
+                user = room.get_user_by_name(from_nick)
+                # New user
+                if not user:
+                    room.users.append(User(from_nick, affiliation,
+                                           show, status, role))
+                    hide_exit_join = config.get('hide_exit_join', -1)
+                    if hide_exit_join != 0:
+                        if not jid.full:
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] joined the room") % {'nick':from_nick, 'spec':theme.CHAR_JOIN}, colorized=True)
+                        else:
+                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] (%(jid)s) joined the room") % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full}, colorized=True)
+                # nick change
+                elif change_nick:
+                    new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
+                    if user.nick == room.own_nick:
+                        room.own_nick = new_nick
+                        # also change our nick in all private discussion of this room
+                        for _room in self.rooms:
+                            if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
+                                _room.own_nick = new_nick
+                    user.change_nick(new_nick)
+                    self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':new_nick}, colorized=True)
+                    # rename the private tabs if needed
+                    private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
+                    if private_room:
+                        self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':new_nick}, colorized=True)
+                        new_jid = private_room.name.split('/')[0]+'/'+new_nick
+                        private_room.jid = private_room.name = new_jid
+
+                # kick
+                elif kick:
+                    room.users.remove(user)
+                    by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
+                    reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
+                    by = by.attrib['jid'] if by else ''
+                    reason = reason.text# if reason else ''
+                    if from_nick == room.own_nick: # we are kicked
+                        room.disconnect()
+                        if by:
+                            kick_msg = _("%(spec) [You] have been kicked by [%(by)s].") % {'spec': theme.CHAR_KICK, 'by':by}
+                        else:
+                            kick_msg = _("%(spec)s [You] have been kicked.") % {'spec':theme.CHAR_KICK}
+                        # try to auto-rejoin
+                        if config.get('autorejoin', 'false') == 'true':
+                            muc.join_groupchat(self.xmpp, room.name, room.own_nick)
+                    else:
+                        if by:
+                            kick_msg = _("%(spec)s [%(nick)s] has been kicked by %(by)s.") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by}
+                        else:
+                            kick_msg = _("%(spec)s [%(nick)s] has been kicked") % {'spec':theme.CHAR_KICK, 'nick':from_nick}
+                    if reason:
+                        kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
+                    self.add_message_to_room(room, kick_msg, colorized=True)
+
+                # user quit
+                elif typ == 'unavailable':
+                    room.users.remove(user)
+                    hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
+                    if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
+                        if not jid.full:
+                            leave_msg = _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
+                        else:
+                            leave_msg = _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+                        if status:
+                            leave_msg += ' (%s)' % status
+                        self.add_message_to_room(room, leave_msg, colorized=True)
+                    private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
+                    if private_room:
+                        if not status:
+                            self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
+                        else:
+                            self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room (%(status)s)') % {'nick':from_nick, 'spec':theme.CHAR_QUIT, 'status': status}, colorized=True)
+                # status change
+                else:
+                    # build the message
+                    msg = _('%s changed his/her status: ')% from_nick
+                    if affiliation != user.affiliation:
+                        msg += _('affiliation: %s,') % affiliation
+                    if role != user.role:
+                        msg += _('role: %s,') % role
+                    if show != user.show:
+                        msg += _('show: %s,') % show
+                    if status != user.status:
+                        msg += _('status: %s,') % status
+                    msg = msg[:-1] # remove the last ","
+                    hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
+                    if (hide_status_change == -1 or \
+                            user.has_talked_since(hide_status_change) or\
+                            user.nick == room.own_nick)\
+                            and\
+                            (affiliation != user.affiliation or\
+                                role != user.role or\
+                                show != user.show or\
+                                status != user.status):
+                        # display the message in the room
+                        self.add_message_to_room(room, msg)
+                    private_room = self.get_room_by_name(from_room)
+                    if private_room: # display the message in private
+                        self.add_message_to_room(private_room, msg)
+                    # finally, effectively change the user status
+                    user.update(affiliation, show, status, role)
+            if room == self.current_room():
+                self.window.user_win.refresh(room.users)
+        self.window.input.refresh()
+        doupdate()
+
+    def on_message(self, message):
+        """
+        When receiving private message from a muc OR a normal message
+        (from one of our contacts)
+        """
+        if message['type'] == 'groupchat':
+            return None
+        # Differentiate both type of messages, and call the appropriate handler.
+        jid_from = message['from']
+        for room in self.rooms:
+            if room.jid is None and room.name == jid_from.bare: # check all the MUC we are in
+                return self.on_groupchat_private_message(message)
+        return self.on_normal_message(message)
+
+    def on_groupchat_private_message(self, message):
+        """
+        We received a Private Message (from someone in a Muc)
+        """
+        jid = message['from']
+        nick_from = jid.user
+        room_from = jid.server
+        room = self.get_room_by_name(jid.full) # get the tab with the private conversation
+        if not room: # It's the first message we receive: create the tab
+            room = self.open_private_window(room_from, nick_from.encode('utf-8'), False)
+            if not room:
+                return
+        body = message['body']
+        self.add_message_to_room(room, body, None, nick_from)
+        self.window.input.refresh()
+        doupdate()
+
+    def on_normal_message(self, message):
+        """
+        When receiving "normal" messages (from someone in our roster)
+        """
+        return
 
     def resize_window(self):
         """
@@ -152,14 +368,14 @@ class Gui(object):
         self.window.resize(self.stdscr)
         self.window.refresh(self.rooms)
 
-    def main_loop(self, stdscr):
+    def main_loop(self):
         """
         main loop waiting for the user to press a key
         """
         self.refresh_window()
         while True:
             doupdate()
-            char=read_char(stdscr)
+            char=read_char(self.stdscr)
             try: # if this is not a valide utf-8 char, discard it
                 char.decode('utf-8')
             except UnicodeDecodeError:
@@ -205,16 +421,10 @@ class Gui(object):
         Reset terminal capabilities to what they were before ncurses
         init
         """
+        # TODO remove me?
         curses.echo()
         curses.nocbreak()
         curses.endwin()
-
-    def on_connected(self, jid):
-        """
-        We are connected when authentification confirmation is received
-        """
-        self.information(_("Welcome on Poezio \o/!"))
-        self.information(_("Your JID is %s") % jid)
 
     def refresh_window(self):
         """
@@ -223,9 +433,9 @@ class Gui(object):
         self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
         self.window.refresh(self.rooms)
 
-    def join_room(self, room, nick):
+    def open_new_room(self, room, nick, focus=True):
         """
-        join the specified room (muc), using the specified nick
+        Open a new Tab containing a Muc room, using the specified nick
         """
         r = Room(room, nick, self.window)
         self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
@@ -236,7 +446,8 @@ class Gui(object):
                 if ro.nb == 0:
                     self.rooms.insert(self.rooms.index(ro), r)
                     break
-        self.command_win("%s" % r.nb)
+        if focus:
+            self.command_win("%s" % r.nb)
         self.refresh_window()
 
     def completion(self):
@@ -322,27 +533,28 @@ class Gui(object):
         self.current_room().scroll_up(self.window.text_win.height-1)
         self.refresh_window()
 
-    def room_error(self, room, error, msg):
+    def room_error(self, error, room_name):
         """
         Display the error on the room window
         """
-        if not error:
-            return
-        room = self.get_room_by_name(room)
+        room = self.get_room_by_name(room_name)
         if not room:
             room = self.get_room_by_name('Info')
-        code = error.getAttr('code')
-        typ = error.getAttr('type')
-        if error.getTag('text'):
-            body = error.getTag('text').getData()
-        else: # No description of the error is provided in the stanza
-            # If it's a standard error, use our own messages
+        msg = error['error']['type']
+        condition = error['error']['condition']
+        code = error['error']['code']
+        body = error['error']['text']
+        if not body:
             if code in ERROR_AND_STATUS_CODES.keys():
                 body = ERROR_AND_STATUS_CODES[code]
             else:
-                body = _('Unknown error')
-        self.add_message_to_room(room, _('Error: %(code)s-%(msg)s: %(body)s' %
-                                   {'msg':msg, 'code':code, 'body':body}))
+                body = condition or _('Unknown error')
+        if code:
+            self.add_message_to_room(room, _('Error: %(code)s - %(msg)s: %(body)s' %
+                                             {'msg':msg, 'body':body, 'code':code}))
+        else:
+            self.add_message_to_room(room, _('Error: %(msg)s: %(body)s' %
+                                             {'msg':msg, 'body':body}))
         if code == '401':
             self.add_message_to_room(room, _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
         if code == '409':
@@ -351,23 +563,6 @@ class Gui(object):
             else:
                 self.add_message_to_room(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
-
-    def private_message(self, stanza):
-        """
-        When a private message is received
-        """
-        jid = stanza.getFrom()
-        nick_from = stanza.getFrom().getResource()
-        room_from = stanza.getFrom().getStripped()
-        room = self.get_room_by_name(jid) # get the tab with the private conversation
-        if not room: # It's the first message we receive: create the tab
-            room = self.open_private_window(room_from, nick_from.encode('utf-8'), False)
-            if not room:
-                return
-        body = stanza.getBody()
-        self.add_message_to_room(room, body, None, nick_from)
-        self.window.input.refresh()
-        doupdate()
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name.decode('utf-8')+'/'+user_nick
@@ -396,40 +591,41 @@ class Gui(object):
         self.refresh_window()
         return r
 
-    def room_message(self, stanza, date=None):
+    def on_groupchat_message(self, message):
         """
-        Display the message on the room window
+        Triggered whenever a message is received from a multi-user chat room.
         """
-        delay_tag = stanza.getTag('delay', namespace='urn:xmpp:delay')
-        if delay_tag:
+        # FIXME: not receiving subjects? :/
+        delay_tag = message.find('{urn:xmpp:delay}delay')
+        if delay_tag is not None:
             delayed = True
-            date = common.datetime_tuple(delay_tag.getAttr('stamp'))
+            date = common.datetime_tuple(delay_tag.attrib['stamp'])
         else:
             # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
             # But it sucks, please, Jabber servers, don't do this :(
-            delay_tag = stanza.getTag('x', namespace='jabber:x:delay')
-            if delay_tag:
+            delay_tag = message.find('{jabber:x:delay}x')
+            if delay_tag is not None:
                 delayed = True
-                date = common.datetime_tuple(delay_tag.getAttr('stamp'))
+                date = common.datetime_tuple(delay_tag.attrib['stamp'])
             else:
                 delayed = False
-        if stanza.getType() != 'groupchat':
-            return  # ignore all messages not comming from a MUC
-        nick_from = stanza.getFrom().getResource()
-        room_from = stanza.getFrom().getStripped()
+                date = None
+        nick_from = message['from'].resource
+        room_from = message.getMucroom()
+	room = self.get_room_by_name(room_from)
         if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
             return
         room = self.get_room_by_name(room_from)
-	if not room:
-	    self.information(_("message received for a non-existing room: %s") % (room_from))
+        if not room:
+            self.information(_("message received for a non-existing room: %s") % (room_from))
             return
-        body = stanza.getBody()
-        subject = stanza.getSubject()
+        body = message['body']#stanza.getBody()
+        subject = message['subject']#stanza.getSubject()
         if subject:
             if nick_from:
-                self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, date)
+                self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
             else:
-                self.add_message_to_room(room, _("The subject is: %(subject)s") % {'subject':subject}, date)
+                self.add_message_to_room(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
             room.topic = subject.encode('utf-8').replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
@@ -442,139 +638,6 @@ class Gui(object):
         self.refresh_window()
         doupdate()
 
-    def room_presence(self, stanza):
-        """
-        Display the presence on the room window and update the
-        presence information of the concerned user
-        """
-        from_nick = stanza.getFrom().getResource()
-        from_room = stanza.getFrom().getStripped()
-	room = self.get_room_by_name(from_room)
-	if not room:
-            return
-        else:
-            msg = None
-            affiliation = stanza.getAffiliation()
-            show = stanza.getShow()
-            status = stanza.getStatus()
-            role = stanza.getRole()
-            jid = stanza.getJid()
-            if not room.joined:     # user in the room BEFORE us.
-                # ignore redondant presence message, see bug #1509
-                if from_nick not in [user.nick for user in room.users]:
-                    new_user = User(from_nick, affiliation, show, status, role)
-                    room.users.append(new_user)
-                    if from_nick.encode('utf-8') == room.own_nick:
-                        room.joined = True
-                        self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
-                        # Check for a 170 status code
-                        for xtag in stanza.getTags('x'):
-                            for child in xtag.getTags('status'):
-                                if child.getAttr('code') == '170':
-                                    self.add_message_to_room(room, 'Warning: this room is publicly logged')
-                        new_user.color = theme.COLOR_OWN_NICK
-            else:
-                change_nick = stanza.getStatusCode() == '303'
-                kick = stanza.getStatusCode() == '307'
-                user = room.get_user_by_name(from_nick)
-                # New user
-                if not user:
-                    room.users.append(User(from_nick, affiliation,
-                                           show, status, role))
-                    hide_exit_join = config.get('hide_exit_join', -1)
-                    if hide_exit_join != 0:
-                        if not jid:
-                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] joined the room") % {'nick':from_nick, 'spec':theme.CHAR_JOIN}, colorized=True)
-                        else:
-                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] (%(jid)s) joined the room") % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid}, colorized=True)
-                # nick change
-                elif change_nick:
-                    if user.nick == room.own_nick:
-                        room.own_nick = stanza.getNick().encode('utf-8')
-                        # also change our nick in all private discussion of this room
-                        for _room in self.rooms:
-                            if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
-                                _room.own_nick = stanza.getNick()
-                    user.change_nick(stanza.getNick())
-                    self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':stanza.getNick()}, colorized=True)
-                    # rename the private tabs if needed
-                    private_room = self.get_room_by_name(stanza.getFrom())
-                    if private_room:
-                        self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':stanza.getNick()}, colorized=True)
-                        new_jid = private_room.name.split('/')[0]+'/'+stanza.getNick()
-                        private_room.jid = new_jid
-                        private_room.name = new_jid
-
-                # kick
-                elif kick:
-                    room.users.remove(user)
-                    try:
-                        reason = stanza.getReason()
-                    except:
-                        reason = ''
-                    try:
-                        by = stanza.getActor()
-                    except:
-                        by = None
-                    if from_nick == room.own_nick: # we are kicked
-                        room.disconnect()
-                        if by:
-                            self.add_message_to_room(room,  _("%(spec) [You] have been kicked by [%(by)s]. Reason: {%(reason)s}") % {'spec': theme.CHAR_KICK, 'by':by, 'reason':reason}, colorized=True)
-                        else:
-                            self.add_message_to_room(room, _("%(spec)s [You] have been kicked. Reason: %(reason)s") % {'reason':reason, 'spec':theme.CHAR_KICK}, colorized=True)
-                        # try to auto-rejoin
-                        if config.get('autorejoin', 'false') == 'true':
-                            self.muc.join_room(room.name, room.own_nick)
-                    else:
-                        if by:
-                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] has been kicked by %(by)s. Reason: %(reason)s") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by, 'reason':reason}, colorized=True)
-                        else:
-                            self.add_message_to_room(room, _("%(spec)s [%(nick)s] has been kicked. Reason: %(reason)s") % {'nick':from_nick, 'reason':reason, 'spec':theme.CHAR_KICK}, colorized=True)
-                # user quit
-                elif status == 'offline' or role == 'none':
-                    room.users.remove(user)
-                    hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
-                    if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-                        if not jid:
-                            self.add_message_to_room(room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
-                        else:
-                            self.add_message_to_room(room, _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid}, colorized=True)
-                    private_room = self.get_room_by_name(stanza.getFrom())
-                    if private_room:
-                        self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_KICK}, colorized=True)
-                # status change
-                else:
-                    # build the message
-                    msg = _('%s changed his/her status: ')% from_nick
-                    if affiliation != user.affiliation:
-                        msg += _('affiliation: %s,') % affiliation
-                    if role != user.role:
-                        msg += _('role: %s,') % role
-                    if show != user.show:
-                        msg += _('show: %s,') % show
-                    if status != user.status:
-                        msg += _('status: %s,') % status
-                    msg = msg[:-1] # remove the last ","
-                    hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
-                    if (hide_status_change == -1 or \
-                            user.has_talked_since(hide_status_change) or\
-                            user.nick == room.own_nick)\
-                            and\
-                            (affiliation != user.affiliation or\
-                                role != user.role or\
-                                show != user.show or\
-                                status != user.status):
-                        # display the message in the room
-                        self.add_message_to_room(room, msg)
-                    private_room = self.get_room_by_name(stanza.getFrom())
-                    if private_room: # display the message in private
-                        self.add_message_to_room(private_room, msg)
-                    # finally, effectively change the user status
-                    user.update(affiliation, show, status, role)
-            if room == self.current_room():
-                self.window.user_win.refresh(room.users)
-        self.window.input.refresh()
-        doupdate()
 
     def add_message_to_room(self, room, txt, time=None, nickname=None, colorized=False):
         """
@@ -611,10 +674,10 @@ class Gui(object):
                 self.add_message_to_room(self.current_room(), _("Error: unknown command (%s)") % (command))
         elif self.current_room().name != 'Info':
             if self.current_room().jid is not None:
-                self.muc.send_private_message(self.current_room().name, line)
+                muc.send_private_message(self.xmpp, self.current_room().name, line)
                 self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick.decode('utf-8'))
             else:
-                self.muc.send_message(self.current_room().name, line)
+                muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
         self.window.input.refresh()
         doupdate()
 
@@ -640,6 +703,8 @@ class Gui(object):
         """
         /whois <nickname>
         """
+        # TODO
+        return
         args = arg.split()
         room = self.current_room()
         if len(args) != 1:
@@ -701,7 +766,9 @@ class Gui(object):
         if self.current_room().name == 'Info' or not self.current_room().joined:
             return
         roomname = self.current_room().name
-        self.muc.eject_user(roomname, 'kick', nick, reason)
+        res = muc.eject_user(self.xmpp, roomname, nick, reason)
+        if res['type'] == 'error':
+            self.room_error(res, roomname)
 
     def command_say(self, arg):
         """
@@ -710,10 +777,10 @@ class Gui(object):
         line = arg
         if self.current_room().name != 'Info':
             if self.current_room().jid is not None:
-                self.muc.send_private_message(self.current_room().name, line)
+                muc.send_private_message(self.xmpp, self.current_room().name, line)
                 self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick)
             else:
-                self.muc.send_message(self.current_room().name, line)
+                muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
         self.window.input.refresh()
         doupdate()
 
@@ -751,7 +818,7 @@ class Gui(object):
                 # use the server of the current room if available
                 # check if the current room's name has a server
                 if is_jid(self.current_room().name):
-                    room += '@%s' % jid_get_domain(self.current_room().name.encode('utf-8'))
+                    room += '@%s' % jid_get_domain(self.current_room().name)
                 else:           # no server could be found, print a message and return
                     self.add_message_to_room(self.current_room(), _("You didn't specify a server for the room you want to join"))
                     return
@@ -759,14 +826,14 @@ class Gui(object):
         if len(args) == 2:       # a password is provided
             password = args[1]
         if r and r.joined:       # if we are already in the room
-            self.add_message_to_room(self.current_room(), _("already in room [%s]") % room)
+            self.command_win('%s' % (r.nb))
             return
-        self.muc.join_room(room, nick, password)
+        room = room.lower()
+        self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
         if not r:   # if the room window exists, we don't recreate it.
-            self.join_room(room, nick)
+            self.open_new_room(room, nick)
         else:
             r.own_nick = nick
-            # r.own_nick = nick
             r.users = []
 
     def command_bookmark(self, arg):
@@ -852,7 +919,7 @@ class Gui(object):
             msg = None
         for room in self.rooms:
             if room.joined:
-                self.muc.change_show(room.name, room.own_nick, show, msg)
+                muc.change_show(self.xmpp, room.name, room.own_nick, show, msg)
 
     def command_ignore(self, arg):
         """
@@ -926,7 +993,7 @@ class Gui(object):
         else:
             msg = None
         if room.joined:
-            self.muc.quit_room(room.name, room.own_nick, msg)
+            muc.leave_groupchat(self.xmpp, room.name, room.own_nick, arg)
         self.rooms.remove(self.current_room())
         self.refresh_window()
 
@@ -955,7 +1022,7 @@ class Gui(object):
                 r = self.open_private_window(room.name, user.nick.decode('utf-8'))
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
-            self.muc.send_private_message(r.name, msg)
+            muc.send_private_message(r.name, msg)
             self.add_message_to_room(r, msg.decode('utf-8'), None, r.own_nick)
 
     def command_topic(self, arg):
@@ -970,7 +1037,7 @@ class Gui(object):
         subject = ' '.join(args)
         if not room.joined or room.name == "Info":
             return
-        self.muc.change_subject(room.name, subject)
+        muc.change_subject(self.xmpp, room.name, subject)
 
     def command_link(self, arg):
         """
@@ -1029,7 +1096,7 @@ class Gui(object):
         room = self.current_room()
         if not room.joined or room.name == "Info":
             return
-        self.muc.change_nick(room.name, nick)
+        muc.change_nick(self.xmpp, room.name, nick)
 
     def information(self, msg):
         """
@@ -1047,8 +1114,9 @@ class Gui(object):
             msg = arg
         else:
             msg = None
-        if msg:
-            self.muc.disconnect(self.rooms, msg)
-            sleep(0.2)          # :(
-	self.reset_curses()
+        for room in self.rooms:
+            if not room.jid and room.name != 'Info':
+                muc.leave_groupchat(self.xmpp, room.name, room.own_nick, msg)
+        self.xmpp.disconnect()
+        self.reset_curses()
         sys.exit()

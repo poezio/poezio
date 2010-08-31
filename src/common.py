@@ -47,8 +47,6 @@ import errno
 import time
 import traceback
 
-import xmpp
-
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
 ROOM_STATE_PRIVATE = 15
@@ -120,20 +118,11 @@ def is_in_path(command, return_abs_path=False):
             pass
     return False
 
-def get_stripped_jid(jid):
-    """
-    Return the stripped JID (bare representation)
-    nick@server/resource -> nick@server
-    """
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getStripped()
-
 def is_jid(jid):
     """
     Return True if this is a valid JID
     """
-    if xmpp.JID(jid).getNode() != '':
+    if jid.find('@') != -1:
         return True
     return False
 
@@ -141,35 +130,34 @@ def jid_get_node(jid):
     """
     nick@server/resource -> nick
     """
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getNode()
+    return jid.split('@', 1)[0]
 
 def jid_get_domain(jid):
     """
     nick@server/resource -> server
     """
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getDomain()
+    return jid.split('@',1)[-1].split('/', 1)[0]
 
-def jid_get_resource(jid):
+def jid_get_resource(fulljid):
     """
     nick@server/resource -> resource
     """
-    if isinstance(jid, basestring):
-        jid = xmpp.JID(jid)
-    return jid.getResource()
+    if '/' in fulljid:
+        return fulljid.split('/', 1)[-1]
+    else:
+        return ''
+
+def jid_get_bare(fulljid):
+    """
+    nick@server/resource -> nick@server
+    """
+    return '%s@%s' % (jid_get_domain(fulljid), jid_get_node(fulljid))
 
 def is_jid_the_same(a, b):
     """
     Compare two bare jids
     """
-    if isinstance(a, basestring):
-        a = xmpp.JID(a)
-    if isinstance(b, basestring):
-        b = xmpp.JID(b)
-    return a.bareMatch(b)
+    return jid_get_bare(a) == jid_get_bare(a)
 
 DISTRO_INFO = {
         'Arch Linux': '/etc/arch-release',

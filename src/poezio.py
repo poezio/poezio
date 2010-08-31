@@ -25,26 +25,6 @@ import threading
 import sys
 import traceback
 
-def installThreadExcepthook():
-    """
-    Workaround for sys.excepthook thread bug
-    See http://bugs.python.org/issue1230540
-    Python, you made me sad :(
-    """
-    init_old = threading.Thread.__init__
-    def init(self, *args, **kwargs):
-        init_old(self, *args, **kwargs)
-        run_old = self.run
-        def run_with_except_hook(*args, **kw):
-            try:
-                run_old(*args, **kw)
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                sys.excepthook(*sys.exc_info())
-        self.run = run_with_except_hook
-    threading.Thread.__init__ = init
-
 class MyStdErr(object):
     def __init__(self, fd):
         """
@@ -59,6 +39,7 @@ class MyStdErr(object):
         Restaure the good ol' sys.stderr, because we need
         it in order to print the tracebacks
         """
+        sys.stderr.close()
         sys.stderr = self.old_stderr
 
 my_stderr = MyStdErr(open('/dev/null', 'a'))
@@ -77,30 +58,24 @@ def exception_handler(type_, value, trace):
 
 sys.excepthook = exception_handler
 
-import sys
-import curses
 import signal
 
 from connection import Connection
-from multiuserchat import MultiUserChat
 from config import config
 from gui import Gui
-from curses import initscr
 
 signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
 
 def main():
     """
-    main function
+    The main function consist of the Connection initialization
+    then the gui (ncurses) init, connection handlers and then the
+    connection is "started"
     """
-    resource = config.get('resource', 'poezio')
-    server = config.get('server', 'anon.louiz.org:jeproteste.info')
-    connection = Connection(server, resource)
-    connection.start()
-    stdscr = initscr()
-    gui = Gui(stdscr, MultiUserChat(connection.client))
-    gui.main_loop(stdscr)
+    xmpp = Connection()         # Connection init
+    gui = Gui(xmpp)             # Gui init.
+    xmpp.start()                # Connect to remote server
+    gui.main_loop()             # Refresh the screen, wait for user events etc
 
 if __name__ == '__main__':
-    installThreadExcepthook()
     main()
