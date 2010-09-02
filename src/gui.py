@@ -195,13 +195,13 @@ class Gui(object):
         """
         from_nick = presence['from'].resource
         from_room = presence['from'].bare
-	room = self.get_room_by_name(from_room)
+        room = self.get_room_by_name(from_room)
         code = presence.find('{jabber:client}status')
         status_codes = set([s.attrib['code'] for s in presence.findall('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}status')])
         # Check if it's not an error presence.
         if presence['type'] == 'error':
             return self.room_error(presence, from_room)
-	if not room:
+        if not room:
             return
         msg = None
         affiliation = presence['muc']['affiliation']
@@ -645,7 +645,7 @@ class Gui(object):
         room_from = message.getMucroom()
         if nick_from == room_from:
             nick_from = None
-	room = self.get_room_by_name(room_from)
+        room = self.get_room_by_name(room_from)
         if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
             return
         room = self.get_room_by_name(room_from)
