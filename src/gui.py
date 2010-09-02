@@ -193,7 +193,6 @@ class Gui(object):
         Display the presence on the room window and update the
         presence information of the concerned user
         """
-        from common import debug
         from_nick = presence['from'].resource
         from_room = presence['from'].bare
 	room = self.get_room_by_name(from_room)
@@ -211,7 +210,6 @@ class Gui(object):
         role = presence['muc']['role']
         jid = presence['muc']['jid']
         typ = presence['type']
-        debug('PRESENCE: %s\n->> affiliation:%s, show:%s, status:%s, role:%s\n' % (presence, affiliation, show, status, role))
         if not room.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if from_nick not in [user.nick for user in room.users]:
@@ -232,22 +230,7 @@ class Gui(object):
                 self.on_user_join(room, from_nick, affiliation, show, status, role, jid)
             # nick change
             elif change_nick:
-                new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
-                if user.nick == room.own_nick:
-                    room.own_nick = new_nick
-                    # also change our nick in all private discussion of this room
-                    for _room in self.rooms:
-                        if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
-                            _room.own_nick = new_nick
-                user.change_nick(new_nick)
-                self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':new_nick}, colorized=True)
-                # rename the private tabs if needed
-                private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-                if private_room:
-                    self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':new_nick}, colorized=True)
-                    new_jid = private_room.name.split('/')[0]+'/'+new_nick
-                    private_room.jid = private_room.name = new_jid
-
+                self.on_user_nick_change(room, presence, user, from_nick, from_room)
             # kick
             elif kick:
                 room.users.remove(user)
@@ -338,6 +321,23 @@ class Gui(object):
             else:
                 self.add_message_to_room(room, _("%(spec)s [%(nick)s] (%(jid)s) joined the room") % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full}, colorized=True)
 
+    def on_user_nick_change(self, room, presence, user, from_nick, from_room):
+        new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
+        if user.nick == room.own_nick:
+            room.own_nick = new_nick
+            # also change our nick in all private discussion of this room
+            for _room in self.rooms:
+                if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
+                    _room.own_nick = new_nick
+        user.change_nick(new_nick)
+        self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':new_nick}, colorized=True)
+        # rename the private tabs if needed
+        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
+        if private_room:
+            self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':new_nick}, colorized=True)
+            new_jid = private_room.name.split('/')[0]+'/'+new_nick
+            private_room.jid = private_room.name = new_jid
+
     def on_message(self, message):
         """
         When receiving private message from a muc OR a normal message
@@ -357,8 +357,8 @@ class Gui(object):
         We received a Private Message (from someone in a Muc)
         """
         jid = message['from']
-        nick_from = jid.user
-        room_from = jid.server
+        nick_from = jid.resource
+        room_from = jid.bare
         room = self.get_room_by_name(jid.full) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
             room = self.open_private_window(room_from, nick_from.encode('utf-8'), False)
@@ -586,7 +586,7 @@ class Gui(object):
                     self.command_win('%s' % room.nb)
                     return
         # create the new tab
-        room = self.get_room_by_name(room_name.decode('utf-8'))
+        room = self.get_room_by_name(room_name)
         if not room:
             return None
         own_nick = room.own_nick
