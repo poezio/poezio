@@ -239,33 +239,7 @@ class Gui(object):
                 self.on_user_leave_groupchat(room, user, jid, status, from_nick, from_room)
             # status change
             else:
-                # build the message
-                msg = _('%s changed his/her status: ')% from_nick
-                if affiliation != user.affiliation:
-                    msg += _('affiliation: %s,') % affiliation
-                if role != user.role:
-                    msg += _('role: %s,') % role
-                if show != user.show and show in SHOW_NAME.keys():
-                    msg += _('show: %s,') % SHOW_NAME[show]
-                if status != user.status:
-                    msg += _('status: %s,') % status
-                msg = msg[:-1] # remove the last ","
-                hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
-                if (hide_status_change == -1 or \
-                        user.has_talked_since(hide_status_change) or\
-                        user.nick == room.own_nick)\
-                        and\
-                        (affiliation != user.affiliation or\
-                            role != user.role or\
-                            show != user.show or\
-                            status != user.status):
-                    # display the message in the room
-                    self.add_message_to_room(room, msg)
-                private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-                if private_room: # display the message in private
-                    self.add_message_to_room(private_room, msg)
-                # finally, effectively change the user status
-                user.update(affiliation, show, status, role)
+                self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
         if room == self.current_room():
             self.window.user_win.refresh(room.users)
         self.window.input.refresh()
@@ -348,6 +322,38 @@ class Gui(object):
                 self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
             else:
                 self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room (%(status)s)') % {'nick':from_nick, 'spec':theme.CHAR_QUIT, 'status': status}, colorized=True)
+
+    def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
+        """
+        When an user changes her status
+        """
+        # build the message
+        msg = _('%s changed his/her status: ')% from_nick
+        if affiliation != user.affiliation:
+            msg += _('affiliation: %s,') % affiliation
+        if role != user.role:
+            msg += _('role: %s,') % role
+        if show != user.show and show in SHOW_NAME.keys():
+            msg += _('show: %s,') % SHOW_NAME[show]
+        if status != user.status:
+            msg += _('status: %s,') % status
+        msg = msg[:-1] # remove the last ","
+        hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
+        if (hide_status_change == -1 or \
+                user.has_talked_since(hide_status_change) or\
+                user.nick == room.own_nick)\
+                and\
+                (affiliation != user.affiliation or\
+                    role != user.role or\
+                    show != user.show or\
+                    status != user.status):
+            # display the message in the room
+            self.add_message_to_room(room, msg)
+        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
+        if private_room: # display the message in private
+            self.add_message_to_room(private_room, msg)
+        # finally, effectively change the user status
+        user.update(affiliation, show, status, role)
 
     def on_message(self, message):
         """
