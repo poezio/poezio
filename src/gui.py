@@ -236,22 +236,7 @@ class Gui(object):
                 self.on_user_kicked(room, presence, user, from_nick)
             # user quit
             elif typ == 'unavailable':
-                room.users.remove(user)
-                hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
-                if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-                    if not jid.full:
-                        leave_msg = _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
-                    else:
-                        leave_msg = _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
-                    if status:
-                        leave_msg += ' (%s)' % status
-                    self.add_message_to_room(room, leave_msg, colorized=True)
-                private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-                if private_room:
-                    if not status:
-                        self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
-                    else:
-                        self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room (%(status)s)') % {'nick':from_nick, 'spec':theme.CHAR_QUIT, 'status': status}, colorized=True)
+                self.on_user_leave_groupchat(room, user, jid, status, from_nick, from_room)
             # status change
             else:
                 # build the message
@@ -342,6 +327,27 @@ class Gui(object):
         if reason:
             kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
         self.add_message_to_room(room, kick_msg, colorized=True)
+
+    def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
+        """
+        When an user leaves a groupchat
+        """
+        room.users.remove(user)
+        hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
+        if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
+            if not jid.full:
+                leave_msg = _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
+            else:
+                leave_msg = _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+            if status:
+                leave_msg += ' (%s)' % status
+            self.add_message_to_room(room, leave_msg, colorized=True)
+        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
+        if private_room:
+            if not status:
+                self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
+            else:
+                self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room (%(status)s)') % {'nick':from_nick, 'spec':theme.CHAR_QUIT, 'status': status}, colorized=True)
 
     def on_message(self, message):
         """
