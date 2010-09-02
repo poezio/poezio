@@ -233,29 +233,7 @@ class Gui(object):
                 self.on_user_nick_change(room, presence, user, from_nick, from_room)
             # kick
             elif kick:
-                room.users.remove(user)
-                by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-                reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
-                by = by.attrib['jid'] if by else ''
-                reason = reason.text# if reason else ''
-                if from_nick == room.own_nick: # we are kicked
-                    room.disconnect()
-                    if by:
-                        kick_msg = _("%(spec) [You] have been kicked by [%(by)s].") % {'spec': theme.CHAR_KICK, 'by':by}
-                    else:
-                        kick_msg = _("%(spec)s [You] have been kicked.") % {'spec':theme.CHAR_KICK}
-                    # try to auto-rejoin
-                    if config.get('autorejoin', 'false') == 'true':
-                        muc.join_groupchat(self.xmpp, room.name, room.own_nick)
-                else:
-                    if by:
-                        kick_msg = _("%(spec)s [%(nick)s] has been kicked by %(by)s.") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by}
-                    else:
-                        kick_msg = _("%(spec)s [%(nick)s] has been kicked") % {'spec':theme.CHAR_KICK, 'nick':from_nick}
-                if reason:
-                    kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
-                self.add_message_to_room(room, kick_msg, colorized=True)
-
+                self.on_user_kicked(room, presence, user, from_nick)
             # user quit
             elif typ == 'unavailable':
                 room.users.remove(user)
@@ -337,6 +315,33 @@ class Gui(object):
             self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':new_nick}, colorized=True)
             new_jid = private_room.name.split('/')[0]+'/'+new_nick
             private_room.jid = private_room.name = new_jid
+
+    def on_user_kicked(self, room, presence, user, from_nick):
+        """
+        When someone is kicked
+        """
+        room.users.remove(user)
+        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
+        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
+        by = by.attrib['jid'] if by else ''
+        reason = reason.text# if reason else ''
+        if from_nick == room.own_nick: # we are kicked
+            room.disconnect()
+            if by:
+                kick_msg = _("%(spec) [You] have been kicked by [%(by)s].") % {'spec': theme.CHAR_KICK, 'by':by}
+            else:
+                kick_msg = _("%(spec)s [You] have been kicked.") % {'spec':theme.CHAR_KICK}
+            # try to auto-rejoin
+            if config.get('autorejoin', 'false') == 'true':
+                muc.join_groupchat(self.xmpp, room.name, room.own_nick)
+        else:
+            if by:
+                kick_msg = _("%(spec)s [%(nick)s] has been kicked by %(by)s.") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by}
+            else:
+                kick_msg = _("%(spec)s [%(nick)s] has been kicked") % {'spec':theme.CHAR_KICK, 'nick':from_nick}
+        if reason:
+            kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
+        self.add_message_to_room(room, kick_msg, colorized=True)
 
     def on_message(self, message):
         """
