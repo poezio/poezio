@@ -27,6 +27,8 @@ class User(object):
     keep trace of an user in a Room
     """
     def __init__(self, nick, affiliation, show, status, role):
+        from common import debug
+        debug('NEW USER: nick:%s, affiliation:%s, show:%s, status:%s, role:%s\n' % (nick, affiliation, show, status, role))
         self.last_talked = None
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
