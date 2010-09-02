@@ -55,6 +55,13 @@ ERROR_AND_STATUS_CODES = {
     '503': 'The maximum number of users has been reached',
     }
 
+SHOW_NAME = {
+    'dnd': _('busy'),
+    'away': _('away'),
+    'xa': _('not available'),
+    'chat': _('chatty'),
+    '': _('available')
+    }
 def doupdate():
     curses.doupdate()
 
@@ -292,8 +299,8 @@ class Gui(object):
                     msg += _('affiliation: %s,') % affiliation
                 if role != user.role:
                     msg += _('role: %s,') % role
-                if show != user.show:
-                    msg += _('show: %s,') % show
+                if show != user.show and show in SHOW_NAME.keys():
+                    msg += _('show: %s,') % SHOW_NAME[show]
                 if status != user.status:
                     msg += _('status: %s,') % status
                 msg = msg[:-1] # remove the last ","
@@ -617,8 +624,10 @@ class Gui(object):
             else:
                 delayed = False
                 date = None
-        nick_from = message['from'].resource
+        nick_from = message['mucnick']
         room_from = message.getMucroom()
+        if nick_from == room_from:
+            nick_from = None
 	room = self.get_room_by_name(room_from)
         if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
             return
@@ -626,8 +635,8 @@ class Gui(object):
         if not room:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
-        body = message['body']#stanza.getBody()
-        subject = message['subject']#stanza.getSubject()
+        body = message['body']
+        subject = message['subject']
         if subject:
             if nick_from:
                 self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
