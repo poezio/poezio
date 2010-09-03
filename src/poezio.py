@@ -20,7 +20,7 @@
 Starting point of poezio. Launches both the Connection and Gui
 """
 
-import threading
+import curses
 import sys
 import traceback
 
@@ -41,23 +41,24 @@ class MyStdErr(object):
         sys.stderr.close()
         sys.stderr = self.old_stderr
 
-# my_stderr = MyStdErr(open('/dev/null', 'a'))
+my_stderr = MyStdErr(open('/dev/null', 'a'))
 
-# def exception_handler(type_, value, trace):
-#     """
-#     on any traceback: exit ncurses and print the traceback
-#     then exit the program
-#     """
-#     my_stderr.restaure()
-#     curses.endwin()
-#     curses.echo()
-#     traceback.print_exception(type_, value, trace, None, sys.stderr)
-#     import os                   # used to quit the program even from a thread
-#     os.abort()
+def exception_handler(type_, value, trace):
+    """
+    on any traceback: exit ncurses and print the traceback
+    then exit the program
+    """
+    my_stderr.restaure()
+    curses.endwin()
+    curses.echo()
+    traceback.print_exception(type_, value, trace, None, sys.stderr)
+    import os                   # used to quit the program even from a thread
+    os.abort()
 
-# sys.excepthook = exception_handler
+sys.excepthook = exception_handler
 
 import signal
+import os
 
 from connection import Connection
 from config import config
@@ -77,4 +78,5 @@ def main():
     gui.main_loop()             # Refresh the screen, wait for user events etc
 
 if __name__ == '__main__':
+    os.environ['TERM'] = 'xterm-256color' # FIXME
     main()
