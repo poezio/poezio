@@ -109,11 +109,15 @@ class Gui(object):
 
         self.key_func = {
             "KEY_LEFT": self.window.input.key_left,
+            "M-D": self.window.input.key_left,
             "KEY_RIGHT": self.window.input.key_right,
+            "M-C": self.window.input.key_right,
             "KEY_UP": self.window.input.key_up,
+            "M-A": self.window.input.key_up,
             "KEY_END": self.window.input.key_end,
             "KEY_HOME": self.window.input.key_home,
             "KEY_DOWN": self.window.input.key_down,
+            "M-B": self.window.input.key_down,
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
             "KEY_DC": self.window.input.key_dc,
