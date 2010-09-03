@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -78,7 +76,7 @@ class Gui(object):
         self.ignores = {}
 
         self.commands = {
-            'help': (self.command_help, u'\_o< KOIN KOIN KOIN'),
+            'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password")),
             'quit': (self.command_quit, _("Usage: /quit\nQuit: Just disconnect from the server and exit poezio.")),
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio.")),
@@ -215,7 +213,7 @@ class Gui(object):
             if from_nick not in [user.nick for user in room.users]:
                 new_user = User(from_nick, affiliation, show, status, role)
                 room.users.append(new_user)
-                if from_nick.encode('utf-8') == room.own_nick:
+                if from_nick == room.own_nick:
                     room.joined = True
                     new_user.color = theme.COLOR_OWN_NICK
                     self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
@@ -333,7 +331,7 @@ class Gui(object):
             msg += _('affiliation: %s,') % affiliation
         if role != user.role:
             msg += _('role: %s,') % role
-        if show != user.show and show in SHOW_NAME.keys():
+        if show != user.show and show in list(SHOW_NAME.keys()):
             msg += _('show: %s,') % SHOW_NAME[show]
         if status != user.status:
             msg += _('status: %s,') % status
@@ -378,7 +376,7 @@ class Gui(object):
         room_from = jid.bare
         room = self.get_room_by_name(jid.full) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
-            room = self.open_private_window(room_from, nick_from.encode('utf-8'), False)
+            room = self.open_private_window(room_from, nick_from, False)
             if not room:
                 return
         body = message['body']
@@ -407,16 +405,12 @@ class Gui(object):
         while True:
             doupdate()
             char=read_char(self.stdscr)
-            try: # if this is not a valide utf-8 char, discard it
-                char.decode('utf-8')
-            except UnicodeDecodeError:
-                continue
             # search for keyboard shortcut
-            if char in self.key_func.keys():
+            if char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
-                if len(char.decode('utf-8')) > 1:
-                    continue    # ignore non-handled keyboard shortcuts
+                # if len(char) > 1:
+                #     continue    # ignore non-handled keyboard shortcuts
                 self.window.do_command(char)
 
     def current_room(self):
@@ -430,12 +424,8 @@ class Gui(object):
         returns the room that has this name
         """
         for room in self.rooms:
-            try:
-                if room.name.decode('utf-8') == name:
-                    return room
-            except UnicodeEncodeError:
-                if room.name == name:
-                    return room
+            if room.name == name:
+                return room
         return None
 
     def init_curses(self, stdscr):
@@ -485,19 +475,20 @@ class Gui(object):
         """
         Called when Tab is pressed, complete the nickname in the input
         """
-        def compare_users(a, b):
-            """
-            Used to sort users by their last_talked
-            """
-            if not a.last_talked and b.last_talked:
-                return 0
-            elif not b.last_talked and a.last_talked:
-                return 1
-            if a.last_talked <  b.last_talked:
-                return 1
-            else:
-                return -1
-        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, compare_users)])
+        # def compare_users(a, b):
+        #     """
+        #     Used to sort users by their last_talked
+        #     """
+        #     if not a.last_talked and b.last_talked:
+        #         return 0
+        #     elif not b.last_talked and a.last_talked:
+        #         return 1
+        #     if a.last_talked <  b.last_talked:
+        #         return 1
+        #     else:
+        #         return -1
+        compare_users = lambda x: x.last_talked
+        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, key=compare_users)])
 
     def last_words_completion(self):
         """
@@ -513,7 +504,7 @@ class Gui(object):
                 for char in char_we_dont_want: # remove the chars we don't want
                     word = word.replace(char, '')
                 if len(word) > 5:
-                    words.append(word.encode('utf-8'))
+                    words.append(word)
         self.window.input.auto_completion(words)
 
     def go_to_important_room(self):
@@ -576,7 +567,7 @@ class Gui(object):
         code = error['error']['code']
         body = error['error']['text']
         if not body:
-            if code in ERROR_AND_STATUS_CODES.keys():
+            if code in list(ERROR_AND_STATUS_CODES.keys()):
                 body = ERROR_AND_STATUS_CODES[code]
             else:
                 body = condition or _('Unknown error')
@@ -596,7 +587,7 @@ class Gui(object):
         self.refresh_window()
 
     def open_private_window(self, room_name, user_nick, focus=True):
-        complete_jid = room_name.decode('utf-8')+'/'+user_nick
+        complete_jid = room_name+'/'+user_nick
         for room in self.rooms: # if the room exists, focus it and return
             if room.jid:
                 if room.jid == complete_jid:
@@ -646,7 +637,7 @@ class Gui(object):
         if nick_from == room_from:
             nick_from = None
         room = self.get_room_by_name(room_from)
-        if (self.ignores.has_key(room_from)) and (nick_from in self.ignores[room_from]):
+        if (room_from in self.ignores) and (nick_from in self.ignores[room_from]):
             return
         room = self.get_room_by_name(room_from)
         if not room:
@@ -659,7 +650,7 @@ class Gui(object):
                 self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
             else:
                 self.add_message_to_room(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
-            room.topic = subject.encode('utf-8').replace('\n', '|')
+            room.topic = subject.replace('\n', '|')
             if room == self.current_room():
                 self.window.topic_win.refresh(room.topic)
         elif body:
@@ -699,7 +690,7 @@ class Gui(object):
             command = line.strip()[:].split()[0][1:]
             arg = line[2+len(command):] # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
-            if command in self.commands.keys():
+            if command in list(self.commands.keys()):
                 func = self.commands[command][0]
                 func(arg)
                 return
@@ -708,7 +699,7 @@ class Gui(object):
         elif self.current_room().name != 'Info':
             if self.current_room().jid is not None:
                 muc.send_private_message(self.xmpp, self.current_room().name, line)
-                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick.decode('utf-8'))
+                self.add_message_to_room(self.current_room(), line, None, self.current_room().own_nick)
             else:
                 muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
         self.window.input.refresh()
@@ -722,11 +713,11 @@ class Gui(object):
         room = self.current_room()
         if len(args) == 0:
             msg = _('Available commands are: ')
-            for command in self.commands.keys():
+            for command in list(self.commands.keys()):
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
         if len(args) == 1:
-            if args[0] in self.commands.keys():
+            if args[0] in list(self.commands.keys()):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
@@ -811,7 +802,7 @@ class Gui(object):
         if self.current_room().name != 'Info':
             if self.current_room().jid is not None:
                 muc.send_private_message(self.xmpp, self.current_room().name, line)
-                self.add_message_to_room(self.current_room(), line.decode('utf-8'), None, self.current_room().own_nick)
+                self.add_message_to_room(self.current_room(), line, None, self.current_room().own_nick)
             else:
                 muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
         self.window.input.refresh()
@@ -942,7 +933,7 @@ class Gui(object):
                          }
         if len(args) < 1:
             return
-        if not args[0] in possible_show.keys():
+        if not args[0] in list(possible_show.keys()):
             self.command_help('show')
             return
         show = possible_show[args[0]]
@@ -966,7 +957,7 @@ class Gui(object):
             return
         roomname = self.current_room().name
         nick = args[0]
-        if not self.ignores.has_key(roomname):
+        if roomname not in self.ignores:
             self.ignores[roomname] = set() # no need for any order
         if nick not in self.ignores[roomname]:
             self.ignores[roomname].add(nick)
@@ -986,7 +977,7 @@ class Gui(object):
             return
         roomname = self.current_room().name
         nick = args[0]
-        if not self.ignores.has_key(roomname) or (nick not in self.ignores[roomname]):
+        if roomname not in self.ignores or (nick not in self.ignores[roomname]):
             self.add_message_to_room(self.current_room(), _("%s was not ignored") % nick)
             return
         self.ignores[roomname].remove(nick)
@@ -1052,11 +1043,11 @@ class Gui(object):
             return
         for user in room.users:
             if user.nick == nick:
-                r = self.open_private_window(room.name, user.nick.decode('utf-8'))
+                r = self.open_private_window(room.name, user.nick)
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
             muc.send_private_message(r.name, msg)
-            self.add_message_to_room(r, msg.decode('utf-8'), None, r.own_nick)
+            self.add_message_to_room(r, msg, None, r.own_nick)
 
     def command_topic(self, arg):
         """
@@ -1065,7 +1056,7 @@ class Gui(object):
         args = arg.split()
         room = self.current_room()
         if len(args) == 0:
-            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic.decode('utf-8'))
+            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic)
             return
         subject = ' '.join(args)
         if not room.joined or room.name == "Info":

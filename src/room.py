@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -70,9 +68,9 @@ class Room(object):
         Set the tab color and returns the txt color
         """
         color = theme.COLOR_NORMAL_TEXT
-        if not time and nickname and nickname.encode('utf-8') != self.own_nick and self.joined: # do the highlight
+        if not time and nickname and nickname != self.own_nick and self.joined: # do the highlight
             try:
-                if self.own_nick in txt.encode('utf-8'):
+                if self.own_nick in txt:
                     self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                     color = theme.COLOR_HIGHLIGHT_TEXT
             except UnicodeDecodeError:
@@ -134,7 +132,7 @@ class Room(object):
 
     def get_user_by_name(self, nick):
         for user in self.users:
-            if user.nick == nick.encode('utf-8'):
+            if user.nick == nick:
                 return user
         return None
 

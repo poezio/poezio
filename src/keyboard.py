@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -26,6 +24,9 @@ shortcut, like ^A, M-a or KEY_RESIZE)
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
+    ncurses seems to return a string of the byte
+    encoded in latin-1. So what we get is NOT what we typed
+    unless we do the conversion…
     """
     try:
         c = s.getkey()
@@ -33,7 +34,7 @@ def get_next_byte(s):
         return (None, "KEY_RESIZE")
     if len(c) >= 4:
         return (None, c)
-    return (ord(c), c)
+    return (ord(c), c.encode('latin-1')) # returns a number and a bytes object
 
 def read_char(s):
     """
@@ -47,10 +48,10 @@ def read_char(s):
         return "KEY_BACKSPACE"
     if first < 127:  # ASCII char on one byte
         if first <= 26:         # transform Ctrl+* keys
-            char =  "^"+chr(first + 64)
+            return  "^"+chr(first + 64)
         if first == 27:
             (first, c) = get_next_byte(s)
-            char = "M-"+c
+            return "M-"+c
     if 194 <= first:
         (code, c) = get_next_byte(s) # 2 bytes char
         char += c
@@ -60,4 +61,11 @@ def read_char(s):
     if 240 <= first:
         (code, c) = get_next_byte(s) # 4 bytes char
         char += c
-    return char
+    return char.decode('utf-8')# return all the concatened byte objets, decoded
+
+if __name__ == '__main__':
+    import curses
+    s = curses.initscr()
+    curses.noecho()
+    while True:
+        s.addstr('%s\n' % read_char(s))

@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -63,52 +61,31 @@ class UserList(Win):
         self.color_role = {'moderator': theme.COLOR_USER_MODERATOR,
                            'participant':theme.COLOR_USER_PARTICIPANT,
                            'visitor':theme.COLOR_USER_VISITOR,
-                           'none':theme.COLOR_USER_NONE
+                           'none':theme.COLOR_USER_NONE,
+                           '':theme.COLOR_USER_NONE
                            }
         self.color_show = {'xa':theme.COLOR_STATUS_XA,
-                           'None':theme.COLOR_STATUS_NONE,
+                           'none':theme.COLOR_STATUS_NONE,
+                           '':theme.COLOR_STATUS_NONE,
                            'dnd':theme.COLOR_STATUS_DND,
                            'away':theme.COLOR_STATUS_AWAY,
                            'chat':theme.COLOR_STATUS_CHAT
                            }
 
     def refresh(self, users):
-        def compare_user(a, b):
-            try:
-                arole = self.color_role[a.role]
-            except KeyError:
-                arole = 5
-            try:
-                brole = self.color_role[b.role]
-            except KeyError:
-                brole = 5
-            if arole == brole:
-                if a.nick.lower() < b.nick.lower():
-                    return -1
-                return 1
-            return arole - brole
         if not self.visible:
             return
         g_lock.acquire()
         self.win.erase()
         y = 0
-        for user in sorted(users, compare_user):
-            try:
-                role_col = self.color_role[user.role]
-            except KeyError:
-                role_col = theme.COLOR_USER_NONE
-            try:
-                show_col = self.color_show[user.show]
-            except KeyError:
-                show_col = theme.COLOR_STATUS_NONE
+        for user in sorted(users):#sorted(users, compare_user):
+            role_col = self.color_role[user.role]
+            show_col = self.color_show[user.show]
             self.win.attron(curses.color_pair(show_col))
             self.win.addnstr(y, 0, theme.CHAR_STATUS, 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
-            try:
-                self.win.addnstr(y, 1, user.nick, self.width-1)
-            except:
-                pass
+            self.win.addnstr(y, 1, user.nick, self.width-1)
             self.win.attroff(curses.color_pair(role_col))
             y += 1
             if y == self.height:
@@ -136,20 +113,17 @@ class Topic(Win):
         g_lock.acquire()
         self.win.erase()
         if not jid:
-            try:
-                self.win.addstr(0, 0, topic, curses.color_pair(theme.COLOR_TOPIC_BAR))
-                while True:
-                    try:
-                        self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
-                    except:
-                        break
-            except:
-                pass
+            self.win.addnstr(0, 0, topic[:self.width], curses.color_pair(theme.COLOR_TOPIC_BAR))
+            while True:
+                try:
+                    self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
+                except:
+                    break
         elif jid:
             room = jid.split('/')[0]
             nick = '/'.join(jid.split('/')[1:])
             topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
-            self.win.addnstr(0, 0, topic.encode('utf-8') + " "*(self.width-len(topic)), self.width-1
+            self.win.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
                              , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
 
         self.win.refresh()
@@ -175,29 +149,24 @@ class RoomInfo(Win):
     def refresh(self, rooms, current):
         if not self.visible:
             return
-        def compare_room(a, b):
-            return a.nb - b.nb
+        def compare_room(a):
+            # return a.nb - b.nb
+            return a.nb
+        comp = lambda x: x.nb
         g_lock.acquire()
         self.win.erase()
         self.win.addnstr(0, 0, "[", self.width
                          ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        sorted_rooms = sorted(rooms, compare_room)
+        sorted_rooms = sorted(rooms, key=comp)
         for room in sorted_rooms:
             color = room.color_state
             try:
                 self.win.addstr("%s" % str(room.nb), curses.color_pair(color))
-                self.win.addstr(u"|".encode('utf-8'), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                self.win.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:             # end of line
                 break
         (y, x) = self.win.getyx()
-        try:
-            self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        except:
-            try:
-                self.win.addstr(y, x-1, '] '+ current.name.encode('utf-8'), curses.color_pair(theme.COLOR_INFORMATION_BAR))
-            except:
-                pass
-            pass
+        self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.print_scroll_position(current)
         while True:
             try:
@@ -237,7 +206,7 @@ class TextWin(Win):
                 continue
             offset = 11         # length of the time
             if message.nickname and len(message.nickname) >= 30:
-                nick = message.nickname[:30]+u'…'
+                nick = message.nickname[:30]+'…'
             else:
                 nick = message.nickname
             if nick:
@@ -308,7 +277,7 @@ class TextWin(Win):
             if line.time is not None:
                 self.write_time(line.time)
             if line.nickname is not None:
-                self.write_nickname(line.nickname.encode('utf-8'), line.nickname_color)
+                self.write_nickname(line.nickname, line.nickname_color)
             self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
             y += 1
         self.win.refresh()
@@ -318,14 +287,14 @@ class TextWin(Win):
         """
         """
         self.win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
-        self.win.addstr(' -'*(self.width/2))
+        self.win.addstr(' -'*(self.width//2))
         self.win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
         """
         write the text of a line.
         """
-        txt = txt.encode('utf-8')
+        txt = txt
         if not colorized:
             if color:
                 self.win.attron(curses.color_pair(color))
@@ -344,7 +313,7 @@ class TextWin(Win):
                 theme.CHAR_KICK: theme.COLOR_KICK_CHAR,
                 }
             for word in txt.split():
-                if word in special_words.keys():
+                if word in list(special_words.keys()):
                     self.win.attron(curses.color_pair(special_words[word]))
                     self.win.addstr(word)
                     self.win.attroff(curses.color_pair(special_words[word]))
@@ -425,7 +394,7 @@ class Input(Win):
         self.win.leaveok(0)
         self.visible = visible
         self.history = []
-        self.text = u''
+        self.text = ''
         self.clipboard = None
         self.pos = 0            # cursor position
         self.line_pos = 0 # position (in self.text) of
@@ -442,7 +411,7 @@ class Input(Win):
         self._resize(height, width, y, x, stdscr)
         self.win.leaveok(0)
         self.win.clear()
-        self.win.addnstr(0, 0, self.text.encode('utf-8'), self.width-1)
+        self.win.addnstr(0, 0, self.text, self.width-1)
 
     def jump_word_left(self):
         """
@@ -454,7 +423,7 @@ class Input(Win):
         if previous_space == -1:
             previous_space = 0
         diff = self.pos+self.line_pos-previous_space
-        for i in xrange(diff):
+        for i in range(diff):
             self.key_left()
 
     def jump_word_right(self):
@@ -467,7 +436,7 @@ class Input(Win):
         if next_space == -1:
             next_space = len(self.text)
         diff = next_space - (self.pos+self.line_pos)
-        for i in xrange(diff):
+        for i in range(diff):
             self.key_right()
 
     def delete_word(self):
@@ -480,7 +449,7 @@ class Input(Win):
         if previous_space == -1:
             previous_space = 0
         diff = self.pos+self.line_pos-previous_space
-        for i in xrange(diff):
+        for i in range(diff):
             self.key_backspace(False)
         self.rewrite_text()
 
@@ -511,7 +480,7 @@ class Input(Win):
         if not self.clipboard or len(self.clipboard) == 0:
             return
         for letter in self.clipboard:
-            self.do_command(letter.encode('utf-8'))
+            self.do_command(letter)
 
     def key_dc(self):
         """
@@ -549,7 +518,7 @@ class Input(Win):
             self.key_end()
         else:
             self.histo_pos = len(self.history)-1
-            self.text = u''
+            self.text = ''
             self.pos = 0
             self.line_pos = 0
             self.rewrite_text()
@@ -648,7 +617,7 @@ class Input(Win):
         if not self.last_completion:
             # begin is the begining of the nick we want to complete
             if self.text.strip() != '':
-                begin = self.text.split()[-1].encode('utf-8').lower()
+                begin = self.text.split()[-1].lower()
             else:
                 begin = ''
             hit_list = []       # list of matching nicks
@@ -658,15 +627,15 @@ class Input(Win):
             if len(hit_list) == 0:
                 return
             self.hit_list = hit_list
-            end = len(begin.decode('utf-8'))
+            end = len(begin)
         else:
             begin = self.text[-len(after)-len(self.last_completion):-len(after)]
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
-            end = len(begin.decode('utf-8')) + len(after)
+            end = len(begin) + len(after)
         self.text = self.text[:-end]
         nick = self.hit_list[0] # take the first hit
-        self.last_completion = nick.decode('utf-8')
-        self.text += nick.decode('utf-8') +after
+        self.last_completion = nick
+        self.text += nick +after
         self.key_end(False)
 
     def shell_completion(self, user_list):
@@ -679,7 +648,7 @@ class Input(Win):
             after = config.get('after_completion', ',')+" "
         (y, x) = self.win.getyx()
         if self.text != '':
-            begin = self.text.split()[-1].encode('utf-8').lower()
+            begin = self.text.split()[-1].lower()
         else:
             begin = ''
         hit_list = []       # list of matching nicks
@@ -709,14 +678,14 @@ class Input(Win):
                         break
             if end:
                 nick = nick[:-1]
-        x -= len(begin.decode('utf-8'))
-        self.text = self.text[:-len(begin.decode('utf-8'))]
-        self.text += nick.decode('utf-8')
+        x -= len(begin)
+        self.text = self.text[:-len(begin)]
+        self.text += nick
         self.key_end(False)
 
     def do_command(self, key, reset=True):
         self.reset_completion()
-        self.text = self.text[:self.pos+self.line_pos]+key.decode('utf-8')+self.text[self.pos+self.line_pos:]
+        self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self.win.getyx()
         if x == self.width-1:
             self.line_pos += 1
@@ -730,20 +699,20 @@ class Input(Win):
         Clear the input and return the text entered so far
         """
         txt = self.text
-        self.text = u''
+        self.text = ''
         self.pos = 0
         self.line_pos = 0
         if len(txt) != 0:
             self.history.append(txt)
             self.histo_pos = len(self.history)-1
-        return txt.encode('utf-8')
+        return txt
 
     def rewrite_text(self):
         """
         Refresh the line onscreen, from the pos and pos_line
         """
         self.clear_text()
-        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1].encode('utf-8'))
+        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
         self.win.move(0, self.pos)
         self.refresh()
 
@@ -776,12 +745,12 @@ class Window(object):
             visible = True
         if visible:
             stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-            stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+            stdscr.vline(1, 9*(self.width//10), curses.ACS_VLINE, self.height-2)
             stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-        self.user_win = UserList(self.height-3, (self.width/10)-1, 1, 9*(self.width/10)+1, stdscr, visible)
+        self.user_win = UserList(self.height-3, (self.width//10)-1, 1, 9*(self.width//10)+1, stdscr, visible)
         self.topic_win = Topic(1, self.width, 0, 0, stdscr, visible)
         self.info_win = RoomInfo(1, self.width, self.height-2, 0, stdscr, visible)
-        self.text_win = TextWin(self.height-3, (self.width/10)*9, 1, 0, stdscr, visible)
+        self.text_win = TextWin(self.height-3, (self.width//10)*9, 1, 0, stdscr, visible)
         self.input = Input(1, self.width, self.height-1, 0, stdscr, visible)
 
     def resize(self, stdscr):
@@ -795,9 +764,9 @@ class Window(object):
             visible = True
         if visible:
             stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-            stdscr.vline(1, 9*(self.width/10), curses.ACS_VLINE, self.height-2)
+            stdscr.vline(1, 9*(self.width//10), curses.ACS_VLINE, self.height-2)
             stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-        text_width = (self.width/10)*9;
+        text_width = (self.width//10)*9;
         self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
         self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
         self.text_win.resize(self.height-3, text_width, 1, 0, stdscr, visible)

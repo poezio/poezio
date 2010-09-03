@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2009 chickenzilla
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
@@ -22,7 +20,7 @@ Defines the global config instance, used to get or set (and save) values
 from/to the config file
 """
 
-from ConfigParser import RawConfigParser, NoOptionError
+from configparser import RawConfigParser, NoOptionError
 from os import environ, makedirs, path
 from shutil import copy2
 try:

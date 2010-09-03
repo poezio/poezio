@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.

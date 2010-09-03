@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-cd src/ && python poezio.py "$@"
+cd src/ && python3 poezio.py "$@"
 

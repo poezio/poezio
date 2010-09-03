@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2009, 2010 Erwan Briand
 # Copyright 2010, Florent Le Coz <louizatakk@fedoraproject.org>
 
@@ -80,6 +78,6 @@ class Handler(Singleton):
 
     def emit(self, signal, **kwargs):
         """Emit a signal."""
-        if self.__signals__.has_key(signal):
+        if signal in self.__signals__:
             for func in self.__signals__[signal]:
                 func(**kwargs)

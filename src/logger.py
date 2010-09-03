@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -69,12 +67,9 @@ class Logger(object):
             fd = open(dir+room, 'a')
         except IOError:
             return
-        try:
-            msg = msg.encode('utf-8')
-        except:
-            pass
+        msg = msg
         if nick:
-            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick.encode('utf-8')+': '+msg+'\n')
+            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
         else:
             fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
         fd.close()

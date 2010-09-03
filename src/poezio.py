@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# -*- coding:utf-8 -*-
+#!/usr/bin/env python3
 #
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
@@ -42,21 +41,21 @@ class MyStdErr(object):
         sys.stderr.close()
         sys.stderr = self.old_stderr
 
-my_stderr = MyStdErr(open('/dev/null', 'a'))
+# my_stderr = MyStdErr(open('/dev/null', 'a'))
 
-def exception_handler(type_, value, trace):
-    """
-    on any traceback: exit ncurses and print the traceback
-    then exit the program
-    """
-    my_stderr.restaure()
-    curses.endwin()
-    curses.echo()
-    traceback.print_exception(type_, value, trace, None, sys.stderr)
-    import os                   # used to quit the program even from a thread
-    os.abort()
+# def exception_handler(type_, value, trace):
+#     """
+#     on any traceback: exit ncurses and print the traceback
+#     then exit the program
+#     """
+#     my_stderr.restaure()
+#     curses.endwin()
+#     curses.echo()
+#     traceback.print_exception(type_, value, trace, None, sys.stderr)
+#     import os                   # used to quit the program even from a thread
+#     os.abort()
 
-sys.excepthook = exception_handler
+# sys.excepthook = exception_handler
 
 import signal
 

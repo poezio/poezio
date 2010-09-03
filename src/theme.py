@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -154,7 +152,7 @@ if __name__ == '__main__':
     s = curses.initscr()
     curses.start_color()
     curses.use_default_colors()
-    for i in xrange(80):
+    for i in range(80):
         s.attron(curses.color_pair(i))
         s.addstr(str(i))
         s.attroff(curses.color_pair(i))

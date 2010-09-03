@@ -1,5 +1,3 @@
-# -*- coding:utf-8 -*-
-#
 # Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
 #
 # This file is part of Poezio.
@@ -22,6 +20,12 @@ from datetime import timedelta, datetime
 import curses
 import theme
 
+ROLE_DICT = {
+    'none':0,
+    'visitor':1,
+    'participant':2,
+    'moderator':3
+    }
 class User(object):
     """
     keep trace of an user in a Room
@@ -29,7 +33,7 @@ class User(object):
     def __init__(self, nick, affiliation, show, status, role):
         from common import debug
         debug('NEW USER: nick:%s, affiliation:%s, show:%s, status:%s, role:%s\n' % (nick, affiliation, show, status, role))
-        self.last_talked = None
+        self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
         self.color = choice(theme.LIST_COLOR_NICKNAMES)
@@ -41,7 +45,7 @@ class User(object):
         self.role = role
 
     def change_nick(self, nick):
-        self.nick = nick.encode('utf-8')
+        self.nick = nick
 
     def set_last_talked(self, time):
         """
@@ -63,3 +67,26 @@ class User(object):
 
     def __repr__(self):
         return ">%s<" % (self.nick.decode('utf-8'))
+
+    def __eq__(self, b):
+        return self.role == b.role and self.nick.lower() == b.nick.lower()
+
+    def __gt__(self, b):
+        if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
+            return self.nick.lower() > b.nick.lower()
+        return ROLE_DICT[self.role] < ROLE_DICT[b.role]
+
+    def __ge__(self, b):
+        if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
+            return self.nick.lower() >= b.nick.lower()
+        return ROLE_DICT[self.role] <= ROLE_DICT[b.role]
+
+    def __lt__(self, b):
+        if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
+            return self.nick.lower() < b.nick.lower()
+        return ROLE_DICT[self.role] > ROLE_DICT[b.role]
+
+    def __le__(self, b):
+        if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
+            return self.nick.lower() <= b.nick.lower()
+        return ROLE_DICT[self.role] >= ROLE_DICT[b.role]
