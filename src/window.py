@@ -113,7 +113,7 @@ class Topic(Win):
         g_lock.acquire()
         self.win.erase()
         if not jid:
-            self.win.addnstr(0, 0, topic[:self.width], curses.color_pair(theme.COLOR_TOPIC_BAR))
+            self.win.addnstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
             while True:
                 try:
                     self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
@@ -167,7 +167,7 @@ class RoomInfo(Win):
                 break
         (y, x) = self.win.getyx()
         self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.print_scroll_position(current)
+#        self.print_scroll_position(current)
         while True:
             try:
                 self.win.addstr(' ', curses.color_pair(theme.COLOR_INFORMATION_BAR))

@@ -20,6 +20,12 @@
 Starting point of poezio. Launches both the Connection and Gui
 """
 
+import os
+# chdir in the source directory, so that import are never failed
+# also, no need to use a sh script to "cd" in this directoy
+# before launching poezio.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 import curses
 import sys
 import traceback
@@ -49,16 +55,18 @@ def exception_handler(type_, value, trace):
     then exit the program
     """
     my_stderr.restaure()
-    curses.endwin()
-    curses.echo()
+    try:
+        curses.endwin()
+        curses.echo()
+    except: # if an exception is raised but initscr has never been called yet
+        pass
     traceback.print_exception(type_, value, trace, None, sys.stderr)
-    import os                   # used to quit the program even from a thread
-    os.abort()
+    # import os                   # used to quit the program even from a thread
+    # os.abort()
 
 sys.excepthook = exception_handler
 
 import signal
-import os
 
 from connection import Connection
 from config import config
