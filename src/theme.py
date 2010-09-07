@@ -123,8 +123,11 @@ def init_colors():
     reload_theme()
 
 def reload_theme():
-    themes_dir = config.get('themes_dir',
-                            os.path.join(os.environ.get('XDG_DATA_HOME') or os.path.join(os.environ.get('HOME'), '.local', 'share'), 'poezio', 'themes'))
+    themes_dir = config.get('themes_dir', '')
+    themes_dir = themes_dir or\
+        os.path.join(os.environ.get('XDG_DATA_HOME') or\
+                         os.path.join(os.environ.get('HOME'), '.local', 'share'),
+                     'poezio', 'themes')
     try:
         os.makedirs(themes_dir)
         # if the directory didn't exist, copy the default themes

@@ -86,5 +86,6 @@ def main():
     gui.main_loop()             # Refresh the screen, wait for user events etc
 
 if __name__ == '__main__':
-    os.environ['TERM'] = 'xterm-256color' # FIXME
+    if os.environ['TERM'] != 'screen':
+        os.environ['TERM'] = 'xterm-256color' # FIXME
     main()
