@@ -54,6 +54,21 @@ class Win(object):
     def refresh(self):
         self.win.noutrefresh()
 
+    def addnstr(self, *args):
+        """
+        addnstr is safe
+        """
+        try:
+            self.win.addnstr(*args)
+        except:
+            pass
+
+    def addstr(self, *args):
+        """
+        addstr is not safe
+        """
+        self.win.addstr(*args)
+
 class UserList(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         Win.__init__(self, height, width, y, x, parent_win)
@@ -82,10 +97,10 @@ class UserList(Win):
             role_col = self.color_role[user.role]
             show_col = self.color_show[user.show]
             self.win.attron(curses.color_pair(show_col))
-            self.win.addnstr(y, 0, theme.CHAR_STATUS, 1)
+            self.addnstr(y, 0, theme.CHAR_STATUS, 1)
             self.win.attroff(curses.color_pair(show_col))
             self.win.attron(curses.color_pair(role_col))
-            self.win.addnstr(y, 1, user.nick, self.width-1)
+            self.addnstr(y, 1, user.nick, self.width-1)
             self.win.attroff(curses.color_pair(role_col))
             y += 1
             if y == self.height:
@@ -113,7 +128,7 @@ class Topic(Win):
         g_lock.acquire()
         self.win.erase()
         if not jid:
-            self.win.addnstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
+            self.addnstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
             while True:
                 try:
                     self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
@@ -123,7 +138,7 @@ class Topic(Win):
             room = jid.split('/')[0]
             nick = '/'.join(jid.split('/')[1:])
             topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
-            self.win.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
+            self.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
                              , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
 
         self.win.refresh()
@@ -144,7 +159,8 @@ class RoomInfo(Win):
         down
         """
         if current_room.pos > 0:
-            self.win.addstr(' -PLUS(%s)-' % current_room.pos, curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
+            plus = ' -PLUS(%s)-' % current_room.pos
+            self.addnstr(plus, len(plus), curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
 
     def refresh(self, rooms, current):
         if not self.visible:
@@ -155,22 +171,22 @@ class RoomInfo(Win):
         comp = lambda x: x.nb
         g_lock.acquire()
         self.win.erase()
-        self.win.addnstr(0, 0, "[", self.width
+        self.addnstr(0, 0, "[", self.width
                          ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
         sorted_rooms = sorted(rooms, key=comp)
         for room in sorted_rooms:
             color = room.color_state
             try:
-                self.win.addstr("%s" % str(room.nb), curses.color_pair(color))
-                self.win.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                self.addstr("%s" % str(room.nb), curses.color_pair(color))
+                self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:             # end of line
                 break
         (y, x) = self.win.getyx()
-        self.win.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-#        self.print_scroll_position(current)
+        self.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.print_scroll_position(current)
         while True:
             try:
-                self.win.addstr(' ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                self.addstr(' ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:
                 break
         self.win.refresh()
@@ -287,7 +303,7 @@ class TextWin(Win):
         """
         """
         self.win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
-        self.win.addstr(' -'*(self.width//2))
+        self.addstr(' -'*(self.width//2))
         self.win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
@@ -299,7 +315,7 @@ class TextWin(Win):
             if color:
                 self.win.attron(curses.color_pair(color))
             try:
-                self.win.addstr(y, x, txt)
+                self.addstr(y, x, txt)
             except:  # bug 1665
                 pass
             if color:
@@ -315,22 +331,22 @@ class TextWin(Win):
             for word in txt.split():
                 if word in list(special_words.keys()):
                     self.win.attron(curses.color_pair(special_words[word]))
-                    self.win.addstr(word)
+                    self.addstr(word)
                     self.win.attroff(curses.color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):
-                    self.win.addstr('(', curses.color_pair(color))
-                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_CURLYBRACKETED_WORD))
-                    self.win.addstr(')', curses.color_pair(color))
+                    self.addstr('(', curses.color_pair(color))
+                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_CURLYBRACKETED_WORD))
+                    self.addstr(')', curses.color_pair(color))
                 elif word.startswith('{') and word.endswith('}'):
-                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_ACCOLADE_WORD))
+                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_ACCOLADE_WORD))
                 elif word.startswith('[') and word.endswith(']'):
-                    self.win.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
+                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
                 else:
                     self.win.attron(curses.color_pair(color))
-                    self.win.addstr(word)
+                    self.addstr(word)
                     self.win.attroff(curses.color_pair(color))
                 try:
-                    self.win.addstr(' ')
+                    self.addstr(' ')
                 except:
                     pass
 
@@ -341,44 +357,44 @@ class TextWin(Win):
         """
         if color:
             self.win.attron(curses.color_pair(color))
-        self.win.addstr(nickname)
+        self.addstr(nickname)
         if color:
             self.win.attroff(curses.color_pair(color))
-        self.win.addnstr("> ", 2)
+        self.addnstr("> ", 2)
 
     def write_time(self, time):
         """
         Write the date on the yth line of the window
         """
         self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
-        self.win.addnstr('[', 1)
+        self.addnstr('[', 1)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.win.addnstr(time.strftime("%H"), 2)
+        self.addnstr(time.strftime("%H"), 2)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.win.addnstr(':', 1)
+        self.addnstr(':', 1)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.win.addnstr(time.strftime("%M"), 2)
+        self.addnstr(time.strftime("%M"), 2)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.win.addnstr(':', 1)
+        self.addnstr(':', 1)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_SEPARATOR))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.win.addnstr(time.strftime('%S'), 2)
+        self.addnstr(time.strftime('%S'), 2)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
-        self.win.addstr(']')
+        self.addstr(']')
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
 
-        self.win.addstr(' ')
+        self.addstr(' ')
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -411,7 +427,7 @@ class Input(Win):
         self._resize(height, width, y, x, stdscr)
         self.win.leaveok(0)
         self.win.clear()
-        self.win.addnstr(0, 0, self.text, self.width-1)
+        self.addnstr(0, 0, self.text, self.width-1)
 
     def jump_word_left(self):
         """
@@ -511,7 +527,6 @@ class Input(Win):
         if not len(self.history):
             return
         self.reset_completion()
-        self.win.erase()
         if self.histo_pos < len(self.history)-1:
             self.histo_pos += 1
             self.text = self.history[self.histo_pos]
@@ -711,10 +726,12 @@ class Input(Win):
         """
         Refresh the line onscreen, from the pos and pos_line
         """
+        g_lock.acquire()
         self.clear_text()
-        self.win.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+        self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
         self.win.move(0, self.pos)
         self.refresh()
+        g_lock.release()
 
     def refresh(self):
         if not self.visible:

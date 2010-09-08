@@ -61,8 +61,8 @@ def exception_handler(type_, value, trace):
     except: # if an exception is raised but initscr has never been called yet
         pass
     traceback.print_exception(type_, value, trace, None, sys.stderr)
-    # import os                   # used to quit the program even from a thread
-    # os.abort()
+    import os                   # used to quit the program even from a thread
+    os.abort()
 
 sys.excepthook = exception_handler
 

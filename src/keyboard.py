@@ -42,7 +42,7 @@ def read_char(s):
     see http://en.wikipedia.org/wiki/UTF-8#Description
     """
     (first, char) = get_next_byte(s)
-    if first == None: # Keyboard special, like KEY_HOME etc
+    if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
         return char
     if first == 127 or first == 8:
         return "KEY_BACKSPACE"

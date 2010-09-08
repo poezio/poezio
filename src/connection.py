@@ -37,8 +37,19 @@ class Connection(sleekxmpp.ClientXMPP):
     appropriate signals
     """
     def __init__(self):
-        sleekxmpp.ClientXMPP.__init__(self, None, None, ssl=True,
+        if config.get('jid', ''):
+            self.anon = False  # Field used to know if we are anonymous or not.
+            # many features will be handled diferently
+            # depending on this setting
+            jid = config.get('jid', '')
+            password = config.get('password', '')
+        else:                   # anonymous auth
+            self.anon = True
+            jid = None
+            password = None
+        sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True,
                                       resource=config.get('resource', 'poezio'))
+
         self.registerPlugin('xep_0045')
 
     def start(self):

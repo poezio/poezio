@@ -150,6 +150,8 @@ class Gui(object):
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("message", self.on_message)
+        self.xmpp.add_event_handler("presence", self.on_presence)
+        self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         # self.handler = Handler()
         # self.handler.connect('on-connected', self.on_connected)
         # self.handler.connect('join-room', self.join_room)
@@ -166,6 +168,11 @@ class Gui(object):
         self.information(_("Welcome on Poezio \o/!"))
         self.information(_("Your JID is %s") % self.xmpp.fulljid)
 
+        if not self.xmpp.anon:
+            # request the roster
+            self.xmpp.getRoster()
+            # send initial presence
+            self.xmpp.makePresence(pfrom=self.xmpp.jid).send()
         rooms = config.get('rooms', '')
         if rooms == '' or not isinstance(rooms, str):
             return
@@ -184,6 +191,7 @@ class Gui(object):
                     nick = default
             self.open_new_room(roomname, nick)
             muc.join_groupchat(self.xmpp, roomname, nick)
+        # if not self.xmpp.anon:
         # Todo: SEND VCARD
         return
         if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
@@ -362,13 +370,18 @@ class Gui(object):
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
+        from common import debug
+        debug('message: %s\n' % message)
         if message['type'] == 'groupchat':
             return None
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for room in self.rooms:
             if room.jid is None and room.name == jid_from.bare: # check all the MUC we are in
-                return self.on_groupchat_private_message(message)
+                if message['type'] == 'error':
+                    return self.room_error(message, room.name)
+                else:
+                    return self.on_groupchat_private_message(message)
         return self.on_normal_message(message)
 
     def on_groupchat_private_message(self, message):
@@ -392,7 +405,27 @@ class Gui(object):
         """
         When receiving "normal" messages (from someone in our roster)
         """
+        from common import debug
+        debug('MESSAGE: %s\n' % (presence))
+
         return
+
+    def on_presence(self, presence):
+        """
+        """
+        from common import debug
+        debug('PRESEEEEEEEEENCE: %s\n' % (presence))
+        return
+
+    def on_roster_update(self, iq):
+        """
+        A subscription changed, or we received a roster item
+        after a roster request, etc
+        """
+        from common import debug
+        debug("UPDATE: %s\n" % (iq))
+        for subscriber in iq['roster']['items']:
+            debug("subscriber: %s\n" % (iq['roster']['items'][subscriber]['subscription']))
 
     def resize_window(self):
         """
@@ -479,18 +512,6 @@ class Gui(object):
         """
         Called when Tab is pressed, complete the nickname in the input
         """
-        # def compare_users(a, b):
-        #     """
-        #     Used to sort users by their last_talked
-        #     """
-        #     if not a.last_talked and b.last_talked:
-        #         return 0
-        #     elif not b.last_talked and a.last_talked:
-        #         return 1
-        #     if a.last_talked <  b.last_talked:
-        #         return 1
-        #     else:
-        #         return -1
         compare_users = lambda x: x.last_talked
         self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, key=compare_users, reverse=True)])
 
@@ -563,6 +584,8 @@ class Gui(object):
         """
         Display the error on the room window
         """
+        from common import debug
+        debug('ERROR: %s\n' % error)
         room = self.get_room_by_name(room_name)
         if not room:
             room = self.get_room_by_name('Info')
@@ -621,7 +644,6 @@ class Gui(object):
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
-        # FIXME: not receiving subjects? :/
         delay_tag = message.find('{urn:xmpp:delay}delay')
         if delay_tag is not None:
             delayed = True
@@ -638,6 +660,8 @@ class Gui(object):
                 date = None
         nick_from = message['mucnick']
         room_from = message.getMucroom()
+        if message['type'] == 'error': # Check if it's an error
+            return self.room_error(message, from_room)
         if nick_from == room_from:
             nick_from = None
         room = self.get_room_by_name(room_from)
