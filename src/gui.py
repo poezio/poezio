@@ -492,7 +492,7 @@ class Gui(object):
         #     else:
         #         return -1
         compare_users = lambda x: x.last_talked
-        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, key=compare_users)])
+        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, key=compare_users, reverse=True)])
 
     def last_words_completion(self):
         """
