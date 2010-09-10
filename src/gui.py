@@ -371,7 +371,7 @@ class Gui(object):
         (from one of our contacts)
         """
         from common import debug
-        debug('message: %s\n' % message)
+#        debug('message: %s\n' % message)
         if message['type'] == 'groupchat':
             return None
         # Differentiate both type of messages, and call the appropriate handler.
@@ -406,7 +406,7 @@ class Gui(object):
         When receiving "normal" messages (from someone in our roster)
         """
         from common import debug
-        debug('MESSAGE: %s\n' % (presence))
+#        debug('MESSAGE: %s\n' % (presence))
 
         return
 
@@ -414,7 +414,7 @@ class Gui(object):
         """
         """
         from common import debug
-        debug('PRESEEEEEEEEENCE: %s\n' % (presence))
+#        debug('PRESEEEEEEEEENCE: %s\n' % (presence))
         return
 
     def on_roster_update(self, iq):
@@ -423,7 +423,7 @@ class Gui(object):
         after a roster request, etc
         """
         from common import debug
-        debug("UPDATE: %s\n" % (iq))
+#        debug("UPDATE: %s\n" % (iq))
         for subscriber in iq['roster']['items']:
             debug("subscriber: %s\n" % (iq['roster']['items'][subscriber]['subscription']))
 
@@ -446,8 +446,8 @@ class Gui(object):
             if char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
-                # if len(char) > 1:
-                #     continue    # ignore non-handled keyboard shortcuts
+                if not char or len(char) > 1:
+                    continue    # ignore non-handled keyboard shortcuts
                 self.window.do_command(char)
 
     def current_room(self):
@@ -585,7 +585,7 @@ class Gui(object):
         Display the error on the room window
         """
         from common import debug
-        debug('ERROR: %s\n' % error)
+#        debug('ERROR: %s\n' % error)
         room = self.get_room_by_name(room_name)
         if not room:
             room = self.get_room_by_name('Info')
@@ -644,6 +644,8 @@ class Gui(object):
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
+        from common import debug
+#        debug('GROUPCHAT message: %s\n' % message)
         delay_tag = message.find('{urn:xmpp:delay}delay')
         if delay_tag is not None:
             delayed = True
@@ -673,6 +675,7 @@ class Gui(object):
             return
         body = message['body']
         subject = message['subject']
+#        debug('======== %s, %s, %s, %s====\n'% (nick_from, room_from, body, subject))
         if subject:
             if nick_from:
                 self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)

@@ -93,15 +93,11 @@ class UserList(Win):
         g_lock.acquire()
         self.win.erase()
         y = 0
-        for user in sorted(users):#sorted(users, compare_user):
+        for user in sorted(users):
             role_col = self.color_role[user.role]
             show_col = self.color_show[user.show]
-            self.win.attron(curses.color_pair(show_col))
-            self.addnstr(y, 0, theme.CHAR_STATUS, 1)
-            self.win.attroff(curses.color_pair(show_col))
-            self.win.attron(curses.color_pair(role_col))
-            self.addnstr(y, 1, user.nick, self.width-1)
-            self.win.attroff(curses.color_pair(role_col))
+            self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
+            self.addnstr(y, 1, user.nick, self.width-1, curses.color_pair(role_col))
             y += 1
             if y == self.height:
                 break
@@ -128,12 +124,12 @@ class Topic(Win):
         g_lock.acquire()
         self.win.erase()
         if not jid:
-            self.addnstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
-            while True:
-                try:
-                    self.win.addch(' ', curses.color_pair(theme.COLOR_TOPIC_BAR))
-                except:
-                    break
+            self.addnstr(0, 0, topic[:self.width-1], self.width-1, curses.color_pair(theme.COLOR_TOPIC_BAR))
+            (y, x) = self.win.getyx()
+            remaining_size = self.width - x
+            if remaining_size:
+                self.addnstr(' '*remaining_size, remaining_size,
+                             curses.color_pair(theme.COLOR_INFORMATION_BAR))
         elif jid:
             room = jid.split('/')[0]
             nick = '/'.join(jid.split('/')[1:])
@@ -182,13 +178,12 @@ class RoomInfo(Win):
             except:             # end of line
                 break
         (y, x) = self.win.getyx()
-        self.addstr(y, x-1, '] '+ current.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addnstr(y, x-1, '] '+ current.name, len(current.name)+2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.print_scroll_position(current)
-        while True:
-            try:
-                self.addstr(' ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
-            except:
-                break
+        (y, x) = self.win.getyx()
+        remaining_size = self.width - x
+        self.addnstr(' '*remaining_size, remaining_size,
+                     curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.win.refresh()
         g_lock.release()
 
@@ -314,10 +309,7 @@ class TextWin(Win):
         if not colorized:
             if color:
                 self.win.attron(curses.color_pair(color))
-            try:
-                self.addstr(y, x, txt)
-            except:  # bug 1665
-                pass
+            self.addstr(y, x, txt)
             if color:
                 self.win.attroff(curses.color_pair(color))
 
@@ -330,9 +322,7 @@ class TextWin(Win):
                 }
             for word in txt.split():
                 if word in list(special_words.keys()):
-                    self.win.attron(curses.color_pair(special_words[word]))
-                    self.addstr(word)
-                    self.win.attroff(curses.color_pair(special_words[word]))
+                    self.addstr(word, curses.color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):
                     self.addstr('(', curses.color_pair(color))
                     self.addstr(word[1:-1], curses.color_pair(theme.COLOR_CURLYBRACKETED_WORD))
@@ -342,13 +332,8 @@ class TextWin(Win):
                 elif word.startswith('[') and word.endswith(']'):
                     self.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
                 else:
-                    self.win.attron(curses.color_pair(color))
-                    self.addstr(word)
-                    self.win.attroff(curses.color_pair(color))
-                try:
-                    self.addstr(' ')
-                except:
-                    pass
+                    self.addstr(word, curses.color_pair(color))
+                self.addnstr(' ', 1)
 
     def write_nickname(self, nickname, color):
         """

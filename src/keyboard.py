@@ -61,7 +61,10 @@ def read_char(s):
     if 240 <= first:
         (code, c) = get_next_byte(s) # 4 bytes char
         char += c
-    return char.decode('utf-8')# return all the concatened byte objets, decoded
+    try:
+        return char.decode('utf-8') # return all the concatened byte objets, decoded
+    except UnicodeDecodeError:
+        return None
 
 if __name__ == '__main__':
     import curses
