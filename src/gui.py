@@ -1072,12 +1072,13 @@ class Gui(object):
         room = self.current_room()
         if room.name == "Info" or room.jid is not None:
             return
+        r = None
         for user in room.users:
             if user.nick == nick:
                 r = self.open_private_window(room.name, user.nick)
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
-            muc.send_private_message(r.name, msg)
+            muc.send_private_message(self.xmpp, r.name, msg)
             self.add_message_to_room(r, msg, None, r.own_nick)
 
     def command_topic(self, arg):
