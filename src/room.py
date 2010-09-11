@@ -114,6 +114,8 @@ class Room(object):
         if time:                # History messages are colored to be distinguished
             color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
+        if self.pos:            # avoid scrolling of one line when one line is received
+            self.pos += 1
         self.messages.append(Message(txt, time, nickname, user, color, colorized))
 
     def remove_line_separator(self):
