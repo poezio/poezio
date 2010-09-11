@@ -21,6 +21,7 @@ from os.path import isfile
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
+import shlex
 import curses
 from config import config
 
@@ -321,7 +322,7 @@ class TextWin(Win):
                 theme.CHAR_QUIT: theme.COLOR_QUIT_CHAR,
                 theme.CHAR_KICK: theme.COLOR_KICK_CHAR,
                 }
-            for word in txt.split():
+            for word in shlex.split(txt):
                 if word in list(special_words.keys()):
                     self.addstr(word, curses.color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):

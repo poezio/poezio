@@ -265,9 +265,9 @@ class Gui(object):
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
             if not jid.full:
-                self.add_message_to_room(room, _("%(spec)s [%(nick)s] joined the room") % {'nick':from_nick, 'spec':theme.CHAR_JOIN}, colorized=True)
+                self.add_message_to_room(room, _('%(spec)s "[%(nick)s]" joined the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_JOIN.replace('"', '\\"')}, colorized=True)
             else:
-                self.add_message_to_room(room, _("%(spec)s [%(nick)s] (%(jid)s) joined the room") % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full}, colorized=True)
+                self.add_message_to_room(room, _('%(spec)s "[%(nick)s]" "(%(jid)s)" joined the room') % {'spec':theme.CHAR_JOIN.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}, colorized=True)
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
         new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
@@ -278,11 +278,11 @@ class Gui(object):
                 if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
                     _room.own_nick = new_nick
         user.change_nick(new_nick)
-        self.add_message_to_room(room, _('[%(old)s] is now known as [%(new)s]') % {'old':from_nick, 'new':new_nick}, colorized=True)
+        self.add_message_to_room(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
         # rename the private tabs if needed
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
-            self.add_message_to_room(private_room, _('[%(old_nick)s] is now known as [%(new_nick)s]') % {'old_nick':from_nick, 'new_nick':new_nick}, colorized=True)
+            self.add_message_to_room(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
             new_jid = private_room.name.split('/')[0]+'/'+new_nick
             private_room.jid = private_room.name = new_jid
 
@@ -298,17 +298,17 @@ class Gui(object):
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             if by:
-                kick_msg = _("%(spec) [You] have been kicked by [%(by)s].") % {'spec': theme.CHAR_KICK, 'by':by}
+                kick_msg = _('%(spec) [You] have been kicked by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
             else:
-                kick_msg = _("%(spec)s [You] have been kicked.") % {'spec':theme.CHAR_KICK}
+                kick_msg = _('%(spec)s [You] have been kicked.') % {'spec':theme.CHAR_KICK.replace('"', '\\"')}
             # try to auto-rejoin
             if config.get('autorejoin', 'false') == 'true':
                 muc.join_groupchat(self.xmpp, room.name, room.own_nick)
         else:
             if by:
-                kick_msg = _("%(spec)s [%(nick)s] has been kicked by %(by)s.") % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by}
+                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by ["%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
             else:
-                kick_msg = _("%(spec)s [%(nick)s] has been kicked") % {'spec':theme.CHAR_KICK, 'nick':from_nick}
+                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason:
             kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
         self.add_message_to_room(room, kick_msg, colorized=True)
@@ -321,18 +321,18 @@ class Gui(object):
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:
-                leave_msg = _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
+                leave_msg = _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}
             else:
-                leave_msg = _('%(spec)s [%(nick)s] (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+                leave_msg = _('%(spec)s "[%(nick)s]" (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}
             if status:
                 leave_msg += ' (%s)' % status
             self.add_message_to_room(room, leave_msg, colorized=True)
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
             if not status:
-                self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}, colorized=True)
+                self.add_message_to_room(private_room, _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}, colorized=True)
             else:
-                self.add_message_to_room(private_room, _('%(spec)s [%(nick)s] has left the room (%(status)s)') % {'nick':from_nick, 'spec':theme.CHAR_QUIT, 'status': status}, colorized=True)
+                self.add_message_to_room(private_room, _('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status.replace('"', '\\"')}, colorized=True)
 
     def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
         """
