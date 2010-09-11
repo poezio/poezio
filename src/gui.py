@@ -527,7 +527,7 @@ class Gui(object):
         # build the list of the recent words
         char_we_dont_want = [',', '(', ')', '.']
         words = list()
-        for msg in self.current_room().messages[:-9:-1]:
+        for msg in self.current_room().messages[:-40:-1]:
             if not msg:
                 continue
             for word in msg.txt.split():
