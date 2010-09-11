@@ -20,9 +20,10 @@ from os.path import isfile
 
 from time import sleep
 
-import sys
 import os
 import re
+import sys
+import shlex
 import curses
 import webbrowser
 
@@ -760,7 +761,11 @@ class Gui(object):
         """
         # TODO
         return
-        args = arg.split()
+        # check shlex here
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         room = self.current_room()
         if len(args) != 1:
             self.add_message_to_room(room, _('whois command takes exactly one argument'))
@@ -809,7 +814,10 @@ class Gui(object):
         """
         /kick <nick> [reason]
         """
-        args = arg.split()
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         if len(args) < 1:
             self.command_help('kick')
             return
@@ -980,7 +988,10 @@ class Gui(object):
         """
         /ignore <nick>
         """
-        args = arg.split()
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         if len(args) != 1:
             self.command_help('ignore')
             return
@@ -1000,7 +1011,10 @@ class Gui(object):
         """
         /unignore <nick>
         """
-        args = arg.split()
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         if len(args) != 1:
             self.command_help('unignore')
             return
@@ -1065,7 +1079,10 @@ class Gui(object):
         """
         /query <nick> [message]
         """
-        args = arg.split()
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         if len(args) < 1:
             return
         nick = args[0]
@@ -1085,13 +1102,12 @@ class Gui(object):
         """
         /topic [new topic]
         """
-        args = arg.split()
         room = self.current_room()
-        if len(args) == 0:
+        if not arg.strip():
             self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic)
             return
-        subject = ' '.join(args)
-        if not room.joined or room.name == "Info":
+        subject = arg
+        if not room.joined or room.name == "Info" and not room.jid:
             return
         muc.change_subject(self.xmpp, room.name, subject)
 
@@ -1145,7 +1161,10 @@ class Gui(object):
         """
         /nick <nickname>
         """
-        args = arg.split()
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
         if len(args) != 1:
             return
         nick = args[0]
