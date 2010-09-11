@@ -292,8 +292,10 @@ class Gui(object):
         """
         room.users.remove(user)
         by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
+        from common import debug
+        debug('KICK: by:%s  %s, %s\n' % (presence, by, by.attrib['jid'] if by else by))
         reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
-        by = by.attrib['jid'] if by else ''
+        by = by.attrib['jid'] if by is not None else None
         reason = reason.text# if reason else ''
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
@@ -306,7 +308,7 @@ class Gui(object):
                 muc.join_groupchat(self.xmpp, room.name, room.own_nick)
         else:
             if by:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by ["%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
+                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
             else:
                 kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason:
@@ -531,7 +533,7 @@ class Gui(object):
                     word = word.replace(char, '')
                 if len(word) > 5:
                     words.append(word)
-        self.window.input.auto_completion(words)
+        self.window.input.auto_completion(words, False)
 
     def go_to_important_room(self):
         """

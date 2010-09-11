@@ -586,7 +586,7 @@ class Input(Win):
         if reset:
             self.rewrite_text()
 
-    def auto_completion(self, user_list):
+    def auto_completion(self, user_list, add_after=True):
         """
         Complete the nickname
         """
@@ -594,9 +594,9 @@ class Input(Win):
             return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
         if completion_type == 'shell' and self.text != '':
-            self.shell_completion(user_list)
+            self.shell_completion(user_list, add_after)
         else:
-            self.normal_completion(user_list)
+            self.normal_completion(user_list, add_after)
 
     def reset_completion(self):
         """
@@ -605,12 +605,12 @@ class Input(Win):
         self.hit_list = []
         self.last_completion = None
 
-    def normal_completion(self, user_list):
+    def normal_completion(self, user_list, add_after):
         """
         Normal completion
         """
-        if " " not in self.text.strip() or\
-                self.last_completion and self.text == self.last_completion+config.get('after_completion', ',')+" ":
+        if add_after and (" " not in self.text.strip() or\
+                self.last_completion and self.text == self.last_completion+config.get('after_completion', ',')+" "):
             after = config.get('after_completion', ',')+" "
             #if " " in self.text.strip() and (not self.last_completion or ' ' in self.last_completion):
         else:
@@ -640,11 +640,11 @@ class Input(Win):
         self.text += nick +after
         self.key_end(False)
 
-    def shell_completion(self, user_list):
+    def shell_completion(self, user_list, add_after):
         """
         Shell-like completion
         """
-        if " " in self.text.strip():
+        if " " in self.text.strip() or not add_after:
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
             after = config.get('after_completion', ',')+" "
