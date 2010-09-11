@@ -106,6 +106,7 @@ class Gui(object):
             'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.')),
+            'recolor': (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participant currently talking have too many identical colors.')),
             }
 
         self.key_func = {
@@ -783,6 +784,26 @@ class Gui(object):
         """
         theme.reload_theme()
         self.resize_window()
+
+    def command_recolor(self, arg):
+        """
+        Re-assign color to the participants of the room
+        """
+        room = self.current_room()
+        if room.name == 'Info' or room.jid:
+            return
+        i = 0
+        compare_users = lambda x: x.last_talked
+        users = list(room.users)
+        # search our own user, to remove it from the room
+        for user in users:
+            if user.nick == room.own_nick:
+                users.remove(user)
+        nb_color = len(theme.LIST_COLOR_NICKNAMES)
+        for user in sorted(users, key=compare_users, reverse=True):
+            user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
+            i+= 1
+        self.refresh_window()
 
     def command_win(self, arg):
         """
