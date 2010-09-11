@@ -215,7 +215,8 @@ class TextWin(Win):
             txt = message.txt
             if not txt:
                 continue
-            offset = 11         # length of the time
+            # length of the time
+            offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
             if message.nickname and len(message.nickname) >= 30:
                 nick = message.nickname[:30]+'…'
             else:
@@ -351,9 +352,9 @@ class TextWin(Win):
         """
         Write the date on the yth line of the window
         """
-        self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
-        self.addnstr('[', 1)
-        self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_LIMITER))
+        self.addnstr(theme.CHAR_TIME_LEFT, 1)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_LIMITER))
 
         self.win.attron(curses.color_pair(theme.COLOR_TIME_NUMBERS))
         self.addnstr(time.strftime("%H"), 2)
@@ -375,9 +376,9 @@ class TextWin(Win):
         self.addnstr(time.strftime('%S'), 2)
         self.win.attroff(curses.color_pair(theme.COLOR_TIME_NUMBERS))
 
-        self.win.attron(curses.color_pair(theme.COLOR_TIME_BRACKETS))
-        self.addstr(']')
-        self.win.attroff(curses.color_pair(theme.COLOR_TIME_BRACKETS))
+        self.win.attron(curses.color_pair(theme.COLOR_TIME_LIMITER))
+        self.addnstr(theme.CHAR_TIME_RIGHT, 1)
+        self.win.attroff(curses.color_pair(theme.COLOR_TIME_LIMITER))
 
         self.addstr(' ')
 

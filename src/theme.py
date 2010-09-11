@@ -31,53 +31,55 @@ from config import config
 
 # Message text color
 COLOR_NORMAL_TEXT = 0
-COLOR_INFORMATION_TEXT = 76
-COLOR_HIGHLIGHT_TEXT = 77
+COLOR_INFORMATION_TEXT = 6
+COLOR_HIGHLIGHT_TEXT = 2
 
 # User list color
-COLOR_USER_VISITOR = 78
-COLOR_USER_PARTICIPANT = 73
-COLOR_USER_NONE = 80
-COLOR_USER_MODERATOR = 77
+COLOR_USER_VISITOR = 8
+COLOR_USER_PARTICIPANT = 5
+COLOR_USER_NONE = 1
+COLOR_USER_MODERATOR = 2
 
 # The character printed in color (COLOR_STATUS_*) before the nickname
 # in the user list
 CHAR_STATUS = ' '
 
 # Separators
-COLOR_VERTICAL_SEPARATOR = 73
-COLOR_NEW_TEXT_SEPARATOR = 75
+COLOR_VERTICAL_SEPARATOR = 5
+COLOR_NEW_TEXT_SEPARATOR = 3
 
 # Time
-COLOR_TIME_SEPARATOR = 79
-COLOR_TIME_BRACKETS = 74
+COLOR_TIME_SEPARATOR = 7
+COLOR_TIME_LIMITER = 0
+CHAR_TIME_LEFT = ''
+CHAR_TIME_RIGHT = ''
 COLOR_TIME_NUMBERS = 0
 
 # Tabs
-COLOR_TAB_NORMAL = 15
-COLOR_TAB_CURRENT = 24
-COLOR_TAB_NEW_MESSAGE = 42
-COLOR_TAB_HIGHLIGHT = 51
-COLOR_TAB_PRIVATE = 33
+COLOR_TAB_NORMAL = 43
+COLOR_TAB_CURRENT = 57
+COLOR_TAB_NEW_MESSAGE = 50
+COLOR_TAB_HIGHLIGHT = 22
+COLOR_TAB_PRIVATE = 29
 
 # Nickname colors
 LIST_COLOR_NICKNAMES = [
-    73, 74, 75, 76, 77, 79
+    2, 3, 4, 5, 6, 7
     ]
-COLOR_OWN_NICK = 78
+COLOR_OWN_NICK = 8
 
 # Status color
-COLOR_STATUS_XA = 40
-COLOR_STATUS_NONE = 72
-COLOR_STATUS_DND = 50
-COLOR_STATUS_AWAY = 70
-COLOR_STATUS_CHAT = 30
+COLOR_STATUS_XA = 50
+COLOR_STATUS_NONE = 0
+COLOR_STATUS_DND = 22
+COLOR_STATUS_AWAY = 36
+COLOR_STATUS_CHAT = 29
 
 # Bars
-COLOR_INFORMATION_BAR = 15
-COLOR_TOPIC_BAR = 15
-COLOR_PRIVATE_ROOM_BAR = 33
-COLOR_SCROLLABLE_NUMBER = 16
+COLOR_INFORMATION_BAR = 43
+COLOR_TOPIC_BAR = 43
+COLOR_PRIVATE_ROOM_BAR = 29
+COLOR_SCROLLABLE_NUMBER = 40
 
 # Strings for special messages (like join, quit, nick change, etc)
 
@@ -86,40 +88,38 @@ CHAR_JOIN = '---->'
 CHAR_QUIT = '<----'
 CHAR_KICK = '-!-'
 
-COLOR_JOIN_CHAR = 73
-COLOR_QUIT_CHAR = 77
-COLOR_KICK_CHAR = 77
+COLOR_JOIN_CHAR = 5
+COLOR_QUIT_CHAR = 2
+COLOR_KICK_CHAR = 2
 
 # words between ()
-COLOR_CURLYBRACKETED_WORD = 72
+COLOR_CURLYBRACKETED_WORD = 5
 # words between {}
-COLOR_ACCOLADE_WORD = 74
+COLOR_ACCOLADE_WORD = 7
 # words between []
-COLOR_BRACKETED_WORD = 73
-
+COLOR_BRACKETED_WORD = 4
 
 def init_colors():
     """
     Initilization of all the available ncurses colors
+    limit the number of colors to 64 (because some terminals
+    don't handle more than that), by removing some useless colors
+    like 'black on black', etc.
     """
     curses.start_color()
     curses.use_default_colors()
-    colors_list = [
-        curses.COLOR_BLACK,
-        curses.COLOR_BLUE,
-        curses.COLOR_CYAN,
-        curses.COLOR_GREEN,
-        curses.COLOR_MAGENTA,
-        curses.COLOR_RED,
-        curses.COLOR_WHITE,
-        curses.COLOR_YELLOW,
-        -1
-        ]
-    cpt = 0
-    for i in colors_list:
-        for y in colors_list:
+    cpt = 1
+    for i in range(-1, 7):
+        for y in range(0, 8):
+            if y == i:
+                continue
             curses.init_pair(cpt, y, i)
             cpt += 1
+    for y in range(0, 7):
+        # init the default fg on others bg at last
+        curses.init_pair(cpt, -1, y)
+        cpt += 1
+    # Have the default color be default fg on default bg
     reload_theme()
 
 def reload_theme():
@@ -144,7 +144,7 @@ def reload_theme():
     except:                     # TODO warning: theme not found
         return
     for var in dir(theme):
-        if var.startswith('COLOR_') or var.startswith('CHAR_'):
+        if var.startswith('COLOR_') or var.startswith('CHAR_') or var.startswith('LIST_'):
             globals()[var] = getattr(theme, var)
 
 if __name__ == '__main__':
