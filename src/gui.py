@@ -106,7 +106,7 @@ class Gui(object):
             'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.')),
-            'recolor': (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participant currently talking have too many identical colors.')),
+            'recolor': (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.')),
             }
 
         self.key_func = {
@@ -144,7 +144,8 @@ class Gui(object):
             '^E': self.window.input.key_end,
             'M-f': self.window.input.jump_word_right,
             '^X': self.go_to_important_room,
-            'M-b': self.window.input.jump_word_left
+            'M-b': self.window.input.jump_word_left,
+            '^V': self.move_separator,
             }
 
         # Add handlers
@@ -1179,6 +1180,14 @@ class Gui(object):
         Use webbrowser to open the provided link
         """
         webbrowser.open(url)
+
+    def move_separator(self):
+        """
+        Move the new-messages separator at the bottom on the current
+        text.
+        """
+        self.current_room().remove_line_separator()
+        self.current_room().add_line_separator()
 
     def command_nick(self, arg):
         """
