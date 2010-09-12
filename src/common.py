@@ -57,7 +57,7 @@ def debug(string):
     Useful since debuging cannot be displayed on screen because it's
     a CLI software
     """
-    fdes = open("debug", 'a')
+    fdes = open("/tmp/debug", 'a')
     try:
         fdes.write(string)
     except:
