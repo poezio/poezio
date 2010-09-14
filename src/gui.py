@@ -35,23 +35,25 @@ import theme
 import multiuserchat as muc
 from handler import Handler
 from config import config
+from tab import MucTab, InfoTab, PrivateTab
 from window import Window
 from user import User
 from room import Room
 from message import Message
+from text_buffer import TextBuffer
 from keyboard import read_char
 from common import is_jid_the_same, jid_get_domain, jid_get_resource, is_jid
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
-    '401': 'A password is required',
-    '403': 'You are banned from the room',
-    '404': 'The room does\'nt exist',
-    '405': 'Your are not allowed to create a new room',
-    '406': 'A reserved nick must be used',
-    '407': 'You are not in the member list',
-    '409': 'This nickname is already in use or has been reserved',
-    '503': 'The maximum number of users has been reached',
+    '401': _('A password is required'),
+    '403': _('You are banned from the room'),
+    '404': _('The room does\'nt exist'),
+    '405': _('Your are not allowed to create a new room'),
+    '406': _('A reserved nick must be used'),
+    '407': _('You are not in the member list'),
+    '409': _('This nickname is already in use or has been reserved'),
+    '503': _('The maximum number of users has been reached'),
     }
 
 SHOW_NAME = {
@@ -72,8 +74,12 @@ class Gui(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
-        self.window = Window(self.stdscr)
-        self.rooms = [Room('Info', '', self.window)]
+        self.tabs = [InfoTab(self.stdscr, "lol info")]
+        # a unique buffer used to store global informations
+        # that are displayed in almost all tabs, in an
+        # information window.
+        self.information_buffer = TextBuffer()
+        self.information_win_size = 2 # Todo, get this from config
         self.ignores = {}
 
         self.commands = {
@@ -110,41 +116,16 @@ class Gui(object):
             }
 
         self.key_func = {
-            "KEY_LEFT": self.window.input.key_left,
-            "M-D": self.window.input.key_left,
-            "KEY_RIGHT": self.window.input.key_right,
-            "M-C": self.window.input.key_right,
-            "KEY_UP": self.window.input.key_up,
-            "M-A": self.window.input.key_up,
-            "KEY_END": self.window.input.key_end,
-            "KEY_HOME": self.window.input.key_home,
-            "KEY_DOWN": self.window.input.key_down,
-            "M-B": self.window.input.key_down,
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
-            "KEY_DC": self.window.input.key_dc,
             "KEY_F(5)": self.rotate_rooms_left,
             "^P": self.rotate_rooms_left,
             "KEY_F(6)": self.rotate_rooms_right,
+            "KEY_F(7)": self.shrink_information_win,
+            "KEY_F(8)": self.grow_information_win,
             "^N": self.rotate_rooms_right,
-            "\t": self.completion,
-            "^I": self.completion,
-            "KEY_BTAB": self.last_words_completion,
             "KEY_RESIZE": self.resize_window,
-            "KEY_BACKSPACE": self.window.input.key_backspace,
-            '^?': self.window.input.key_backspace,
-            '^J': self.execute,
-            '\n': self.execute,
-            '^D': self.window.input.key_dc,
-            '^W': self.window.input.delete_word,
-            '^K': self.window.input.delete_end_of_line,
-            '^U': self.window.input.delete_begining_of_line,
-            '^Y': self.window.input.paste_clipboard,
-            '^A': self.window.input.key_home,
-            '^E': self.window.input.key_end,
-            'M-f': self.window.input.jump_word_right,
             '^X': self.go_to_important_room,
-            'M-b': self.window.input.jump_word_left,
             '^V': self.move_separator,
             }
 
@@ -155,14 +136,26 @@ class Gui(object):
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("presence", self.on_presence)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
-        # self.handler = Handler()
-        # self.handler.connect('on-connected', self.on_connected)
-        # self.handler.connect('join-room', self.join_room)
-        # self.handler.connect('room-presence', self.room_presence)
-        # self.handler.connect('room-message', self.room_message)
-        # self.handler.connect('private-message', self.private_message)
-        # self.handler.connect('error-message', self.room_error)
-        # self.handler.connect('error', self.information)
+
+    def grow_information_win(self):
+        """
+        """
+        if self.information_win_size == 14:
+            return
+        self.information_win_size += 1
+        for tab in self.tabs:
+            tab.on_info_win_size_changed(self.information_win_size, self.stdscr)
+        self.refresh_window()
+
+    def shrink_information_win(self):
+        """
+        """
+        if self.information_win_size == 0:
+            return
+        self.information_win_size -= 1
+        for tab in self.tabs:
+            tab.on_info_win_size_changed(self.information_win_size, self.stdscr)
+        self.refresh_window()
 
     def on_connected(self, event):
         """
@@ -231,9 +224,9 @@ class Gui(object):
                 if from_nick == room.own_nick:
                     room.joined = True
                     new_user.color = theme.COLOR_OWN_NICK
-                    self.add_message_to_room(room, _("Your nickname is %s") % (from_nick))
+                    self.add_message_to_text_buffer(room, _("Your nickname is %s") % (from_nick))
                     if '170' in status_codes:
-                        self.add_message_to_room(room, 'Warning: this room is publicly logged')
+                        self.add_message_to_text_buffer(room, 'Warning: this room is publicly logged')
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -253,9 +246,7 @@ class Gui(object):
             # status change
             else:
                 self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
-        if room == self.current_room():
-            self.window.user_win.refresh(room.users)
-        self.window.input.refresh()
+        self.refresh_window()
         doupdate()
 
     def on_user_join(self, room, from_nick, affiliation, show, status, role, jid):
@@ -267,26 +258,26 @@ class Gui(object):
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
             if not jid.full:
-                self.add_message_to_room(room, _('%(spec)s "[%(nick)s]" joined the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_JOIN.replace('"', '\\"')}, colorized=True)
+                self.add_message_to_text_buffer(room, _('%(spec)s "[%(nick)s]" joined the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_JOIN.replace('"', '\\"')}, colorized=True)
             else:
-                self.add_message_to_room(room, _('%(spec)s "[%(nick)s]" "(%(jid)s)" joined the room') % {'spec':theme.CHAR_JOIN.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}, colorized=True)
+                self.add_message_to_text_buffer(room, _('%(spec)s "[%(nick)s]" "(%(jid)s)" joined the room') % {'spec':theme.CHAR_JOIN.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}, colorized=True)
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
         new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
         if user.nick == room.own_nick:
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
-            for _room in self.rooms:
-                if _room.jid is not None and is_jid_the_same(_room.jid, room.name):
-                    _room.own_nick = new_nick
+            for _tab in self.tabs:
+                if isinstance(_tab, PrivateTab) and is_jid_the_same(_tab.get_jid(), room.name):
+                    _tab.own_nick = new_nick
         user.change_nick(new_nick)
-        self.add_message_to_room(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
+        self.add_message_to_text_buffer(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
         # rename the private tabs if needed
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
-            self.add_message_to_room(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
+            self.add_message_to_text_buffer(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
             new_jid = private_room.name.split('/')[0]+'/'+new_nick
-            private_room.jid = private_room.name = new_jid
+            private_room.name = new_jid
 
     def on_user_kicked(self, room, presence, user, from_nick):
         """
@@ -302,7 +293,7 @@ class Gui(object):
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             if by:
-                kick_msg = _('%(spec) [You] have been kicked by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
+                kick_msg = _('%(spec)s [You] have been kicked by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
             else:
                 kick_msg = _('%(spec)s [You] have been kicked.') % {'spec':theme.CHAR_KICK.replace('"', '\\"')}
             # try to auto-rejoin
@@ -315,7 +306,7 @@ class Gui(object):
                 kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason:
             kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
-        self.add_message_to_room(room, kick_msg, colorized=True)
+        self.add_message_to_text_buffer(room, kick_msg, colorized=True)
 
     def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
         """
@@ -327,32 +318,32 @@ class Gui(object):
             if not jid.full:
                 leave_msg = _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}
             else:
-                leave_msg = _('%(spec)s "[%(nick)s]" (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}
+                leave_msg = _('%(spec)s "[%(nick)s]" (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full.replace('"', '\\"')}
             if status:
                 leave_msg += ' (%s)' % status
-            self.add_message_to_room(room, leave_msg, colorized=True)
+            self.add_message_to_text_buffer(room, leave_msg, colorized=True)
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
             if not status:
-                self.add_message_to_room(private_room, _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}, colorized=True)
+                self.add_message_to_text_buffer(private_room, _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}, colorized=True)
             else:
-                self.add_message_to_room(private_room, _('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status.replace('"', '\\"')}, colorized=True)
+                self.add_message_to_text_buffer(private_room, _('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status.replace('"', '\\"')}, colorized=True)
 
     def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
         """
         When an user changes her status
         """
         # build the message
-        msg = _('%s changed his/her status: ')% from_nick
+        msg = _('"%s" changed: ')% from_nick.replace('"', '\\"')
         if affiliation != user.affiliation:
-            msg += _('affiliation: %s,') % affiliation
+            msg += _('affiliation: %s, ') % affiliation
         if role != user.role:
-            msg += _('role: %s,') % role
+            msg += _('role: %s, ') % role
         if show != user.show and show in list(SHOW_NAME.keys()):
-            msg += _('show: %s,') % SHOW_NAME[show]
+            msg += _('show: %s, ') % SHOW_NAME[show]
         if status != user.status:
-            msg += _('status: %s,') % status
-        msg = msg[:-1] # remove the last ","
+            msg += _('status: %s, ') % status
+        msg = msg[:-2] # remove the last ", "
         hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
         if (hide_status_change == -1 or \
                 user.has_talked_since(hide_status_change) or\
@@ -363,10 +354,10 @@ class Gui(object):
                     show != user.show or\
                     status != user.status):
             # display the message in the room
-            self.add_message_to_room(room, msg)
+            self.add_message_to_text_buffer(room, msg, colorized=True)
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room: # display the message in private
-            self.add_message_to_room(private_room, msg)
+            self.add_message_to_text_buffer(private_room, msg)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
 
@@ -375,16 +366,14 @@ class Gui(object):
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
-        from common import debug
-#        debug('message: %s\n' % message)
         if message['type'] == 'groupchat':
             return None
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
-        for room in self.rooms:
-            if room.jid is None and room.name == jid_from.bare: # check all the MUC we are in
+        for tab in self.tabs:
+            if isinstance(tab, MucTab) and tab.get_name() == jid_from.bare: # check all the MUC we are in
                 if message['type'] == 'error':
-                    return self.room_error(message, room.name)
+                    return self.room_error(message, tab.get_room().name)
                 else:
                     return self.on_groupchat_private_message(message)
         return self.on_normal_message(message)
@@ -393,6 +382,8 @@ class Gui(object):
         """
         We received a Private Message (from someone in a Muc)
         """
+        from common import debug
+        debug('PRIVATE: %s\n' % message)
         jid = message['from']
         nick_from = jid.resource
         room_from = jid.bare
@@ -402,8 +393,8 @@ class Gui(object):
             if not room:
                 return
         body = message['body']
-        self.add_message_to_room(room, body, None, nick_from)
-        self.window.input.refresh()
+        self.add_message_to_text_buffer(room, body, None, nick_from)
+        self.refresh_window()
         doupdate()
 
     def on_normal_message(self, message):
@@ -411,15 +402,14 @@ class Gui(object):
         When receiving "normal" messages (from someone in our roster)
         """
         from common import debug
-#        debug('MESSAGE: %s\n' % (presence))
-
+        debug('MESSAGE: %s\n' % (message))
         return
 
     def on_presence(self, presence):
         """
         """
         from common import debug
-#        debug('PRESEEEEEEEEENCE: %s\n' % (presence))
+        debug('Presence: %s\n' % (presence))
         return
 
     def on_roster_update(self, iq):
@@ -428,7 +418,7 @@ class Gui(object):
         after a roster request, etc
         """
         from common import debug
-#        debug("UPDATE: %s\n" % (iq))
+        debug("ROSTER UPDATE: %s\n" % (iq))
         for subscriber in iq['roster']['items']:
             debug("subscriber: %s\n" % (iq['roster']['items'][subscriber]['subscription']))
 
@@ -436,8 +426,9 @@ class Gui(object):
         """
         Resize the whole screen
         """
-        self.window.resize(self.stdscr)
-        self.window.refresh(self.rooms)
+        for tab in self.tabs:
+            tab.resize(self.stdscr)
+        self.refresh_window()
 
     def main_loop(self):
         """
@@ -451,23 +442,22 @@ class Gui(object):
             if char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
-                if not char or len(char) > 1:
-                    continue    # ignore non-handled keyboard shortcuts
-                self.window.do_command(char)
+                self.do_command(char)
 
-    def current_room(self):
+    def current_tab(self):
         """
         returns the current room, the one we are viewing
         """
-        return self.rooms[0]
+        return self.tabs[0]
 
     def get_room_by_name(self, name):
         """
         returns the room that has this name
         """
-        for room in self.rooms:
-            if room.name == name:
-                return room
+        for tab in self.tabs:
+            if (isinstance(tab, MucTab) or
+                isinstance(tab, PrivateTab)) and tab.get_name() == name:
+                return tab.get_room()
         return None
 
     def init_curses(self, stdscr):
@@ -484,7 +474,6 @@ class Gui(object):
         Reset terminal capabilities to what they were before ncurses
         init
         """
-        # TODO remove me?
         curses.echo()
         curses.nocbreak()
         curses.endwin()
@@ -493,49 +482,25 @@ class Gui(object):
         """
         Refresh everything
         """
-        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
-        self.window.refresh(self.rooms)
+        self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().refresh(self.tabs, self.information_buffer)
 
     def open_new_room(self, room, nick, focus=True):
         """
-        Open a new Tab containing a Muc room, using the specified nick
+        Open a new MucTab containing a muc Room, using the specified nick
         """
-        r = Room(room, nick, self.window)
-        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
-        if self.current_room().nb == 0:
-            self.rooms.append(r)
+        r = Room(room, nick)
+        new_tab = MucTab(self.stdscr, r, self.information_win_size)
+        if self.current_tab().nb == 0:
+            self.tabs.append(new_tab)
         else:
-            for ro in self.rooms:
-                if ro.nb == 0:
-                    self.rooms.insert(self.rooms.index(ro), r)
+            for ta in self.tabs:
+                if ta.nb == 0:
+                    self.tabs.insert(self.tabs.index(ta), new_tab)
                     break
         if focus:
-            self.command_win("%s" % r.nb)
+            self.command_win("%s" % new_tab.nb)
         self.refresh_window()
-
-    def completion(self):
-        """
-        Called when Tab is pressed, complete the nickname in the input
-        """
-        compare_users = lambda x: x.last_talked
-        self.window.input.auto_completion([user.nick for user in sorted(self.current_room().users, key=compare_users, reverse=True)])
-
-    def last_words_completion(self):
-        """
-        Complete the input with words recently said
-        """
-        # build the list of the recent words
-        char_we_dont_want = [',', '(', ')', '.']
-        words = list()
-        for msg in self.current_room().messages[:-40:-1]:
-            if not msg:
-                continue
-            for word in msg.txt.split():
-                for char in char_we_dont_want: # remove the chars we don't want
-                    word = word.replace(char, '')
-                if len(word) > 5:
-                    words.append(word)
-        self.window.input.auto_completion(words, False)
 
     def go_to_important_room(self):
         """
@@ -544,56 +509,50 @@ class Gui(object):
         - A Muc with an highlight
         - A Muc with any new message
         """
-        for room in self.rooms:
-            if room.color_state == theme.COLOR_TAB_PRIVATE:
-                self.command_win('%s' % room.nb)
+        for tab in self.tabs:
+            if tab.get_color_state() == theme.COLOR_TAB_PRIVATE:
+                self.command_win('%s' % tab.nb)
                 return
-        for room in self.rooms:
-            if room.color_state == theme.COLOR_TAB_HIGHLIGHT:
-                self.command_win('%s' % room.nb)
+        for tab in self.tabs:
+            if tab.get_color_state() == theme.COLOR_TAB_HIGHLIGHT:
+                self.command_win('%s' % tab.nb)
                 return
-        for room in self.rooms:
-            if room.color_state == theme.COLOR_TAB_NEW_MESSAGE:
-                self.command_win('%s' % room.nb)
+        for tab in self.tabs:
+            if tab.get_color_state() == theme.COLOR_TAB_NEW_MESSAGE:
+                self.command_win('%s' % tab.nb)
                 return
 
     def rotate_rooms_right(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
-        self.current_room().remove_line_separator()
-        self.rooms.append(self.rooms.pop(0))
-        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().on_lose_focus()
+        self.tabs.append(self.tabs.pop(0))
+        self.current_tab().on_gain_focus()
         self.refresh_window()
 
     def rotate_rooms_left(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
-        self.current_room().remove_line_separator()
-        self.rooms.insert(0, self.rooms.pop())
-        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().on_lose_focus()
+        self.tabs.insert(0, self.tabs.pop())
+        self.current_tab().on_gain_focus()
         self.refresh_window()
 
     def scroll_page_down(self, args=None):
-        self.current_room().scroll_down(self.window.text_win.height-1)
+        self.current_tab().on_scroll_down()
         self.refresh_window()
 
     def scroll_page_up(self, args=None):
-        self.current_room().scroll_up(self.window.text_win.height-1)
+        self.current_tab().on_scroll_up()
         self.refresh_window()
 
     def room_error(self, error, room_name):
         """
         Display the error on the room window
         """
-        from common import debug
-#        debug('ERROR: %s\n' % error)
         room = self.get_room_by_name(room_name)
-        if not room:
-            room = self.get_room_by_name('Info')
         msg = error['error']['type']
         condition = error['error']['condition']
         code = error['error']['code']
@@ -604,43 +563,45 @@ class Gui(object):
             else:
                 body = condition or _('Unknown error')
         if code:
-            self.add_message_to_room(room, _('Error: %(code)s - %(msg)s: %(body)s' %
-                                             {'msg':msg, 'body':body, 'code':code}))
+            msg = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
+            self.add_message_to_text_buffer(room, msg)
         else:
-            self.add_message_to_room(room, _('Error: %(msg)s: %(body)s' %
-                                             {'msg':msg, 'body':body}))
+            msg = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
+            self.add_message_to_text_buffer(room, msg)
         if code == '401':
-            self.add_message_to_room(room, _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'))
+            msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
+            self.add_message_to_text_buffer(room, msg)
         if code == '409':
             if config.get('alternative_nickname', '') != '':
                 self.command_join('%s/%s'% (room.name, room.own_nick+config.get('alternative_nickname', '')))
             else:
-                self.add_message_to_room(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
+                self.add_message_to_text_buffer(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name+'/'+user_nick
-        for room in self.rooms: # if the room exists, focus it and return
-            if room.jid:
-                if room.jid == complete_jid:
-                    self.command_win('%s' % room.nb)
+        for tab in self.tabs: # if the room exists, focus it and return
+            if isinstance(tab, PrivateTab):
+                if tab.get_name() == complete_jid:
+                    self.command_win('%s' % tab.nb)
                     return
         # create the new tab
         room = self.get_room_by_name(room_name)
         if not room:
             return None
         own_nick = room.own_nick
-        r = Room(complete_jid, own_nick, self.window, complete_jid)
+        r = Room(complete_jid, own_nick) # PrivateRoom here
+        new_tab = PrivateTab(self.stdscr, r, self.information_win_size)
         # insert it in the rooms
-        if self.current_room().nb == 0:
-            self.rooms.append(r)
+        if self.current_tab().nb == 0:
+            self.tabs.append(new_tab)
         else:
-            for ro in self.rooms:
-                if ro.nb == 0:
-                    self.rooms.insert(self.rooms.index(ro), r)
+            for ta in self.tabs:
+                if ta.nb == 0:
+                    self.tabs.insert(self.tabs.index(ta), new_tab)
                     break
         if focus:               # focus the room if needed
-            self.command_win('%s' % (r.nb))
+            self.command_win('%s' % (new_tab.nb))
         # self.window.new_room(r)
         self.refresh_window()
         return r
@@ -683,70 +644,35 @@ class Gui(object):
 #        debug('======== %s, %s, %s, %s====\n'% (nick_from, room_from, body, subject))
         if subject:
             if nick_from:
-                self.add_message_to_room(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
+                self.add_message_to_text_buffer(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
             else:
-                self.add_message_to_room(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
+                self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
             room.topic = subject.replace('\n', '|')
-            if room == self.current_room():
-                self.window.topic_win.refresh(room.topic)
         elif body:
             if body.startswith('/me '):
-                self.add_message_to_room(room, "* "+nick_from + ' ' + body[4:], date)
+                self.add_message_to_text_buffer(room, "* "+nick_from + ' ' + body[4:], date)
             else:
                 date = date if delayed == True else None
-                self.add_message_to_room(room, body, date, nick_from)
+                self.add_message_to_text_buffer(room, body, date, nick_from)
         self.refresh_window()
         doupdate()
 
-
-    def add_message_to_room(self, room, txt, time=None, nickname=None, colorized=False):
+    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, colorized=False):
         """
-        Add the message to the room and refresh the associated component
-        of the interface
+        Add the message to the room if possible, else, add it to the Info window
+        (in the Info tab of the info window in the RosterTab)
         """
-        if room != self.current_room():
-            room.add_line_separator()
-        room.add_message(txt, time, nickname, colorized)
-        if room == self.current_room():
-            self.window.text_win.refresh(room)
+        if not room:
+            self.information('Error, trying to add a message in no room: %s' % txt)
         else:
-            self.window.info_win.refresh(self.rooms, self.current_room())
-        self.window.input.refresh()
-
-    def execute(self):
-        """
-        Execute the /command or just send the line on the current room
-        """
-        line = self.window.input.get_text()
-        self.window.input.clear_text()
-        self.window.input.refresh()
-        if line == "":
-            return
-        if line.startswith('/') and not line.startswith('/me '):
-            command = line.strip()[:].split()[0][1:]
-            arg = line[2+len(command):] # jump the '/' and the ' '
-            # example. on "/link 0 open", command = "link" and arg = "0 open"
-            if command in list(self.commands.keys()):
-                func = self.commands[command][0]
-                func(arg)
-                return
-            else:
-                self.add_message_to_room(self.current_room(), _("Error: unknown command (%s)") % (command))
-        elif self.current_room().name != 'Info':
-            if self.current_room().jid is not None:
-                muc.send_private_message(self.xmpp, self.current_room().name, line)
-                self.add_message_to_room(self.current_room(), line, None, self.current_room().own_nick)
-            else:
-                muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
-        self.window.input.refresh()
-        doupdate()
+            room.add_message(txt, time, nickname, colorized)
+        self.refresh_window()
 
     def command_help(self, arg):
         """
         /help <command_name>
         """
         args = arg.split()
-        room = self.current_room()
         if len(args) == 0:
             msg = _('Available commands are: ')
             for command in list(self.commands.keys()):
@@ -757,7 +683,7 @@ class Gui(object):
                 msg = self.commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        self.add_message_to_room(room, msg)
+        self.information(msg)
 
     def command_whois(self, arg):
         """
@@ -769,10 +695,10 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
+            return self.information(str(error), _("Error"))
         room = self.current_room()
         if len(args) != 1:
-            self.add_message_to_room(room, _('whois command takes exactly one argument'))
+            self.add_message_to_text_buffer(room, _('whois command takes exactly one argument'))
             return
         # check if current room is a MUC
         if room.jid or room.name == 'Info':
@@ -790,9 +716,10 @@ class Gui(object):
         """
         Re-assign color to the participants of the room
         """
-        room = self.current_room()
-        if room.name == 'Info' or room.jid:
+        tab = self.current_tab()
+        if not isinstance(tab, MucTab):
             return
+        room = tab.get_room()
         i = 0
         compare_users = lambda x: x.last_talked
         users = list(room.users)
@@ -819,19 +746,18 @@ class Gui(object):
         except ValueError:
             self.command_help('win')
             return
-        if self.current_room().nb == nb:
+        if self.current_tab().nb == nb:
             return
-        self.current_room().set_color_state(theme.COLOR_TAB_NORMAL)
-        self.current_room().remove_line_separator()
-        start = self.current_room()
-        self.rooms.append(self.rooms.pop(0))
-        while self.current_room().nb != nb:
-            self.rooms.append(self.rooms.pop(0))
-            if self.current_room() == start:
-                self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().on_lose_focus()
+        start = self.current_tab()
+        self.tabs.append(self.tabs.pop(0))
+        while self.current_tab().nb != nb:
+            self.tabs.append(self.tabs.pop(0))
+            if self.current_tab() == start:
+                self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
                 self.refresh_window()
                 return
-        self.current_room().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().on_gain_focus()
         self.refresh_window()
 
     def command_kick(self, arg):
@@ -841,7 +767,9 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
+            return self.information(str(error), _("Error"))
+        # TODO information message
+            # return self.add_message_to_text_buffer(self.current_room(), _("Error: %s") % (error))
         if len(args) < 1:
             self.command_help('kick')
             return
@@ -850,26 +778,26 @@ class Gui(object):
             reason = ' '.join(args[1:])
         else:
             reason = ''
-        if self.current_room().name == 'Info' or not self.current_room().joined:
+        if not isinstance(self.current_tab(), MucTab) or not self.current_tab().get_room().joined:
             return
-        roomname = self.current_room().name
+        roomname = self.current_tab().get_name()
         res = muc.eject_user(self.xmpp, roomname, nick, reason)
         if res['type'] == 'error':
             self.room_error(res, roomname)
 
-    def command_say(self, arg):
-        """
-        /say <message>
-        """
-        line = arg
-        if self.current_room().name != 'Info':
-            if self.current_room().jid is not None:
-                muc.send_private_message(self.xmpp, self.current_room().name, line)
-                self.add_message_to_room(self.current_room(), line, None, self.current_room().own_nick)
-            else:
-                muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
-        self.window.input.refresh()
-        doupdate()
+    # def command_say(self, arg):
+    #     """
+    #     /say <message>
+    #     """
+    #     line = arg
+    #     if self.current_room().name != 'Info':
+    #         if self.current_room().jid is not None:
+    #             muc.send_private_message(self.xmpp, self.current_room().name, line)
+    #             self.add_message_to_text_buffer(self.current_room(), line, None, self.current_room().own_nick)
+    #         else:
+    #             muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
+    #     self.window.input.refresh()
+    #     doupdate()
 
     def command_join(self, arg):
         """
@@ -878,11 +806,11 @@ class Gui(object):
         args = arg.split()
         password = None
         if len(args) == 0:
-            r = self.current_room()
-            if r.name == 'Info':
+            t = self.current_tab()
+            if not isinstance(t, MucTab) and not isinstance(t, PrivateTab):
                 return
-            room = r.name
-            nick = r.own_nick
+            room = t.get_name()
+            nick = t.get_room().own_nick
         else:
             info = args[0].split('/')
             if len(info) == 1:
@@ -893,32 +821,37 @@ class Gui(object):
             else:
                 nick = info[1]
             if info[0] == '':   # happens with /join /nickname, which is OK
-                r = self.current_room()
-                if r.name == 'Info':
+                t = self.current_tab()
+                if not isinstance(t, MucTab):
                     return
-                room = r.name
+                room = t.get_name()
                 if nick == '':
-                    nick = r.own_nick
+                    nick = t.get_room().own_nick
             else:
                 room = info[0]
             if not is_jid(room): # no server is provided, like "/join hello"
                 # use the server of the current room if available
                 # check if the current room's name has a server
-                if is_jid(self.current_room().name):
-                    room += '@%s' % jid_get_domain(self.current_room().name)
+                if isinstance(self.current_tab(), MucTab) and\
+                        is_jid(self.current_tab().get_name()):
+                    room += '@%s' % jid_get_domain(self.current_tab().get_name())
                 else:           # no server could be found, print a message and return
-                    self.add_message_to_room(self.current_room(), _("You didn't specify a server for the room you want to join"))
+                    # self.add_message_to_text_buffer(self.current_room(), _("You didn't specify a server for the room you want to join"))
+                    # TODO INFO
                     return
-            r = self.get_room_by_name(room)
+        r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
-        if r and r.joined:       # if we are already in the room
-            self.command_win('%s' % (r.nb))
-            return
+        # TODO
+        # if r and r.joined:       # if we are already in the room
+        #     self.command_win('%s' % (r.nb))
+        #     return
         room = room.lower()
-        self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
+        if r and not r.joined:
+            self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
         if not r:   # if the room window exists, we don't recreate it.
             self.open_new_room(room, nick)
+            self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
         else:
             r.own_nick = nick
             r.users = []
@@ -929,11 +862,11 @@ class Gui(object):
         """
         args = arg.split()
         nick = None
+        if not isinstance(self.current_tab(), MucTab):
+            return
         if len(args) == 0:
-            room = self.current_room()
-            if room.name == 'Info':
-                return
-            roomname = room.name
+            room = self.current_tab().get_room()
+            roomname = self.current_tab().get_name()
             if room.joined:
                 nick = room.own_nick
         else:
@@ -942,7 +875,7 @@ class Gui(object):
                 nick = info[1]
             roomname = info[0]
             if roomname == '':
-                roomname = self.current_room().name
+                roomname = self.current_tab().get_name()
         if nick:
             res = roomname+'/'+nick
         else:
@@ -958,7 +891,7 @@ class Gui(object):
         bookmarked = ':'.join(bookmarked)
         bookmarks = bookmarked+':'+res
         config.set_and_save('rooms', bookmarks)
-        self.add_message_to_room(self.current_room(), _('Your bookmarks are now: %s') % bookmarks)
+        self.information(_('Your bookmarks are now: %s') % bookmarks)
 
     def command_set(self, arg):
         """
@@ -975,8 +908,7 @@ class Gui(object):
             value = ''
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
-        room = self.current_room()
-        self.add_message_to_room(room, msg)
+        self.information(msg)
 
     def command_show(self, arg):
         """
@@ -1004,9 +936,9 @@ class Gui(object):
             msg = ' '.join(args[1:])
         else:
             msg = None
-        for room in self.rooms:
-            if room.joined:
-                muc.change_show(self.xmpp, room.name, room.own_nick, show, msg)
+        for tab in self.tabs:
+            if isinstance(tab, MucTab) and tab.get_room().joined:
+                muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
 
     def command_ignore(self, arg):
         """
@@ -1015,21 +947,21 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
+            return self.information(str(error), _("Error"))
         if len(args) != 1:
             self.command_help('ignore')
             return
-        if self.current_room().name == 'Info' or not self.current_room().joined:
+        if not isinstance(self.current_tab(), MucTab):
             return
-        roomname = self.current_room().name
+        roomname = self.current_tab().get_name()
         nick = args[0]
         if roomname not in self.ignores:
             self.ignores[roomname] = set() # no need for any order
         if nick not in self.ignores[roomname]:
             self.ignores[roomname].add(nick)
-            self.add_message_to_room(self.current_room(), _("%s is now ignored") % nick)
+            self.information(_("%s is now ignored") % nick, 'info')
         else:
-            self.add_message_to_room(self.current_room(), _("%s is already ignored") % nick)
+            self.information(_("%s is alread ignored") % nick, 'info')
 
     def command_unignore(self, arg):
         """
@@ -1038,21 +970,21 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
+            return self.information(str(error), _("Error"))
         if len(args) != 1:
             self.command_help('unignore')
             return
-        if self.current_room().name == 'Info' or not self.current_room().joined:
+        if not isinstance(self.current_tab(), MucTab):
             return
-        roomname = self.current_room().name
+        roomname = self.current_tab().get_name()
         nick = args[0]
         if roomname not in self.ignores or (nick not in self.ignores[roomname]):
-            self.add_message_to_room(self.current_room(), _("%s was not ignored") % nick)
+            self.information(_("%s was not ignored") % nick, info)
             return
         self.ignores[roomname].remove(nick)
-        if self.ignores[roomname] == set():
+        if not self.ignores[roomname]:
             del self.ignores[roomname]
-        self.add_message_to_room(self.current_room(), _("%s is now unignored") % nick)
+        self.information(_("%s is now unignored") % nick, 'info')
 
     def command_away(self, arg):
         """
@@ -1078,25 +1010,27 @@ class Gui(object):
         """
         args = arg.split()
         reason = None
-        room = self.current_room()
-        if room.name == 'Info':
+        if not isinstance(self.current_tab(), MucTab) and\
+                not isinstance(self.current_tab(), PrivateTab):
             return
+        room = self.current_tab().get_room()
         if len(args):
             msg = ' '.join(args)
         else:
             msg = None
-        if room.joined:
+        if isinstance(self.current_tab(), MucTab) and\
+                self.current_tab().get_room().joined:
             muc.leave_groupchat(self.xmpp, room.name, room.own_nick, arg)
-        self.rooms.remove(self.current_room())
+        self.tabs.remove(self.current_tab())
         self.refresh_window()
 
     def command_unquery(self, arg):
         """
         /unquery
         """
-        room = self.current_room()
-        if room.jid is not None:
-            self.rooms.remove(room)
+        tab = self.current_tab()
+        if isinstance(tab, PrivateTab):
+            self.tabs.remove(tab)
             self.refresh_window()
 
     def command_query(self, arg):
@@ -1106,13 +1040,11 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
-        if len(args) < 1:
+            return self.information(str(error), _("Error"))
+        if len(args) < 1 or not isinstance(self.current_tab(), MucTab):
             return
         nick = args[0]
-        room = self.current_room()
-        if room.name == "Info" or room.jid is not None:
-            return
+        room = self.current_tab().get_room()
         r = None
         for user in room.users:
             if user.nick == nick:
@@ -1120,19 +1052,19 @@ class Gui(object):
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
             muc.send_private_message(self.xmpp, r.name, msg)
-            self.add_message_to_room(r, msg, None, r.own_nick)
+            self.add_message_to_text_buffer(r, msg, None, r.own_nick)
 
     def command_topic(self, arg):
         """
         /topic [new topic]
         """
-        room = self.current_room()
+        if not isinstance(self.current_tab(), MucTab):
+            return
+        room = self.current_tab().get_room()
         if not arg.strip():
-            self.add_message_to_room(room, _("The subject of the room is: %s") % room.topic)
+            self.add_message_to_text_buffer(room, _("The subject of the room is: %s") % room.topic)
             return
         subject = arg
-        if not room.joined or room.name == "Info" and not room.jid:
-            return
         muc.change_subject(self.xmpp, room.name, subject)
 
     def command_link(self, arg):
@@ -1141,10 +1073,14 @@ class Gui(object):
         Opens the link in a browser, or join the room, or add the JID, or
         copy it in the clipboard
         """
+        if not isinstance(self.current_tab(), MucTab) and\
+                not isinstance(self.current_tab(), PrivateTab):
+            return
         args = arg.split()
         if len(args) > 2:
-            self.add_message_to_room(self.current_room(),
-                                     _("Link: This command takes at most 2 arguments"))
+            # INFO
+            # self.add_message_to_text_buffer(self.current_room(),
+            #                          _("Link: This command takes at most 2 arguments"))
             return
         # set the default parameters
         option = "open"
@@ -1159,13 +1095,14 @@ class Gui(object):
             try:
                 nb = int(args[0])
             except ValueError:
-                self.add_message_to_room(self.current_room(),
-                                         _("Link: 2nd parameter should be a number"))
+                # INFO
+                # self.add_message_to_text_buffer(self.current_room(),
+                #                          _("Link: 2nd parameter should be a number"))
                 return
         # find the nb-th link in the current buffer
         i = 0
         link = None
-        for msg in self.current_room().messages[:-200:-1]:
+        for msg in self.current_tab().get_room().messages[:-200:-1]:
             if not msg:
                 continue
             matches = re.findall('"((ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"', msg.txt)
@@ -1186,8 +1123,13 @@ class Gui(object):
         Move the new-messages separator at the bottom on the current
         text.
         """
-        self.current_room().remove_line_separator()
-        self.current_room().add_line_separator()
+        try:
+            room = self.current_tab().get_room()
+        except:
+            return
+        room.remove_line_separator()
+        room.add_line_separator()
+        self.refresh_window()
 
     def command_nick(self, arg):
         """
@@ -1196,22 +1138,23 @@ class Gui(object):
         try:
             args = shlex.split(arg)
         except ValueError as error:
-            return self.add_message_to_room(self.current_room(), _("Error: %s") % (error))
+            return self.information(str(error), _("Error"))
+        if not isinstance(self.current_tab(), MucTab):
+            return
         if len(args) != 1:
             return
         nick = args[0]
-        room = self.current_room()
+        room = self.current_tab().get_room()
         if not room.joined or room.name == "Info":
             return
         muc.change_nick(self.xmpp, room.name, nick)
 
-    def information(self, msg):
+    def information(self, msg, typ=''):
         """
         Displays an informational message in the "Info" room window
         """
-        room = self.get_room_by_name("Info")
-        self.add_message_to_room(room, msg)
-        self.window.input.refresh()
+        self.information_buffer.add_message(msg, nickname=typ)
+        self.refresh_window()
 
     def command_quit(self, arg):
         """
@@ -1221,9 +1164,44 @@ class Gui(object):
             msg = arg
         else:
             msg = None
-        for room in self.rooms:
-            if not room.jid and room.name != 'Info':
-                muc.leave_groupchat(self.xmpp, room.name, room.own_nick, msg)
+        for tab in self.tabs:
+            if isinstance(tab, MucTab):
+                muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
         self.xmpp.disconnect()
         self.reset_curses()
         sys.exit()
+
+    def do_command(self, key):
+        from common import debug
+        debug('do_command, %s, %s\n' % (key, self.current_tab()))
+        res = self.current_tab().on_input(key)
+        debug('apres, %s\n' % (res))
+        if key in ('^J', '\n'):
+            self.execute(res)
+
+    def execute(self,line):
+        """
+        Execute the /command or just send the line on the current room
+        """
+        if line == "":
+            return
+        if line.startswith('/') and not line.startswith('/me '):
+            command = line.strip()[:].split()[0][1:]
+            arg = line[2+len(command):] # jump the '/' and the ' '
+            # example. on "/link 0 open", command = "link" and arg = "0 open"
+            if command in list(self.commands.keys()):
+                func = self.commands[command][0]
+                func(arg)
+                return
+            else:
+                self.information(_("unknown command (%s)") % (command), _('Error'))
+        else:
+            self.command_say(line)
+
+    def command_say(self, line):
+        if isinstance(self.current_tab(), PrivateTab):
+            muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
+            self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.current_tab().get_room().own_nick)
+        elif isinstance(self.current_tab(), MucTab):
+            muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
+        doupdate()

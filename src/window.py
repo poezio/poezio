@@ -48,8 +48,7 @@ class Win(object):
             # (°>       also, a penguin
             # //\
             # V_/_
-            pass
-        self.win.idlok(1)
+            return
         self.win.leaveok(1)
 
     def refresh(self):
@@ -98,7 +97,7 @@ class UserList(Win):
             role_col = self.color_role[user.role]
             show_col = self.color_show[user.show]
             self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
-            self.addnstr(y, 1, user.nick, self.width-1, curses.color_pair(role_col))
+            self.addnstr(y, 1, user.nick, self.width-2, curses.color_pair(role_col))
             y += 1
             if y == self.height:
                 break
@@ -110,6 +109,9 @@ class UserList(Win):
         if not visible:
             return
         self._resize(height, width, y, x, stdscr)
+        self.win.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self.win.vline(0, 0, curses.ACS_VLINE, self.height)
+        self.win.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
 
 class Topic(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
@@ -119,29 +121,21 @@ class Topic(Win):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, topic, jid=None):
+    def refresh(self, topic):
         if not self.visible:
             return
         g_lock.acquire()
         self.win.erase()
-        if not jid:
-            self.addnstr(0, 0, topic[:self.width-1], self.width-1, curses.color_pair(theme.COLOR_TOPIC_BAR))
-            (y, x) = self.win.getyx()
-            remaining_size = self.width - x
-            if remaining_size:
-                self.addnstr(' '*remaining_size, remaining_size,
-                             curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        elif jid:
-            room = jid.split('/')[0]
-            nick = '/'.join(jid.split('/')[1:])
-            topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
-            self.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
-                             , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
-
+        self.addnstr(0, 0, topic[:self.width-1], self.width-1, curses.color_pair(theme.COLOR_TOPIC_BAR))
+        (y, x) = self.win.getyx()
+        remaining_size = self.width - x
+        if remaining_size:
+            self.addnstr(' '*remaining_size, remaining_size,
+                         curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.win.refresh()
         g_lock.release()
 
-class RoomInfo(Win):
+class GlobalInfoBar(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
@@ -149,17 +143,7 @@ class RoomInfo(Win):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
 
-    def print_scroll_position(self, current_room):
-        """
-        Print, link in Weechat, a -PLUS(n)- where n
-        is the number of available lines to scroll
-        down
-        """
-        if current_room.pos > 0:
-            plus = ' -PLUS(%s)-' % current_room.pos
-            self.addnstr(plus, len(plus), curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
-
-    def refresh(self, rooms, current):
+    def refresh(self, tabs, current):
         if not self.visible:
             return
         def compare_room(a):
@@ -170,23 +154,148 @@ class RoomInfo(Win):
         self.win.erase()
         self.addnstr(0, 0, "[", self.width
                          ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        sorted_rooms = sorted(rooms, key=comp)
-        for room in sorted_rooms:
-            color = room.color_state
+        sorted_tabs = sorted(tabs, key=comp)
+        for tab in sorted_tabs:
+            color = tab.get_color_state()
             try:
-                self.addstr("%s" % str(room.nb), curses.color_pair(color))
+                self.addstr("%s" % str(tab.nb), curses.color_pair(color))
                 self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
             except:             # end of line
                 break
         (y, x) = self.win.getyx()
-        self.addnstr(y, x-1, '] '+ current.name, len(current.name)+2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.print_scroll_position(current)
+        self.addnstr(y, x-1, '] ', 2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
         (y, x) = self.win.getyx()
         remaining_size = self.width - x
         self.addnstr(' '*remaining_size, remaining_size,
                      curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.win.refresh()
         g_lock.release()
+
+class InfoWin(Win):
+    """
+    Base class for all the *InfoWin, used in various tabs. For example
+    MucInfoWin, etc. Provides some useful methods.
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
+        Win.__init__(self, height, width, y, x, parent_win)
+
+    def print_scroll_position(self, text_buffer):
+        """
+        Print, link in Weechat, a -PLUS(n)- where n
+        is the number of available lines to scroll
+        down
+        """
+        if text_buffer.pos > 0:
+            plus = ' -PLUS(%s)-' % text_buffer.pos
+            self.addnstr(plus, len(plus), curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
+
+    def finish_line(self):
+        """
+        Write colored spaces until the end of line
+        """
+        (y, x) = self.win.getyx()
+        size = self.width-x
+        self.addnstr(' '*size, size, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+class PrivateInfoWin(InfoWin):
+    """
+    The live above the information window, displaying informations
+    about the MUC user we are talking to
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr)
+
+    def refresh(self, room):
+        if not self.visible:
+            return
+        g_lock.acquire()
+        self.win.erase()
+        self.write_room_name(room)
+        self.print_scroll_position(room)
+        self.finish_line()
+        self.win.refresh()
+        g_lock.release()
+
+    def write_room_name(self, room):
+        (room_name, nick) = room.name.split('/', 1)
+        self.addnstr(nick, len(nick), curses.color_pair(13))
+        txt = ' from room %s' % room_name
+        self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+class MucInfoWin(InfoWin):
+    """
+    The line just above the information window, displaying informations
+    about the MUC we are viewing
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr)
+
+    def refresh(self, room):
+        if not self.visible:
+            return
+        g_lock.acquire()
+        self.win.erase()
+        self.write_room_name(room)
+        self.write_own_nick(room)
+        self.write_disconnected(room)
+        self.write_role(room)
+        self.print_scroll_position(room)
+        self.finish_line()
+        self.win.refresh()
+        g_lock.release()
+
+    def write_room_name(self, room):
+        """
+        """
+        self.addnstr('[', 1, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addnstr(room.name, len(room.name), curses.color_pair(13))
+        self.addnstr('] ', 2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_disconnected(self, room):
+        """
+        Shows a message if the room is not joined
+        """
+        if not room.joined:
+            self.addnstr(' -!- Not connected ', 21, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+    def write_own_nick(self, room):
+        """
+        Write our own nick in the info bar
+        """
+        nick = room.own_nick
+        if not nick:
+            return
+        if len(nick) > 13:
+            nick = nick[:13]+'…'
+            length = 14
+        else:
+            length = len(nick)
+        self.addnstr(nick, length, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_role(self, room):
+        """
+        Write our own role and affiliation
+        """
+        from common import debug
+
+        own_user = None
+        for user in room.users:
+            if user.nick == room.own_nick:
+                own_user = user
+                break
+        if not own_user:
+            return
+        txt = ' ('
+        if own_user.affiliation != 'none':
+            txt += own_user.affiliation+', '
+        txt += own_user.role+')'
+        self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class TextWin(Win):
     """
@@ -235,7 +344,7 @@ class TextWin(Win):
                         limit = txt[:self.width-offset].rfind(' ')
                         this_line_was_broken_by_space = True
                         if limit <= 0:
-                            limit = self.width-offset-1
+                            limit = self.width-offset
                             this_line_was_broken_by_space = False
                     else:
                         limit = self.width-offset-1
@@ -269,6 +378,8 @@ class TextWin(Win):
         """
         if not self.visible:
             return
+        if self.height <= 0:
+            return
         g_lock.acquire()
         self.win.erase()
         lines = self.build_lines_from_messages(room.messages)
@@ -300,7 +411,7 @@ class TextWin(Win):
         """
         """
         self.win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
-        self.addstr(' -'*(self.width//2))
+        self.addstr(' -'*(self.width//2-1))
         self.win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
@@ -322,7 +433,12 @@ class TextWin(Win):
                 theme.CHAR_QUIT: theme.COLOR_QUIT_CHAR,
                 theme.CHAR_KICK: theme.COLOR_KICK_CHAR,
                 }
-            for word in shlex.split(txt):
+            try:
+                splitted = shlex.split(txt)
+            except ValueError:
+                txt += '"'
+                splitted = shlex.split(txt)
+            for word in splitted:
                 if word in list(special_words.keys()):
                     self.addstr(word, curses.color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):
@@ -392,9 +508,34 @@ class Input(Win):
     The line where text is entered
     """
     def __init__(self, height, width, y, x, stdscr, visible):
+        self.key_func = {
+            "KEY_LEFT": self.key_left,
+            "M-D": self.key_left,
+            "KEY_RIGHT": self.key_right,
+            "M-C": self.key_right,
+            "KEY_UP": self.key_up,
+            "M-A": self.key_up,
+            "KEY_END": self.key_end,
+            "KEY_HOME": self.key_home,
+            "KEY_DOWN": self.key_down,
+            "M-B": self.key_down,
+            "KEY_DC": self.key_dc,
+            '^D': self.key_dc,
+            'M-b': self.jump_word_left,
+            '^W': self.delete_word,
+            '^K': self.delete_end_of_line,
+            '^U': self.delete_begining_of_line,
+            '^Y': self.paste_clipboard,
+            '^A': self.key_home,
+            '^E': self.key_end,
+            'M-f': self.jump_word_right,
+            "KEY_BACKSPACE": self.key_backspace,
+            '^?': self.key_backspace,
+            '^J': self.get_text,
+            '\n': self.get_text,
+            }
+
         Win.__init__(self, height, width, y, x, stdscr)
-        curses.curs_set(1)
-        self.win.leaveok(0)
         self.visible = visible
         self.history = []
         self.text = ''
@@ -412,7 +553,6 @@ class Input(Win):
         if not visible:
             return
         self._resize(height, width, y, x, stdscr)
-        self.win.leaveok(0)
         self.win.clear()
         self.addnstr(0, 0, self.text, self.width-1)
 
@@ -686,6 +826,10 @@ class Input(Win):
         self.key_end(False)
 
     def do_command(self, key, reset=True):
+        if key in self.key_func:
+            return self.key_func[key]()
+        # if not key or len(key) > 1:
+        #     return    # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self.win.getyx()
@@ -707,6 +851,7 @@ class Input(Win):
         if len(txt) != 0:
             self.history.append(txt)
             self.histo_pos = len(self.history)-1
+        self.rewrite_text()
         return txt
 
     def rewrite_text(self):
@@ -716,14 +861,14 @@ class Input(Win):
         g_lock.acquire()
         self.clear_text()
         self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-        self.win.move(0, self.pos)
-        self.refresh()
+        self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
+        self.win.refresh()
         g_lock.release()
 
     def refresh(self):
         if not self.visible:
             return
-        self.win.refresh()
+        self.rewrite_text()
 
     def clear_text(self):
         self.win.erase()
@@ -733,61 +878,39 @@ class Window(object):
     The whole "screen" that can be seen at once in the terminal.
     It contains an userlist, an input zone, a topic zone and a chat zone
     """
-    def __init__(self, stdscr):
-        """
-        name is the name of the Tab, and it's also
-        the JID of the chatroom.
-        A particular tab is the "Info" tab which has no
-        name (None). This info tab should be unique.
-        The stdscr should be passed to know the size of the
-        terminal
-        """
-        self.size = (self.height, self.width) = stdscr.getmaxyx()
-        if self.height < 10 or self.width < 60:
-            visible = False
-        else:
-            visible = True
-        if visible:
-            stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-            stdscr.vline(1, 9*(self.width//10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-        self.user_win = UserList(self.height-3, (self.width//10)-1, 1, 9*(self.width//10)+1, stdscr, visible)
-        self.topic_win = Topic(1, self.width, 0, 0, stdscr, visible)
-        self.info_win = RoomInfo(1, self.width, self.height-2, 0, stdscr, visible)
-        self.text_win = TextWin(self.height-3, (self.width//10)*9, 1, 0, stdscr, visible)
-        self.input = Input(1, self.width, self.height-1, 0, stdscr, visible)
 
-    def resize(self, stdscr):
-        """
-        Resize the whole window. i.e. all its sub-windows
-        """
-        self.size = (self.height, self.width) = stdscr.getmaxyx()
-        if self.height < 10 or self.width < 50:
-            visible = False
-        else:
-            visible = True
-        if visible:
-            stdscr.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-            stdscr.vline(1, 9*(self.width//10), curses.ACS_VLINE, self.height-2)
-            stdscr.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-        text_width = (self.width//10)*9;
-        self.topic_win.resize(1, self.width, 0, 0, stdscr, visible)
-        self.info_win.resize(1, self.width, self.height-2, 0, stdscr, visible)
-        self.text_win.resize(self.height-3, text_width, 1, 0, stdscr, visible)
-        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, stdscr, visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, visible)
 
-    def refresh(self, rooms):
-        """
-        'room' is the current one
-        """
-        room = rooms[0]         # get current room
-        self.text_win.refresh(room)
-        self.user_win.refresh(room.users)
-        self.topic_win.refresh(room.topic, room.jid)
-        self.info_win.refresh(rooms, room)
-        self.input.refresh()
+    # TODO JidWindow
+            # elif jid:
+            # room = jid.split('/')[0]
+            # nick = '/'.join(jid.split('/')[1:])
+            # topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
+            # self.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
+            #                  , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
 
-    def do_command(self, key):
-        self.input.do_command(key)
-        self.input.refresh()
+class VerticalSeparator(Win):
+    """
+    Just a one-column window, with just a line in it, that is
+    refreshed only on resize, but never on refresh, for efficiency
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        Win.__init__(self, height, width, y, x, parent_win)
+        self.visible = visible
+
+    def rewrite_line(self):
+        g_lock.acquire()
+        self.win.vline(0, 0, curses.ACS_VLINE, self.height, curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self.win.refresh()
+        g_lock.release()
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self.visible = visible
+        self._resize(height, width, y, x, stdscr)
+        if not visible:
+            return
+        self.rewrite_line()
+
+    def refresh(self):
+        if not self.visible:
+            return
+        self.rewrite_line()

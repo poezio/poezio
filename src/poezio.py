@@ -47,7 +47,7 @@ class MyStdErr(object):
         sys.stderr.close()
         sys.stderr = self.old_stderr
 
-my_stderr = MyStdErr(open('/dev/null', 'a'))
+# my_stderr = MyStdErr(open('/dev/null', 'a'))
 
 def exception_handler(type_, value, trace):
     """
@@ -64,7 +64,7 @@ def exception_handler(type_, value, trace):
     import os                   # used to quit the program even from a thread
     os.abort()
 
-sys.excepthook = exception_handler
+# sys.excepthook = exception_handler
 
 import signal
 

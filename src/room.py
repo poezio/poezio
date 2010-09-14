@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+from text_buffer import TextBuffer
 from datetime import datetime
 from random import randrange
 from config import config
@@ -23,36 +24,23 @@ from message import Message
 import common
 import theme
 
-class Room(object):
+class Room(TextBuffer):
     """
     """
-    number = 0
-    def __init__(self, name, nick, window, jid=None):
-        self.jid = jid          # used for a private chat. None if it's a MUC
+    def __init__(self, name, nick):
+        TextBuffer.__init__(self)
         self.name = name
         self.own_nick = nick
         self.color_state = theme.COLOR_TAB_NORMAL   # color used in RoomInfo
-        self.nb = Room.number        # number used in RoomInfo
-        Room.number += 1
         self.joined = False     # false until self presence is received
         self.users = []         # User objects
-        self.messages = []         # Message objects
         self.topic = ''
-        self.window = window
-        self.pos = 0            # offset
-
-    def scroll_up(self, dist=14):
-        # The pos can grow a lot over the top of the number of
-        # available lines, it will be fixed on the next refresh of the
-        # screen anyway
-        self.pos += dist
-
-    def scroll_down(self, dist=14):
-        self.pos -= dist
-        if self.pos <= 0:
-            self.pos = 0
 
     def disconnect(self):
+        """
+        Set the state of the room as not joined, so
+        we can know if we can join it, send messages to it, etc
+        """
         self.joined = False
 
     def log_message(self, txt, time, nickname):
@@ -89,6 +77,19 @@ class Room(object):
                         break
         return color
 
+    def get_user_by_name(self, nick):
+        for user in self.users:
+            if user.nick == nick:
+                return user
+        return None
+
+    def set_color_state(self, color):
+        """
+        Set the color that will be used to display the room's
+        number in the RoomInfo window
+        """
+        self.color_state = color
+
     def add_message(self, txt, time=None, nickname=None, colorized=False):
         """
         Note that user can be None even if nickname is not None. It happens
@@ -103,10 +104,10 @@ class Room(object):
         if not time and nickname and\
                 nickname != self.own_nick and\
                 self.color_state != theme.COLOR_TAB_CURRENT:
-            if not self.jid and self.color_state != theme.COLOR_TAB_HIGHLIGHT:
+            if self.color_state != theme.COLOR_TAB_HIGHLIGHT:
                 self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
-            elif self.jid:
-                self.set_color_state(theme.COLOR_TAB_PRIVATE)
+            # elif self.jid:
+            #     self.set_color_state(theme.COLOR_TAB_PRIVATE)
         if not nickname:
             color = theme.COLOR_INFORMATION_TEXT
         else:
@@ -117,30 +118,3 @@ class Room(object):
         if self.pos:            # avoid scrolling of one line when one line is received
             self.pos += 1
         self.messages.append(Message(txt, time, nickname, user, color, colorized))
-
-    def remove_line_separator(self):
-        """
-        Remove the line separator
-        """
-        if None in self.messages:
-            self.messages.remove(None)
-
-    def add_line_separator(self):
-        """
-        add a line separator at the end of messages list
-        """
-        if None not in self.messages:
-            self.messages.append(None)
-
-    def get_user_by_name(self, nick):
-        for user in self.users:
-            if user.nick == nick:
-                return user
-        return None
-
-    def set_color_state(self, color):
-        """
-        Set the color that will be used to display the room's
-        number in the RoomInfo window
-        """
-        self.color_state = color
