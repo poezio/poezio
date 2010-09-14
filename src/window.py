@@ -41,6 +41,9 @@ class Win(object):
         try:
             self.win = parent_win.subwin(height, width, y, x)
         except:
+            from common import debug
+            debug('%s %s %s %s %s\n' % (height, width, y, x, parent_win))
+            raise
             # When resizing in a too little height (less than 3 lines)
             # We don't need to resize the window, since this size
             # just makes no sense
@@ -94,8 +97,14 @@ class UserList(Win):
         self.win.erase()
         y = 0
         for user in sorted(users):
-            role_col = self.color_role[user.role]
-            show_col = self.color_show[user.show]
+            if not user.role in self.color_role:
+                role_col = theme.COLOR_USER_NONE
+            else:
+                role_col = self.color_role[user.role]
+            if not user.show in self.color_show:
+                show_col = theme.COLOR_STATUS_NONE
+            else:
+                show_col = self.color_show[user.show]
             self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
             self.addnstr(y, 1, user.nick, self.width-2, curses.color_pair(role_col))
             y += 1

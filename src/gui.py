@@ -1172,6 +1172,8 @@ class Gui(object):
         sys.exit()
 
     def do_command(self, key):
+        if not key:
+            return
         from common import debug
         debug('do_command, %s, %s\n' % (key, self.current_tab()))
         res = self.current_tab().on_input(key)

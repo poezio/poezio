@@ -271,9 +271,9 @@ class MucTab(Tab):
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self._room.remove_line_separator()
+        self._room.add_line_separator()
 
     def on_gain_focus(self):
-        self._room.add_line_separator()
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
 
     def on_scroll_up(self):
@@ -336,9 +336,9 @@ class PrivateTab(Tab):
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self._room.remove_line_separator()
+        self._room.add_line_separator()
 
     def on_gain_focus(self):
-        self._room.add_line_separator()
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
 
     def on_scroll_up(self):
@@ -352,10 +352,6 @@ class PrivateTab(Tab):
         self.text_win.resize(self.height-2, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
-
-        # self.text_win.resize(self.height-4-self.info_win_size, text_width, 1, 0, stdscr, self.visible)
-        # self.info_header.resize(1, (self.width//10)*9, self.height-3-self.info_win_size, 0, stdscr, self.visible)
-        # self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
 
     def get_room(self):
         return self._room
