@@ -908,7 +908,6 @@ class VerticalSeparator(Win):
         self._resize(height, width, y, x, stdscr)
         if not visible:
             return
-        self.rewrite_line()
 
     def refresh(self):
         if not self.visible:
