@@ -35,8 +35,7 @@ import theme
 import multiuserchat as muc
 from handler import Handler
 from config import config
-from tab import MucTab, InfoTab, PrivateTab
-from window import Window
+from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab
 from user import User
 from room import Room
 from message import Message
@@ -74,7 +73,9 @@ class Gui(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
-        self.tabs = [InfoTab(self.stdscr, "lol info")]
+        default_tab = InfoTab(self.stdscr, "Info") if self.xmpp.anon\
+            else RosterInfoTab(self.stdscr, "Roster")
+        self.tabs = [default_tab]
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.

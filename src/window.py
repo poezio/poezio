@@ -39,7 +39,7 @@ class Win(object):
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
         try:
-            self.win = parent_win.subwin(height, width, y, x)
+            self.win = curses.newwin(height, width, y, x)
         except:
             from common import debug
             debug('%s %s %s %s %s\n' % (height, width, y, x, parent_win))
@@ -312,14 +312,8 @@ class TextWin(Win):
     on each change. (thanks weechat :o)
     """
     def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        self.height = height
-        self.width = width
-        self.y = y
-        self.x = x
-        self.parent_win = parent_win
         Win.__init__(self, height, width, y, x, parent_win)
-        self.win.scrollok(1)
+        self.visible = visible
 
     def build_lines_from_messages(self, messages):
         """
@@ -445,7 +439,7 @@ class TextWin(Win):
             try:
                 splitted = shlex.split(txt)
             except ValueError:
-                txt += '"'
+                txt = txt.replace('"', '')
                 splitted = shlex.split(txt)
             for word in splitted:
                 if word in list(special_words.keys()):
@@ -882,20 +876,21 @@ class Input(Win):
     def clear_text(self):
         self.win.erase()
 
-class Window(object):
-    """
-    The whole "screen" that can be seen at once in the terminal.
-    It contains an userlist, an input zone, a topic zone and a chat zone
-    """
+# class RosterWin(Win):
+#     def __init__(self, height, width, y, x, parent_win, visible):
+#         Win.__init__(self, height, width, y, x, parent_win)
+#         self.visible = visible
 
+#     def resize(self, height, width, y, x, stdscr, visible):
+#         self._resize(height, width, y, x, stdscr)
+#         self.visible = visible
 
-    # TODO JidWindow
-            # elif jid:
-            # room = jid.split('/')[0]
-            # nick = '/'.join(jid.split('/')[1:])
-            # topic = _('%(nick)s from room %(room)s' % {'nick': nick, 'room':room})
-            # self.addnstr(0, 0, topic + " "*(self.width-len(topic)), self.width-1
-            #                  , curses.color_pair(theme.COLOR_PRIVATE_ROOM_BAR))
+#     def refresh(self, roster):
+#         g_lock.acquire()
+#         self.win.erase()
+#         self.addnstr('teub', 4)
+#         self.win.refresh()
+#         g_lock.release()
 
 class VerticalSeparator(Win):
     """
@@ -922,3 +917,71 @@ class VerticalSeparator(Win):
         if not self.visible:
             return
         self.rewrite_line()
+
+class RosterWin(Win):
+    """
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
+        Win.__init__(self, height, width, y, x, parent_win)
+        self.pos = 0            # position in the contact list
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr)
+
+    def refresh(self, roster=None):
+        """
+        We get the roster object
+        """
+        if not self.visible or not roster:
+            return
+        g_lock.acquire()
+        self.win.erase()
+        # TODO, two ways of scrolling
+        # currently: always centered
+        if self.pos > self.height//2 and\
+                self.pos + self.height//2 < len(roster.getContacts()):
+            # We are centered
+            begin = True
+            end = True
+            pos = self.height//2
+            contacts = roster.getContacts()[self.pos-pos:self.pos+pos+1]
+        elif self.pos <= self.height//2:
+            # we are at the beginning of the list
+            pos = self.pos
+            contacts = roster.getContacts()[:self.height]
+            begin = False
+            if self.height < len(roster.getContacts()):
+                end = True
+            else:
+                end = False
+        else:
+            # we are at the end of the list
+            pos = self.height - (len(roster.getContacts()) - self.pos)
+            contacts = roster.getContacts()[-self.height:]
+            begin = True
+            end = False
+        cpt = 0                 # ipair ou chais plus quoi
+        for contact in contacts:
+            if cpt == pos:
+                self.draw_contact_line(contact, cpt, 0, 3)
+            else:
+                self.draw_contact_line(contact, cpt, 0)
+            cpt += 1
+        if end:
+            self.win.addstr(self.height-1, 0, '++++')
+        if begin:
+            self.win.addstr(0, 0, '++++')
+        self.win.refresh()
+        g_lock.release()
+
+    def draw_contact_line(self, contact, x, y, color=None):
+        """
+        Draw on a line all informations about one contact
+        Use 'color' to draw the jid/display_name to show what is
+        is currently selected contact in the list
+        """
+        if color:
+            self.win.addstr(x, y, contact.getJid().full, curses.color_pair(color))
+        else:
+            self.win.addstr(x, y, contact.getJid().full)

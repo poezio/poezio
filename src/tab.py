@@ -355,3 +355,67 @@ class PrivateTab(Tab):
 
     def get_room(self):
         return self._room
+
+class RosterInfoTab(Tab):
+    """
+    A tab, splitted in two, containg the roster and infos
+    """
+    def __init__(self, stdscr, roster):
+        Tab.__init__(self, stdscr)
+        self.name = "Roster"
+        self.roster = roster
+        roster_width = self.width//2
+        info_width = self.width-roster_width-1
+        self.v_separator = window.VerticalSeparator(self.height-2, 1, 0, roster_width, stdscr, self.visible)
+        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.info_win = window.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
+        self.roster_win = window.RosterWin(self.height-2, roster_width, 0, 0, stdscr, self.visible)
+        self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.set_color_state(theme.COLOR_TAB_NORMAL)
+
+    def resize(self, stdscr):
+        Tab.resize(self, stdscr)
+        roster_width = self.width//2
+        info_width = self.width-roster_width-1
+        self.v_separator.resize(self.height-2, 1, 0, roster_width, stdscr, self.visible)
+        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.info_win.resize(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
+        self.roster_win.resize(self.height-2, roster_width, 0, 0, stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+
+    def refresh(self, tabs, informations):
+        self.v_separator.refresh()
+        self.roster_win.refresh(self.roster)
+        self.info_win.refresh(informations)
+        self.tab_win.refresh(tabs, tabs[0])
+        self.input.refresh()
+
+    def get_name(self):
+        return self.name
+
+    def get_color_state(self):
+        return self._color_state
+
+    def set_color_state(self, color):
+        self._color_state = color
+
+    def on_input(self, key):
+        return self.input.do_command(key)
+
+    def on_lose_focus(self):
+        self._color_state = theme.COLOR_TAB_NORMAL
+
+    def on_gain_focus(self):
+        self._color_state = theme.COLOR_TAB_CURRENT
+
+    def add_message(self):
+        return False
+
+    def on_scroll_down(self):
+        debug('TODO DOWN')
+
+    def on_scroll_up(self):
+        debug('TODO UP')
+
+    def on_info_win_size_changed(self):
+        return
