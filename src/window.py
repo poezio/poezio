@@ -439,8 +439,9 @@ class TextWin(Win):
             try:
                 splitted = shlex.split(txt)
             except ValueError:
-                txt = txt.replace('"', '')
-                splitted = shlex.split(txt)
+                from common import debug
+                debug('SHLEX FAILED on: [%s]\n' % (txt,))
+                splitted = 'shlex failed here. See debug'.split()
             for word in splitted:
                 if word in list(special_words.keys()):
                     self.addstr(word, curses.color_pair(special_words[word]))
@@ -876,22 +877,6 @@ class Input(Win):
     def clear_text(self):
         self.win.erase()
 
-# class RosterWin(Win):
-#     def __init__(self, height, width, y, x, parent_win, visible):
-#         Win.__init__(self, height, width, y, x, parent_win)
-#         self.visible = visible
-
-#     def resize(self, height, width, y, x, stdscr, visible):
-#         self._resize(height, width, y, x, stdscr)
-#         self.visible = visible
-
-#     def refresh(self, roster):
-#         g_lock.acquire()
-#         self.win.erase()
-#         self.addnstr('teub', 4)
-#         self.win.refresh()
-#         g_lock.release()
-
 class VerticalSeparator(Win):
     """
     Just a one-column window, with just a line in it, that is
@@ -919,8 +904,6 @@ class VerticalSeparator(Win):
         self.rewrite_line()
 
 class RosterWin(Win):
-    """
-    """
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
@@ -928,12 +911,15 @@ class RosterWin(Win):
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr)
+        self.visible = visible
 
-    def refresh(self, roster=None):
+    def refresh(self, roster):
         """
         We get the roster object
         """
-        if not self.visible or not roster:
+        from common import debug
+        debug('anus%s, %s' % (roster, self.visible))
+        if not self.visible:
             return
         g_lock.acquire()
         self.win.erase()

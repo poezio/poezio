@@ -384,8 +384,8 @@ class RosterInfoTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def refresh(self, tabs, informations):
-        self.v_separator.refresh()
         self.roster_win.refresh(self.roster)
+        self.v_separator.refresh()
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()

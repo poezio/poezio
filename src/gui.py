@@ -38,6 +38,7 @@ from config import config
 from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab
 from user import User
 from room import Room
+from roster import Roster
 from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
@@ -74,7 +75,7 @@ class Gui(object):
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
         default_tab = InfoTab(self.stdscr, "Info") if self.xmpp.anon\
-            else RosterInfoTab(self.stdscr, "Roster")
+            else RosterInfoTab(self.stdscr, self.xmpp.roster)
         self.tabs = [default_tab]
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
