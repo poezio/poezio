@@ -439,9 +439,11 @@ class TextWin(Win):
             try:
                 splitted = shlex.split(txt)
             except ValueError:
-                from common import debug
-                debug('SHLEX FAILED on: [%s]\n' % (txt,))
-                splitted = 'shlex failed here. See debug'.split()
+                # FIXME colors are disabled on too long words
+                txt = txt.replace('"[', '').replace(']"', '')\
+                    .replace('"{', '').replace('}"', '')\
+                    .replace('"(', '').replace(')"', '')
+                splitted = txt.split()
             for word in splitted:
                 if word in list(special_words.keys()):
                     self.addstr(word, curses.color_pair(special_words[word]))
