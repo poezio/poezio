@@ -270,15 +270,17 @@ class Gui(object):
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.tabs:
-                if isinstance(_tab, PrivateTab) and is_jid_the_same(_tab.get_jid(), room.name):
-                    _tab.own_nick = new_nick
+                from common import debug
+                debug('room name:%s\n' % _tab.get_name().split('/', 1))
+                if isinstance(_tab, PrivateTab) and _tab.get_name().split('/', 1)[0] == room.name:
+                    _tab.get_room().own_nick = new_nick
         user.change_nick(new_nick)
         self.add_message_to_text_buffer(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
         # rename the private tabs if needed
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
             self.add_message_to_text_buffer(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
-            new_jid = private_room.name.split('/')[0]+'/'+new_nick
+            new_jid = private_room.name.split('/', 1)[0]+'/'+new_nick
             private_room.name = new_jid
 
     def on_user_kicked(self, room, presence, user, from_nick):
@@ -336,15 +338,23 @@ class Gui(object):
         When an user changes her status
         """
         # build the message
+        display_message = False # flag to know if something significant enough
+        # to be displayed has changed
         msg = _('"%s" changed: ')% from_nick.replace('"', '\\"')
         if affiliation != user.affiliation:
             msg += _('affiliation: %s, ') % affiliation
+            display_message = True
         if role != user.role:
             msg += _('role: %s, ') % role
+            display_message = True
         if show != user.show and show in list(SHOW_NAME.keys()):
             msg += _('show: %s, ') % SHOW_NAME[show]
-        if status != user.status:
+            display_message = True
+        if status and status != user.status:
             msg += _('status: %s, ') % status
+            display_message = True
+        if not display_message:
+            return
         msg = msg[:-2] # remove the last ", "
         hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
         if (hide_status_change == -1 or \
@@ -359,7 +369,7 @@ class Gui(object):
             self.add_message_to_text_buffer(room, msg, colorized=True)
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room: # display the message in private
-            self.add_message_to_text_buffer(private_room, msg)
+            self.add_message_to_text_buffer(private_room, msg, colorized=True)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
 

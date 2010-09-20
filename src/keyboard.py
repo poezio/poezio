@@ -52,7 +52,7 @@ def read_char(s):
         if first == 27:
             (first, c) = get_next_byte(s)
             if not isinstance(first, int):
-                return None
+                return Nones
             return "M-"+chr(first)
     if 194 <= first:
         (code, c) = get_next_byte(s) # 2 bytes char
