@@ -270,8 +270,6 @@ class Gui(object):
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.tabs:
-                from common import debug
-                debug('room name:%s\n' % _tab.get_name().split('/', 1))
                 if isinstance(_tab, PrivateTab) and _tab.get_name().split('/', 1)[0] == room.name:
                     _tab.get_room().own_nick = new_nick
         user.change_nick(new_nick)
@@ -289,8 +287,6 @@ class Gui(object):
         """
         room.users.remove(user)
         by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-        from common import debug
-        debug('KICK: by:%s  %s, %s\n' % (presence, by, by.attrib['jid'] if by else by))
         reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
         by = by.attrib['jid'] if by is not None else None
         reason = reason.text# if reason else ''
@@ -394,8 +390,6 @@ class Gui(object):
         """
         We received a Private Message (from someone in a Muc)
         """
-        from common import debug
-        debug('PRIVATE: %s\n' % message)
         jid = message['from']
         nick_from = jid.resource
         room_from = jid.bare
@@ -622,8 +616,6 @@ class Gui(object):
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
-        from common import debug
-#        debug('GROUPCHAT message: %s\n' % message)
         delay_tag = message.find('{urn:xmpp:delay}delay')
         if delay_tag is not None:
             delayed = True
@@ -653,7 +645,6 @@ class Gui(object):
             return
         body = message['body']
         subject = message['subject']
-#        debug('======== %s, %s, %s, %s====\n'% (nick_from, room_from, body, subject))
         if subject:
             if nick_from:
                 self.add_message_to_text_buffer(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
@@ -1186,10 +1177,7 @@ class Gui(object):
     def do_command(self, key):
         if not key:
             return
-        from common import debug
-        debug('do_command, %s, %s\n' % (key, self.current_tab()))
         res = self.current_tab().on_input(key)
-        debug('apres, %s\n' % (res))
         if key in ('^J', '\n'):
             self.execute(res)
 
