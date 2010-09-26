@@ -22,8 +22,6 @@ class Roster(object):
     def __init__(self):
         self._contacts = {}     # key = jid; value = Contact()
         self._roster_groups = []
-        new_group = RosterGroup("none")
-        self._roster_groups.append(new_group)
 
     def add_contact(self, contact, jid):
         """
