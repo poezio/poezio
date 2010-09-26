@@ -16,30 +16,146 @@
 
 from contact import Contact
 
+from common import debug
+
 class Roster(object):
-    """
-    Defines the roster
-    """
     def __init__(self):
-        self._contacts = {}
+        self._contacts = {}     # key = jid; value = Contact()
+        self._roster_groups = []
 
-    def addContactToList(self, contact):
-        assert isinstance(contact, Contact)
-        assert contact not in self._contacts
-        self._contacts[contact.getJid().bare] = contact
+    def add_contact(self, contact, jid):
+        """
+        Add a contact to the contact list
+        """
+        assert jid not in self._contacts
+        self._contacts[jid] = contact
 
-    def getContacts(self):
+    def get_contact_len(self):
+        return len(self._contacts.keys())
+
+    def get_contact_by_jid(self, jid):
+        if jid in self._contacts:
+            return self._contacts[jid]
+        return None
+
+    def edit_groups_of_contact(self, contact, groups):
         """
-        returns all the contacts in a list
-        TODO: sorted
-        TODO: only some contacts (online only for example)
+        Edit the groups the contact is in
+        Add or remove RosterGroup if needed
         """
-        return [contact for contact in self._contacts.keys()]
+        # add the contact to each group he is in
+        for group in groups:
+            if group in contact._groups:
+                continue
+            else:
+                # create the group if it doesn't exist yet
+                contact._groups.append(group)
+                self.add_contact_to_group(group, contact)
+        # remove the contact from each group he is not in
+        for group in contact._groups:
+            if group not in groups:
+                # the contact is not in the group anymore
+                self.remove_contact_from_group(group, contact)
+
+    def remove_contact_from_group(self, group_name, contact):
+        """
+        Remove the contact from the group.
+        Remove also the group if this makes it empty
+        """
+        for group in self._roster_groups:
+            if group.name == group_name:
+                group.remove_contact(contact)
+                if group.is_empty():
+                    self._roster_groups.remove(group)
+                return
+
+    def add_contact_to_group(self, group_name, contact):
+        """
+        Add the contact to the group.
+        Create the group if it doesn't already exist
+        """
+        for group in self._roster_groups:
+            if group.name == group_name:
+                group.add_contact(contact)
+                return
+        new_group = RosterGroup(group_name)
+        self._roster_groups.append(new_group)
+        new_group.add_contact(contact)
+
+    # def ordered_by_group(self, dic_roster, order):
+    #     # ordered by contact
+    #     for jid in dic_roster:
+    #         if not dic_roster[jid]['in_roster']:
+    #             continue
+    #         self.contact_number += 1
+    #         groups=dic_roster[jid]['groups']
+    #         if not groups:
+    #             groups = ['(none)']
+    #         new_contact = Contact(jid, name=dic_roster[jid]['name'],
+    #                               groups=groups,
+    #                               subscription=dic_roster[jid]['subscription'],
+    #                               presence=dic_roster[jid]['presence'])
+    #         for group in groups:
+    #             self.add_contact_to_group(group, new_contact)
+    #         # debug('Jid:%s, (%s)\n' % (jid, dic_roster[jid]))
+    #     debug('\n')
+
+    def get_groups(self):
+        return self._roster_groups
 
     def __len__(self):
-        return len(self._contacts)
+        """
+        Return the number of line that would be printed
+        """
+        l = 0
+        for group in self._roster_groups:
+            l += 1
+            if not group.folded:
+                for contact in group.get_contacts():
+                    l += 1
+        return l
 
-    def getContact(self, bare_jid):
-        if bare_jid not in self._contacts:
-            return None
-        return self._contacts[bare_jid]
+    def __repr__(self):
+        ret = '== Roster:\nContacts:\n'
+        for contact in self._contacts:
+            ret += '%s\n' % (contact,)
+        ret += 'Groups\n'
+        for group in self._roster_groups:
+            ret += '%s\n' % (group,)
+        return ret + '\n'
+
+class RosterGroup(object):
+    """
+    A RosterGroup is a group containing contacts
+    It can be Friends/Family etc, but also can be
+    Online/Offline or whatever
+    """
+    def __init__(self, name, folded=False):
+        # debug('New group: %s \n' % name)
+        self._contacts = []
+        self.name = name
+        self.folded = folded    # if the group content is to be shown
+    def is_empty(self):
+        return len(self._contacts) == 0
+
+    def remove_contact(self, contact):
+        """
+        Remove a Contact object to the list
+        """
+        assert isinstance(contact, Contact)
+        assert contact in self._contacts
+        self._contacts.remove(contact)
+
+    def add_contact(self, contact):
+        """
+        append a Contact object to the list
+        """
+        assert isinstance(contact, Contact)
+        assert contact not in self._contacts
+        self._contacts.append(contact)
+
+    def get_contacts(self):
+        return self._contacts
+
+    def __repr__(self):
+        return '<Roster_group: %s; %s>' % (self.name, self._contacts)

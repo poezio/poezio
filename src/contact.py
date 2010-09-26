@@ -22,8 +22,32 @@ class Contact(object):
     """
     def __init__(self, jid):
         self._jid = JID(jid)         # a SleekXMPP jid object
-        self._display_name = None
-        self.groups = []        # a list of groups the contact is in
+        self._display_name = ''
+        self._subscription = 'none'
+        self._ask = None
+        self._status = ''
+        self._presence = 'unavailable'
+        self._priority = 0
+        self._groups = []       # a list of groups the contact is in
 
-    def getJid(self):
+    def set_ask(self, ask):
+        self._ask = ask
+
+    def set_subscription(self, sub):
+        self._subscription = sub
+
+    def get_jid(self):
         return self._jid
+
+    def __repr__(self):
+        return '%s' % self._jid
+
+    def set_priority(self, priority):
+        assert isinstance(priority, int)
+        self._priority = priority
+
+    def set_presence(self, pres):
+        self._presence = pres
+
+    def get_presence(self):
+        return self._presence

@@ -35,15 +35,17 @@ import theme
 import multiuserchat as muc
 from handler import Handler
 from config import config
-from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab
+from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
 from user import User
 from room import Room
 from roster import Roster
+from contact import Contact
 from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
 from common import is_jid_the_same, jid_get_domain, jid_get_resource, is_jid
 
+from common import debug
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
     '401': _('A password is required'),
@@ -75,8 +77,9 @@ class Gui(object):
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
         default_tab = InfoTab(self.stdscr, "Info") if self.xmpp.anon\
-            else RosterInfoTab(self.stdscr, self.xmpp.roster)
+            else RosterInfoTab(self.stdscr)
         self.tabs = [default_tab]
+        self.roster = Roster()
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
@@ -136,8 +139,10 @@ class Gui(object):
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("message", self.on_message)
-        self.xmpp.add_event_handler("presence", self.on_presence)
+        self.xmpp.add_event_handler("got_online" , self.on_got_online)
+        self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
+        # self.xmpp.add_event_handler("presence", self.on_presence)
 
     def grow_information_win(self):
         """
@@ -158,6 +163,25 @@ class Gui(object):
         for tab in self.tabs:
             tab.on_info_win_size_changed(self.information_win_size, self.stdscr)
         self.refresh_window()
+
+    def on_got_offline(self, presence):
+        jid = presence['from']
+        contact = self.roster.get_contact_by_jid(jid.bare)
+        if not contact:
+            return
+        contact.set_presence('unavailable')
+        self.information('%s is not offline' % (contact.get_jid()), "Roster")
+
+    def on_got_online(self, presence):
+        jid = presence['from']
+        contact = self.roster.get_contact_by_jid(jid.bare)
+        if not contact:
+            return
+        status = presence['type']
+        priority = presence.getPriority()
+        contact.set_presence(status)
+        contact.set_priority(priority)
+        self.information("%s is now online (%s)" % (contact.get_jid(), status), "Roster")
 
     def on_connected(self, event):
         """
@@ -409,6 +433,15 @@ class Gui(object):
         """
         from common import debug
         debug('MESSAGE: %s\n' % (message))
+        jid = message['from'].bare
+        room = self.get_conversation_by_jid(jid)
+        if not room:
+            room = self.open_conversation_window(jid, False)
+            if not room:
+                return
+        body = message['body']
+        self.add_message_to_text_buffer(room, body, None, jid)
+        self.refresh_window()
         return
 
     def on_presence(self, presence):
@@ -423,10 +456,24 @@ class Gui(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
-        from common import debug
-        debug("ROSTER UPDATE: %s\n" % (iq))
-        for subscriber in iq['roster']['items']:
-            debug("subscriber: %s\n" % (iq['roster']['items'][subscriber]['subscription']))
+        # debug('Roster Update: \n%s\n\n' % iq)
+        for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
+            jid = item.attrib['jid']
+            contact = self.roster.get_contact_by_jid(jid)
+            if not contact:
+                contact = Contact(jid)
+                self.roster.add_contact(contact, jid)
+            if 'ask' in item.attrib:
+                contact.set_ask(item.attrib['ask'])
+            else:
+                contact.set_ask(None)
+            if item.attrib['subscription']:
+                contact.set_subscription(item.attrib['subscription'])
+            groups = item.findall('{jabber:iq:roster}group')
+            self.roster.edit_groups_of_contact(contact, [group.text for group in groups])
+        if isinstance(self.current_tab(), RosterInfoTab):
+            # TODO refresh roster_win only
+            self.refresh_window()
 
     def resize_window(self):
         """
@@ -455,6 +502,16 @@ class Gui(object):
         returns the current room, the one we are viewing
         """
         return self.tabs[0]
+
+    def get_conversation_by_jid(self, jid):
+        """
+        Return the room of the ConversationTab with the given jid
+        """
+        for tab in self.tabs:
+            if isinstance(tab, ConversationTab):
+                if tab.get_name() == jid:
+                    return tab.get_room()
+        return None
 
     def get_room_by_name(self, name):
         """
@@ -489,7 +546,8 @@ class Gui(object):
         Refresh everything
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
-        self.current_tab().refresh(self.tabs, self.information_buffer)
+        self.current_tab().refresh(self.tabs, self.information_buffer, self.roster)
+        doupdate()
 
     def open_new_room(self, room, nick, focus=True):
         """
@@ -583,6 +641,26 @@ class Gui(object):
             else:
                 self.add_message_to_text_buffer(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
+
+    def open_conversation_window(self, room_name, focus=True):
+        """
+        open a new conversation tab and focus it if needed
+        """
+        r = Room(room_name, self.xmpp.fulljid)
+        new_tab = ConversationTab(self.stdscr, r, self.information_win_size)
+        # insert it in the rooms
+        if self.current_tab().nb == 0:
+            self.tabs.append(new_tab)
+        else:
+            for ta in self.tabs:
+                if ta.nb == 0:
+                    self.tabs.insert(self.tabs.index(ta), new_tab)
+                    break
+        if focus:               # focus the room if needed
+            self.command_win('%s' % (new_tab.nb))
+        # self.window.new_room(r)
+        self.refresh_window()
+        return r
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name+'/'+user_nick
@@ -1178,8 +1256,31 @@ class Gui(object):
         if not key:
             return
         res = self.current_tab().on_input(key)
-        if key in ('^J', '\n'):
+        if not res:
+            return
+        if key in ('^J', '\n') and isinstance(res, str):
             self.execute(res)
+        else:
+            # we did "enter" with an empty input in the roster
+            self.on_roster_enter_key(res)
+
+    def on_roster_enter_key(self, roster_row):
+        """
+        when enter is pressed on the roster window
+        """
+        if isinstance(roster_row, Contact):
+            r = Room(roster_row.get_jid().full, self.xmpp.fulljid)
+            new_tab = ConversationTab(self.stdscr, r, self.information_win_size)
+            debug('%s\n'% new_tab)
+            # insert it in the tabs
+            if self.current_tab().nb == 0:
+                self.tabs.append(new_tab)
+            else:
+                for ta in self.tabs:
+                    if ta.nb == 0:
+                        self.tabs.insert(self.tabs.index(ta), new_tab)
+                        break
+            self.refresh_window()
 
     def execute(self,line):
         """
@@ -1203,6 +1304,10 @@ class Gui(object):
     def command_say(self, line):
         if isinstance(self.current_tab(), PrivateTab):
             muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
+        elif isinstance(self.current_tab(), ConversationTab): # todo, special case
+            muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
+        if isinstance(self.current_tab(), PrivateTab) or\
+                isinstance(self.current_tab(), ConversationTab):
             self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.current_tab().get_room().own_nick)
         elif isinstance(self.current_tab(), MucTab):
             muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)

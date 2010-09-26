@@ -28,15 +28,21 @@ from config import config
 from threading import Lock
 
 from message import Line
+from tab import MIN_WIDTH, MIN_HEIGHT
+
 import theme
+
+from common import debug
 
 g_lock = Lock()
 
 class Win(object):
     def __init__(self, height, width, y, x, parent_win):
-        self._resize(height, width, y, x, parent_win)
+        self._resize(height, width, y, x, parent_win, True)
 
-    def _resize(self, height, width, y, x, parent_win):
+    def _resize(self, height, width, y, x, parent_win, visible):
+        if not visible:
+            return
         self.height, self.width, self.x, self.y = height, width, x, y
         try:
             self.win = curses.newwin(height, width, y, x)
@@ -44,6 +50,8 @@ class Win(object):
             from common import debug
             debug('%s %s %s %s %s\n' % (height, width, y, x, parent_win))
             raise
+            import os
+            os.abort()
             # When resizing in a too little height (less than 3 lines)
             # We don't need to resize the window, since this size
             # just makes no sense
@@ -71,6 +79,14 @@ class Win(object):
         addstr is not safe
         """
         self.win.addstr(*args)
+
+    def finish_line(self, color):
+        """
+        Write colored spaces until the end of line
+        """
+        (y, x) = self.win.getyx()
+        size = self.width-x
+        self.addnstr(' '*size, size, curses.color_pair(color))
 
 class UserList(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
@@ -117,7 +133,7 @@ class UserList(Win):
         self.visible = visible
         if not visible:
             return
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
         self.win.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         self.win.vline(0, 0, curses.ACS_VLINE, self.height)
         self.win.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
@@ -128,7 +144,7 @@ class Topic(Win):
         Win.__init__(self, height, width, y, x, parent_win)
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, topic):
         if not self.visible:
@@ -150,7 +166,7 @@ class GlobalInfoBar(Win):
         Win.__init__(self, height, width, y, x, parent_win)
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, tabs, current):
         if not self.visible:
@@ -199,14 +215,6 @@ class InfoWin(Win):
             plus = ' -PLUS(%s)-' % text_buffer.pos
             self.addnstr(plus, len(plus), curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
 
-    def finish_line(self):
-        """
-        Write colored spaces until the end of line
-        """
-        (y, x) = self.win.getyx()
-        size = self.width-x
-        self.addnstr(' '*size, size, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-
 class PrivateInfoWin(InfoWin):
     """
     The live above the information window, displaying informations
@@ -216,7 +224,7 @@ class PrivateInfoWin(InfoWin):
         InfoWin.__init__(self, height, width, y, x, parent_win, visible)
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, room):
         if not self.visible:
@@ -225,7 +233,7 @@ class PrivateInfoWin(InfoWin):
         self.win.erase()
         self.write_room_name(room)
         self.print_scroll_position(room)
-        self.finish_line()
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.win.refresh()
         g_lock.release()
 
@@ -233,6 +241,34 @@ class PrivateInfoWin(InfoWin):
         (room_name, nick) = room.name.split('/', 1)
         self.addnstr(nick, len(nick), curses.color_pair(13))
         txt = ' from room %s' % room_name
+        self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+class ConversationInfoWin(InfoWin):
+    """
+    The line above the information window, displaying informations
+    about the MUC user we are talking to
+    """
+    def __init__(self, height, width, y, x, parent_win, visible):
+        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr, visible)
+
+    def refresh(self, room):
+        if not self.visible:
+            return
+        g_lock.acquire()
+        self.win.erase()
+        self.write_room_name(room)
+        self.print_scroll_position(room)
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
+        self.win.refresh()
+        g_lock.release()
+
+    def write_room_name(self, room):
+        # (room_name, nick) = room.name.split('/', 1)
+        # self.addnstr(nick, len(nick), curses.color_pair(13))
+        txt = '%s' % room.name
         self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
@@ -244,7 +280,7 @@ class MucInfoWin(InfoWin):
         InfoWin.__init__(self, height, width, y, x, parent_win, visible)
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, room):
         if not self.visible:
@@ -256,7 +292,7 @@ class MucInfoWin(InfoWin):
         self.write_disconnected(room)
         self.write_role(room)
         self.print_scroll_position(room)
-        self.finish_line()
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.win.refresh()
         g_lock.release()
 
@@ -291,8 +327,6 @@ class MucInfoWin(InfoWin):
         """
         Write our own role and affiliation
         """
-        from common import debug
-
         own_user = None
         for user in room.users:
             if user.nick == room.own_nick:
@@ -430,7 +464,6 @@ class TextWin(Win):
                 self.win.attroff(curses.color_pair(color))
 
         else:                   # Special messages like join or quit
-            from common import debug
             special_words = {
                 theme.CHAR_JOIN: theme.COLOR_JOIN_CHAR,
                 theme.CHAR_QUIT: theme.COLOR_QUIT_CHAR,
@@ -507,7 +540,7 @@ class TextWin(Win):
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
 
 class Input(Win):
     """
@@ -554,11 +587,14 @@ class Input(Win):
         self.last_completion = None # Contains the last nickname completed,
                                     # if last key was a tab
 
+    def is_empty(self):
+        return len(self.text) == 0
+
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
         if not visible:
             return
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
         self.win.clear()
         self.addnstr(0, 0, self.text, self.width-1)
 
@@ -896,7 +932,7 @@ class VerticalSeparator(Win):
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
         if not visible:
             return
 
@@ -906,70 +942,116 @@ class VerticalSeparator(Win):
         self.rewrite_line()
 
 class RosterWin(Win):
+    color_show = {'xa':theme.COLOR_STATUS_XA,
+                  'none':theme.COLOR_STATUS_ONLINE,
+                  '':theme.COLOR_STATUS_ONLINE,
+                  'available':theme.COLOR_STATUS_ONLINE,
+                  'dnd':theme.COLOR_STATUS_DND,
+                  'away':theme.COLOR_STATUS_AWAY,
+                  'chat':theme.COLOR_STATUS_CHAT,
+                  'unavailable': theme.COLOR_STATUS_UNAVAILABLE
+                  }
+
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
-        self.pos = 0            # position in the contact list
+        self.pos = 0            # cursor position in the contact list
+        self.start_pos = 1      # position of the start of the display
+        self.roster_len = 0
+        self.selected_row = None
 
     def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr)
+        self._resize(height, width, y, x, stdscr, visible)
         self.visible = visible
+
+    def move_cursor_down(self):
+        if self.pos < self.roster_len-1:
+            self.pos += 1
+        if self.pos == self.start_pos-1 + self.height-1:
+            self.scroll_down()
+
+    def move_cursor_up(self):
+        if self.pos > 0:
+            self.pos -= 1
+        if self.pos == self.start_pos-2:
+            self.scroll_up()
+
+    def scroll_down(self):
+        self.start_pos += 8
+
+    def scroll_up(self):
+        self.start_pos -= 8
 
     def refresh(self, roster):
         """
         We get the roster object
         """
-        from common import debug
-        debug('anus%s, %s' % (roster, self.visible))
         if not self.visible:
             return
         g_lock.acquire()
+        # debug('Len roster: %s, pos: %s, startpos: %s\n(%s:%s)' % (len(roster), self.pos, self.start_pos, self.width, self.height))
+        self.roster_len = len(roster)
         self.win.erase()
-        # TODO, two ways of scrolling
-        # currently: always centered
-        if self.pos > self.height//2 and\
-                self.pos + self.height//2 < len(roster.getContacts()):
-            # We are centered
-            begin = True
-            end = True
-            pos = self.height//2
-            contacts = roster.getContacts()[self.pos-pos:self.pos+pos+1]
-        elif self.pos <= self.height//2:
-            # we are at the beginning of the list
-            pos = self.pos
-            contacts = roster.getContacts()[:self.height]
-            begin = False
-            if self.height < len(roster.getContacts()):
-                end = True
-            else:
-                end = False
-        else:
-            # we are at the end of the list
-            pos = self.height - (len(roster.getContacts()) - self.pos)
-            contacts = roster.getContacts()[-self.height:]
-            begin = True
-            end = False
-        cpt = 0                 # ipair ou chais plus quoi
-        for contact in contacts:
-            if cpt == pos:
-                self.draw_contact_line(contact, cpt, 0, 3)
-            else:
-                self.draw_contact_line(contact, cpt, 0)
-            cpt += 1
-        if end:
-            self.win.addstr(self.height-1, 0, '++++')
-        if begin:
-            self.win.addstr(0, 0, '++++')
+        self.draw_roster_information(roster)
+        y = 1
+        for group in roster.get_groups():
+            if y-1 == self.pos:
+                self.selected_row = group
+            if y >= self.start_pos:
+                self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
+            y += 1
+            for contact in group.get_contacts():
+                if y-1 == self.pos:
+                    self.selected_row = contact
+                if y-self.start_pos+1 == self.height:
+                    break
+                if y >= self.start_pos:
+                    self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
+                y += 1
+            if y-self.start_pos+1 == self.height:
+                break
+        if self.start_pos > 1:
+            self.draw_plus(1)
+        if self.start_pos + self.height-2 < self.roster_len:
+            self.draw_plus(self.height-1)
         self.win.refresh()
         g_lock.release()
 
-    def draw_contact_line(self, contact, x, y, color=None):
+    def draw_plus(self, y):
+        """
+        Draw the indicator that shows that
+        the list is longer that what is displayed
+        """
+        self.win.addstr(y, self.width-4, '+++', curses.color_pair(42))
+
+    def draw_roster_information(self, roster):
+        """
+        """
+        self.win.addstr('%s contacts' % roster.get_contact_len(), curses.color_pair(12))
+        self.finish_line(12)
+
+    def draw_group(self, y, group, colored):
+        """
+        Draw a groupname on a line
+        """
+        if colored:
+            self.addstr(y, 0, group.name, curses.color_pair(34))
+        else:
+            self.addstr(y, 0, group.name)
+
+    def draw_contact_line(self, y, contact, colored):
         """
         Draw on a line all informations about one contact
         Use 'color' to draw the jid/display_name to show what is
         is currently selected contact in the list
         """
-        if color:
-            self.win.addstr(x, y, contact.getJid().full, curses.color_pair(color))
+        color = RosterWin.color_show[contact.get_presence()]
+        self.win.addstr(y, 1, "!", curses.color_pair(color))
+        if colored:
+            self.win.addstr(y, 2, contact.get_jid().bare, curses.color_pair(34))
         else:
-            self.win.addstr(x, y, contact.getJid().full)
+            self.win.addstr(y, 2, contact.get_jid().bare)
+
+    def get_selected_row(self):
+        return self.selected_row
+
