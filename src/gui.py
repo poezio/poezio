@@ -435,11 +435,13 @@ class Gui(object):
         debug('MESSAGE: %s\n' % (message))
         jid = message['from'].bare
         room = self.get_conversation_by_jid(jid)
+        body = message['body']
+        if not body:
+            return
         if not room:
             room = self.open_conversation_window(jid, False)
             if not room:
                 return
-        body = message['body']
         self.add_message_to_text_buffer(room, body, None, jid)
         self.refresh_window()
         return
@@ -456,7 +458,7 @@ class Gui(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
-        # debug('Roster Update: \n%s\n\n' % iq)
+        debug('Roster Update: \n%s\n\n' % iq)
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
             contact = self.roster.get_contact_by_jid(jid)

@@ -22,6 +22,8 @@ class Roster(object):
     def __init__(self):
         self._contacts = {}     # key = jid; value = Contact()
         self._roster_groups = []
+        new_group = RosterGroup("none")
+        self._roster_groups.append(new_group)
 
     def add_contact(self, contact, jid):
         """
@@ -44,6 +46,8 @@ class Roster(object):
         Add or remove RosterGroup if needed
         """
         # add the contact to each group he is in
+        if not len(groups):
+            groups = ['none']
         for group in groups:
             if group in contact._groups:
                 continue
