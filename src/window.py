@@ -257,16 +257,22 @@ class ConversationInfoWin(InfoWin):
     def refresh(self, room, contact):
         if not self.visible:
             return
+        # contact can be None, if we receive a message
+        # from someone not in our roster. In this case, we display
+        # only the maximum information from the message we can get.
         g_lock.acquire()
         self.win.erase()
-        self.write_room_name(contact)
+        self.write_room_name(contact, room)
         self.print_scroll_position(room)
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.win.refresh()
         g_lock.release()
 
-    def write_room_name(self, contact):
-        txt = '%s' % contact.get_jid().bare
+    def write_room_name(self, contact, room):
+        if not contact:
+            txt = '%s' % room.name
+        else:
+            txt = '%s' % contact.get_jid().bare
         self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):

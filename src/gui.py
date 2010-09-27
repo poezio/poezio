@@ -928,8 +928,7 @@ class Gui(object):
                         is_jid(self.current_tab().get_name()):
                     room += '@%s' % jid_get_domain(self.current_tab().get_name())
                 else:           # no server could be found, print a message and return
-                    # self.add_message_to_text_buffer(self.current_room(), _("You didn't specify a server for the room you want to join"))
-                    # TODO INFO
+                    self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
         r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
