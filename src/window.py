@@ -254,21 +254,19 @@ class ConversationInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
-    def refresh(self, room):
+    def refresh(self, room, contact):
         if not self.visible:
             return
         g_lock.acquire()
         self.win.erase()
-        self.write_room_name(room)
+        self.write_room_name(contact)
         self.print_scroll_position(room)
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.win.refresh()
         g_lock.release()
 
-    def write_room_name(self, room):
-        # (room_name, nick) = room.name.split('/', 1)
-        # self.addnstr(nick, len(nick), curses.color_pair(13))
-        txt = '%s' % room.name
+    def write_room_name(self, contact):
+        txt = '%s' % contact.get_jid().bare
         self.addnstr(txt, len(txt), curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
@@ -951,7 +949,7 @@ class RosterWin(Win):
                   'chat':theme.COLOR_STATUS_CHAT,
                   'unavailable': theme.COLOR_STATUS_UNAVAILABLE
                   }
-
+    # subscription_char = {'both': '
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
@@ -1000,6 +998,8 @@ class RosterWin(Win):
             if y >= self.start_pos:
                 self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
             y += 1
+            if group.folded:
+                continue
             for contact in group.get_contacts():
                 if y-1 == self.pos:
                     self.selected_row = contact
@@ -1022,7 +1022,7 @@ class RosterWin(Win):
         Draw the indicator that shows that
         the list is longer that what is displayed
         """
-        self.win.addstr(y, self.width-4, '+++', curses.color_pair(42))
+        self.win.addstr(y, self.width-5, '++++', curses.color_pair(42))
 
     def draw_roster_information(self, roster):
         """
@@ -1035,9 +1035,14 @@ class RosterWin(Win):
         Draw a groupname on a line
         """
         if colored:
-            self.addstr(y, 0, group.name, curses.color_pair(34))
+            self.win.attron(curses.color_pair(14))
+        if group.folded:
+            self.addstr(y, 0, '[+] ')
         else:
-            self.addstr(y, 0, group.name)
+            self.addstr(y, 0, '[-] ')
+        self.addstr(y, 4, group.name)
+        if colored:
+            self.win.attroff(curses.color_pair(14))
 
     def draw_contact_line(self, y, contact, colored):
         """
@@ -1046,11 +1051,16 @@ class RosterWin(Win):
         is currently selected contact in the list
         """
         color = RosterWin.color_show[contact.get_presence()]
-        self.win.addstr(y, 1, "!", curses.color_pair(color))
-        if colored:
-            self.win.addstr(y, 2, contact.get_jid().bare, curses.color_pair(34))
+        if contact.get_name():
+            display_name = '%s (%s)' % (contact.get_name(),
+                                        contact.get_jid().bare)
         else:
-            self.win.addstr(y, 2, contact.get_jid().bare)
+            display_name = '%s' % (contact.get_jid().bare,)
+        self.win.addstr(y, 1, " ", curses.color_pair(color))
+        if colored:
+            self.win.addstr(y, 4, display_name, curses.color_pair(14))
+        else:
+            self.win.addstr(y, 4, display_name)
 
     def get_selected_row(self):
         return self.selected_row

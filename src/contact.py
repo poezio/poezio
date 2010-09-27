@@ -22,7 +22,7 @@ class Contact(object):
     """
     def __init__(self, jid):
         self._jid = JID(jid)         # a SleekXMPP jid object
-        self._display_name = ''
+        self._display_name = None
         self._subscription = 'none'
         self._ask = None
         self._status = ''
@@ -51,3 +51,9 @@ class Contact(object):
 
     def get_presence(self):
         return self._presence
+
+    def set_name(self, name):
+        self._display_name = name
+
+    def get_name(self):
+        return self._display_name

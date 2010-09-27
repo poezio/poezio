@@ -27,6 +27,7 @@ MIN_HEIGHT = 16
 
 import window
 import theme
+from roster import RosterGroup
 
 from common import debug
 
@@ -422,8 +423,8 @@ class RosterInfoTab(Tab):
         pass
 
     def on_enter(self):
-        debug('%s\n' % (self.roster_win.get_selected_row()))
-        return self.roster_win.get_selected_row()
+        selected_row = self.roster_win.get_selected_row()
+        return selected_row
 
 class ConversationTab(Tab):
     """
@@ -447,9 +448,9 @@ class ConversationTab(Tab):
         self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
         self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
 
-    def refresh(self, tabs, informations, _):
+    def refresh(self, tabs, informations, roster):
         self.text_win.refresh(self._room)
-        self.info_header.refresh(self._room)
+        self.info_header.refresh(self._room, roster.get_contact_by_jid(self._room.name))
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -485,7 +486,7 @@ class ConversationTab(Tab):
 
     def on_info_win_size_changed(self, size, stdscr):
         self.info_win_size = size
-        self.text_win.resize(self.height-2, self.width, 0, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
 

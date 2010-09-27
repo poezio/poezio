@@ -38,7 +38,7 @@ from config import config
 from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
 from user import User
 from room import Room
-from roster import Roster
+from roster import Roster, RosterGroup
 from contact import Contact
 from message import Message
 from text_buffer import TextBuffer
@@ -427,6 +427,11 @@ class Gui(object):
         self.refresh_window()
         doupdate()
 
+    def focus_tab_named(self, tab_name):
+        for tab in self.tabs:
+            if tab.get_name() == tab_name:
+                self.command_win('%s' % (tab.nb,))
+
     def on_normal_message(self, message):
         """
         When receiving "normal" messages (from someone in our roster)
@@ -469,6 +474,10 @@ class Gui(object):
                 contact.set_ask(item.attrib['ask'])
             else:
                 contact.set_ask(None)
+            if 'name' in item.attrib:
+                contact.set_name(item.attrib['name'])
+            else:
+                contact.set_name(None)
             if item.attrib['subscription']:
                 contact.set_subscription(item.attrib['subscription'])
             groups = item.findall('{jabber:iq:roster}group')
@@ -925,10 +934,9 @@ class Gui(object):
         r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
-        # TODO
-        # if r and r.joined:       # if we are already in the room
-        #     self.command_win('%s' % (r.nb))
-        #     return
+        if r and r.joined:       # if we are already in the room
+            self.focus_tab_named(r.name)
+            return
         room = room.lower()
         if r and not r.joined:
             self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
@@ -1262,7 +1270,7 @@ class Gui(object):
             return
         if key in ('^J', '\n') and isinstance(res, str):
             self.execute(res)
-        else:
+        else :
             # we did "enter" with an empty input in the roster
             self.on_roster_enter_key(res)
 
@@ -1271,18 +1279,13 @@ class Gui(object):
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            r = Room(roster_row.get_jid().full, self.xmpp.fulljid)
-            new_tab = ConversationTab(self.stdscr, r, self.information_win_size)
-            debug('%s\n'% new_tab)
-            # insert it in the tabs
-            if self.current_tab().nb == 0:
-                self.tabs.append(new_tab)
+            if not self.get_conversation_by_jid(roster_row.get_jid().bare):
+                self.open_conversation_window(roster_row.get_jid().bare)
             else:
-                for ta in self.tabs:
-                    if ta.nb == 0:
-                        self.tabs.insert(self.tabs.index(ta), new_tab)
-                        break
-            self.refresh_window()
+                self.focus_tab_named(roster_row.get_jid().bare)
+        elif isinstance(roster_row, RosterGroup):
+            roster_row.folded = not roster_row.folded
+        self.refresh_window()
 
     def execute(self,line):
         """

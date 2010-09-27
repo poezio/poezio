@@ -84,24 +84,6 @@ class Roster(object):
         self._roster_groups.append(new_group)
         new_group.add_contact(contact)
 
-    # def ordered_by_group(self, dic_roster, order):
-    #     # ordered by contact
-    #     for jid in dic_roster:
-    #         if not dic_roster[jid]['in_roster']:
-    #             continue
-    #         self.contact_number += 1
-    #         groups=dic_roster[jid]['groups']
-    #         if not groups:
-    #             groups = ['(none)']
-    #         new_contact = Contact(jid, name=dic_roster[jid]['name'],
-    #                               groups=groups,
-    #                               subscription=dic_roster[jid]['subscription'],
-    #                               presence=dic_roster[jid]['presence'])
-    #         for group in groups:
-    #             self.add_contact_to_group(group, new_contact)
-    #         # debug('Jid:%s, (%s)\n' % (jid, dic_roster[jid]))
-    #     debug('\n')
-
     def get_groups(self):
         return self._roster_groups
 
