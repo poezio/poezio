@@ -20,11 +20,12 @@ install:
 	$(INSTALL) -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
 
 	$(CP) -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
-	$(CHMOD) 644 -R $(DESTDIR)$(DATADIR)/poezio/data/
+	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
+	$(CHMOD) 655 -R $(DESTDIR)$(DATADIR)/poezio/data/
 
-	$(INSTALL) -m644 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
+	$(INSTALL) -m655 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
 	for sourcefile in `find src/ -maxdepth 1 -type f -name \*.py` ; do \
-		$(INSTALL) -m644 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
+		$(INSTALL) -m655 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
 	done
 
 	echo "#!/usr/bin/env sh" > $(DESTDIR)$(BINDIR)/poezio
