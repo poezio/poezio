@@ -211,7 +211,7 @@ class Gui(object):
                 nick = config.get('default_nick', '')
                 if nick == '':
                     nick = default
-            self.open_new_room(roomname, nick)
+            self.open_new_room(roomname, nick, False)
             muc.join_groupchat(self.xmpp, roomname, nick)
         # if not self.xmpp.anon:
         # Todo: SEND VCARD

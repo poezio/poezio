@@ -298,7 +298,7 @@ class PrivateTab(Tab):
         Tab.__init__(self, stdscr)
         self.info_win_size = info_win_size
         self._room = room
-        self.text_win = window.TextWin(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.text_win = window.TextWin(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header = window.PrivateInfoWin(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win = window.TextWin(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
         self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
@@ -306,7 +306,7 @@ class PrivateTab(Tab):
 
     def resize(self, stdscr):
         Tab.resize(self, stdscr)
-        self.text_win.resize(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
         self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
@@ -350,9 +350,9 @@ class PrivateTab(Tab):
 
     def on_info_win_size_changed(self, size, stdscr):
         self.info_win_size = size
-        self.text_win.resize(self.height-2, self.width, 0, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
+        self.info_win.resize(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
 
     def get_room(self):
         return self._room
@@ -434,7 +434,7 @@ class ConversationTab(Tab):
         Tab.__init__(self, stdscr)
         self.info_win_size = info_win_size
         self._room = room
-        self.text_win = window.TextWin(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.text_win = window.TextWin(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header = window.ConversationInfoWin(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win = window.TextWin(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
         self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
@@ -442,7 +442,7 @@ class ConversationTab(Tab):
 
     def resize(self, stdscr):
         Tab.resize(self, stdscr)
-        self.text_win.resize(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
         self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
@@ -486,9 +486,9 @@ class ConversationTab(Tab):
 
     def on_info_win_size_changed(self, size, stdscr):
         self.info_win_size = size
-        self.text_win.resize(self.height-2-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-3-self.info_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.info_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
+        self.info_win.resize(self.info_win_size, self.width, self.height-2-self.info_win_size, 0, stdscr, self.visible)
 
     def get_room(self):
         return self._room
