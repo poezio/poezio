@@ -112,25 +112,24 @@ class UserList(Win):
     def refresh(self, users):
         if not self.visible:
             return
-        g_lock.acquire()
-        self.win.erase()
-        y = 0
-        for user in sorted(users):
-            if not user.role in self.color_role:
-                role_col = theme.COLOR_USER_NONE
-            else:
-                role_col = self.color_role[user.role]
-            if not user.show in self.color_show:
-                show_col = theme.COLOR_STATUS_NONE
-            else:
-                show_col = self.color_show[user.show]
-            self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
-            self.addnstr(y, 1, user.nick, self.width-2, curses.color_pair(role_col))
-            y += 1
-            if y == self.height:
-                break
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            y = 0
+            for user in sorted(users):
+                if not user.role in self.color_role:
+                    role_col = theme.COLOR_USER_NONE
+                else:
+                    role_col = self.color_role[user.role]
+                if not user.show in self.color_show:
+                    show_col = theme.COLOR_STATUS_NONE
+                else:
+                    show_col = self.color_show[user.show]
+                self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
+                self.addnstr(y, 1, user.nick, self.width-2, curses.color_pair(role_col))
+                y += 1
+                if y == self.height:
+                    break
+            self.win.refresh()
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -152,16 +151,15 @@ class Topic(Win):
     def refresh(self, topic):
         if not self.visible:
             return
-        g_lock.acquire()
-        self.win.erase()
-        self.addnstr(0, 0, topic[:self.width-1], self.width-1, curses.color_pair(theme.COLOR_TOPIC_BAR))
-        (y, x) = self.win.getyx()
-        remaining_size = self.width - x
-        if remaining_size:
-            self.addnstr(' '*remaining_size, remaining_size,
-                         curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            self.addnstr(0, 0, topic[:self.width-1], self.width-1, curses.color_pair(theme.COLOR_TOPIC_BAR))
+            (y, x) = self.win.getyx()
+            remaining_size = self.width - x
+            if remaining_size:
+                self.addnstr(' '*remaining_size, remaining_size,
+                             curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.win.refresh()
 
 class GlobalInfoBar(Win):
     def __init__(self, height, width, y, x, parent_win, visible):
@@ -178,26 +176,25 @@ class GlobalInfoBar(Win):
             # return a.nb - b.nb
             return a.nb
         comp = lambda x: x.nb
-        g_lock.acquire()
-        self.win.erase()
-        self.addnstr(0, 0, "[", self.width
-                         ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        sorted_tabs = sorted(tabs, key=comp)
-        for tab in sorted_tabs:
-            color = tab.get_color_state()
-            try:
-                self.addstr("%s" % str(tab.nb), curses.color_pair(color))
-                self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
-            except:             # end of line
-                break
-        (y, x) = self.win.getyx()
-        self.addnstr(y, x-1, '] ', 2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        (y, x) = self.win.getyx()
-        remaining_size = self.width - x
-        self.addnstr(' '*remaining_size, remaining_size,
-                     curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            self.addnstr(0, 0, "[", self.width
+                             ,curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            sorted_tabs = sorted(tabs, key=comp)
+            for tab in sorted_tabs:
+                color = tab.get_color_state()
+                try:
+                    self.addstr("%s" % str(tab.nb), curses.color_pair(color))
+                    self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                except:             # end of line
+                    break
+            (y, x) = self.win.getyx()
+            self.addnstr(y, x-1, '] ', 2, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            (y, x) = self.win.getyx()
+            remaining_size = self.width - x
+            self.addnstr(' '*remaining_size, remaining_size,
+                         curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.win.refresh()
 
 class InfoWin(Win):
     """
@@ -232,13 +229,12 @@ class PrivateInfoWin(InfoWin):
     def refresh(self, room):
         if not self.visible:
             return
-        g_lock.acquire()
-        self.win.erase()
-        self.write_room_name(room)
-        self.print_scroll_position(room)
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            self.write_room_name(room)
+            self.print_scroll_position(room)
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.win.refresh()
 
     def write_room_name(self, room):
         (room_name, nick) = room.name.split('/', 1)
@@ -263,13 +259,12 @@ class ConversationInfoWin(InfoWin):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
-        g_lock.acquire()
-        self.win.erase()
-        self.write_room_name(contact, room)
-        self.print_scroll_position(room)
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            self.write_room_name(contact, room)
+            self.print_scroll_position(room)
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.win.refresh()
 
     def write_room_name(self, contact, room):
         if not contact:
@@ -292,16 +287,15 @@ class MucInfoWin(InfoWin):
     def refresh(self, room):
         if not self.visible:
             return
-        g_lock.acquire()
-        self.win.erase()
-        self.write_room_name(room)
-        self.write_own_nick(room)
-        self.write_disconnected(room)
-        self.write_role(room)
-        self.print_scroll_position(room)
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            self.write_room_name(room)
+            self.write_own_nick(room)
+            self.write_disconnected(room)
+            self.write_role(room)
+            self.print_scroll_position(room)
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.win.refresh()
 
     def write_room_name(self, room):
         """
@@ -424,32 +418,31 @@ class TextWin(Win):
             return
         if self.height <= 0:
             return
-        g_lock.acquire()
-        self.win.erase()
-        lines = self.build_lines_from_messages(room.messages)
-        if room.pos + self.height > len(lines):
-            room.pos = len(lines) - self.height
-            if room.pos < 0:
-                room.pos = 0
-        if room.pos != 0:
-            lines = lines[-self.height-room.pos:-room.pos]
-        else:
-            lines = lines[-self.height:]
-        y = 0
-        for line in lines:
-            self.win.move(y, 0)
-            if line == None:
-                self.write_line_separator()
+        with g_lock:
+            self.win.erase()
+            lines = self.build_lines_from_messages(room.messages)
+            if room.pos + self.height > len(lines):
+                room.pos = len(lines) - self.height
+                if room.pos < 0:
+                    room.pos = 0
+            if room.pos != 0:
+                lines = lines[-self.height-room.pos:-room.pos]
+            else:
+                lines = lines[-self.height:]
+            y = 0
+            for line in lines:
+                self.win.move(y, 0)
+                if line == None:
+                    self.write_line_separator()
+                    y += 1
+                    continue
+                if line.time is not None:
+                    self.write_time(line.time)
+                if line.nickname is not None:
+                    self.write_nickname(line.nickname, line.nickname_color)
+                self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
                 y += 1
-                continue
-            if line.time is not None:
-                self.write_time(line.time)
-            if line.nickname is not None:
-                self.write_nickname(line.nickname, line.nickname_color)
-            self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-            y += 1
-        self.win.refresh()
-        g_lock.release()
+            self.win.refresh()
 
     def write_line_separator(self):
         """
@@ -907,12 +900,11 @@ class Input(Win):
         """
         Refresh the line onscreen, from the pos and pos_line
         """
-        g_lock.acquire()
-        self.clear_text()
-        self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-        self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.clear_text()
+            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+            self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
+            self.win.refresh()
 
     def refresh(self):
         if not self.visible:
@@ -932,10 +924,9 @@ class VerticalSeparator(Win):
         self.visible = visible
 
     def rewrite_line(self):
-        g_lock.acquire()
-        self.win.vline(0, 0, curses.ACS_VLINE, self.height, curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.vline(0, 0, curses.ACS_VLINE, self.height, curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+            self.win.refresh()
 
     def resize(self, height, width, y, x, stdscr, visible):
         self.visible = visible
@@ -995,36 +986,34 @@ class RosterWin(Win):
         """
         if not self.visible:
             return
-        g_lock.acquire()
-        # debug('Len roster: %s, pos: %s, startpos: %s\n(%s:%s)' % (len(roster), self.pos, self.start_pos, self.width, self.height))
-        self.roster_len = len(roster)
-        self.win.erase()
-        self.draw_roster_information(roster)
-        y = 1
-        for group in roster.get_groups():
-            if y-1 == self.pos:
-                self.selected_row = group
-            if y >= self.start_pos:
-                self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
-            y += 1
-            if group.folded:
-                continue
-            for contact in group.get_contacts():
+        with g_lock:
+            self.roster_len = len(roster)
+            self.win.erase()
+            self.draw_roster_information(roster)
+            y = 1
+            for group in roster.get_groups():
                 if y-1 == self.pos:
-                    self.selected_row = contact
+                    self.selected_row = group
+                if y >= self.start_pos:
+                    self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
+                y += 1
+                if group.folded:
+                    continue
+                for contact in group.get_contacts():
+                    if y-1 == self.pos:
+                        self.selected_row = contact
+                    if y-self.start_pos+1 == self.height:
+                        break
+                    if y >= self.start_pos:
+                        self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
+                    y += 1
                 if y-self.start_pos+1 == self.height:
                     break
-                if y >= self.start_pos:
-                    self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
-                y += 1
-            if y-self.start_pos+1 == self.height:
-                break
-        if self.start_pos > 1:
-            self.draw_plus(1)
-        if self.start_pos + self.height-2 < self.roster_len:
-            self.draw_plus(self.height-1)
-        self.win.refresh()
-        g_lock.release()
+            if self.start_pos > 1:
+                self.draw_plus(1)
+            if self.start_pos + self.height-2 < self.roster_len:
+                self.draw_plus(self.height-1)
+            self.win.refresh()
 
     def draw_plus(self, y):
         """
@@ -1101,11 +1090,10 @@ class ContactInfoWin(Win):
     def refresh(self, selected_row):
         if not self.visible:
             return
-        g_lock.acquire()
-        self.win.erase()
-        if isinstance(selected_row, RosterGroup):
-            self.draw_group_info(selected_row)
-        elif isinstance(selected_row, Contact):
-            self.draw_contact_info(selected_row)
-        self.win.refresh()
-        g_lock.release()
+        with g_lock:
+            self.win.erase()
+            if isinstance(selected_row, RosterGroup):
+                self.draw_group_info(selected_row)
+            elif isinstance(selected_row, Contact):
+                self.draw_contact_info(selected_row)
+            self.win.refresh()

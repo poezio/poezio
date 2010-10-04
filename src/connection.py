@@ -29,8 +29,6 @@ from logger import logger
 from handler import Handler
 from common import jid_get_node, jid_get_domain, is_jid_the_same
 
-import logging
-
 class Connection(sleekxmpp.ClientXMPP):
     """
     Receives everything from Jabber and emits the
