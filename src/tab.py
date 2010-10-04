@@ -369,7 +369,8 @@ class RosterInfoTab(Tab):
         self.v_separator = window.VerticalSeparator(self.height-2, 1, 0, roster_width, stdscr, self.visible)
         self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
         self.info_win = window.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
-        self.roster_win = window.RosterWin(self.height-2, roster_width, 0, 0, stdscr, self.visible)
+        self.roster_win = window.RosterWin(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
+        self.contact_info_win = window.ContactInfoWin(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
         self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
         self.set_color_state(theme.COLOR_TAB_NORMAL)
 
@@ -380,11 +381,13 @@ class RosterInfoTab(Tab):
         self.v_separator.resize(self.height-2, 1, 0, roster_width, stdscr, self.visible)
         self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
         self.info_win.resize(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
-        self.roster_win.resize(self.height-2, roster_width, 0, 0, stdscr, self.visible)
+        self.roster_win.resize(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
+        self.contact_info_win.resize(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
         self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
         self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
         self.v_separator.refresh()
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])

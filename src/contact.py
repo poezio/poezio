@@ -33,8 +33,14 @@ class Contact(object):
     def set_ask(self, ask):
         self._ask = ask
 
+    def get_ask(self):
+        return self._ask
+
     def set_subscription(self, sub):
         self._subscription = sub
+
+    def get_subscription(self, sub):
+        return self._subscription
 
     def get_jid(self):
         return self._jid
@@ -51,6 +57,12 @@ class Contact(object):
 
     def get_presence(self):
         return self._presence
+
+    def get_status(self):
+        return self._status
+
+    def set__status(self, s):
+        self._status = s
 
     def set_name(self, name):
         self._display_name = name

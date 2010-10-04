@@ -342,7 +342,7 @@ class Gui(object):
             if not jid.full:
                 leave_msg = _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}
             else:
-                leave_msg = _('%(spec)s "[%(nick)s]" (%(jid)s) has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full.replace('"', '\\"')}
+                leave_msg = _('%(spec)s "[%(nick)s]" "(%(jid)s)" has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full.replace('"', '\\"')}
             if status:
                 leave_msg += ' (%s)' % status
             self.add_message_to_text_buffer(room, leave_msg, colorized=True)

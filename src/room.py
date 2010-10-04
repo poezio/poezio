@@ -32,7 +32,7 @@ class Room(TextBuffer):
         self.name = name
         self.own_nick = nick
         self.color_state = theme.COLOR_TAB_NORMAL   # color used in RoomInfo
-        self.joined = False     # false until self presence is received
+        self.joined = False     # false until self presence is receied
         self.users = []         # User objects
         self.topic = ''
 

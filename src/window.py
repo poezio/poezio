@@ -27,6 +27,9 @@ from config import config
 
 from threading import Lock
 
+from contact import Contact
+from roster import RosterGroup
+
 from message import Line
 from tab import MIN_WIDTH, MIN_HEIGHT
 
@@ -1071,3 +1074,38 @@ class RosterWin(Win):
     def get_selected_row(self):
         return self.selected_row
 
+class ContactInfoWin(Win):
+    def __init__(self, height, width, y, x, parent_win, visible):
+        self.visible = visible
+        Win.__init__(self, height, width, y, x, parent_win)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr, visible)
+        self.visible = visible
+
+    def draw_contact_info(self, contact):
+        """
+        draw the contact information
+        """
+        self.addnstr(0, 0, contact.get_jid().full, len(contact.get_jid().full), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addnstr(' (%s)'%(contact.get_presence(),), len(contact.get_presence())+3, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
+
+    def draw_group_info(self, group):
+        """
+        draw the group information
+        """
+        self.addnstr(0, 0, group.name, len(group.name), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
+
+    def refresh(self, selected_row):
+        if not self.visible:
+            return
+        g_lock.acquire()
+        self.win.erase()
+        if isinstance(selected_row, RosterGroup):
+            self.draw_group_info(selected_row)
+        elif isinstance(selected_row, Contact):
+            self.draw_contact_info(selected_row)
+        self.win.refresh()
+        g_lock.release()

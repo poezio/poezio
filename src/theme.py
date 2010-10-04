@@ -157,11 +157,19 @@ if __name__ == '__main__':
     s = curses.initscr()
     curses.start_color()
     curses.use_default_colors()
-    for i in range(80):
+    init_colors()
+    for i in range(64):
+        s.attron(curses.color_pair(i) | curses.A_BOLD)
+        s.addstr(str(curses.color_pair(i) | curses.A_BOLD))
+        s.attroff(curses.color_pair(i) | curses.A_BOLD)
+        s.addstr(' ')
+    s.addstr('\n')
+    for i in range(64):
         s.attron(curses.color_pair(i))
         s.addstr(str(i))
         s.attroff(curses.color_pair(i))
         s.addstr(' ')
+
     s.refresh()
     s.getch()
     s.endwin()
