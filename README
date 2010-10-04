@@ -10,33 +10,40 @@
 Homepage:	http://poezio.eu
 Forge Page:	http://codingteam.net/projet/poezio
 
-Poezio is a console Jabber client. Its goal is to use anonymous
-connections to let the user join MultiUserChats. This way, the user
+Poezio is a console Jabber/XMPP client. Its goal is to use anonymous
+connections to simply let the user join MultiUserChats. This way, the user
 doesn't have to create a Jabber account, exactly like people are using
-IRC. It doesn't handle contact list at all.
-Poezio's commands are designed to be (if possible) like IRC
+IRC. Poezio's commands are designed to be (if possible) like IRC
 clients (weechat, irssi, etc).
+Since version 0.7, poezio can handle real Jabber accounts along with
+roster and one to one conversation, making it a full-featured console
+Jabber client, but still MultiUserChats-centered.
 
 =======================
 	Install
 =======================
-You need python (with argparse, optionnaly)
-and the xmpppy lib at the 0.5.0 version or higher.
+You need python 3.0 or higher, and the SleekXMPP python library.
+You can find my patched version at http://github.com/louiz/SleekXMPP until
+my changes (required to properly run poezio) are merged upstream.
 
 you can launch poezio with
 sh launch.sh
 
 or you can install it with (as root or with sudo)
 make install
-(`make uninstall` works, don't worry ;))
-you can then simply launch poezio
+(`make uninstall' works, don't worry ;))
+you can now simply launch `poezio'
 
 You can edit the config file (~/.config/poezio/poezio.cfg by default)
 or data/default_config.cfg (if you want to edit the config before the
 first launch)
 
-See the online documentation for more information:
+Please, see the online documentation for more information on installing,
+configuring or using poezio:
 http://codingteam.net/project/poezio/doc
+
+If you still have questions, or you're lost, don't hesitate to come
+talk to us directly on our Jabber chat room (see Contact section).
 
 Please DO report any bug you encounter and ask for any
 feature you want.
@@ -44,7 +51,7 @@ feature you want.
 =======================
 	Authors
 =======================
-Florent Le Coz (louiz') <louizatakk@fedoraproject.org> (main developper)
+Florent Le Coz (louiz') <louiz@louiz.org> (main developper)
 
 =======================
     Contact/support
@@ -70,68 +77,17 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 =======================
 = People =
  Link Mauve - Code (a little)
- Erwan Briand - Handler and MultiUserChat classes
+ Erwan Briand - Code
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  Ovart - Testing
- mathieui - Testing
+ mathieui - Testing, Makefile and Donation
  Gapan - Makefile
+ Koshie - Donation
 = Project =
  Gajim - send_vcard method and common.py
 
-======================
-       The code
-======================
-
-Classes:
-  - Connection *receives* messages from the Jabber network
-  - MultiUserChat *sends* messages to the Jabber network
-  - Gui displays everything on the screen and gets the user inputs
-  - Handler is the "link" between all these classes :
-a class emits a signal and the others classes listen to this signal
-and do what they have to do whenever this signal is emitted by any class
-
-Q: Why not use Connection to receive AND send the messages to Jabber network?
-A: I like it this way.
-
-Q: Could you please make a nice ASCII art, so I could understand all
-   the beauty and the complexity of this awesome software ?
-A: Of course, here it is:
-
-                 ___________________________
-                /                           \
-                |                           |
-                |     Jabber Network        |
-                |   (roomchats and people   |
-                |       inside them)        |
-                |                           |
-                \__________________________/
-                    |                   ^
-                    | receive     send  |          ____ Poezio ____
-                    v                   |
-           /----------------\   /-----------------\
-           |                |   |                 |
-           |   Connection   |   |  MultiUserChat  |
-           |                |   |                 |
-           \----------------/   \-----------------/
-                ^ |emit             emit | ^
-                | |      /---------\     | |
-       connect  \ \----> |         |<----/ / connect
-                 \______ | Handler |______/
-                         |         |
-                         \---------/
-                             | ^
-                     connect | | emit
-                             v |
-          /----------\   /---------\
-          |          |   |         |
-          |  Window  |<--|   Gui   |
-          |   etc    |   |         |
-          \----------/   \---------/
-              |               ^
-              |               | Keyboard
-              |               |
-              \          /---------\
-               \Screen   |         |
-                \        |   YOU   |
-                 ------->|         |
-                         \---------/
+=======================
+        Donate
+=======================
+If you're willing to thank me, or ask for an on-demand feature, please
+see the page http://louiz.org/donate.html and contact me.

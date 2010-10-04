@@ -1,5 +1,5 @@
 # Copyright 2009 chickenzilla
-# Copyright 2010 Le Coz Florent <louizatakk@fedoraproject.org>
+# Copyright 2010 Le Coz Florent <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
