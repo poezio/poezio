@@ -999,7 +999,10 @@ class Gui(object):
                 bookmarked.remove(room)
                 break
         bookmarked = ':'.join(bookmarked)
-        bookmarks = bookmarked+':'+res
+        if bookmarked:
+            bookmarks = bookmarked+':'+res
+        else:
+            bookmarks = res
         config.set_and_save('rooms', bookmarks)
         self.information(_('Your bookmarks are now: %s') % bookmarks)
 
