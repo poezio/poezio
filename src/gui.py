@@ -318,7 +318,7 @@ class Gui(object):
         by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
         reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
         by = by.attrib['jid'] if by is not None else None
-        reason = reason.text# if reason else ''
+        reason = reason.text if reason else ''
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             if by:
@@ -883,8 +883,6 @@ class Gui(object):
             args = shlex.split(arg)
         except ValueError as error:
             return self.information(str(error), _("Error"))
-        # TODO information message
-            # return self.add_message_to_text_buffer(self.current_room(), _("Error: %s") % (error))
         if len(args) < 1:
             self.command_help('kick')
             return
@@ -899,20 +897,6 @@ class Gui(object):
         res = muc.eject_user(self.xmpp, roomname, nick, reason)
         if res['type'] == 'error':
             self.room_error(res, roomname)
-
-    # def command_say(self, arg):
-    #     """
-    #     /say <message>
-    #     """
-    #     line = arg
-    #     if self.current_room().name != 'Info':
-    #         if self.current_room().jid is not None:
-    #             muc.send_private_message(self.xmpp, self.current_room().name, line)
-    #             self.add_message_to_text_buffer(self.current_room(), line, None, self.current_room().own_nick)
-    #         else:
-    #             muc.send_groupchat_message(self.xmpp, self.current_room().name, line)
-    #     self.window.input.refresh()
-    #     doupdate()
 
     def command_join(self, arg):
         """
