@@ -25,6 +25,7 @@ import re
 import sys
 import shlex
 import curses
+import threading
 import webbrowser
 
 from datetime import datetime
@@ -65,6 +66,9 @@ SHOW_NAME = {
     'chat': _('chatty'),
     '': _('available')
     }
+
+resize_lock = threading.Lock()
+
 def doupdate():
     curses.doupdate()
 
@@ -86,6 +90,7 @@ class Gui(object):
         self.information_buffer = TextBuffer()
         self.information_win_size = 2 # Todo, get this from config
         self.ignores = {}
+        self.resize_timer = None
 
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
@@ -129,7 +134,7 @@ class Gui(object):
             "KEY_F(7)": self.shrink_information_win,
             "KEY_F(8)": self.grow_information_win,
             "^N": self.rotate_rooms_right,
-            "KEY_RESIZE": self.resize_window,
+            "KEY_RESIZE": self.call_for_resize,
             '^X': self.go_to_important_room,
             '^V': self.move_separator,
             }
@@ -486,13 +491,31 @@ class Gui(object):
             # TODO refresh roster_win only
             self.refresh_window()
 
+    def call_for_resize(self):
+        """
+        Starts a very short timer. If no other terminal resize
+        occured in this delay then poezio is REALLY resize.
+        This is to avoid multiple unnecessary software resizes (this
+        can be heavy on resource on slow computers or networks)
+        """
+        with resize_lock:
+            if self.resize_timer:
+                # a recent terminal resize occured.
+                # Cancel the programmed software resize
+                self.resize_timer.cancel()
+            # add the new timer
+            self.resize_timer = threading.Timer(0.15, self.resize_window)
+            self.resize_timer.start()
+
     def resize_window(self):
         """
         Resize the whole screen
         """
-        for tab in self.tabs:
-            tab.resize(self.stdscr)
-        self.refresh_window()
+        with resize_lock:
+            self.resize_timer = None
+            for tab in self.tabs:
+                tab.resize(self.stdscr)
+            self.refresh_window()
 
     def main_loop(self):
         """
