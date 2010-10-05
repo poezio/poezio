@@ -178,7 +178,7 @@ class Gui(object):
         if not contact:
             return
         contact.set_presence('unavailable')
-        self.information('%s is not offline' % (contact.get_jid()), "Roster")
+        self.information('%s is offline' % (contact.get_jid()), "Roster")
 
     def on_got_online(self, presence):
         jid = presence['from']
@@ -189,7 +189,7 @@ class Gui(object):
         priority = presence.getPriority()
         contact.set_presence(status)
         contact.set_priority(priority)
-        self.information("%s is now online (%s)" % (contact.get_jid(), status), "Roster")
+        self.information("%s is online (%s)" % (contact.get_jid(), status), "Roster")
 
     def on_connected(self, event):
         """
