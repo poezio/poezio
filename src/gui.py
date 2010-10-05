@@ -91,6 +91,7 @@ class Gui(object):
         self.information_win_size = 2 # Todo, get this from config
         self.ignores = {}
         self.resize_timer = None
+        self.previous_tab_nb = 0
 
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
@@ -136,6 +137,8 @@ class Gui(object):
             "^N": self.rotate_rooms_right,
             "KEY_RESIZE": self.call_for_resize,
             '^X': self.go_to_important_room,
+            'M-r': self.go_to_roster,
+            '^W': self.go_to_previous_tab,
             '^V': self.move_separator,
             }
 
@@ -603,6 +606,12 @@ class Gui(object):
             self.command_win("%s" % new_tab.nb)
         self.refresh_window()
 
+    def go_to_roster(self):
+        self.command_win('0')
+
+    def go_to_previous_tab(self):
+        self.command_win('%s' % (self.previous_tab_nb,))
+
     def go_to_important_room(self):
         """
         Go to the next room with activity, in this order:
@@ -866,6 +875,7 @@ class Gui(object):
             return
         if self.current_tab().nb == nb:
             return
+        self.previous_tab_nb = self.current_tab().nb
         self.current_tab().on_lose_focus()
         start = self.current_tab()
         self.tabs.append(self.tabs.pop(0))
