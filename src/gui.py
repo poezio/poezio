@@ -342,6 +342,9 @@ class Gui(object):
         When an user leaves a groupchat
         """
         room.users.remove(user)
+        if room.own_nick == user.nick:
+            # We are now out of the room. Happens with some buggy (? not sure) servers
+            room.disconnect()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:
