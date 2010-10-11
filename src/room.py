@@ -97,6 +97,9 @@ class Room(TextBuffer):
         in the room anymore
         """
         self.log_message(txt, time, nickname)
+        if txt.startswith('/me'):
+            txt = "* " + nickname + ' ' + txt[4:]
+            nickname = None
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
