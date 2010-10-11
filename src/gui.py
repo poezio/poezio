@@ -776,11 +776,8 @@ class Gui(object):
                 self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
             room.topic = subject.replace('\n', '|')
         elif body:
-            if body.startswith('/me '):
-                self.add_message_to_text_buffer(room, "* "+nick_from + ' ' + body[4:], date)
-            else:
-                date = date if delayed == True else None
-                self.add_message_to_text_buffer(room, body, date, nick_from)
+            date = date if delayed == True else None
+            self.add_message_to_text_buffer(room, body, date, nick_from)
         self.refresh_window()
         doupdate()
 
