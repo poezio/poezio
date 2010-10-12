@@ -77,12 +77,12 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 =======================
 = People =
  Link Mauve - Code (a little)
- Erwan Briand - Code
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  Ovart - Testing
  mathieui - Testing, Makefile, Documentation and Donation
  Gapan - Makefile
  Koshie - Donation
+ FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
 = Project =
  Gajim - send_vcard method and common.py
 
