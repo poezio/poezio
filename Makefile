@@ -4,7 +4,6 @@ BINDIR=$(prefix)/bin
 DATADIR=$(prefix)/share
 LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
-INSTALL=/bin/install
 CP=/bin/cp
 CHMOD=/bin/chmod
 
@@ -17,15 +16,15 @@ clean:
 
 install:
 	mkdir -p $(DESTDIR)
-	$(INSTALL) -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
+	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
 
 	$(CP) -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
 	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
 	$(CHMOD) 655 -R $(DESTDIR)$(DATADIR)/poezio/data/
 
-	$(INSTALL) -m655 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
+	install -m644 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
 	for sourcefile in `find src/ -maxdepth 1 -type f -name \*.py` ; do \
-		$(INSTALL) -m655 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
+		install -m644 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
 	done
 
 	echo "#!/usr/bin/env sh" > $(DESTDIR)$(BINDIR)/poezio
