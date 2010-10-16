@@ -474,7 +474,7 @@ class Gui(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
-        debug('Roster Update: \n%s\n\n' % iq)
+        # debug('Roster Update: \n%s\n\n' % iq)
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
             contact = self.roster.get_contact_by_jid(jid)
