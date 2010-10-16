@@ -109,7 +109,6 @@ def init_colors():
     """
     curses.start_color()
     curses.use_default_colors()
-    curses.curs_set(0)
     cpt = 0
     for i in range(-1, 7):
         for y in range(0, 8):
