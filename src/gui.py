@@ -569,7 +569,6 @@ class Gui(object):
         """
         theme.init_colors()
         curses.noecho()
-        curses.curs_set(0)
         stdscr.keypad(True)
 
     def reset_curses(self):

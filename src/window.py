@@ -877,7 +877,7 @@ class Input(Win):
         with g_lock:
             self.clear_text()
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
+            # self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
             self.win.refresh()
 
     def refresh(self):

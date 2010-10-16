@@ -4,8 +4,6 @@ BINDIR=$(prefix)/bin
 DATADIR=$(prefix)/share
 LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
-CP=/bin/cp
-CHMOD=/bin/chmod
 
 all: Makefile
 
@@ -15,12 +13,11 @@ clean:
 	find ./ -name "#*#" -delete
 
 install:
-	mkdir -p $(DESTDIR)
-	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src/xmpp $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
+	mkdir -p $(DESTDIR)$(prefix)
+	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
 
-	$(CP) -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
+	cp -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
 	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
-	$(CHMOD) 655 -R $(DESTDIR)$(DATADIR)/poezio/data/
 
 	install -m644 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
 	for sourcefile in `find src/ -maxdepth 1 -type f -name \*.py` ; do \
