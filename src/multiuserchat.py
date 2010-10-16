@@ -49,7 +49,7 @@ def change_show(xmpp, jid, own_nick, show, status):
     Change our 'Show'
     """
     pres = xmpp.makePresence(pto='%s/%s' % (jid, own_nick),
-                             pfrom=xmpp.fulljid)
+                             pfrom=xmpp.boundjid.full)
     if show: # if show is None, don't put a <show /> tag. It means "online"
         pres['type'] = show
     if status:
@@ -64,7 +64,7 @@ def change_subject(xmpp, jid, subject):
     msg = xmpp.makeMessage(jid)
     msg['type'] = 'groupchat'
     msg['subject'] = subject
-    msg['from'] = xmpp.jid
+    msg['from'] = xmpp.boundjid.bare
     msg.send()
 
 def change_nick(xmpp, jid, nick):
@@ -72,7 +72,7 @@ def change_nick(xmpp, jid, nick):
     Change our own nick in a room
     """
     xmpp.makePresence(pto='%s/%s' % (jid, nick),
-                            pfrom=xmpp.jid).send()
+                            pfrom=xmpp.boundjid.bare).send()
 
 def join_groupchat(xmpp, jid, nick, password=None):
     """

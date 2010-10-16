@@ -27,7 +27,6 @@ import sleekxmpp
 from config import config
 from logger import logger
 from handler import Handler
-from common import jid_get_node, jid_get_domain, is_jid_the_same
 
 class Connection(sleekxmpp.ClientXMPP):
     """
@@ -35,23 +34,21 @@ class Connection(sleekxmpp.ClientXMPP):
     appropriate signals
     """
     def __init__(self):
+        resource = config.get('resource', '')
         if config.get('jid', ''):
             self.anon = False  # Field used to know if we are anonymous or not.
             # many features will be handled diferently
             # depending on this setting
-            jid = config.get('jid', '')
+            jid = '%s/%s' % (config.get('jid', ''), resource)
             password = config.get('password', '')
-        else:                   # anonymous auth
+        else: # anonymous auth
             self.anon = True
-            jid = None
+            jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
-        sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True,
-                                      resource=config.get('resource', 'poezio'))
-
+        sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
         self.registerPlugin('xep_0045')
 
     def start(self):
         # TODO, try multiple servers
-        if self.connect((config.get('server', 'anon.louiz.org'),
-                      config.get('port', 5222))):
+        if self.connect((config.get('server', 'anon.louiz.org'), config.get('port', 5222))):
             self.process(threaded=True)

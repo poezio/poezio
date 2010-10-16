@@ -21,7 +21,7 @@ Starting point of poezio. Launches both the Connection and Gui
 """
 
 import os
-# chdir in the source directory, so that import are never failed
+# chdir in the source directory, to import the modules
 # also, no need to use a sh script to "cd" in this directoy
 # before launching poezio.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

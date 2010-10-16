@@ -44,7 +44,7 @@ from contact import Contact
 from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
-from common import is_jid_the_same, jid_get_domain, jid_get_resource, is_jid
+from common import jid_get_domain, is_jid
 
 from common import debug
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
@@ -196,13 +196,13 @@ class Gui(object):
         Called when we are connected and authenticated
         """
         self.information(_("Welcome on Poezio \o/!"))
-        self.information(_("Your JID is %s") % self.xmpp.fulljid)
+        self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
 
         if not self.xmpp.anon:
             # request the roster
             self.xmpp.getRoster()
             # send initial presence
-            self.xmpp.makePresence(pfrom=self.xmpp.jid).send()
+            self.xmpp.makePresence(pfrom=self.xmpp.boundjid.bare).send()
         rooms = config.get('rooms', '')
         if rooms == '' or not isinstance(rooms, str):
             return
@@ -426,7 +426,7 @@ class Gui(object):
         We received a Private Message (from someone in a Muc)
         """
         jid = message['from']
-        nick_from = jid.resource
+        nick_from = jid.boundjid.resource
         room_from = jid.bare
         room = self.get_room_by_name(jid.full) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
@@ -692,7 +692,7 @@ class Gui(object):
         """
         open a new conversation tab and focus it if needed
         """
-        r = Room(room_name, self.xmpp.fulljid)
+        r = Room(room_name, self.xmpp.boundjid.full)
         new_tab = ConversationTab(self.stdscr, r, self.information_win_size)
         # insert it in the rooms
         if self.current_tab().nb == 0:
