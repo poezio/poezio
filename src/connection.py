@@ -50,5 +50,9 @@ class Connection(sleekxmpp.ClientXMPP):
 
     def start(self):
         # TODO, try multiple servers
-        if self.connect((config.get('server', 'anon.louiz.org'), config.get('port', 5222))):
+        if self.anon:
+            domain = config.get('server', 'anon.louiz.org')
+        else:
+            _, domain = config.get('jid', '').split('@', 1)
+        if self.connect((domain, config.get('port', 5222))):
             self.process(threaded=True)
