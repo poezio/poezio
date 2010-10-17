@@ -69,9 +69,6 @@ SHOW_NAME = {
 
 resize_lock = threading.Lock()
 
-def doupdate():
-    curses.doupdate()
-
 class Gui(object):
     """
     User interface using ncurses
@@ -82,6 +79,7 @@ class Gui(object):
         self.xmpp = xmpp
         default_tab = InfoTab(self.stdscr, "Info") if self.xmpp.anon\
             else RosterInfoTab(self.stdscr)
+        default_tab.on_gain_focus()
         self.tabs = [default_tab]
         self.roster = Roster()
         # a unique buffer used to store global informations
@@ -281,7 +279,7 @@ class Gui(object):
             else:
                 self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
         self.refresh_window()
-        doupdate()
+        self.doupdate()
 
     def on_user_join(self, room, from_nick, affiliation, show, status, role, jid):
         """
@@ -426,7 +424,7 @@ class Gui(object):
         We received a Private Message (from someone in a Muc)
         """
         jid = message['from']
-        nick_from = jid.boundjid.resource
+        nick_from = jid.resource
         room_from = jid.bare
         room = self.get_room_by_name(jid.full) # get the tab with the private conversation
         if not room: # It's the first message we receive: create the tab
@@ -436,7 +434,7 @@ class Gui(object):
         body = message['body']
         self.add_message_to_text_buffer(room, body, None, nick_from)
         self.refresh_window()
-        doupdate()
+        self.doupdate()
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
@@ -504,14 +502,15 @@ class Gui(object):
         This is to avoid multiple unnecessary software resizes (this
         can be heavy on resource on slow computers or networks)
         """
-        with resize_lock:
-            if self.resize_timer:
-                # a recent terminal resize occured.
-                # Cancel the programmed software resize
-                self.resize_timer.cancel()
-            # add the new timer
-            self.resize_timer = threading.Timer(0.15, self.resize_window)
-            self.resize_timer.start()
+        # with resize_lock:
+            # if self.resize_timer:
+            #     # a recent terminal resize occured.
+            #     # Cancel the programmed software resize
+            #     self.resize_timer.cancel()
+            # # add the new timer
+            # self.resize_timer = threading.Timer(0.15, self.resize_window)
+            # self.resize_timer.start()
+        self.resize_window()
 
     def resize_window(self):
         """
@@ -529,7 +528,7 @@ class Gui(object):
         """
         self.refresh_window()
         while True:
-            doupdate()
+            self.doupdate()
             char=read_char(self.stdscr)
             # search for keyboard shortcut
             if char in list(self.key_func.keys()):
@@ -567,8 +566,10 @@ class Gui(object):
         """
         ncurses initialization
         """
-        theme.init_colors()
+        curses.curs_set(1)
         curses.noecho()
+        # curses.raw()
+        theme.init_colors()
         stdscr.keypad(True)
 
     def reset_curses(self):
@@ -586,7 +587,6 @@ class Gui(object):
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
         self.current_tab().refresh(self.tabs, self.information_buffer, self.roster)
-        doupdate()
 
     def open_new_room(self, room, nick, focus=True):
         """
@@ -778,7 +778,7 @@ class Gui(object):
             date = date if delayed == True else None
             self.add_message_to_text_buffer(room, body, date, nick_from)
         self.refresh_window()
-        doupdate()
+        self.doupdate()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, colorized=False):
         """
@@ -1334,4 +1334,7 @@ class Gui(object):
             self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.current_tab().get_room().own_nick)
         elif isinstance(self.current_tab(), MucTab):
             muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
-        doupdate()
+        self.doupdate()
+
+    def doupdate(self):
+        curses.doupdate()

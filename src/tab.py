@@ -27,6 +27,7 @@ MIN_HEIGHT = 16
 
 import window
 import theme
+import curses
 from roster import RosterGroup
 
 from common import debug
@@ -118,6 +119,14 @@ class Tab(object):
         """
         raise NotImplementedError
 
+    def just_before_refresh(self):
+        """
+        Method called just before the screen refresh.
+        Particularly useful to move the cursor at the
+        correct position.
+        """
+        raise NotImplementedError
+
 class InfoTab(Tab):
     """
     The information tab, used to display global informations
@@ -159,6 +168,7 @@ class InfoTab(Tab):
 
     def on_gain_focus(self):
         self.color_state = theme.COLOR_TAB_CURRENT
+        curses.curs_set(0)
 
     def on_scroll_up(self):
         pass
@@ -167,6 +177,9 @@ class InfoTab(Tab):
         pass
 
     def on_info_win_size_changed(self, size, stdscr):
+        return
+
+    def just_before_refresh(self):
         return
 
 class MucTab(Tab):
@@ -276,6 +289,7 @@ class MucTab(Tab):
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
+        curses.curs_set(1)
 
     def on_scroll_up(self):
         self._room.scroll_up(self.text_win.height-1)
@@ -289,6 +303,9 @@ class MucTab(Tab):
         self.text_win.resize(self.height-4-self.info_win_size, text_width, 1, 0, stdscr, self.visible)
         self.info_header.resize(1, (self.width//10)*9, self.height-3-self.info_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.info_win_size, (self.width//10)*9, self.height-2-self.info_win_size, 0, stdscr, self.visible)
+
+    def just_before_refresh(self):
+        self.input.move_cursor_to_pos()
 
 class PrivateTab(Tab):
     """
@@ -341,6 +358,7 @@ class PrivateTab(Tab):
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
+        curses.curs_set(1)
 
     def on_scroll_up(self):
         self._room.scroll_up(self.text_win.height-1)
@@ -356,6 +374,9 @@ class PrivateTab(Tab):
 
     def get_room(self):
         return self._room
+
+    def just_before_refresh(self):
+        return
 
 class RosterInfoTab(Tab):
     """
@@ -386,9 +407,9 @@ class RosterInfoTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
+        self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.v_separator.refresh()
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -412,6 +433,7 @@ class RosterInfoTab(Tab):
 
     def on_gain_focus(self):
         self._color_state = theme.COLOR_TAB_CURRENT
+        curses.curs_set(0)
 
     def add_message(self):
         return False
@@ -428,6 +450,9 @@ class RosterInfoTab(Tab):
     def on_enter(self):
         selected_row = self.roster_win.get_selected_row()
         return selected_row
+
+    def just_before_refresh(self):
+        return
 
 class ConversationTab(Tab):
     """
@@ -457,6 +482,7 @@ class ConversationTab(Tab):
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
+        curses.curs_set(1)
 
     def get_color_state(self):
         if self._room.color_state == theme.COLOR_TAB_NORMAL or\
@@ -495,3 +521,6 @@ class ConversationTab(Tab):
 
     def get_room(self):
         return self._room
+
+    def just_before_refresh(self):
+        return
