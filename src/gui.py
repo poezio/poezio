@@ -472,7 +472,6 @@ class Gui(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
-        # debug('Roster Update: \n%s\n\n' % iq)
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
             contact = self.roster.get_contact_by_jid(jid)
@@ -587,6 +586,7 @@ class Gui(object):
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
         self.current_tab().refresh(self.tabs, self.information_buffer, self.roster)
+        self.doupdate()
 
     def open_new_room(self, room, nick, focus=True):
         """
@@ -1337,4 +1337,5 @@ class Gui(object):
         self.doupdate()
 
     def doupdate(self):
+        self.current_tab().just_before_refresh()
         curses.doupdate()

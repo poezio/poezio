@@ -876,7 +876,7 @@ class Input(Win):
         with g_lock:
             self.clear_text()
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            # self.win.chgat(0, self.pos, 1, curses.A_REVERSE)
+            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't...
             self._refresh()
 
     def refresh(self):
@@ -891,9 +891,7 @@ class Input(Win):
         """
         move the cursor at the current pos
         """
-        from common import debug
-        debug('ALLO')
-        self._win.move(0, self.pos)
+        return
 
 class VerticalSeparator(Win):
     """
