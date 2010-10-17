@@ -27,15 +27,13 @@ from config import config
 
 from threading import Lock
 
-from contact import Contact
+from contact import Contact, Resource
 from roster import RosterGroup
 
 from message import Line
 from tab import MIN_WIDTH, MIN_HEIGHT
 
 import theme
-
-from common import debug
 
 g_lock = Lock()
 
@@ -255,11 +253,13 @@ class ConversationInfoWin(InfoWin):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
+        # Also, contact can be a resource, if we're talking to a
+        # specific resource.
         with g_lock:
             self._win.erase()
-            self.write_room_name(contact, room)
-            self.print_scroll_position(room)
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            # self.write_room_name(resource, room)
+            # self.print_scroll_position(room)
+            # self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
     def write_room_name(self, contact, room):
@@ -926,7 +926,7 @@ class RosterWin(Win):
                   'dnd':theme.COLOR_STATUS_DND,
                   'away':theme.COLOR_STATUS_AWAY,
                   'chat':theme.COLOR_STATUS_CHAT,
-                  'unavailable': theme.COLOR_STATUS_UNAVAILABLE
+                  'unavailable':theme.COLOR_STATUS_UNAVAILABLE
                   }
     # subscription_char = {'both': '
     def __init__(self, height, width, y, x, parent_win, visible):
@@ -971,6 +971,7 @@ class RosterWin(Win):
             self.draw_roster_information(roster)
             y = 1
             for group in roster.get_groups():
+                # This loop is really REALLY ugly :^)
                 if y-1 == self.pos:
                     self.selected_row = group
                 if y >= self.start_pos:
@@ -986,6 +987,15 @@ class RosterWin(Win):
                     if y >= self.start_pos:
                         self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
                     y += 1
+                    if not contact._folded:
+                        for resource in contact.get_resources():
+                            if y-1 == self.pos:
+                                self.selected_row = resource
+                            if y-self.start_pos+1 == self.height:
+                                break
+                            if y >= self.start_pos:
+                                self.draw_resource_line(y-self.start_pos+1, resource, y-1==self.pos)
+                            y += 1
                 if y-self.start_pos+1 == self.height:
                     break
             if self.start_pos > 1:
@@ -1023,21 +1033,46 @@ class RosterWin(Win):
 
     def draw_contact_line(self, y, contact, colored):
         """
-        Draw on a line all informations about one contact
+        Draw on a line all informations about one contact.
+        This is basically the highest priority resource's informations
         Use 'color' to draw the jid/display_name to show what is
-        is currently selected contact in the list
+        the currently selected contact in the list
         """
-        color = RosterWin.color_show[contact.get_presence()]
+        resource = contact.get_highest_priority_resource()
+        if not resource:
+            # There's no online resource
+            presence = 'unavailable'
+            folder = '   '
+            nb = ''
+        else:
+            presence = resource.get_presence()
+            folder = '[+]' if contact._folded else '[-]'
+            nb = '(%s)' % (contact.get_nb_resources(),)
+        color = RosterWin.color_show[presence]
         if contact.get_name():
-            display_name = '%s (%s)' % (contact.get_name(),
-                                        contact.get_jid().bare)
+            display_name = '%s (%s) %s' % (contact.get_name(),
+                                        contact.get_bare_jid(), nb,)
         else:
-            display_name = '%s' % (contact.get_jid().bare,)
+            display_name = '%s %s' % (contact.get_bare_jid(), nb,)
         self.addstr(y, 1, " ", curses.color_pair(color))
+        if resource:
+            self.addstr(y, 2, ' [+]' if contact._folded else ' [-]')
+        self.addstr(' ')
         if colored:
-            self.addstr(y, 4, display_name, curses.color_pair(14))
+            self.addstr(display_name, curses.color_pair(14))
         else:
-            self.addstr(y, 4, display_name)
+            self.addstr(display_name)
+
+    def draw_resource_line(self, y, resource, colored):
+        """
+        Draw a specific resource line
+        """
+        color = RosterWin.color_show[resource.get_presence()]
+        self.addstr(y, 4, " ", curses.color_pair(color))
+        if colored:
+            self.addstr(y, 6, resource.get_jid().full, curses.color_pair(14))
+        else:
+            self.addstr(y, 6, resource.get_jid().full)
 
     def get_selected_row(self):
         return self.selected_row
@@ -1051,12 +1086,17 @@ class ContactInfoWin(Win):
         self._resize(height, width, y, x, stdscr, visible)
         self.visible = visible
 
-    def draw_contact_info(self, contact):
+    def draw_contact_info(self, resource, jid=None):
         """
         draw the contact information
         """
-        self.addstr(0, 0, contact.get_jid().full, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(' (%s)'%(contact.get_presence(),), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        jid = jid or resource.get_jid().full
+        if resource:
+            presence = resource.get_presence()
+        else:
+            presence = 'unavailable'
+        self.addstr(0, 0, jid, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(' (%s)'%(presence,), curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def draw_group_info(self, group):
@@ -1074,5 +1114,8 @@ class ContactInfoWin(Win):
             if isinstance(selected_row, RosterGroup):
                 self.draw_group_info(selected_row)
             elif isinstance(selected_row, Contact):
+                self.draw_contact_info(selected_row.get_highest_priority_resource(),
+                                       selected_row.get_bare_jid())
+            elif isinstance(selected_row, Resource):
                 self.draw_contact_info(selected_row)
             self._refresh()

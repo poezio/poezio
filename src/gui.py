@@ -40,13 +40,12 @@ from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
 from user import User
 from room import Room
 from roster import Roster, RosterGroup
-from contact import Contact
+from contact import Contact, Resource
 from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
 from common import jid_get_domain, is_jid
 
-from common import debug
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
     '401': _('A password is required'),
@@ -148,7 +147,7 @@ class Gui(object):
         self.xmpp.add_event_handler("got_online" , self.on_got_online)
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
-        # self.xmpp.add_event_handler("presence", self.on_presence)
+        self.xmpp.add_event_handler("changed_status", self.on_presence)
 
     def grow_information_win(self):
         """
@@ -175,19 +174,28 @@ class Gui(object):
         contact = self.roster.get_contact_by_jid(jid.bare)
         if not contact:
             return
-        contact.set_presence('unavailable')
-        self.information('%s is offline' % (contact.get_jid()), "Roster")
+        resource = contact.get_resource_by_fulljid(jid.full)
+        assert resource
+        self.information('%s is offline' % (resource.get_jid()), "Roster")
+        contact.remove_resource(resource)
+        if isinstance(self.current_tab(), RosterInfoTab):
+            self.refresh_window()
 
     def on_got_online(self, presence):
         jid = presence['from']
         contact = self.roster.get_contact_by_jid(jid.bare)
         if not contact:
+            # Todo, handle presence comming from contacts not in roster
             return
+        resource = contact.get_resource_by_fulljid(jid.full)
+        assert not resource
+        resource = Resource(jid.full)
         status = presence['type']
-        priority = presence.getPriority()
-        contact.set_presence(status)
-        contact.set_priority(priority)
-        self.information("%s is online (%s)" % (contact.get_jid(), status), "Roster")
+        priority = presence.getPriority() or 0
+        resource.set_presence(status)
+        resource.set_priority(priority)
+        contact.add_resource(resource)
+        self.information("%s is online (%s)" % (resource.get_jid().full, status), "Roster")
 
     def on_connected(self, event):
         """
@@ -445,8 +453,6 @@ class Gui(object):
         """
         When receiving "normal" messages (from someone in our roster)
         """
-        from common import debug
-        debug('MESSAGE: %s\n' % (message))
         jid = message['from'].bare
         room = self.get_conversation_by_jid(jid)
         body = message['body']
@@ -463,9 +469,20 @@ class Gui(object):
     def on_presence(self, presence):
         """
         """
-        from common import debug
-        debug('Presence: %s\n' % (presence))
-        return
+        jid = presence['from']
+        # contact = ros
+        contact = self.roster.get_contact_by_jid(jid.bare)
+        if not contact:
+            return
+        resource = contact.get_resource_by_fulljid(jid.full)
+        if not resource:
+            return
+        status = presence['type']
+        priority = presence.getPriority() or 0
+        resource.set_presence(status)
+        resource.set_priority(priority)
+        if isinstance(self.current_tab(), RosterInfoTab):
+            self.refresh_window()
 
     def on_roster_update(self, iq):
         """
@@ -491,7 +508,6 @@ class Gui(object):
             groups = item.findall('{jabber:iq:roster}group')
             self.roster.edit_groups_of_contact(contact, [group.text for group in groups])
         if isinstance(self.current_tab(), RosterInfoTab):
-            # TODO refresh roster_win only
             self.refresh_window()
 
     def call_for_resize(self):
@@ -1297,12 +1313,16 @@ class Gui(object):
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            if not self.get_conversation_by_jid(roster_row.get_jid().bare):
-                self.open_conversation_window(roster_row.get_jid().bare)
+            # roster_row.toggle_folded()
+            if not self.get_conversation_by_jid(roster_row.get_bare_jid()):
+                self.open_conversation_window(roster_row.get_bare_jid())
             else:
-                self.focus_tab_named(roster_row.get_jid().bare)
-        elif isinstance(roster_row, RosterGroup):
-            roster_row.folded = not roster_row.folded
+                self.focus_tab_named(roster_row.get_bare_jid())
+        if isinstance(roster_row, Resource):
+            if not self.get_conversation_by_jid(roster_row.get_jid().full):
+                self.open_conversation_window(roster_row.get_jid().full)
+            else:
+                self.focus_tab_named(roster_row.get_jid().full)
         self.refresh_window()
 
     def execute(self,line):

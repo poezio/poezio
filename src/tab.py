@@ -29,8 +29,7 @@ import window
 import theme
 import curses
 from roster import RosterGroup
-
-from common import debug
+from contact import Contact, Resource
 
 class Tab(object):
     """
@@ -426,7 +425,10 @@ class RosterInfoTab(Tab):
     def on_input(self, key):
         if key in ('\n', '^J', '^M') and self.input.is_empty():
             return self.on_enter()
-        return self.input.do_command(key)
+        if key == ' ':
+            return self.on_space()
+        # In writting mode
+        # return self.input.do_command(key)
 
     def on_lose_focus(self):
         self._color_state = theme.COLOR_TAB_NORMAL
@@ -447,6 +449,12 @@ class RosterInfoTab(Tab):
     def on_info_win_size_changed(self, _, __):
         pass
 
+    def on_space(self):
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, RosterGroup) or\
+                isinstance(selected_row, Contact):
+            selected_row.toggle_folded()
+            return True
     def on_enter(self):
         selected_row = self.roster_win.get_selected_row()
         return selected_row
@@ -478,7 +486,7 @@ class ConversationTab(Tab):
 
     def refresh(self, tabs, informations, roster):
         self.text_win.refresh(self._room)
-        self.info_header.refresh(self._room, roster.get_contact_by_jid(self._room.name))
+        # self.info_header.refresh(self._room, roster.get_contact_by_jid(self._room.name))
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()

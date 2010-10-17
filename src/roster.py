@@ -14,13 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from contact import Contact
-
-from common import debug
+from contact import Contact, Resource
 
 class Roster(object):
     def __init__(self):
-        self._contacts = {}     # key = jid; value = Contact()
+        self._contacts = {}     # key = bare jid; value = Contact()
         self._roster_groups = []
 
     def add_contact(self, contact, jid):
@@ -97,6 +95,8 @@ class Roster(object):
             if not group.folded:
                 for contact in group.get_contacts():
                     l += 1
+                    if not contact._folded:
+                        l += contact.get_nb_resources()
         return l
 
     def __repr__(self):
@@ -115,10 +115,10 @@ class RosterGroup(object):
     Online/Offline or whatever
     """
     def __init__(self, name, folded=False):
-        # debug('New group: %s \n' % name)
         self._contacts = []
         self.name = name
         self.folded = folded    # if the group content is to be shown
+
     def is_empty(self):
         return len(self._contacts) == 0
 
@@ -143,3 +143,6 @@ class RosterGroup(object):
 
     def __repr__(self):
         return '<Roster_group: %s; %s>' % (self.name, self._contacts)
+
+    def toggle_folded(self):
+        self.folded = not self.folded
