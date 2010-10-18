@@ -970,10 +970,10 @@ class Gui(object):
             return
         room = room.lower()
         if r and not r.joined:
-            self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
+            muc.join_groupchat(self.xmpp, room, nick, password)
         if not r:   # if the room window exists, we don't recreate it.
             self.open_new_room(room, nick)
-            self.xmpp.plugin['xep_0045'].joinMUC(room, nick, password)
+            muc.join_groupchat(self.xmpp, room, nick, password)
         else:
             r.own_nick = nick
             r.users = []

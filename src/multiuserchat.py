@@ -74,11 +74,11 @@ def change_nick(xmpp, jid, nick):
     xmpp.makePresence(pto='%s/%s' % (jid, nick),
                             pfrom=xmpp.boundjid.bare).send()
 
-def join_groupchat(xmpp, jid, nick, password=''):
+def join_groupchat(xmpp, jid, nick, passwd=''):
     """
     Join the groupchat
     """
-    xmpp.plugin['xep_0045'].joinMUC(jid, nick, password)
+    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=None, password=passwd)
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """
