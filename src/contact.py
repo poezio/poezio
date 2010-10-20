@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from sleekxmpp.xmlstream.jid import JID
+from sleekxmpp.xmlstream.stanzabase import JID
 
 class Resource(object):
     """
