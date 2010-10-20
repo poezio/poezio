@@ -73,6 +73,7 @@ class Gui(object):
     User interface using ncurses
     """
     def __init__(self, xmpp):
+        self.running = True
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
@@ -542,7 +543,7 @@ class Gui(object):
         main loop waiting for the user to press a key
         """
         self.refresh_window()
-        while True:
+        while self.running:
             self.doupdate()
             char=read_char(self.stdscr)
             # search for keyboard shortcut
@@ -1293,8 +1294,8 @@ class Gui(object):
             if isinstance(tab, MucTab):
                 muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
         self.xmpp.disconnect()
+        self.running = False
         self.reset_curses()
-        sys.exit()
 
     def do_command(self, key):
         if not key:
