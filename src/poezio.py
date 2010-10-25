@@ -39,9 +39,9 @@ class MyStdErr(object):
         """
         self.old_stderr = sys.stderr
         sys.stderr = fd
-    def restaure(self):
+    def restore(self):
         """
-        Restaure the good ol' sys.stderr, because we need
+        Restore the good ol' sys.stderr, because we need
         it in order to print the tracebacks
         """
         sys.stderr.close()
@@ -54,7 +54,7 @@ def exception_handler(type_, value, trace):
     on any traceback: exit ncurses and print the traceback
     then exit the program
     """
-    my_stderr.restaure()
+    my_stderr.restore()
     try:
         curses.endwin()
         curses.echo()
