@@ -134,10 +134,10 @@ class Gui(object):
             "KEY_F(8)": self.grow_information_win,
             "^N": self.rotate_rooms_right,
             "KEY_RESIZE": self.call_for_resize,
-            '^X': self.go_to_important_room,
+            'M-e': self.go_to_important_room,
             'M-r': self.go_to_roster,
-            '^W': self.go_to_previous_tab,
-            '^V': self.move_separator,
+            'M-z': self.go_to_previous_tab,
+            'M-v': self.move_separator,
             }
 
         # Add handlers

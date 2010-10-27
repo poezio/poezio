@@ -145,12 +145,6 @@ def jid_get_bare(fulljid):
     """
     return '%s@%s' % (jid_get_domain(fulljid), jid_get_node(fulljid))
 
-def is_jid_the_same(a, b):
-    """
-    Compare two bare jids
-    """
-    return jid_get_bare(a) == jid_get_bare(a)
-
 DISTRO_INFO = {
         'Arch Linux': '/etc/arch-release',
         'Aurox Linux': '/etc/aurox-release',
