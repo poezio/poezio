@@ -28,6 +28,7 @@ MIN_HEIGHT = 16
 import window
 import theme
 import curses
+from config import config
 from roster import RosterGroup
 from contact import Contact, Resource
 
@@ -357,7 +358,10 @@ class PrivateTab(Tab):
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
-        curses.curs_set(1)
+        if not self.input.input_mode:
+            curses.curs_set(1)
+        else:
+            curses.curs_set(0)
 
     def on_scroll_up(self):
         self._room.scroll_up(self.text_win.height-1)
@@ -382,6 +386,16 @@ class RosterInfoTab(Tab):
     A tab, splitted in two, containing the roster and infos
     """
     def __init__(self, stdscr):
+        self.single_key_commands = {
+            "^J": self.on_enter,
+            "^M": self.on_enter,
+            "\n": self.on_enter,
+            ' ': self.on_space,
+            "/": self.on_slash,
+            "KEY_UP": self.move_cursor_up,
+            "KEY_DOWN": self.move_cursor_down,
+            "o": self.toggle_offline_show,
+            }
         Tab.__init__(self, stdscr)
         self.name = "Roster"
         roster_width = self.width//2
@@ -391,7 +405,7 @@ class RosterInfoTab(Tab):
         self.info_win = window.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
         self.roster_win = window.RosterWin(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
         self.contact_info_win = window.ContactInfoWin(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
-        self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible, False, "Enter commands with “/”. “o”: toggle offline show")
         self.set_color_state(theme.COLOR_TAB_NORMAL)
 
     def resize(self, stdscr):
@@ -423,12 +437,34 @@ class RosterInfoTab(Tab):
         self._color_state = color
 
     def on_input(self, key):
-        if key in ('\n', '^J', '^M') and self.input.is_empty():
-            return self.on_enter()
-        if key == ' ':
-            return self.on_space()
-        # In writting mode
-        # return self.input.do_command(key)
+        if self.input.input_mode:
+            ret = self.input.do_command(key)
+            # if the input is empty, go back to command mode
+            if self.input.is_empty():
+                self.input.input_mode = False
+                curses.curs_set(0)
+                self.input.rewrite_text()
+            return ret
+        if key in self.single_key_commands:
+            return self.single_key_commands[key]()
+
+    def toggle_offline_show(self):
+        """
+        Show or hide offline contacts
+        """
+        option = 'roster_show_offline'
+        if config.get(option, 'false') == 'false':
+            config.set_and_save(option, 'true')
+        else:
+            config.set_and_save(option, 'false')
+        return True
+    def on_slash(self):
+        """
+        '/' is pressed, we enter "input mode"
+        """
+        self.input.input_mode = True
+        curses.curs_set(1)
+        self.on_input("/") # we add the slash
 
     def on_lose_focus(self):
         self._color_state = theme.COLOR_TAB_NORMAL
@@ -440,11 +476,21 @@ class RosterInfoTab(Tab):
     def add_message(self):
         return False
 
-    def on_scroll_down(self):
+    def move_cursor_down(self):
         self.roster_win.move_cursor_down()
+        return True
+
+    def move_cursor_up(self):
+        self.roster_win.move_cursor_up()
+        return True
+
+    def on_scroll_down(self):
+        # Scroll info win
+        pass
 
     def on_scroll_up(self):
-        self.roster_win.move_cursor_up()
+        # Scroll info down
+        pass
 
     def on_info_win_size_changed(self, _, __):
         pass

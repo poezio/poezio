@@ -171,8 +171,6 @@ class Gui(object):
         self.refresh_window()
 
     def on_got_offline(self, presence):
-        from common import debug
-        debug('OFFLINE: %s\n' % presence)
         jid = presence['from']
         contact = self.roster.get_contact_by_jid(jid.bare)
         if not contact:
@@ -185,8 +183,6 @@ class Gui(object):
             self.refresh_window()
 
     def on_got_online(self, presence):
-        from common import debug
-        debug('ONLINE: %s\n' % presence)
         jid = presence['from']
         contact = self.roster.get_contact_by_jid(jid.bare)
         if not contact:
@@ -537,7 +533,7 @@ class Gui(object):
         Resize the whole screen
         """
         with resize_lock:
-            self.resize_timer = None
+           # self.resize_timer = None
             for tab in self.tabs:
                 tab.resize(self.stdscr)
             self.refresh_window()

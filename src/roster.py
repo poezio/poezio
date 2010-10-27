@@ -14,6 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+
+"""
+Defines the Roster and RosterGroup classes
+"""
+
+from config import config
 from contact import Contact, Resource
 
 class Roster(object):
@@ -29,9 +35,15 @@ class Roster(object):
         self._contacts[jid] = contact
 
     def get_contact_len(self):
+        """
+        Return the number of contacts in this group
+        """
         return len(self._contacts.keys())
 
     def get_contact_by_jid(self, jid):
+        """
+        Returns the contact with the given bare JID
+        """
         if jid in self._contacts:
             return self._contacts[jid]
         return None
@@ -42,15 +54,15 @@ class Roster(object):
         Add or remove RosterGroup if needed
         """
         # add the contact to each group he is in
-        if not len(groups):
+        # If the contact hasn't any group, we put her in
+        # the virtual default 'none' group
+        if not len(groups): 
             groups = ['none']
         for group in groups:
-            if group in contact._groups:
-                continue
-            else:
+            if group not in contact._groups:
                 # create the group if it doesn't exist yet
                 contact._groups.append(group)
-                self.add_contact_to_group(group, contact)
+            self.add_contact_to_group(group, contact)
         # remove the contact from each group he is not in
         for group in contact._groups:
             if group not in groups:
@@ -60,7 +72,7 @@ class Roster(object):
     def remove_contact_from_group(self, group_name, contact):
         """
         Remove the contact from the group.
-        Remove also the group if this makes it empty
+        Delete the group if this makes it empty
         """
         for group in self._roster_groups:
             if group.name == group_name:
@@ -76,28 +88,40 @@ class Roster(object):
         """
         for group in self._roster_groups:
             if group.name == group_name:
-                group.add_contact(contact)
+                if not group.has_contact(contact):
+                    group.add_contact(contact)
                 return
         new_group = RosterGroup(group_name)
         self._roster_groups.append(new_group)
         new_group.add_contact(contact)
 
     def get_groups(self):
+        """
+        Returns the list of groups
+        """
         return self._roster_groups
 
     def __len__(self):
         """
         Return the number of line that would be printed
+        for the whole roster
         """
-        l = 0
+        length = 0
         for group in self._roster_groups:
-            l += 1
+            if group.get_nb_connected_contacts() == 0:
+                continue
+            length += 1              # One for the group's line itself
             if not group.folded:
                 for contact in group.get_contacts():
-                    l += 1
+                    # We do not count the offline contacts (depending on config)
+                    if config.get('roster_show_offline', 'false') == 'false' and\
+                            contact.get_nb_resources() == 0:
+                        continue
+                    length += 1      # One for the contact's line
                     if not contact._folded:
-                        l += contact.get_nb_resources()
-        return l
+                        # One for each resource, if the contact is unfolded
+                        length += contact.get_nb_resources()
+        return length
 
     def __repr__(self):
         ret = '== Roster:\nContacts:\n'
@@ -107,6 +131,13 @@ class Roster(object):
         for group in self._roster_groups:
             ret += '%s\n' % (group,)
         return ret + '\n'
+
+PRESENCE_PRIORITY = {'unavailable': 0,
+                     'xa': 1,
+                     'away': 2,
+                     'dnd': 3,
+                     '': 4,
+                     'available': 4}
 
 class RosterGroup(object):
     """
@@ -121,6 +152,15 @@ class RosterGroup(object):
 
     def is_empty(self):
         return len(self._contacts) == 0
+
+    def has_contact(self, contact):
+        """
+        Return a bool, telling if the contact
+        is already in the group
+        """
+        if contact in self._contacts:
+            return True
+        return False
 
     def remove_contact(self, contact):
         """
@@ -139,10 +179,27 @@ class RosterGroup(object):
         self._contacts.append(contact)
 
     def get_contacts(self):
-        return self._contacts
+        def compare_contact(a):
+            if not a.get_highest_priority_resource():
+                return 0
+            show = a.get_highest_priority_resource().get_presence()
+            if show not in PRESENCE_PRIORITY:
+                return 5
+            return PRESENCE_PRIORITY[show]
+        return sorted(self._contacts, key=compare_contact, reverse=True)
+
+    def toggle_folded(self):
+        self.folded = not self.folded
 
     def __repr__(self):
         return '<Roster_group: %s; %s>' % (self.name, self._contacts)
 
-    def toggle_folded(self):
-        self.folded = not self.folded
+    def __len__(self):
+        return len(self._contacts)
+
+    def get_nb_connected_contacts(self):
+        l = 0
+        for contact in self._contacts:
+            if contact.get_highest_priority_resource():
+                l += 1
+        return l

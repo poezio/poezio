@@ -14,6 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+
+"""
+Defines the Resource and Contact classes
+"""
+
 from sleekxmpp.xmlstream.stanzabase import JID
 
 class Resource(object):
@@ -55,7 +60,7 @@ class Resource(object):
 class Contact(object):
     """
     This a way to gather multiple resources from the same bare JID.
-    This class contains zero or more esource class and useful methods
+    This class contains zero or more Resource object and useful methods
     to get the resource with the highest priority, etc
     """
     def __init__(self, bare_jid):
@@ -116,6 +121,7 @@ class Contact(object):
             if resource.get_jid().full == fulljid:
                 return resource
         return None
+
     def toggle_folded(self):
         """
         Fold if it's unfolded, and vice versa
@@ -148,7 +154,7 @@ class Contact(object):
 
     def get_resources(self):
         """
-        Return all resources
+        Return all resources, sorted by priority
         """
         compare_resources = lambda x: x.get_priority()
         return sorted(self._resources, key=compare_resources)

@@ -22,9 +22,6 @@ import sleekxmpp
 
 from xml.etree import cElementTree as ET
 
-
-from common import debug
-
 def send_private_message(xmpp, jid, line):
     """
     Send a private message
@@ -54,7 +51,6 @@ def change_show(xmpp, jid, own_nick, show, status):
         pres['type'] = show
     if status:
         pres['status'] = status
-    debug('Change presence: %s\n' % (pres))
     pres.send()
 
 def change_subject(xmpp, jid, subject):

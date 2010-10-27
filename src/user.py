@@ -31,7 +31,6 @@ class User(object):
     keep trace of an user in a Room
     """
     def __init__(self, nick, affiliation, show, status, role):
-        from common import debug
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)

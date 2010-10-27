@@ -518,8 +518,11 @@ class TextWin(Win):
 class Input(Win):
     """
     The line where text is entered
+    It can be in input mode or in commmand mode.
+    Command mode means that single_key_commands can be entered, handled
+    by the Tab object, while this input just displays an help text.
     """
-    def __init__(self, height, width, y, x, stdscr, visible):
+    def __init__(self, height, width, y, x, stdscr, visible, input_mode=True, help_text=''):
         self.key_func = {
             "KEY_LEFT": self.key_left,
             "M-D": self.key_left,
@@ -548,6 +551,8 @@ class Input(Win):
             }
 
         Win.__init__(self, height, width, y, x, stdscr)
+        self.input_mode = input_mode
+        self.help_text = help_text # the text displayed in command_mode
         self.visible = visible
         self.history = []
         self.text = ''
@@ -875,8 +880,12 @@ class Input(Win):
         """
         with g_lock:
             self.clear_text()
-            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't...
+            if self.input_mode:
+                self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+            else:
+                self.addstr(self.help_text, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
             self._refresh()
 
     def refresh(self):
@@ -928,7 +937,7 @@ class RosterWin(Win):
                   'chat':theme.COLOR_STATUS_CHAT,
                   'unavailable':theme.COLOR_STATUS_UNAVAILABLE
                   }
-    # subscription_char = {'both': '
+
     def __init__(self, height, width, y, x, parent_win, visible):
         self.visible = visible
         Win.__init__(self, height, width, y, x, parent_win)
@@ -967,10 +976,14 @@ class RosterWin(Win):
             return
         with g_lock:
             self.roster_len = len(roster)
+            while self.roster_len and self.pos >= self.roster_len:
+                self.move_cursor_up()
             self._win.erase()
             self.draw_roster_information(roster)
             y = 1
             for group in roster.get_groups():
+                if group.get_nb_connected_contacts() == 0:
+                    continue    # Ignore empty groups
                 # This loop is really REALLY ugly :^)
                 if y-1 == self.pos:
                     self.selected_row = group
@@ -980,6 +993,10 @@ class RosterWin(Win):
                 if group.folded:
                     continue
                 for contact in group.get_contacts():
+                    if config.get('roster_show_offline', 'false') == 'false' and\
+                            contact.get_nb_resources() == 0:
+                        continue
+
                     if y-1 == self.pos:
                         self.selected_row = contact
                     if y-self.start_pos+1 == self.height:
@@ -1007,7 +1024,7 @@ class RosterWin(Win):
     def draw_plus(self, y):
         """
         Draw the indicator that shows that
-        the list is longer that what is displayed
+        the list is longer than what is displayed
         """
         self.addstr(y, self.width-5, '++++', curses.color_pair(42))
 
