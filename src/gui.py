@@ -847,7 +847,7 @@ class Gui(object):
             for command in list(self.commands.keys()):
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
-        if len(args) == 1:
+        if len(args) >= 1:
             if args[0] in list(self.commands.keys()):
                 msg = self.commands[args[0]][1]
             else:
