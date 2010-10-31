@@ -28,7 +28,7 @@ from config import config
 from threading import Lock
 
 from contact import Contact, Resource
-from roster import RosterGroup
+from roster import RosterGroup, roster
 
 from message import Line
 from tab import MIN_WIDTH, MIN_HEIGHT
@@ -546,8 +546,8 @@ class Input(Win):
             'M-f': self.jump_word_right,
             "KEY_BACKSPACE": self.key_backspace,
             '^?': self.key_backspace,
-            '^J': self.get_text,
-            '\n': self.get_text,
+            '^J': self.on_enter,
+            '\n': self.on_enter,
             }
 
         Win.__init__(self, height, width, y, x, stdscr)
@@ -564,6 +564,51 @@ class Input(Win):
         self.hit_list = [] # current possible completion (normal)
         self.last_completion = None # Contains the last nickname completed,
                                     # if last key was a tab
+        # These are used when the user is entering a comand
+        self._on_cancel = None
+        self._on_terminate = None
+        self._instructions = ""  # a string displayed before the input, read-only
+
+    def on_enter(self):
+        """
+        Called when Enter is pressed
+        """
+        if not self._instructions:
+            return self.get_text()
+        self.on_terminate()
+        return True
+
+    def start_command(self, on_cancel, on_terminate, instructions):
+        """
+        Start a command, with an instruction, and two callbacks.
+        on_terminate is called when the command is successfull
+        on_cancel is called when the command is canceled
+        """
+        assert isinstance(instructions, str)
+        self._on_cancel = on_cancel
+        self._on_terminate = on_terminate
+        self._instructions = instructions
+
+    def cancel_command(self):
+        """
+        Call it to cancel the current command
+        """
+        self._on_cancel()
+        self._on_cancel = None
+        self._on_terminate = None
+        self._instructions = ''
+        return self.get_text()
+
+    def on_terminate(self):
+        """
+        Call it to terminate the command. Returns the content of the input
+        """
+        txt = self.get_text()
+        self._on_terminate(txt)
+        self._on_terminate = None
+        self._on_cancel = None
+        self._instructions = ''
+        return txt
 
     def is_empty(self):
         return len(self.text) == 0
@@ -881,11 +926,17 @@ class Input(Win):
         with g_lock:
             self.clear_text()
             if self.input_mode:
+                self.addstr(self._instructions, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                if self._instructions:
+                    self.addstr(' ')
                 self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
             else:
                 self.addstr(self.help_text, curses.color_pair(theme.COLOR_INFORMATION_BAR))
                 self.finish_line(theme.COLOR_INFORMATION_BAR)
-            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
+            cursor_pos = self.pos
+            if self._instructions:
+                cursor_pos += 1 + len(self._instructions)
+            self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
             self._refresh()
 
     def refresh(self):
@@ -992,11 +1043,10 @@ class RosterWin(Win):
                 y += 1
                 if group.folded:
                     continue
-                for contact in group.get_contacts():
+                for contact in group.get_contacts(roster._contact_filter):
                     if config.get('roster_show_offline', 'false') == 'false' and\
                             contact.get_nb_resources() == 0:
                         continue
-
                     if y-1 == self.pos:
                         self.selected_row = contact
                     if y-self.start_pos+1 == self.height:

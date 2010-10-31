@@ -39,7 +39,7 @@ from config import config
 from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
 from user import User
 from room import Room
-from roster import Roster, RosterGroup
+from roster import Roster, RosterGroup, roster
 from contact import Contact, Resource
 from message import Message
 from text_buffer import TextBuffer
@@ -81,7 +81,7 @@ class Gui(object):
             else RosterInfoTab(self.stdscr)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
-        self.roster = Roster()
+        # self.roster = Roster()
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
@@ -150,6 +150,8 @@ class Gui(object):
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
 
+        # self.__debug_fill_roster()
+
     def grow_information_win(self):
         """
         """
@@ -172,7 +174,7 @@ class Gui(object):
 
     def on_got_offline(self, presence):
         jid = presence['from']
-        contact = self.roster.get_contact_by_jid(jid.bare)
+        contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
             return
         resource = contact.get_resource_by_fulljid(jid.full)
@@ -184,7 +186,7 @@ class Gui(object):
 
     def on_got_online(self, presence):
         jid = presence['from']
-        contact = self.roster.get_contact_by_jid(jid.bare)
+        contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
             # Todo, handle presence comming from contacts not in roster
             return
@@ -471,8 +473,7 @@ class Gui(object):
         """
         """
         jid = presence['from']
-        # contact = ros
-        contact = self.roster.get_contact_by_jid(jid.bare)
+        contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
             return
         resource = contact.get_resource_by_fulljid(jid.full)
@@ -485,6 +486,34 @@ class Gui(object):
         if isinstance(self.current_tab(), RosterInfoTab):
             self.refresh_window()
 
+    def __debug_fill_roster(self):
+        for i in range(10):
+            jid = 'contact%s@fion%s.org'%(i,i)
+            contact = Contact(jid)
+            contact.set_ask('wat')
+            contact.set_subscription('both')
+            roster.add_contact(contact, jid)
+            contact.set_name('%s %s fion'%(i,i))
+            roster.edit_groups_of_contact(contact, ['hello'])
+        for i in range(10):
+            jid = 'test%s@bernard%s.org'%(i,i)
+            contact = Contact(jid)
+            contact.set_ask('wat')
+            contact.set_subscription('both')
+            roster.add_contact(contact, jid)
+            contact.set_name('%s test'%(i))
+            roster.edit_groups_of_contact(contact, ['hello'])
+        for i in range(10):
+            jid = 'pouet@top%s.org'%(i)
+            contact = Contact(jid)
+            contact.set_ask('wat')
+            contact.set_subscription('both')
+            roster.add_contact(contact, jid)
+            contact.set_name('%s oula'%(i))
+            roster.edit_groups_of_contact(contact, ['hello'])
+        if isinstance(self.current_tab(), RosterInfoTab):
+            self.refresh_window()
+
     def on_roster_update(self, iq):
         """
         A subscription changed, or we received a roster item
@@ -492,10 +521,10 @@ class Gui(object):
         """
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
-            contact = self.roster.get_contact_by_jid(jid)
+            contact = roster.get_contact_by_jid(jid)
             if not contact:
                 contact = Contact(jid)
-                self.roster.add_contact(contact, jid)
+                roster.add_contact(contact, jid)
             if 'ask' in item.attrib:
                 contact.set_ask(item.attrib['ask'])
             else:
@@ -507,7 +536,7 @@ class Gui(object):
             if item.attrib['subscription']:
                 contact.set_subscription(item.attrib['subscription'])
             groups = item.findall('{jabber:iq:roster}group')
-            self.roster.edit_groups_of_contact(contact, [group.text for group in groups])
+            roster.edit_groups_of_contact(contact, [group.text for group in groups])
         if isinstance(self.current_tab(), RosterInfoTab):
             self.refresh_window()
 
@@ -602,7 +631,7 @@ class Gui(object):
         Refresh everything
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
-        self.current_tab().refresh(self.tabs, self.information_buffer, self.roster)
+        self.current_tab().refresh(self.tabs, self.information_buffer, roster)
         self.doupdate()
 
     def open_new_room(self, room, nick, focus=True):
@@ -738,7 +767,7 @@ class Gui(object):
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
         new_tab = PrivateTab(self.stdscr, r, self.information_win_size)
-        # insert it in the rooms
+        # insert it in the tabs
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
         else:

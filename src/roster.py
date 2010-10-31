@@ -24,6 +24,9 @@ from contact import Contact, Resource
 
 class Roster(object):
     def __init__(self):
+        self._contact_filter = None # A tuple(function, *args)
+                                    # function to filter contacts,
+                                    # on search, for example
         self._contacts = {}     # key = bare jid; value = Contact()
         self._roster_groups = []
 
@@ -112,7 +115,7 @@ class Roster(object):
                 continue
             length += 1              # One for the group's line itself
             if not group.folded:
-                for contact in group.get_contacts():
+                for contact in group.get_contacts(self._contact_filter):
                     # We do not count the offline contacts (depending on config)
                     if config.get('roster_show_offline', 'false') == 'false' and\
                             contact.get_nb_resources() == 0:
@@ -178,7 +181,7 @@ class RosterGroup(object):
         assert contact not in self._contacts
         self._contacts.append(contact)
 
-    def get_contacts(self):
+    def get_contacts(self, contact_filter):
         def compare_contact(a):
             if not a.get_highest_priority_resource():
                 return 0
@@ -186,7 +189,9 @@ class RosterGroup(object):
             if show not in PRESENCE_PRIORITY:
                 return 5
             return PRESENCE_PRIORITY[show]
-        return sorted(self._contacts, key=compare_contact, reverse=True)
+        contact_list = self._contacts if not contact_filter\
+            else [contact for contact in self._contacts if contact_filter[0](contact, contact_filter[1])]
+        return sorted(contact_list, key=compare_contact, reverse=True)
 
     def toggle_folded(self):
         self.folded = not self.folded
@@ -203,3 +208,5 @@ class RosterGroup(object):
             if contact.get_highest_priority_resource():
                 l += 1
         return l
+
+roster = Roster()

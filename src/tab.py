@@ -29,7 +29,7 @@ import window
 import theme
 import curses
 from config import config
-from roster import RosterGroup
+from roster import RosterGroup, roster
 from contact import Contact, Resource
 
 class Tab(object):
@@ -395,6 +395,7 @@ class RosterInfoTab(Tab):
             "KEY_UP": self.move_cursor_up,
             "KEY_DOWN": self.move_cursor_down,
             "o": self.toggle_offline_show,
+            "^F": self.start_search,
             }
         Tab.__init__(self, stdscr)
         self.name = "Roster"
@@ -439,11 +440,14 @@ class RosterInfoTab(Tab):
     def on_input(self, key):
         if self.input.input_mode:
             ret = self.input.do_command(key)
+            roster._contact_filter = (jid_and_name_match, self.input.text)
             # if the input is empty, go back to command mode
-            if self.input.is_empty():
+            if self.input.is_empty() and not self.input._instructions:
                 self.input.input_mode = False
                 curses.curs_set(0)
                 self.input.rewrite_text()
+            if self.input._instructions:
+                return True
             return ret
         if key in self.single_key_commands:
             return self.single_key_commands[key]()
@@ -458,6 +462,7 @@ class RosterInfoTab(Tab):
         else:
             config.set_and_save(option, 'false')
         return True
+
     def on_slash(self):
         """
         '/' is pressed, we enter "input mode"
@@ -501,9 +506,26 @@ class RosterInfoTab(Tab):
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
             return True
+
     def on_enter(self):
         selected_row = self.roster_win.get_selected_row()
         return selected_row
+
+    def start_search(self):
+        """
+        Start the search. The input should appear with a short instruction
+        in it.
+        """
+        curses.curs_set(1)
+        roster._contact_filter = (jid_and_name_match, self.input.text)
+        self.input.input_mode = True
+        self.input.start_command(self.on_search_terminate, self.on_search_terminate, '[search]')
+        return True
+
+    def on_search_terminate(self, txt):
+        curses.curs_set(0)
+        roster._contact_filter = None
+        return True
 
     def just_before_refresh(self):
         return
@@ -578,3 +600,13 @@ class ConversationTab(Tab):
 
     def just_before_refresh(self):
         return
+
+def jid_and_name_match(contact, txt):
+    """
+    A function used to know if a contact in the roster should
+    be shown in the roster
+    """
+    # TODO: search in nickname, and use libdiff
+    if txt in contact.get_bare_jid():
+        return True
+    return False
