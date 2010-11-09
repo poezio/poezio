@@ -32,6 +32,9 @@ from datetime import datetime
 
 import common
 import theme
+import logging
+
+log = logging.getLogger(__name__)
 
 import multiuserchat as muc
 from connection import connection
@@ -145,6 +148,7 @@ class Core(object):
         self.xmpp.add_event_handler("session_start", self.on_connected)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
+        self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("got_online" , self.on_got_online)
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
@@ -782,6 +786,23 @@ class Core(object):
         self.refresh_window()
         return r
 
+    def on_groupchat_subject(self, message):
+        """
+        triggered when the topic is changed
+        """
+        nick_from = message['mucnick']
+        room_from = message.getMucroom()
+        room = self.get_room_by_name(room_from)
+        subject = message['subject']
+        if not subject:
+            return
+        if nick_from:
+            self.add_message_to_text_buffer(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+        else:
+            self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
+        room.topic = subject.replace('\n', '|')
+        self.refresh_window()
+
     def on_groupchat_message(self, message):
         """
         Triggered whenever a message is received from a multi-user chat room.
@@ -809,23 +830,15 @@ class Core(object):
         room = self.get_room_by_name(room_from)
         if (room_from in self.ignores) and (nick_from in self.ignores[room_from]):
             return
-        room = self.get_room_by_name(room_from)
         if not room:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
         body = message['body']
-        subject = message['subject']
-        if subject:
-            if nick_from:
-                self.add_message_to_text_buffer(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=date)
-            else:
-                self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=date)
-            room.topic = subject.replace('\n', '|')
-        elif body:
+        if body:
             date = date if delayed == True else None
             self.add_message_to_text_buffer(room, body, date, nick_from)
-        self.refresh_window()
-        self.doupdate()
+            self.refresh_window()
+            self.doupdate()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, colorized=False):
         """
