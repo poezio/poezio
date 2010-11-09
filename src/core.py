@@ -34,6 +34,7 @@ import common
 import theme
 
 import multiuserchat as muc
+from connection import connection
 from handler import Handler
 from config import config
 from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
@@ -68,7 +69,7 @@ SHOW_NAME = {
 
 resize_lock = threading.Lock()
 
-class Gui(object):
+class Core(object):
     """
     User interface using ncurses
     """
@@ -77,8 +78,8 @@ class Gui(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
-        default_tab = InfoTab(self.stdscr, "Info") if self.xmpp.anon\
-            else RosterInfoTab(self.stdscr)
+        default_tab = InfoTab(self.stdscr, self, "Info") if self.xmpp.anon\
+            else RosterInfoTab(self.stdscr, self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
         # self.roster = Roster()
@@ -159,7 +160,7 @@ class Gui(object):
             return
         self.information_win_size += 1
         for tab in self.tabs:
-            tab.on_info_win_size_changed(self.information_win_size, self.stdscr)
+            tab.on_info_win_size_changed(self.stdscr)
         self.refresh_window()
 
     def shrink_information_win(self):
@@ -169,7 +170,7 @@ class Gui(object):
             return
         self.information_win_size -= 1
         for tab in self.tabs:
-            tab.on_info_win_size_changed(self.information_win_size, self.stdscr)
+            tab.on_info_win_size_changed(self.stdscr)
         self.refresh_window()
 
     def on_got_offline(self, presence):
@@ -639,7 +640,7 @@ class Gui(object):
         Open a new MucTab containing a muc Room, using the specified nick
         """
         r = Room(room, nick)
-        new_tab = MucTab(self.stdscr, r, self.information_win_size)
+        new_tab = MucTab(self.stdscr, self, r)
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
         else:
@@ -738,7 +739,7 @@ class Gui(object):
         open a new conversation tab and focus it if needed
         """
         r = Room(room_name, self.xmpp.boundjid.full)
-        new_tab = ConversationTab(self.stdscr, r, self.information_win_size)
+        new_tab = ConversationTab(self.stdscr, self, r)
         # insert it in the rooms
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
@@ -766,7 +767,7 @@ class Gui(object):
             return None
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
-        new_tab = PrivateTab(self.stdscr, r, self.information_win_size)
+        new_tab = PrivateTab(self.stdscr, self, r)
         # insert it in the tabs
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
@@ -1391,3 +1392,7 @@ class Gui(object):
     def doupdate(self):
         self.current_tab().just_before_refresh()
         curses.doupdate()
+
+# # global core object
+core = Core(connection)
+

@@ -58,3 +58,6 @@ class Connection(sleekxmpp.ClientXMPP):
         else:
             self.connect()
         self.process(threaded=True)
+
+# Global connection object
+connection = Connection()

@@ -51,16 +51,6 @@ ROOM_STATE_PRIVATE = 15
 ROOM_STATE_MESSAGE = 12
 ROOM_STATE_HL = 13
 
-def debug(string):
-    """
-    Print a string in a file.
-    Useful since debuging cannot be displayed on screen because it's
-    a CLI software
-    """
-    fdes = open("/tmp/debug", 'a')
-    fdes.write(string)
-    fdes.close()
-
 def get_base64_from_file(path):
     """
     Convert the content of a file to base64

@@ -137,13 +137,8 @@ if not path.isfile(CONFIG_PATH+'poezio.cfg'):
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", default=CONFIG_PATH+'poezio.cfg',
-                  help="the config file you want to use", metavar="CONFIG_FILE")
+                  help="The config file you want to use", metavar="CONFIG_FILE")
+parser.add_option("-d", "--debug", dest="debug",
+                  help="The file where debug will be written", metavar="DEBUG_FILE")
 (options, args) = parser.parse_args()
 config = Config(options.filename)
-
-if __name__ == '__main__':
-    # tests
-    import sys
-    (dummy, filename, section, option, value) = sys.argv
-    conf = Config(sys.argv[1])
-    conf.write_in_file(section, option, value)

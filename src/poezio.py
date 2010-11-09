@@ -21,14 +21,32 @@ Starting point of poezio. Launches both the Connection and Gui
 """
 
 import os
-# chdir in the source directory, to import the modules
-# also, no need to use a sh script to "cd" in this directoy
-# before launching poezio.
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 import curses
 import sys
 import traceback
+import threading
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+def installThreadExcepthook():
+    """
+    Workaround for sys.excepthook thread bug
+    See http://bugs.python.org/issue1230540
+    Python, you made me sad :(
+    """
+    init_old = threading.Thread.__init__
+    def init(self, *args, **kwargs):
+        init_old(self, *args, **kwargs)
+        run_old = self.run
+        def run_with_except_hook(*args, **kw):
+            try:
+                run_old(*args, **kw)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                sys.excepthook(*sys.exc_info())
+        self.run = run_with_except_hook
+    threading.Thread.__init__ = init
 
 class MyStdErr(object):
     def __init__(self, fd):
@@ -67,23 +85,15 @@ def exception_handler(type_, value, trace):
 # sys.excepthook = exception_handler
 
 import signal
+import logging
 
-from connection import Connection
-from config import config
-from gui import Gui
-
-signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
-
-def main():
-    """
-    The main function consist of the Connection initialization
-    then the gui (ncurses) init, connection handlers and then the
-    connection is "started"
-    """
-    xmpp = Connection()         # Connection init
-    gui = Gui(xmpp)             # Gui init.
-    xmpp.start()                # Connect to remote server
-    gui.main_loop()             # Refresh the screen, wait for user events etc
+from connection import connection
+from config import config, options
+from core import core
 
 if __name__ == '__main__':
-    main()
+    signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
+    if options.debug:
+        logging.basicConfig(filename=options.debug,level=logging.DEBUG)
+    connection.start()  # Connect to remote server
+    core.main_loop()    # Refresh the screen, wait for user events etc
