@@ -18,9 +18,12 @@
 """
 Defines the Roster and RosterGroup classes
 """
+import logging
+log = logging.getLogger(__name__)
 
 from config import config
 from contact import Contact, Resource
+from sleekxmpp.xmlstream.stanzabase import JID
 
 class Roster(object):
     def __init__(self):
@@ -47,8 +50,10 @@ class Roster(object):
         """
         Returns the contact with the given bare JID
         """
-        if jid in self._contacts:
-            return self._contacts[jid]
+        # Use only the bare jid
+        jid = JID(jid)
+        if jid.bare in self._contacts:
+            return self._contacts[jid.bare]
         return None
 
     def edit_groups_of_contact(self, contact, groups):
@@ -59,7 +64,7 @@ class Roster(object):
         # add the contact to each group he is in
         # If the contact hasn't any group, we put her in
         # the virtual default 'none' group
-        if not len(groups): 
+        if not len(groups):
             groups = ['none']
         for group in groups:
             if group not in contact._groups:

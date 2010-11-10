@@ -37,7 +37,6 @@ class Tab(object):
 
     def __init__(self, stdscr, core):
         self.core = core        # a pointer to core, to access its attributes (ugly?)
-        self.tab_type = "Tab"
         self.nb = Tab.number
         Tab.number += 1
         self.size = (self.height, self.width) = stdscr.getmaxyx()
@@ -134,7 +133,6 @@ class InfoTab(Tab):
     """
     def __init__(self, stdscr, core, name):
         Tab.__init__(self, stdscr, core)
-        self.tab_type = "InfoTab"
         self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
         self.text_win = window.TextWin(self.height-2, self.width, 0, 0, stdscr, self.visible)
         self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
@@ -195,7 +193,6 @@ class MucTab(Tab):
         terminal
         """
         Tab.__init__(self, stdscr, core)
-        self.tab_type = "MucTab"
         self._room = room
         self.topic_win = window.Topic(1, self.width, 0, 0, stdscr, self.visible)
         self.text_win = window.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, stdscr, self.visible)
@@ -313,7 +310,6 @@ class PrivateTab(Tab):
     """
     def __init__(self, stdscr, core, room):
         Tab.__init__(self, stdscr, core)
-        self.tab_type = "PrivateTab"
         self._room = room
         self.text_win = window.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
         self.info_header = window.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
@@ -358,10 +354,7 @@ class PrivateTab(Tab):
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
-        if not self.input.input_mode:
-            curses.curs_set(1)
-        else:
-            curses.curs_set(0)
+        curses.curs_set(1)
 
     def on_scroll_up(self):
         self._room.scroll_up(self.text_win.height-1)
@@ -397,7 +390,6 @@ class RosterInfoTab(Tab):
             "^F": self.start_search,
             }
         Tab.__init__(self, stdscr, core)
-        self.tab_type = "RosterInfoTab"
         self.name = "Roster"
         roster_width = self.width//2
         info_width = self.width-roster_width-1
@@ -534,11 +526,13 @@ class ConversationTab(Tab):
     """
     The tab containg a normal conversation (someone from our roster)
     """
-    def __init__(self, stdscr, core, room):
+    def __init__(self, stdscr, core, text_buffer, jid):
         Tab.__init__(self, stdscr, core)
-        self.tab_type = "ConversationTab"
-        self._room = room
-        self.text_win = window.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
+        self._text_buffer = text_buffer
+        self.color_state = theme.COLOR_TAB_NORMAL
+        self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
+        self.text_win = window.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, stdscr, self.visible)
+        self.upper_bar = window.ConversationStatusMessageWin(1, self.width, 0, 0, stdscr, self.visible)
         self.info_header = window.ConversationInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
         self.info_win = window.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
         self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
@@ -547,47 +541,49 @@ class ConversationTab(Tab):
     def resize(self, stdscr):
         Tab.resize(self, stdscr)
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.upper_bar.resize(1, self.width, 0, 0, stdscr, self.visible)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
         self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
         self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
-        self.text_win.refresh(self._room)
-        # self.info_header.refresh(self._room, roster.get_contact_by_jid(self._room.name))
+        self.text_win.refresh(self._text_buffer)
+        self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._text_buffer)
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
-        curses.curs_set(1)
 
     def get_color_state(self):
-        if self._room.color_state == theme.COLOR_TAB_NORMAL or\
-                self._room.color_state == theme.COLOR_TAB_CURRENT:
-            return self._room.color_state
+        if self.color_state == theme.COLOR_TAB_NORMAL or\
+                self.color_state == theme.COLOR_TAB_CURRENT:
+            return self.color_state
         return theme.COLOR_TAB_PRIVATE
 
     def set_color_state(self, color):
-        self._room.color_state = color
+        self.color_state = color
 
     def get_name(self):
-        return self._room.name
+        return self._name
 
     def on_input(self, key):
         return self.input.do_command(key)
 
     def on_lose_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_NORMAL)
-        self._room.remove_line_separator()
-        self._room.add_line_separator()
+        self.set_color_state(theme.COLOR_TAB_NORMAL)
+        self._text_buffer.remove_line_separator()
+        self._text_buffer.add_line_separator()
 
     def on_gain_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_CURRENT)
+        self.set_color_state(theme.COLOR_TAB_CURRENT)
+        curses.curs_set(1)
 
     def on_scroll_up(self):
-        self._room.scroll_up(self.text_win.height-1)
+        self._text_buffer.scroll_up(self.text_win.height-1)
 
     def on_scroll_down(self):
-        self._room.scroll_down(self.text_win.height-1)
+        self._text_buffer.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self, stdscr):
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
@@ -595,7 +591,7 @@ class ConversationTab(Tab):
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
 
     def get_room(self):
-        return self._room
+        return self._text_buffer
 
     def just_before_refresh(self):
         return

@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-
 """
 Defines the Resource and Contact classes
 """
-
 from sleekxmpp.xmlstream.stanzabase import JID
+import logging
+log = logging.getLogger(__name__)
 
 class Resource(object):
     """
@@ -54,7 +54,7 @@ class Resource(object):
     def get_status(self):
         return self._status
 
-    def set__status(self, s):
+    def set_status(self, s):
         self._status = s
 
 class Contact(object):

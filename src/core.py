@@ -94,7 +94,7 @@ class Core(object):
         self.ignores = {}
         self.resize_timer = None
         self.previous_tab_nb = 0
-
+        self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password")),
@@ -199,7 +199,9 @@ class Core(object):
         assert not resource
         resource = Resource(jid.full)
         status = presence['type']
+        status_message = presence['status']
         priority = presence.getPriority() or 0
+        resource.set_status(status_message)
         resource.set_presence(status)
         resource.set_priority(priority)
         contact.add_resource(resource)
@@ -216,7 +218,7 @@ class Core(object):
             # request the roster
             self.xmpp.getRoster()
             # send initial presence
-            self.xmpp.makePresence(pfrom=self.xmpp.boundjid.bare).send()
+            self.xmpp.makePresence().send()
         rooms = config.get('rooms', '')
         if rooms == '' or not isinstance(rooms, str):
             return
@@ -478,16 +480,21 @@ class Core(object):
         """
         """
         jid = presence['from']
+        log.debug('Presence Received: %s\n' % presence)
         contact = roster.get_contact_by_jid(jid.bare)
+        log.debug('Contact: %s\n' % contact)
         if not contact:
             return
         resource = contact.get_resource_by_fulljid(jid.full)
+        log.debug('Resource: %s\n' % resource)
         if not resource:
             return
         status = presence['type']
+        status_message = presence['status']
         priority = presence.getPriority() or 0
         resource.set_presence(status)
         resource.set_priority(priority)
+        resource.set_status(status_message)
         if isinstance(self.current_tab(), RosterInfoTab):
             self.refresh_window()
 
@@ -738,12 +745,12 @@ class Core(object):
                 self.add_message_to_text_buffer(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
-    def open_conversation_window(self, room_name, focus=True):
+    def open_conversation_window(self, jid, focus=True):
         """
         open a new conversation tab and focus it if needed
         """
-        r = Room(room_name, self.xmpp.boundjid.full)
-        new_tab = ConversationTab(self.stdscr, self, r)
+        text_buffer = TextBuffer()
+        new_tab = ConversationTab(self.stdscr, self, text_buffer, jid)
         # insert it in the rooms
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
@@ -754,9 +761,8 @@ class Core(object):
                     break
         if focus:               # focus the room if needed
             self.command_win('%s' % (new_tab.nb))
-        # self.window.new_room(r)
         self.refresh_window()
-        return r
+        return text_buffer
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name+'/'+user_nick
@@ -1393,11 +1399,12 @@ class Core(object):
     def command_say(self, line):
         if isinstance(self.current_tab(), PrivateTab):
             muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
-        elif isinstance(self.current_tab(), ConversationTab): # todo, special case
+        elif isinstance(self.current_tab(), ConversationTab): # todo, special case # hu, I can't remember what special case was needed when I wrote that…
             muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
         if isinstance(self.current_tab(), PrivateTab) or\
                 isinstance(self.current_tab(), ConversationTab):
-            self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.current_tab().get_room().own_nick)
+            log.debug('ALLO ICI\n\n')
+            self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.own_nick)
         elif isinstance(self.current_tab(), MucTab):
             muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
         self.doupdate()

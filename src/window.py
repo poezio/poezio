@@ -18,6 +18,9 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 from os.path import isfile
 
+import logging
+log = logging.getLogger(__name__)
+
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
@@ -32,6 +35,8 @@ from roster import RosterGroup, roster
 
 from message import Line
 from tab import MIN_WIDTH, MIN_HEIGHT
+
+from sleekxmpp.xmlstream.stanzabase import JID
 
 import theme
 
@@ -239,7 +244,86 @@ class PrivateInfoWin(InfoWin):
 class ConversationInfoWin(InfoWin):
     """
     The line above the information window, displaying informations
-    about the MUC user we are talking to
+    about the user we are talking to
+    """
+    color_show = {'xa':theme.COLOR_STATUS_XA,
+                  'none':theme.COLOR_STATUS_ONLINE,
+                  '':theme.COLOR_STATUS_ONLINE,
+                  'available':theme.COLOR_STATUS_ONLINE,
+                  'dnd':theme.COLOR_STATUS_DND,
+                  'away':theme.COLOR_STATUS_AWAY,
+                  'chat':theme.COLOR_STATUS_CHAT,
+                  'unavailable':theme.COLOR_STATUS_UNAVAILABLE
+                  }
+
+    def __init__(self, height, width, y, x, parent_win, visible):
+        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr, visible)
+
+    def refresh(self, jid, contact, text_buffer):
+        if not self.visible:
+            return
+        # contact can be None, if we receive a message
+        # from someone not in our roster. In this case, we display
+        # only the maximum information from the message we can get.
+        jid = JID(jid)
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
+        else:
+            resource = None
+        # if contact is None, then resource is None too: user is not in the roster
+        # so we don't know almost anything about it
+        # If contact is a Contact, then
+        # resource can now be a Resource: user is in the roster and online
+        # or resource is None: user is in the roster but offline
+        with g_lock:
+            self._win.erase()
+            self.write_contact_jid(jid)
+            self.write_contact_informations(contact)
+            self.write_resource_information(resource)
+            self.print_scroll_position(text_buffer)
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self._refresh()
+
+    def write_resource_information(self, resource):
+        """
+        Write the informations about the resource
+        """
+        if not resource:
+            presence = "unavailable"
+        else:
+            presence = resource.get_presence()
+        color = RosterWin.color_show[presence]
+        self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(" ", curses.color_pair(color))
+        self.addstr(']', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_contact_informations(self, contact):
+        """
+        Write the informations about the contact
+        """
+        if not contact:
+            self.addstr("(contact not in roster)", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            return
+        display_name = contact.get_name() or contact.get_bare_jid()
+        self.addstr('%s '%(display_name), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_contact_jid(self, jid):
+        """
+        Just write the jid that we are talking to
+        """
+        self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(jid.full, curses.color_pair(10))
+        self.addstr('] ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+
+class ConversationStatusMessageWin(InfoWin):
+    """
+    The upper bar displaying the status message of the contact
     """
     def __init__(self, height, width, y, x, parent_win, visible):
         InfoWin.__init__(self, height, width, y, x, parent_win, visible)
@@ -247,27 +331,26 @@ class ConversationInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
-    def refresh(self, room, contact):
+    def refresh(self, jid, contact):
         if not self.visible:
             return
-        # contact can be None, if we receive a message
-        # from someone not in our roster. In this case, we display
-        # only the maximum information from the message we can get.
-        # Also, contact can be a resource, if we're talking to a
-        # specific resource.
+        jid = JID(jid)
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
+        else:
+            resource = None
         with g_lock:
             self._win.erase()
-            # self.write_room_name(resource, room)
-            # self.print_scroll_position(room)
-            # self.finish_line(theme.COLOR_INFORMATION_BAR)
+            if resource:
+                self.write_status_message(resource)
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
-    def write_room_name(self, contact, room):
-        if not contact:
-            txt = '%s' % room.name
-        else:
-            txt = '%s' % contact.get_jid().bare
-        self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+    def write_status_message(self, resource):
+        self.addstr(resource.get_status(), curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
     """
