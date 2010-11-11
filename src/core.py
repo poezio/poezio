@@ -1207,6 +1207,9 @@ class Core(object):
         if isinstance(tab, PrivateTab):
             self.tabs.remove(tab)
             self.refresh_window()
+        if isinstance(tab, ConversationTab):
+            self.tabs.remove(tab)
+            self.refresh_window()
 
     def command_query(self, arg):
         """

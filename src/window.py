@@ -976,8 +976,8 @@ class Input(Win):
     def do_command(self, key, reset=True):
         if key in self.key_func:
             return self.key_func[key]()
-        # if not key or len(key) > 1:
-        #     return    # ignore non-handled keyboard shortcuts
+        if not key or len(key) > 1:
+            return    # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()

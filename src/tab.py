@@ -25,6 +25,9 @@ Window are displayed, etc
 MIN_WIDTH = 50
 MIN_HEIGHT = 16
 
+import logging
+log = logging.getLogger(__name__)
+
 import window
 import theme
 import curses
@@ -126,6 +129,12 @@ class Tab(object):
         """
         raise NotImplementedError
 
+    def on_close(self):
+        """
+        Called when the tab is to be closed
+        """
+        raise NotImplementedError
+
 class InfoTab(Tab):
     """
     The information tab, used to display global informations
@@ -179,6 +188,9 @@ class InfoTab(Tab):
         return
 
     def just_before_refresh(self):
+        return
+
+    def on_close(self):
         return
 
 class MucTab(Tab):
@@ -251,31 +263,26 @@ class MucTab(Tab):
         Complete the input with words recently said
         """
         # build the list of the recent words
-        char_we_dont_want = [',', '(', ')', '.']
+        char_we_dont_want = [',', '(', ')', '.', '"', '\'', ' '] # The last one is nbsp
         words = list()
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
+            log.debug('line: %s\n'%msg)
             for char in char_we_dont_want:
-                msg.txt.replace(char, ' ')
+                msg.txt = msg.txt.replace(char, ' ')
             for word in msg.txt.split():
-                if len(word) > 5:
+                if len(word) >= 5 and word not in words:
                     words.append(word)
         self.input.auto_completion(words, False)
 
     def get_color_state(self):
-        """
-        """
         return self._room.color_state
 
     def set_color_state(self, color):
-        """
-        """
         self._room.set_color_state(color)
 
     def get_name(self):
-        """
-        """
         return self._room.name
 
     def get_room(self):
@@ -304,6 +311,9 @@ class MucTab(Tab):
 
     def just_before_refresh(self):
         self.input.move_cursor_to_pos()
+
+    def on_close(self):
+        return
 
 class PrivateTab(Tab):
     """
@@ -372,6 +382,9 @@ class PrivateTab(Tab):
         return self._room
 
     def just_before_refresh(self):
+        return
+
+    def on_close(self):
         return
 
 class RosterInfoTab(Tab):
@@ -523,6 +536,9 @@ class RosterInfoTab(Tab):
     def just_before_refresh(self):
         return
 
+    def on_close(self):
+        return
+
 class ConversationTab(Tab):
     """
     The tab containg a normal conversation (someone from our roster)
@@ -595,6 +611,9 @@ class ConversationTab(Tab):
         return self._text_buffer
 
     def just_before_refresh(self):
+        return
+
+    def on_close(self):
         return
 
 def jid_and_name_match(contact, txt):

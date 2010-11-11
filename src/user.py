@@ -64,7 +64,7 @@ class User(object):
         return True
 
     def __repr__(self):
-        return ">%s<" % (self.nick.decode('utf-8'))
+        return ">%s<" % (self.nick)
 
     def __eq__(self, b):
         return self.role == b.role and self.nick.lower() == b.nick.lower()
