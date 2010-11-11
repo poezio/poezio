@@ -426,7 +426,7 @@ class Core(object):
         (from one of our contacts)
         """
         if message['type'] == 'groupchat':
-            return None
+            return
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
@@ -463,16 +463,22 @@ class Core(object):
         """
         When receiving "normal" messages (from someone in our roster)
         """
-        jid = message['from'].bare
-        room = self.get_conversation_by_jid(jid)
+        jid = message['from']
         body = message['body']
         if not body:
             return
-        if not room:
-            room = self.open_conversation_window(jid, False)
-            if not room:
-                return
-        self.add_message_to_text_buffer(room, body, None, jid)
+        # We first check if we have a conversation opened with this precise resource
+        conversation = self.get_tab_by_name(jid.full)
+        if not conversation:
+            # If not, we search for a conversation with the bare jid
+            conversation = self.get_tab_by_name(jid.bare)
+            if not conversation:
+                # We create the conversation with the bare Jid if nothing was found
+                conversation = self.open_conversation_window(jid.bare, False)
+            # room = self.open_conversation_window(jid, False)
+        self.add_message_to_text_buffer(conversation.get_room(), body, None, jid.full)
+        if self.current_tab() is not conversation:
+            conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()
         return
 
@@ -607,6 +613,15 @@ class Core(object):
             if isinstance(tab, ConversationTab):
                 if tab.get_name() == jid:
                     return tab.get_room()
+        return None
+
+    def get_tab_by_name(self, name):
+        """
+        Get the tab with the given name.
+        """
+        for tab in self.tabs:
+            if tab.get_name() == name:
+                return tab
         return None
 
     def get_room_by_name(self, name):
@@ -762,7 +777,7 @@ class Core(object):
         if focus:               # focus the room if needed
             self.command_win('%s' % (new_tab.nb))
         self.refresh_window()
-        return text_buffer
+        return new_tab
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name+'/'+user_nick
@@ -1199,17 +1214,18 @@ class Core(object):
         self.tabs.remove(self.current_tab())
         self.refresh_window()
 
-    def command_unquery(self, arg):
+    def close_tab(self, tab=None):
         """
-        /unquery
+        Close the given tab. If None, close the current one
         """
-        tab = self.current_tab()
-        if isinstance(tab, PrivateTab):
-            self.tabs.remove(tab)
-            self.refresh_window()
-        if isinstance(tab, ConversationTab):
-            self.tabs.remove(tab)
-            self.refresh_window()
+        tab = tab or self.current_tab()
+        if isinstance(tab, RosterInfoTab) or\
+                isinstance(tab, InfoTab):
+            return              # The tab 0 should NEVER be closed
+        tab.on_close()
+        self.tabs.remove(tab)
+        self.rotate_rooms_left()
+        del tab
 
     def command_query(self, arg):
         """
@@ -1231,6 +1247,15 @@ class Core(object):
             msg = arg[len(nick)+1:]
             muc.send_private_message(self.xmpp, r.name, msg)
             self.add_message_to_text_buffer(r, msg, None, r.own_nick)
+
+    def command_unquery(self, arg):
+        """
+        /unquery
+        Closes the Conversation or the Private tab
+        """
+        if isinstance(self.current_tab(), ConversationTab) or\
+                isinstance(self.current_tab(), PrivateTab):
+            self.close_tab()
 
     def command_topic(self, arg):
         """
