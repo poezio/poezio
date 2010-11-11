@@ -31,6 +31,9 @@ log = logging.getLogger(__name__)
 import window
 import theme
 import curses
+import difflib
+
+from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
@@ -481,7 +484,6 @@ class RosterInfoTab(Tab):
         self._color_state = theme.COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
-        log.debug('on_gain_focus\n')
         self._color_state = theme.COLOR_TAB_CURRENT
         curses.curs_set(0)
 
@@ -617,12 +619,30 @@ class ConversationTab(Tab):
     def on_close(self):
         return
 
+def diffmatch(search, string):
+    """
+    Use difflib and a loop to check if search_pattern can
+    be 'almost' found INSIDE a string.
+    'almost' being defined by difflib
+    """
+    l = len(search)
+    ratio = 0.7
+    for i in range(len(string) - l + 1):
+        if difflib.SequenceMatcher(None, search, string[i:i+l]).ratio() >= ratio:
+            return True
+    return False
+
 def jid_and_name_match(contact, txt):
     """
     A function used to know if a contact in the roster should
     be shown in the roster
     """
-    # TODO: search in nickname, and use libdiff
-    if txt in contact.get_bare_jid():
+    ratio = 0.7
+    if not txt:
+        return True             # Everything matches when search is empty
+    user = JID(contact.get_bare_jid()).user
+    if diffmatch(txt, user):
+        return True
+    if contact.get_name() and diffmatch(txt, contact.get_name()):
         return True
     return False
