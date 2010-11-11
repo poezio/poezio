@@ -155,7 +155,6 @@ class Core(object):
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
 
-        # self.__debug_fill_roster()
 
     def grow_information_win(self):
         """
@@ -486,13 +485,10 @@ class Core(object):
         """
         """
         jid = presence['from']
-        log.debug('Presence Received: %s\n' % presence)
         contact = roster.get_contact_by_jid(jid.bare)
-        log.debug('Contact: %s\n' % contact)
         if not contact:
             return
         resource = contact.get_resource_by_fulljid(jid.full)
-        log.debug('Resource: %s\n' % resource)
         if not resource:
             return
         status = presence['type']
@@ -501,34 +497,6 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        if isinstance(self.current_tab(), RosterInfoTab):
-            self.refresh_window()
-
-    def __debug_fill_roster(self):
-        for i in range(10):
-            jid = 'contact%s@fion%s.org'%(i,i)
-            contact = Contact(jid)
-            contact.set_ask('wat')
-            contact.set_subscription('both')
-            roster.add_contact(contact, jid)
-            contact.set_name('%s %s fion'%(i,i))
-            roster.edit_groups_of_contact(contact, ['hello'])
-        for i in range(10):
-            jid = 'test%s@bernard%s.org'%(i,i)
-            contact = Contact(jid)
-            contact.set_ask('wat')
-            contact.set_subscription('both')
-            roster.add_contact(contact, jid)
-            contact.set_name('%s test'%(i))
-            roster.edit_groups_of_contact(contact, ['hello'])
-        for i in range(10):
-            jid = 'pouet@top%s.org'%(i)
-            contact = Contact(jid)
-            contact.set_ask('wat')
-            contact.set_subscription('both')
-            roster.add_contact(contact, jid)
-            contact.set_name('%s oula'%(i))
-            roster.edit_groups_of_contact(contact, ['hello'])
         if isinstance(self.current_tab(), RosterInfoTab):
             self.refresh_window()
 
@@ -1374,20 +1342,13 @@ class Core(object):
         if not key:
             return
         res = self.current_tab().on_input(key)
-        if not res:
-            return
-        if key in ('^J', '\n') and isinstance(res, str):
-            self.execute(res)
-        else :
-            # we did "enter" with an empty input in the roster
-            self.on_roster_enter_key(res)
+        self.refresh_window()
 
     def on_roster_enter_key(self, roster_row):
         """
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            # roster_row.toggle_folded()
             if not self.get_conversation_by_jid(roster_row.get_bare_jid()):
                 self.open_conversation_window(roster_row.get_bare_jid())
             else:
@@ -1427,7 +1388,6 @@ class Core(object):
             muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
         if isinstance(self.current_tab(), PrivateTab) or\
                 isinstance(self.current_tab(), ConversationTab):
-            log.debug('ALLO ICI\n\n')
             self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.own_nick)
         elif isinstance(self.current_tab(), MucTab):
             muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)

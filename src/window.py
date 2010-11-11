@@ -598,25 +598,54 @@ class TextWin(Win):
         self.visible = visible
         self._resize(height, width, y, x, stdscr, visible)
 
+class HelpText(Win):
+    """
+    A buffer just displaying a read-only message.
+    Usually used to replace an Input when the tab is in
+    command mode.
+    """
+    def __init__(self, height, width, y, x, parent_win, visible, text=''):
+        self.visible = visible
+        Win.__init__(self, height, width, y, x, parent_win)
+        self.txt = text
+
+    def resize(self, height, width, y, x, stdscr, visible):
+        self._resize(height, width, y, x, stdscr, visible)
+
+    def refresh(self):
+        if not self.visible:
+            return
+        with g_lock:
+            self._win.erase()
+            self.addstr(0, 0, self.txt[:self.width-1], curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self._refresh()
+
+    def do_command(self, key):
+        return False
+
 class Input(Win):
     """
-    The line where text is entered
-    It can be in input mode or in commmand mode.
-    Command mode means that single_key_commands can be entered, handled
-    by the Tab object, while this input just displays an help text.
+    The simplest Input possible, provides just a way to edit a single line
+    of text. It also has a clipboard, common to all Inputs.
+    Doesn't have any history.
+    It doesn't do anything when enter is pressed either.
+    This should be herited for all kinds of Inputs, for example MessageInput
+    or the little inputs in dataforms, etc, adding specific features (completion etc)
+    It features two kinds of completion, but they have to be called from outside (the Tab),
+    passing the list of items that can be used to complete. The completion can be used
+    in a very flexible way.
     """
-    def __init__(self, height, width, y, x, stdscr, visible, input_mode=True, help_text=''):
+    clipboard = '' # A common clipboard for all the inputs, this makes
+    # it easy cut and paste text between various input
+    def __init__(self, height, width, y, x, stdscr, visible):
         self.key_func = {
             "KEY_LEFT": self.key_left,
             "M-D": self.key_left,
             "KEY_RIGHT": self.key_right,
             "M-C": self.key_right,
-            "KEY_UP": self.key_up,
-            "M-A": self.key_up,
             "KEY_END": self.key_end,
             "KEY_HOME": self.key_home,
-            "KEY_DOWN": self.key_down,
-            "M-B": self.key_down,
             "KEY_DC": self.key_dc,
             '^D': self.key_dc,
             'M-b': self.jump_word_left,
@@ -629,69 +658,13 @@ class Input(Win):
             'M-f': self.jump_word_right,
             "KEY_BACKSPACE": self.key_backspace,
             '^?': self.key_backspace,
-            '^J': self.on_enter,
-            '\n': self.on_enter,
             }
 
         Win.__init__(self, height, width, y, x, stdscr)
-        self.input_mode = input_mode
-        self.help_text = help_text # the text displayed in command_mode
         self.visible = visible
-        self.history = []
         self.text = ''
-        self.clipboard = None
         self.pos = 0            # cursor position
         self.line_pos = 0 # position (in self.text) of
-        # the first char to display on the screen
-        self.histo_pos = 0
-        self.hit_list = [] # current possible completion (normal)
-        self.last_completion = None # Contains the last nickname completed,
-                                    # if last key was a tab
-        # These are used when the user is entering a comand
-        self._on_cancel = None
-        self._on_terminate = None
-        self._instructions = ""  # a string displayed before the input, read-only
-
-    def on_enter(self):
-        """
-        Called when Enter is pressed
-        """
-        if not self._instructions:
-            return self.get_text()
-        self.on_terminate()
-        return True
-
-    def start_command(self, on_cancel, on_terminate, instructions):
-        """
-        Start a command, with an instruction, and two callbacks.
-        on_terminate is called when the command is successfull
-        on_cancel is called when the command is canceled
-        """
-        assert isinstance(instructions, str)
-        self._on_cancel = on_cancel
-        self._on_terminate = on_terminate
-        self._instructions = instructions
-
-    def cancel_command(self):
-        """
-        Call it to cancel the current command
-        """
-        self._on_cancel()
-        self._on_cancel = None
-        self._on_terminate = None
-        self._instructions = ''
-        return self.get_text()
-
-    def on_terminate(self):
-        """
-        Call it to terminate the command. Returns the content of the input
-        """
-        txt = self.get_text()
-        self._on_terminate(txt)
-        self._on_terminate = None
-        self._on_cancel = None
-        self._instructions = ''
-        return txt
 
     def is_empty(self):
         return len(self.text) == 0
@@ -716,6 +689,7 @@ class Input(Win):
         diff = self.pos+self.line_pos-previous_space
         for i in range(diff):
             self.key_left()
+        return True
 
     def jump_word_right(self):
         """
@@ -729,6 +703,7 @@ class Input(Win):
         diff = next_space - (self.pos+self.line_pos)
         for i in range(diff):
             self.key_right()
+        return True
 
     def delete_word(self):
         """
@@ -743,6 +718,7 @@ class Input(Win):
         for i in range(diff):
             self.key_backspace(False)
         self.rewrite_text()
+        return True
 
     def delete_end_of_line(self):
         """
@@ -750,9 +726,10 @@ class Input(Win):
         """
         if len(self.text) == self.pos+self.line_pos:
             return              # nothing to cut
-        self.clipboard = self.text[self.pos+self.line_pos:]
+        Input.clipboard = self.text[self.pos+self.line_pos:]
         self.text = self.text[:self.pos+self.line_pos]
         self.key_end()
+        return True
 
     def delete_begining_of_line(self):
         """
@@ -760,18 +737,20 @@ class Input(Win):
         """
         if self.pos+self.line_pos == 0:
             return
-        self.clipboard = self.text[:self.pos+self.line_pos]
+        Input.clipboard = self.text[:self.pos+self.line_pos]
         self.text = self.text[self.pos+self.line_pos:]
         self.key_home()
+        return True
 
     def paste_clipboard(self):
         """
         Insert what is in the clipboard at the cursor position
         """
-        if not self.clipboard or len(self.clipboard) == 0:
+        if not Input.clipboard or len(Input.clipboard) == 0:
             return
-        for letter in self.clipboard:
+        for letter in Input.clipboard:
             self.do_command(letter)
+        return True
 
     def key_dc(self):
         """
@@ -782,36 +761,7 @@ class Input(Win):
             return              # end of line, nothing to delete
         self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
         self.rewrite_text()
-
-    def key_up(self):
-        """
-        Get the previous line in the history
-        """
-        if not len(self.history):
-            return
-        self._win.erase()
-        if self.histo_pos >= 0:
-            self.histo_pos -= 1
-        self.text = self.history[self.histo_pos+1]
-        self.key_end()
-
-    def key_down(self):
-        """
-        Get the next line in the history
-        """
-        if not len(self.history):
-            return
-        self.reset_completion()
-        if self.histo_pos < len(self.history)-1:
-            self.histo_pos += 1
-            self.text = self.history[self.histo_pos]
-            self.key_end()
-        else:
-            self.histo_pos = len(self.history)-1
-            self.text = ''
-            self.pos = 0
-            self.line_pos = 0
-            self.rewrite_text()
+        return True
 
     def key_home(self):
         """
@@ -821,6 +771,7 @@ class Input(Win):
         self.pos = 0
         self.line_pos = 0
         self.rewrite_text()
+        return True
 
     def key_end(self, reset=False):
         """
@@ -835,6 +786,7 @@ class Input(Win):
             self.pos = len(self.text)
             self.line_pos = 0
         self.rewrite_text()
+        return True
 
     def key_left(self):
         """
@@ -847,6 +799,7 @@ class Input(Win):
         elif self.pos >= 1:
             self.pos -= 1
         self.rewrite_text()
+        return True
 
     def key_right(self):
         """
@@ -860,6 +813,7 @@ class Input(Win):
         elif self.pos < len(self.text):
             self.pos += 1
         self.rewrite_text()
+        return True
 
     def key_backspace(self, reset=True):
         """
@@ -873,6 +827,7 @@ class Input(Win):
         self.key_left()
         if reset:
             self.rewrite_text()
+        return True
 
     def auto_completion(self, user_list, add_after=True):
         """
@@ -885,6 +840,7 @@ class Input(Win):
             self.shell_completion(user_list, add_after)
         else:
             self.normal_completion(user_list, add_after)
+        return True
 
     def reset_completion(self):
         """
@@ -977,7 +933,7 @@ class Input(Win):
         if key in self.key_func:
             return self.key_func[key]()
         if not key or len(key) > 1:
-            return    # ignore non-handled keyboard shortcuts
+            return False   # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
@@ -987,38 +943,22 @@ class Input(Win):
             self.pos += 1
         if reset:
             self.rewrite_text()
+        return True
 
     def get_text(self):
         """
         Clear the input and return the text entered so far
         """
-        txt = self.text
-        self.text = ''
-        self.pos = 0
-        self.line_pos = 0
-        if len(txt) != 0:
-            self.history.append(txt)
-            self.histo_pos = len(self.history)-1
-        self.rewrite_text()
-        return txt
+        return self.text
 
     def rewrite_text(self):
         """
         Refresh the line onscreen, from the pos and pos_line
         """
         with g_lock:
-            self.clear_text()
-            if self.input_mode:
-                self.addstr(self._instructions, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-                if self._instructions:
-                    self.addstr(' ')
-                self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            else:
-                self.addstr(self.help_text, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-                self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self._win.erase()
+            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
             cursor_pos = self.pos
-            if self._instructions:
-                cursor_pos += 1 + len(self._instructions)
             self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
             self._refresh()
 
@@ -1028,13 +968,125 @@ class Input(Win):
         self.rewrite_text()
 
     def clear_text(self):
-        self._win.erase()
+        self.text = ''
+        self.pos = 0
+        self.line_pos = 0
+        self.rewrite_text()
 
-    def move_cursor_to_pos(self):
+class MessageInput(Input):
+    """
+    The input featuring history and that is being used in
+    Conversation, Muc and Private tabs
+    """
+    history = list()            # The history is common to all MessageInput
+
+    def __init__(self, height, width, y, x, stdscr, visible):
+        Input.__init__(self, height, width, y, x, stdscr, visible)
+        self.histo_pos = 0
+        self.key_func["KEY_UP"] = self.key_up
+        self.key_func["M-A"] =  self.key_up
+        self.key_func["KEY_DOWN"] = self.key_down
+        self.key_func["M-B"] = self.key_down
+
+    def key_up(self):
         """
-        move the cursor at the current pos
+        Get the previous line in the history
         """
-        return
+        if not len(MessageInput.history):
+            return
+        self.reset_completion()
+        self._win.erase()
+        if self.histo_pos >= 0:
+            self.histo_pos -= 1
+        self.text = MessageInput.history[self.histo_pos+1]
+        self.key_end()
+
+    def key_down(self):
+        """
+        Get the next line in the history
+        """
+        if not len(MessageInput.history):
+            return
+        self.reset_completion()
+        if self.histo_pos < len(MessageInput.history)-1:
+            self.histo_pos += 1
+            self.text = self.history[self.histo_pos]
+            self.key_end()
+        else:
+            self.histo_pos = len(MessageInput.history)-1
+            self.text = ''
+            self.pos = 0
+            self.line_pos = 0
+            self.rewrite_text()
+
+    def key_enter(self):
+        txt = self.get_text()
+        if len(txt) != 0:
+            self.history.append(txt)
+            self.histo_pos = len(self.history)-1
+        self.clear_text()
+        return txt
+
+class CommandInput(Input):
+    """
+    An input with an help message in the left, with three given callbacks:
+    one when when successfully 'execute' the command and when we abort it.
+    The last callback is optional and is called on any input key
+    This input is used, for example, in the RosterTab when, to replace the
+    HelpMessage when a command is started
+    The on_input callback
+    """
+    def __init__(self, height, width, y, x, stdscr, visible,
+                 help_message, on_abort, on_success, on_input=None):
+        Input.__init__(self, height, width, y, x, stdscr, visible)
+        self.on_abort = on_abort
+        self.on_success = on_success
+        self.on_input = on_input
+        self.help_message = help_message
+        self.key_func['^J'] = self.success
+        self.key_func['^M'] = self.success
+        self.key_func['\n'] = self.success
+        self.key_func['^G'] = self.abort
+
+    def do_command(self, key):
+        res = Input.do_command(self, key)
+        if self.on_input:
+            self.on_input(self.get_text())
+        log.debug('do_command returns : %s\n' % res)
+        return res
+
+    def success(self):
+        """
+        call the success callback, passing the text as argument
+        """
+        self.on_input = None
+        log.debug('before on_success')
+        res = self.on_success(self.get_text())
+        log.debug('after on_success, res: %s'%res)
+        return  res
+
+    def abort(self):
+        """
+        Call the abort callback, passing the text as argument
+        """
+        self.on_input = None
+        return self.on_abort(self.get_text())
+
+    def rewrite_text(self):
+        """
+        Rewrite the text just like a normal input, but with the instruction
+        on the left
+        """
+        with g_lock:
+            self._win.erase()
+            self.addstr(self.help_message, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            cursor_pos = self.pos + len(self.help_message)
+            if len(self.help_message):
+                self.addstr(' ')
+                cursor_pos += 1
+            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+            self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
+            self._refresh()
 
 class VerticalSeparator(Win):
     """
