@@ -481,6 +481,7 @@ class RosterInfoTab(Tab):
         self._color_state = theme.COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
+        log.debug('on_gain_focus\n')
         self._color_state = theme.COLOR_TAB_CURRENT
         curses.curs_set(0)
 

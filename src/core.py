@@ -817,10 +817,7 @@ class Core(object):
         subject = message['subject']
         if not subject:
             return
-        if nick_from:
-            self.add_message_to_text_buffer(room, _("%(nick)s changed the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
-        else:
-            self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
+        self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
         room.topic = subject.replace('\n', '|')
         self.refresh_window()
 
@@ -1198,11 +1195,11 @@ class Core(object):
         """
         /part [msg]
         """
-        args = arg.split()
-        reason = None
         if not isinstance(self.current_tab(), MucTab) and\
                 not isinstance(self.current_tab(), PrivateTab):
             return
+        args = arg.split()
+        reason = None
         room = self.current_tab().get_room()
         if len(args):
             msg = ' '.join(args)
@@ -1211,8 +1208,7 @@ class Core(object):
         if isinstance(self.current_tab(), MucTab) and\
                 self.current_tab().get_room().joined:
             muc.leave_groupchat(self.xmpp, room.name, room.own_nick, arg)
-        self.tabs.remove(self.current_tab())
-        self.refresh_window()
+        self.close_tab()
 
     def close_tab(self, tab=None):
         """
