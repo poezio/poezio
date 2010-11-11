@@ -232,6 +232,7 @@ class MucTab(Tab):
         self.key_func = {
             "\t": self.completion,
             "^I": self.completion,
+            "M-i": self.completion,
             "KEY_BTAB": self.last_words_completion,
             }
         if key in self.key_func:
