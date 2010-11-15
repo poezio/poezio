@@ -1345,7 +1345,6 @@ class Core(object):
             return
         res = self.current_tab().on_input(key)
         if res:
-            log.debug('RES is true')
             self.refresh_window()
 
     def on_roster_enter_key(self, roster_row):

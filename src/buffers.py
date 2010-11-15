@@ -491,7 +491,6 @@ class TextWin(Win):
                 if txt.startswith('\n'):
                     txt = txt[1:]
                 first = False
-        log.debug('%s built\n' % len(lines))
         return lines
         return lines[-len(messages):] # return only the needed number of lines
 
@@ -1061,7 +1060,6 @@ class CommandInput(Input):
         res = Input.do_command(self, key)
         if self.on_input:
             self.on_input(self.get_text())
-        log.debug('do_command returns : %s\n' % res)
         return res
 
     def success(self):
@@ -1069,9 +1067,7 @@ class CommandInput(Input):
         call the success callback, passing the text as argument
         """
         self.on_input = None
-        log.debug('before on_success')
         res = self.on_success(self.get_text())
-        log.debug('after on_success, res: %s'%res)
         return  res
 
     def abort(self):
