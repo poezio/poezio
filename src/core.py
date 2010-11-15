@@ -38,9 +38,9 @@ log = logging.getLogger(__name__)
 
 import multiuserchat as muc
 from connection import connection
-from handler import Handler
 from config import config
 from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
+from logger import logger
 from user import User
 from room import Room
 from roster import Roster, RosterGroup, roster
@@ -822,6 +822,8 @@ class Core(object):
         body = message['body']
         if body:
             date = date if delayed == True else None
+            if not delayed:
+                logger.groupchat(room_from, nick_from, body)
             self.add_message_to_text_buffer(room, body, date, nick_from)
             self.refresh_window()
             self.doupdate()

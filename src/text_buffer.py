@@ -14,6 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Define the TextBuffer class
+"""
+
 from message import Message
 from datetime import datetime
 import theme

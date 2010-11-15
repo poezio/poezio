@@ -15,11 +15,11 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-a Tab object is a way to organize various Window (see window.py)
+a Tab object is a way to organize various Buffers (see buffers.py)
 around the screen at once.
-A tab is then composed of multiple Window.
-Each Tab object has different refresh() and resize() methods, defining of its
-Window are displayed, etc
+A tab is then composed of multiple Buffer.
+Each Tab object has different refresh() and resize() methods, defining how its
+Buffer are displayed, resized, etc
 """
 
 MIN_WIDTH = 50
@@ -28,7 +28,7 @@ MIN_HEIGHT = 16
 import logging
 log = logging.getLogger(__name__)
 
-import window
+import buffers
 import theme
 import curses
 import difflib
@@ -145,9 +145,9 @@ class InfoTab(Tab):
     """
     def __init__(self, stdscr, core, name):
         Tab.__init__(self, stdscr, core)
-        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.text_win = window.TextWin(self.height-2, self.width, 0, 0, stdscr, self.visible)
-        self.input = window.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-2, self.width, 0, 0, stdscr, self.visible)
+        self.input = buffers.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
         self.name = name
         self.color_state = theme.COLOR_TAB_NORMAL
 
@@ -209,14 +209,14 @@ class MucTab(Tab):
         """
         Tab.__init__(self, stdscr, core)
         self._room = room
-        self.topic_win = window.Topic(1, self.width, 0, 0, stdscr, self.visible)
-        self.text_win = window.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, stdscr, self.visible)
-        self.v_separator = window.VerticalSeparator(self.height-3, 1, 1, 9*(self.width//10), stdscr, self.visible)
-        self.user_win = window.UserList(self.height-3, (self.width//10), 1, 9*(self.width//10)+1, stdscr, self.visible)
-        self.info_header = window.MucInfoWin(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = window.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = window.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.topic_win = buffers.Topic(1, self.width, 0, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, stdscr, self.visible)
+        self.v_separator = buffers.VerticalSeparator(self.height-3, 1, 1, 9*(self.width//10), stdscr, self.visible)
+        self.user_win = buffers.UserList(self.height-3, (self.width//10), 1, 9*(self.width//10)+1, stdscr, self.visible)
+        self.info_header = buffers.MucInfoWin(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def resize(self, stdscr):
         """
@@ -333,11 +333,11 @@ class PrivateTab(Tab):
     def __init__(self, stdscr, core, room):
         Tab.__init__(self, stdscr, core)
         self._room = room
-        self.text_win = window.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.info_header = window.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = window.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = window.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
+        self.info_header = buffers.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def resize(self, stdscr):
         Tab.resize(self, stdscr)
@@ -420,12 +420,12 @@ class RosterInfoTab(Tab):
         self.name = "Roster"
         roster_width = self.width//2
         info_width = self.width-roster_width-1
-        self.v_separator = window.VerticalSeparator(self.height-2, 1, 0, roster_width, stdscr, self.visible)
-        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.info_win = window.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
-        self.roster_win = window.RosterWin(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
-        self.contact_info_win = window.ContactInfoWin(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
-        self.default_help_message = window.HelpText(1, self.width, self.height-1, 0, stdscr, self.visible, "Enter commands with “/”. “o”: toggle offline show")
+        self.v_separator = buffers.VerticalSeparator(self.height-2, 1, 0, roster_width, stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
+        self.roster_win = buffers.RosterWin(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
+        self.contact_info_win = buffers.ContactInfoWin(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
+        self.default_help_message = buffers.HelpText(1, self.width, self.height-1, 0, stdscr, self.visible, "Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
         self.set_color_state(theme.COLOR_TAB_NORMAL)
 
@@ -491,7 +491,7 @@ class RosterInfoTab(Tab):
         '/' is pressed, we enter "input mode"
         """
         curses.curs_set(1)
-        self.input = window.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, self.visible, "", self.reset_help_message, self.execute_slash_command)
+        self.input = buffers.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, self.visible, "", self.reset_help_message, self.execute_slash_command)
         self.input.do_command("/") # we add the slash
 
     def reset_help_message(self, _=None):
@@ -551,7 +551,7 @@ class RosterInfoTab(Tab):
         in it.
         """
         curses.curs_set(1)
-        self.input = window.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, self.visible, "[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
+        self.input = buffers.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, self.visible, "[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
         return True
 
     def set_roster_filter(self, txt):
@@ -578,12 +578,12 @@ class ConversationTab(Tab):
         self._text_buffer = text_buffer
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
-        self.text_win = window.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, stdscr, self.visible)
-        self.upper_bar = window.ConversationStatusMessageWin(1, self.width, 0, 0, stdscr, self.visible)
-        self.info_header = window.ConversationInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = window.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = window.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = window.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, stdscr, self.visible)
+        self.upper_bar = buffers.ConversationStatusMessageWin(1, self.width, 0, 0, stdscr, self.visible)
+        self.info_header = buffers.ConversationInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
 
     def resize(self, stdscr):
         Tab.resize(self, stdscr)

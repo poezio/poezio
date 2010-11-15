@@ -14,6 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Define the user class.
+An user is a MUC participant, not a roster contact (see contact.py)
+"""
+
 from random import randrange, choice
 from config import config
 from datetime import timedelta, datetime
@@ -26,6 +31,7 @@ ROLE_DICT = {
     'participant':2,
     'moderator':3
     }
+
 class User(object):
     """
     keep trace of an user in a Room

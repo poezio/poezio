@@ -10,24 +10,27 @@
 Homepage:	http://poezio.eu
 Forge Page:	http://codingteam.net/projet/poezio
 
-Poezio is a console Jabber/XMPP client. Its goal is to use anonymous
+Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
 connections to simply let the user join MultiUserChats. This way, the user
 doesn't have to create a Jabber account, exactly like people are using
-IRC. Poezio's commands are designed to be (if possible) like IRC
+IRC.  Poezio's commands are designed to be (if possible) like IRC
 clients (weechat, irssi, etc).
 Since version 0.7, poezio can handle real Jabber accounts along with
-roster and one to one conversation, making it a full-featured console
+roster and one to one conversations, making it a full-featured console
 Jabber client, but still MultiUserChats-centered.
+In the futur, poezio should implement at a 100% level all XEP related to
+MUCs, especially XEP 0045.
+All other IM-related XEP (wherever possible) should be implemented through
+plugins or directly in poezio's core.
 
 =======================
 	Install
 =======================
 You need python 3.0 or higher, and the SleekXMPP python library.
-You can find my patched version at http://github.com/louiz/SleekXMPP until
-my changes (required to properly run poezio) are merged upstream.
+SleekXMPP can be found at http://github.com/fritzy/SleekXMPP.
 
 you can launch poezio with
-sh launch.sh
+./launch.sh
 
 or you can install it with (as root or with sudo)
 make install
@@ -36,7 +39,7 @@ you can now simply launch `poezio'
 
 You can edit the config file (~/.config/poezio/poezio.cfg by default)
 or data/default_config.cfg (if you want to edit the config before the
-first launch)
+first launch). The default config file is fully commented.
 
 Please, see the online documentation for more information on installing,
 configuring or using poezio:
@@ -66,10 +69,10 @@ Report a bug:      http://codingteam.net/project/poezio/bugs/add
 Poezio is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
 
-Poezio is released under the Gnu GPLv3 license
-Please read the COPYING file for details
+Poezio is released under the Gnu GPLv3 license.
+Please read the COPYING file for details.
 
-The artwork logo is made by Gaëtan Ribémont and released under
+The artwork logo was made by Gaëtan Ribémont and released under
 the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 
 =======================
@@ -85,9 +88,3 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
  FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
 = Project =
  Gajim - send_vcard method and common.py
-
-=======================
-        Donate
-=======================
-If you're willing to thank me, or ask for an on-demand feature, please
-see the page http://louiz.org/donate.html and contact me.

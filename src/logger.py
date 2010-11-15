@@ -29,32 +29,10 @@ class Logger(object):
     """
     def __init__(self):# , logfile, loglevel):
         self.logfile = config.get('logfile', 'logs')
-        self.loglevel = config.get('loglevel', 3)
-        # self.logfile = logfile
-        # self.loglevel = loglevel
 
-    def info(self, msg):
-        if self.logfile and self.loglevel >= 3:
-            fd = open(self.logfile, 'a')
-            fd.write(datetime.now().strftime("%H:%M:%S") + ' Info [' + msg + ']\n')
-            fd.close()
-
-    def warning(self, msg):
-        if self.logfile and self.loglevel >= 2:
-            fd = open(self.logfile, 'a')
-            fd.write(datetime.now().strftime("%H:%M:%S") + ' Warning [' + msg + ']\n')
-            fd.close()
-
-    def error(self, msg):
-        if self.logfile and self.loglevel >= 1:
-            fd = open(self.logfile, 'a')
-            fd.write(datetime.now().strftime("%H:%M:%S") + ' Error [' + msg + ']\n')
-            fd.close()
-        sys.exit(-1)
-
-    def message(self, room, nick, msg):
+    def groupchat(self, room, nick, msg):
         """
-        log the message in the appropriate room
+        log the message in the appropriate room's file
         """
         if config.get('use_log', 'false') == 'false':
             return

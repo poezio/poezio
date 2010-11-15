@@ -15,11 +15,14 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Defines the Resource and Contact classes
+Defines the Resource and Contact classes, which are used in
+the roster
 """
-from sleekxmpp.xmlstream.stanzabase import JID
+
 import logging
 log = logging.getLogger(__name__)
+
+from sleekxmpp.xmlstream.stanzabase import JID
 
 class Resource(object):
     """
@@ -80,8 +83,7 @@ class Contact(object):
 
     def get_highest_priority_resource(self):
         """
-        There must be, at any time, at least ONE resource.
-        And they always should be ordered by priority.
+        Return the resource with the highest priority
         """
         ret = None
         for resource in self._resources:
@@ -94,8 +96,10 @@ class Contact(object):
         Called, for example, when a new resource get offline
         (the first, or any subsequent one)
         """
-        # TODO sort by priority
+        def f(o):
+            return o.get_priority()
         self._resources.append(resource)
+        self._resources = sorted(self._resources, key=f, reverse=True)
 
     def remove_resource(self, resource):
         """

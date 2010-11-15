@@ -46,7 +46,7 @@ def change_show(xmpp, jid, own_nick, show, status):
     Change our 'Show'
     """
     pres = xmpp.makePresence(pto='%s/%s' % (jid, own_nick))
-    if show: # if show is None, don't put a <show /> tag. It means "online"
+    if show: # if show is None, don't put a <show /> tag. It means "available"
         pres['type'] = show
     if status:
         pres['status'] = status
