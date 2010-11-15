@@ -254,8 +254,10 @@ class MucTab(Tab):
             "\n": self.on_enter
             }
         if key in key_func:
-            return key_func[key]()
-        return self.input.do_command(key)
+            key_func[key]()
+            return False
+        self.input.do_command(key)
+        return False
 
     def completion(self):
         """
@@ -373,7 +375,8 @@ class PrivateTab(Tab):
             "\n": self.on_enter
             }
         if key in key_func:
-            return key_func[key]()
+            key_func[key]()
+            return False
         return self.input.do_command(key)
 
     def on_enter(self):
@@ -471,7 +474,7 @@ class RosterInfoTab(Tab):
             }
         res = self.input.do_command(key)
         if res:
-            return res
+            return False
         if key in key_commands:
             return key_commands[key]()
 
@@ -621,7 +624,8 @@ class ConversationTab(Tab):
             "\n": self.on_enter
             }
         if key in key_func:
-            return key_func[key]()
+            key_func[key]()
+            return False
         return self.input.do_command(key)
 
 

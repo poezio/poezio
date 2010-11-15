@@ -26,7 +26,6 @@ import sleekxmpp
 
 from config import config
 from logger import logger
-from handler import Handler
 
 class Connection(sleekxmpp.ClientXMPP):
     """

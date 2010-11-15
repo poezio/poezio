@@ -822,8 +822,8 @@ class Core(object):
         body = message['body']
         if body:
             date = date if delayed == True else None
-            if not delayed:
-                logger.groupchat(room_from, nick_from, body)
+            # if not delayed:
+            #     logger.groupchat(room_from, nick_from, body)
             self.add_message_to_text_buffer(room, body, date, nick_from)
             self.refresh_window()
             self.doupdate()
@@ -1344,7 +1344,9 @@ class Core(object):
         if not key:
             return
         res = self.current_tab().on_input(key)
-        self.refresh_window()
+        if res:
+            log.debug('RES is true')
+            self.refresh_window()
 
     def on_roster_enter_key(self, roster_row):
         """

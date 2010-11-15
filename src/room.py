@@ -96,7 +96,7 @@ class Room(TextBuffer):
         when we receive an history message said by someone who is not
         in the room anymore
         """
-        self.log_message(txt, time, nickname)
+        # self.log_message(txt, time, nickname)
         if txt.startswith('/me '):
             txt = "* " + nickname + ' ' + txt[4:]
             nickname = None
