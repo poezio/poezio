@@ -248,7 +248,7 @@ class MucTab(Tab):
             "\t": self.completion,
             "^I": self.completion,
             "M-i": self.completion,
-            "KEY_BTAB": self.last_words_completion,
+            "M-/": self.last_words_completion,
             "^J": self.on_enter,
             "^M": self.on_enter,
             "\n": self.on_enter
