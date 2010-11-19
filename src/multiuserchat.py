@@ -26,26 +26,19 @@ def send_private_message(xmpp, jid, line):
     """
     Send a private message
     """
-    msg = xmpp.makeMessage(jid)
-    msg['to'] = jid
-    msg['type'] = 'chat'
-    msg['body'] = line
-    msg.send()
+    xmpp.send_message(mto=jid, mbody=line, mtype='chat')
 
 def send_groupchat_message(xmpp, jid, line):
     """
     Send a message to the groupchat
     """
-    msg = xmpp.makeMessage(jid)
-    msg['type'] = 'groupchat'
-    msg['body'] = line
-    msg.send()
+    xmpp.send_message(mto=jid, mbody=line, mtype='groupchat')
 
 def change_show(xmpp, jid, own_nick, show, status):
     """
     Change our 'Show'
     """
-    pres = xmpp.makePresence(pto='%s/%s' % (jid, own_nick))
+    pres = xmpp.make_presence(pto='%s/%s' % (jid, own_nick))
     if show: # if show is None, don't put a <show /> tag. It means "available"
         pres['type'] = show
     if status:
@@ -56,7 +49,7 @@ def change_subject(xmpp, jid, subject):
     """
     Change the room subject
     """
-    msg = xmpp.makeMessage(jid)
+    msg = xmpp.make_message(jid)
     msg['type'] = 'groupchat'
     msg['subject'] = subject
     msg.send()
@@ -65,7 +58,7 @@ def change_nick(xmpp, jid, nick):
     """
     Change our own nick in a room
     """
-    xmpp.makePresence(pto='%s/%s' % (jid, nick)).send()
+    xmpp.make_presence(pto='%s/%s' % (jid, nick)).send()
 
 def join_groupchat(xmpp, jid, nick, passwd=''):
     """
