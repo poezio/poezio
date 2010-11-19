@@ -41,11 +41,11 @@ from contact import Contact, Resource
 class Tab(object):
     number = 0
 
-    def __init__(self, stdscr, core):
+    def __init__(self, core):
         self.core = core        # a pointer to core, to access its attributes (ugly?)
         self.nb = Tab.number
         Tab.number += 1
-        self.size = (self.height, self.width) = stdscr.getmaxyx()
+        self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
         if self.height < MIN_HEIGHT or self.width < MIN_WIDTH:
             self.visible = False
         else:
@@ -57,8 +57,8 @@ class Tab(object):
         """
         raise NotImplementedError
 
-    def resize(self, stdscr):
-        self.size = (self.height, self.width) = stdscr.getmaxyx()
+    def resize(self):
+        self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
         if self.height < MIN_HEIGHT or self.width < MIN_WIDTH:
             self.visible = False
         else:
@@ -118,7 +118,7 @@ class Tab(object):
         """
         raise NotImplementedError
 
-    def on_info_win_size_changed(self, size, stdscr):
+    def on_info_win_size_changed(self):
         """
         Called when the window with the informations is resized
         """
@@ -143,19 +143,19 @@ class InfoTab(Tab):
     The information tab, used to display global informations
     when using a anonymous account
     """
-    def __init__(self, stdscr, core, name):
-        Tab.__init__(self, stdscr, core)
-        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.text_win = buffers.TextWin(self.height-2, self.width, 0, 0, stdscr, self.visible)
-        self.input = buffers.Input(1, self.width, self.height-1, 0, stdscr, self.visible)
+    def __init__(self, core, name):
+        Tab.__init__(self, core)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-2, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.input = buffers.Input(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
         self.name = name
         self.color_state = theme.COLOR_TAB_NORMAL
 
-    def resize(self, stdscr):
-        Tab.resize(self, stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.text_win.resize(self.height-2, self.width, 0, 0, stdscr, self.visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+    def resize(self):
+        Tab.resize(self)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, _):
         self.text_win.refresh(informations)
@@ -187,7 +187,7 @@ class InfoTab(Tab):
     def on_scroll_down(self):
         pass
 
-    def on_info_win_size_changed(self, size, stdscr):
+    def on_info_win_size_changed(self):
         return
 
     def just_before_refresh(self):
@@ -201,37 +201,32 @@ class MucTab(Tab):
     The tab containing a multi-user-chat room.
     It contains an userlist, an input, a topic, an information and a chat zone
     """
-    def __init__(self, stdscr, core, room):
-        """
-        room is a Room object
-        The stdscr is passed to know the size of the
-        terminal
-        """
-        Tab.__init__(self, stdscr, core)
+    def __init__(self, core, room):
+        Tab.__init__(self, core)
         self._room = room
-        self.topic_win = buffers.Topic(1, self.width, 0, 0, stdscr, self.visible)
-        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, stdscr, self.visible)
-        self.v_separator = buffers.VerticalSeparator(self.height-3, 1, 1, 9*(self.width//10), stdscr, self.visible)
-        self.user_win = buffers.UserList(self.height-3, (self.width//10), 1, 9*(self.width//10)+1, stdscr, self.visible)
-        self.info_header = buffers.MucInfoWin(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = buffers.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.topic_win = buffers.Topic(1, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, self.core.stdscr, self.visible)
+        self.v_separator = buffers.VerticalSeparator(self.height-3, 1, 1, 9*(self.width//10), self.core.stdscr, self.visible)
+        self.user_win = buffers.UserList(self.height-3, (self.width//10), 1, 9*(self.width//10)+1, self.core.stdscr, self.visible)
+        self.info_header = buffers.MucInfoWin(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
-    def resize(self, stdscr):
+    def resize(self):
         """
         Resize the whole window. i.e. all its sub-windows
         """
-        Tab.resize(self, stdscr)
+        Tab.resize(self)
         text_width = (self.width//10)*9
-        self.topic_win.resize(1, self.width, 0, 0, stdscr, self.visible)
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, stdscr, self.visible)
-        self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10), stdscr, self.visible)
-        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, stdscr, self.visible)
-        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr, self.visible)
+        self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10), self.core.stdscr, self.visible)
+        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, self.core.stdscr, self.visible)
+        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, _):
         self.topic_win.refresh(self._room.topic)
@@ -316,11 +311,11 @@ class MucTab(Tab):
     def on_scroll_down(self):
         self._room.scroll_down(self.text_win.height-1)
 
-    def on_info_win_size_changed(self, stdscr):
+    def on_info_win_size_changed(self):
         text_width = (self.width//10)*9
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, stdscr, self.visible)
-        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr, self.visible)
+        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
 
     def just_before_refresh(self):
         return
@@ -332,22 +327,22 @@ class PrivateTab(Tab):
     """
     The tab containg a private conversation (someone from a MUC)
     """
-    def __init__(self, stdscr, core, room):
-        Tab.__init__(self, stdscr, core)
+    def __init__(self, core, room):
+        Tab.__init__(self, core)
         self._room = room
-        self.text_win = buffers.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.info_header = buffers.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header = buffers.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
-    def resize(self, stdscr):
-        Tab.resize(self, stdscr)
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+    def resize(self):
+        Tab.resize(self)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, _):
         self.text_win.refresh(self._room)
@@ -400,10 +395,10 @@ class PrivateTab(Tab):
     def on_scroll_down(self):
         self._room.scroll_down(self.text_win.height-1)
 
-    def on_info_win_size_changed(self, stdscr):
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+    def on_info_win_size_changed(self):
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
 
     def get_room(self):
         return self._room
@@ -418,30 +413,30 @@ class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
     """
-    def __init__(self, stdscr, core):
-        Tab.__init__(self, stdscr, core)
+    def __init__(self, core):
+        Tab.__init__(self, core)
         self.name = "Roster"
         roster_width = self.width//2
         info_width = self.width-roster_width-1
-        self.v_separator = buffers.VerticalSeparator(self.height-2, 1, 0, roster_width, stdscr, self.visible)
-        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.info_win = buffers.TextWin(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
-        self.roster_win = buffers.RosterWin(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
-        self.contact_info_win = buffers.ContactInfoWin(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
-        self.default_help_message = buffers.HelpText(1, self.width, self.height-1, 0, stdscr, self.visible, "Enter commands with “/”. “o”: toggle offline show")
+        self.v_separator = buffers.VerticalSeparator(self.height-2, 1, 0, roster_width, self.core.stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.height-2, info_width, 0, roster_width+1, self.core.stdscr, self.visible)
+        self.roster_win = buffers.RosterWin(self.height-2-3, roster_width, 0, 0, self.core.stdscr, self.visible)
+        self.contact_info_win = buffers.ContactInfoWin(3, roster_width, self.height-2-3, 0, self.core.stdscr, self.visible)
+        self.default_help_message = buffers.HelpText(1, self.width, self.height-1, 0, self.core.stdscr, self.visible, "Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
         self.set_color_state(theme.COLOR_TAB_NORMAL)
 
-    def resize(self, stdscr):
-        Tab.resize(self, stdscr)
+    def resize(self):
+        Tab.resize(self)
         roster_width = self.width//2
         info_width = self.width-roster_width-1
-        self.v_separator.resize(self.height-2, 1, 0, roster_width, stdscr, self.visible)
-        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.info_win.resize(self.height-2, info_width, 0, roster_width+1, stdscr, self.visible)
-        self.roster_win.resize(self.height-2-3, roster_width, 0, 0, stdscr, self.visible)
-        self.contact_info_win.resize(3, roster_width, self.height-2-3, 0, stdscr, self.visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.v_separator.resize(self.height-2, 1, 0, roster_width, self.core.stdscr, self.visible)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.height-2, info_width, 0, roster_width+1, self.core.stdscr, self.visible)
+        self.roster_win.resize(self.height-2-3, roster_width, 0, 0, self.core.stdscr, self.visible)
+        self.contact_info_win.resize(3, roster_width, self.height-2-3, 0, self.core.stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
         self.v_separator.refresh()
@@ -533,7 +528,7 @@ class RosterInfoTab(Tab):
         # Scroll info down
         pass
 
-    def on_info_win_size_changed(self, _, __):
+    def on_info_win_size_changed(self):
         pass
 
     def on_space(self):
@@ -576,26 +571,26 @@ class ConversationTab(Tab):
     """
     The tab containg a normal conversation (someone from our roster)
     """
-    def __init__(self, stdscr, core, text_buffer, jid):
-        Tab.__init__(self, stdscr, core)
+    def __init__(self, core, text_buffer, jid):
+        Tab.__init__(self, core)
         self._text_buffer = text_buffer
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
-        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, stdscr, self.visible)
-        self.upper_bar = buffers.ConversationStatusMessageWin(1, self.width, 0, 0, stdscr, self.visible)
-        self.info_header = buffers.ConversationInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, stdscr, self.visible)
+        self.text_win = buffers.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr, self.visible)
+        self.upper_bar = buffers.ConversationStatusMessageWin(1, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header = buffers.ConversationInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win = buffers.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win = buffers.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input = buffers.MessageInput(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
-    def resize(self, stdscr):
-        Tab.resize(self, stdscr)
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.upper_bar.resize(1, self.width, 0, 0, stdscr, self.visible)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
-        self.tab_win.resize(1, self.width, self.height-2, 0, stdscr, self.visible)
-        self.input.resize(1, self.width, self.height-1, 0, stdscr, self.visible)
+    def resize(self):
+        Tab.resize(self)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
         self.text_win.refresh(self._text_buffer)
@@ -626,7 +621,8 @@ class ConversationTab(Tab):
         if key in key_func:
             key_func[key]()
             return False
-        return self.input.do_command(key)
+        self.input.do_command(key)
+        return True
 
 
     def on_enter(self):
@@ -650,10 +646,10 @@ class ConversationTab(Tab):
     def on_scroll_down(self):
         self._text_buffer.scroll_down(self.text_win.height-1)
 
-    def on_info_win_size_changed(self, stdscr):
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, stdscr, self.visible)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, stdscr, self.visible)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, stdscr, self.visible)
+    def on_info_win_size_changed(self):
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
 
     def get_room(self):
         return self._text_buffer

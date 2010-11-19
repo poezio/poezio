@@ -81,8 +81,8 @@ class Core(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
-        default_tab = InfoTab(self.stdscr, self, "Info") if self.xmpp.anon\
-            else RosterInfoTab(self.stdscr, self)
+        default_tab = InfoTab(self, "Info") if self.xmpp.anon\
+            else RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
         # self.roster = Roster()
@@ -163,7 +163,7 @@ class Core(object):
             return
         self.information_win_size += 1
         for tab in self.tabs:
-            tab.on_info_win_size_changed(self.stdscr)
+            tab.on_info_win_size_changed()
         self.refresh_window()
 
     def shrink_information_win(self):
@@ -173,7 +173,7 @@ class Core(object):
             return
         self.information_win_size -= 1
         for tab in self.tabs:
-            tab.on_info_win_size_changed(self.stdscr)
+            tab.on_info_win_size_changed()
         self.refresh_window()
 
     def on_got_offline(self, presence):
@@ -550,7 +550,7 @@ class Core(object):
         with resize_lock:
            # self.resize_timer = None
             for tab in self.tabs:
-                tab.resize(self.stdscr)
+                tab.resize()
             self.refresh_window()
 
     def main_loop(self):
@@ -634,7 +634,7 @@ class Core(object):
         Open a new MucTab containing a muc Room, using the specified nick
         """
         r = Room(room, nick)
-        new_tab = MucTab(self.stdscr, self, r)
+        new_tab = MucTab(self, r)
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
         else:
@@ -733,7 +733,7 @@ class Core(object):
         open a new conversation tab and focus it if needed
         """
         text_buffer = TextBuffer()
-        new_tab = ConversationTab(self.stdscr, self, text_buffer, jid)
+        new_tab = ConversationTab(self, text_buffer, jid)
         # insert it in the rooms
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
@@ -760,7 +760,7 @@ class Core(object):
             return None
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
-        new_tab = PrivateTab(self.stdscr, self, r)
+        new_tab = PrivateTab(self, r)
         # insert it in the tabs
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
