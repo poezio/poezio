@@ -15,11 +15,10 @@
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Define all the buffers.
-A buffer is a little part of the screen, for example the input buffer,
-the text bufferr, the roster buffer, etc.
-A Tab (see tab.py) is composed of multiple Buffers
-A buffer can also be called Window, even if it's not prefered.
+Define all the windows.
+A window is a little part of the screen, for example the input window,
+the text window, the roster window, etc.
+A Tab (see tab.py) is composed of multiple Windows
 """
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
@@ -608,7 +607,7 @@ class TextWin(Win):
 
 class HelpText(Win):
     """
-    A buffer just displaying a read-only message.
+    A Window just displaying a read-only message.
     Usually used to replace an Input when the tab is in
     command mode.
     """
@@ -990,6 +989,7 @@ class MessageInput(Input):
 
     def __init__(self, height, width, y, x, stdscr, visible):
         Input.__init__(self, height, width, y, x, stdscr, visible)
+        self.last_completion = None
         self.histo_pos = 0
         self.key_func["KEY_UP"] = self.key_up
         self.key_func["M-A"] =  self.key_up
