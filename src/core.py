@@ -535,15 +535,15 @@ class Core(object):
         This is to avoid multiple unnecessary software resizes (this
         can be heavy on resource on slow computers or networks)
         """
-        # with resize_lock:
-            # if self.resize_timer:
-            #     # a recent terminal resize occured.
-            #     # Cancel the programmed software resize
-            #     self.resize_timer.cancel()
-            # # add the new timer
-            # self.resize_timer = threading.Timer(0.15, self.resize_window)
-            # self.resize_timer.start()
-        self.resize_window()
+        with resize_lock:
+            if self.resize_timer:
+                # a recent terminal resize occured.
+                # Cancel the programmed software resize
+                self.resize_timer.cancel()
+            # add the new timer
+            self.resize_timer = threading.Timer(0.1, self.resize_window)
+            self.resize_timer.start()
+        # self.resize_window()
 
     def resize_window(self):
         """

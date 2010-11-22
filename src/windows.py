@@ -53,9 +53,7 @@ class Win(object):
     def __init__(self):
         pass
 
-    def _resize(self, height, width, y, x, parent_win, visible):
-        if not visible:
-            return
+    def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
         # try:
         self._win = curses.newwin(height, width, y, x)
@@ -116,8 +114,6 @@ class UserList(Win):
                            }
 
     def refresh(self, users):
-        # if not self.visible:
-        #     return
         with g_lock:
             self._win.erase()
             y = 0
@@ -137,11 +133,8 @@ class UserList(Win):
                     break
             self._refresh()
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self.visible = visible
-        if not visible:
-            return
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
         self._win.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         self._win.vline(0, 0, curses.ACS_VLINE, self.height)
         self._win.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
@@ -150,12 +143,10 @@ class Topic(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, topic):
-        # if not self.visible:
-        #     return
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
@@ -170,12 +161,10 @@ class GlobalInfoBar(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, tabs, current):
-        # if not self.visible:
-        #     return
         def compare_room(a):
             # return a.nb - b.nb
             return a.nb
@@ -225,12 +214,11 @@ class PrivateInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, room):
-        # if not self.visible:
-        #     return
+
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -262,12 +250,10 @@ class ConversationInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, jid, contact, text_buffer):
-        # if not self.visible:
-        #     return
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -331,12 +317,10 @@ class ConversationStatusMessageWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, jid, contact):
-        # if not self.visible:
-        #     return
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -363,12 +347,10 @@ class MucInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, room):
-        # if not self.visible:
-        #     return
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -493,8 +475,6 @@ class TextWin(Win):
         Build the Line objects from the messages, and then write
         them in the text area
         """
-        # if not self.visible:
-        #     return
         if self.height <= 0:
             return
         with g_lock:
@@ -596,9 +576,8 @@ class TextWin(Win):
         self.addnstr(theme.CHAR_TIME_RIGHT, curses.color_pair(theme.COLOR_TIME_LIMITER))
         self.addstr(' ')
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self.visible = visible
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
 class HelpText(Win):
     """
@@ -610,12 +589,10 @@ class HelpText(Win):
         Win.__init__(self)
         self.txt = text
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self):
-        # if not self.visible:
-        #     return
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, self.txt[:self.width-1], curses.color_pair(theme.COLOR_INFORMATION_BAR))
@@ -669,11 +646,9 @@ class Input(Win):
     def is_empty(self):
         return len(self.text) == 0
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self.visible = visible
-        if not visible:
-            return
-        self._resize(height, width, y, x, stdscr, visible)
+    def resize(self, height, width, y, x, stdscr):
+
+        self._resize(height, width, y, x, stdscr)
         self._win.erase()
         self.addnstr(0, 0, self.text, self.width-1)
 
@@ -963,8 +938,6 @@ class Input(Win):
             self._refresh()
 
     def refresh(self):
-        # if not self.visible:
-        #     return
         self.rewrite_text()
 
     def clear_text(self):
@@ -1098,15 +1071,10 @@ class VerticalSeparator(Win):
             self._win.vline(0, 0, curses.ACS_VLINE, self.height, curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
             self._refresh()
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self.visible = visible
-        self._resize(height, width, y, x, stdscr, visible)
-        if not visible:
-            return
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def refresh(self):
-        # if not self.visible:
-        #     return
         self.rewrite_line()
 
 class RosterWin(Win):
@@ -1127,9 +1095,8 @@ class RosterWin(Win):
         self.roster_len = 0
         self.selected_row = None
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
-        self.visible = visible
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def move_cursor_down(self):
         if self.pos < self.roster_len-1:
@@ -1153,8 +1120,6 @@ class RosterWin(Win):
         """
         We get the roster object
         """
-        # if not self.visible:
-        #     return
         with g_lock:
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
@@ -1278,9 +1243,8 @@ class ContactInfoWin(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr, visible):
-        self._resize(height, width, y, x, stdscr, visible)
-        self.visible = visible
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
 
     def draw_contact_info(self, resource, jid=None):
         """
@@ -1303,8 +1267,6 @@ class ContactInfoWin(Win):
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
-        # if not self.visible:
-        #     return
         with g_lock:
             self._win.erase()
             if isinstance(selected_row, RosterGroup):
