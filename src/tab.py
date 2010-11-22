@@ -248,7 +248,6 @@ class MucTab(ChatTab):
         self.info_win = windows.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
         self.tab_win = windows.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
         self.input = windows.MessageInput(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
-        # self.key_func['\t'] = self.completion
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
 
