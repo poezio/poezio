@@ -50,6 +50,8 @@ class Tab(object):
             self.visible = False
         else:
             self.visible = True
+        self.key_func = {}      # each tab should add their keys in there
+                                # and use them in on_input
 
     def refresh(self, tabs, informations, roster):
         """
@@ -198,16 +200,46 @@ class InfoTab(Tab):
 
 class ChatTab(Tab):
     """
-    
+    A tab containing a chat of any type.
+    Just use this class instead of Tab if the tab needs a recent-words completion
+    Also, \n, ^J and ^M are already bound to on_enter
     """
-class MucTab(Tab):
+    def __init__(self, core, room):
+        Tab.__init__(self, core)
+        self._room = room
+        self.key_func['M-/'] = self.last_words_completion
+        self.key_func['^J'] = self.on_enter
+        self.key_func['^M'] = self.on_enter
+        self.key_func['\n'] = self.on_enter
+
+    def last_words_completion(self):
+        """
+        Complete the input with words recently said
+        """
+        # build the list of the recent words
+        char_we_dont_want = [',', '(', ')', '.', '"', '\'', ' ', # The last one is nbsp
+                             '’', '“', '”', ':', ';', '[', ']', '{', '}']
+        words = list()
+        for msg in self._room.messages[:-40:-1]:
+            if not msg:
+                continue
+            for char in char_we_dont_want:
+                msg.txt = msg.txt.replace(char, ' ')
+            for word in msg.txt.split():
+                if len(word) >= 4 and word not in words:
+                    words.append(word)
+        self.input.auto_completion(words, False)
+
+    def on_enter(self):
+        raise NotImplementedError
+
+class MucTab(ChatTab):
     """
     The tab containing a multi-user-chat room.
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     def __init__(self, core, room):
-        Tab.__init__(self, core)
-        self._room = room
+        ChatTab.__init__(self, core, room)
         self.topic_win = windows.Topic(1, self.width, 0, 0, self.core.stdscr, self.visible)
         self.text_win = windows.TextWin(self.height-4-self.core.information_win_size, (self.width//10)*9, 1, 0, self.core.stdscr, self.visible)
         self.v_separator = windows.VerticalSeparator(self.height-3, 1, 1, 9*(self.width//10), self.core.stdscr, self.visible)
@@ -216,6 +248,9 @@ class MucTab(Tab):
         self.info_win = windows.TextWin(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
         self.tab_win = windows.GlobalInfoBar(1, self.width, self.height-2, 0, self.core.stdscr, self.visible)
         self.input = windows.MessageInput(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
+        # self.key_func['\t'] = self.completion
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
 
     def resize(self):
         """
@@ -243,17 +278,8 @@ class MucTab(Tab):
         self.input.refresh()
 
     def on_input(self, key):
-        key_func = {
-            "\t": self.completion,
-            "^I": self.completion,
-            "M-i": self.completion,
-            "M-/": self.last_words_completion,
-            "^J": self.on_enter,
-            "^M": self.on_enter,
-            "\n": self.on_enter
-            }
-        if key in key_func:
-            key_func[key]()
+        if key in self.key_func:
+            self.key_func[key]()
             return False
         self.input.do_command(key)
         return False
@@ -264,23 +290,6 @@ class MucTab(Tab):
         """
         compare_users = lambda x: x.last_talked
         self.input.auto_completion([user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)])
-
-    def last_words_completion(self):
-        """
-        Complete the input with words recently said
-        """
-        # build the list of the recent words
-        char_we_dont_want = [',', '(', ')', '.', '"', '\'', ' '] # The last one is nbsp
-        words = list()
-        for msg in self._room.messages[:-40:-1]:
-            if not msg:
-                continue
-            for char in char_we_dont_want:
-                msg.txt = msg.txt.replace(char, ' ')
-            for word in msg.txt.split():
-                if len(word) >= 5 and word not in words:
-                    words.append(word)
-        self.input.auto_completion(words, False)
 
     def on_enter(self):
         """
@@ -327,13 +336,12 @@ class MucTab(Tab):
     def on_close(self):
         return
 
-class PrivateTab(Tab):
+class PrivateTab(ChatTab):
     """
     The tab containg a private conversation (someone from a MUC)
     """
     def __init__(self, core, room):
-        Tab.__init__(self, core)
-        self._room = room
+        ChatTab.__init__(self, core, room)
         self.text_win = windows.TextWin(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
         self.info_header = windows.PrivateInfoWin(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr, self.visible)
         self.info_win = windows.TextWin(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
@@ -368,13 +376,8 @@ class PrivateTab(Tab):
         return self._room.name
 
     def on_input(self, key):
-        key_func = {
-            "^J": self.on_enter,
-            "^M": self.on_enter,
-            "\n": self.on_enter
-            }
-        if key in key_func:
-            key_func[key]()
+        if key in self.key_func:
+            self.key_func[key]()
             return False
         return self.input.do_command(key)
 
@@ -571,13 +574,12 @@ class RosterInfoTab(Tab):
     def on_close(self):
         return
 
-class ConversationTab(Tab):
+class ConversationTab(ChatTab):
     """
     The tab containg a normal conversation (someone from our roster)
     """
     def __init__(self, core, text_buffer, jid):
-        Tab.__init__(self, core)
-        self._text_buffer = text_buffer
+        ChatTab.__init__(self, core, text_buffer)
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr, self.visible)
@@ -597,9 +599,9 @@ class ConversationTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr, self.visible)
 
     def refresh(self, tabs, informations, roster):
-        self.text_win.refresh(self._text_buffer)
+        self.text_win.refresh(self._room)
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._text_buffer)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room)
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -617,17 +619,11 @@ class ConversationTab(Tab):
         return self._name
 
     def on_input(self, key):
-        key_func = {
-            "^J": self.on_enter,
-            "^M": self.on_enter,
-            "\n": self.on_enter
-            }
-        if key in key_func:
-            key_func[key]()
+        if key in self.key_func:
+            self.key_func[key]()
             return False
         self.input.do_command(key)
         return True
-
 
     def on_enter(self):
         """
@@ -637,18 +633,18 @@ class ConversationTab(Tab):
 
     def on_lose_focus(self):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
-        self._text_buffer.remove_line_separator()
-        self._text_buffer.add_line_separator()
+        self._room.remove_line_separator()
+        self._room.add_line_separator()
 
     def on_gain_focus(self):
         self.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
 
     def on_scroll_up(self):
-        self._text_buffer.scroll_up(self.text_win.height-1)
+        self._room.scroll_up(self.text_win.height-1)
 
     def on_scroll_down(self):
-        self._text_buffer.scroll_down(self.text_win.height-1)
+        self._room.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr, self.visible)
@@ -656,7 +652,7 @@ class ConversationTab(Tab):
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.visible)
 
     def get_room(self):
-        return self._text_buffer
+        return self._room
 
     def just_before_refresh(self):
         return
