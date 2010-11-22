@@ -506,7 +506,8 @@ class RosterInfoTab(Tab):
         '/' is pressed, we enter "input mode"
         """
         curses.curs_set(1)
-        self.input = windows.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, "", self.reset_help_message, self.execute_slash_command)
+        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
         self.input.do_command("/") # we add the slash
 
     def reset_help_message(self, _=None):
