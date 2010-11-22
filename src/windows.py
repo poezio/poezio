@@ -50,8 +50,8 @@ import theme
 g_lock = Lock()
 
 class Win(object):
-    def __init__(self, height, width, y, x, parent_win):
-        self._resize(height, width, y, x, parent_win, True)
+    def __init__(self):
+        pass
 
     def _resize(self, height, width, y, x, parent_win, visible):
         if not visible:
@@ -99,9 +99,8 @@ class Win(object):
         self.addnstr(' '*size, size, curses.color_pair(color))
 
 class UserList(Win):
-    def __init__(self, height, width, y, x, parent_win, visible):
-        Win.__init__(self, height, width, y, x, parent_win)
-        self.visible = visible
+    def __init__(self):
+        Win.__init__(self)
         self.color_role = {'moderator': theme.COLOR_USER_MODERATOR,
                            'participant':theme.COLOR_USER_PARTICIPANT,
                            'visitor':theme.COLOR_USER_VISITOR,
@@ -117,8 +116,8 @@ class UserList(Win):
                            }
 
     def refresh(self, users):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             y = 0
@@ -148,16 +147,15 @@ class UserList(Win):
         self._win.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
 
 class Topic(Win):
-    def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self):
+        Win.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, topic):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
@@ -169,16 +167,15 @@ class Topic(Win):
             self._refresh()
 
 class GlobalInfoBar(Win):
-    def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self):
+        Win.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, tabs, current):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         def compare_room(a):
             # return a.nb - b.nb
             return a.nb
@@ -207,9 +204,8 @@ class InfoWin(Win):
     Base class for all the *InfoWin, used in various tabs. For example
     MucInfoWin, etc. Provides some useful methods.
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self):
+        Win.__init__(self)
 
     def print_scroll_position(self, text_buffer):
         """
@@ -226,15 +222,15 @@ class PrivateInfoWin(InfoWin):
     The live above the information window, displaying informations
     about the MUC user we are talking to
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+    def __init__(self):
+        InfoWin.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, room):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -263,15 +259,15 @@ class ConversationInfoWin(InfoWin):
                   'unavailable':theme.COLOR_STATUS_UNAVAILABLE
                   }
 
-    def __init__(self, height, width, y, x, parent_win, visible):
-        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+    def __init__(self):
+        InfoWin.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, jid, contact, text_buffer):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -332,15 +328,15 @@ class ConversationStatusMessageWin(InfoWin):
     """
     The upper bar displaying the status message of the contact
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+    def __init__(self):
+        InfoWin.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, jid, contact):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -364,15 +360,15 @@ class MucInfoWin(InfoWin):
     The line just above the information window, displaying informations
     about the MUC we are viewing
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        InfoWin.__init__(self, height, width, y, x, parent_win, visible)
+    def __init__(self):
+        InfoWin.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self, room):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -430,9 +426,8 @@ class TextWin(Win):
     Just keep ONE single window for the text area and rewrite EVERYTHING
     on each change. (thanks weechat :o)
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        Win.__init__(self, height, width, y, x, parent_win)
-        self.visible = visible
+    def __init__(self):
+        Win.__init__(self)
 
     def build_lines_from_messages(self, messages):
         """
@@ -498,8 +493,8 @@ class TextWin(Win):
         Build the Line objects from the messages, and then write
         them in the text area
         """
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         if self.height <= 0:
             return
         with g_lock:
@@ -611,17 +606,16 @@ class HelpText(Win):
     Usually used to replace an Input when the tab is in
     command mode.
     """
-    def __init__(self, height, width, y, x, parent_win, visible, text=''):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self, text=''):
+        Win.__init__(self)
         self.txt = text
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
 
     def refresh(self):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, self.txt[:self.width-1], curses.color_pair(theme.COLOR_INFORMATION_BAR))
@@ -645,7 +639,7 @@ class Input(Win):
     """
     clipboard = '' # A common clipboard for all the inputs, this makes
     # it easy cut and paste text between various input
-    def __init__(self, height, width, y, x, stdscr, visible):
+    def __init__(self):
         self.key_func = {
             "KEY_LEFT": self.key_left,
             "M-D": self.key_left,
@@ -667,8 +661,7 @@ class Input(Win):
             '^?': self.key_backspace,
             }
 
-        Win.__init__(self, height, width, y, x, stdscr)
-        self.visible = visible
+        Win.__init__(self)
         self.text = ''
         self.pos = 0            # cursor position
         self.line_pos = 0 # position (in self.text) of
@@ -970,8 +963,8 @@ class Input(Win):
             self._refresh()
 
     def refresh(self):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         self.rewrite_text()
 
     def clear_text(self):
@@ -987,8 +980,8 @@ class MessageInput(Input):
     """
     history = list()            # The history is common to all MessageInput
 
-    def __init__(self, height, width, y, x, stdscr, visible):
-        Input.__init__(self, height, width, y, x, stdscr, visible)
+    def __init__(self):
+        Input.__init__(self)
         self.last_completion = None
         self.histo_pos = 0
         self.key_func["KEY_UP"] = self.key_up
@@ -1044,9 +1037,8 @@ class CommandInput(Input):
     HelpMessage when a command is started
     The on_input callback
     """
-    def __init__(self, height, width, y, x, stdscr, visible,
-                 help_message, on_abort, on_success, on_input=None):
-        Input.__init__(self, height, width, y, x, stdscr, visible)
+    def __init__(self, help_message, on_abort, on_success, on_input=None):
+        Input.__init__(self)
         self.on_abort = on_abort
         self.on_success = on_success
         self.on_input = on_input
@@ -1098,9 +1090,8 @@ class VerticalSeparator(Win):
     Just a one-column window, with just a line in it, that is
     refreshed only on resize, but never on refresh, for efficiency
     """
-    def __init__(self, height, width, y, x, parent_win, visible):
-        Win.__init__(self, height, width, y, x, parent_win)
-        self.visible = visible
+    def __init__(self):
+        Win.__init__(self)
 
     def rewrite_line(self):
         with g_lock:
@@ -1114,8 +1105,8 @@ class VerticalSeparator(Win):
             return
 
     def refresh(self):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         self.rewrite_line()
 
 class RosterWin(Win):
@@ -1129,9 +1120,8 @@ class RosterWin(Win):
                   'unavailable':theme.COLOR_STATUS_UNAVAILABLE
                   }
 
-    def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self):
+        Win.__init__(self)
         self.pos = 0            # cursor position in the contact list
         self.start_pos = 1      # position of the start of the display
         self.roster_len = 0
@@ -1163,8 +1153,8 @@ class RosterWin(Win):
         """
         We get the roster object
         """
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
@@ -1285,9 +1275,8 @@ class RosterWin(Win):
         return self.selected_row
 
 class ContactInfoWin(Win):
-    def __init__(self, height, width, y, x, parent_win, visible):
-        self.visible = visible
-        Win.__init__(self, height, width, y, x, parent_win)
+    def __init__(self):
+        Win.__init__(self)
 
     def resize(self, height, width, y, x, stdscr, visible):
         self._resize(height, width, y, x, stdscr, visible)
@@ -1314,8 +1303,8 @@ class ContactInfoWin(Win):
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
-        if not self.visible:
-            return
+        # if not self.visible:
+        #     return
         with g_lock:
             self._win.erase()
             if isinstance(selected_row, RosterGroup):
