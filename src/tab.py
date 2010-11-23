@@ -487,7 +487,7 @@ class RosterInfoTab(Tab):
             }
         res = self.input.do_command(key)
         if res:
-            return False
+            return True
         if key in key_commands:
             return key_commands[key]()
 
@@ -568,17 +568,20 @@ class RosterInfoTab(Tab):
         in it.
         """
         curses.curs_set(1)
-        self.input = windows.CommandInput(1, self.width, self.height-1, 0, self.default_help_message, "[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
+        self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
         return True
 
     def set_roster_filter(self, txt):
         roster._contact_filter = (jid_and_name_match, txt)
+        self.roster_win.refresh(roster)
+        return False
 
     def on_search_terminate(self, txt):
         curses.curs_set(0)
         roster._contact_filter = None
         self.reset_help_message()
-        return False
+        return True
 
     def just_before_refresh(self):
         return
