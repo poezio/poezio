@@ -468,7 +468,6 @@ class TextWin(Win):
                     txt = txt[1:]
                 first = False
         return lines
-        return lines[-len(messages):] # return only the needed number of lines
 
     def refresh(self, room):
         """

@@ -388,7 +388,8 @@ class PrivateTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        return self.input.do_command(key)
+        self.input.do_command(key)
+        return False
 
     def on_enter(self):
         """
@@ -637,7 +638,7 @@ class ConversationTab(ChatTab):
             self.key_func[key]()
             return False
         self.input.do_command(key)
-        return True
+        return False
 
     def on_enter(self):
         """
