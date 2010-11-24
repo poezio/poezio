@@ -90,7 +90,7 @@ class Room(TextBuffer):
         """
         self.color_state = color
 
-    def add_message(self, txt, time=None, nickname=None, colorized=False):
+    def add_message(self, txt, time=None, nickname=None, colorized=False, forced_user=None):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -103,6 +103,8 @@ class Room(TextBuffer):
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
+        if not user and forced_user:
+            user = forced_user
         color = theme.COLOR_NORMAL_TEXT
         if not time and nickname and\
                 nickname != self.own_nick and\

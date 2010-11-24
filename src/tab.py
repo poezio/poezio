@@ -25,6 +25,9 @@ Buffer are displayed, resized, etc
 MIN_WIDTH = 50
 MIN_HEIGHT = 16
 
+from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
+                     gettext as _)
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -32,11 +35,13 @@ import windows
 import theme
 import curses
 import difflib
+import shlex
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
+import multiuserchat as muc
 
 class Tab(object):
     number = 0
@@ -52,6 +57,7 @@ class Tab(object):
             self.visible = True
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
+        self.commands = {}      # and their own commands
 
     def refresh(self, tabs, informations, roster):
         """
@@ -207,6 +213,7 @@ class ChatTab(Tab):
     A tab containing a chat of any type.
     Just use this class instead of Tab if the tab needs a recent-words completion
     Also, \n, ^J and ^M are already bound to on_enter
+    And also, add the /say command
     """
     def __init__(self, core, room):
         Tab.__init__(self, core)
@@ -215,6 +222,9 @@ class ChatTab(Tab):
         self.key_func['^J'] = self.on_enter
         self.key_func['^M'] = self.on_enter
         self.key_func['\n'] = self.on_enter
+        self.commands['say'] =  (self.command_say,
+                                 _("""Usage: /say <message>\nSay: Just send the message.
+                                        Useful if you want your message to begin with a '/'"""))
 
     def last_words_completion(self):
         """
@@ -235,6 +245,21 @@ class ChatTab(Tab):
         self.input.auto_completion(words, False)
 
     def on_enter(self):
+        txt = self.input.key_enter()
+        if txt.startswith('/') and not txt.startswith('//') and\
+                not txt.startswith('/me '):
+            command = txt.strip().split()[0][1:]
+            arg = txt[2+len(command):] # jump the '/' and the ' '
+            if command in self.core.commands: # check global commands
+                self.core.commands[command][0](arg)
+            elif command in self.commands: # check tab-specific commands
+                self.commands[command][0](arg)
+            else:
+                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+        else:
+            self.command_say(txt)
+
+    def command_say(self, line):
         raise NotImplementedError
 
 class MucTab(ChatTab):
@@ -252,9 +277,168 @@ class MucTab(ChatTab):
         self.info_win = windows.TextWin()
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
+        self.ignores = []       # set of Users
+        # keys
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
+        # commands
+        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."))
+        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."))
+        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."))
+        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"))
+        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'))
+        self.commands['part'] = (self.command_part, _("Usage: /part [message]\n Part: disconnect from a room. You can specify an optional message."))
+        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"))
+        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'))
         self.resize()
+
+    def command_recolor(self, arg):
+        """
+        Re-assign color to the participants of the room
+        """
+        room = self.get_room()
+        i = 0
+        compare_users = lambda x: x.last_talked
+        users = list(room.users)
+        # search our own user, to remove it from the room
+        for user in users:
+            if user.nick == room.own_nick:
+                users.remove(user)
+        nb_color = len(theme.LIST_COLOR_NICKNAMES)
+        for user in sorted(users, key=compare_users, reverse=True):
+            user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
+            i+= 1
+        self.core.refresh_window()
+
+    def command_nick(self, arg):
+        """
+        /nick <nickname>
+        """
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) != 1:
+            return
+        nick = args[0]
+        room = self.get_room()
+        if not room.joined:
+            return
+        muc.change_nick(self.core.xmpp, room.name, nick)
+
+    def command_part(self, arg):
+        """
+        /part [msg]
+        """
+        args = arg.split()
+        reason = None
+        room = self.get_room()
+        if len(args):
+            msg = ' '.join(args)
+        else:
+            msg = None
+        if self.get_room().joined:
+            muc.leave_groupchat(self.core.xmpp, room.name, room.own_nick, arg)
+        self.core.close_tab()
+
+    def command_query(self, arg):
+        """
+        /query <nick> [message]
+        """
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) < 1:
+            return
+        nick = args[0]
+        room = self.get_room()
+        r = None
+        for user in room.users:
+            if user.nick == nick:
+                r = self.core.open_private_window(room.name, user.nick)
+        if r and len(args) > 1:
+            msg = arg[len(nick)+1:]
+            muc.send_private_message(self.core.xmpp, r.name, msg)
+            self.core.add_message_to_text_buffer(r, msg, None, r.own_nick)
+
+    def command_topic(self, arg):
+        """
+        /topic [new topic]
+        """
+        if not arg.strip():
+            self.core.add_message_to_text_buffer(self.get_room(),
+                                                 _("The subject of the room is: %s") % self.get_room().topic)
+            return
+        subject = arg
+        muc.change_subject(self.core.xmpp, self.get_room().name, subject)
+
+    def command_kick(self, arg):
+        """
+        /kick <nick> [reason]
+        """
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) < 1:
+            self.core.command_help('kick')
+            return
+        nick = args[0]
+        if len(args) >= 2:
+            reason = ' '.join(args[1:])
+        else:
+            reason = ''
+        if not self.get_room().joined:
+            return
+        res = muc.eject_user(self.core.xmpp, self.get_name(), nick, reason)
+        if res['type'] == 'error':
+            self.core.room_error(res, self.get_name())
+
+    def command_say(self, line):
+        muc.send_groupchat_message(self.core.xmpp, self.get_name(), line)
+
+    def command_ignore(self, arg):
+        """
+        /ignore <nick>
+        """
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) != 1:
+            self.core.command_help('ignore')
+            return
+        nick = args[0]
+        user = self._room.get_user_by_name(nick)
+        if not user:
+            self.core.information(_('%s is not in the room') % nick)
+        elif user in self.ignores:
+            self.core.information(_('%s is already ignored') % nick)
+        else:
+            self.ignores.append(user)
+            self.core.information(_("%s is now ignored") % nick, 'info')
+
+    def command_unignore(self, arg):
+        """
+        /unignore <nick>
+        """
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) != 1:
+            self.core.command_help('unignore')
+            return
+        nick = args[0]
+        user = self._room.get_user_by_name(nick)
+        if not user:
+            self.core.information(_('%s is not in the room') % nick)
+        elif user not in self.ignores:
+            self.core.information(_('%s is not ignored') % nick)
+        else:
+            self.ignores.remove(user)
+            self.core.information(_('%s is now unignored') % nick)
 
     def resize(self):
         """
@@ -296,12 +480,6 @@ class MucTab(ChatTab):
         """
         compare_users = lambda x: x.last_talked
         self.input.auto_completion([user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)])
-
-    def on_enter(self):
-        """
-        When enter is pressed, send the message to the Muc
-        """
-        self.core.execute(self.input.key_enter())
 
     def get_color_state(self):
         return self._room.color_state
@@ -353,7 +531,19 @@ class PrivateTab(ChatTab):
         self.info_win = windows.TextWin()
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"))
+        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"))
         self.resize()
+
+    def command_say(self, line):
+        muc.send_private_message(self.core.xmpp, self.get_name(), line)
+        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.get_room().own_nick)
+
+    def command_unquery(self, arg):
+        """
+        /unquery
+        """
+        self.core.close_tab()
 
     def resize(self):
         Tab.resize(self)
@@ -391,11 +581,11 @@ class PrivateTab(ChatTab):
         self.input.do_command(key)
         return False
 
-    def on_enter(self):
-        """
-        When enter is pressed, send the message to the Muc
-        """
-        self.core.execute(self.input.key_enter())
+    # def on_enter(self):
+    #     """
+    #     When enter is pressed, send the message to the Muc
+    #     """
+    #     self.core.execute(self.input.key_enter())
 
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
@@ -603,11 +793,23 @@ class ConversationTab(ChatTab):
         self.info_win = windows.TextWin()
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"))
+        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"))
         self.resize()
+
+    def command_say(self, line):
+        muc.send_private_message(self.core.xmpp, self.get_name(), line)
+        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
+
+    def command_unquery(self, arg):
+        """
+        /unquery
+        """
+        self.core.close_tab()
 
     def resize(self):
         Tab.resize(self)
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
         self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr)
@@ -643,11 +845,11 @@ class ConversationTab(ChatTab):
         self.input.do_command(key)
         return False
 
-    def on_enter(self):
-        """
-        When enter is pressed, send the message to the Muc
-        """
-        self.core.execute(self.input.key_enter())
+    # def on_enter(self):
+    #     """
+    #     When enter is pressed, send the message to the Muc
+    #     """
+    #     self.core.execute(self.input.key_enter())
 
     def on_lose_focus(self):
         self.set_color_state(theme.COLOR_TAB_NORMAL)

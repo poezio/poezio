@@ -91,10 +91,10 @@ class Core(object):
         # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = 2 # Todo, get this from config
-        self.ignores = {}
         self.resize_timer = None
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
+        # global commands, available from all tabs (having an input, of course)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password")),
@@ -106,26 +106,16 @@ class Core(object):
             'p': (self.rotate_rooms_left, _("Usage: /p\nP: Go to the previous room.")),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room.")),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room.")),
-            'ignore': (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname.")),
-            'unignore': (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list.")),
-            'part': (self.command_part, _("Usage: /part [message]\n Part: disconnect from a room. You can specify an optional message.")),
             'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message")),
             'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'")),
             'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'")),
             'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'")),
             'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'")),
            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)")),
-            'unquery': (self.command_unquery, _("Usage: /unquery\nClose the private conversation window")),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.")),
-            'kick': (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason.")),
-            'topic': (self.command_topic, _("Usage: /topic <subject> \nTopic: Change the subject of the room")),
             'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with.")),
-            'query': (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user')),
-            'nick': (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room")),
-            'say': (self.command_say, _('Usage: /say <message>\nSay: Just send the message. Useful if you want your message to begin with a "/"')),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.')),
-            'recolor': (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.')),
             }
 
         self.key_func = {
@@ -451,7 +441,9 @@ class Core(object):
             if not room:
                 return
         body = message['body']
-        self.add_message_to_text_buffer(room, body, None, nick_from)
+        room.add_message(body, time=None, nickname=nick_from,
+                         colorized=False,
+                         forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
         self.refresh_window()
         self.doupdate()
 
@@ -816,7 +808,9 @@ class Core(object):
         if nick_from == room_from:
             nick_from = None
         room = self.get_room_by_name(room_from)
-        if (room_from in self.ignores) and (nick_from in self.ignores[room_from]):
+        tab = self.get_tab_by_name(room_from)
+        if tab and tab.get_room() and tab.get_room().get_user_by_name(nick_from) and\
+                tab.get_room().get_user_by_name(nick_from) in tab.ignores:
             return
         if not room:
             self.information(_("message received for a non-existing room: %s") % (room_from))
@@ -849,6 +843,8 @@ class Core(object):
         if len(args) == 0:
             msg = _('Available commands are: ')
             for command in list(self.commands.keys()):
+                msg += "%s " % command
+            for command in list(self.current_tab().commands.keys()):
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
         if len(args) >= 1:
@@ -885,27 +881,6 @@ class Core(object):
         theme.reload_theme()
         self.resize_window()
 
-    def command_recolor(self, arg):
-        """
-        Re-assign color to the participants of the room
-        """
-        tab = self.current_tab()
-        if not isinstance(tab, MucTab):
-            return
-        room = tab.get_room()
-        i = 0
-        compare_users = lambda x: x.last_talked
-        users = list(room.users)
-        # search our own user, to remove it from the room
-        for user in users:
-            if user.nick == room.own_nick:
-                users.remove(user)
-        nb_color = len(theme.LIST_COLOR_NICKNAMES)
-        for user in sorted(users, key=compare_users, reverse=True):
-            user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
-            i+= 1
-        self.refresh_window()
-
     def command_win(self, arg):
         """
         /win <number>
@@ -933,29 +908,6 @@ class Core(object):
                 return
         self.current_tab().on_gain_focus()
         self.refresh_window()
-
-    def command_kick(self, arg):
-        """
-        /kick <nick> [reason]
-        """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.information(str(error), _("Error"))
-        if len(args) < 1:
-            self.command_help('kick')
-            return
-        nick = args[0]
-        if len(args) >= 2:
-            reason = ' '.join(args[1:])
-        else:
-            reason = ''
-        if not isinstance(self.current_tab(), MucTab) or not self.current_tab().get_room().joined:
-            return
-        roomname = self.current_tab().get_name()
-        res = muc.eject_user(self.xmpp, roomname, nick, reason)
-        if res['type'] == 'error':
-            self.room_error(res, roomname)
 
     def command_join(self, arg):
         """
@@ -1099,52 +1051,6 @@ class Core(object):
             if isinstance(tab, MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
 
-    def command_ignore(self, arg):
-        """
-        /ignore <nick>
-        """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.information(str(error), _("Error"))
-        if len(args) != 1:
-            self.command_help('ignore')
-            return
-        if not isinstance(self.current_tab(), MucTab):
-            return
-        roomname = self.current_tab().get_name()
-        nick = args[0]
-        if roomname not in self.ignores:
-            self.ignores[roomname] = set() # no need for any order
-        if nick not in self.ignores[roomname]:
-            self.ignores[roomname].add(nick)
-            self.information(_("%s is now ignored") % nick, 'info')
-        else:
-            self.information(_("%s is alread ignored") % nick, 'info')
-
-    def command_unignore(self, arg):
-        """
-        /unignore <nick>
-        """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.information(str(error), _("Error"))
-        if len(args) != 1:
-            self.command_help('unignore')
-            return
-        if not isinstance(self.current_tab(), MucTab):
-            return
-        roomname = self.current_tab().get_name()
-        nick = args[0]
-        if roomname not in self.ignores or (nick not in self.ignores[roomname]):
-            self.information(_("%s was not ignored") % nick, info)
-            return
-        self.ignores[roomname].remove(nick)
-        if not self.ignores[roomname]:
-            del self.ignores[roomname]
-        self.information(_("%s is now unignored") % nick, 'info')
-
     def command_away(self, arg):
         """
         /away [msg]
@@ -1163,25 +1069,6 @@ class Core(object):
         """
         self.command_show("available "+arg)
 
-    def command_part(self, arg):
-        """
-        /part [msg]
-        """
-        if not isinstance(self.current_tab(), MucTab) and\
-                not isinstance(self.current_tab(), PrivateTab):
-            return
-        args = arg.split()
-        reason = None
-        room = self.current_tab().get_room()
-        if len(args):
-            msg = ' '.join(args)
-        else:
-            msg = None
-        if isinstance(self.current_tab(), MucTab) and\
-                self.current_tab().get_room().joined:
-            muc.leave_groupchat(self.xmpp, room.name, room.own_nick, arg)
-        self.close_tab()
-
     def close_tab(self, tab=None):
         """
         Close the given tab. If None, close the current one
@@ -1194,49 +1081,6 @@ class Core(object):
         self.tabs.remove(tab)
         self.rotate_rooms_left()
         del tab
-
-    def command_query(self, arg):
-        """
-        /query <nick> [message]
-        """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.information(str(error), _("Error"))
-        if len(args) < 1 or not isinstance(self.current_tab(), MucTab):
-            return
-        nick = args[0]
-        room = self.current_tab().get_room()
-        r = None
-        for user in room.users:
-            if user.nick == nick:
-                r = self.open_private_window(room.name, user.nick)
-        if r and len(args) > 1:
-            msg = arg[len(nick)+1:]
-            muc.send_private_message(self.xmpp, r.name, msg)
-            self.add_message_to_text_buffer(r, msg, None, r.own_nick)
-
-    def command_unquery(self, arg):
-        """
-        /unquery
-        Closes the Conversation or the Private tab
-        """
-        if isinstance(self.current_tab(), ConversationTab) or\
-                isinstance(self.current_tab(), PrivateTab):
-            self.close_tab()
-
-    def command_topic(self, arg):
-        """
-        /topic [new topic]
-        """
-        if not isinstance(self.current_tab(), MucTab):
-            return
-        room = self.current_tab().get_room()
-        if not arg.strip():
-            self.add_message_to_text_buffer(room, _("The subject of the room is: %s") % room.topic)
-            return
-        subject = arg
-        muc.change_subject(self.xmpp, room.name, subject)
 
     def command_link(self, arg):
         """
@@ -1301,24 +1145,6 @@ class Core(object):
         room.remove_line_separator()
         room.add_line_separator()
         self.refresh_window()
-
-    def command_nick(self, arg):
-        """
-        /nick <nickname>
-        """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.information(str(error), _("Error"))
-        if not isinstance(self.current_tab(), MucTab):
-            return
-        if len(args) != 1:
-            return
-        nick = args[0]
-        room = self.current_tab().get_room()
-        if not room.joined or room.name == "Info":
-            return
-        muc.change_nick(self.xmpp, room.name, nick)
 
     def information(self, msg, typ=''):
         """
@@ -1386,17 +1212,16 @@ class Core(object):
         else:
             self.command_say(line)
 
-    def command_say(self, line):
-        if isinstance(self.current_tab(), PrivateTab):
-            muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
-        elif isinstance(self.current_tab(), ConversationTab): # todo, special case # hu, I can't remember what special case was needed when I wrote that…
-            muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
-        if isinstance(self.current_tab(), PrivateTab) or\
-                isinstance(self.current_tab(), ConversationTab):
-            self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.own_nick)
-        elif isinstance(self.current_tab(), MucTab):
-            muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
-        self.doupdate()
+    # def command_say(self, line):
+    #     if isinstance(self.current_tab(), PrivateTab):
+    #         muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
+    #     elif isinstance(self.current_tab(), ConversationTab): # todo, special case # hu, I can't remember what special case was needed when I wrote that…
+    #     if isinstance(self.current_tab(), PrivateTab) or\
+    #             isinstance(self.current_tab(), ConversationTab):
+    #         self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.own_nick)
+    #     elif isinstance(self.current_tab(), MucTab):
+    #         muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
+    #     self.doupdate()
 
     def doupdate(self):
         self.current_tab().just_before_refresh()
