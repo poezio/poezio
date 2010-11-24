@@ -85,7 +85,6 @@ class Core(object):
             else RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
-        # self.roster = Roster()
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
@@ -421,7 +420,7 @@ class Core(object):
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
-            if isinstance(tab, MucTab) and tab.get_name() == jid_from.bare: # check all the MUC we are in
+            if tab.get_name() == jid_from.full: # check all the MUC we are in
                 if message['type'] == 'error':
                     return self.room_error(message, tab.get_room().name)
                 else:
