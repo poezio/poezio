@@ -59,11 +59,39 @@ class Tab(object):
                                 # and use them in on_input
         self.commands = {}      # and their own commands
 
-    def refresh(self, tabs, informations, roster):
+    def complete_commands(self, the_input):
         """
-        Called on each screen refresh (when something has changed)
+        Does command completion on the specified input for both global and tab-specific
+        commands.
+        This should be called from the completion method (on tab, for example), passing
+        the input where completion is to be made.
+        It can completion the command name itself or an argument of the command.
+        Returns True if a completion was made, False else.
         """
-        raise NotImplementedError
+        txt = the_input.get_text()
+        # check if this is a command
+        if txt.startswith('/') and not txt.startswith('//'):
+            # check if we are in the middle of the command name
+            if len(txt.split()) > 1 or\
+                    (txt.endswith(' ') and not the_input.last_completion):
+                command_name = txt.split()[0][1:]
+                if command_name in self.core.commands:
+                    command = self.core.commands[command_name]
+                elif command_name in self.commands:
+                    command = self.commands[command_name]
+                else:           # Unknown command, cannot complete
+                    return False
+                if command[2] is None:
+                    return False # There's no completion functio
+                else:
+                    return command[2](the_input)
+            else:
+                # complete the command's name
+                words = ['/%s'%(name) for name in list(self.core.commands.keys())] +\
+                    ['/%s'% (name) for name in list(self.commands.keys())]
+                the_input.auto_completion(words, '')
+                return True
+        return False
 
     def resize(self):
         self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
@@ -71,6 +99,12 @@ class Tab(object):
             self.visible = False
         else:
             self.visible = True
+
+    def refresh(self, tabs, informations, roster):
+        """
+        Called on each screen refresh (when something has changed)
+        """
+        raise NotImplementedError
 
     def get_color_state(self):
         """
@@ -224,7 +258,7 @@ class ChatTab(Tab):
         self.key_func['\n'] = self.on_enter
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
-                                        Useful if you want your message to begin with a '/'"""))
+                                        Useful if you want your message to begin with a '/'"""), None)
 
     def last_words_completion(self):
         """
@@ -242,7 +276,7 @@ class ChatTab(Tab):
             for word in msg.txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        self.input.auto_completion(words, False)
+        self.input.auto_completion(words, ' ')
 
     def on_enter(self):
         txt = self.input.key_enter()
@@ -282,14 +316,14 @@ class MucTab(ChatTab):
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
         # commands
-        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."))
-        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."))
-        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."))
-        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"))
-        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'))
-        self.commands['part'] = (self.command_part, _("Usage: /part [message]\n Part: disconnect from a room. You can specify an optional message."))
-        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"))
-        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'))
+        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
+        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), None)
+        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), None)
+        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
+        self.commands['part'] = (self.command_part, _("Usage: /part [message]\n Part: disconnect from a room. You can specify an optional message."), None)
+        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
+        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.resize()
 
     def command_recolor(self, arg):
@@ -478,8 +512,17 @@ class MucTab(ChatTab):
         """
         Called when Tab is pressed, complete the nickname in the input
         """
+        if self.complete_commands(self.input):
+            return
         compare_users = lambda x: x.last_talked
-        self.input.auto_completion([user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)])
+        word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)]
+        after = config.get('after_completion', ',')+" "
+        if ' ' not in self.input.get_text() or (self.input.last_completion and\
+                     self.input.get_text()[:-len(after)] == self.input.last_completion):
+            add_after = after
+        else:
+            add_after = ' '
+        self.input.auto_completion(word_list, add_after)
 
     def get_color_state(self):
         return self._room.color_state
@@ -531,9 +574,16 @@ class PrivateTab(ChatTab):
         self.info_win = windows.TextWin()
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"))
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"))
+        # keys
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
+        # commands
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
+        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
         self.resize()
+
+    def completion(self):
+        self.complete_commands(self.input)
 
     def command_say(self, line):
         muc.send_private_message(self.core.xmpp, self.get_name(), line)
@@ -631,6 +681,16 @@ class RosterInfoTab(Tab):
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
         self.set_color_state(theme.COLOR_TAB_NORMAL)
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
+        self.key_func["^J"] = self.on_enter
+        self.key_func["^M"] = self.on_enter
+        self.key_func[' '] = self.on_space
+        self.key_func["/"] = self.on_slash
+        self.key_func["KEY_UP"] = self.move_cursor_up
+        self.key_func["KEY_DOWN"] = self.move_cursor_down
+        self.key_func["o"] = self.toggle_offline_show
+        self.key_func["^F"] = self.start_search
         self.resize()
 
     def resize(self):
@@ -643,6 +703,12 @@ class RosterInfoTab(Tab):
         self.roster_win.resize(self.height-2-3, roster_width, 0, 0, self.core.stdscr)
         self.contact_info_win.resize(3, roster_width, self.height-2-3, 0, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+
+    def completion(self):
+        # Check if we are entering a command (with the '/' key)
+        if isinstance(self.input, windows.CommandInput) and\
+                not self.input.help_message:
+            self.complete_commands(self.input)
 
     def refresh(self, tabs, informations, roster):
         if not self.visible:
@@ -664,22 +730,11 @@ class RosterInfoTab(Tab):
         self._color_state = color
 
     def on_input(self, key):
-        key_commands = {
-            "^J": self.on_enter,
-            "^M": self.on_enter,
-            "\n": self.on_enter,
-            ' ': self.on_space,
-            "/": self.on_slash,
-            "KEY_UP": self.move_cursor_up,
-            "KEY_DOWN": self.move_cursor_down,
-            "o": self.toggle_offline_show,
-            "^F": self.start_search,
-            }
         res = self.input.do_command(key)
         if res:
             return True
-        if key in key_commands:
-            return key_commands[key]()
+        if key in self.key_func:
+            return self.key_func[key]()
 
     def toggle_offline_show(self):
         """
@@ -793,9 +848,16 @@ class ConversationTab(ChatTab):
         self.info_win = windows.TextWin()
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"))
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"))
+        # keys
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
+        # commands
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
+        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
         self.resize()
+
+    def completion(self):
+        self.complete_commands(self.input)
 
     def command_say(self, line):
         muc.send_private_message(self.core.xmpp, self.get_name(), line)

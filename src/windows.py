@@ -803,17 +803,20 @@ class Input(Win):
             self.rewrite_text()
         return True
 
-    def auto_completion(self, user_list, add_after=True):
+    def auto_completion(self, word_list, add_after):
         """
-        Complete the nickname
+        Complete the input, from a list of words
+        if add_after is None, we use the value defined in completion
+        plus a space, after the completion. If it's a string, we use it after the
+        completion (with no additional space)
         """
         if self.pos+self.line_pos != len(self.text): # or len(self.text) == 0
             return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
         if completion_type == 'shell' and self.text != '':
-            self.shell_completion(user_list, add_after)
+            self.shell_completion(word_list, add_after)
         else:
-            self.normal_completion(user_list, add_after)
+            self.normal_completion(word_list, add_after)
         return True
 
     def reset_completion(self):
@@ -823,46 +826,48 @@ class Input(Win):
         self.hit_list = []
         self.last_completion = None
 
-    def normal_completion(self, user_list, add_after):
+    def normal_completion(self, word_list, after):
         """
         Normal completion
         """
-        if add_after and (" " not in self.text.strip() or\
-                self.last_completion and self.text == self.last_completion+config.get('after_completion', ',')+" "):
-            after = config.get('after_completion', ',')+" "
-            #if " " in self.text.strip() and (not self.last_completion or ' ' in self.last_completion):
-        else:
-            after = " " # don't put the "," if it's not the begining of the sentence
         (y, x) = self._win.getyx()
         if not self.last_completion:
             # begin is the begining of the nick we want to complete
-            if self.text.strip() != '':
+            # if self.text.strip() != '' and\
+            #         not self.text.endswith(after):
+            if self.text.strip():
                 begin = self.text.split()[-1].lower()
             else:
                 begin = ''
+            # else:
+            #     begin = ''
             hit_list = []       # list of matching nicks
-            for user in user_list:
-                if user.lower().startswith(begin):
-                    hit_list.append(user)
+            for word in word_list:
+                if word.lower().startswith(begin):
+                    hit_list.append(word)
             if len(hit_list) == 0:
                 return
             self.hit_list = hit_list
             end = len(begin)
         else:
-            begin = self.text[-len(after)-len(self.last_completion):-len(after)]
+            if after:
+                begin = self.text[-len(after)-len(self.last_completion):-len(after)]
+            else:
+                begin = self.last_completion
             self.hit_list.append(self.hit_list.pop(0)) # rotate list
             end = len(begin) + len(after)
-        self.text = self.text[:-end]
+        if end:
+            self.text = self.text[:-end]
         nick = self.hit_list[0] # take the first hit
         self.last_completion = nick
         self.text += nick +after
         self.key_end(False)
 
-    def shell_completion(self, user_list, add_after):
+    def shell_completion(self, word_list, after):
         """
         Shell-like completion
         """
-        if " " in self.text.strip() or not add_after:
+        if " " in self.text.strip() or add_after is not None:
             after = " " # don't put the "," if it's not the begining of the sentence
         else:
             after = config.get('after_completion', ',')+" "
@@ -872,7 +877,7 @@ class Input(Win):
         else:
             begin = ''
         hit_list = []       # list of matching nicks
-        for user in user_list:
+        for user in word_list:
             if user.lower().startswith(begin):
                 hit_list.append(user)
         if len(hit_list) == 0:

@@ -34,6 +34,8 @@ import common
 import theme
 import logging
 
+from sleekxmpp.xmlstream.stanzabase import JID
+
 log = logging.getLogger(__name__)
 
 import multiuserchat as muc
@@ -93,28 +95,33 @@ class Core(object):
         self.resize_timer = None
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
-        # global commands, available from all tabs (having an input, of course)
+        # global commands, available from all tabs
+        # a command is tuple of the form:
+        # (the function executing the command. Takes a string as argument,
+        #  a string representing the help message,
+        #  a completion function, taking a Input as argument. Can be None)
+        #  The completion function should return True if a completion was
+        #  made ; False otherwise
         self.commands = {
-            'help': (self.command_help, '\_o< KOIN KOIN KOIN'),
-            'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password")),
-            'quit': (self.command_quit, _("Usage: /quit\nQuit: Just disconnect from the server and exit poezio.")),
-            'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio.")),
-            'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room.")),
-            'n': (self.rotate_rooms_right, _("Usage: /n\nN: Go to the next room.")),
-            'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room.")),
-            'p': (self.rotate_rooms_left, _("Usage: /p\nP: Go to the previous room.")),
-            'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room.")),
-            'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room.")),
-            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message")),
-            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'")),
-            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'")),
-            'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'")),
-            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'")),
-           'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)")),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>.")),
-            'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with.")),
-            'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.')),
-            'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.')),
+            'help': (self.command_help, '\_o< KOIN KOIN KOIN', None),
+            'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
+            'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
+            'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
+            'n': (self.rotate_rooms_right, _("Usage: /n\nN: Go to the next room."), None),
+            'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
+            'p': (self.rotate_rooms_left, _("Usage: /p\nP: Go to the previous room."), None),
+            'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), None),
+            'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), None),
+            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), None),
+            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'"), None),
+            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'"), None),
+            'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
+            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
+           'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
+            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
+            'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with."), None),
+            'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.'), None),
+            'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             }
 
         self.key_func = {
@@ -145,7 +152,6 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
-
 
     def grow_information_win(self):
         """
@@ -908,6 +914,28 @@ class Core(object):
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
+    def completion_join(self, the_input):
+        """
+        Try to complete the server of the MUC's jid (for now only from the currently
+        open ones)
+        TODO: have a history of recently joined MUCs, and use that too
+        """
+        txt = the_input.get_text()
+        if len(txt.split()) != 2:
+            # we are not on the 1st argument of the command line
+            return False
+        jid = JID(txt.split()[1])
+        if not jid.user or not jid.server or jid.resource != '':
+            # we are not writing the server part of the jid
+            return True
+        serv = jid.server
+        serv_list = []
+        for tab in self.tabs:
+            if isinstance(tab, MucTab):
+                serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
+        the_input.auto_completion(serv_list, '')
+        return True
+
     def command_join(self, arg):
         """
         /join [room][/nick] [password]
@@ -1211,21 +1239,9 @@ class Core(object):
         else:
             self.command_say(line)
 
-    # def command_say(self, line):
-    #     if isinstance(self.current_tab(), PrivateTab):
-    #         muc.send_private_message(self.xmpp, self.current_tab().get_name(), line)
-    #     elif isinstance(self.current_tab(), ConversationTab): # todo, special case # hu, I can't remember what special case was needed when I wrote that…
-    #     if isinstance(self.current_tab(), PrivateTab) or\
-    #             isinstance(self.current_tab(), ConversationTab):
-    #         self.add_message_to_text_buffer(self.current_tab().get_room(), line, None, self.own_nick)
-    #     elif isinstance(self.current_tab(), MucTab):
-    #         muc.send_groupchat_message(self.xmpp, self.current_tab().get_name(), line)
-    #     self.doupdate()
-
     def doupdate(self):
         self.current_tab().just_before_refresh()
         curses.doupdate()
 
 # # global core object
 core = Core(connection)
-
