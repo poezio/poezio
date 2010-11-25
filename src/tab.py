@@ -291,6 +291,8 @@ class ChatTab(Tab):
             else:
                 self.core.information(_("Unknown command (%s)") % (command), _('Error'))
         else:
+            if txt.startswith('//'):
+                txt = txt[1:]
             self.command_say(txt)
 
     def command_say(self, line):
@@ -631,12 +633,6 @@ class PrivateTab(ChatTab):
         self.input.do_command(key)
         return False
 
-    # def on_enter(self):
-    #     """
-    #     When enter is pressed, send the message to the Muc
-    #     """
-    #     self.core.execute(self.input.key_enter())
-
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self._room.remove_line_separator()
@@ -906,12 +902,6 @@ class ConversationTab(ChatTab):
             return False
         self.input.do_command(key)
         return False
-
-    # def on_enter(self):
-    #     """
-    #     When enter is pressed, send the message to the Muc
-    #     """
-    #     self.core.execute(self.input.key_enter())
 
     def on_lose_focus(self):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
