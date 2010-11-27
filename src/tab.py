@@ -271,9 +271,10 @@ class ChatTab(Tab):
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
+            txt = msg.txt
             for char in char_we_dont_want:
-                msg.txt = msg.txt.replace(char, ' ')
-            for word in msg.txt.split():
+                txt = txt.replace(char, ' ')
+            for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
         self.input.auto_completion(words, ' ')
