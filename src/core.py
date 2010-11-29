@@ -122,6 +122,7 @@ class Core(object):
             'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with."), None),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.'), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
+            'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
             }
 
         self.key_func = {
@@ -925,16 +926,50 @@ class Core(object):
             # we are not on the 1st argument of the command line
             return False
         jid = JID(txt.split()[1])
-        if not jid.user or not jid.server or jid.resource != '':
-            # we are not writing the server part of the jid
-            return True
-        serv = jid.server
-        serv_list = []
-        for tab in self.tabs:
-            if isinstance(tab, MucTab):
-                serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
-        the_input.auto_completion(serv_list, '')
+        if jid.server:
+            if jid.resource or jid.full.endswith('/'):
+                # we are writing the resource: complete the node
+                if not the_input.last_completion:
+                    items = self.xmpp.plugin['xep_0030'].getItems(jid.server)['disco_items'].getItems()
+                    items = ['%s/%s' % (tup[0], jid.resource) for tup in items]
+                    for i in range(len(jid.server) + 2 + len(jid.resource)):
+                        log.debug('allo')
+                        the_input.key_backspace()
+                else:
+                    items = []
+                the_input.auto_completion(items, '')
+            else:
+                # we are writing the server: complete the server
+                serv = jid.server
+                serv_list = []
+                for tab in self.tabs:
+                    if isinstance(tab, MucTab):
+                        serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
+                the_input.auto_completion(serv_list, '')
         return True
+
+    def command_list(self, arg):
+        """
+        Opens a MucListTab for the specified server
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_win('list')
+            return
+        server = args[1]
+        # TODO
+
+    def completion_list(self, the_input):
+        """
+        """
+        txt = the_input.get_text()
+        muc_serv_list = []
+        for tab in self.tabs:   # TODO, also from an history
+            if isinstance(tab, MucTab) and\
+                    tab.get_name() not in muc_serv_list:
+                muc_serv_list.append(tab.get_name())
+        if muc_serv_list:
+            the_input.auto_completion(muc_serv_list, ' ')
 
     def command_join(self, arg):
         """
@@ -950,7 +985,7 @@ class Core(object):
             nick = t.get_room().own_nick
         else:
             info = args[0].split('/')
-            if len(info) == 1:
+            if len(info) == 1 or info[1] == '':
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
                 if nick == '':

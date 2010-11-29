@@ -18,6 +18,9 @@
 Defines the Connection class
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
@@ -45,10 +48,12 @@ class Connection(sleekxmpp.ClientXMPP):
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
+        self.registerPlugin('xep_0030')
         self.registerPlugin('xep_0045')
-
+        
     def start(self):
         # TODO, try multiple servers
+        # With anon auth.
         # (domain, config.get('port', 5222))
         custom_host = config.get('custom_host', '')
         custom_port = config.get('custom_port', -1)
