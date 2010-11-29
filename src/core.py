@@ -930,13 +930,18 @@ class Core(object):
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
                 if not the_input.last_completion:
-                    items = self.xmpp.plugin['xep_0030'].getItems(jid.server)['disco_items'].getItems()
+                    response = self.xmpp.plugin['xep_0030'].getItems(jid.server)
+                    log.debug('HEY: %s\n' % response)
+                    if response:
+                        items = response['disco_items'].getItems()
+                    else:
+                        return True
                     items = ['%s/%s' % (tup[0], jid.resource) for tup in items]
                     for i in range(len(jid.server) + 2 + len(jid.resource)):
-                        log.debug('allo')
                         the_input.key_backspace()
                 else:
                     items = []
+                log.debug('%s\n' % items)
                 the_input.auto_completion(items, '')
             else:
                 # we are writing the server: complete the server

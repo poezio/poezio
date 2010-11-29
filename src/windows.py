@@ -832,15 +832,12 @@ class Input(Win):
         """
         (y, x) = self._win.getyx()
         if not self.last_completion:
-            # begin is the begining of the nick we want to complete
-            # if self.text.strip() != '' and\
-            #         not self.text.endswith(after):
-            if self.text.strip():
+            # begin is the begining of the word we want to complete
+            if self.text.strip() and not self.text.endswith(' '):
                 begin = self.text.split()[-1].lower()
             else:
                 begin = ''
-            # else:
-            #     begin = ''
+            log.debug('BEGIN: [%s]\n' % begin)
             hit_list = []       # list of matching nicks
             for word in word_list:
                 if word.lower().startswith(begin):
