@@ -39,9 +39,10 @@ from sleekxmpp.xmlstream.stanzabase import JID
 log = logging.getLogger(__name__)
 
 import multiuserchat as muc
+import tabs
+
 from connection import connection
 from config import config
-from tab import MucTab, InfoTab, PrivateTab, RosterInfoTab, ConversationTab
 from logger import logger
 from user import User
 from room import Room
@@ -83,8 +84,8 @@ class Core(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
-        default_tab = InfoTab(self, "Info") if self.xmpp.anon\
-            else RosterInfoTab(self)
+        default_tab = tabs.InfoTab(self, "Info") if self.xmpp.anon\
+            else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
         # a unique buffer used to store global informations
@@ -183,7 +184,7 @@ class Core(object):
         assert resource
         self.information('%s is offline' % (resource.get_jid()), "Roster")
         contact.remove_resource(resource)
-        if isinstance(self.current_tab(), RosterInfoTab):
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def on_got_online(self, presence):
@@ -315,7 +316,7 @@ class Core(object):
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.tabs:
-                if isinstance(_tab, PrivateTab) and _tab.get_name().split('/', 1)[0] == room.name:
+                if isinstance(_tab, tabs.PrivateTab) and _tab.get_name().split('/', 1)[0] == room.name:
                     _tab.get_room().own_nick = new_nick
         user.change_nick(new_nick)
         self.add_message_to_text_buffer(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
@@ -497,7 +498,7 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        if isinstance(self.current_tab(), RosterInfoTab):
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def on_roster_update(self, iq):
@@ -523,7 +524,7 @@ class Core(object):
                 contact.set_subscription(item.attrib['subscription'])
             groups = item.findall('{jabber:iq:roster}group')
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
-        if isinstance(self.current_tab(), RosterInfoTab):
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def call_for_resize(self):
@@ -578,7 +579,7 @@ class Core(object):
         Return the room of the ConversationTab with the given jid
         """
         for tab in self.tabs:
-            if isinstance(tab, ConversationTab):
+            if isinstance(tab, tabs.ConversationTab):
                 if tab.get_name() == jid:
                     return tab.get_room()
         return None
@@ -597,8 +598,8 @@ class Core(object):
         returns the room that has this name
         """
         for tab in self.tabs:
-            if (isinstance(tab, MucTab) or
-                isinstance(tab, PrivateTab)) and tab.get_name() == name:
+            if (isinstance(tab, tabs.MucTab) or
+                isinstance(tab, tabs.PrivateTab)) and tab.get_name() == name:
                 return tab.get_room()
         return None
 
@@ -629,12 +630,11 @@ class Core(object):
         self.current_tab().refresh(self.tabs, self.information_buffer, roster)
         self.doupdate()
 
-    def open_new_room(self, room, nick, focus=True):
+    def add_tab(self, new_tab, focus=False):
         """
-        Open a new MucTab containing a muc Room, using the specified nick
+        Appends the new_tab in the tab list and
+        focus it if focus==True
         """
-        r = Room(room, nick)
-        new_tab = MucTab(self, r)
         if self.current_tab().nb == 0:
             self.tabs.append(new_tab)
         else:
@@ -644,6 +644,14 @@ class Core(object):
                     break
         if focus:
             self.command_win("%s" % new_tab.nb)
+
+    def open_new_room(self, room, nick, focus=True):
+        """
+        Open a new tab.MucTab containing a muc Room, using the specified nick
+        """
+        r = Room(room, nick)
+        new_tab = tabs.MucTab(self, r)
+        self.add_tab(new_tab, focus)
         self.refresh_window()
 
     def go_to_roster(self):
@@ -669,6 +677,10 @@ class Core(object):
                 return
         for tab in self.tabs:
             if tab.get_color_state() == theme.COLOR_TAB_NEW_MESSAGE:
+                self.command_win('%s' % tab.nb)
+                return
+        for tab in self.tabs:
+            if isinstance(tab, tabs.ChatTab) and not tab.input.is_empty():
                 self.command_win('%s' % tab.nb)
                 return
 
@@ -733,24 +745,16 @@ class Core(object):
         open a new conversation tab and focus it if needed
         """
         text_buffer = TextBuffer()
-        new_tab = ConversationTab(self, text_buffer, jid)
+        new_tab = tabs.ConversationTab(self, text_buffer, jid)
         # insert it in the rooms
-        if self.current_tab().nb == 0:
-            self.tabs.append(new_tab)
-        else:
-            for ta in self.tabs:
-                if ta.nb == 0:
-                    self.tabs.insert(self.tabs.index(ta), new_tab)
-                    break
-        if focus:               # focus the room if needed
-            self.command_win('%s' % (new_tab.nb))
+        self.add_tab(new_tab, focus)
         self.refresh_window()
         return new_tab
 
     def open_private_window(self, room_name, user_nick, focus=True):
         complete_jid = room_name+'/'+user_nick
         for tab in self.tabs: # if the room exists, focus it and return
-            if isinstance(tab, PrivateTab):
+            if isinstance(tab, tabs.PrivateTab):
                 if tab.get_name() == complete_jid:
                     self.command_win('%s' % tab.nb)
                     return
@@ -760,17 +764,9 @@ class Core(object):
             return None
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
-        new_tab = PrivateTab(self, r)
+        new_tab = tabs.PrivateTab(self, r)
         # insert it in the tabs
-        if self.current_tab().nb == 0:
-            self.tabs.append(new_tab)
-        else:
-            for ta in self.tabs:
-                if ta.nb == 0:
-                    self.tabs.insert(self.tabs.index(ta), new_tab)
-                    break
-        if focus:               # focus the room if needed
-            self.command_win('%s' % (new_tab.nb))
+        self.add_tab(new_tab, focus)
         # self.window.new_room(r)
         self.refresh_window()
         return r
@@ -860,6 +856,29 @@ class Core(object):
                 msg = _('Unknown command: %s') % args[0]
         self.information(msg)
 
+    def command_list(self, arg):
+        """
+        /list <server>
+        Opens a MucListTab containing the list of the room in the specified server
+        """
+        args = arg.split()
+        if len(args) > 1:
+            self.command_help('list')
+            return
+        elif len(args) == 0:
+            if not isinstance(self.current_tab(), tabs.MucTab):
+                return self.information('Warning: Please provide a server')
+            server = JID(self.current_tab().get_name()).server
+        else:
+            server = arg.strip()
+        list_tab = tabs.MucListTab(self, server)
+        self.add_tab(list_tab, True)
+        res = self.xmpp.plugin['xep_0030'].getItems(server)
+        items = [{'node-part':JID(item[0]).user,
+                  'jid': item[0],
+                  'name': item[2]} for item in res['disco_items'].getItems()]
+        list_tab.listview.add_lines(items)
+
     def command_whois(self, arg):
         """
         /whois <nickname>
@@ -948,21 +967,10 @@ class Core(object):
                 serv = jid.server
                 serv_list = []
                 for tab in self.tabs:
-                    if isinstance(tab, MucTab):
+                    if isinstance(tab, tabs.MucTab):
                         serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
                 the_input.auto_completion(serv_list, '')
         return True
-
-    def command_list(self, arg):
-        """
-        Opens a MucListTab for the specified server
-        """
-        args = arg.split()
-        if len(args) != 1:
-            self.command_win('list')
-            return
-        server = args[1]
-        # TODO
 
     def completion_list(self, the_input):
         """
@@ -970,7 +978,7 @@ class Core(object):
         txt = the_input.get_text()
         muc_serv_list = []
         for tab in self.tabs:   # TODO, also from an history
-            if isinstance(tab, MucTab) and\
+            if isinstance(tab, tabs.MucTab) and\
                     tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(tab.get_name())
         if muc_serv_list:
@@ -984,7 +992,7 @@ class Core(object):
         password = None
         if len(args) == 0:
             t = self.current_tab()
-            if not isinstance(t, MucTab) and not isinstance(t, PrivateTab):
+            if not isinstance(t, tabs.MucTab) and not isinstance(t, tabs.PrivateTab):
                 return
             room = t.get_name()
             nick = t.get_room().own_nick
@@ -999,7 +1007,7 @@ class Core(object):
                 nick = info[1]
             if info[0] == '':   # happens with /join /nickname, which is OK
                 t = self.current_tab()
-                if not isinstance(t, MucTab):
+                if not isinstance(t, tabs.MucTab):
                     return
                 room = t.get_name()
                 if nick == '':
@@ -1009,7 +1017,7 @@ class Core(object):
             if not is_jid(room): # no server is provided, like "/join hello"
                 # use the server of the current room if available
                 # check if the current room's name has a server
-                if isinstance(self.current_tab(), MucTab) and\
+                if isinstance(self.current_tab(), tabs.MucTab) and\
                         is_jid(self.current_tab().get_name()):
                     room += '@%s' % jid_get_domain(self.current_tab().get_name())
                 else:           # no server could be found, print a message and return
@@ -1037,7 +1045,7 @@ class Core(object):
         """
         args = arg.split()
         nick = None
-        if not isinstance(self.current_tab(), MucTab):
+        if not isinstance(self.current_tab(), tabs.MucTab):
             return
         if len(args) == 0:
             room = self.current_tab().get_room()
@@ -1115,7 +1123,7 @@ class Core(object):
         else:
             msg = None
         for tab in self.tabs:
-            if isinstance(tab, MucTab) and tab.get_room().joined:
+            if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
 
     def command_away(self, arg):
@@ -1141,8 +1149,8 @@ class Core(object):
         Close the given tab. If None, close the current one
         """
         tab = tab or self.current_tab()
-        if isinstance(tab, RosterInfoTab) or\
-                isinstance(tab, InfoTab):
+        if isinstance(tab, tabs.RosterInfoTab) or\
+                isinstance(tab, tabs.InfoTab):
             return              # The tab 0 should NEVER be closed
         tab.on_close()
         self.tabs.remove(tab)
@@ -1155,8 +1163,8 @@ class Core(object):
         Opens the link in a browser, or join the room, or add the JID, or
         copy it in the clipboard
         """
-        if not isinstance(self.current_tab(), MucTab) and\
-                not isinstance(self.current_tab(), PrivateTab):
+        if not isinstance(self.current_tab(), tabs.MucTab) and\
+                not isinstance(self.current_tab(), tabs.PrivateTab):
             return
         args = arg.split()
         if len(args) > 2:
@@ -1229,7 +1237,7 @@ class Core(object):
         else:
             msg = None
         for tab in self.tabs:
-            if isinstance(tab, MucTab):
+            if isinstance(tab, tabs.MucTab):
                 muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
         self.xmpp.disconnect()
         self.running = False
@@ -1283,5 +1291,5 @@ class Core(object):
         self.current_tab().just_before_refresh()
         curses.doupdate()
 
-# # global core object
+# global core object
 core = Core(connection)

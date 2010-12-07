@@ -41,7 +41,7 @@ from contact import Contact, Resource
 from roster import RosterGroup, roster
 
 from message import Line
-from tab import MIN_WIDTH, MIN_HEIGHT
+from tabs import MIN_WIDTH, MIN_HEIGHT
 
 from sleekxmpp.xmlstream.stanzabase import JID
 
@@ -55,17 +55,7 @@ class Win(object):
 
     def _resize(self, height, width, y, x, parent_win):
         self.height, self.width, self.x, self.y = height, width, x, y
-        # try:
         self._win = curses.newwin(height, width, y, x)
-        # except:
-        #     # When resizing in a too little height (less than 3 lines)
-        #     # We don't need to resize the window, since this size
-        #     # just makes no sense
-        #     # Just don't crash when this happens.
-        #     # (°>       also, a penguin
-        #     # //\
-        #     # V_/_
-        #     return
 
     def _refresh(self):
         self._win.noutrefresh()
@@ -404,10 +394,6 @@ class MucInfoWin(InfoWin):
         self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class TextWin(Win):
-    """
-    Just keep ONE single window for the text area and rewrite EVERYTHING
-    on each change. (thanks weechat :o)
-    """
     def __init__(self):
         Win.__init__(self)
 
@@ -1277,4 +1263,123 @@ class ContactInfoWin(Win):
                                        selected_row.get_bare_jid())
             elif isinstance(selected_row, Resource):
                 self.draw_contact_info(selected_row)
+            self._refresh()
+
+class ListWin(Win):
+    """
+    A list (with no depth, so not for the roster) that can be
+    scrolled up and down, with one selected line at a time
+    """
+    def __init__(self, columns, with_headers=True):
+        self._columns = columns # a tuple with the name of the columns
+        self._columns_sizes = {} # a dict {'column_name': size}
+        self.sorted_by = (None, None) # for example: ('name', '↑')
+        self.lines = []         # a list of dicts
+        self._selected_row = 0
+        self._starting_pos = 0  # The column number from which we start the refresh
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+
+    def resize_columns(self, dic):
+        """
+        Resize the width of the columns
+        """
+        self._columns_sizes = dic
+
+    def sort_by_column(self, col_name, asc=True):
+        """
+        Sort the list by the given column, ascendant or descendant
+        """
+        pass                    # TODO
+
+    def add_lines(self, lines):
+        """
+        Append some lines at the end of the list
+        """
+        if not lines:
+            return
+        self.lines += lines
+        self.refresh()
+
+    def get_selected_row(self):
+        """
+        Return the tuple representing the selected row
+        """
+        if self._selected_row:
+            return self.lines[self._selected_row]
+        return None
+
+    def refresh(self):
+        with g_lock:
+            self._win.erase()
+            lines = self.lines[self._starting_pos:self._starting_pos+self.height]
+            for y, line in enumerate(lines):
+                x = 0
+                for col in self._columns:
+                    try:
+                        txt = line[col] or ''
+                    except (KeyError):
+                        txt = ''
+                    size = self._columns_sizes[col]
+                    txt += ' ' * (size-len(txt))
+                    if not txt:
+                        continue
+                    if line is self.lines[self._selected_row]:
+                        self.addstr(y, x, txt[:size], curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                    else:
+                        self.addstr(y, x, txt[:size])
+                    x += size
+            self._refresh()
+
+    def move_cursor_down(self):
+        """
+        Move the cursor Down
+        """
+        if not self.lines:
+            return
+        if self._selected_row < len(self.lines) - 1:
+            self._selected_row += 1
+        while self._selected_row >= self._starting_pos + self.height:
+            self._starting_pos += self.height // 2
+        if self._starting_pos < 0:
+            self._starting_pos = 0
+        return True
+
+    def move_cursor_up(self):
+        """
+        Move the cursor Up
+        """
+        if not self.lines:
+            return
+        if self._selected_row > 0:
+            self._selected_row -= 1
+        while self._selected_row < self._starting_pos:
+            self._starting_pos -= self.height // 2
+        return True
+
+class ColumnHeaderWin(Win):
+    """
+    A class displaying the column's names
+    """
+    def __init__(self, columns):
+        self._columns = columns
+        self._columns_sizes = {}
+
+    def resize_columns(self, dic):
+        self._columns_sizes = dic
+
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+
+    def refresh(self):
+        with g_lock:
+            self._win.erase()
+            x = 0
+            for col in self._columns:
+                txt = col
+                size = self._columns_sizes[col]
+                txt += ' ' * (size-len(txt))
+                self.addstr(0, x, txt, curses.color_pair(theme.COLOR_STATUS_UNAVAILABLE))
+                x += size
             self._refresh()

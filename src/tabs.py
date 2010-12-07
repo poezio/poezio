@@ -125,19 +125,19 @@ class Tab(object):
         raise NotImplementedError
 
     def on_input(self, key):
-        raise NotImplementedError
+        pass
 
     def on_lose_focus(self):
         """
         called when this tab loses the focus.
         """
-        raise NotImplementedError
+        pass
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        raise NotImplementedError
+        pass
 
     def add_message(self):
         """
@@ -146,25 +146,25 @@ class Tab(object):
         FormTab, where text is not intented to be appened), it returns False.
         If the tab can, it returns True
         """
-        raise NotImplementedError
+        return False
 
     def on_scroll_down(self):
         """
         Defines what happens when we scrol down
         """
-        raise NotImplementedError
+        pass
 
     def on_scroll_up(self):
         """
         Defines what happens when we scrol down
         """
-        raise NotImplementedError
+        pass
 
     def on_info_win_size_changed(self):
         """
         Called when the window with the informations is resized
         """
-        raise NotImplementedError
+        pass
 
     def just_before_refresh(self):
         """
@@ -172,13 +172,13 @@ class Tab(object):
         Particularly useful to move the cursor at the
         correct position.
         """
-        raise NotImplementedError
+        pass
 
     def on_close(self):
         """
         Called when the tab is to be closed
         """
-        raise NotImplementedError
+        pass
 
 class InfoTab(Tab):
     """
@@ -932,6 +932,102 @@ class ConversationTab(ChatTab):
 
     def on_close(self):
         return
+
+class MucListTab(Tab):
+    """
+    A tab listing rooms from a specific server, displaying various information,
+    scrollable, and letting the user join them, etc
+    """
+    def __init__(self, core, server):
+        Tab.__init__(self, core)
+        self._color_state = theme.COLOR_TAB_NORMAL
+        self.name = server
+        self.upper_message = windows.Topic()
+        columns = ('node-part','name', 'users')
+        self.list_header = windows.ColumnHeaderWin(columns)
+        self.listview = windows.ListWin(columns)
+        self.tab_win = windows.GlobalInfoBar()
+        self.default_help_message = windows.HelpText("“j”: join room. “i”: information")
+        self.input = self.default_help_message
+        self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
+        self.key_func["KEY_UP"] = self.listview.move_cursor_up
+        self.key_func["/"] = self.on_slash
+        self.key_func['j'] = self.join_selected
+        self.key_func['J'] = self.join_selected_no_focus
+        self.resize()
+
+    def refresh(self, tabs, informations, roster):
+        self.upper_message.refresh('Chatroom list on server %s' % self.name)
+        self.list_header.refresh()
+        self.listview.refresh()
+        self.tab_win.refresh(tabs, tabs[0])
+        self.input.refresh()
+
+    def resize(self):
+        Tab.resize(self)
+        self.upper_message.resize(1, self.width, 0, 0, self.core.stdscr)
+        column_size = {'node-part': (self.width-5)//4,
+                       'name': (self.width-5)//4*3,
+                       'users': 5}
+        self.list_header.resize_columns(column_size)
+        self.list_header.resize(1, self.width, 1, 0, self.core.stdscr)
+        self.listview.resize_columns(column_size)
+        self.listview.resize(self.height-4, self.width, 2, 0, self.core.stdscr)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+
+    def on_slash(self):
+        """
+        '/' is pressed, activate the input
+        """
+        curses.curs_set(1)
+        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.do_command("/") # we add the slash
+
+    def join_selected_no_focus(self):
+        return
+
+    def join_selected(self):
+        jid = self.listview.get_selected_row()['jid']
+        self.core.command_join(jid)
+
+    def reset_help_message(self, _=None):
+        curses.curs_set(0)
+        self.input = self.default_help_message
+        return True
+
+    def execute_slash_command(self, txt):
+        if txt.startswith('/'):
+            self.core.execute(txt)
+        return self.reset_help_message()
+
+    def get_color_state(self):
+        return theme.COLOR_TAB_NORMAL
+
+    def set_color_state(self, color):
+        pass
+
+    def get_name(self):
+        return self.name
+
+    def on_input(self, key):
+        res = self.input.do_command(key)
+        if res:
+            return True
+        if key in self.key_func:
+            return self.key_func[key]()
+
+    def on_lose_focus(self):
+        self._color_state = theme.COLOR_TAB_NORMAL
+
+    def on_gain_focus(self):
+        self._color_state = theme.COLOR_TAB_CURRENT
+        curses.curs_set(0)
+
+    def get_color_state(self):
+        return self._color_state
+
 
 def diffmatch(search, string):
     """
