@@ -954,6 +954,8 @@ class MucListTab(Tab):
         self.key_func["/"] = self.on_slash
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
+        self.key_func['^J'] = self.join_selected
+        self.key_func['^M'] = self.join_selected
         self.resize()
 
     def refresh(self, tabs, informations, roster):
@@ -1029,7 +1031,6 @@ class MucListTab(Tab):
 
     def get_color_state(self):
         return self._color_state
-
 
 def diffmatch(search, string):
     """
