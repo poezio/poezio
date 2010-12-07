@@ -141,6 +141,7 @@ class Core(object):
             'M-r': self.go_to_roster,
             'M-z': self.go_to_previous_tab,
             'M-v': self.move_separator,
+            '^L': self.call_for_resize,
             }
 
         # Add handlers
