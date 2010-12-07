@@ -100,41 +100,6 @@ def is_in_path(command, return_abs_path=False):
             pass
     return False
 
-def is_jid(jid):
-    """
-    Return True if this is a valid JID
-    """
-    if jid.find('@') != -1:
-        return True
-    return False
-
-def jid_get_node(jid):
-    """
-    nick@server/resource -> nick
-    """
-    return jid.split('@', 1)[0]
-
-def jid_get_domain(jid):
-    """
-    nick@server/resource -> server
-    """
-    return jid.split('@',1)[-1].split('/', 1)[0]
-
-def jid_get_resource(fulljid):
-    """
-    nick@server/resource -> resource
-    """
-    if '/' in fulljid:
-        return fulljid.split('/', 1)[-1]
-    else:
-        return ''
-
-def jid_get_bare(fulljid):
-    """
-    nick@server/resource -> nick@server
-    """
-    return '%s@%s' % (jid_get_domain(fulljid), jid_get_node(fulljid))
-
 DISTRO_INFO = {
         'Arch Linux': '/etc/arch-release',
         'Aurox Linux': '/etc/aurox-release',

@@ -217,7 +217,8 @@ class PrivateInfoWin(InfoWin):
             self._refresh()
 
     def write_room_name(self, room):
-        (room_name, nick) = room.name.split('/', 1)
+        jid = JID(room.name)
+        room_name, nick = jid.bare, jid.resource
         self.addstr(nick, curses.color_pair(13))
         txt = ' from room %s' % room_name
         self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))

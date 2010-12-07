@@ -51,7 +51,6 @@ from contact import Contact, Resource
 from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
-from common import jid_get_domain, is_jid
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -222,19 +221,18 @@ class Core(object):
             return
         rooms = rooms.split(':')
         for room in rooms:
-            args = room.split('/')
-            if args[0] == '':
+            jid = JID(room)
+            if jid.bare == '':
                 return
-            roomname = args[0]
-            if len(args) == 2:
-                nick = args[1]
+            if jid.resource != '':
+                nick = jid.resource
             else:
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
                 if nick == '':
                     nick = default
-            self.open_new_room(roomname, nick, False)
-            muc.join_groupchat(self.xmpp, roomname, nick)
+            self.open_new_room(jid.bare, nick, False)
+            muc.join_groupchat(self.xmpp, jid.bare, nick)
         # if not self.xmpp.anon:
         # Todo: SEND VCARD
         return
@@ -316,7 +314,7 @@ class Core(object):
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.tabs:
-                if isinstance(_tab, tabs.PrivateTab) and _tab.get_name().split('/', 1)[0] == room.name:
+                if isinstance(_tab, tabs.PrivateTab) and JID(_tab.get_name()).bare == room.name:
                     _tab.get_room().own_nick = new_nick
         user.change_nick(new_nick)
         self.add_message_to_text_buffer(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
@@ -324,7 +322,7 @@ class Core(object):
         private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
         if private_room:
             self.add_message_to_text_buffer(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
-            new_jid = private_room.name.split('/', 1)[0]+'/'+new_nick
+            new_jid = JID(private_room.name).bare+'/'+new_nick
             private_room.name = new_jid
 
     def on_user_kicked(self, room, presence, user, from_nick):
@@ -997,15 +995,15 @@ class Core(object):
             room = t.get_name()
             nick = t.get_room().own_nick
         else:
-            info = args[0].split('/')
-            if len(info) == 1 or info[1] == '':
+            info = JID(args[0])
+            if info.resource == '':
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
                 if nick == '':
                     nick = default
             else:
-                nick = info[1]
-            if info[0] == '':   # happens with /join /nickname, which is OK
+                nick = info.resource
+            if info.bare == '':   # happens with /join /nickname, which is OK
                 t = self.current_tab()
                 if not isinstance(t, tabs.MucTab):
                     return
@@ -1013,13 +1011,13 @@ class Core(object):
                 if nick == '':
                     nick = t.get_room().own_nick
             else:
-                room = info[0]
-            if not is_jid(room): # no server is provided, like "/join hello"
+                room = info.bare
+            if room.find('@') == -1: # no server is provided, like "/join hello"
                 # use the server of the current room if available
                 # check if the current room's name has a server
                 if isinstance(self.current_tab(), tabs.MucTab) and\
-                        is_jid(self.current_tab().get_name()):
-                    room += '@%s' % jid_get_domain(self.current_tab().get_name())
+                        self.current_tab().get_name().find('@') != -1:
+                    room += '@%s' % JID(self.current_tab().get_name()).domain
                 else:           # no server could be found, print a message and return
                     self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
@@ -1053,10 +1051,10 @@ class Core(object):
             if room.joined:
                 nick = room.own_nick
         else:
-            info = args[0].split('/')
-            if len(info) == 2:
-                nick = info[1]
-            roomname = info[0]
+            info = JID(args[0])
+            if info.resource != '':
+                nick = info.resource
+            roomname = info.bare
             if roomname == '':
                 roomname = self.current_tab().get_name()
         if nick:
@@ -1068,7 +1066,7 @@ class Core(object):
         # if yes, replace it (i.e., update the associated nick)
         bookmarked = bookmarked.split(':')
         for room in bookmarked:
-            if room.split('/')[0] == roomname:
+            if JID(room).bare == roomname:
                 bookmarked.remove(room)
                 break
         bookmarked = ':'.join(bookmarked)
