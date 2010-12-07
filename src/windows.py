@@ -1307,7 +1307,7 @@ class ListWin(Win):
         """
         Return the tuple representing the selected row
         """
-        if self._selected_row:
+        if self._selected_row is not None:
             return self.lines[self._selected_row]
         return None
 

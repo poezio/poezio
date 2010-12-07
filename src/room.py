@@ -111,8 +111,6 @@ class Room(TextBuffer):
                 self.color_state != theme.COLOR_TAB_CURRENT:
             if self.color_state != theme.COLOR_TAB_HIGHLIGHT:
                 self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
-            # elif self.jid:
-            #     self.set_color_state(theme.COLOR_TAB_PRIVATE)
         if not nickname:
             color = theme.COLOR_INFORMATION_TEXT
         else:

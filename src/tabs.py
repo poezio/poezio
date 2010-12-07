@@ -989,8 +989,10 @@ class MucListTab(Tab):
         return
 
     def join_selected(self):
-        jid = self.listview.get_selected_row()['jid']
-        self.core.command_join(jid)
+        row = self.listview.get_selected_row()
+        if not row:
+            return
+        self.core.command_join(row['jid'])
 
     def reset_help_message(self, _=None):
         curses.curs_set(0)
