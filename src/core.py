@@ -1213,12 +1213,11 @@ class Core(object):
         Move the new-messages separator at the bottom on the current
         text.
         """
-        try:
-            room = self.current_tab().get_room()
-        except:
+        window = self.current_tab().get_text_window()
+        if not window:
             return
-        room.remove_line_separator()
-        room.add_line_separator()
+        window.remove_line_separator()
+        window.add_line_separator()
         self.refresh_window()
 
     def information(self, msg, typ=''):

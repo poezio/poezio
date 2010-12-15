@@ -124,6 +124,12 @@ class Tab(object):
         """
         raise NotImplementedError
 
+    def get_text_window(self):
+        """
+        Returns the principal TextWin window, if there's one
+        """
+        return None
+
     def on_input(self, key):
         pass
 
@@ -348,6 +354,7 @@ class MucTab(ChatTab):
         for user in sorted(users, key=compare_users, reverse=True):
             user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
             i+= 1
+        self.text_win.rebuild_everything(self.get_room())
         self.core.refresh_window()
 
     def command_nick(self, arg):
@@ -540,6 +547,9 @@ class MucTab(ChatTab):
     def get_name(self):
         return self._room.name
 
+    def get_text_window(self):
+        return self.text_win
+
     def get_room(self):
         return self._room
 
@@ -663,6 +673,9 @@ class PrivateTab(ChatTab):
 
     def get_room(self):
         return self._room
+
+    def get_text_window(self):
+        return self.text_win
 
     def just_before_refresh(self):
         return
@@ -938,6 +951,9 @@ class ConversationTab(ChatTab):
 
     def get_room(self):
         return self._room
+
+    def get_text_window(self):
+        return self.text_win
 
     def just_before_refresh(self):
         return
