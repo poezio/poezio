@@ -892,7 +892,7 @@ class ConversationTab(ChatTab):
 
     def resize(self):
         Tab.resize(self)
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
+        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
