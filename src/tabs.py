@@ -729,7 +729,7 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
-            
+
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return
@@ -792,7 +792,10 @@ class RosterInfoTab(Tab):
 
     def on_gain_focus(self):
         self._color_state = theme.COLOR_TAB_CURRENT
-        curses.curs_set(0)
+        if isinstance(self.input, windows.HelpText):
+            curses.curs_set(0)
+        else:
+            curses.curs_set(1)
 
     def add_message(self):
         return False
