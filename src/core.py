@@ -40,6 +40,7 @@ log = logging.getLogger(__name__)
 
 import multiuserchat as muc
 import tabs
+import windows
 
 from connection import connection
 from config import config
@@ -83,6 +84,8 @@ class Core(object):
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
+        self.information_buffer = TextBuffer()
+        self.information_win_size = 0 # Todo, get this from config
         default_tab = tabs.InfoTab(self, "Info") if self.xmpp.anon\
             else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
@@ -90,8 +93,7 @@ class Core(object):
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
-        self.information_buffer = TextBuffer()
-        self.information_win_size = 2 # Todo, get this from config
+
         self.resize_timer = None
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
@@ -548,7 +550,6 @@ class Core(object):
         Resize the whole screen
         """
         with resize_lock:
-           # self.resize_timer = None
             for tab in self.tabs:
                 tab.resize()
             self.refresh_window()
@@ -1225,6 +1226,7 @@ class Core(object):
         Displays an informational message in the "Info" room window
         """
         self.information_buffer.add_message(msg, nickname=typ)
+        # TODO: refresh only the correct window in the current tab
         self.refresh_window()
 
     def command_quit(self, arg):

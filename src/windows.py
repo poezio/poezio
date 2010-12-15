@@ -49,6 +49,8 @@ import theme
 
 g_lock = Lock()
 
+LINES_NB_LIMIT = 16384
+
 class Win(object):
     def __init__(self):
         pass
@@ -186,14 +188,14 @@ class InfoWin(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def print_scroll_position(self, text_buffer):
+    def print_scroll_position(self, window):
         """
         Print, link in Weechat, a -PLUS(n)- where n
         is the number of available lines to scroll
         down
         """
-        if text_buffer.pos > 0:
-            plus = ' -PLUS(%s)-' % text_buffer.pos
+        if window.pos > 0:
+            plus = ' -PLUS(%s)-' % window.pos
             self.addstr(plus, curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
 
 class PrivateInfoWin(InfoWin):
@@ -341,14 +343,15 @@ class MucInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, room):
+    def refresh(self, room, window=None):
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
             self.write_own_nick(room)
             self.write_disconnected(room)
             self.write_role(room)
-            self.print_scroll_position(room)
+            if window:
+                self.print_scroll_position(window)
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -397,64 +400,81 @@ class MucInfoWin(InfoWin):
 class TextWin(Win):
     def __init__(self):
         Win.__init__(self)
+        self.pos = 0
+        self.built_lines = []   # Each new message is built and kept here.
+        # on resize, we rebuild all the messages
 
-    def build_lines_from_messages(self, messages):
+    def scroll_up(self, dist=14):
+        # The pos can grow a lot over the top of the number of
+        # available lines, it will be fixed on the next refresh of the
+        # screen anyway
+        self.pos += dist
+
+    def scroll_down(self, dist=14):
+        self.pos -= dist
+        if self.pos <= 0:
+            self.pos = 0
+
+    def build_new_message(self, message):
         """
-        From all the existing messages in the window, create the that will
-        be displayed on the screen
+        Take one message, build it and add it to the list
+        Return the number of lines that are built for the given
+        message.
         """
-        lines = []
-        for message in messages:
-            if message == None:  # line separator
-                lines.append(None)
-                continue
-            txt = message.txt
-            if not txt:
-                continue
+        if message == None:  # line separator
+            self.built_lines.append(None)
+            return 0
+        txt = message.txt
+        if not txt:
+            return 0
             # length of the time
-            offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
-            if message.nickname and len(message.nickname) >= 30:
-                nick = message.nickname[:30]+'…'
+        offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
+        if message.nickname and len(message.nickname) >= 30:
+            nick = message.nickname[:30]+'…'
+        else:
+            nick = message.nickname
+        if nick:
+            offset += len(nick) + 2 # + nick + spaces length
+        first = True
+        this_line_was_broken_by_space = False
+        nb = 0
+        while txt != '':
+            if txt[:self.width-offset].find('\n') != -1:
+                limit = txt[:self.width-offset].find('\n')
             else:
-                nick = message.nickname
-            if nick:
-                offset += len(nick) + 2 # + nick + spaces length
-            first = True
-            this_line_was_broken_by_space = False
-            while txt != '':
-                if txt[:self.width-offset].find('\n') != -1:
-                    limit = txt[:self.width-offset].find('\n')
-                else:
-                    # break between words if possible
-                    if len(txt) >= self.width-offset:
-                        limit = txt[:self.width-offset].rfind(' ')
-                        this_line_was_broken_by_space = True
-                        if limit <= 0:
-                            limit = self.width-offset
-                            this_line_was_broken_by_space = False
-                    else:
-                        limit = self.width-offset-1
+                # break between words if possible
+                if len(txt) >= self.width-offset:
+                    limit = txt[:self.width-offset].rfind(' ')
+                    this_line_was_broken_by_space = True
+                    if limit <= 0:
+                        limit = self.width-offset
                         this_line_was_broken_by_space = False
-                color = message.user.color if message.user else None
-                if not first:
-                    nick = None
-                    time = None
                 else:
-                    time = message.time
-                l = Line(nick, color,
-                         time,
-                         txt[:limit], message.color,
-                         offset,
-                         message.colorized)
-                lines.append(l)
-                if this_line_was_broken_by_space:
-                    txt = txt[limit+1:] # jump the space at the start of the line
-                else:
-                    txt = txt[limit:]
-                if txt.startswith('\n'):
-                    txt = txt[1:]
-                first = False
-        return lines
+                    limit = self.width-offset-1
+                    this_line_was_broken_by_space = False
+            color = message.user.color if message.user else None
+            if not first:
+                nick = None
+                time = None
+            else:
+                time = message.time
+            l = Line(nick, color,
+                     time,
+                     txt[:limit], message.color,
+                     offset,
+                     message.colorized)
+            self.built_lines.append(l)
+            nb += 1
+            if this_line_was_broken_by_space:
+                txt = txt[limit+1:] # jump the space at the start of the line
+            else:
+                txt = txt[limit:]
+            if txt.startswith('\n'):
+                txt = txt[1:]
+            first = False
+        while len(self.built_lines) > LINES_NB_LIMIT:
+            self.built_lines.pop(0)
+        return nb
 
     def refresh(self, room):
         """
@@ -465,13 +485,14 @@ class TextWin(Win):
             return
         with g_lock:
             self._win.erase()
-            lines = self.build_lines_from_messages(room.messages)
-            if room.pos + self.height > len(lines):
-                room.pos = len(lines) - self.height
-                if room.pos < 0:
-                    room.pos = 0
-            if room.pos != 0:
-                lines = lines[-self.height-room.pos:-room.pos]
+            # lines = self.build_lines_from_messages(room.messages)
+            lines = self.built_lines
+            if self.pos + self.height > len(lines):
+                self.pos = len(lines) - self.height
+                if self.pos < 0:
+                    self.pos = 0
+            if self.pos != 0:
+                lines = lines[-self.height-self.pos:-self.pos]
             else:
                 lines = lines[-self.height:]
             y = 0
@@ -562,8 +583,15 @@ class TextWin(Win):
         self.addnstr(theme.CHAR_TIME_RIGHT, curses.color_pair(theme.COLOR_TIME_LIMITER))
         self.addstr(' ')
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr, room=None):
         self._resize(height, width, y, x, stdscr)
+        if room:
+            self.rebuild_everything(room)
+
+    def rebuild_everything(self, room):
+        self.built_lines = []
+        for message in room.messages:
+            self.build_new_message(message)
 
 class HelpText(Win):
     """
@@ -824,7 +852,6 @@ class Input(Win):
                 begin = self.text.split()[-1].lower()
             else:
                 begin = ''
-            log.debug('BEGIN: [%s]\n' % begin)
             hit_list = []       # list of matching nicks
             for word in word_list:
                 if word.lower().startswith(begin):
@@ -895,15 +922,15 @@ class Input(Win):
     def do_command(self, key, reset=True):
         if key in self.key_func:
             return self.key_func[key]()
-        if not key or len(key) > 1:
-            return False   # ignore non-handled keyboard shortcuts
+        # if not key or len(key) > 1:
+        #     return False   # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
         if x == self.width-1:
-            self.line_pos += 1
+            self.line_pos += len(key)
         else:
-            self.pos += 1
+            self.pos += len(key)
         if reset:
             self.rewrite_text()
         return True

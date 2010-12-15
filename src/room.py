@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from text_buffer import TextBuffer
+from text_buffer import TextBuffer, MESSAGE_NB_LIMIT
 from datetime import datetime
 from random import randrange
 from config import config
@@ -25,8 +25,6 @@ import common
 import theme
 
 class Room(TextBuffer):
-    """
-    """
     def __init__(self, name, nick):
         TextBuffer.__init__(self)
         self.name = name
@@ -118,6 +116,13 @@ class Room(TextBuffer):
         if time:                # History messages are colored to be distinguished
             color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
-        if self.pos:            # avoid scrolling of one line when one line is received
-            self.pos += 1
-        self.messages.append(Message(txt, time, nickname, user, color, colorized))
+        message = Message(txt, time, nickname, user, color, colorized)
+        while len(self.messages) > MESSAGE_NB_LIMIT:
+            self.messages.pop(0)
+        self.messages.append(message)
+        for window in self.windows: # make the associated windows
+            # build the lines from the new message
+            nb = window.build_new_message(message)
+            if window.pos != 0:
+                window.scroll_up(nb)
+
