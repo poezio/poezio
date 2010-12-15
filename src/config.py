@@ -20,6 +20,8 @@ Defines the global config instance, used to get or set (and save) values
 from/to the config file
 """
 
+DEFSECTION = "Poezio"
+
 from configparser import RawConfigParser, NoOptionError
 from os import environ, makedirs, path
 from shutil import copy2
@@ -30,12 +32,11 @@ class Config(RawConfigParser):
     load/save the config to a file
     """
     def __init__(self, file_name):
-        self.defsection = "Poezio"
         self.file_name = file_name
         RawConfigParser.__init__(self, None)
         RawConfigParser.read(self, file_name)
 
-    def get(self, option, default):
+    def get(self, option, default, section=DEFSECTION):
         """
         get a value from the config but return
         a default value if it is not found
@@ -55,44 +56,47 @@ class Config(RawConfigParser):
             return default
         return res
 
-    def __get(self, option):
+    def __get(self, option, section=DEFSECTION):
         """
         facility for RawConfigParser.get
         """
-        return RawConfigParser.get(self, self.defsection, option)
+        return RawConfigParser.get(self, section, option)
 
-    def getstr(self, option):
+    def getstr(self, option, section=DEFSECTION):
         """
         get a value and returns it as a string
         """
-        return self.__get(option)
+        return self.__get(option, section)
 
-    def getint(self, option):
+    def getint(self, option, section=DEFSECTION):
         """
         get a value and returns it as an int
         """
         try:
-            return int(self.__get(option))
+            return int(self.__get(option, section))
         except ValueError:
             return -1
 
-    def getfloat(self, option):
+    def getfloat(self, option, section=DEFSECTION):
         """
         get a value and returns it as a float
         """
-        return float(self.__get(option))
+        return float(self.__get(option, section))
 
-    def getboolean(self, option):
+    def getboolean(self, option, section=DEFSECTION):
         """
         get a value and returns it as a boolean
         """
-        return RawConfigParser.getboolean(self, self.defsection, option)
+        return RawConfigParser.getboolean(self, section, option)
 
     def write_in_file(self, section, option, value):
         """
         Our own way to save write the value in the file
         Just find the right section, and then find the
         right option, and edit it.
+
+        TODO: make it write also new values in the file, not just what did already
+        exist
         """
         df = open(self.file_name, 'r')
         lines_before = [line.strip() for line in df.readlines()]
@@ -105,7 +109,8 @@ class Config(RawConfigParser):
                     we_are_in_the_right_section = True
                 else:
                     we_are_in_the_right_section = False
-            if line.startswith(option) and we_are_in_the_right_section:
+            if (line.startswith('%s ' % (option,)) or
+                line.startswith('%s=' % (option,))) and we_are_in_the_right_section:
                 line = '%s = %s' % (option, value)
             result_lines.append(line)
         df = open(self.file_name, 'w')
@@ -113,13 +118,13 @@ class Config(RawConfigParser):
             df.write('%s\n' % line)
         df.close()
 
-    def set_and_save(self, option, value):
+    def set_and_save(self, option, value, section=DEFSECTION):
         """
         set the value in the configuration then save it
         to the file
         """
-        RawConfigParser.set(self, self.defsection, option, value)
-        self.write_in_file(self.defsection, option, value)
+        RawConfigParser.set(self, section, option, value)
+        self.write_in_file(section, option, value)
 
 # creates the configuration directory if it doesn't exist
 # and copy the default config in it
