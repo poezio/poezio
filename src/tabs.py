@@ -528,8 +528,10 @@ class MucTab(ChatTab):
         """
         if self.complete_commands(self.input):
             return
+        # If we are not completing a command or a command's argument, complete a nick
         compare_users = lambda x: x.last_talked
-        word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)]
+        word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
+                         if user.nick != self._room.own_nick]
         after = config.get('after_completion', ',')+" "
         if ' ' not in self.input.get_text() or (self.input.last_completion and\
                      self.input.get_text()[:-len(after)] == self.input.last_completion):
