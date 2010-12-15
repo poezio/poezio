@@ -429,7 +429,7 @@ class Core(object):
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
-            if tab.get_name() == jid_from.full:
+            if tab.get_name() == jid_from.bare:
                 if message['type'] == 'error':
                     return self.room_error(message, tab.get_room().name)
                 else:
@@ -599,7 +599,8 @@ class Core(object):
         """
         for tab in self.tabs:
             if (isinstance(tab, tabs.MucTab) or
-                isinstance(tab, tabs.PrivateTab)) and tab.get_name() == name:
+                isinstance(tab, tabs.PrivateTab) or
+                isinstance(tab, tabs.ConversationTab)) and tab.get_name() == name:
                 return tab.get_room()
         return None
 
@@ -757,7 +758,7 @@ class Core(object):
             if isinstance(tab, tabs.PrivateTab):
                 if tab.get_name() == complete_jid:
                     self.command_win('%s' % tab.nb)
-                    return
+                    return tag.get_room()
         # create the new tab
         room = self.get_room_by_name(room_name)
         if not room:
@@ -950,7 +951,6 @@ class Core(object):
                 # we are writing the resource: complete the node
                 if not the_input.last_completion:
                     response = self.xmpp.plugin['xep_0030'].getItems(jid.server)
-                    log.debug('HEY: %s\n' % response)
                     if response:
                         items = response['disco_items'].getItems()
                     else:
@@ -960,7 +960,6 @@ class Core(object):
                         the_input.key_backspace()
                 else:
                     items = []
-                log.debug('%s\n' % items)
                 the_input.auto_completion(items, '')
             else:
                 # we are writing the server: complete the server
