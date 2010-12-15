@@ -209,12 +209,12 @@ class PrivateInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, room):
+    def refresh(self, room, window):
 
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
-            self.print_scroll_position(room)
+            self.print_scroll_position(window)
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -246,7 +246,7 @@ class ConversationInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, jid, contact, text_buffer):
+    def refresh(self, jid, contact, text_buffer, window):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -268,7 +268,7 @@ class ConversationInfoWin(InfoWin):
             self.write_contact_jid(jid)
             self.write_contact_informations(contact)
             self.write_resource_information(resource)
-            self.print_scroll_position(text_buffer)
+            self.print_scroll_position(window)
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
