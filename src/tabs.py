@@ -545,8 +545,8 @@ class MucTab(ChatTab):
 
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
-        self._room.remove_line_separator()
-        self._room.add_line_separator()
+        self.text_win.remove_line_separator()
+        self.text_win.add_line_separator()
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
@@ -643,8 +643,8 @@ class PrivateTab(ChatTab):
 
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
-        self._room.remove_line_separator()
-        self._room.add_line_separator()
+        self.text_win.remove_line_separator()
+        self.text_win.add_line_separator()
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
@@ -918,8 +918,8 @@ class ConversationTab(ChatTab):
 
     def on_lose_focus(self):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
-        self._room.remove_line_separator()
-        self._room.add_line_separator()
+        self.text_win.remove_line_separator()
+        self.text_win.add_line_separator()
 
     def on_gain_focus(self):
         self.set_color_state(theme.COLOR_TAB_CURRENT)

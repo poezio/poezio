@@ -56,17 +56,3 @@ class TextBuffer(object):
             nb = window.build_new_message(msg)
             if window.pos != 0:
                 window.scroll_up(nb)
-
-    def remove_line_separator(self):
-        """
-        Remove the line separator
-        """
-        if None in self.messages:
-            self.messages.remove(None)
-
-    def add_line_separator(self):
-        """
-        add a line separator at the end of messages list
-        """
-        if None not in self.messages:
-            self.messages.append(None)

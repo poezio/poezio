@@ -415,6 +415,20 @@ class TextWin(Win):
         if self.pos <= 0:
             self.pos = 0
 
+    def remove_line_separator(self):
+        """
+        Remove the line separator
+        """
+        if None in self.built_lines:
+            self.built_lines.remove(None)
+
+    def add_line_separator(self):
+        """
+        add a line separator at the end of messages list
+        """
+        if None not in self.built_lines:
+            self.built_lines.append(None)
+
     def build_new_message(self, message):
         """
         Take one message, build it and add it to the list
