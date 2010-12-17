@@ -25,7 +25,7 @@ install:
 	done
 
 	echo "#!/usr/bin/env sh" > $(DESTDIR)$(BINDIR)/poezio
-	echo "python3 $(DATADIR)/poezio/src/poezio.py" >> $(DESTDIR)$(BINDIR)/poezio
+	echo "python3 $(DATADIR)/poezio/src/poezio.py \$$@" >> $(DESTDIR)$(BINDIR)/poezio
 	chmod 755 $(DESTDIR)$(BINDIR)/poezio
 
 uninstall:
