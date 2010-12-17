@@ -504,7 +504,6 @@ class Core(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
-        print(sdfsdf)
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
             contact = roster.get_contact_by_jid(jid)
