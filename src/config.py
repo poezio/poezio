@@ -123,7 +123,11 @@ class Config(RawConfigParser):
         set the value in the configuration then save it
         to the file
         """
-        RawConfigParser.set(self, section, option, value)
+        try:
+            RawConfigParser.set(self, section, option, value)
+        except NoSectionError:
+            # TODO, add this section if it didn't exist
+            return
         self.write_in_file(section, option, value)
 
 # creates the configuration directory if it doesn't exist
