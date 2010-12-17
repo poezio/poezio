@@ -52,7 +52,7 @@ class Config(RawConfigParser):
                 res = self.getboolean(option, section)
             else:
                 res = self.getstr(option, section)
-        except NoOptionError, NoSectionError:
+        except( NoOptionError, NoSectionError):
             return default
         return res
 
