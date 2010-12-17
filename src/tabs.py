@@ -850,7 +850,7 @@ class RosterInfoTab(Tab):
         curses.curs_set(0)
         roster._contact_filter = None
         self.reset_help_message()
-        return True
+        return False
 
     def just_before_refresh(self):
         return
