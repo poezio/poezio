@@ -45,13 +45,13 @@ class Config(RawConfigParser):
         """
         try:
             if type(default) == int:
-                res = self.getint(option)
+                res = self.getint(option, section)
             elif type(default) == float:
-                res = self.getfloat(option)
+                res = self.getfloat(option, section)
             elif type(default) == bool:
-                res = self.getboolean(option)
+                res = self.getboolean(option, section)
             else:
-                res = self.getstr(option)
+                res = self.getstr(option, section)
         except NoOptionError:
             return default
         return res

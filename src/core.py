@@ -26,7 +26,6 @@ import sys
 import shlex
 import curses
 import threading
-import webbrowser
 
 from datetime import datetime
 
@@ -85,7 +84,7 @@ class Core(object):
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
         self.information_buffer = TextBuffer()
-        self.information_win_size = 0 # Todo, get this from config
+        self.information_win_size = config.get('info_win_height', 2, 'var')
         default_tab = tabs.InfoTab(self, "Info") if self.xmpp.anon\
             else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
@@ -121,7 +120,6 @@ class Core(object):
             'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
-            'link': (self.command_link, _("Usage: /link [option] [number]\nLink: Interact with a link in the conversation. Available options are 'open', 'copy'. Open just opens the link in the browser if it's http://, Copy just copy the link in the clipboard. An optional number can be provided, it indicates which link to interact with."), None),
             'whois': (self.command_whois, _('Usage: /whois <nickname>\nWhois: Request many informations about the user.'), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
@@ -599,8 +597,7 @@ class Core(object):
         """
         for tab in self.tabs:
             if (isinstance(tab, tabs.MucTab) or
-                isinstance(tab, tabs.PrivateTab) or
-                isinstance(tab, tabs.ConversationTab)) and tab.get_name() == name:
+                isinstance(tab, tabs.PrivateTab)) and tab.get_name() == name:
                 return tab.get_room()
         return None
 
@@ -1156,57 +1153,6 @@ class Core(object):
         self.rotate_rooms_left()
         del tab
 
-    def command_link(self, arg):
-        """
-        /link <option> <nb>
-        Opens the link in a browser, or join the room, or add the JID, or
-        copy it in the clipboard
-        """
-        if not isinstance(self.current_tab(), tabs.MucTab) and\
-                not isinstance(self.current_tab(), tabs.PrivateTab):
-            return
-        args = arg.split()
-        if len(args) > 2:
-            # INFO
-            # self.add_message_to_text_buffer(self.current_room(),
-            #                          _("Link: This command takes at most 2 arguments"))
-            return
-        # set the default parameters
-        option = "open"
-        nb = 0
-        # check the provided parameters
-        if len(args) >= 1:
-            try:  # check if the argument is the number
-                nb = int(args[0])
-            except ValueError:  # nope, it's the option
-                option = args[0]
-        if len(args) == 2:
-            try:
-                nb = int(args[0])
-            except ValueError:
-                # INFO
-                # self.add_message_to_text_buffer(self.current_room(),
-                #                          _("Link: 2nd parameter should be a number"))
-                return
-        # find the nb-th link in the current buffer
-        i = 0
-        link = None
-        for msg in self.current_tab().get_room().messages[:-200:-1]:
-            if not msg:
-                continue
-            matches = re.findall('"((ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"', msg.txt)
-            for m in matches:
-                if i == nb:
-                    url = m[0]
-                    self.link_open(url)
-                    return
-
-    def url_open(self, url):
-        """
-        Use webbrowser to open the provided link
-        """
-        webbrowser.open(url)
-
     def move_separator(self):
         """
         Move the new-messages separator at the bottom on the current
@@ -1238,9 +1184,17 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab):
                 muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
+        self.save_config()
         self.xmpp.disconnect()
         self.running = False
         self.reset_curses()
+
+    def save_config(self):
+        """
+        Save config in the file just before exit
+        """
+        roster.save_to_config_file()
+        config.set_and_save('info_win_height', self.information_win_size, 'var')
 
     def do_command(self, key):
         if not key:

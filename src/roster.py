@@ -99,7 +99,8 @@ class Roster(object):
                 if not group.has_contact(contact):
                     group.add_contact(contact)
                 return
-        new_group = RosterGroup(group_name)
+        folded_groups = config.get('folded_roster_groups', '', section='var').split(':')
+        new_group = RosterGroup(group_name, folded=group_name in folded_groups)
         self._roster_groups.append(new_group)
         new_group.add_contact(contact)
 
@@ -108,6 +109,16 @@ class Roster(object):
         Returns the list of groups
         """
         return self._roster_groups
+
+    def save_to_config_file(self):
+        """
+        Save various information to the config file
+        e.g. the folded groups
+        """
+        folded_groups = ':'.join([group.name for group in self._roster_groups\
+                                      if group.folded])
+        log.debug('folded:%s\n' %folded_groups)
+        config.set_and_save('folded_roster_groups', folded_groups, 'var')
 
     def __len__(self):
         """
