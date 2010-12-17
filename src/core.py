@@ -141,7 +141,7 @@ class Core(object):
             'M-r': self.go_to_roster,
             'M-z': self.go_to_previous_tab,
             'M-v': self.move_separator,
-            '^L': self.call_for_resize,
+            '^L': self.full_screen_redraw,
             }
 
         # Add handlers
@@ -504,6 +504,7 @@ class Core(object):
         A subscription changed, or we received a roster item
         after a roster request, etc
         """
+        print(sdfsdf)
         for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
             jid = item.attrib['jid']
             contact = roster.get_contact_by_jid(jid)
@@ -524,6 +525,13 @@ class Core(object):
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
+
+    def full_screen_redraw(self):
+        """
+        Completely erase and redraw the screen
+        """
+        self.stdscr.clear()
+        self.call_for_resize()
 
     def call_for_resize(self):
         """
