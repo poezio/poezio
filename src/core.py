@@ -427,7 +427,7 @@ class Core(object):
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
-            if tab.get_name() == jid_from.bare:
+            if tab.get_name() == jid_from.bare and isinstance(tab, tabs.MucTab):
                 if message['type'] == 'error':
                     return self.room_error(message, tab.get_room().name)
                 else:
@@ -479,7 +479,6 @@ class Core(object):
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()
-        return
 
     def on_presence(self, presence):
         """
