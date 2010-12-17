@@ -755,7 +755,7 @@ class Core(object):
             if isinstance(tab, tabs.PrivateTab):
                 if tab.get_name() == complete_jid:
                     self.command_win('%s' % tab.nb)
-                    return tag.get_room()
+                    return tab.get_room()
         # create the new tab
         room = self.get_room_by_name(room_name)
         if not room:

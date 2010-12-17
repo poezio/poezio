@@ -22,7 +22,7 @@ from/to the config file
 
 DEFSECTION = "Poezio"
 
-from configparser import RawConfigParser, NoOptionError
+from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
 from optparse import OptionParser
@@ -52,7 +52,7 @@ class Config(RawConfigParser):
                 res = self.getboolean(option, section)
             else:
                 res = self.getstr(option, section)
-        except NoOptionError:
+        except NoOptionError, NoSectionError:
             return default
         return res
 
