@@ -405,10 +405,11 @@ class TextWin(Win):
         # on resize, we rebuild all the messages
 
     def scroll_up(self, dist=14):
-        # The pos can grow a lot over the top of the number of
-        # available lines, it will be fixed on the next refresh of the
-        # screen anyway
         self.pos += dist
+        if self.pos + self.height > len(self.built_lines):
+            self.pos = len(self.built_lines) - self.height
+            if self.pos < 0:
+                self.pos = 0
 
     def scroll_down(self, dist=14):
         self.pos -= dist
@@ -502,31 +503,24 @@ class TextWin(Win):
         """
         if self.height <= 0:
             return
+        if self.pos != 0:
+            lines = self.built_lines[-self.height-self.pos:-self.pos]
+        else:
+            lines = self.built_lines[-self.height:]
+        self._win.move(0, 0)
         with g_lock:
             self._win.erase()
-            # lines = self.build_lines_from_messages(room.messages)
-            lines = self.built_lines
-            if self.pos + self.height > len(lines):
-                self.pos = len(lines) - self.height
-                if self.pos < 0:
-                    self.pos = 0
-            if self.pos != 0:
-                lines = lines[-self.height-self.pos:-self.pos]
-            else:
-                lines = lines[-self.height:]
-            y = 0
-            for line in lines:
-                self._win.move(y, 0)
-                if line == None:
+            for y, line in enumerate(lines):
+                if line is None:
                     self.write_line_separator()
-                    y += 1
                     continue
-                if line.time is not None:
+                if line.time:
                     self.write_time(line.time)
-                if line.nickname is not None:
+                if line.nickname:
                     self.write_nickname(line.nickname, line.nickname_color)
                 self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-                y += 1
+                if y != self.height - 1:
+                    self.addstr('\n')
             self._refresh()
 
     def write_line_separator(self):
