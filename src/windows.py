@@ -529,6 +529,7 @@ class TextWin(Win):
         self._win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
         self.addnstr('- '*(self.width//2), self.width)
         self._win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
+        self.addstr('\n')
 
     def write_text(self, y, x, txt, color, colorized):
         """
@@ -961,8 +962,7 @@ class Input(Win):
         with g_lock:
             self._win.erase()
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            cursor_pos = self.pos
-            self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
+            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
             self._refresh()
 
     def refresh(self):
