@@ -470,8 +470,13 @@ class TextWin(Win):
             if not first:
                 nick = None
                 time = None
-            else:
-                time = message.time
+            else:               # strftime is VERY slow, improve performance
+                                # by calling it only one time here, and
+                                # not at each refresh
+                time = {'hour': '%s'%(message.time.strftime("%H"),),
+                        'minute': '%s'%(message.time.strftime("%M"),),
+                        'second': '%s'%(message.time.strftime("%S"),),
+                        }
             l = Line(nick, color,
                      time,
                      txt[:limit], message.color,
@@ -589,12 +594,12 @@ class TextWin(Win):
         Write the date on the yth line of the window
         """
         self.addstr(theme.CHAR_TIME_LEFT, curses.color_pair(theme.COLOR_TIME_LIMITER))
-        self.addstr(time.strftime("%H"), curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(time['hour'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
         self.addstr(':', curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time.strftime("%M"), curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(time['minute'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
         self.addstr(':', curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time.strftime('%S'), curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addnstr(theme.CHAR_TIME_RIGHT, curses.color_pair(theme.COLOR_TIME_LIMITER))
+        self.addstr(time['second'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(theme.CHAR_TIME_RIGHT, curses.color_pair(theme.COLOR_TIME_LIMITER))
         self.addstr(' ')
 
     def resize(self, height, width, y, x, stdscr, room=None):
@@ -1425,3 +1430,17 @@ class ColumnHeaderWin(Win):
                 self.addstr(0, x, txt, curses.color_pair(theme.COLOR_STATUS_UNAVAILABLE))
                 x += size
             self._refresh()
+
+# class SimpleTextWin(Win):
+#     def __init__(self, text):
+#         self._text = text
+#         self.built_lines = []
+
+#     def resize(self, height, width, y, x, stdscr):
+#         self._resize(height, width, y, x, stdscr)
+#         self.rebuild_text()
+
+#     def rebuild_text(self):
+        
+#     def refresh(self):
+#         pass

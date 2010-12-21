@@ -980,7 +980,7 @@ class MucListTab(Tab):
         self.list_header = windows.ColumnHeaderWin(columns)
         self.listview = windows.ListWin(columns)
         self.tab_win = windows.GlobalInfoBar()
-        self.default_help_message = windows.HelpText("“j”: join room. “i”: information")
+        self.default_help_message = windows.HelpText("“j”: join room.")
         self.input = self.default_help_message
         self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
         self.key_func["KEY_UP"] = self.listview.move_cursor_up
@@ -1065,6 +1065,18 @@ class MucListTab(Tab):
     def get_color_state(self):
         return self._color_state
 
+# class SimpleTextTab(Tab):
+#     """
+#     A very simple tab, with just a text displaying some
+#     information or whatever
+#     """
+#     def __init__(self, core, text):
+#         Tab.__init__(self, core)
+#         self.text = text
+#         self.text_win = 
+
+#     def resize(self):
+#         pass
 def diffmatch(search, string):
     """
     Use difflib and a loop to check if search_pattern can
