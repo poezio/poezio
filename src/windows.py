@@ -501,7 +501,7 @@ class TextWin(Win):
         Build the Line objects from the messages, and then write
         them in the text area
         """
-        if self.height <= 0:
+        if self.height <= 0 or not self.built_lines:
             return
         if self.pos != 0:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
@@ -570,7 +570,7 @@ class TextWin(Win):
                     self.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
                 else:
                     self.addstr(word, curses.color_pair(color))
-                self._win.addch(' ')
+                self.addstr(' ')
 
     def write_nickname(self, nickname, color):
         """
