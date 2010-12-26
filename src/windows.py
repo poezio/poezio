@@ -513,12 +513,12 @@ class TextWin(Win):
             for y, line in enumerate(lines):
                 if line is None:
                     self.write_line_separator()
-                    continue
-                if line.time:
-                    self.write_time(line.time)
-                if line.nickname:
-                    self.write_nickname(line.nickname, line.nickname_color)
-                self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
+                else:
+                    if line.time:
+                        self.write_time(line.time)
+                    if line.nickname:
+                        self.write_nickname(line.nickname, line.nickname_color)
+                    self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
                 if y != self.height - 1:
                     self.addstr('\n')
             self._refresh()
@@ -526,10 +526,7 @@ class TextWin(Win):
     def write_line_separator(self):
         """
         """
-        self._win.attron(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
-        self.addnstr('- '*(self.width//2), self.width)
-        self._win.attroff(curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
-        self.addstr('\n')
+        self.addnstr('- '*(self.width//2-1)+'-', self.width, curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
         """
