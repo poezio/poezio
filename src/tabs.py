@@ -110,19 +110,19 @@ class Tab(object):
         """
         returns the color that should be used in the GlobalInfoBar
         """
-        raise NotImplementedError
+        return theme.COLOR_TAB_NORMAL
 
     def set_color_state(self, color):
         """
         set the color state
         """
-        raise NotImplementedError
+        pass
 
     def get_name(self):
         """
         get the name of the tab
         """
-        raise NotImplementedError
+        return self.__class__.__name__
 
     def get_text_window(self):
         """
@@ -1039,12 +1039,6 @@ class MucListTab(Tab):
             self.core.execute(txt)
         return self.reset_help_message()
 
-    def get_color_state(self):
-        return theme.COLOR_TAB_NORMAL
-
-    def set_color_state(self, color):
-        pass
-
     def get_name(self):
         return self.name
 
@@ -1065,18 +1059,62 @@ class MucListTab(Tab):
     def get_color_state(self):
         return self._color_state
 
-# class SimpleTextTab(Tab):
-#     """
-#     A very simple tab, with just a text displaying some
-#     information or whatever
-#     """
-#     def __init__(self, core, text):
-#         Tab.__init__(self, core)
-#         self.text = text
-#         self.text_win = 
+class SimpleTextTab(Tab):
+    """
+    A very simple tab, with just a text displaying some
+    information or whatever.
+    For example used to display tracebacks
+    """
+    def __init__(self, core, text):
+        Tab.__init__(self, core)
+        self._color_state = theme.COLOR_TAB_NORMAL
+        self.text_win = windows.SimpleTextWin(text)
+        self.tab_win = windows.GlobalInfoBar()
+        self.default_help_message = windows.HelpText("“Ctrl+q”: close")
+        self.input = self.default_help_message
+        self.key_func['^T'] = self.close
+        self.key_func["/"] = self.on_slash
+        self.resize()
 
-#     def resize(self):
-#         pass
+    def on_slash(self):
+        """
+        '/' is pressed, activate the input
+        """
+        curses.curs_set(1)
+        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.do_command("/") # we add the slash
+
+    def on_input(self, key):
+        res = self.input.do_command(key)
+        if res:
+            return True
+        if key in self.key_func:
+            return self.key_func[key]()
+
+    def close(self):
+        self.core.close_tab()
+
+    def resize(self):
+        self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+
+    def refresh(self, tabs, information, roster):
+        self.text_win.refresh()
+        self.tab_win.refresh(tabs, tabs[0])
+        self.input.refresh()
+
+    def on_lose_focus(self):
+        self._color_state = theme.COLOR_TAB_NORMAL
+
+    def on_gain_focus(self):
+        self._color_state = theme.COLOR_TAB_CURRENT
+        curses.curs_set(0)
+
+    def get_color_state(self):
+        return self._color_state
+
 def diffmatch(search, string):
     """
     Use difflib and a loop to check if search_pattern can

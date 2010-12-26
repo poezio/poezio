@@ -26,6 +26,7 @@ import sys
 import shlex
 import curses
 import threading
+import traceback
 
 from datetime import datetime
 
@@ -79,20 +80,22 @@ class Core(object):
     User interface using ncurses
     """
     def __init__(self, xmpp):
+        # All uncaught exception are given to this callback, instead
+        # of being displayed on the screen and exiting the program.
+        sys.excepthook = self.on_exception
         self.running = True
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
         self.xmpp = xmpp
+        # a unique buffer used to store global informations
+        # that are displayed in almost all tabs, in an
+        # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
         default_tab = tabs.InfoTab(self, "Info") if self.xmpp.anon\
             else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
-        # a unique buffer used to store global informations
-        # that are displayed in almost all tabs, in an
-        # information window.
-
         self.resize_timer = None
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
@@ -154,6 +157,20 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
+
+    def on_exception(self, typ, value, trace):
+        """
+        When an exception in raised, open a special tab
+        displaying the traceback and some instructions to
+        make a bug report.
+        """
+        try:
+            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\n\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://codingteam.net/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
+            self.add_tab(tb_tab, focus=True)
+        except Exception:       # If an exception is raised in this code, this is
+                                # this is fatal, so we exit cleanly and display the traceback
+            curses.endwin()
+            raise
 
     def grow_information_win(self):
         """

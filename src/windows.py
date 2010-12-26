@@ -49,7 +49,7 @@ import theme
 
 g_lock = Lock()
 
-LINES_NB_LIMIT = 16384
+LINES_NB_LIMIT = 4096
 
 class Win(object):
     def __init__(self):
@@ -1425,16 +1425,35 @@ class ColumnHeaderWin(Win):
                 x += size
             self._refresh()
 
-# class SimpleTextWin(Win):
-#     def __init__(self, text):
-#         self._text = text
-#         self.built_lines = []
+class SimpleTextWin(Win):
+    def __init__(self, text):
+        self._text = text
+        self.built_lines = []
 
-#     def resize(self, height, width, y, x, stdscr):
-#         self._resize(height, width, y, x, stdscr)
-#         self.rebuild_text()
+    def resize(self, height, width, y, x, stdscr):
+        self._resize(height, width, y, x, stdscr)
+        self.rebuild_text()
 
-#     def rebuild_text(self):
-        
-#     def refresh(self):
-#         pass
+    def rebuild_text(self):
+        """
+        Transform the text in lines than can then be
+        displayed without any calculation or anything
+        at refresh() time
+        It is basically called on each resize
+        """
+        self.built_lines = []
+        for line in self._text.split('\n'):
+            while len(line) >= self.width:
+                limit = line[:self.width].rfind(' ')
+                if limit <= 0:
+                    limit = self.width
+                self.built_lines.append(line[:limit])
+                line = line[limit:]
+            self.built_lines.append(line)
+
+    def refresh(self):
+        with g_lock:
+            self._win.erase()
+            for y, line in enumerate(self.built_lines):
+                self.addstr(y, 0, line)
+            self._refresh()

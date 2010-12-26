@@ -20,70 +20,9 @@
 Starting point of poezio. Launches both the Connection and Gui
 """
 
-import os
-import curses
 import sys
-import traceback
-import threading
-
+import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-def installThreadExcepthook():
-    """
-    Workaround for sys.excepthook thread bug
-    See http://bugs.python.org/issue1230540
-    Python, you made me sad :(
-    """
-    init_old = threading.Thread.__init__
-    def init(self, *args, **kwargs):
-        init_old(self, *args, **kwargs)
-        run_old = self.run
-        def run_with_except_hook(*args, **kw):
-            try:
-                run_old(*args, **kw)
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                sys.excepthook(*sys.exc_info())
-        self.run = run_with_except_hook
-    threading.Thread.__init__ = init
-
-class MyStdErr(object):
-    def __init__(self, fd):
-        """
-        Change sys.stderr to something like /dev/null
-        to disable any printout on the screen that would
-        mess everything
-        """
-        self.old_stderr = sys.stderr
-        sys.stderr = fd
-    def restore(self):
-        """
-        Restore the good ol' sys.stderr, because we need
-        it in order to print the tracebacks
-        """
-        sys.stderr.close()
-        sys.stderr = self.old_stderr
-
-# my_stderr = MyStdErr(open('/dev/null', 'a'))
-
-def exception_handler(type_, value, trace):
-    """
-    on any traceback: exit ncurses and print the traceback
-    then exit the program
-    """
-    my_stderr.restore()
-    try:
-        curses.endwin()
-        curses.echo()
-    except: # if an exception is raised but initscr has never been called yet
-        pass
-    traceback.print_exception(type_, value, trace, None, sys.stderr)
-    import os                   # used to quit the program even from a thread
-    os.abort()
-
-# sys.excepthook = exception_handler
-
 import signal
 import logging
 
@@ -96,4 +35,7 @@ if __name__ == '__main__':
     if options.debug:
         logging.basicConfig(filename=options.debug,level=logging.DEBUG)
     connection.start()  # Connect to remote server
+    # Disable any display of non-wanted text on the terminal
+    # by redirecting stderr to /dev/null
+    # sys.stderr = open('/dev/null', 'a')
     core.main_loop()    # Refresh the screen, wait for user events etc
