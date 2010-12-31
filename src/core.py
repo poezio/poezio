@@ -49,7 +49,6 @@ from user import User
 from room import Room
 from roster import Roster, RosterGroup, roster
 from contact import Contact, Resource
-from message import Message
 from text_buffer import TextBuffer
 from keyboard import read_char
 
@@ -491,8 +490,7 @@ class Core(object):
             if not conversation:
                 # We create the conversation with the bare Jid if nothing was found
                 conversation = self.open_conversation_window(jid.bare, False)
-            # room = self.open_conversation_window(jid, False)
-        self.add_message_to_text_buffer(conversation.get_room(), body, None, jid.full)
+        conversation.get_room().add_message(body, None, jid.full, False, curses.color_pair(theme.COLOR_REMOTE_USER))
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()
@@ -765,8 +763,7 @@ class Core(object):
         """
         open a new conversation tab and focus it if needed
         """
-        text_buffer = TextBuffer()
-        new_tab = tabs.ConversationTab(self, text_buffer, jid)
+        new_tab = tabs.ConversationTab(self, jid)
         # insert it in the rooms
         self.add_tab(new_tab, focus)
         self.refresh_window()
@@ -841,9 +838,8 @@ class Core(object):
         body = message['body']
         if body:
             date = date if delayed == True else None
-            # if not delayed:
-            #     logger.groupchat(room_from, nick_from, body)
             self.add_message_to_text_buffer(room, body, date, nick_from)
+            # TODO, only if we are focused on this MUC
             self.refresh_window()
             self.doupdate()
 

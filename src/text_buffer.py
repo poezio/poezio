@@ -25,13 +25,14 @@ from message import Message
 from datetime import datetime
 import theme
 
-MESSAGE_NB_LIMIT = 16384
+MESSAGE_NB_LIMIT = 8192
 
 class TextBuffer(object):
     """
     This class just keep trace of messages, in a list with various
     informations and attributes.
     """
+    
     def __init__(self):
         self.messages = []         # Message objects
         self.windows = []       # we keep track of one or more windows
@@ -41,13 +42,11 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, colorized=False):
+    def add_message(self, txt, time=None, nickname=None, colorized=False, nick_color=None):
         color = theme.COLOR_NORMAL_TEXT
-        user = None
+        nick_color = nick_color
         time = time or datetime.now()
-        # if self.pos:            # avoid scrolling of one line when one line is received
-        #     self.pos += 1
-        msg = Message(txt, time, nickname, user, color, colorized)
+        msg = Message(txt, time, nickname, nick_color, color, colorized)
         self.messages.append(msg)
         while len(self.messages) > MESSAGE_NB_LIMIT:
             self.messages.pop(0)
@@ -56,3 +55,4 @@ class TextBuffer(object):
             nb = window.build_new_message(msg)
             if window.pos != 0:
                 window.scroll_up(nb)
+

@@ -3,7 +3,7 @@ For more detailed changelog, see the roadmap:
 http://codingteam.net/project/poezio/roadmap
 
 * Poezio 0.7 - dev
-"Roster"
+Codename ”Koshie & Mathieui”
 - Introduce the roster
 - One to one conversations
 - Roster search
@@ -15,8 +15,7 @@ http://codingteam.net/project/poezio/roadmap
 - auto-rejoin when kicked from a MUC
 - The number of lines available to scroll down is displayed
 - Possibility to use a modified nickname automatically when a nick is reserved
-- A line separates the alread-read messages
-  from the new messages in a conversation
+- A line separates the alread-read messages from the new messages
 - Information messages are more colored
 - bugfixes
 

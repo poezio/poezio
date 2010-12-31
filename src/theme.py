@@ -40,6 +40,9 @@ COLOR_USER_PARTICIPANT = 4
 COLOR_USER_NONE = 0
 COLOR_USER_MODERATOR = 1
 
+# nickname colors
+COLOR_REMOTE_USER = 23
+
 # The character printed in color (COLOR_STATUS_*) before the nickname
 # in the user list
 CHAR_STATUS = ' '

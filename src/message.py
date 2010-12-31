@@ -26,28 +26,27 @@ class Message(object):
     The color can be a single number OR a list of numbers, for
     specials cases like join or quit messages.
     """
-    def __init__(self, txt, time=None, nickname=None, user=None, color=None, colorized=False):
+    def __init__(self, txt, time=None, nickname=None, nick_color=None, color=None, colorized=False):
         """
         time is a datetime object, None means 'now'.
         If no nickname is specified, it's an information.
-        user is an User object (used for the color, etc)
-
         """
         self.txt = txt
         self.nickname = nickname
         self.time = time
-        self.user = user
+        self.nick_color = nick_color
         self.color = color
         self.colorized = colorized
 
     def __repr__(self):
-        return "<Message txt=%s, nickname=%s, time=%s, user=%s, colorized=%s>" % (self.txt, self.nickname, str(self.time), str(self.user), self.colorized)
+        return "<Message txt=%s, nickname=%s, time=%s, user=%s, colorized=%s>" % (self.txt, self.nickname, str(self.time), str(self.nick_color), self.colorized)
+
     def __str__(self):
         return self.__repr__()
 
 class Line(object):
     """
-    A line, corresponding to ONE row of the text area.
+    A line, corresponding to ONE row of a TextWin.
     A message is composed of ONE line or MORE.
     The same particularity for colors in Message class applies
     here too.

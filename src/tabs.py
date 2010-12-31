@@ -860,9 +860,10 @@ class RosterInfoTab(Tab):
 
 class ConversationTab(ChatTab):
     """
-    The tab containg a normal conversation (someone from our roster)
+    The tab containg a normal conversation (not from a MUC)
     """
-    def __init__(self, core, text_buffer, jid):
+    def __init__(self, core, jid):
+        text_buffer = windows.TextBuffer()
         ChatTab.__init__(self, core, text_buffer)
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
@@ -890,9 +891,6 @@ class ConversationTab(ChatTab):
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
 
     def command_unquery(self, arg):
-        """
-        /unquery
-        """
         self.core.close_tab()
 
     def resize(self):
