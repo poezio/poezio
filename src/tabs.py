@@ -187,68 +187,6 @@ class Tab(object):
         """
         pass
 
-class InfoTab(Tab):
-    """
-    The information tab, used to display global informations
-    when using a anonymous account
-    """
-    def __init__(self, core):
-        Tab.__init__(self, core)
-        self.tab_win = windows.GlobalInfoBar()
-        self.info_win = windows.TextWin()
-        self.core.information_buffer.add_window(self.info_win)
-        self.input = windows.Input()
-        self.name = "Info"
-        self.color_state = theme.COLOR_TAB_NORMAL
-        self.resize()
-
-    def resize(self):
-        Tab.resize(self)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
-
-    def refresh(self, tabs, informations, _):
-        if not self.visible:
-            return
-        self.text_win.refresh(informations)
-        self.tab_win.refresh(tabs, tabs[0])
-        self.input.refresh()
-
-    def get_name(self):
-        return self.name
-
-    def get_color_state(self):
-        return self.color_state
-
-    def set_color_state(self, color):
-        return
-
-    def on_input(self, key):
-        return self.input.do_command(key)
-
-    def on_lose_focus(self):
-        self.color_state = theme.COLOR_TAB_NORMAL
-
-    def on_gain_focus(self):
-        self.color_state = theme.COLOR_TAB_CURRENT
-        curses.curs_set(0)
-
-    def on_scroll_up(self):
-        pass
-
-    def on_scroll_down(self):
-        pass
-
-    def on_info_win_size_changed(self):
-        return
-
-    def just_before_refresh(self):
-        return
-
-    def on_close(self):
-        return
-
 class ChatTab(Tab):
     """
     A tab containing a chat of any type.
@@ -305,6 +243,93 @@ class ChatTab(Tab):
 
     def command_say(self, line):
         raise NotImplementedError
+
+class InfoTab(ChatTab):
+    """
+    The information tab, used to display global informations
+    when using a anonymous account
+    """
+    def __init__(self, core):
+        Tab.__init__(self, core)
+        self.tab_win = windows.GlobalInfoBar()
+        self.info_win = windows.TextWin()
+        self.core.information_buffer.add_window(self.info_win)
+        self.input = windows.Input()
+        self.name = "Info"
+        self.color_state = theme.COLOR_TAB_NORMAL
+        self.key_func['^J'] = self.on_enter
+        self.key_func['^M'] = self.on_enter
+        self.key_func['\n'] = self.on_enter
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
+        self.resize()
+
+    def resize(self):
+        Tab.resize(self)
+        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
+        self.info_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+
+    def refresh(self, tabs, informations, _):
+        if not self.visible:
+            return
+        self.info_win.refresh(informations)
+        self.tab_win.refresh(tabs, tabs[0])
+        self.input.refresh()
+
+    def on_enter(self):
+        txt = self.input.get_text()
+        if txt.startswith('/') and not txt.startswith('//') and\
+                not txt.startswith('/me '):
+            command = txt.strip().split()[0][1:]
+            arg = txt[2+len(command):] # jump the '/' and the ' '
+            if command in self.core.commands: # check global commands
+                self.core.commands[command][0](arg)
+            elif command in self.commands: # check tab-specific commands
+                self.commands[command][0](arg)
+            else:
+                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+
+    def completion(self):
+        self.complete_commands(self.input)
+
+    def get_name(self):
+        return self.name
+
+    def get_color_state(self):
+        return self.color_state
+
+    def set_color_state(self, color):
+        return
+
+    def on_input(self, key):
+        if key in self.key_func:
+            self.key_func[key]()
+            return False
+        self.input.do_command(key)
+        return False
+
+    def on_lose_focus(self):
+        self.color_state = theme.COLOR_TAB_NORMAL
+
+    def on_gain_focus(self):
+        self.color_state = theme.COLOR_TAB_CURRENT
+        curses.curs_set(1)
+
+    def on_scroll_up(self):
+        pass
+
+    def on_scroll_down(self):
+        pass
+
+    def on_info_win_size_changed(self):
+        return
+
+    def just_before_refresh(self):
+        return
+
+    def on_close(self):
+        return
 
 class MucTab(ChatTab):
     """

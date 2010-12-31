@@ -91,7 +91,7 @@ class Core(object):
         # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
-        default_tab = tabs.InfoTab(self, "Info") if self.xmpp.anon\
+        default_tab = tabs.InfoTab(self) if self.xmpp.anon\
             else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
