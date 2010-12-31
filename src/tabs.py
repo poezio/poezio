@@ -36,6 +36,7 @@ import theme
 import curses
 import difflib
 import shlex
+import text_buffer
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
@@ -191,21 +192,20 @@ class InfoTab(Tab):
     The information tab, used to display global informations
     when using a anonymous account
     """
-    def __init__(self, core, name):
+    def __init__(self, core):
         Tab.__init__(self, core)
         self.tab_win = windows.GlobalInfoBar()
-        self.text_win = windows.TextWin()
+        self.info_win = windows.TextWin()
+        self.core.information_buffer.add_window(self.info_win)
         self.input = windows.Input()
-        self.name = name
+        self.name = "Info"
         self.color_state = theme.COLOR_TAB_NORMAL
         self.resize()
 
     def resize(self):
         Tab.resize(self)
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
-        self.text_win.rebuild_everything(self._room)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
 
     def refresh(self, tabs, informations, _):
@@ -863,12 +863,12 @@ class ConversationTab(ChatTab):
     The tab containg a normal conversation (not from a MUC)
     """
     def __init__(self, core, jid):
-        text_buffer = windows.TextBuffer()
-        ChatTab.__init__(self, core, text_buffer)
+        txt_buff = text_buffer.TextBuffer()
+        ChatTab.__init__(self, core, txt_buff)
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
-        text_buffer.add_window(self.text_win)
+        txt_buff.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.info_header = windows.ConversationInfoWin()
         self.info_win = windows.TextWin()

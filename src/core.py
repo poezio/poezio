@@ -490,7 +490,7 @@ class Core(object):
             if not conversation:
                 # We create the conversation with the bare Jid if nothing was found
                 conversation = self.open_conversation_window(jid.bare, False)
-        conversation.get_room().add_message(body, None, jid.full, False, curses.color_pair(theme.COLOR_REMOTE_USER))
+        conversation.get_room().add_message(body, None, jid.full, False, 5)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()
