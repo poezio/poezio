@@ -353,6 +353,8 @@ class MucTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
+        self.key_func['M-u'] = self.scroll_user_list_down
+        self.key_func['M-y'] = self.scroll_user_list_up
         # commands
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), None)
@@ -363,6 +365,14 @@ class MucTab(ChatTab):
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.resize()
+
+    def scroll_user_list_up(self):
+        self.user_win.scroll_up()
+        self.core.refresh_window()
+
+    def scroll_user_list_down(self):
+        self.user_win.scroll_down()
+        self.core.refresh_window()
 
     def command_recolor(self, arg):
         """

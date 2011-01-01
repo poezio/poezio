@@ -91,6 +91,7 @@ class Win(object):
 class UserList(Win):
     def __init__(self):
         Win.__init__(self)
+        self.pos = 0
         self.color_role = {'moderator': theme.COLOR_USER_MODERATOR,
                            'participant':theme.COLOR_USER_PARTICIPANT,
                            'visitor':theme.COLOR_USER_VISITOR,
@@ -105,11 +106,25 @@ class UserList(Win):
                            'chat':theme.COLOR_STATUS_CHAT
                            }
 
+    def scroll_up(self):
+        self.pos += 4
+
+    def scroll_down(self):
+        self.pos -= 4
+        if self.pos < 0:
+            self.pos = 0
+
+    def draw_plus(self, y):
+        self.addstr(y, self.width-2, '++', curses.color_pair(42))
+
     def refresh(self, users):
         with g_lock:
             self._win.erase()
             y = 0
-            for user in sorted(users):
+            users = sorted(users)
+            if self.pos >= len(users) and self.pos != 0:
+                self.pos = len(users)-1
+            for user in users[self.pos:]:
                 if not user.role in self.color_role:
                     role_col = theme.COLOR_USER_NONE
                 else:
@@ -119,10 +134,15 @@ class UserList(Win):
                 else:
                     show_col = self.color_show[user.show]
                 self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
-                self.addnstr(y, 1, user.nick, self.width-1, curses.color_pair(role_col))
+                self.addstr(y, 1, user.nick, curses.color_pair(role_col))
                 y += 1
                 if y == self.height:
                     break
+            # draw indicators of position in the list
+            if self.pos > 0:
+                self.draw_plus(0)
+            if self.pos + self.height < len(users):
+                self.draw_plus(self.height-1)
             self._refresh()
 
     def resize(self, height, width, y, x, stdscr):
