@@ -278,6 +278,7 @@ class InfoTab(ChatTab):
         self.input.refresh()
 
     def on_enter(self):
+        # TODO duplicate
         txt = self.input.get_text()
         if txt.startswith('/') and not txt.startswith('//') and\
                 not txt.startswith('/me '):

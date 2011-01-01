@@ -167,6 +167,9 @@ class GlobalInfoBar(Win):
             sorted_tabs = sorted(tabs, key=comp)
             for tab in sorted_tabs:
                 color = tab.get_color_state()
+                if config.get('show_inactive_tabs', 'true') == 'false' and\
+                        color == theme.COLOR_TAB_NORMAL:
+                    continue
                 try:
                     self.addstr("%s" % str(tab.nb), curses.color_pair(color))
                     self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
