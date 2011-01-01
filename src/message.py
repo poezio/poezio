@@ -26,7 +26,7 @@ class Message(object):
     The color can be a single number OR a list of numbers, for
     specials cases like join or quit messages.
     """
-    def __init__(self, txt, time=None, nickname=None, nick_color=None, color=None, colorized=False):
+    def __init__(self, txt, time=None, nickname=None, nick_color=None, color=None, colorized=False, user=None):
         """
         time is a datetime object, None means 'now'.
         If no nickname is specified, it's an information.
@@ -37,9 +37,10 @@ class Message(object):
         self.nick_color = nick_color
         self.color = color
         self.colorized = colorized
+        self.user = user
 
     def __repr__(self):
-        return "<Message txt=%s, nickname=%s, time=%s, user=%s, colorized=%s>" % (self.txt, self.nickname, str(self.time), str(self.nick_color), self.colorized)
+        return "<Message txt=%s, nickname=%s, time=%s, user=%s, colorized=%s>" % (self.txt, self.nickname, str(self.time), str(self.user), self.colorized)
 
     def __str__(self):
         return self.__repr__()

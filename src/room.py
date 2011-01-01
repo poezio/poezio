@@ -117,7 +117,7 @@ class Room(TextBuffer):
             color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
         nick_color = nick_color or user.color if user else None
-        message = Message(txt, time, nickname, nick_color, color, colorized)
+        message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
         while len(self.messages) > MESSAGE_NB_LIMIT:
             self.messages.pop(0)
         self.messages.append(message)

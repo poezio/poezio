@@ -470,7 +470,7 @@ class TextWin(Win):
                 else:
                     limit = self.width-offset-1
                     this_line_was_broken_by_space = False
-            color = message.nick_color
+            color = message.user.color if message.user else message.nick_color
             if not first:
                 nick = None
                 time = None
