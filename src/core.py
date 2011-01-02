@@ -962,9 +962,9 @@ class Core(object):
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
                 if not the_input.last_completion:
-                    response = self.xmpp.plugin['xep_0030'].getItems(jid.server)
+                    response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
                     if response:
-                        items = response['disco_items'].getItems()
+                        items = response['disco_items'].get_items()
                     else:
                         return True
                     items = ['%s/%s' % (tup[0], jid.resource) for tup in items]
