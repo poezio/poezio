@@ -24,6 +24,10 @@ from message import Message
 import common
 import theme
 
+import logging
+
+log = logging.getLogger(__name__)
+
 class Room(TextBuffer):
     def __init__(self, name, nick):
         TextBuffer.__init__(self)
@@ -46,8 +50,8 @@ class Room(TextBuffer):
         Log the messages in the archives, if it needs
         to be
         """
-        if time == None and self.joined:        # don't log the history messages
-            logger.message(self.name, nickname, txt)
+        if time is None and self.joined:        # don't log the history messages
+            logger.groupchat(self.name, nickname, txt)
 
     def do_highlight(self, txt, time, nickname):
         """
@@ -94,7 +98,7 @@ class Room(TextBuffer):
         when we receive an history message said by someone who is not
         in the room anymore
         """
-        # self.log_message(txt, time, nickname)
+        self.log_message(txt, time, nickname)
         if txt.startswith('/me '):
             txt = "* " + nickname + ' ' + txt[4:]
             nickname = None

@@ -20,36 +20,59 @@ import os
 from datetime import datetime
 from config import config
 
-DATA_HOME = config.get('log_dir', os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio'))
+import logging
+
+log = logging.getLogger(__name__)
+
+DATA_HOME = config.get('log_dir', '') or os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio')
 
 class Logger(object):
     """
     Appends things to files. Error/information/warning logs
     and also log the conversations to logfiles
     """
-    def __init__(self):# , logfile, loglevel):
+    def __init__(self):
         self.logfile = config.get('logfile', 'logs')
+        # a dict of 'groupchatname': file-object (opened)
+        self.groupchat_fds = dict()
+
+    def __del__(self):
+        for opened_file in self.groupchat_fds.values():
+            opened_file.close()
+
+    def check_and_create_log_dir(self, room):
+        """
+        Check that the directory where we want to log the messages
+        exists. if not, create it
+        """
+        if config.get('use_log', 'false') == 'false':
+            return None
+        directory = os.path.join(DATA_HOME, 'logs')
+        try:
+            makedirs(directory)
+        except OSError:
+            pass
+        try:
+            fd = open(os.path.join(directory, room), 'a')
+            self.groupchat_fds[room] = fd
+            return fd
+        except IOError:
+            return None
 
     def groupchat(self, room, nick, msg):
         """
         log the message in the appropriate room's file
         """
-        if config.get('use_log', 'false') == 'false':
+        if room in self.groupchat_fds.keys():
+            fd = self.groupchat_fds[room]
+        else:
+            fd = self.check_and_create_log_dir(room)
+        if not fd:
             return
-        dir = DATA_HOME+'logs/'
-        try:
-            makedirs(dir)
-        except OSError:
-            pass
-        try:
-            fd = open(dir+room, 'a')
-        except IOError:
-            return
-        msg = msg
         if nick:
             fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
         else:
             fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
-        fd.close()
+        fd.flush()              # TODO do something better here?
 
 logger = Logger()
