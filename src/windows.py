@@ -154,20 +154,28 @@ class UserList(Win):
 class Topic(Win):
     def __init__(self):
         Win.__init__(self)
+        self._message = ''
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, topic):
+    def refresh(self, topic=None):
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, topic[:self.width-1], curses.color_pair(theme.COLOR_TOPIC_BAR))
+            if topic:
+                msg = topic[:self.width-1]
+            else:
+                msg = self._message[:self.width-1]
+            self.addstr(0, 0, msg, curses.color_pair(theme.COLOR_TOPIC_BAR))
             (y, x) = self._win.getyx()
             remaining_size = self.width - x
             if remaining_size:
                 self.addnstr(' '*remaining_size, remaining_size,
                              curses.color_pair(theme.COLOR_INFORMATION_BAR))
             self._refresh()
+
+    def set_message(self, message):
+        self._message = message
 
 class GlobalInfoBar(Win):
     def __init__(self):
@@ -1362,12 +1370,13 @@ class ListWin(Win):
             return
         self.lines += lines
         self.refresh()
+        curses.doupdate()
 
     def get_selected_row(self):
         """
         Return the tuple representing the selected row
         """
-        if self._selected_row is not None:
+        if self._selected_row is not None and self.lines:
             return self.lines[self._selected_row]
         return None
 

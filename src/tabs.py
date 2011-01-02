@@ -1010,6 +1010,7 @@ class MucListTab(Tab):
         self._color_state = theme.COLOR_TAB_NORMAL
         self.name = server
         self.upper_message = windows.Topic()
+        self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
         columns = ('node-part','name', 'users')
         self.list_header = windows.ColumnHeaderWin(columns)
         self.listview = windows.ListWin(columns)
@@ -1026,7 +1027,7 @@ class MucListTab(Tab):
         self.resize()
 
     def refresh(self, tabs, informations, roster):
-        self.upper_message.refresh('Chatroom list on server %s' % self.name)
+        self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
         self.tab_win.refresh(tabs, tabs[0])
@@ -1056,6 +1057,32 @@ class MucListTab(Tab):
 
     def join_selected_no_focus(self):
         return
+
+    def set_error(self, msg, code, body):
+        """
+        If there's an error (retrieving the values etc)
+        """
+        self._error_message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
+        self.upper_message.set_message(self._error_message)
+        self.upper_message.refresh()
+        curses.doupdate()
+
+    def on_muc_list_item_received(self, iq):
+        """
+        Callback called when a disco#items result is received
+        Used with command_list
+        """
+        log.debug('res: %s\n\n' % iq)
+        if iq['type'] == 'error':
+            self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
+            return
+        items = [{'node-part':JID(item[0]).user,
+                  'jid': item[0],
+                  'name': item[2]} for item in iq['disco_items'].get_items()]
+        self.listview.add_lines(items)
+        self.upper_message.set_message('Chatroom list on server %s' % self.name)
+        self.upper_message.refresh()
+        curses.doupdate()
 
     def join_selected(self):
         row = self.listview.get_selected_row()

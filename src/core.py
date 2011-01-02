@@ -890,11 +890,7 @@ class Core(object):
             server = arg.strip()
         list_tab = tabs.MucListTab(self, server)
         self.add_tab(list_tab, True)
-        res = self.xmpp.plugin['xep_0030'].getItems(server)
-        items = [{'node-part':JID(item[0]).user,
-                  'jid': item[0],
-                  'name': item[2]} for item in res['disco_items'].getItems()]
-        list_tab.listview.add_lines(items)
+        self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_whois(self, arg):
         """
