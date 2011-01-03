@@ -97,7 +97,7 @@ class Core(object):
         self.tabs = [default_tab]
         self.resize_timer = None
         self.previous_tab_nb = 0
-        self.own_nick = config.get('own_nick', self.xmpp.boundjid.bare)
+        self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
@@ -490,7 +490,11 @@ class Core(object):
             if not conversation:
                 # We create the conversation with the bare Jid if nothing was found
                 conversation = self.open_conversation_window(jid.bare, False)
-        conversation.get_room().add_message(body, None, jid.full, False, theme.COLOR_REMOTE_USER)
+        if roster.get_contact_by_jid(jid.bare):
+            remote_nick = roster.get_contact_by_jid(jid.bare).get_name()
+        else:
+            remote_nick = jid.full
+        conversation.get_room().add_message(body, None, remote_nick, False, theme.COLOR_REMOTE_USER)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()
