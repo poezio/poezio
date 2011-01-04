@@ -364,6 +364,7 @@ class MucTab(ChatTab):
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\n Part: disconnect from a room. You can specify an optional message."), None)
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
+        self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -373,6 +374,13 @@ class MucTab(ChatTab):
     def scroll_user_list_down(self):
         self.user_win.scroll_down()
         self.core.refresh_window()
+
+    def command_cycle(self, arg):
+        # TODO use the argument as the exit message
+        if self.get_room().joined:
+            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, "")
+        self.get_room().joined = False
+        self.core.command_join('/')
 
     def command_recolor(self, arg):
         """
