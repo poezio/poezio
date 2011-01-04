@@ -199,6 +199,11 @@ class Core(object):
         resource = contact.get_resource_by_fulljid(jid.full)
         assert resource
         self.information('%s is offline' % (resource.get_jid()), "Roster")
+        # Search all opened tab with this fulljid or the bare jid and add
+        # an information message in all of them
+        tab = self.get_tab_by_name(jid.full)
+        if tab and isinstance(tab, tabs.ConversationTab):
+            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid()))
         contact.remove_resource(resource)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
