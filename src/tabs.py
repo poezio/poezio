@@ -376,9 +376,8 @@ class MucTab(ChatTab):
         self.core.refresh_window()
 
     def command_cycle(self, arg):
-        # TODO use the argument as the exit message
         if self.get_room().joined:
-            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, "")
+            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
         self.get_room().joined = False
         self.core.command_join('/')
 
