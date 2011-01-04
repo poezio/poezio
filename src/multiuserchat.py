@@ -22,6 +22,9 @@ import sleekxmpp
 
 from xml.etree import cElementTree as ET
 
+import logging
+log = logging.getLogger(__name__)
+
 def send_private_message(xmpp, jid, line):
     """
     Send a private message
@@ -60,11 +63,9 @@ def change_nick(xmpp, jid, nick):
     """
     xmpp.make_presence(pto='%s/%s' % (jid, nick)).send()
 
-def join_groupchat(xmpp, jid, nick, passwd=''):
-    """
-    Join the groupchat
-    """
-    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=None, password=passwd)
+def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None):
+    log.debug('ALLO histo:  %s\n' % maxhistory)
+    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd)
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """

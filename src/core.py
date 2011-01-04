@@ -1004,7 +1004,7 @@ class Core(object):
         if muc_serv_list:
             the_input.auto_completion(muc_serv_list, ' ')
 
-    def command_join(self, arg):
+    def command_join(self, arg, histo_length=None):
         """
         /join [room][/nick] [password]
         """
@@ -1051,10 +1051,10 @@ class Core(object):
             return
         room = room.lower()
         if r and not r.joined:
-            muc.join_groupchat(self.xmpp, room, nick, password)
+            muc.join_groupchat(self.xmpp, room, nick, password, histo_length)
         if not r:   # if the room window exists, we don't recreate it.
             self.open_new_room(room, nick)
-            muc.join_groupchat(self.xmpp, room, nick, password)
+            muc.join_groupchat(self.xmpp, room, nick, password, histo_length)
         else:
             r.own_nick = nick
             r.users = []

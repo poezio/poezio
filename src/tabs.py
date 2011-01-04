@@ -379,7 +379,7 @@ class MucTab(ChatTab):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
         self.get_room().joined = False
-        self.core.command_join('/')
+        self.core.command_join('/', "0")
 
     def command_recolor(self, arg):
         """
@@ -396,7 +396,7 @@ class MucTab(ChatTab):
         nb_color = len(theme.LIST_COLOR_NICKNAMES)
         for user in sorted(users, key=compare_users, reverse=True):
             user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
-            i+= 1
+            i += 1
         self.text_win.rebuild_everything(self.get_room())
         self.core.refresh_window()
 
