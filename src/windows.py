@@ -56,9 +56,9 @@ class Win(object):
         pass
 
     def _resize(self, height, width, y, x, parent_win):
+        self.height, self.width, self.x, self.y = height, width, x, y
         if height == 0 or width == 0:
             return
-        self.height, self.width, self.x, self.y = height, width, x, y
         self._win = curses.newwin(height, width, y, x)
 
     def _refresh(self):
@@ -534,7 +534,7 @@ class TextWin(Win):
         Build the Line objects from the messages, and then write
         them in the text area
         """
-        if self.height <= 0 or not self.built_lines:
+        if self.height <= 0:
             return
         if self.pos != 0:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
