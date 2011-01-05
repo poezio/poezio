@@ -32,7 +32,6 @@ class TextBuffer(object):
     This class just keep trace of messages, in a list with various
     informations and attributes.
     """
-    
     def __init__(self):
         self.messages = []         # Message objects
         self.windows = []       # we keep track of one or more windows
@@ -43,7 +42,7 @@ class TextBuffer(object):
         self.windows.append(win)
 
     def add_message(self, txt, time=None, nickname=None, colorized=False, nick_color=None):
-        color = theme.COLOR_NORMAL_TEXT
+        color = theme.COLOR_NORMAL_TEXT if nickname is not None else theme.COLOR_INFORMATION_TEXT
         nick_color = nick_color
         time = time or datetime.now()
         msg = Message(txt, time, nickname, nick_color, color, colorized)

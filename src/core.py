@@ -164,9 +164,9 @@ class Core(object):
         make a bug report.
         """
         try:
-            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\n\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://codingteam.net/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
+            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://codingteam.net/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
             self.add_tab(tb_tab, focus=True)
-        except Exception:       # If an exception is raised in this code, this is
+        except Exception:       # If an exception is raised in this code,
                                 # this is fatal, so we exit cleanly and display the traceback
             curses.endwin()
             raise
@@ -199,12 +199,18 @@ class Core(object):
         resource = contact.get_resource_by_fulljid(jid.full)
         assert resource
         self.information('%s is offline' % (resource.get_jid()), "Roster")
-        # Search all opened tab with this fulljid or the bare jid and add
-        # an information message in all of them
+        # If a resource got offline, display the message in the conversation with this
+        # precise resource.
         tab = self.get_tab_by_name(jid.full)
         if tab and isinstance(tab, tabs.ConversationTab):
-            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid()))
+            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid().full))
         contact.remove_resource(resource)
+        # Display the message in the conversation with the bare JID only if that was
+        # the only resource online (i.e. now the contact is completely disconnected)
+        if not contact.get_highest_priority_resource(): # No resource left: that was the last one
+            tab = self.get_tab_by_name(jid.bare)
+            if tab and isinstance(tab, tabs.ConversationTab):
+                self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (jid.bare))
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
