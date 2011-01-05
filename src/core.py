@@ -496,9 +496,9 @@ class Core(object):
                 # We create the conversation with the bare Jid if nothing was found
                 conversation = self.open_conversation_window(jid.bare, False)
         if roster.get_contact_by_jid(jid.bare):
-            remote_nick = roster.get_contact_by_jid(jid.bare).get_name()
+            remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
-            remote_nick = jid.full
+            remote_nick = jid.user
         conversation.get_room().add_message(body, None, remote_nick, False, theme.COLOR_REMOTE_USER)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
