@@ -207,8 +207,7 @@ class Core(object):
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
             self.add_information_message_to_conversation_tab(jid.bare, '%s is offline' % (jid.bare))
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        self.refresh_window()
 
     def on_got_online(self, presence):
         jid = presence['from']
@@ -521,8 +520,6 @@ class Core(object):
         self.refresh_window()
 
     def on_presence(self, presence):
-        """
-        """
         jid = presence['from']
         contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
@@ -536,8 +533,7 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        self.refresh_window()
 
     def on_roster_update(self, iq):
         """
