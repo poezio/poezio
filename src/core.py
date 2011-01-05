@@ -225,11 +225,12 @@ class Core(object):
         resource.set_status(status_message)
         resource.set_presence(status)
         resource.set_priority(priority)
-        contact.add_resource(resource)
         self.information("%s is online (%s)" % (resource.get_jid().full, status), "Roster")
-        tab = self.get_tab_by_name(jid.full)
-        if tab and isinstance(tab, tabs.ConversationTab):
-            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '%s is online' % (jid.full))
+        if not contact.get_highest_priority_resource():
+            # No connected resource yet: the user's just connecting
+            self.add_information_message_to_conversation_tab(jid.bare, '%s is online' % (jid.bare))
+        contact.add_resource(resource)
 
     def add_information_message_to_conversation_tab(self, jid, msg):
         """
