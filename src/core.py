@@ -201,16 +201,12 @@ class Core(object):
         self.information('%s is offline' % (resource.get_jid()), "Roster")
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        tab = self.get_tab_by_name(jid.full)
-        if tab and isinstance(tab, tabs.ConversationTab):
-            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '%s is offline' % (resource.get_jid().full))
         contact.remove_resource(resource)
         # Display the message in the conversation with the bare JID only if that was
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
-            tab = self.get_tab_by_name(jid.bare)
-            if tab and isinstance(tab, tabs.ConversationTab):
-                self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (jid.bare))
+            self.add_information_message_to_conversation_tab(jid.bare, '%s is offline' % (jid.bare))
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -231,6 +227,19 @@ class Core(object):
         resource.set_priority(priority)
         contact.add_resource(resource)
         self.information("%s is online (%s)" % (resource.get_jid().full, status), "Roster")
+        tab = self.get_tab_by_name(jid.full)
+        if tab and isinstance(tab, tabs.ConversationTab):
+            self.add_message_to_text_buffer(tab.get_room(), '%s is offline' % (resource.get_jid().full))
+
+    def add_information_message_to_conversation_tab(self, jid, msg):
+        """
+        Search for a ConversationTab with the given jid (full or bare), if yes, add
+        the given message to it
+        """
+        tab = self.get_tab_by_name(jid)
+        if tab and isinstance(tab, tabs.ConversationTab):
+            self.add_message_to_text_buffer(tab.get_room(), msg)
+
 
     def on_connected(self, event):
         """
