@@ -1014,7 +1014,7 @@ class MessageInput(Input):
     def __init__(self):
         Input.__init__(self)
         self.last_completion = None
-        self.histo_pos = 0
+        self.histo_pos = -1
         self.key_func["KEY_UP"] = self.key_up
         self.key_func["M-A"] =  self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
@@ -1027,10 +1027,9 @@ class MessageInput(Input):
         if not len(MessageInput.history):
             return
         self.reset_completion()
-        self._win.erase()
-        if self.histo_pos >= 0:
-            self.histo_pos -= 1
-        self.text = MessageInput.history[self.histo_pos+1]
+        if self.histo_pos < len(MessageInput.history) - 1:
+            self.histo_pos += 1
+            self.text = MessageInput.history[self.histo_pos]
         self.key_end()
 
     def key_down(self):
@@ -1040,22 +1039,18 @@ class MessageInput(Input):
         if not len(MessageInput.history):
             return
         self.reset_completion()
-        if self.histo_pos < len(MessageInput.history)-1:
-            self.histo_pos += 1
-            self.text = self.history[self.histo_pos]
-            self.key_end()
-        else:
-            self.histo_pos = len(MessageInput.history)-1
-            self.text = ''
-            self.pos = 0
-            self.line_pos = 0
-            self.rewrite_text()
+        if self.histo_pos > 0:
+            self.histo_pos -= 1
+            self.text = MessageInput.history[self.histo_pos]
+        self.key_end()
 
     def key_enter(self):
         txt = self.get_text()
         if len(txt) != 0:
-            self.history.append(txt)
-            self.histo_pos = len(self.history)-1
+            if not MessageInput.history or MessageInput.history[0] != txt:
+                # add the message to history, but avoid duplicates
+                MessageInput.history.insert(0, txt)
+            self.histo_pos = -1
         self.clear_text()
         return txt
 
