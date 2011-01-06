@@ -1024,9 +1024,12 @@ class MessageInput(Input):
         """
         Get the previous line in the history
         """
-        if not len(MessageInput.history):
-            return
         self.reset_completion()
+        if self.histo_pos == -1 and self.get_text():
+            if not MessageInput.history or MessageInput.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                MessageInput.history.insert(0, self.get_text())
+                self.histo_pos += 1
         if self.histo_pos < len(MessageInput.history) - 1:
             self.histo_pos += 1
             self.text = MessageInput.history[self.histo_pos]
@@ -1036,12 +1039,16 @@ class MessageInput(Input):
         """
         Get the next line in the history
         """
-        if not len(MessageInput.history):
-            return
         self.reset_completion()
         if self.histo_pos > 0:
             self.histo_pos -= 1
             self.text = MessageInput.history[self.histo_pos]
+        elif self.histo_pos <= 0 and self.get_text():
+            if not MessageInput.history or MessageInput.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                MessageInput.history.insert(0, self.get_text())
+            self.text = ''
+            self.histo_pos = -1
         self.key_end()
 
     def key_enter(self):
