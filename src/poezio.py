@@ -34,7 +34,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
     if options.debug:
         logging.basicConfig(filename=options.debug,level=logging.DEBUG)
-    connection.start()  # Connect to remote server
+    if not connection.start():  # Connect to remote server
+        core.on_failed_connection()
     # Disable any display of non-wanted text on the terminal
     # by redirecting stderr to /dev/null
     # sys.stderr = open('/dev/null', 'a')

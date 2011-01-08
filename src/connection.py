@@ -50,7 +50,7 @@ class Connection(sleekxmpp.ClientXMPP):
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
         self.registerPlugin('xep_0030')
         self.registerPlugin('xep_0045')
-        
+
     def start(self):
         # TODO, try multiple servers
         # With anon auth.
@@ -58,10 +58,13 @@ class Connection(sleekxmpp.ClientXMPP):
         custom_host = config.get('custom_host', '')
         custom_port = config.get('custom_port', -1)
         if custom_host and custom_port != -1:
-            self.connect((custom_host, custom_port))
+            res = self.connect((custom_host, custom_port), reattempt=False)
         else:
-            self.connect()
+            res = self.connect(reattempt=False)
+        if not res:
+            return False
         self.process(threaded=True)
+        return True
 
 # Global connection object
 connection = Connection()

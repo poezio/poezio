@@ -147,7 +147,10 @@ class Core(object):
             }
 
         # Add handlers
-        self.xmpp.add_event_handler("session_start", self.on_connected)
+        self.xmpp.add_event_handler('connected', self.on_connected)
+        self.xmpp.add_event_handler('disconnected', self.on_disconnected)
+        self.xmpp.add_event_handler('failed_auth', self.on_failed_auth)
+        self.xmpp.add_event_handler("session_start", self.on_session_start)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
@@ -156,6 +159,9 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
+
+        self.information(_('Welcome to poezio!'))
+        self.refresh_window()
 
     def on_exception(self, typ, value, trace):
         """
@@ -240,14 +246,36 @@ class Core(object):
         if tab and isinstance(tab, tabs.ConversationTab):
             self.add_message_to_text_buffer(tab.get_room(), msg)
 
+    def on_failed_connection(self):
+        """
+        We cannot contact the remote server
+        """
+        self.information(_("Connection to remote server failed"))
+
+    def on_disconnected(self, event):
+        """
+        When we are disconnected from remote server
+        """
+        self.information(_("Disconnected from server."))
+
+    def on_failed_auth(self, event):
+        """
+        Authentication failed
+        """
+        self.information(_("Authentication failed."))
 
     def on_connected(self, event):
         """
+        Remote host responded, but we are not yet authenticated
+        """
+        self.information(_("Connected to server."))
+
+    def on_session_start(self, event):
+        """
         Called when we are connected and authenticated
         """
-        self.information(_("Welcome on Poezio \o/!"))
+        self.information(_("Authentication success."))
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
-
         if not self.xmpp.anon:
             # request the roster
             self.xmpp.getRoster()
@@ -598,15 +626,15 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
-        self.refresh_window()
+        curses.ungetch('\n')    # FIXME
         while self.running:
-            self.doupdate()
-            char=read_char(self.stdscr)
+            char = read_char(self.stdscr)
             # search for keyboard shortcut
             if char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
                 self.do_command(char)
+            self.doupdate()
 
     def current_tab(self):
         """
