@@ -848,7 +848,10 @@ class Core(object):
         subject = message['subject']
         if not subject:
             return
-        self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+        if nick_from:
+            self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+        else:
+            self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
         room.topic = subject.replace('\n', '|')
         self.refresh_window()
 
@@ -856,6 +859,8 @@ class Core(object):
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
+        if message['subject']:
+            return
         delay_tag = message.find('{urn:xmpp:delay}delay')
         if delay_tag is not None:
             delayed = True
