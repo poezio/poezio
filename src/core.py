@@ -846,7 +846,7 @@ class Core(object):
         room_from = message.getMucroom()
         room = self.get_room_by_name(room_from)
         subject = message['subject']
-        if not subject:
+        if not subject or not room:
             return
         if nick_from:
             self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
