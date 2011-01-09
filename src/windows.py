@@ -536,10 +536,10 @@ class TextWin(Win):
         """
         if self.height <= 0:
             return
-        if self.pos != 0:
-            lines = self.built_lines[-self.height-self.pos:-self.pos]
-        else:
+        if self.pos == 0:
             lines = self.built_lines[-self.height:]
+        else:
+            lines = self.built_lines[-self.height-self.pos:-self.pos]
         self._win.move(0, 0)
         with g_lock:
             self._win.erase()
