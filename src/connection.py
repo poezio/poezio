@@ -29,6 +29,7 @@ import sleekxmpp
 
 from config import config
 from logger import logger
+import common
 
 class Connection(sleekxmpp.ClientXMPP):
     """
@@ -48,8 +49,16 @@ class Connection(sleekxmpp.ClientXMPP):
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
-        self.registerPlugin('xep_0030')
-        self.registerPlugin('xep_0045')
+        self.register_plugin('xep_0030')
+        self.register_plugin('xep_0045')
+        if config.get('send_poezio_info', 'true') == 'true':
+            info = {'name':'poezio',
+                    'version':'0.7-dev'}
+            if config.get('send_os_info', 'true') == 'true':
+                info['os'] = common.get_os_info()
+            self.register_plugin('xep_0092', pconfig=info)
+        if config.get('send_time', 'true') == 'true':
+            self.register_plugin('xep_0202')
 
     def start(self):
         # TODO, try multiple servers

@@ -122,19 +122,6 @@ DISTRO_INFO = {
         'Redhat Linux': '/etc/redhat-release'
 }
 
-def temp_failure_retry(func, *args, **kwargs):
-    """
-    workaround for a temporary and specific failure
-    """
-    while True:
-        try:
-            return func(*args, **kwargs)
-        except (os.error, IOError, select.error) as ex:
-            if ex.errno == errno.EINTR:
-                continue
-            else:
-                raise
-
 def get_os_info():
     """
     Returns a detailed and well formated string containing
@@ -151,7 +138,7 @@ def get_os_info():
                                        stdout=subprocess.PIPE,
                                        close_fds=True)
             process.wait()
-            output = temp_failure_retry(process.stdout.readline).strip()
+            output = process.stdout.readline().decode('utf-8').strip()
             # some distros put n/a in places, so remove those
             output = output.replace('n/a', '').replace('N/A', '')
             return output
