@@ -49,6 +49,7 @@ class Connection(sleekxmpp.ClientXMPP):
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
+        self.auto_reconnect = False
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0045')
         if config.get('send_poezio_info', 'true') == 'true':
