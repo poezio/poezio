@@ -605,7 +605,7 @@ class MucTab(ChatTab):
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
-        if self.text_win.built_lines[-1] is None:
+        if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
 

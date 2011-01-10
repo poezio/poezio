@@ -551,7 +551,7 @@ class TextWin(Win):
                     if line.nickname:
                         self.write_nickname(line.nickname, line.nickname_color)
                     self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-                if y != self.height-1 and line.text_offset+len(line.text) < self.width:
+                if y != self.height-1 or (not line or line.text_offset+len(line.text) < self.width):
                     self.addstr('\n')
             self._refresh()
 
