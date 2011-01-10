@@ -256,6 +256,9 @@ class Core(object):
         """
         When we are disconnected from remote server
         """
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab):
+                tab.get_room().disconnect()
         self.information(_("Disconnected from server."))
 
     def on_failed_auth(self, event):
@@ -296,7 +299,9 @@ class Core(object):
                 nick = config.get('default_nick', '')
                 if nick == '':
                     nick = default
-            self.open_new_room(jid.bare, nick, False)
+            tab = self.get_tab_by_name(jid.bare)
+            if not tab:
+                self.open_new_room(jid.bare, nick, False)
             muc.join_groupchat(self.xmpp, jid.bare, nick)
         # if not self.xmpp.anon:
         # Todo: SEND VCARD
