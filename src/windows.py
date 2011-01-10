@@ -487,9 +487,8 @@ class TextWin(Win):
         this_line_was_broken_by_space = False
         nb = 0
         while txt != '':
-            if txt[:self.width-offset].find('\n') != -1:
-                limit = txt[:self.width-offset].find('\n')
-            else:
+            limit = txt[:self.width-offset].find('\n')
+            if limit < 0:
                 # break between words if possible
                 if len(txt) >= self.width-offset:
                     limit = txt[:self.width-offset].rfind(' ')
@@ -552,7 +551,7 @@ class TextWin(Win):
                     if line.nickname:
                         self.write_nickname(line.nickname, line.nickname_color)
                     self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-                if y != self.height - 1:
+                if y != self.height-1 and line.text_offset+len(line.text) < self.width:
                     self.addstr('\n')
             self._refresh()
 
