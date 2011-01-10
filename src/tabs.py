@@ -755,7 +755,8 @@ class RosterInfoTab(Tab):
         self.key_func["KEY_UP"] = self.move_cursor_up
         self.key_func["KEY_DOWN"] = self.move_cursor_down
         self.key_func["o"] = self.toggle_offline_show
-        self.key_func["^F"] = self.start_search
+        self.key_func["s"] = self.start_search
+        self.key_func["S"] = self.start_search_slow
         self.resize()
 
     def resize(self):
@@ -885,6 +886,17 @@ class RosterInfoTab(Tab):
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
         return True
+
+    def start_search_slow(self):
+        curses.curs_set(1)
+        self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter_slow)
+        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        return True
+
+    def set_roster_filter_slow(self, txt):
+        roster._contact_filter = (jid_and_name_match_slow, txt)
+        self.roster_win.refresh(roster)
+        return False
 
     def set_roster_filter(self, txt):
         roster._contact_filter = (jid_and_name_match, txt)
@@ -1199,6 +1211,15 @@ def diffmatch(search, string):
     return False
 
 def jid_and_name_match(contact, txt):
+    """
+    """
+    if not txt:
+        return True
+    if txt in JID(contact.get_bare_jid()).user:
+        return True
+    return False
+
+def jid_and_name_match_slow(contact, txt):
     """
     A function used to know if a contact in the roster should
     be shown in the roster

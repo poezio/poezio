@@ -691,6 +691,7 @@ class Core(object):
         Reset terminal capabilities to what they were before ncurses
         init
         """
+        curses.curs_set(1)
         curses.echo()
         curses.nocbreak()
         curses.endwin()
