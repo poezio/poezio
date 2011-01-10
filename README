@@ -8,7 +8,7 @@
 	|_|
 
 Homepage:	http://poezio.eu
-Forge Page:	http://codingteam.net/projet/poezio
+Forge Page:	http://dev.louiz.org/projet/poezio
 
 Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
 connections to simply let the user join MultiUserChats. This way, the user
@@ -43,7 +43,7 @@ first launch). The default config file is fully commented.
 
 Please, see the online documentation for more information on installing,
 configuring or using poezio:
-http://codingteam.net/project/poezio/doc
+http://dev.louiz.org/project/poezio/doc
 
 If you still have questions, or you're lost, don't hesitate to come
 talk to us directly on our Jabber chat room (see Contact section).
@@ -59,9 +59,9 @@ Florent Le Coz (louiz') <louiz@louiz.org> (main developper)
 =======================
     Contact/support
 =======================
-Jabber ChatRoom:   poezio@conference.codingteam.net
-Forum:             http://codingteam.net/project/poezio/forum
-Report a bug:      http://codingteam.net/project/poezio/bugs/add
+Jabber ChatRoom:   poezio@kikoo.louiz.org
+Forum:             http://dev.louiz.org/project/poezio/forum
+Report a bug:      http://dev.louiz.org/project/poezio/bugs/add
 
 =======================
 	License
@@ -89,4 +89,3 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
  Pipo - Ronrons
 = Project =
  Gajim - send_vcard method and common.py
-
