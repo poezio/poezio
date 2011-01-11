@@ -245,6 +245,7 @@ class ChatTab(Tab):
         self.input.auto_completion(words, ' ')
 
     def on_enter(self):
+        txt = self.input.key_enter()
         if not Tab.on_enter(self):
             if txt.startswith('//'):
                 txt = txt[1:]
