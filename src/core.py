@@ -1300,9 +1300,7 @@ class Core(object):
         """
         if line == "":
             return
-        if line.startswith('//'):
-            self.command_say(line[1:])
-        elif line.startswith('/') and not line.startswith('/me '):
+        if line.startswith('/'):
             command = line.strip()[:].split()[0][1:]
             arg = line[2+len(command):] # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
