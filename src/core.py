@@ -1310,8 +1310,6 @@ class Core(object):
                 return
             else:
                 self.information(_("unknown command (%s)") % (command), _('Error'))
-        else:
-            self.command_say(line)
 
     def doupdate(self):
         self.current_tab().just_before_refresh()
