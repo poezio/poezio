@@ -159,7 +159,7 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
-
+        self.xmpp.add_event_handler("changed_subscription", self.on_changed_subscription)
         self.information(_('Welcome to poezio!'))
         self.refresh_window()
 
@@ -593,6 +593,22 @@ class Core(object):
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
+
+    def on_changed_subscription(self, presence):
+        """
+        Triggered whenever a presence stanza with a type of subscribe, subscribed, unsubscribe, or unsubscribed is received.
+        """
+        if presence['type'] == 'subscribe':
+            jid = presence['from'].bare
+            contact = roster.get_contact_by_jid(jid)
+            if not contact:
+                contact = Contact(jid)
+                roster.add_contact(contact, jid)
+            roster.edit_groups_of_contact(contact, [])
+            contact.set_ask('asked')
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
+
 
     def full_screen_redraw(self):
         """

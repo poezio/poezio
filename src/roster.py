@@ -37,8 +37,16 @@ class Roster(object):
         """
         Add a contact to the contact list
         """
-        assert jid not in self._contacts
         self._contacts[jid] = contact
+
+    def remove_contact(self, jid):
+        """
+        Remove a contact from the contact list
+        """
+        contact = self.get_contact_by_jid(jid)
+        for group in contact._groups:
+            group.remove_contact_from_group(contact)
+        del self._contacts[jid]
 
     def get_contact_len(self):
         """
@@ -110,6 +118,12 @@ class Roster(object):
         """
         return self._roster_groups
 
+    def get_contacts(self):
+        """
+        Return a list of all the contact
+        """
+        return [contact for contact in self._contacts.values()]
+
     def save_to_config_file(self):
         """
         Save various information to the config file
@@ -127,7 +141,7 @@ class Roster(object):
         """
         length = 0
         for group in self._roster_groups:
-            if group.get_nb_connected_contacts() == 0:
+            if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
                 continue
             length += 1              # One for the group's line itself
             if not group.folded:

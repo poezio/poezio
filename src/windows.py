@@ -1187,7 +1187,7 @@ class RosterWin(Win):
             self.draw_roster_information(roster)
             y = 1
             for group in roster.get_groups():
-                if group.get_nb_connected_contacts() == 0:
+                if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
                     continue    # Ignore empty groups
                 # This loop is really REALLY ugly :^)
                 if y-1 == self.pos:
@@ -1283,7 +1283,7 @@ class RosterWin(Win):
             self.addstr(display_name, curses.color_pair(14))
         else:
             self.addstr(display_name)
-        if contact.get_ask():
+        if contact.get_ask() == 'asked':
             self.addstr('?', curses.color_pair(1))
 
     def draw_resource_line(self, y, resource, colored):
@@ -1324,7 +1324,10 @@ class ContactInfoWin(Win):
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
         if contact.get_ask():
-            self.addstr(' Ask: %s' % (contact.get_ask(),), curses.color_pair(1))
+            if contact.get_ask() == 'asked':
+                self.addstr(' Ask: %s' % (contact.get_ask(),), curses.color_pair(1))
+            else:
+                self.addstr(' Ask: %s' % (contact.get_ask(),))
 
     def draw_group_info(self, group):
         """

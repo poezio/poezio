@@ -50,6 +50,7 @@ class Connection(sleekxmpp.ClientXMPP):
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
         self.auto_reconnect = False
+        self.auto_authorize = None
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0045')
         if config.get('send_poezio_info', 'true') == 'true':

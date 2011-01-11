@@ -94,6 +94,26 @@ class Tab(object):
                 return True
         return False
 
+    def on_enter(self, provided_text=None):
+        """
+        Execute the command in the input and return False if
+        the input didn't contain a command
+        """
+        txt = provided_text or self.input.key_enter()
+        if txt.startswith('/') and not txt.startswith('//') and\
+                not txt.startswith('/me '):
+            command = txt.strip().split()[0][1:]
+            arg = txt[2+len(command):] # jump the '/' and the ' '
+            if command in self.core.commands: # check global commands
+                self.core.commands[command][0](arg)
+            elif command in self.commands: # check tab-specific commands
+                self.commands[command][0](arg)
+            else:
+                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+            return True
+        else:
+            return False
+
     def resize(self):
         self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
         if self.height < MIN_HEIGHT or self.width < MIN_WIDTH:
@@ -225,18 +245,7 @@ class ChatTab(Tab):
         self.input.auto_completion(words, ' ')
 
     def on_enter(self):
-        txt = self.input.key_enter()
-        if txt.startswith('/') and not txt.startswith('//') and\
-                not txt.startswith('/me '):
-            command = txt.strip().split()[0][1:]
-            arg = txt[2+len(command):] # jump the '/' and the ' '
-            if command in self.core.commands: # check global commands
-                self.core.commands[command][0](arg)
-            elif command in self.commands: # check tab-specific commands
-                self.commands[command][0](arg)
-            else:
-                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
-        else:
+        if not Tab.on_enter(self):
             if txt.startswith('//'):
                 txt = txt[1:]
             self.command_say(txt)
@@ -276,20 +285,6 @@ class InfoTab(ChatTab):
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
-
-    def on_enter(self):
-        # TODO duplicate
-        txt = self.input.get_text()
-        if txt.startswith('/') and not txt.startswith('//') and\
-                not txt.startswith('/me '):
-            command = txt.strip().split()[0][1:]
-            arg = txt[2+len(command):] # jump the '/' and the ' '
-            if command in self.core.commands: # check global commands
-                self.core.commands[command][0](arg)
-            elif command in self.commands: # check tab-specific commands
-                self.commands[command][0](arg)
-            else:
-                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
 
     def completion(self):
         self.complete_commands(self.input)
@@ -758,6 +753,7 @@ class RosterInfoTab(Tab):
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
+        self.commands['accept'] = (self.command_accept, _("Usage: /accpet [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
         self.resize()
 
     def resize(self):
@@ -781,7 +777,46 @@ class RosterInfoTab(Tab):
         """
         Denies a JID from our roster
         """
-        
+        args = args.split()
+        if not args:
+            item = self.roster_win.selected_row
+            if isinstance(item, Contact) and item.get_ask() == 'asked':
+                jid = item.get_bare_jid()
+            else:
+                self.core.information('No subscription to deny')
+                return
+        else:
+            jid = args[0]
+        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
+        if self.core.xmpp.update_roster(jid, subscription='remove'):
+            roster.remove_contact(jid)
+
+    def completion_deny(self, the_input):
+        """
+        Complete the first argument from the list of the
+        contact with ask=='subscribe'
+        """
+        jids = [contact.get_bare_jid() for contact in roster.get_contacts()\
+             if contact.get_ask() == 'asked']
+        the_input.auto_completion(jids, '')
+
+    def command_accept(self, args):
+        """
+        Accept a JID from in roster. Authorize it AND subscribe to it
+        """
+        args = args.split()
+        if not args:
+            item = self.roster_win.selected_row
+            if isinstance(item, Contact) and item.get_ask() == 'asked':
+                jid = item.get_bare_jid()
+            else:
+                self.core.information('No subscription to deny')
+                return
+        else:
+            jid = args[0]
+        self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
+        self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return
@@ -836,7 +871,7 @@ class RosterInfoTab(Tab):
 
     def execute_slash_command(self, txt):
         if txt.startswith('/'):
-            self.core.execute(txt)
+            Tab.on_enter(self, txt)
         return self.reset_help_message()
 
     def on_lose_focus(self):
