@@ -1268,13 +1268,13 @@ class RosterWin(Win):
         else:
             presence = resource.get_presence()
             folder = '[+]' if contact._folded else '[-]'
-            nb = '(%s)' % (contact.get_nb_resources(),)
+            nb = ' (%s)' % (contact.get_nb_resources(),)
         color = RosterWin.color_show[presence]
         if contact.get_name():
-            display_name = '%s (%s) %s' % (contact.get_name(),
+            display_name = '%s (%s)%s' % (contact.get_name(),
                                         contact.get_bare_jid(), nb,)
         else:
-            display_name = '%s %s' % (contact.get_bare_jid(), nb,)
+            display_name = '%s%s' % (contact.get_bare_jid(), nb,)
         self.addstr(y, 1, " ", curses.color_pair(color))
         if resource:
             self.addstr(y, 2, ' [+]' if contact._folded else ' [-]')
@@ -1283,6 +1283,8 @@ class RosterWin(Win):
             self.addstr(display_name, curses.color_pair(14))
         else:
             self.addstr(display_name)
+        if contact.get_ask():
+            self.addstr('?', curses.color_pair(1))
 
     def draw_resource_line(self, y, resource, colored):
         """
@@ -1305,17 +1307,24 @@ class ContactInfoWin(Win):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def draw_contact_info(self, resource, jid=None):
+    def draw_contact_info(self, contact):
         """
         draw the contact information
         """
-        jid = jid or resource.get_jid().full
+        if contact:
+            jid = contact.get_bare_jid()
+        else:
+            jid = jid or resource.get_jid().full
+        resource = contact.get_highest_priority_resource()
         if resource:
             presence = resource.get_presence()
         else:
             presence = 'unavailable'
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
+        self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
+        if contact.get_ask():
+            self.addstr(' Ask: %s' % (contact.get_ask(),), curses.color_pair(1))
 
     def draw_group_info(self, group):
         """
@@ -1330,10 +1339,9 @@ class ContactInfoWin(Win):
             if isinstance(selected_row, RosterGroup):
                 self.draw_group_info(selected_row)
             elif isinstance(selected_row, Contact):
-                self.draw_contact_info(selected_row.get_highest_priority_resource(),
-                                       selected_row.get_bare_jid())
-            elif isinstance(selected_row, Resource):
                 self.draw_contact_info(selected_row)
+            # elif isinstance(selected_row, Resource):
+            #     self.draw_contact_info(None, selected_row)
             self._refresh()
 
 class ListWin(Win):

@@ -757,6 +757,7 @@ class RosterInfoTab(Tab):
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
+        self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
         self.resize()
 
     def resize(self):
@@ -776,6 +777,11 @@ class RosterInfoTab(Tab):
                 not self.input.help_message:
             self.complete_commands(self.input)
 
+    def command_deny(self, args):
+        """
+        Denies a JID from our roster
+        """
+        
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return

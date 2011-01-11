@@ -147,7 +147,7 @@ class Contact(object):
     def set_subscription(self, sub):
         self._subscription = sub
 
-    def get_subscription(self, sub):
+    def get_subscription(self):
         return self._subscription
 
     def get_nb_resources(self):
