@@ -136,7 +136,7 @@ class UserList(Win):
                 else:
                     show_col = self.color_show[user.show]
                 self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
-                self.addstr(y, 1, user.nick, curses.color_pair(role_col))
+                self.addstr(y, 1, user.nick[:self.width-1], curses.color_pair(role_col))
                 y += 1
                 if y == self.height:
                     break
