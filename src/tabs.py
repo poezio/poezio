@@ -765,9 +765,9 @@ class RosterInfoTab(Tab):
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width, self.core.stdscr)
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.info_win.resize(self.height-2, info_width, 0, roster_width+1, self.core.stdscr, self.core.information_buffer)
-        self.roster_win.resize(self.height-2-3, roster_width, 0, 0, self.core.stdscr)
-        self.contact_info_win.resize(3, roster_width, self.height-2-3, 0, self.core.stdscr)
+        self.info_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.stdscr, self.core.information_buffer)
+        self.roster_win.resize(self.height-2, roster_width, 0, 0, self.core.stdscr)
+        self.contact_info_win.resize(4, info_width, self.height-2-4, roster_width+1, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
 
     def completion(self):

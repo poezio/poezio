@@ -1314,8 +1314,7 @@ class ContactInfoWin(Win):
             presence = resource.get_presence()
         else:
             presence = 'unavailable'
-        self.addstr(0, 0, jid, curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(' (%s)'%(presence,), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(0, 0, '%s (%s)'%(jid, presence,), curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def draw_group_info(self, group):
