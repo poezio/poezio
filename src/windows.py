@@ -704,7 +704,6 @@ class Input(Win):
         return len(self.text) == 0
 
     def resize(self, height, width, y, x, stdscr):
-
         self._resize(height, width, y, x, stdscr)
         self._win.erase()
         self.addnstr(0, 0, self.text, self.width-1)
