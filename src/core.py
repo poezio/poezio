@@ -631,9 +631,8 @@ class Core(object):
                 # Cancel the programmed software resize
                 self.resize_timer.cancel()
             # add the new timer
-            self.resize_timer = threading.Timer(0.1, self.resize_window)
+            self.resize_timer = threading.Timer(0.2, self.resize_window)
             self.resize_timer.start()
-        # self.resize_window()
 
     def resize_window(self):
         """
@@ -699,7 +698,6 @@ class Core(object):
         """
         curses.curs_set(1)
         curses.noecho()
-        # curses.raw()
         theme.init_colors()
         stdscr.keypad(True)
 

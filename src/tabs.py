@@ -274,6 +274,8 @@ class InfoTab(ChatTab):
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.info_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
@@ -529,6 +531,8 @@ class MucTab(ChatTab):
         Resize the whole window. i.e. all its sub-windows
         """
         Tab.resize(self)
+        if not self.visible:
+            return
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
         self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr)
@@ -657,6 +661,8 @@ class PrivateTab(ChatTab):
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
         self.text_win.rebuild_everything(self._room)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
@@ -759,6 +765,8 @@ class RosterInfoTab(Tab):
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width, self.core.stdscr)
@@ -1029,6 +1037,8 @@ class ConversationTab(ChatTab):
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr)
@@ -1125,6 +1135,8 @@ class MucListTab(Tab):
         self.resize()
 
     def refresh(self, tabs, informations, roster):
+        if not self.visible:
+            return
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
@@ -1133,6 +1145,8 @@ class MucListTab(Tab):
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         self.upper_message.resize(1, self.width, 0, 0, self.core.stdscr)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1255,11 +1269,16 @@ class SimpleTextTab(Tab):
         self.core.close_tab()
 
     def resize(self):
+        Tab.resize(self)
+        if not self.visible:
+            return
         self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
 
     def refresh(self, tabs, information, roster):
+        if not self.visible:
+            return
         self.text_win.refresh()
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
