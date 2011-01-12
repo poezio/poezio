@@ -43,6 +43,7 @@ from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
+from logger import logger
 import multiuserchat as muc
 
 class Tab(object):
@@ -655,6 +656,7 @@ class PrivateTab(ChatTab):
     def command_say(self, line):
         muc.send_private_message(self.core.xmpp, self.get_name(), line)
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.get_room().own_nick)
+        logger.log_message(self.get_name().replace('/', '\\'), self.get_room().own_nick, line)
 
     def command_unquery(self, arg):
         """
@@ -1034,6 +1036,7 @@ class ConversationTab(ChatTab):
     def command_say(self, line):
         muc.send_private_message(self.core.xmpp, self.get_name(), line)
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
+        logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
 
     def command_unquery(self, arg):
         self.core.close_tab()

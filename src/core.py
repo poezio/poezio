@@ -519,6 +519,7 @@ class Core(object):
         room.add_message(body, time=None, nickname=nick_from,
                          colorized=False,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
+        logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
         self.refresh_window()
         self.doupdate()
 
@@ -548,6 +549,7 @@ class Core(object):
         else:
             remote_nick = jid.user
         conversation.get_room().add_message(body, None, remote_nick, False, theme.COLOR_REMOTE_USER)
+        logger.log_message(jid.bare, remote_nick, body)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
         self.refresh_window()

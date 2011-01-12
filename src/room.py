@@ -52,7 +52,7 @@ class Room(TextBuffer):
         to be
         """
         if time is None and self.joined:        # don't log the history messages
-            logger.groupchat(self.name, nickname, txt)
+            logger.log_message(self.name, nickname, txt)
 
     def do_highlight(self, txt, time, nickname):
         """

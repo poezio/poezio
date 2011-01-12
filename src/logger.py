@@ -34,10 +34,10 @@ class Logger(object):
     def __init__(self):
         self.logfile = config.get('logfile', 'logs')
         # a dict of 'groupchatname': file-object (opened)
-        self.groupchat_fds = dict()
+        self.fds = dict()
 
     def __del__(self):
-        for opened_file in self.groupchat_fds.values():
+        for opened_file in self.fds.values():
             opened_file.close()
 
     def check_and_create_log_dir(self, room):
@@ -54,19 +54,19 @@ class Logger(object):
             pass
         try:
             fd = open(os.path.join(directory, room), 'a')
-            self.groupchat_fds[room] = fd
+            self.fds[room] = fd
             return fd
         except IOError:
             return None
 
-    def groupchat(self, room, nick, msg):
+    def log_message(self, jid, nick, msg):
         """
-        log the message in the appropriate room's file
+        log the message in the appropriate jid's file
         """
-        if room in self.groupchat_fds.keys():
-            fd = self.groupchat_fds[room]
+        if jid in self.fds.keys():
+            fd = self.fds[jid]
         else:
-            fd = self.check_and_create_log_dir(room)
+            fd = self.check_and_create_log_dir(jid)
         if not fd:
             return
         if nick:
