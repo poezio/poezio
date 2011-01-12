@@ -20,11 +20,13 @@ used when drawing the interface (mainly colors)
 """
 
 import curses
-import shutil
 import glob
 import imp
 import os
 from config import config
+
+import logging
+log = logging.getLogger(__name__)
 
 ## Define the default colors
 ## Do not change these colors, create a theme file instead.
@@ -50,6 +52,7 @@ CHAR_STATUS = ' '
 # Separators
 COLOR_VERTICAL_SEPARATOR = 4
 COLOR_NEW_TEXT_SEPARATOR = 2
+COLOR_MORE_INDICATOR = 6
 
 # Time
 COLOR_TIME_SEPARATOR = 6
@@ -79,14 +82,19 @@ COLOR_STATUS_AWAY = 35
 COLOR_STATUS_CHAT = 28
 COLOR_STATUS_UNAVAILABLE = 57
 COLOR_STATUS_ONLINE = 41
+
 # Bars
 COLOR_INFORMATION_BAR = 42
 COLOR_TOPIC_BAR = 42
 COLOR_PRIVATE_ROOM_BAR = 28
 COLOR_SCROLLABLE_NUMBER = 39
+COLOR_SELECTED_ROW = 42
+COLOR_PRIVATE_NAME = 42
+COLOR_CONVERSATION_NAME = 42
+COLOR_GROUPCHAT_NAME = 42
+COLOR_COLUMN_HEADER = 36
 
 # Strings for special messages (like join, quit, nick change, etc)
-
 # Special messages
 CHAR_JOIN = '---->'
 CHAR_QUIT = '<----'
@@ -134,13 +142,9 @@ def reload_theme():
                      'poezio', 'themes')
     try:
         os.makedirs(themes_dir)
-        # if the directory didn't exist, copy the default themes
-        themes = glob.glob('../data/themes/*')
-        for filename in themes:
-            shutil.copy2(filename, themes_dir)
     except OSError:
         pass
-    theme_name = config.get('theme_file', '')
+    theme_name = config.get('theme', '')
     if not theme_name:
         return
     try:

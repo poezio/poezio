@@ -32,6 +32,7 @@ from core import core
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
+    sys.stderr = open('/dev/null', 'a')
     if options.debug:
         logging.basicConfig(filename=options.debug,level=logging.DEBUG)
     if not connection.start():  # Connect to remote server
