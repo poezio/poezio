@@ -611,7 +611,6 @@ class Core(object):
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
-
     def full_screen_redraw(self):
         """
         Completely erase and redraw the screen

@@ -37,6 +37,7 @@ import curses
 import difflib
 import shlex
 import text_buffer
+import string
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
@@ -230,8 +231,7 @@ class ChatTab(Tab):
         Complete the input with words recently said
         """
         # build the list of the recent words
-        char_we_dont_want = [',', '(', ')', '.', '"', '\'', ' ', # The last one is nbsp
-                             '’', '“', '”', ':', ';', '[', ']', '{', '}']
+        char_we_dont_want = string.punctuation+' '
         words = list()
         for msg in self._room.messages[:-40:-1]:
             if not msg:

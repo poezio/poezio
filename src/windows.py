@@ -33,6 +33,7 @@ locale.setlocale(locale.LC_ALL, '')
 
 import shlex
 import curses
+import string
 from config import config
 
 from threading import Lock
@@ -714,11 +715,10 @@ class Input(Win):
         """
         if not len(self.text) or self.pos == 0:
             return
-        previous_space = self.text[:self.pos+self.line_pos].rfind(' ')
-        if previous_space == -1:
-            previous_space = 0
-        diff = self.pos+self.line_pos-previous_space
-        for i in range(diff):
+        separators = string.punctuation+' '
+        while self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
+            self.key_left()
+        while self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
             self.key_left()
         return True
 
@@ -728,11 +728,10 @@ class Input(Win):
         """
         if len(self.text) == self.pos+self.line_pos or not len(self.text):
             return
-        next_space = self.text.find(' ', self.pos+self.line_pos+1)
-        if next_space == -1:
-            next_space = len(self.text)
-        diff = next_space - (self.pos+self.line_pos)
-        for i in range(diff):
+        separators = string.punctuation+' '
+        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] in separators:
+            self.key_right()
+        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] not in separators:
             self.key_right()
         return True
 
