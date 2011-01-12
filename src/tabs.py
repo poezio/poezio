@@ -95,7 +95,7 @@ class Tab(object):
                 return True
         return False
 
-    def on_enter(self, provided_text=None):
+    def execute_command(self, provided_text):
         """
         Execute the command in the input and return False if
         the input didn't contain a command
@@ -246,7 +246,7 @@ class ChatTab(Tab):
 
     def on_enter(self):
         txt = self.input.key_enter()
-        if not Tab.on_enter(self, txt):
+        if not self.execute_command(txt):
             self.command_say(txt)
 
     def command_say(self, line):
@@ -305,6 +305,9 @@ class InfoTab(ChatTab):
             return False
         self.input.do_command(key)
         return False
+
+    def on_enter(self):
+        self.execute_command(self.input_enter_key())
 
     def on_lose_focus(self):
         self.color_state = theme.COLOR_TAB_NORMAL
@@ -915,7 +918,7 @@ class RosterInfoTab(Tab):
 
     def execute_slash_command(self, txt):
         if txt.startswith('/'):
-            Tab.on_enter(self, txt)
+            self.execute_command(txt)
         return self.reset_help_message()
 
     def on_lose_focus(self):
