@@ -308,7 +308,7 @@ class InfoTab(ChatTab):
         return False
 
     def on_enter(self):
-        self.execute_command(self.input_enter_key())
+        self.execute_command(self.input.key_enter())
 
     def on_lose_focus(self):
         self.color_state = theme.COLOR_TAB_NORMAL

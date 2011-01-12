@@ -1000,6 +1000,11 @@ class Input(Win):
         self.line_pos = 0
         self.rewrite_text()
 
+    def key_enter(self):
+        txt = self.get_text()
+        self.clear_text()
+        return txt
+
 class MessageInput(Input):
     """
     The input featuring history and that is being used in
