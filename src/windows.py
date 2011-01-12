@@ -1081,6 +1081,7 @@ class CommandInput(Input):
         self.key_func['^M'] = self.success
         self.key_func['\n'] = self.success
         self.key_func['^G'] = self.abort
+        self.key_func['^C'] = self.abort
 
     def do_command(self, key):
         res = Input.do_command(self, key)

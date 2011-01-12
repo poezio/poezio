@@ -918,6 +918,7 @@ class RosterInfoTab(Tab):
     def reset_help_message(self, _=None):
         curses.curs_set(0)
         self.input = self.default_help_message
+        self.core.refresh_window()
         return True
 
     def execute_slash_command(self, txt):
