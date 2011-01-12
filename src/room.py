@@ -43,6 +43,7 @@ class Room(TextBuffer):
         Set the state of the room as not joined, so
         we can know if we can join it, send messages to it, etc
         """
+        self.users = []
         self.joined = False
 
     def log_message(self, txt, time, nickname):
