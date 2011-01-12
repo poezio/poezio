@@ -706,9 +706,10 @@ class Core(object):
         Reset terminal capabilities to what they were before ncurses
         init
         """
-        curses.curs_set(1)
+        log.debug('ALLO, reset_curses')
         curses.echo()
         curses.nocbreak()
+        curses.curs_set(1)
         curses.endwin()
 
     def refresh_window(self):
@@ -1278,6 +1279,7 @@ class Core(object):
         self.xmpp.disconnect()
         self.running = False
         self.reset_curses()
+        sys.exit()
 
     def save_config(self):
         """
@@ -1327,6 +1329,9 @@ class Core(object):
                 self.information(_("unknown command (%s)") % (command), _('Error'))
 
     def doupdate(self):
+        log.debug('doupdate doupdate')
+        if not self.running:
+            return
         self.current_tab().just_before_refresh()
         curses.doupdate()
 
