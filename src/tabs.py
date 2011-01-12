@@ -1136,11 +1136,14 @@ class MucListTab(Tab):
         self.input = self.default_help_message
         self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
         self.key_func["KEY_UP"] = self.listview.move_cursor_up
+        self.key_func['^I'] = self.completion
+        self.key_func['M-i'] = self.completion
         self.key_func["/"] = self.on_slash
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
         self.key_func['^J'] = self.join_selected
         self.key_func['^M'] = self.join_selected
+        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab"), None)
         self.resize()
 
     def refresh(self, tabs, informations, roster):
@@ -1175,6 +1178,9 @@ class MucListTab(Tab):
         self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
         self.input.do_command("/") # we add the slash
+
+    def close(self, arg=None):
+        self.core.close_tab(self)
 
     def join_selected_no_focus(self):
         return
@@ -1217,12 +1223,15 @@ class MucListTab(Tab):
         return True
 
     def execute_slash_command(self, txt):
-        if txt.startswith('/'):
-            self.core.execute(txt)
+        self.execute_command(txt)
         return self.reset_help_message()
 
     def get_name(self):
         return self.name
+
+    def completion(self):
+        if isinstance(self.input, windows.CommandInput):
+            self.complete_commands(self.input)
 
     def on_input(self, key):
         res = self.input.do_command(key)
