@@ -610,6 +610,8 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
+            self.tabs[0].set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+            self.information('%s wants to subscribe to your presence'%jid)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
