@@ -248,6 +248,8 @@ class ChatTab(Tab):
     def on_enter(self):
         txt = self.input.key_enter()
         if not self.execute_command(txt):
+            if txt.startswith('//'):
+                txt = txt[1:]
             self.command_say(txt)
 
     def command_say(self, line):

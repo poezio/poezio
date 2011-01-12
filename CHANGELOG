@@ -4,9 +4,11 @@ http://codingteam.net/project/poezio/roadmap
 
 * Poezio 0.7 - dev
 Codename ”Koshie & Mathieui”
+- Library changed from xmpppy to SleekXMPP
 - Introduce the roster
 - One to one conversations
 - Roster search
+- Add/remove/accept/deny contact in the roster
 - Resizable mini-buffer displaying various informations
 - All colors can be changed with a theme file
 - /say and // commands
