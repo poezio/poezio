@@ -591,6 +591,8 @@ class Core(object):
                 contact.set_subscription(item.attrib['subscription'])
             groups = item.findall('{jabber:iq:roster}group')
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
+            if item.attrib['subscription'] == 'remove':
+                roster.remove_contact(contact.get_bare_jid())
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 

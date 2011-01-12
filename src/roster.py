@@ -45,7 +45,7 @@ class Roster(object):
         """
         contact = self.get_contact_by_jid(jid)
         for group in contact._groups:
-            group.remove_contact_from_group(contact)
+            self.remove_contact_from_group(group, contact)
         del self._contacts[jid]
 
     def get_contact_len(self):

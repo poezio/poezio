@@ -752,7 +752,9 @@ class RosterInfoTab(Tab):
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
-        self.commands['accept'] = (self.command_accept, _("Usage: /accpet [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
+        self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
+        self.commands['add'] = (self.command_add, _("Usage: /add <jid>\Add: Use this command to add the specified JID to your roster. The reverse authorization will automatically be accepted if the remote JID accepts your subscription, leading to a mutual presence subscription."), None)
+        self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\Remove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
         self.resize()
 
     def resize(self):
@@ -785,10 +787,45 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            jid = args[0]
+            jid = JID(args[0]).bare
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
         if self.core.xmpp.update_roster(jid, subscription='remove'):
             roster.remove_contact(jid)
+
+    def command_add(self, args):
+        """
+        Add the specified JID to the roster, and set automatically
+        accept the reverse subscription
+        """
+        jid = JID(args.strip()).bare
+        if not jid:
+            return
+        self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+
+    def command_remove(self, args):
+        """
+        Remove the specified JID from the roster. i.e. : unsubscribe
+        from its presence, and cancel its subscription to our.
+        """
+        if args.strip():
+            jid = JID(args.strip()).bare
+        else:
+            item = self.roster_win.selected_row
+            if isinstance(item, Contact):
+                jid = item.get_bare_jid()
+            else:
+                self.core.information('No roster item to remove')
+                return
+        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
+        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
+        self.core.xmpp.del_roster_item(jid=jid)
+
+    def completion_remove(self, the_input):
+        """
+        From with any JID presence in the roster
+        """
+        jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+        the_input.auto_completion(jids, '')
 
     def completion_deny(self, the_input):
         """
