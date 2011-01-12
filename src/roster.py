@@ -199,8 +199,10 @@ class RosterGroup(object):
         """
         Remove a Contact object from the list
         """
-        assert isinstance(contact, Contact)
-        self._contacts.remove(contact)
+        try:
+            self._contacts.remove(contact)
+        except ValueError:
+            pass
 
     def add_contact(self, contact):
         """
