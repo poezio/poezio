@@ -1,5 +1,5 @@
 # A dark theme file.
-# For more informations, see http://codingteam.net/project/poezio/doc/TheThemes
+# For more informations, see http://dev.louiz.org/project/poezio/doc/TheThemes
 
 # Message text color
 COLOR_NORMAL_TEXT = 0

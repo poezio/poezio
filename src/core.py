@@ -170,7 +170,7 @@ class Core(object):
         make a bug report.
         """
         try:
-            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://codingteam.net/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
+            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://dev.louiz.org/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
             self.add_tab(tb_tab, focus=True)
         except Exception:       # If an exception is raised in this code,
                                 # this is fatal, so we exit cleanly and display the traceback
