@@ -11,17 +11,15 @@ Homepage:	http://poezio.eu
 Forge Page:	http://dev.louiz.org/projet/poezio
 
 Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
-connections to simply let the user join MultiUserChats. This way, the user
+connections to simply let the user join MultiUserChats.  This way, the user
 doesn't have to create a Jabber account, exactly like people are using
-IRC.  Poezio's commands are designed to be (if possible) like IRC
-clients (weechat, irssi, etc).
+IRC.  Poezio's commands are designed to be (if possible) like commonly
+used IRC clients (weechat, irssi, etc).
 Since version 0.7, poezio can handle real Jabber accounts along with
 roster and one to one conversations, making it a full-featured console
 Jabber client, but still MultiUserChats-centered.
 In the futur, poezio should implement at a 100% level all XEP related to
 MUCs, especially XEP 0045.
-All other IM-related XEP (wherever possible) should be implemented through
-plugins or directly in poezio's core.
 
 =======================
 	Install
@@ -45,7 +43,7 @@ Please, see the online documentation for more information on installing,
 configuring or using poezio:
 http://dev.louiz.org/project/poezio/doc
 
-If you still have questions, or you're lost, don't hesitate to come
+If you still have questions, or if you're lost, don't hesitate to come
 talk to us directly on our Jabber chat room (see Contact section).
 
 Please DO report any bug you encounter and ask for any
@@ -54,7 +52,7 @@ feature you want.
 =======================
 	Authors
 =======================
-Florent Le Coz (louiz') <louiz@louiz.org> (main developper)
+Florent Le Coz (louiz’) <louiz@louiz.org> (main developper)
 
 =======================
     Contact/support
@@ -81,10 +79,10 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 = People =
  Link Mauve - Code
  Gaëtan Ribémont (http://www.bonbref.com) - Logo design
- Ovart - Testing
  mathieui - Testing, Makefile, Documentation and Donation
- Gapan - Makefile
+ Ovart - Testing
  Koshie - Donation
+ Gapan - Makefile
  FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
  Pipo - Ronrons
 = Project =
