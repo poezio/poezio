@@ -403,7 +403,6 @@ class Core(object):
         by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
         reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
         by = by.attrib['jid'] if by is not None else None
-        reason = reason.text if reason else ''
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             if by:
@@ -418,8 +417,8 @@ class Core(object):
                 kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
             else:
                 kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
-        if reason:
-            kick_msg += _(' Reason: %(reason)s') % {'reason': reason}
+        if reason is not None and reason.text:
+            kick_msg += _(' Reason: %(reason)s') % {'reason': reason.text}
         self.add_message_to_text_buffer(room, kick_msg, colorized=True)
 
     def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
