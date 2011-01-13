@@ -1136,7 +1136,7 @@ class Core(object):
         """
         args = arg.split()
         nick = None
-        if not isinstance(self.current_tab(), tabs.MucTab):
+        if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
             return
         if len(args) == 0:
             room = self.current_tab().get_room()
