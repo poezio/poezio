@@ -142,7 +142,7 @@ except OSError:
     pass
 
 if not path.isfile(CONFIG_PATH+'poezio.cfg'):
-    copy2('./data/default_config.cfg', CONFIG_PATH+'poezio.cfg')
+    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), CONFIG_PATH+'poezio.cfg')
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", default=CONFIG_PATH+'poezio.cfg',
