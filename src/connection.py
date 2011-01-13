@@ -25,6 +25,7 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
 import sys
+import getpass
 import sleekxmpp
 
 from config import config
@@ -43,7 +44,7 @@ class Connection(sleekxmpp.ClientXMPP):
             # many features will be handled diferently
             # depending on this setting
             jid = '%s/%s' % (config.get('jid', ''), resource)
-            password = config.get('password', '')
+            password = config.get('password', '') or getpass.getpass()
         else: # anonymous auth
             self.anon = True
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
