@@ -1122,6 +1122,8 @@ class Core(object):
         if r and r.joined:       # if we are already in the room
             self.focus_tab_named(r.name)
             return
+        if room.startswith('@'):
+            room = room[1:]
         room = room.lower()
         if r and not r.joined:
             muc.join_groupchat(self.xmpp, room, nick, password, histo_length)
