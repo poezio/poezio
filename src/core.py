@@ -1009,20 +1009,23 @@ class Core(object):
         try:
             nb = int(args[0])
         except ValueError:
-            self.command_help('win')
-            return
+            nb = arg.strip()
         if self.current_tab().nb == nb:
             return
         self.previous_tab_nb = self.current_tab().nb
         self.current_tab().on_lose_focus()
         start = self.current_tab()
         self.tabs.append(self.tabs.pop(0))
-        while self.current_tab().nb != nb:
-            self.tabs.append(self.tabs.pop(0))
-            if self.current_tab() == start:
-                self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
-                self.refresh_window()
-                return
+        if isinstance(nb, int):
+            while self.current_tab().nb != nb:
+                self.tabs.append(self.tabs.pop(0))
+                if self.current_tab() == start:
+                    break
+        else:
+            while nb not in JID(self.current_tab().get_name()).user:
+                self.tabs.append(self.tabs.pop(0))
+                if self.current_tab() is start:
+                    break
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
