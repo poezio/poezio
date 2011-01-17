@@ -367,6 +367,7 @@ class MucTab(ChatTab):
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfoDisplay some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -375,6 +376,19 @@ class MucTab(ChatTab):
 
     def scroll_user_list_down(self):
         self.user_win.scroll_down()
+        self.core.refresh_window()
+
+    def command_info(self, arg):
+        try:
+            args = shlex.split(arg)
+        except ValueError as error:
+            return self.core.information(str(error), _("Error"))
+        if len(args) != 1:
+            return self.core.information("Info command takes only 1 argument")
+        user = self.get_room().get_user_by_name(args[0])
+        if not user:
+            return self.core.information("Unknown user: %s" % args[0])
+        self.get_room().add_message("%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
         self.core.refresh_window()
 
     def command_cycle(self, arg):
