@@ -390,12 +390,11 @@ class MucTab(ChatTab):
         user = self.get_room().get_user_by_name(args[0])
         if not user:
             return self.core.information("Unknown user: %s" % args[0])
-        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], user.user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
+        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], ' (%s)'%user.jid if user.jid else '', user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
         self.core.refresh_window()
 
     def command_configure(self, arg):
         form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
-        self.core.information('%s' % form)
         if not form:
             return
         self.core.open_new_form(form, self.cancel_config, self.send_config)

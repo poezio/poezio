@@ -387,7 +387,7 @@ class Core(object):
         When a new user joins a groupchat
         """
         room.users.append(User(from_nick, affiliation,
-                               show, status, role))
+                               show, status, role, jid))
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
             if not jid.full:
