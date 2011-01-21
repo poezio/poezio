@@ -695,19 +695,24 @@ class Input(Win):
             "KEY_BACKSPACE": self.key_backspace,
             '^?': self.key_backspace,
             }
-
         Win.__init__(self)
         self.text = ''
         self.pos = 0            # cursor position
         self.line_pos = 0 # position (in self.text) of
+        self.on_input = None    # callback called on any key pressed
+        self.color = None       # use this color on addstr
+
+    def set_color(self, color):
+        self.color = color
+        self.rewrite_text()
 
     def is_empty(self):
         return len(self.text) == 0
 
-    def resize(self, height, width, y, x, stdscr):
+    def resize(self, height, width, y, x, stdscr=None): # TODO remove stdscr
         self._resize(height, width, y, x, stdscr)
-        self._win.erase()
-        self.addnstr(0, 0, self.text, self.width-1)
+        # self._win.erase()
+        # self.addnstr(0, 0, self.text, self.width-1)
 
     def jump_word_left(self):
         """
@@ -960,8 +965,12 @@ class Input(Win):
         self.key_end(False)
 
     def do_command(self, key, reset=True):
+        log.debug('do_command: %s\n' % key)
         if key in self.key_func:
-            return self.key_func[key]()
+            res = self.key_func[key]()
+            if self.on_input:
+                self.on_input(self.get_text())
+            return res
         if not key or len(key) > 1:
             return False   # ignore non-handled keyboard shortcuts
         self.reset_completion()
@@ -973,6 +982,8 @@ class Input(Win):
             self.pos += len(key)
         if reset:
             self.rewrite_text()
+        if self.on_input:
+            self.on_input(self.get_text())
         return True
 
     def get_text(self):
@@ -987,8 +998,16 @@ class Input(Win):
         """
         with g_lock:
             self._win.erase()
+            if self.color:
+                self._win.attron(curses.color_pair(self.color))
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+            if self.color:
+                (y, x) = self._win.getyx()
+                size = self.width-x
+                self.addnstr(' '*size, size, curses.color_pair(self.color))
             self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
+            if self.color:
+                self._win.attroff(curses.color_pair(self.color))
             self._refresh()
 
     def refresh(self):

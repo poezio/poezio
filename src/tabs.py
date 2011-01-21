@@ -51,6 +51,7 @@ class Tab(object):
 
     def __init__(self, core):
         self.core = core        # a pointer to core, to access its attributes (ugly?)
+        self._color_state = theme.COLOR_TAB_NORMAL
         self.nb = Tab.number
         Tab.number += 1
         self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
@@ -133,7 +134,7 @@ class Tab(object):
         """
         returns the color that should be used in the GlobalInfoBar
         """
-        return theme.COLOR_TAB_NORMAL
+        return self._color_state
 
     def set_color_state(self, color):
         """
@@ -160,13 +161,13 @@ class Tab(object):
         """
         called when this tab loses the focus.
         """
-        pass
+        self._color_state = theme.COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        pass
+        self._color_state = theme.COLOR_TAB_CURRENT
 
     def add_message(self):
         """
@@ -367,7 +368,8 @@ class MucTab(ChatTab):
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfoDisplay some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
+        self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -388,8 +390,27 @@ class MucTab(ChatTab):
         user = self.get_room().get_user_by_name(args[0])
         if not user:
             return self.core.information("Unknown user: %s" % args[0])
-        self.get_room().add_message("%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
+        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], user.user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
         self.core.refresh_window()
+
+    def command_configure(self, arg):
+        form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
+        self.core.information('%s' % form)
+        self.core.open_new_form(form, self.cancel_config, self.send_config)
+
+    def cancel_config(self, form):
+        """
+        The user do not want to send his/her config, send an iq cancel
+        """
+        self.core.xmpp.plugin['xep_0045'].cancelConfig(self.get_name())
+        self.core.close_tab()
+
+    def send_config(self, form):
+        """
+        The user sends his/her config to the server
+        """
+        self.core.xmpp.plugin['xep_0045'].configureRoom(self.get_name(), form)
+        self.core.close_tab()
 
     def command_cycle(self, arg):
         if self.get_room().joined:

@@ -36,11 +36,12 @@ class User(object):
     """
     keep trace of an user in a Room
     """
-    def __init__(self, nick, affiliation, show, status, role):
+    def __init__(self, nick, affiliation, show, status, role, jid):
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
         self.color = choice(theme.LIST_COLOR_NICKNAMES)
+        self.jid = jid
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation

@@ -42,6 +42,7 @@ import multiuserchat as muc
 import tabs
 import windows
 
+from data_forms import DataFormsTab
 from connection import connection
 from config import config
 from logger import logger
@@ -159,6 +160,8 @@ class Core(object):
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
         self.xmpp.add_event_handler("changed_subscription", self.on_changed_subscription)
+        self.xmpp.add_event_handler("message_xform", self.on_data_form)
+
         self.information(_('Welcome to poezio!'))
         self.refresh_window()
 
@@ -195,6 +198,21 @@ class Core(object):
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
+
+    def on_data_form(self, message):
+        """
+        When a data form is received
+        """
+        self.information('%s' % messsage)
+
+    def open_new_form(self, form, on_cancel, on_send, **kwargs):
+        """
+        Open a new tab containing the form
+        The callback are called with the completed form as parameter in
+        addition with kwargs
+        """
+        form_tab = DataFormsTab(self, form, on_cancel, on_send, kwargs)
+        self.add_tab(form_tab, True)
 
     def on_got_offline(self, presence):
         jid = presence['from']
@@ -334,7 +352,7 @@ class Core(object):
         if not room.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if from_nick not in [user.nick for user in room.users]:
-                new_user = User(from_nick, affiliation, show, status, role)
+                new_user = User(from_nick, affiliation, show, status, role, jid)
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
                     room.joined = True
@@ -700,6 +718,7 @@ class Core(object):
         """
         curses.curs_set(1)
         curses.noecho()
+        curses.nonl()
         theme.init_colors()
         stdscr.keypad(True)
 
