@@ -40,10 +40,7 @@ import hashlib
 import subprocess
 import curses
 import sys
-import select
-import errno
 import time
-import traceback
 
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
@@ -72,15 +69,9 @@ def get_output_of_command(command):
     Runs a command and returns its output
     """
     try:
-        child_stdin, child_stdout = os.popen2(command)
-    except ValueError:
+        return subprocess.check_output(command.split()).decode('utf-8').split('\n')
+    except subprocess.CalledProcessError:
         return None
-
-    output = child_stdout.readlines()
-    child_stdout.close()
-    child_stdin.close()
-
-    return output
 
 def is_in_path(command, return_abs_path=False):
     """
