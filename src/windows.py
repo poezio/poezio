@@ -316,7 +316,7 @@ class ConversationInfoWin(InfoWin):
             presence = resource.get_presence()
         color = RosterWin.color_show[presence]
         self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(" ", curses.color_pair(theme.COLOR_CONVERSATION_NAME))
+        self.addstr(" ", curses.color_pair(color))
         self.addstr(']', curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_contact_informations(self, contact):
