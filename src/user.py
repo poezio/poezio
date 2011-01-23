@@ -26,6 +26,7 @@ import curses
 import theme
 
 ROLE_DICT = {
+    '':0,
     'none':0,
     'visitor':1,
     'participant':2,
@@ -47,6 +48,8 @@ class User(object):
         self.affiliation = affiliation
         self.show = show
         self.status = status
+        if role not in ROLE_DICT: # avoid unvalid roles
+            role = ''
         self.role = role
 
     def change_nick(self, nick):
