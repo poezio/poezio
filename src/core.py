@@ -116,7 +116,7 @@ class Core(object):
             'p': (self.rotate_rooms_left, _("Usage: /p\nP: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), None),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), None),
-            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), None),
+            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status, but only in the MUCs. This doesn’t affect the way your contacts will see you in their roster. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), None),
             'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'"), None),
             'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'"), None),
             'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
@@ -125,6 +125,7 @@ class Core(object):
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
+            'status': (self.command_status, _('Usage: /status <availability> [status message]\n/Status: Globally change your status and your status message.'), None),
             }
 
         self.key_func = {
@@ -969,6 +970,35 @@ class Core(object):
             else:
                 msg = _('Unknown command: %s') % args[0]
         self.information(msg)
+
+    def command_status(self, arg):
+        args = arg.split()
+        possible_show = {'avail':None,
+                         'available':None,
+                         'ok':None,
+                         'here':None,
+                         'chat':'chat',
+                         'away':'away',
+                         'afk':'away',
+                         'dnd':'dnd',
+                         'busy':'dnd',
+                         'xa':'xa'
+                         }
+        if len(args) < 1:
+            return
+        if not args[0] in possible_show.keys():
+            self.command_help('show')
+            return
+        show = possible_show[args[0]]
+        if len(args) > 1:
+            msg = ' '.join(args[1:])
+        else:
+            msg = None
+        pres = self.xmpp.make_presence()
+        if msg:
+            pres['status'] = msg
+        pres['type'] = show
+        pres.send()
 
     def command_list(self, arg):
         """
