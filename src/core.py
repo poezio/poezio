@@ -364,6 +364,7 @@ class Core(object):
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
+            ban = '301' in status_codes and typ == 'unavailable'
             user = room.get_user_by_name(from_nick)
             # New user
             if not user:
@@ -371,6 +372,8 @@ class Core(object):
             # nick change
             elif change_nick:
                 self.on_user_nick_change(room, presence, user, from_nick, from_room)
+            elif ban:
+                self.on_user_banned(room, presence, user, from_nick)
             # kick
             elif kick:
                 self.on_user_kicked(room, presence, user, from_nick)
@@ -413,9 +416,32 @@ class Core(object):
             new_jid = JID(private_room.name).bare+'/'+new_nick
             private_room.name = new_jid
 
+    def on_user_banned(self, room, presence, user, from_nick):
+        """
+        When someone is banned from a muc
+        """
+        room.users.remove(user)
+        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
+        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
+        by = by.attrib['jid'] if by is not None else None
+        if from_nick == room.own_nick: # we are banned
+            room.disconnect()
+            if by:
+                kick_msg = _('%(spec)s [You] have been banned by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
+            else:
+                kick_msg = _('%(spec)s [You] have been banned.') % {'spec':theme.CHAR_KICK.replace('"', '\\"')}
+        else:
+            if by:
+                kick_msg = _('%(spec)s "[%(nick)s]" has been banned by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
+            else:
+                kick_msg = _('%(spec)s "[%(nick)s]" has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+        if reason is not None and reason.text:
+            kick_msg += _(' Reason: %(reason)s') % {'reason': reason.text}
+        self.add_message_to_text_buffer(room, kick_msg, colorized=True)
+
     def on_user_kicked(self, room, presence, user, from_nick):
         """
-        When someone is kicked
+        When someone is kicked from a muc
         """
         room.users.remove(user)
         by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
