@@ -56,7 +56,7 @@ from keyboard import read_char
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
     '401': _('A password is required'),
-    '403': _('You are banned from the room'),
+    '403': _('Permission denied'),
     '404': _('The room does\'nt exist'),
     '405': _('Your are not allowed to create a new room'),
     '406': _('A reserved nick must be used'),
@@ -1025,6 +1025,7 @@ class Core(object):
             pres['status'] = msg
         pres['type'] = show
         pres.send()
+        self.command_show(arg)
 
     def command_list(self, arg):
         """
