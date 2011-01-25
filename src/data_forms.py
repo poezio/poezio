@@ -150,6 +150,48 @@ class BooleanWin(FieldInput, windows.Win):
         self._field['label'] = ''
         self._field.setAnswer(self.value)
 
+class ListMultiWin(FieldInput, windows.Win):
+    def __init__(self, field):
+        FieldInput.__init__(self, field)
+        windows.Win.__init__(self)
+        values = field.getValue()
+        self.options = [[option, True if option['value'] in values else False]\
+                            for option in field.getOptions()]
+        self.val_pos = 0
+
+    def do_command(self, key):
+        if key == 'KEY_LEFT':
+            if self.val_pos > 0:
+                self.val_pos -= 1
+        elif key == 'KEY_RIGHT':
+            if self.val_pos < len(self.options)-1:
+                self.val_pos += 1
+        elif key == ' ':
+            self.options[self.val_pos][1] = not self.options[self.val_pos][1]
+        else:
+            return
+        self.refresh()
+
+    def refresh(self):
+        with g_lock:
+            self._win.attron(curses.color_pair(self.color))
+            self.addnstr(0, 0, ' '*self.width, self.width)
+            if self.val_pos > 0:
+                self.addstr(0, 0, '←')
+            if self.val_pos < len(self.options)-1:
+                self.addstr(0, self.width-1, '→')
+            option = self.options[self.val_pos]
+            self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
+            self.addstr(0, 2, '✔' if option[1] else '☐')
+            self._win.attroff(curses.color_pair(self.color))
+            self._refresh()
+
+    def reply(self):
+        self._field['label'] = ''
+        self._field.delOptions()
+        values = [option[0]['value'] for option in self.options if option[1] is True]
+        self._field.setAnswer(values)
+
 class ListSingleWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -231,12 +273,15 @@ class FormWin(object):
     On refresh, write all the text, and refresh all the subwins
     """
     input_classes = {'boolean': BooleanWin,
-                     'text-single': TextSingleWin,
-                     'text-multi': TextSingleWin,
-                     'jid-single': TextSingleWin,
-                     'text-private': TextPrivateWin,
                      'fixed': DummyInput,
-                     'list-single': ListSingleWin}
+                     # jid-multi
+                     'jid-single': TextSingleWin,
+                     'list-multi': ListMultiWin,
+                     'list-single': ListSingleWin,
+                     # text-multi
+                     'text-private': TextPrivateWin,
+                     'text-single': TextSingleWin,
+                     }
     def __init__(self, form, height, width, y, x):
         self._form = form
         self._win = curses.newwin(height, width, y, x)
