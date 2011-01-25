@@ -41,8 +41,9 @@ class DataFormsTab(Tab):
             self.fields.append(field)
         self.topic_win = windows.Topic()
         self.tab_win = windows.GlobalInfoBar()
-        self.form_win = FormWin(form, self.height-3, self.width, 1, 0)
+        self.form_win = FormWin(form, self.height-4, self.width, 1, 0)
         self.help_win = windows.HelpText("Ctrl+Y: send form, Ctrl+G: cancel")
+        self.help_win_dyn = windows.HelpText()
         self.key_func['KEY_UP'] = self.form_win.go_to_previous_input
         self.key_func['KEY_DOWN'] = self.form_win.go_to_next_input
         self.key_func['^G'] = self.on_cancel
@@ -59,21 +60,27 @@ class DataFormsTab(Tab):
 
     def on_input(self, key):
         if key in self.key_func:
-            return self.key_func[key]()
-        self.form_win.on_input(key)
+            res = self.key_func[key]()
+            self.help_win_dyn.refresh(self.form_win.get_help_message())
+            self.form_win.refresh()
+            return res
+        else:
+            self.form_win.on_input(key)
 
     def resize(self):
         Tab.resize(self)
         self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.form_win.resize(self.height-3, self.width, 1, 0)
+        self.form_win.resize(self.height-4, self.width, 1, 0)
         self.help_win.resize(1, self.width, self.height-1, 0, None)
+        self.help_win_dyn.resize(1, self.width, self.height-3, 0, None)
         self.lines = []
 
     def refresh(self, tabs, informations, _):
         self.topic_win.refresh(self._form['title'])
         self.tab_win.refresh(tabs, tabs[0])
         self.help_win.refresh()
+        self.help_win_dyn.refresh(self.form_win.get_help_message())
         self.form_win.refresh()
 
 class FieldInput(object):
@@ -104,6 +111,13 @@ class FieldInput(object):
         Set the correct response value in the field
         """
         raise NotImplementedError
+
+    def get_help_message(self):
+        """
+        Should return a string explaining the keys of the input.
+        Will be displayed at each refresh on a line at the bottom of the tab.
+        """
+        return ''
 
 class DummyInput(FieldInput, windows.Win):
     def __init__(self, field):
@@ -149,6 +163,9 @@ class BooleanWin(FieldInput, windows.Win):
     def reply(self):
         self._field['label'] = ''
         self._field.setAnswer(self.value)
+
+    def get_help_message(self):
+        return '← and →: change the value between True and False'
 
 class TextMultiWin(FieldInput, windows.Win):
     def __init__(self, field):
@@ -212,6 +229,17 @@ class TextMultiWin(FieldInput, windows.Win):
         values = [val for val in self.options if val]
         self._field.setAnswer(values)
 
+    def get_help_message(self):
+        if not self.edition_input:
+            help_msg = '← and →: browse the available entries. '
+            if self.val_pos == len(self.options)-1:
+                help_msg += 'Enter: add an entry'
+            else:
+                help_msg += 'Enter: edit this entry'
+        else:
+            help_msg = 'Enter: finish editing this entry.'
+        return help_msg
+
 class ListMultiWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -254,6 +282,9 @@ class ListMultiWin(FieldInput, windows.Win):
         values = [option[0]['value'] for option in self.options if option[1] is True]
         self._field.setAnswer(values)
 
+    def get_help_message(self):
+        return '←, →: Switch between the value. Space: select or unselect a value'
+
 class ListSingleWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -295,6 +326,9 @@ class ListSingleWin(FieldInput, windows.Win):
         self._field.delOptions()
         self._field.setAnswer(self.options[self.val_pos]['value'])
 
+    def get_help_message(self):
+        return '←, →: Select a value amongst the others'
+
 class TextSingleWin(FieldInput, windows.Input):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -307,6 +341,9 @@ class TextSingleWin(FieldInput, windows.Input):
     def reply(self):
         self._field['label'] = ''
         self._field.setAnswer(self.get_text())
+
+    def get_help_message(self):
+        return 'Edit the text'
 
 class TextPrivateWin(TextSingleWin):
     def __init__(self, field):
@@ -326,6 +363,9 @@ class TextPrivateWin(TextSingleWin):
             if self.color:
                 self._win.attroff(curses.color_pair(self.color))
             self._refresh()
+
+    def get_help_message(self):
+        return 'Edit the secret text'
 
 class FormWin(object):
     """
@@ -439,3 +479,8 @@ class FormWin(object):
             inp['input'].refresh()
         self.inputs[self.current_input]['input'].set_color(13)
         self.inputs[self.current_input]['input'].refresh()
+
+    def get_help_message(self):
+        if self.inputs[self.current_input]['input']:
+            return self.inputs[self.current_input]['input'].get_help_message()
+        return ''

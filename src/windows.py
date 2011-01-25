@@ -650,7 +650,9 @@ class HelpText(Win):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self):
+    def refresh(self, txt=None):
+        if txt:
+            self.txt = txt
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, self.txt[:self.width-1], curses.color_pair(theme.COLOR_INFORMATION_BAR))
