@@ -150,6 +150,65 @@ class BooleanWin(FieldInput, windows.Win):
         self._field['label'] = ''
         self._field.setAnswer(self.value)
 
+class TextMultiWin(FieldInput, windows.Win):
+    def __init__(self, field):
+        FieldInput.__init__(self, field)
+        windows.Win.__init__(self)
+        self.options = field.getValue()
+        self.val_pos = 0
+        self.edition_input = None
+        if not isinstance(self.options, list):
+            self.options = [self.options]
+        self.options.append('')
+
+    def do_command(self, key):
+        if not self.edition_input:
+            if key == 'KEY_LEFT':
+                if self.val_pos > 0:
+                    self.val_pos -= 1
+            elif key == 'KEY_RIGHT':
+                if self.val_pos < len(self.options)-1:
+                    self.val_pos += 1
+            elif key in ('^J', '^M', '\n'):
+                self.edition_input = windows.Input()
+                self.edition_input.color = self.color
+                self.edition_input.resize(self.height, self.width, self.y, self.x)
+                self.edition_input.text = self.options[self.val_pos]
+                self.edition_input.key_end()
+        else:
+            if key in ('^J', '^M', '\n'):
+                self.options[self.val_pos] = self.edition_input.get_text()
+                if not self.options[self.val_pos] and self.val_pos != len(self.options) -1:
+                    del self.options[self.val_pos]
+                    if self.val_pos == len(self.options) -1:
+                        self.val_pos -= 1
+                self.edition_input = None
+                if not self.options or self.options[-1] != '':
+                    self.options.append('')
+            else:
+                self.edition_input.do_command(key)
+        self.refresh()
+
+    def refresh(self):
+        if not self.edition_input:
+            with g_lock:
+                self._win.attron(curses.color_pair(self.color))
+                self.addnstr(0, 0, ' '*self.width, self.width)
+                option = self.options[self.val_pos]
+                self.addstr(0, self.width//2-len(option)//2, option)
+                if self.val_pos > 0:
+                    self.addstr(0, 0, '←')
+                if self.val_pos < len(self.options)-1:
+                    self.addstr(0, self.width-1, '→')
+                self._win.attroff(curses.color_pair(self.color))
+                self._refresh()
+        else:
+            self.edition_input.refresh()
+
+    def reply(self):
+        values = [val for val in self.options if val]
+        self._field.setAnswer(values)
+
 class ListMultiWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -274,11 +333,11 @@ class FormWin(object):
     """
     input_classes = {'boolean': BooleanWin,
                      'fixed': DummyInput,
-                     # jid-multi
+                     'jid-multi': TextMultiWin,
                      'jid-single': TextSingleWin,
                      'list-multi': ListMultiWin,
                      'list-single': ListSingleWin,
-                     'text-multi': TextSingleWin,
+                     'text-multi': TextMultiWin,
                      'text-private': TextPrivateWin,
                      'text-single': TextSingleWin,
                      }
@@ -293,8 +352,7 @@ class FormWin(object):
             try:
                 input_class = self.input_classes[field['type']]
             except:
-                field.setValue(field['type'])
-                input_class = TextSingleWin
+                continue
             instructions = field['instructions']
             label = field['label']
             if field['type'] == 'fixed':
