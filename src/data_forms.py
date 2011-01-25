@@ -158,7 +158,10 @@ class TextMultiWin(FieldInput, windows.Win):
         self.val_pos = 0
         self.edition_input = None
         if not isinstance(self.options, list):
-            self.options = [self.options]
+            if isinstance(self.options, str):
+                self.options = [self.options]
+            else:
+                self.options = []
         self.options.append('')
 
     def do_command(self, key):
