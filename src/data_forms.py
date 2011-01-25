@@ -278,7 +278,7 @@ class FormWin(object):
                      'jid-single': TextSingleWin,
                      'list-multi': ListMultiWin,
                      'list-single': ListSingleWin,
-                     # text-multi
+                     'text-multi': TextSingleWin,
                      'text-private': TextPrivateWin,
                      'text-single': TextSingleWin,
                      }
