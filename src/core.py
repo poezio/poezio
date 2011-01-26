@@ -260,8 +260,8 @@ class Core(object):
         Search for a ConversationTab with the given jid (full or bare), if yes, add
         the given message to it
         """
-        tab = self.get_tab_by_name(jid)
-        if tab and isinstance(tab, tabs.ConversationTab):
+        tab = self.get_tab_by_name(jid, tabs.ConversationTab)
+        if tab:
             self.add_message_to_text_buffer(tab.get_room(), msg)
 
     def on_failed_connection(self):
@@ -314,10 +314,8 @@ class Core(object):
                 nick = jid.resource
             else:
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-                nick = config.get('default_nick', '')
-                if nick == '':
-                    nick = default
-            tab = self.get_tab_by_name(jid.bare)
+                nick = config.get('default_nick', '') or default
+            tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
             if not tab:
                 self.open_new_room(jid.bare, nick, False)
             muc.join_groupchat(self.xmpp, jid.bare, nick)
@@ -580,10 +578,10 @@ class Core(object):
         if not body:
             return
         # We first check if we have a conversation opened with this precise resource
-        conversation = self.get_tab_by_name(jid.full)
+        conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
         if not conversation:
             # If not, we search for a conversation with the bare jid
-            conversation = self.get_tab_by_name(jid.bare)
+            conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
             if not conversation:
                 # We create the conversation with the bare Jid if nothing was found
                 conversation = self.open_conversation_window(jid.bare, False)
