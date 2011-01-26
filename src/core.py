@@ -720,13 +720,16 @@ class Core(object):
                     return tab.get_room()
         return None
 
-    def get_tab_by_name(self, name):
+    def get_tab_by_name(self, name, typ=None):
         """
         Get the tab with the given name.
+        If typ is provided, return a tab of this type only
         """
         for tab in self.tabs:
             if tab.get_name() == name:
-                return tab
+                if (typ and isinstance(tab, typ)) or\
+                        not typ:
+                    return tab
         return None
 
     def get_room_by_name(self, name):
@@ -952,7 +955,7 @@ class Core(object):
         if nick_from == room_from:
             nick_from = None
         room = self.get_room_by_name(room_from)
-        tab = self.get_tab_by_name(room_from)
+        tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_room() and tab.get_room().get_user_by_name(nick_from) and\
                 tab.get_room().get_user_by_name(nick_from) in tab.ignores:
             return
