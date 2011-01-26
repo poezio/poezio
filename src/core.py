@@ -177,7 +177,7 @@ class Core(object):
             self.add_tab(tb_tab, focus=True)
         except Exception:       # If an exception is raised in this code,
                                 # this is fatal, so we exit cleanly and display the traceback
-            curses.endwin()
+            self.reset_curses()
             raise
 
     def grow_information_win(self):
@@ -678,7 +678,7 @@ class Core(object):
                 # Cancel the programmed software resize
                 self.resize_timer.cancel()
             # add the new timer
-            self.resize_timer = threading.Timer(0.2, self.resize_window)
+            self.resize_timer = threading.Timer(0.05, self.resize_window)
             self.resize_timer.start()
 
     def resize_window(self):

@@ -52,23 +52,28 @@ class DataFormsTab(Tab):
 
     def on_cancel(self):
         self._on_cancel(self._form)
+        return True
 
     def on_send(self):
         self._form.reply()
         self.form_win.reply()
         self._on_send(self._form)
+        return True
 
     def on_input(self, key):
         if key in self.key_func:
             res = self.key_func[key]()
+            if res:
+                return res
             self.help_win_dyn.refresh(self.form_win.get_help_message())
-            self.form_win.refresh()
-            return res
+            self.form_win.refresh_current_input()
         else:
             self.form_win.on_input(key)
 
     def resize(self):
         Tab.resize(self)
+        if not self.visible:
+            return
         self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.form_win.resize(self.height-4, self.width, 1, 0)
@@ -77,6 +82,8 @@ class DataFormsTab(Tab):
         self.lines = []
 
     def refresh(self, tabs, informations, _):
+        if not self.visible:
+            return
         self.topic_win.refresh(self._form['title'])
         self.tab_win.refresh(tabs, tabs[0])
         self.help_win.refresh()
@@ -396,19 +403,21 @@ class FormWin(object):
                 input_class = self.input_classes[field['type']]
             except:
                 continue
-            instructions = field['instructions']
             label = field['label']
+            desc = field['desc']
             if field['type'] == 'fixed':
                 label = field.getValue()
             inp = input_class(field)
             self.inputs.append({'label':label,
-                                'instructions':instructions,
+                                'description': desc,
                                 'input':inp})
 
     def resize(self, height, width, y, x):
         self._win.resize(height, width)
         self.height = height
         self.width = width
+        if self.current_input >= self.height-2:
+            self.current_input = self.height-1
 
     def reply(self):
         """
@@ -426,7 +435,7 @@ class FormWin(object):
     def go_to_next_input(self):
         if not self.inputs:
             return
-        if self.current_input == len(self.inputs) - 1:
+        if self.current_input == len(self.inputs) - 1 or self.current_input >= self.height-1:
             return
         self.inputs[self.current_input]['input'].set_color(14)
         self.current_input += 1
@@ -469,18 +478,26 @@ class FormWin(object):
                 label = self.inputs[i]['label']
                 self._win.addstr(y, 0, label)
                 self.inputs[i]['input'].resize(1, self.width//3, y+1, 2*self.width//3)
-                if field['instructions']:
-                    y += 1
-                    self._win.addstr(y, 0, field['instructions'])
+                # if field['description']:
+                #     y += 1
+                #     self._win.addstr(y, 0, field['description'])
                 y += 1
                 i += 1
+                if y >= self.height:
+                    break
             self._win.refresh()
-        for inp in self.inputs:
+        for i, inp in enumerate(self.inputs):
+            if i >= self.height:
+                break
             inp['input'].refresh()
-        self.inputs[self.current_input]['input'].set_color(13)
+        if self.current_input < self.height-1:
+            self.inputs[self.current_input]['input'].set_color(13)
+            self.inputs[self.current_input]['input'].refresh()
+
+    def refresh_current_input(self):
         self.inputs[self.current_input]['input'].refresh()
 
     def get_help_message(self):
-        if self.inputs[self.current_input]['input']:
+        if self.current_input < self.height-1 and self.inputs[self.current_input]['input']:
             return self.inputs[self.current_input]['input'].get_help_message()
         return ''
