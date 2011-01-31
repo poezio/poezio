@@ -575,6 +575,8 @@ class MucTab(ChatTab):
         Tab.resize(self)
         if not self.visible:
             return
+        if self.core.information_win_size >= self.height-3:
+            return
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
         self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr)
@@ -656,6 +658,8 @@ class MucTab(ChatTab):
         self.text_win.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
         text_width = (self.width//10)*9
         self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr)
         self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
@@ -705,6 +709,8 @@ class PrivateTab(ChatTab):
     def resize(self):
         Tab.resize(self)
         if not self.visible:
+            return
+        if self.core.information_win_size >= self.height-3:
             return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
         self.text_win.rebuild_everything(self._room)
@@ -757,6 +763,8 @@ class PrivateTab(ChatTab):
         self.text_win.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, None)
@@ -1084,6 +1092,8 @@ class ConversationTab(ChatTab):
         Tab.resize(self)
         if not self.visible:
             return
+        if self.core.information_win_size >= self.height-3:
+            return
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr)
@@ -1137,6 +1147,8 @@ class ConversationTab(ChatTab):
         self.text_win.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
         self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr)
