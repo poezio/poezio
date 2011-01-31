@@ -2,7 +2,14 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://dev.louiz.org/project/poezio/roadmap
 
-* Poezio 0.7 - dev
+* Poezio 0.7.1 - dev
+- Data-forms support
+- /configure command in MUCs
+- /status command to globally change the status
+- /win command now accepts part of tab name as argument
+- bugfixes
+
+* Poezio 0.7 - 14 jan 2010
 Codename ”Koshie & Mathieui”
 - Library changed from xmpppy to SleekXMPP
 - Python 3 only
