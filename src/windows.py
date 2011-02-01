@@ -1259,7 +1259,8 @@ class RosterWin(Win):
     def draw_roster_information(self, roster):
         """
         """
-        self.addstr('Roster: %s contacts' % roster.get_contact_len(), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(), roster.get_contact_len())\
+                , curses.color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
@@ -1272,7 +1273,8 @@ class RosterWin(Win):
             self.addstr(y, 0, '[+] ')
         else:
             self.addstr(y, 0, '[-] ')
-        self.addstr(y, 4, group.name)
+        contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
+        self.addstr(y, 4, group.name + contacts)
         if colored:
             self._win.attroff(curses.color_pair(theme.COLOR_SELECTED_ROW))
 

@@ -134,6 +134,15 @@ class Roster(object):
         log.debug('folded:%s\n' %folded_groups)
         config.set_and_save('folded_roster_groups', folded_groups, 'var')
 
+    def get_nb_connected_contacts(self):
+        """
+        Return the number of contacts connected
+        """
+        length = 0
+        for group in self._roster_groups:
+            length += group.get_nb_connected_contacts()
+        return length
+
     def __len__(self):
         """
         Return the number of line that would be printed

@@ -283,7 +283,7 @@ class InfoTab(ChatTab):
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.info_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
-
+ 
     def refresh(self, tabs, informations, _):
         if not self.visible:
             return
