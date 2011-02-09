@@ -755,7 +755,6 @@ class Core(object):
         Reset terminal capabilities to what they were before ncurses
         init
         """
-        log.debug('ALLO, reset_curses')
         curses.echo()
         curses.nocbreak()
         curses.curs_set(1)
@@ -1392,7 +1391,6 @@ class Core(object):
                 self.information(_("unknown command (%s)") % (command), _('Error'))
 
     def doupdate(self):
-        log.debug('doupdate doupdate')
         if not self.running:
             return
         self.current_tab().just_before_refresh()
