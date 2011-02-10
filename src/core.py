@@ -23,7 +23,6 @@ from time import sleep
 import os
 import re
 import sys
-import shlex
 import curses
 import threading
 import traceback

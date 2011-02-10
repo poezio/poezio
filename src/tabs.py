@@ -35,9 +35,9 @@ import windows
 import theme
 import curses
 import difflib
-import shlex
 import text_buffer
 import string
+import common
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
@@ -381,10 +381,7 @@ class MucTab(ChatTab):
         self.core.refresh_window()
 
     def command_info(self, arg):
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) != 1:
             return self.core.information("Info command takes only 1 argument")
         user = self.get_room().get_user_by_name(args[0])
@@ -442,10 +439,7 @@ class MucTab(ChatTab):
         """
         /nick <nickname>
         """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) != 1:
             return
         nick = args[0]
@@ -459,7 +453,6 @@ class MucTab(ChatTab):
         /part [msg]
         """
         args = arg.split()
-        reason = None
         room = self.get_room()
         if len(args):
             msg = ' '.join(args)
@@ -473,10 +466,7 @@ class MucTab(ChatTab):
         """
         /query <nick> [message]
         """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) < 1:
             return
         nick = args[0]
@@ -505,10 +495,7 @@ class MucTab(ChatTab):
         """
         /kick <nick> [reason]
         """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) < 1:
             self.core.command_help('kick')
             return
@@ -530,10 +517,7 @@ class MucTab(ChatTab):
         """
         /ignore <nick>
         """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) != 1:
             self.core.command_help('ignore')
             return
@@ -551,10 +535,7 @@ class MucTab(ChatTab):
         """
         /unignore <nick>
         """
-        try:
-            args = shlex.split(arg)
-        except ValueError as error:
-            return self.core.information(str(error), _("Error"))
+        args = common.shell_split(arg)
         if len(args) != 1:
             self.core.command_help('unignore')
             return

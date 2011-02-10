@@ -41,6 +41,7 @@ import subprocess
 import curses
 import sys
 import time
+import shlex
 
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
@@ -192,3 +193,15 @@ def datetime_tuple(timestamp):
     dst = timedelta(seconds=time.altzone)
     ret -= dst
     return ret
+
+def shell_split(string):
+    sh = shlex.shlex(string, posix=True)
+    ret = list()
+    try:
+        w = sh.get_token()
+        while w:
+            ret.append(w)
+            w = sh.get_token()
+        return ret
+    except ValueError:
+        return string.split()
