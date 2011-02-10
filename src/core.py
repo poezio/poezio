@@ -115,7 +115,7 @@ class Core(object):
         #  The completion function should return True if a completion was
         #  made ; False otherwise
         self.commands = {
-            'help': (self.command_help, '\_o< KOIN KOIN KOIN', None),
+            'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
             'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
@@ -1002,6 +1002,10 @@ class Core(object):
             else:
                 msg = _('Unknown command: %s') % args[0]
         self.information(msg)
+
+    def completion_help(self, the_input):
+        commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
+        return the_input.auto_completion(commands, ' ')
 
     def command_status(self, arg):
         args = arg.split()
