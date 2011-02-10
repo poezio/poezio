@@ -110,12 +110,10 @@ class Core(object):
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
             'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
-            'n': (self.rotate_rooms_right, _("Usage: /n\nN: Go to the next room."), None),
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
-            'p': (self.rotate_rooms_left, _("Usage: /p\nP: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), None),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), None),
-            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status, but only in the MUCs. This doesn’t affect the way your contacts will see you in their roster. The <availability> argument is one of \"avail, available, ok, here, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), None),
+            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status, but only in the MUCs. This doesn’t affect the way your contacts will see you in their roster. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), self.completion_show),
             'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'"), None),
             'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'"), None),
             'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
@@ -1249,10 +1247,7 @@ class Core(object):
         /show <status> [msg]
         """
         args = arg.split()
-        possible_show = {'avail':None,
-                         'available':None,
-                         'ok':None,
-                         'here':None,
+        possible_show = {'available':None,
                          'chat':'chat',
                          'away':'away',
                          'afk':'away',
@@ -1273,6 +1268,17 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
+
+    def completion_show(self, the_input):
+        possible_show = {'available':None,
+                         'chat':'chat',
+                         'away':'away',
+                         'afk':'away',
+                         'dnd':'dnd',
+                         'busy':'dnd',
+                         'xa':'xa'
+                         }
+        the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
 
     def command_away(self, arg):
         """
