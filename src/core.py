@@ -1134,7 +1134,7 @@ class Core(object):
         for tab in self.tabs:   # TODO, also from an history
             if isinstance(tab, tabs.MucTab) and\
                     tab.get_name() not in muc_serv_list:
-                muc_serv_list.append(tab.get_name())
+                muc_serv_list.append(JID(tab.get_name()).server)
         if muc_serv_list:
             return the_input.auto_completion(muc_serv_list, ' ')
 
