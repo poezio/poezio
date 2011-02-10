@@ -72,6 +72,15 @@ SHOW_NAME = {
     '': _('available')
     }
 
+possible_show = {'available':None,
+                 'chat':'chat',
+                 'away':'away',
+                 'afk':'away',
+                 'dnd':'dnd',
+                 'busy':'dnd',
+                 'xa':'xa'
+                 }
+
 resize_lock = threading.Lock()
 
 class Core(object):
@@ -111,8 +120,8 @@ class Core(object):
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
             'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
-            'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), None),
-            'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), None),
+            'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
+            'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
             'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status, but only in the MUCs. This doesn’t affect the way your contacts will see you in their roster. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), self.completion_show),
             'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'"), None),
             'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'"), None),
@@ -122,7 +131,7 @@ class Core(object):
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
-            'status': (self.command_status, _('Usage: /status <availability> [status message]\n/Status: Globally change your status and your status message.'), None),
+            'status': (self.command_status, _('Usage: /status <availability> [status message]\n/Status: Globally change your status and your status message.'), self.completion_status),
             }
 
         self.key_func = {
@@ -996,17 +1005,6 @@ class Core(object):
 
     def command_status(self, arg):
         args = arg.split()
-        possible_show = {'avail':None,
-                         'available':None,
-                         'ok':None,
-                         'here':None,
-                         'chat':'chat',
-                         'away':'away',
-                         'afk':'away',
-                         'dnd':'dnd',
-                         'busy':'dnd',
-                         'xa':'xa'
-                         }
         if len(args) < 1:
             return
         if not args[0] in possible_show.keys():
@@ -1023,6 +1021,9 @@ class Core(object):
         pres['type'] = show
         pres.send()
         self.command_show(arg)
+
+    def completion_status(self, the_input):
+        return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
 
     def command_list(self, arg):
         """
@@ -1080,6 +1081,11 @@ class Core(object):
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
+    def completion_win(self, the_input):
+        l = [JID(tab.get_name()).user for tab in self.tabs]
+        l.remove('')
+        return the_input.auto_completion(l, ' ')
+
     def completion_join(self, the_input):
         """
         Try to complete the server of the MUC's jid (for now only from the currently
@@ -1117,8 +1123,6 @@ class Core(object):
         return True
 
     def completion_list(self, the_input):
-        """
-        """
         txt = the_input.get_text()
         muc_serv_list = []
         for tab in self.tabs:   # TODO, also from an history
@@ -1126,7 +1130,7 @@ class Core(object):
                     tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(tab.get_name())
         if muc_serv_list:
-            the_input.auto_completion(muc_serv_list, ' ')
+            return the_input.auto_completion(muc_serv_list, ' ')
 
     def command_join(self, arg, histo_length=None):
         """
@@ -1247,14 +1251,6 @@ class Core(object):
         /show <status> [msg]
         """
         args = arg.split()
-        possible_show = {'available':None,
-                         'chat':'chat',
-                         'away':'away',
-                         'afk':'away',
-                         'dnd':'dnd',
-                         'busy':'dnd',
-                         'xa':'xa'
-                         }
         if len(args) < 1:
             return
         if not args[0] in list(possible_show.keys()):
@@ -1270,15 +1266,7 @@ class Core(object):
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
 
     def completion_show(self, the_input):
-        possible_show = {'available':None,
-                         'chat':'chat',
-                         'away':'away',
-                         'afk':'away',
-                         'dnd':'dnd',
-                         'busy':'dnd',
-                         'xa':'xa'
-                         }
-        the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
+        return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
 
     def command_away(self, arg):
         """

@@ -86,7 +86,7 @@ class Tab(object):
                 else:           # Unknown command, cannot complete
                     return False
                 if command[2] is None:
-                    return False # There's no completion functio
+                    return False # There's no completion function
                 else:
                     return command[2](the_input)
             else:
@@ -283,7 +283,7 @@ class InfoTab(ChatTab):
         self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
         self.info_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
         self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
- 
+
     def refresh(self, tabs, informations, _):
         if not self.visible:
             return
@@ -493,7 +493,7 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         current_topic = self.get_room().topic
-        the_input.auto_completion([current_topic], ' ')
+        return the_input.auto_completion([current_topic], ' ')
 
     def command_kick(self, arg):
         """
@@ -554,7 +554,7 @@ class MucTab(ChatTab):
             self.core.information(_('%s is now unignored') % nick)
 
     def completion_unignore(self, the_input):
-        the_input.auto_completion([user.nick for user in self.ignores], ' ')
+        return the_input.auto_completion([user.nick for user in self.ignores], ' ')
 
     def resize(self):
         """
@@ -872,7 +872,7 @@ class RosterInfoTab(Tab):
         From with any JID presence in the roster
         """
         jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
-        the_input.auto_completion(jids, '')
+        return the_input.auto_completion(jids, '')
 
     def completion_deny(self, the_input):
         """
@@ -881,7 +881,7 @@ class RosterInfoTab(Tab):
         """
         jids = [contact.get_bare_jid() for contact in roster.get_contacts()\
              if contact.get_ask() == 'asked']
-        the_input.auto_completion(jids, '')
+        return the_input.auto_completion(jids, '')
 
     def command_accept(self, args):
         """

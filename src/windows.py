@@ -967,7 +967,6 @@ class Input(Win):
         self.key_end(False)
 
     def do_command(self, key, reset=True):
-        log.debug('do_command: %s\n' % key)
         if key in self.key_func:
             res = self.key_func[key]()
             if self.on_input:
