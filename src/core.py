@@ -999,6 +999,8 @@ class Core(object):
         if len(args) >= 1:
             if args[0] in list(self.commands.keys()):
                 msg = self.commands[args[0]][1]
+            elif args[0] in list(self.current_tab().commands.keys()):
+                msg = self.current_tab().commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
         self.information(msg)
