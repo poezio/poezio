@@ -360,7 +360,7 @@ class MucTab(ChatTab):
         self.key_func['M-y'] = self.scroll_user_list_up
         # commands
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
-        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), None)
+        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
@@ -552,6 +552,9 @@ class MucTab(ChatTab):
         else:
             self.ignores.remove(user)
             self.core.information(_('%s is now unignored') % nick)
+
+    def completion_unignore(self, the_input):
+        the_input.auto_completion([user.nick for user in self.ignores], ' ')
 
     def resize(self):
         """
