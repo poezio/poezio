@@ -59,22 +59,14 @@ class Room(TextBuffer):
         Set the tab color and returns the txt color
         """
         color = theme.COLOR_NORMAL_TEXT
-        if not time and nickname and nickname != self.own_nick and self.joined: # do the highlight
-            try:
-                if self.own_nick in txt:
-                    self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                    color = theme.COLOR_HIGHLIGHT_TEXT
-            except UnicodeDecodeError:
-                try:
-                    if self.own_nick in txt:
-                        self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                        color = theme.COLOR_HIGHLIGHT_TEXT
-                except:
-                    pass
+        if not time and nickname and nickname != self.own_nick and self.joined:
+            if self.own_nick in txt:
+                self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                color = theme.COLOR_HIGHLIGHT_TEXT
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
-                    if word.lower() in txt.lower() and word != '':
+                    if word and word.lower() in txt.lower():
                         self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                         color = theme.COLOR_HIGHLIGHT_TEXT
                         break
