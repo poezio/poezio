@@ -47,6 +47,7 @@ from tabs import MIN_WIDTH, MIN_HEIGHT
 from sleekxmpp.xmlstream.stanzabase import JID
 
 import theme
+import common
 
 g_lock = Lock()
 
@@ -89,7 +90,7 @@ class Win(object):
         """
         (y, x) = self._win.getyx()
         size = self.width-x
-        self.addnstr(' '*size, size, curses.color_pair(color))
+        self.addnstr(' '*size, size, common.curses_color_pair(color))
 
 class UserList(Win):
     def __init__(self):
@@ -118,7 +119,7 @@ class UserList(Win):
             self.pos = 0
 
     def draw_plus(self, y):
-        self.addstr(y, self.width-2, '++', curses.color_pair(theme.COLOR_MORE_INDICATOR))
+        self.addstr(y, self.width-2, '++', common.curses_color_pair(theme.COLOR_MORE_INDICATOR))
 
     def refresh(self, users):
         with g_lock:
@@ -136,8 +137,8 @@ class UserList(Win):
                     show_col = theme.COLOR_STATUS_NONE
                 else:
                     show_col = self.color_show[user.show]
-                self.addstr(y, 0, theme.CHAR_STATUS, curses.color_pair(show_col))
-                self.addstr(y, 1, user.nick[:self.width-2], curses.color_pair(role_col))
+                self.addstr(y, 0, theme.CHAR_STATUS, common.curses_color_pair(show_col))
+                self.addstr(y, 1, user.nick[:self.width-2], common.curses_color_pair(role_col))
                 y += 1
                 if y == self.height:
                     break
@@ -150,9 +151,9 @@ class UserList(Win):
 
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
-        self._win.attron(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self._win.attron(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         self._win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self._win.attroff(curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self._win.attroff(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
 
 class Topic(Win):
     def __init__(self):
@@ -169,12 +170,12 @@ class Topic(Win):
                 msg = topic[:self.width-1]
             else:
                 msg = self._message[:self.width-1]
-            self.addstr(0, 0, msg, curses.color_pair(theme.COLOR_TOPIC_BAR))
+            self.addstr(0, 0, msg, common.curses_color_pair(theme.COLOR_TOPIC_BAR))
             (y, x) = self._win.getyx()
             remaining_size = self.width - x
             if remaining_size:
                 self.addnstr(' '*remaining_size, remaining_size,
-                             curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                             common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             self._refresh()
 
     def set_message(self, message):
@@ -194,7 +195,7 @@ class GlobalInfoBar(Win):
         comp = lambda x: x.nb
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, "[", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(0, 0, "[", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             sorted_tabs = sorted(tabs, key=comp)
             for tab in sorted_tabs:
                 color = tab.get_color_state()
@@ -202,16 +203,16 @@ class GlobalInfoBar(Win):
                         color == theme.COLOR_TAB_NORMAL:
                     continue
                 try:
-                    self.addstr("%s" % str(tab.nb), curses.color_pair(color))
-                    self.addstr("|", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                    self.addstr("%s" % str(tab.nb), common.curses_color_pair(color))
+                    self.addstr("|", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
                 except:             # end of line
                     break
             (y, x) = self._win.getyx()
-            self.addstr(y, x-1, '] ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(y, x-1, '] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             (y, x) = self._win.getyx()
             remaining_size = self.width - x
             self.addnstr(' '*remaining_size, remaining_size,
-                         curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                         common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             self._refresh()
 
 class InfoWin(Win):
@@ -230,7 +231,7 @@ class InfoWin(Win):
         """
         if window.pos > 0:
             plus = ' -PLUS(%s)-' % window.pos
-            self.addstr(plus, curses.color_pair(theme.COLOR_SCROLLABLE_NUMBER) | curses.A_BOLD)
+            self.addstr(plus, common.curses_color_pair(theme.COLOR_SCROLLABLE_NUMBER))
 
 class PrivateInfoWin(InfoWin):
     """
@@ -255,9 +256,9 @@ class PrivateInfoWin(InfoWin):
     def write_room_name(self, room):
         jid = JID(room.name)
         room_name, nick = jid.bare, jid.resource
-        self.addstr(nick, curses.color_pair(theme.COLOR_PRIVATE_NAME))
+        self.addstr(nick, common.curses_color_pair(theme.COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
-        self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(txt, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class ConversationInfoWin(InfoWin):
     """
@@ -315,27 +316,27 @@ class ConversationInfoWin(InfoWin):
         else:
             presence = resource.get_presence()
         color = RosterWin.color_show[presence]
-        self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(" ", curses.color_pair(color))
-        self.addstr(']', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(" ", common.curses_color_pair(color))
+        self.addstr(']', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_contact_informations(self, contact):
         """
         Write the informations about the contact
         """
         if not contact:
-            self.addstr("(contact not in roster)", curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr("(contact not in roster)", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             return
         display_name = contact.get_name() or contact.get_bare_jid()
-        self.addstr('%s '%(display_name), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('%s '%(display_name), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_contact_jid(self, jid):
         """
         Just write the jid that we are talking to
         """
-        self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(jid.full, curses.color_pair(theme.COLOR_CONVERSATION_NAME))
-        self.addstr('] ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(jid.full, common.curses_color_pair(theme.COLOR_CONVERSATION_NAME))
+        self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class ConversationStatusMessageWin(InfoWin):
     """
@@ -364,7 +365,7 @@ class ConversationStatusMessageWin(InfoWin):
             self._refresh()
 
     def write_status_message(self, resource):
-        self.addstr(resource.get_status(), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(resource.get_status(), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
     """
@@ -392,16 +393,16 @@ class MucInfoWin(InfoWin):
     def write_room_name(self, room):
         """
         """
-        self.addstr('[', curses.color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addnstr(room.name, len(room.name), curses.color_pair(theme.COLOR_GROUPCHAT_NAME))
-        self.addstr('] ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addnstr(room.name, len(room.name), common.curses_color_pair(theme.COLOR_GROUPCHAT_NAME))
+        self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_disconnected(self, room):
         """
         Shows a message if the room is not joined
         """
         if not room.joined:
-            self.addstr(' -!- Not connected ', curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(' -!- Not connected ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_own_nick(self, room):
         """
@@ -412,7 +413,7 @@ class MucInfoWin(InfoWin):
             return
         if len(nick) > 13:
             nick = nick[:13]+'…'
-        self.addstr(nick, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(nick, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_role(self, room):
         """
@@ -429,7 +430,7 @@ class MucInfoWin(InfoWin):
         if own_user.affiliation != 'none':
             txt += own_user.affiliation+', '
         txt += own_user.role+')'
-        self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(txt, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class TextWin(Win):
     def __init__(self):
@@ -559,7 +560,7 @@ class TextWin(Win):
     def write_line_separator(self):
         """
         """
-        self.addnstr('- '*(self.width//2-1)+'-', self.width, curses.color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
+        self.addnstr('- '*(self.width//2-1)+'-', self.width, common.curses_color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
         """
@@ -568,10 +569,10 @@ class TextWin(Win):
         txt = txt
         if not colorized:
             if color:
-                self._win.attron(curses.color_pair(color))
+                self._win.attron(common.curses_color_pair(color))
             self.addstr(y, x, txt)
             if color:
-                self._win.attroff(curses.color_pair(color))
+                self._win.attroff(common.curses_color_pair(color))
 
         else:                   # Special messages like join or quit
             special_words = {
@@ -589,17 +590,17 @@ class TextWin(Win):
                 splitted = txt.split()
             for word in splitted:
                 if word in list(special_words.keys()):
-                    self.addstr(word, curses.color_pair(special_words[word]))
+                    self.addstr(word, common.curses_color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):
-                    self.addstr('(', curses.color_pair(color))
-                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_CURLYBRACKETED_WORD))
-                    self.addstr(')', curses.color_pair(color))
+                    self.addstr('(', common.curses_color_pair(color))
+                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_CURLYBRACKETED_WORD))
+                    self.addstr(')', common.curses_color_pair(color))
                 elif word.startswith('{') and word.endswith('}'):
-                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_ACCOLADE_WORD))
+                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_ACCOLADE_WORD))
                 elif word.startswith('[') and word.endswith(']'):
-                    self.addstr(word[1:-1], curses.color_pair(theme.COLOR_BRACKETED_WORD))
+                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_BRACKETED_WORD))
                 else:
-                    self.addstr(word, curses.color_pair(color))
+                    self.addstr(word, common.curses_color_pair(color))
                 self.addstr(' ')
 
     def write_nickname(self, nickname, color):
@@ -608,23 +609,23 @@ class TextWin(Win):
         and return the number of written characters
         """
         if color:
-            self._win.attron(curses.color_pair(color))
+            self._win.attron(common.curses_color_pair(color))
         self.addstr(nickname)
         if color:
-            self._win.attroff(curses.color_pair(color))
+            self._win.attroff(common.curses_color_pair(color))
         self.addstr("> ")
 
     def write_time(self, time):
         """
         Write the date on the yth line of the window
         """
-        self.addstr(theme.CHAR_TIME_LEFT, curses.color_pair(theme.COLOR_TIME_LIMITER))
-        self.addstr(time['hour'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(':', curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time['minute'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(':', curses.color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time['second'], curses.color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(theme.CHAR_TIME_RIGHT, curses.color_pair(theme.COLOR_TIME_LIMITER))
+        self.addstr(theme.CHAR_TIME_LEFT, common.curses_color_pair(theme.COLOR_TIME_LIMITER))
+        self.addstr(time['hour'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(':', common.curses_color_pair(theme.COLOR_TIME_SEPARATOR))
+        self.addstr(time['minute'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(':', common.curses_color_pair(theme.COLOR_TIME_SEPARATOR))
+        self.addstr(time['second'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
+        self.addstr(theme.CHAR_TIME_RIGHT, common.curses_color_pair(theme.COLOR_TIME_LIMITER))
         self.addstr(' ')
 
     def resize(self, height, width, y, x, stdscr, room=None):
@@ -655,7 +656,7 @@ class HelpText(Win):
             self.txt = txt
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, self.txt[:self.width-1], curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(0, 0, self.txt[:self.width-1], common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -1000,15 +1001,15 @@ class Input(Win):
         with g_lock:
             self._win.erase()
             if self.color:
-                self._win.attron(curses.color_pair(self.color))
+                self._win.attron(common.curses_color_pair(self.color))
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
-                self.addnstr(' '*size, size, curses.color_pair(self.color))
+                self.addnstr(' '*size, size, common.curses_color_pair(self.color))
             self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
             if self.color:
-                self._win.attroff(curses.color_pair(self.color))
+                self._win.attroff(common.curses_color_pair(self.color))
             self._refresh()
 
     def refresh(self):
@@ -1131,7 +1132,7 @@ class CommandInput(Input):
         """
         with g_lock:
             self._win.erase()
-            self.addstr(self.help_message, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(self.help_message, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
             cursor_pos = self.pos + len(self.help_message)
             if len(self.help_message):
                 self.addstr(' ')
@@ -1150,7 +1151,7 @@ class VerticalSeparator(Win):
 
     def rewrite_line(self):
         with g_lock:
-            self._win.vline(0, 0, curses.ACS_VLINE, self.height, curses.color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+            self._win.vline(0, 0, curses.ACS_VLINE, self.height, common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
             self._refresh()
 
     def resize(self, height, width, y, x, stdscr):
@@ -1253,13 +1254,13 @@ class RosterWin(Win):
         Draw the indicator that shows that
         the list is longer than what is displayed
         """
-        self.addstr(y, self.width-5, '++++', curses.color_pair(theme.COLOR_MORE_INDICATOR))
+        self.addstr(y, self.width-5, '++++', common.curses_color_pair(theme.COLOR_MORE_INDICATOR))
 
     def draw_roster_information(self, roster):
         """
         """
         self.addstr('Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(), roster.get_contact_len())\
-                , curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                , common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
@@ -1267,7 +1268,7 @@ class RosterWin(Win):
         Draw a groupname on a line
         """
         if colored:
-            self._win.attron(curses.color_pair(theme.COLOR_SELECTED_ROW))
+            self._win.attron(common.curses_color_pair(theme.COLOR_SELECTED_ROW))
         if group.folded:
             self.addstr(y, 0, '[+] ')
         else:
@@ -1275,7 +1276,7 @@ class RosterWin(Win):
         contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
         self.addstr(y, 4, group.name + contacts)
         if colored:
-            self._win.attroff(curses.color_pair(theme.COLOR_SELECTED_ROW))
+            self._win.attroff(common.curses_color_pair(theme.COLOR_SELECTED_ROW))
 
     def draw_contact_line(self, y, contact, colored):
         """
@@ -1300,25 +1301,25 @@ class RosterWin(Win):
                                         contact.get_bare_jid(), nb,)
         else:
             display_name = '%s%s' % (contact.get_bare_jid(), nb,)
-        self.addstr(y, 1, " ", curses.color_pair(color))
+        self.addstr(y, 1, " ", common.curses_color_pair(color))
         if resource:
             self.addstr(y, 2, ' [+]' if contact._folded else ' [-]')
         self.addstr(' ')
         if colored:
-            self.addstr(display_name, curses.color_pair(theme.COLOR_SELECTED_ROW))
+            self.addstr(display_name, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
         if contact.get_ask() == 'asked':
-            self.addstr('?', curses.color_pair(theme.COLOR_HIGHLIGHT_TEXT))
+            self.addstr('?', common.curses_color_pair(theme.COLOR_HIGHLIGHT_TEXT))
 
     def draw_resource_line(self, y, resource, colored):
         """
         Draw a specific resource line
         """
         color = RosterWin.color_show[resource.get_presence()]
-        self.addstr(y, 4, " ", curses.color_pair(color))
+        self.addstr(y, 4, " ", common.curses_color_pair(color))
         if colored:
-            self.addstr(y, 6, resource.get_jid().full, curses.color_pair(theme.COLOR_SELECTED_ROW))
+            self.addstr(y, 6, resource.get_jid().full, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
         else:
             self.addstr(y, 6, resource.get_jid().full)
 
@@ -1345,12 +1346,12 @@ class ContactInfoWin(Win):
             presence = resource.get_presence()
         else:
             presence = 'unavailable'
-        self.addstr(0, 0, '%s (%s)'%(jid, presence,), curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(0, 0, '%s (%s)'%(jid, presence,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
         if contact.get_ask():
             if contact.get_ask() == 'asked':
-                self.addstr(' Ask: %s' % (contact.get_ask(),), curses.color_pair(theme.COLOR_HIGHLIGHT_TEXT))
+                self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_TEXT))
             else:
                 self.addstr(' Ask: %s' % (contact.get_ask(),))
 
@@ -1358,7 +1359,7 @@ class ContactInfoWin(Win):
         """
         draw the group information
         """
-        self.addstr(0, 0, group.name, curses.color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(0, 0, group.name, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
@@ -1434,7 +1435,7 @@ class ListWin(Win):
                     if not txt:
                         continue
                     if line is self.lines[self._selected_row]:
-                        self.addstr(y, x, txt[:size], curses.color_pair(theme.COLOR_INFORMATION_BAR))
+                        self.addstr(y, x, txt[:size], common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
                     else:
                         self.addstr(y, x, txt[:size])
                     x += size
@@ -1488,7 +1489,7 @@ class ColumnHeaderWin(Win):
                 txt = col
                 size = self._columns_sizes[col]
                 txt += ' ' * (size-len(txt))
-                self.addstr(0, x, txt, curses.color_pair(theme.COLOR_COLUMN_HEADER))
+                self.addstr(0, x, txt, common.curses_color_pair(theme.COLOR_COLUMN_HEADER))
                 x += size
             self._refresh()
 

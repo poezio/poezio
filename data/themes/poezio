@@ -40,7 +40,7 @@ COLOR_TAB_PRIVATE = 28
 
 # Nickname colors
 LIST_COLOR_NICKNAMES = [
-    1, 2, 3, 4, 5, 6,
+    1, 2, 3, 4, 5, 6, -2, -4, -5, -6
     ]
 COLOR_OWN_NICK = 7
 

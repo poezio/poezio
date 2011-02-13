@@ -205,3 +205,8 @@ def shell_split(string):
         return ret
     except ValueError:
         return string.split()
+
+def curses_color_pair(color):
+    if color < 0:
+        return curses.color_pair(-color) | curses.A_BOLD
+    return curses.color_pair(color)
