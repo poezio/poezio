@@ -637,6 +637,10 @@ class TextWin(Win):
         for message in room.messages:
             self.build_new_message(message)
 
+    def __del__(self):
+        log.debug('** TextWin: deleting %s built lines' % (len(self.built_lines)))
+        del self.built_lines
+
 class HelpText(Win):
     """
     A Window just displaying a read-only message.

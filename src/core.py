@@ -1303,6 +1303,8 @@ class Core(object):
         tab.on_close()
         self.tabs.remove(tab)
         self.rotate_rooms_left()
+        del tab.key_func        # Remove self references
+        del tab.commands        # and make the object collectable
         del tab
 
     def move_separator(self):

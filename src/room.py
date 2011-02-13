@@ -123,4 +123,3 @@ class Room(TextBuffer):
             nb = window.build_new_message(message)
             if window.pos != 0:
                 window.scroll_up(nb)
-

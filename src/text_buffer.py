@@ -36,7 +36,7 @@ class TextBuffer(object):
         self.messages = []         # Message objects
         self.windows = []       # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
-        # they (the windows) can built the lines from the new message
+        # they (the windows) can build the lines from the new message
 
     def add_window(self, win):
         self.windows.append(win)
@@ -55,3 +55,8 @@ class TextBuffer(object):
             if window.pos != 0:
                 window.scroll_up(nb)
 
+    def del_window(self, win):
+        self.windows.remove(win)
+
+    def __del__(self):
+        log.debug('** Deleting %s messages from textbuffer' % (len(self.messages)))

@@ -210,6 +210,9 @@ class Tab(object):
         """
         pass
 
+    def __del__(self):
+        log.debug('Closing tab %s' % self.__class__.__name__)
+
 class ChatTab(Tab):
     """
     A tab containing a chat of any type.
