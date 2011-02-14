@@ -259,6 +259,16 @@ class ChatTab(Tab):
     def command_say(self, line):
         raise NotImplementedError
 
+class TabWithInfoWin(Tab):
+    def __init__(self):
+        self.info_win = windows.TextWin(20)
+        self.core.information_buffer.add_window(self.info_win)
+
+    def __del__(self):
+        self.core.information_buffer.del_window(self.info_win)
+        del self.info_win
+        Tab.__del__(self)
+
 class InfoTab(ChatTab):
     """
     The information tab, used to display global informations
@@ -267,8 +277,6 @@ class InfoTab(ChatTab):
     def __init__(self, core):
         Tab.__init__(self, core)
         self.tab_win = windows.GlobalInfoBar()
-        self.info_win = windows.TextWin()
-        self.core.information_buffer.add_window(self.info_win)
         self.input = windows.Input()
         self.name = "Info"
         self.color_state = theme.COLOR_TAB_NORMAL
@@ -338,21 +346,20 @@ class InfoTab(ChatTab):
     def on_close(self):
         return
 
-class MucTab(ChatTab):
+class MucTab(ChatTab, TabWithInfoWin):
     """
     The tab containing a multi-user-chat room.
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
+        TabWithInfoWin.__init__(self)
         self.topic_win = windows.Topic()
         self.text_win = windows.TextWin()
         room.add_window(self.text_win)
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
-        self.info_win = windows.TextWin()
-        self.core.information_buffer.add_window(self.info_win)
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         self.ignores = []       # set of Users
@@ -662,17 +669,16 @@ class MucTab(ChatTab):
     def on_close(self):
         return
 
-class PrivateTab(ChatTab):
+class PrivateTab(ChatTab, TabWithInfoWin):
     """
     The tab containg a private conversation (someone from a MUC)
     """
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
+        TabWithInfoWin.__init__(self)
         self.text_win = windows.TextWin()
         room.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
-        self.info_win = windows.TextWin()
-        self.core.information_buffer.add_window(self.info_win)
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         # keys
@@ -1043,21 +1049,20 @@ class RosterInfoTab(Tab):
     def on_close(self):
         return
 
-class ConversationTab(ChatTab):
+class ConversationTab(ChatTab, TabWithInfoWin):
     """
     The tab containg a normal conversation (not from a MUC)
     """
     def __init__(self, core, jid):
         txt_buff = text_buffer.TextBuffer()
         ChatTab.__init__(self, core, txt_buff)
+        TabWithInfoWin.__init__(self)
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         txt_buff.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.info_header = windows.ConversationInfoWin()
-        self.info_win = windows.TextWin()
-        self.core.information_buffer.add_window(self.info_win)
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         # keys
