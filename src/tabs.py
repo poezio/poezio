@@ -261,7 +261,7 @@ class ChatTab(Tab):
 
 class TabWithInfoWin(Tab):
     def __init__(self):
-        self.info_win = windows.TextWin()
+        self.info_win = windows.TextWin(20)
         self.core.information_buffer.add_window(self.info_win)
 
     def __del__(self):

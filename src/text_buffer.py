@@ -24,15 +24,15 @@ log = logging.getLogger(__name__)
 from message import Message
 from datetime import datetime
 import theme
-
-MESSAGE_NB_LIMIT = 8192
+from config import config
 
 class TextBuffer(object):
     """
     This class just keep trace of messages, in a list with various
     informations and attributes.
     """
-    def __init__(self):
+    def __init__(self, messages_nb_limit=config.get('max_messages_in_memory', 2048)):
+        self.messages_nb_limit = messages_nb_limit
         self.messages = []         # Message objects
         self.windows = []       # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
@@ -47,7 +47,7 @@ class TextBuffer(object):
         time = time or datetime.now()
         msg = Message(txt, time, nickname, nick_color, color, colorized)
         self.messages.append(msg)
-        while len(self.messages) > MESSAGE_NB_LIMIT:
+        while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
         for window in self.windows: # make the associated windows
             # build the lines from the new message

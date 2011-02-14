@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from text_buffer import TextBuffer, MESSAGE_NB_LIMIT
+from text_buffer import TextBuffer
 from datetime import datetime
 from random import randrange
 from config import config
@@ -29,8 +29,8 @@ import logging
 log = logging.getLogger(__name__)
 
 class Room(TextBuffer):
-    def __init__(self, name, nick):
-        TextBuffer.__init__(self)
+    def __init__(self, name, nick, messages_nb_limit=config.get('max_messages_in_memory', 2048)):
+        TextBuffer.__init__(self, messages_nb_limit)
         self.name = name
         self.own_nick = nick
         self.color_state = theme.COLOR_TAB_NORMAL   # color used in RoomInfo
@@ -115,7 +115,7 @@ class Room(TextBuffer):
         time = time if time is not None else datetime.now()
         nick_color = nick_color or user.color if user else None
         message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
-        while len(self.messages) > MESSAGE_NB_LIMIT:
+        while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
         self.messages.append(message)
         for window in self.windows: # make the associated windows

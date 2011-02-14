@@ -432,8 +432,9 @@ class MucInfoWin(InfoWin):
         self.addstr(txt, curses.color_pair(theme.COLOR_INFORMATION_BAR))
 
 class TextWin(Win):
-    def __init__(self):
+    def __init__(self, lines_nb_limit=config.get('max_lines_in_memory', 2048)):
         Win.__init__(self)
+        self.lines_nb_limit = lines_nb_limit
         self.pos = 0
         self.built_lines = []   # Each new message is built and kept here.
         # on resize, we rebuild all the messages
@@ -525,7 +526,7 @@ class TextWin(Win):
             if txt.startswith('\n'):
                 txt = txt[1:]
             first = False
-        while len(self.built_lines) > LINES_NB_LIMIT:
+        while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
         return nb
 
