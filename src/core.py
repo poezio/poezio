@@ -131,6 +131,7 @@ class Core(object):
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\n/Status: Globally change your status and your status message.'), self.completion_status),
+            'message': (self.command_message, _('Usage: /message <jid> [optional message]\n/Message: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             }
 
         self.key_func = {
@@ -1013,6 +1014,19 @@ class Core(object):
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
+
+    def command_message(self, arg):
+        """
+        /message <jid> [message]
+        """
+        args = arg.split()
+        if len(args) < 1:
+            self.command_help('message')
+            return
+        jid = args[0]
+        tab = self.open_conversation_window(jid, focus=True)
+        if len(args) > 1:
+            tab.command_say(arg.strip()[len(jid):])
 
     def command_list(self, arg):
         """
