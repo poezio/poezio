@@ -50,10 +50,12 @@ def read_char(s):
         if first <= 26:         # transform Ctrl+* keys
             return  "^"+chr(first + 64)
         if first == 27:
-            (first, c) = get_next_byte(s)
-            if not isinstance(first, int):
-                return None
-            return "M-"+chr(first)
+            second = read_char(s)
+            res = 'M-%s' % (second,)
+            if second == '[':
+                for i in range(4):
+                    res += read_char(s)
+            return res
     if 194 <= first:
         (code, c) = get_next_byte(s) # 2 bytes char
         char += c
@@ -71,6 +73,10 @@ def read_char(s):
 if __name__ == '__main__':
     import curses
     s = curses.initscr()
+    curses.curs_set(1)
+    curses.noecho()
+    curses.nonl()
+    s.keypad(True)
     curses.noecho()
     while True:
         s.addstr('%s\n' % read_char(s))
