@@ -717,6 +717,7 @@ class Input(Win):
             "M-[1;5C": self.jump_word_right,
             "KEY_BACKSPACE": self.key_backspace,
             '^?': self.key_backspace,
+            '^J': self.add_line_break,
             }
         Win.__init__(self)
         self.text = ''
@@ -1008,6 +1009,12 @@ class Input(Win):
             self.on_input(self.get_text())
         return True
 
+    def add_line_break(self):
+        """
+        Add a (real) \n to the line
+        """
+        self.do_command('\n')
+
     def get_text(self):
         """
         Clear the input and return the text entered so far
@@ -1019,10 +1026,11 @@ class Input(Win):
         Refresh the line onscreen, from the pos and pos_line
         """
         with g_lock:
+            text = self.text.replace('\n', '|')
             self._win.erase()
             if self.color:
                 self._win.attron(common.curses_color_pair(self.color))
-            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
+            self.addstr(text[self.line_pos:self.line_pos+self.width-1])
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
