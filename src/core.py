@@ -104,7 +104,6 @@ class Core(object):
             else tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs = [default_tab]
-        self.resize_timer = None
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
@@ -671,29 +670,10 @@ class Core(object):
 
     def call_for_resize(self):
         """
-        Starts a very short timer. If no other terminal resize
-        occured in this delay then poezio is REALLY resize.
-        This is to avoid multiple unnecessary software resizes (this
-        can be heavy on resource on slow computers or networks)
-        """
-        with resize_lock:
-            if self.resize_timer:
-                # a recent terminal resize occured.
-                # Cancel the programmed software resize
-                self.resize_timer.cancel()
-            # add the new timer
-            self.resize_timer = threading.Timer(0.05, self.resize_window)
-            self.resize_timer.start()
-
-    def resize_window(self):
-        """
-        Resize the whole screen
+        Called when we want to resize the screen
         """
         with resize_lock:
             for tab in self.tabs:
-                # Each tab will be resized the next
-                # time it will be refresh()'ed
-                # Making the resize process faster
                 tab.need_resize = True
             self.refresh_window()
 
@@ -1057,7 +1037,7 @@ class Core(object):
         """
         """
         theme.reload_theme()
-        self.resize_window()
+        self.refresh_window()
 
     def command_win(self, arg):
         """
