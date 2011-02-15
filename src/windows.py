@@ -706,6 +706,7 @@ class Input(Win):
             "KEY_DC": self.key_dc,
             '^D': self.key_dc,
             'M-b': self.jump_word_left,
+            "M-[1;5D": self.jump_word_left,
             '^W': self.delete_word,
             '^K': self.delete_end_of_line,
             '^U': self.delete_begining_of_line,
@@ -713,6 +714,7 @@ class Input(Win):
             '^A': self.key_home,
             '^E': self.key_end,
             'M-f': self.jump_word_right,
+            "M-[1;5C": self.jump_word_right,
             "KEY_BACKSPACE": self.key_backspace,
             '^?': self.key_backspace,
             }
@@ -991,8 +993,8 @@ class Input(Win):
             if self.on_input:
                 self.on_input(self.get_text())
             return res
-        # if not key or len(key) > 1:
-        #     return False   # ignore non-handled keyboard shortcuts
+        if not key or len(key) > 1:
+            return False   # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
