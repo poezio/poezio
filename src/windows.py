@@ -111,10 +111,10 @@ class UserList(Win):
                            }
 
     def scroll_up(self):
-        self.pos += 4
+        self.pos += self.height-1
 
     def scroll_down(self):
-        self.pos -= 4
+        self.pos -= self.height-1
         if self.pos < 0:
             self.pos = 0
 
