@@ -812,6 +812,8 @@ class RosterInfoTab(Tab):
         self.key_func["KEY_DOWN"] = self.move_cursor_down
         self.key_func["M-u"] = self.move_cursor_to_next_group
         self.key_func["M-y"] = self.move_cursor_to_prev_group
+        self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
+        self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
