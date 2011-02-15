@@ -1118,9 +1118,7 @@ class CommandInput(Input):
         self.on_success = on_success
         self.on_input = on_input
         self.help_message = help_message
-        self.key_func['^J'] = self.success
         self.key_func['^M'] = self.success
-        self.key_func['\n'] = self.success
         self.key_func['^G'] = self.abort
         self.key_func['^C'] = self.abort
 

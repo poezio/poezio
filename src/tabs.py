@@ -219,16 +219,14 @@ class ChatTab(Tab):
     """
     A tab containing a chat of any type.
     Just use this class instead of Tab if the tab needs a recent-words completion
-    Also, \n, ^J and ^M are already bound to on_enter
+    Also, ^M is already bound to on_enter
     And also, add the /say command
     """
     def __init__(self, core, room):
         Tab.__init__(self, core)
         self._room = room
         self.key_func['M-/'] = self.last_words_completion
-        self.key_func['^J'] = self.on_enter
         self.key_func['^M'] = self.on_enter
-        self.key_func['\n'] = self.on_enter
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'"""), None)
@@ -282,9 +280,7 @@ class InfoTab(ChatTab):
         self.input = windows.Input()
         self.name = "Info"
         self.color_state = theme.COLOR_TAB_NORMAL
-        self.key_func['^J'] = self.on_enter
         self.key_func['^M'] = self.on_enter
-        self.key_func['\n'] = self.on_enter
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
         self.resize()
@@ -804,7 +800,6 @@ class RosterInfoTab(Tab):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
-        self.key_func["^J"] = self.on_enter
         self.key_func["^M"] = self.on_enter
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
@@ -1217,7 +1212,6 @@ class MucListTab(Tab):
         self.key_func["/"] = self.on_slash
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
-        self.key_func['^J'] = self.join_selected
         self.key_func['^M'] = self.join_selected
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab"), None)
         self.resize()

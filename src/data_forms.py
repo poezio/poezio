@@ -196,14 +196,14 @@ class TextMultiWin(FieldInput, windows.Win):
             elif key == 'KEY_RIGHT':
                 if self.val_pos < len(self.options)-1:
                     self.val_pos += 1
-            elif key in ('^J', '^M', '\n'):
+            elif key == '^M':
                 self.edition_input = windows.Input()
                 self.edition_input.color = self.color
                 self.edition_input.resize(self.height, self.width, self.y, self.x)
                 self.edition_input.text = self.options[self.val_pos]
                 self.edition_input.key_end()
         else:
-            if key in ('^J', '^M', '\n'):
+            if key == '^M':
                 self.options[self.val_pos] = self.edition_input.get_text()
                 if not self.options[self.val_pos] and self.val_pos != len(self.options) -1:
                     del self.options[self.val_pos]
