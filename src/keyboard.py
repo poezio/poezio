@@ -57,7 +57,7 @@ def read_char(s):
     if first < 127:  # ASCII char on one byte
         if first <= 26:         # transform Ctrl+* keys
             char = chr(first + 64)
-            if char == 'M' and time.time() - last_char_time < 0.0001:
+            if char == 'M' and time.time() - last_char_time < 0.0005:
                 char = 'J'
             return  "^"+char
         if first == 27:
