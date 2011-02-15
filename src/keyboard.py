@@ -21,6 +21,10 @@ of the time ONE char, but may be longer if it's a keyboard
 shortcut, like ^A, M-a or KEY_RESIZE)
 """
 
+import time
+
+last_char_time = None
+
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
@@ -41,6 +45,10 @@ def read_char(s):
     Read one utf-8 char
     see http://en.wikipedia.org/wiki/UTF-8#Description
     """
+    # We use a timer to know if we are pasting from the
+    # clipboard or not
+    global last_char_time
+    last_char_time = time.time()
     (first, char) = get_next_byte(s)
     if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
         return char
@@ -48,7 +56,10 @@ def read_char(s):
         return "KEY_BACKSPACE"
     if first < 127:  # ASCII char on one byte
         if first <= 26:         # transform Ctrl+* keys
-            return  "^"+chr(first + 64)
+            char = chr(first + 64)
+            if char == 'M' and time.time() - last_char_time < 0.0001:
+                char = 'J'
+            return  "^"+char
         if first == 27:
             second = read_char(s)
             res = 'M-%s' % (second,)
