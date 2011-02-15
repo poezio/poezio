@@ -691,7 +691,10 @@ class Core(object):
         """
         with resize_lock:
             for tab in self.tabs:
-                tab.resize()
+                # Each tab will be resized the next
+                # time it will be refresh()'ed
+                # Making the resize process faster
+                tab.need_resize = True
             self.refresh_window()
 
     def main_loop(self):

@@ -52,6 +52,7 @@ class Tab(object):
     def __init__(self, core):
         self.core = core        # a pointer to core, to access its attributes (ugly?)
         self._color_state = theme.COLOR_TAB_NORMAL
+        self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
         self.size = (self.height, self.width) = self.core.stdscr.getmaxyx()
@@ -123,6 +124,7 @@ class Tab(object):
             self.visible = False
         else:
             self.visible = True
+        self.need_resize = False
 
     def refresh(self, tabs, informations, roster):
         """
@@ -298,6 +300,8 @@ class InfoTab(ChatTab):
     def refresh(self, tabs, informations, _):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -589,6 +593,8 @@ class MucTab(ChatTab, TabWithInfoWin):
     def refresh(self, tabs, informations, _):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.topic_win.refresh(self._room.topic)
         self.text_win.refresh(self._room)
         self.v_separator.refresh()
@@ -719,6 +725,8 @@ class PrivateTab(ChatTab, TabWithInfoWin):
     def refresh(self, tabs, informations, _):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.text_win.refresh(self._room)
         self.info_header.refresh(self._room, self.text_win)
         self.info_win.refresh(informations)
@@ -912,6 +920,8 @@ class RosterInfoTab(Tab):
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -1101,6 +1111,8 @@ class ConversationTab(ChatTab, TabWithInfoWin):
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.text_win.refresh(self._room)
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win)
@@ -1193,6 +1205,8 @@ class MucListTab(Tab):
     def refresh(self, tabs, informations, roster):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
@@ -1341,6 +1355,8 @@ class SimpleTextTab(Tab):
     def refresh(self, tabs, information, roster):
         if not self.visible:
             return
+        if self.need_resize:
+            self.resize()
         self.text_win.refresh()
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
