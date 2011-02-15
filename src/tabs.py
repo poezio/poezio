@@ -810,6 +810,8 @@ class RosterInfoTab(Tab):
         self.key_func["/"] = self.on_slash
         self.key_func["KEY_UP"] = self.move_cursor_up
         self.key_func["KEY_DOWN"] = self.move_cursor_down
+        self.key_func["M-u"] = self.move_cursor_to_next_group
+        self.key_func["M-y"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
@@ -998,13 +1000,29 @@ class RosterInfoTab(Tab):
         self.roster_win.move_cursor_up()
         return True
 
+    def move_cursor_to_prev_group(self):
+        self.roster_win.move_cursor_up()
+        while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
+            if not self.roster_win.move_cursor_up():
+                break
+        self.core.refresh_window()
+
+    def move_cursor_to_next_group(self):
+        self.roster_win.move_cursor_down()
+        while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
+            if not self.roster_win.move_cursor_down():
+                break
+        self.core.refresh_window()
+
     def on_scroll_down(self):
-        # Scroll info win
-        pass
+        for i in range(self.height-1):
+            self.roster_win.move_cursor_down()
+        return True
 
     def on_scroll_up(self):
-        # Scroll info down
-        pass
+        for i in range(self.height-1):
+            self.roster_win.move_cursor_up()
+        return True
 
     def on_info_win_size_changed(self):
         pass

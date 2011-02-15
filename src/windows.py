@@ -452,10 +452,23 @@ class TextWin(Win):
         if self.pos <= 0:
             self.pos = 0
 
+    def scroll_to_separator(self):
+        """
+        Scroll until separator is centered. If no separator is
+        present, scroll at the top of the window
+        """
+        if None in self.built_lines:
+            self.pos = self.built_lines.index(None)
+            # Chose a proper position (not too high)
+            self.scroll_up(0)
+        else:                   # Go at the top of the win
+            self.pos = len(self.built_lines) - self.height
+
     def remove_line_separator(self):
         """
         Remove the line separator
         """
+        log.debug('remove_line_separator')
         if None in self.built_lines:
             self.built_lines.remove(None)
 
@@ -978,8 +991,8 @@ class Input(Win):
             if self.on_input:
                 self.on_input(self.get_text())
             return res
-        if not key or len(key) > 1:
-            return False   # ignore non-handled keyboard shortcuts
+        # if not key or len(key) > 1:
+        #     return False   # ignore non-handled keyboard shortcuts
         self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
@@ -1187,16 +1200,28 @@ class RosterWin(Win):
         self._resize(height, width, y, x, stdscr)
 
     def move_cursor_down(self):
+        """
+        Return True if we scrolled, False otherwise
+        """
         if self.pos < self.roster_len-1:
             self.pos += 1
+        else:
+            return False
         if self.pos == self.start_pos-1 + self.height-1:
             self.scroll_down()
+        return True
 
     def move_cursor_up(self):
+        """
+        Return True if we scrolled, False otherwise
+        """
         if self.pos > 0:
             self.pos -= 1
+        else:
+            return False
         if self.pos == self.start_pos-2:
             self.scroll_up()
+        return True
 
     def scroll_down(self):
         self.start_pos += 8
@@ -1329,7 +1354,28 @@ class RosterWin(Win):
             self.addstr(y, 6, resource.get_jid().full)
 
     def get_selected_row(self):
-        return self.selected_row
+        y = 1
+        for group in roster.get_groups():
+            if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
+                continue    # Ignore empty groups
+            if y-1 == self.pos:
+                return group
+            y += 1
+            if group.folded:
+                continue
+            for contact in group.get_contacts(roster._contact_filter):
+                if config.get('roster_show_offline', 'false') == 'false' and\
+                        contact.get_nb_resources() == 0:
+                    continue
+                if y-1 == self.pos:
+                    return contact
+                y += 1
+                if not contact._folded:
+                    for resource in contact.get_resources():
+                        if y-1 == self.pos:
+                            return resource
+                        y += 1
+        return None
 
 class ContactInfoWin(Win):
     def __init__(self):
