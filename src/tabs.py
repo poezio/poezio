@@ -269,13 +269,14 @@ class TabWithInfoWin(Tab):
         del self.info_win
         Tab.__del__(self)
 
-class InfoTab(ChatTab):
+class InfoTab(ChatTab, TabWithInfoWin):
     """
     The information tab, used to display global informations
     when using a anonymous account
     """
     def __init__(self, core):
         Tab.__init__(self, core)
+        TabWithInfoWin.__init__(self)
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.Input()
         self.name = "Info"

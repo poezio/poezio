@@ -684,7 +684,7 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
-        curses.ungetch('\n')    # FIXME
+        curses.ungetch(0)    # FIXME
         while self.running:
             char = read_char(self.stdscr)
             # search for keyboard shortcut
