@@ -48,6 +48,7 @@ from sleekxmpp.xmlstream.stanzabase import JID
 
 import theme
 import common
+import wcwidth
 
 g_lock = Lock()
 
@@ -391,10 +392,8 @@ class MucInfoWin(InfoWin):
             self._refresh()
 
     def write_room_name(self, room):
-        """
-        """
         self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addnstr(room.name, len(room.name), common.curses_color_pair(theme.COLOR_GROUPCHAT_NAME))
+        self.addstr(room.name, common.curses_color_pair(theme.COLOR_GROUPCHAT_NAME))
         self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_disconnected(self, room):
@@ -491,23 +490,27 @@ class TextWin(Win):
         txt = message.txt
         if not txt:
             return 0
-            # length of the time
+        else:
+            txt = txt.replace('\t', '    ')
+        # length of the time
         offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
-        if message.nickname and len(message.nickname) >= 30:
-            nick = message.nickname[:30]+'…'
+        if message.nickname and wcwidth.wcswidth(message.nickname) >= 25:
+            nick = message.nickname[:25]+'…'
         else:
             nick = message.nickname
         if nick:
-            offset += len(nick) + 2 # + nick + spaces length
+            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         first = True
         this_line_was_broken_by_space = False
         nb = 0
         while txt != '':
-            limit = txt[:self.width-offset].find('\n')
+            cutted_txt = wcwidth.widthcut(txt, self.width-offset) or txt[:self.width-offset]
+            limit = cutted_txt.find('\n')
             if limit < 0:
                 # break between words if possible
-                if len(txt) >= self.width-offset:
-                    limit = txt[:self.width-offset].rfind(' ')
+                if wcwidth.wcswidth(txt) >= self.width-offset:
+                    cutted_txt = wcwidth.widthcut(txt, self.width-offset) or txt[:self.width-offset]
+                    limit = cutted_txt.rfind(' ')
                     this_line_was_broken_by_space = True
                     if limit <= 0:
                         limit = self.width-offset
@@ -528,15 +531,18 @@ class TextWin(Win):
                         }
             l = Line(nick, color,
                      time,
-                     txt[:limit], message.color,
+                     wcwidth.widthcut(txt, limit) or txt[:limit], message.color,
                      offset,
                      message.colorized)
             self.built_lines.append(l)
             nb += 1
             if this_line_was_broken_by_space:
-                txt = txt[limit+1:] # jump the space at the start of the line
-            else:
+                limit += 1   # jump the space at the start of the line
+            cutted_txt = wcwidth.widthcut(txt, limit)
+            if not cutted_txt:
                 txt = txt[limit:]
+            else:
+                txt = txt[len(cutted_txt):]
             if txt.startswith('\n'):
                 txt = txt[1:]
             first = False
@@ -567,13 +573,11 @@ class TextWin(Win):
                     if line.nickname:
                         self.write_nickname(line.nickname, line.nickname_color)
                     self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-                if y != self.height-1 or (not line or line.text_offset+len(line.text) < self.width):
+                if y != self.height-1 or (not line or line.text_offset+wcwidth.wcswidth(line.text) < self.width):
                     self.addstr('\n')
             self._refresh()
 
     def write_line_separator(self):
-        """
-        """
         self.addnstr('- '*(self.width//2-1)+'-', self.width, common.curses_color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt, color, colorized):
@@ -603,7 +607,7 @@ class TextWin(Win):
                     .replace('"(', '').replace(')"', '')
                 splitted = txt.split()
             for word in splitted:
-                if word in list(special_words.keys()):
+                if word in special_words.keys():
                     self.addstr(word, common.curses_color_pair(special_words[word]))
                 elif word.startswith('(') and word.endswith(')'):
                     self.addstr('(', common.curses_color_pair(color))
@@ -1000,9 +1004,9 @@ class Input(Win):
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
         if x == self.width-1:
-            self.line_pos += len(key)
+            self.line_pos += 1 # wcwidth.wcswidth(key)
         else:
-            self.pos += len(key)
+            self.pos += 1 # wcwidth.wcswidth(key)
         if reset:
             self.rewrite_text()
         if self.on_input:
@@ -1030,12 +1034,13 @@ class Input(Win):
             self._win.erase()
             if self.color:
                 self._win.attron(common.curses_color_pair(self.color))
-            self.addstr(text[self.line_pos:self.line_pos+self.width-1])
+            displayed_text = text[self.line_pos:self.line_pos+self.width-1]
+            self.addstr(displayed_text)
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
                 self.addnstr(' '*size, size, common.curses_color_pair(self.color))
-            self.addstr(0, self.pos, '') # WTF, this works but .move() doesn't…
+            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
             if self.color:
                 self._win.attroff(common.curses_color_pair(self.color))
             self._refresh()
