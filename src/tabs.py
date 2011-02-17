@@ -380,7 +380,7 @@ class MucTab(ChatTab, TabWithInfoWin):
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
-        # self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
+        self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.resize()
 
     def scroll_user_list_up(self):
