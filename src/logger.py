@@ -69,10 +69,14 @@ class Logger(object):
             fd = self.check_and_create_log_dir(jid)
         if not fd:
             return
-        if nick:
-            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
+        try:
+            if nick:
+                fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
+            else:
+                fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
+        except IOError:
+            pass
         else:
-            fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
-        fd.flush()              # TODO do something better here?
+            fd.flush()          # TODO do something better here?
 
 logger = Logger()
