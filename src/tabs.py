@@ -555,7 +555,12 @@ class MucTab(ChatTab, TabWithInfoWin):
             self.core.room_error(res, self.get_name())
 
     def command_say(self, line):
-        muc.send_groupchat_message(self.core.xmpp, self.get_name(), line)
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['type'] = 'groupchat'
+        msg['body'] = line
+        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
+            msg['chat_state'] = 'active'
+        msg.send()
 
     def command_ignore(self, arg):
         """

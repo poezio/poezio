@@ -240,6 +240,8 @@ class Core(object):
                 if not room:
                     return
                 self.on_chatstate_private_conversation(message, state)
+        elif message['type'] == 'groupchat':
+            self.on_chatstate_groupchat_conversation(message, state)
 
     def on_chatstate_normal_conversation(self, message,state):
         tab = self.get_tab_of_conversation_with_jid(message['from'], False)
@@ -258,6 +260,15 @@ class Core(object):
         if tab == self.current_tab():
             self.refresh_window()
         return True
+
+    def on_chatstate_groupchat_conversation(self, message, state):
+        nick = message['mucnick']
+        room_from = message.getMucroom()
+        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        if tab and tab.get_room() and tab.get_room().get_user_by_name(nick):
+            tab.get_room().get_user_by_name(nick).chatstate = state
+        if tab == self.current_tab():
+            self.refresh_window()
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """

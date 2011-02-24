@@ -43,6 +43,7 @@ class User(object):
         self.change_nick(nick)
         self.color = choice(theme.LIST_COLOR_NICKNAMES)
         self.jid = jid
+        self.chatstate = None
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation

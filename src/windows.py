@@ -138,7 +138,11 @@ class UserList(Win):
                     show_col = theme.COLOR_STATUS_NONE
                 else:
                     show_col = self.color_show[user.show]
-                self.addstr(y, 0, theme.CHAR_STATUS, common.curses_color_pair(show_col))
+                if user.chatstate == 'composing':
+                    char = 'X'
+                else:
+                    char = theme.CHAR_STATUS
+                self.addstr(y, 0, char, common.curses_color_pair(show_col))
                 self.addstr(y, 1, user.nick[:self.width-2], common.curses_color_pair(role_col))
                 y += 1
                 if y == self.height:
