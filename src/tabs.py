@@ -1172,7 +1172,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
             msg['type'] = 'chat'
             msg['chat_state'] = 'active'
             msg.send()
-        elif self.input.get_text() and empty_before:
+        elif self.input.get_text() and empty_before and not self.input.get_text().startswith('/'):
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = 'chat'
             msg['chat_state'] = 'composing'
