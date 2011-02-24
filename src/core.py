@@ -625,7 +625,7 @@ class Core(object):
                          colorized=False,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
-        if conversation.remote_wants_chatstates is None:
+        if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
             else:
