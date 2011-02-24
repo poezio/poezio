@@ -1165,14 +1165,15 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == ''
+        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
         self.input.do_command(key)
-        if not self.input.get_text() and not empty_before:
+        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        if not empty_before and empty_after:
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = 'chat'
             msg['chat_state'] = 'active'
             msg.send()
-        elif self.input.get_text() and empty_before and not self.input.get_text().startswith('/'):
+        elif empty_before and not empty_after:
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = 'chat'
             msg['chat_state'] = 'composing'
