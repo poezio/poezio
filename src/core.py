@@ -243,6 +243,8 @@ class Core(object):
         if not tab:
             return
         tab.chatstate = state
+        if tab == self.current_tab():
+            self.refresh_window()
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
