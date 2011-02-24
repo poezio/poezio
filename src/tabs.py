@@ -260,6 +260,24 @@ class ChatTab(Tab):
                 txt = txt[1:]
             self.command_say(txt)
 
+    def send_composing_chat_state(self, empty_before, empty_after):
+        """
+        Send the "active" or "composing" chatstate, depending
+        on the the current status of the input
+        """
+        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
+            if not empty_before and empty_after:
+                msg = self.core.xmpp.make_message(self.get_name())
+                msg['type'] = 'chat'
+                msg['chat_state'] = 'active'
+                msg.send()
+            elif empty_before and not empty_after:
+                msg = self.core.xmpp.make_message(self.get_name())
+                msg['type'] = 'chat'
+                msg['chat_state'] = 'composing'
+                log.debug('MSG:%s\n' % msg)
+                msg.send()
+
     def command_say(self, line):
         raise NotImplementedError
 
@@ -1114,7 +1132,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
-        if self.remote_wants_chatstates is not False:
+        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
@@ -1168,17 +1186,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
-        if not empty_before and empty_after:
-            msg = self.core.xmpp.make_message(self.get_name())
-            msg['type'] = 'chat'
-            msg['chat_state'] = 'active'
-            msg.send()
-        elif empty_before and not empty_after:
-            msg = self.core.xmpp.make_message(self.get_name())
-            msg['type'] = 'chat'
-            msg['chat_state'] = 'composing'
-            log.debug('MSG:%s\n' % msg)
-            msg.send()
+        self.send_composing_chat_state(empty_before, empty_after)
         return False
 
     def on_lose_focus(self):
