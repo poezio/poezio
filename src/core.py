@@ -220,25 +220,25 @@ class Core(object):
 
     def on_chatstate_active(self, message):
         if message['type'] == 'chat': # normal conversation
-            self.on_chatstate_normal_conversation("active")
+            self.on_chatstate_normal_conversation(message, "active")
 
     def on_chatstate_inactive(self, message):
         if message['type'] == 'chat': # normal conversation
-            self.on_chatstate_normal_conversation("inactive")
+            self.on_chatstate_normal_conversation(message, "inactive")
 
     def on_chatstate_composing(self, message):
         if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation("composing")
+            self.on_chatstate_normal_conversation(message, "composing")
 
     def on_chatstate_paused(self, message):
         if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation("paused")
+            self.on_chatstate_normal_conversation(message, "paused")
 
     def on_chatstate_gone(self, message):
         if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation("gone")
+            self.on_chatstate_normal_conversation(message, "gone")
 
-    def on_chatstate_normal_conversation(self, state):
+    def on_chatstate_normal_conversation(self, message,state):
         tab = self.get_tab_of_conversation_with_jid(message['from'], False)
         if not tab:
             return
