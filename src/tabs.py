@@ -260,6 +260,15 @@ class ChatTab(Tab):
                 txt = txt[1:]
             self.command_say(txt)
 
+    def send_chat_state(self, state):
+        """
+        Send an empty chatstate message
+        """
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['type'] = 'chat'
+        msg['chat_state'] = state
+        msg.send()
+
     def send_composing_chat_state(self, empty_before, empty_after):
         """
         Send the "active" or "composing" chatstate, depending
@@ -267,16 +276,9 @@ class ChatTab(Tab):
         """
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
             if not empty_before and empty_after:
-                msg = self.core.xmpp.make_message(self.get_name())
-                msg['type'] = 'chat'
-                msg['chat_state'] = 'active'
-                msg.send()
+                self.send_chat_state("active")
             elif empty_before and not empty_after:
-                msg = self.core.xmpp.make_message(self.get_name())
-                msg['type'] = 'chat'
-                msg['chat_state'] = 'composing'
-                log.debug('MSG:%s\n' % msg)
-                msg.send()
+                self.send_chat_state("composing")
 
     def command_say(self, line):
         raise NotImplementedError
@@ -1193,10 +1195,14 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
+        if config.get('send_chat_states', 'true') == 'true':
+            self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
+        if config.get('send_chat_states', 'true') == 'true':
+            self.send_chat_state('active')
 
     def on_scroll_up(self):
         self.text_win.scroll_up(self.text_win.height-1)
@@ -1221,7 +1227,8 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         return
 
     def on_close(self):
-        return
+        if config.get('send_chat_states', 'true') == 'true':
+            self.send_chat_state('gone')
 
 class MucListTab(Tab):
     """
