@@ -265,7 +265,7 @@ class ChatTab(Tab):
         Send an empty chatstate message
         """
         msg = self.core.xmpp.make_message(self.get_name())
-        msg['type'] = 'chat'
+        msg['type'] = self.message_type
         msg['chat_state'] = state
         msg.send()
 
@@ -376,6 +376,7 @@ class MucTab(ChatTab, TabWithInfoWin):
     The tab containing a multi-user-chat room.
     It contains an userlist, an input, a topic, an information and a chat zone
     """
+    message_type = 'chat'
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
         TabWithInfoWin.__init__(self)
@@ -633,7 +634,10 @@ class MucTab(ChatTab, TabWithInfoWin):
         if key in self.key_func:
             self.key_func[key]()
             return False
+        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
         self.input.do_command(key)
+        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        self.send_composing_chat_state(empty_before, empty_after)
         return False
 
     def completion(self):
@@ -673,12 +677,16 @@ class MucTab(ChatTab, TabWithInfoWin):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+            self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+            self.send_chat_state('active')
 
     def on_scroll_up(self):
         self.text_win.scroll_up(self.text_win.height-1)
@@ -704,6 +712,7 @@ class PrivateTab(ChatTab, TabWithInfoWin):
     """
     The tab containg a private conversation (someone from a MUC)
     """
+    message_type = 'chat'
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
         TabWithInfoWin.__init__(self)
@@ -774,17 +783,24 @@ class PrivateTab(ChatTab, TabWithInfoWin):
         if key in self.key_func:
             self.key_func[key]()
             return False
+        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
         self.input.do_command(key)
+        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        self.send_composing_chat_state(empty_before, empty_after)
         return False
 
     def on_lose_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+            self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+            self.send_chat_state('active')
 
     def on_scroll_up(self):
         self.text_win.scroll_up(self.text_win.height-1)
@@ -1107,6 +1123,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
     """
     The tab containg a normal conversation (not from a MUC)
     """
+    message_type = 'chat'
     def __init__(self, core, jid):
         txt_buff = text_buffer.TextBuffer()
         ChatTab.__init__(self, core, txt_buff)
@@ -1195,13 +1212,13 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true':
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true':
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
