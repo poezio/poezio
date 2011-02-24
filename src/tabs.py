@@ -225,6 +225,10 @@ class ChatTab(Tab):
     def __init__(self, core, room):
         Tab.__init__(self, core)
         self._room = room
+        self.remote_wants_chatstates = None # change this to True or False when
+        # we know that the remote user wants chatstates, or not.
+        # None means we don’t know yet, and we send only "active" chatstates
+        self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
@@ -355,6 +359,10 @@ class MucTab(ChatTab, TabWithInfoWin):
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
         TabWithInfoWin.__init__(self)
+        self.remote_wants_chatstates = True
+        # We send active, composing and paused states to the MUC because
+        # the chatstate may or may not be filtered by the MUC,
+        # that’s not our problem.
         self.topic_win = windows.Topic()
         self.text_win = windows.TextWin()
         room.add_window(self.text_win)
@@ -1103,7 +1111,12 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         self.complete_commands(self.input)
 
     def command_say(self, line):
-        muc.send_private_message(self.core.xmpp, self.get_name(), line)
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['type'] = 'chat'
+        msg['body'] = line
+        if self.remote_wants_chatstates is not False:
+            msg['chat_state'] = 'active'
+        msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
 
@@ -1131,7 +1144,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
             self.resize()
         self.text_win.refresh(self._room)
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -1152,7 +1165,19 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         if key in self.key_func:
             self.key_func[key]()
             return False
+        empty_before = self.input.get_text() == ''
         self.input.do_command(key)
+        if not self.input.get_text() and not empty_before:
+            msg = self.core.xmpp.make_message(self.get_name())
+            msg['type'] = 'chat'
+            msg['chat_state'] = 'active'
+            msg.send()
+        elif self.input.get_text() and empty_before:
+            msg = self.core.xmpp.make_message(self.get_name())
+            msg['type'] = 'chat'
+            msg['chat_state'] = 'composing'
+            log.debug('MSG:%s\n' % msg)
+            msg.send()
         return False
 
     def on_lose_focus(self):

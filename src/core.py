@@ -170,7 +170,11 @@ class Core(object):
         self.xmpp.add_event_handler("changed_status", self.on_presence)
         self.xmpp.add_event_handler("changed_subscription", self.on_changed_subscription)
         self.xmpp.add_event_handler("message_xform", self.on_data_form)
-
+        self.xmpp.add_event_handler("chatstate_active", self.on_chatstate_active)
+        self.xmpp.add_event_handler("chatstate_composing", self.on_chatstate_composing)
+        self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
+        self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
+        self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
         self.information(_('Welcome to poezio!'))
         self.refresh_window()
 
@@ -213,6 +217,32 @@ class Core(object):
         When a data form is received
         """
         self.information('%s' % messsage)
+
+    def on_chatstate_active(self, message):
+        if message['type'] == 'chat': # normal conversation
+            self.on_chatstate_normal_conversation("active")
+
+    def on_chatstate_inactive(self, message):
+        if message['type'] == 'chat': # normal conversation
+            self.on_chatstate_normal_conversation("inactive")
+
+    def on_chatstate_composing(self, message):
+        if message['type'] == 'chat':
+            self.on_chatstate_normal_conversation("composing")
+
+    def on_chatstate_paused(self, message):
+        if message['type'] == 'chat':
+            self.on_chatstate_normal_conversation("paused")
+
+    def on_chatstate_gone(self, message):
+        if message['type'] == 'chat':
+            self.on_chatstate_normal_conversation("gone")
+
+    def on_chatstate_normal_conversation(self, state):
+        tab = self.get_tab_of_conversation_with_jid(message['from'], False)
+        if not tab:
+            return
+        tab.chatstate = state
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
@@ -577,6 +607,25 @@ class Core(object):
             if tab.get_name() == tab_name:
                 self.command_win('%s' % (tab.nb,))
 
+    def get_tab_of_conversation_with_jid(self, jid, create=True):
+        """
+        From a JID, get the tab containing the conversation with it.
+        If none already exist, and create is "True", we create it
+        and return it. Otherwise, we return None
+        """
+        # We first check if we have a conversation opened with this precise resource
+        conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
+        if not conversation:
+            # If not, we search for a conversation with the bare jid
+            conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
+            if not conversation:
+                if create:
+                    # We create the conversation with the bare Jid if nothing was found
+                    conversation = self.open_conversation_window(jid.bare, False)
+                else:
+                    conversation = None
+        return conversation
+
     def on_normal_message(self, message):
         """
         When receiving "normal" messages (from someone in our roster)
@@ -585,19 +634,17 @@ class Core(object):
         body = message['body']
         if not body:
             return
-        # We first check if we have a conversation opened with this precise resource
-        conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
-        if not conversation:
-            # If not, we search for a conversation with the bare jid
-            conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
-            if not conversation:
-                # We create the conversation with the bare Jid if nothing was found
-                conversation = self.open_conversation_window(jid.bare, False)
+        conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         if roster.get_contact_by_jid(jid.bare):
             remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
             remote_nick = jid.user
         conversation.get_room().add_message(body, None, remote_nick, False, theme.COLOR_REMOTE_USER)
+        if conversation.remote_wants_chatstates is None:
+            if message['chat_state']:
+                conversation.remote_wants_chatstates = True
+            else:
+                conversation.remote_wants_chatstates = False
         logger.log_message(jid.bare, remote_nick, body)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)

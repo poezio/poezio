@@ -282,7 +282,7 @@ class ConversationInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, jid, contact, text_buffer, window):
+    def refresh(self, jid, contact, text_buffer, window, chatstate):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -305,6 +305,7 @@ class ConversationInfoWin(InfoWin):
             self.write_contact_informations(contact)
             self.write_resource_information(resource)
             self.print_scroll_position(window)
+            self.write_chatstate(chatstate)
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -338,6 +339,10 @@ class ConversationInfoWin(InfoWin):
         self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.addstr(jid.full, common.curses_color_pair(theme.COLOR_CONVERSATION_NAME))
         self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_chatstate(self, state):
+        if state:
+            self.addstr(' %s' % (state,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class ConversationStatusMessageWin(InfoWin):
     """
