@@ -376,7 +376,7 @@ class MucTab(ChatTab, TabWithInfoWin):
     The tab containing a multi-user-chat room.
     It contains an userlist, an input, a topic, an information and a chat zone
     """
-    message_type = 'chat'
+    message_type = 'groupchat'
     def __init__(self, core, room):
         ChatTab.__init__(self, core, room)
         TabWithInfoWin.__init__(self)
@@ -733,9 +733,14 @@ class PrivateTab(ChatTab, TabWithInfoWin):
         self.complete_commands(self.input)
 
     def command_say(self, line):
-        muc.send_private_message(self.core.xmpp, self.get_name(), line)
-        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.get_room().own_nick)
-        logger.log_message(self.get_name().replace('/', '\\'), self.get_room().own_nick, line)
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['type'] = 'chat'
+        msg['body'] = line
+        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
+            msg['chat_state'] = 'active'
+        msg.send()
+        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
+        logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
 
     def command_unquery(self, arg):
         """
@@ -762,7 +767,7 @@ class PrivateTab(ChatTab, TabWithInfoWin):
         if self.need_resize:
             self.resize()
         self.text_win.refresh(self._room)
-        self.info_header.refresh(self._room, self.text_win)
+        self.info_header.refresh(self._room, self.text_win, self.chatstate)
         self.info_win.refresh(informations)
         self.tab_win.refresh(tabs, tabs[0])
         self.input.refresh()
@@ -1330,7 +1335,6 @@ class MucListTab(Tab):
         Callback called when a disco#items result is received
         Used with command_list
         """
-        log.debug('res: %s\n\n' % iq)
         if iq['type'] == 'error':
             self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
             return

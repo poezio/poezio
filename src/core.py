@@ -219,32 +219,45 @@ class Core(object):
         self.information('%s' % messsage)
 
     def on_chatstate_active(self, message):
-        if message['type'] == 'chat': # normal conversation
-            self.on_chatstate_normal_conversation(message, "active")
+        self.on_chatstate(message, "active")
 
     def on_chatstate_inactive(self, message):
-        if message['type'] == 'chat': # normal conversation
-            self.on_chatstate_normal_conversation(message, "inactive")
+        self.on_chatstate(message, "inactive")
 
     def on_chatstate_composing(self, message):
-        if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation(message, "composing")
+        self.on_chatstate(message, "composing")
 
     def on_chatstate_paused(self, message):
-        if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation(message, "paused")
+        self.on_chatstate(message, "paused")
 
     def on_chatstate_gone(self, message):
+        self.on_chatstate(message, "gone")
+
+    def on_chatstate(self, message, state):
         if message['type'] == 'chat':
-            self.on_chatstate_normal_conversation(message, "gone")
+            if not self.on_chatstate_normal_conversation(message, state):
+                room = self.get_room_by_name(message['from'].full)
+                if not room:
+                    return
+                self.on_chatstate_private_conversation(message, state)
 
     def on_chatstate_normal_conversation(self, message,state):
         tab = self.get_tab_of_conversation_with_jid(message['from'], False)
+        if not tab:
+            return False
+        tab.chatstate = state
+        if tab == self.current_tab():
+            self.refresh_window()
+        return True
+
+    def on_chatstate_private_conversation(self, message, state):
+        tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
         tab.chatstate = state
         if tab == self.current_tab():
             self.refresh_window()
+        return True
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
@@ -600,6 +613,12 @@ class Core(object):
         room.add_message(body, time=None, nickname=nick_from,
                          colorized=False,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
+        conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
+        if conversation.remote_wants_chatstates is None:
+            if message['chat_state']:
+                conversation.remote_wants_chatstates = True
+            else:
+                conversation.remote_wants_chatstates = False
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
         self.refresh_window()
         self.doupdate()

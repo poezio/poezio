@@ -245,12 +245,13 @@ class PrivateInfoWin(InfoWin):
     def resize(self, height, width, y, x, stdscr):
         self._resize(height, width, y, x, stdscr)
 
-    def refresh(self, room, window):
+    def refresh(self, room, window, chatstate):
 
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
             self.print_scroll_position(window)
+            self.write_chatstate(chatstate)
             self.finish_line(theme.COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -260,6 +261,10 @@ class PrivateInfoWin(InfoWin):
         self.addstr(nick, common.curses_color_pair(theme.COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
         self.addstr(txt, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+
+    def write_chatstate(self, state):
+        if state:
+            self.addstr(' %s' % (state,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
 class ConversationInfoWin(InfoWin):
     """
