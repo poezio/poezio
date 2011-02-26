@@ -690,7 +690,7 @@ class MucTab(ChatTab, TabWithInfoWin):
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
@@ -803,7 +803,7 @@ class PrivateTab(ChatTab, TabWithInfoWin):
         self._room.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
