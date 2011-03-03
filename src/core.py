@@ -820,6 +820,8 @@ class Core(object):
         curses.nonl()
         theme.init_colors()
         stdscr.keypad(True)
+        curses.ungetch(" ")    # H4X: without this, the screen is
+        stdscr.getkey()        # erased on the first "getkey()"
 
     def reset_curses(self):
         """
