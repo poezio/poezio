@@ -180,17 +180,14 @@ class Core(object):
 
     def on_exception(self, typ, value, trace):
         """
-        When an exception in raised, open a special tab
-        displaying the traceback and some instructions to
-        make a bug report.
+        When an exception is raised, just reset curses and call
+        the original exception handler (will nicely print the traceback)
         """
         try:
-            tb_tab = tabs.SimpleTextTab(self, "/!\ Oups, an error occured (this may not be fatal). /!\\\nPlease report this bug (by copying the present error message and explaining what you were doing) on the page http://dev.louiz.org/project/poezio/bugs/add\n\n%s\n\nIf Poezio does not respond anymore, kill it with Ctrl+\\, and sorry about that :(" % ''.join(traceback.format_exception(typ, value, trace)))
-            self.add_tab(tb_tab, focus=True)
-        except Exception:       # If an exception is raised in this code,
-                                # this is fatal, so we exit cleanly and display the traceback
             self.reset_curses()
-            raise
+        except:
+            pass
+        sys.__excepthook__(typ, value, trace)
 
     def grow_information_win(self):
         """
