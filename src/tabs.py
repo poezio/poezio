@@ -19,7 +19,7 @@ a Tab object is a way to organize various Windows (see windows.py)
 around the screen at once.
 A tab is then composed of multiple Buffer.
 Each Tab object has different refresh() and resize() methods, defining how its
-Buffer are displayed, resized, etc
+Windows are displayed, resized, etc
 """
 
 MIN_WIDTH = 50
@@ -38,6 +38,8 @@ import difflib
 import text_buffer
 import string
 import common
+import core
+import singleton
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
@@ -48,9 +50,8 @@ import multiuserchat as muc
 
 class Tab(object):
     number = 0
-
-    def __init__(self, core):
-        self.core = core        # a pointer to core, to access its attributes (ugly?)
+    tab_core = None
+    def __init__(self):
         self._color_state = theme.COLOR_TAB_NORMAL
         self.need_resize = False
         self.nb = Tab.number
@@ -63,6 +64,12 @@ class Tab(object):
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
         self.commands = {}      # and their own commands
+
+    @property
+    def core(self):
+        if not Tab.tab_core:
+            Tab.tab_core = singleton.Singleton(core.Core)
+        return Tab.tab_core
 
     def complete_commands(self, the_input):
         """
@@ -126,7 +133,7 @@ class Tab(object):
             self.visible = True
         self.need_resize = False
 
-    def refresh(self, tabs, informations, roster):
+    def refresh(self):
         """
         Called on each screen refresh (when something has changed)
         """
@@ -222,8 +229,8 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
-    def __init__(self, core, room):
-        Tab.__init__(self, core)
+    def __init__(self, room):
+        Tab.__init__(self)
         self._room = room
         self.remote_wants_chatstates = None # change this to True or False when
         # we know that the remote user wants chatstates, or not.
@@ -286,10 +293,10 @@ class ChatTab(Tab):
 class TabWithInfoWin(Tab):
     def __init__(self):
         self.info_win = windows.TextWin(20)
-        self.core.information_buffer.add_window(self.info_win)
+        self.core.informations.add_window(self.info_win)
 
     def __del__(self):
-        self.core.information_buffer.del_window(self.info_win)
+        self.core.informations.del_window(self.info_win)
         del self.info_win
         Tab.__del__(self)
 
@@ -298,8 +305,8 @@ class InfoTab(ChatTab, TabWithInfoWin):
     The information tab, used to display global informations
     when using a anonymous account
     """
-    def __init__(self, core):
-        Tab.__init__(self, core)
+    def __init__(self):
+        Tab.__init__(self)
         TabWithInfoWin.__init__(self)
         self.tab_win = windows.GlobalInfoBar()
         self.input = windows.Input()
@@ -314,17 +321,17 @@ class InfoTab(ChatTab, TabWithInfoWin):
         Tab.resize(self)
         if not self.visible:
             return
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.info_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.info_win.resize(self.height-2, self.width, 0, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
-    def refresh(self, tabs, informations, _):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
             self.resize()
-        self.info_win.refresh(informations)
-        self.tab_win.refresh(tabs, tabs[0])
+        self.info_win.refresh(self.core.informations)
+        self.tab_win.refresh()
         self.input.refresh()
 
     def completion(self):
@@ -377,8 +384,8 @@ class MucTab(ChatTab, TabWithInfoWin):
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
-    def __init__(self, core, room):
-        ChatTab.__init__(self, core, room)
+    def __init__(self, room):
+        ChatTab.__init__(self, room)
         TabWithInfoWin.__init__(self)
         self.remote_wants_chatstates = True
         # We send active, composing and paused states to the MUC because
@@ -611,17 +618,17 @@ class MucTab(ChatTab, TabWithInfoWin):
         if self.core.information_win_size >= self.height-3:
             return
         text_width = (self.width//10)*9
-        self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr)
+        self.topic_win.resize(1, self.width, 0, 0)
+        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0)
         self.text_win.rebuild_everything(self._room)
-        self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10), self.core.stdscr)
-        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1, self.core.stdscr)
-        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.core.information_buffer)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
+        self.user_win.resize(self.height-3, self.width-text_width-1, 1, text_width+1)
+        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.informations)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
-    def refresh(self, tabs, informations, _):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
@@ -631,8 +638,8 @@ class MucTab(ChatTab, TabWithInfoWin):
         self.v_separator.refresh()
         self.user_win.refresh(self._room.users)
         self.info_header.refresh(self._room, self.text_win)
-        self.tab_win.refresh(tabs, tabs[0])
-        self.info_win.refresh(informations)
+        self.tab_win.refresh()
+        self.info_win.refresh(self.core.informations)
         self.input.refresh()
 
     def on_input(self, key):
@@ -703,9 +710,9 @@ class MucTab(ChatTab, TabWithInfoWin):
         if self.core.information_win_size >= self.height-3:
             return
         text_width = (self.width//10)*9
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0, self.core.stdscr)
-        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0, self.core.stdscr)
+        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0)
+        self.info_header.resize(1, (self.width//10)*9, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, (self.width//10)*9, self.height-2-self.core.information_win_size, 0)
 
     def just_before_refresh(self):
         return
@@ -718,8 +725,8 @@ class PrivateTab(ChatTab, TabWithInfoWin):
     The tab containg a private conversation (someone from a MUC)
     """
     message_type = 'chat'
-    def __init__(self, core, room):
-        ChatTab.__init__(self, core, room)
+    def __init__(self, room):
+        ChatTab.__init__(self, room)
         TabWithInfoWin.__init__(self)
         self.text_win = windows.TextWin()
         room.add_window(self.text_win)
@@ -759,22 +766,22 @@ class PrivateTab(ChatTab, TabWithInfoWin):
             return
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.core.information_buffer)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.information_buffer)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
-    def refresh(self, tabs, informations, _):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
             self.resize()
         self.text_win.refresh(self._room)
         self.info_header.refresh(self._room, self.text_win, self.chatstate)
-        self.info_win.refresh(informations)
-        self.tab_win.refresh(tabs, tabs[0])
+        self.info_win.refresh(self.core.informations)
+        self.tab_win.refresh()
         self.input.refresh()
 
     def get_color_state(self):
@@ -821,9 +828,9 @@ class PrivateTab(ChatTab, TabWithInfoWin):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, None)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, None)
 
     def get_room(self):
         return self._room
@@ -841,8 +848,8 @@ class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
     """
-    def __init__(self, core):
-        Tab.__init__(self, core)
+    def __init__(self):
+        Tab.__init__(self)
         self.name = "Roster"
         self.v_separator = windows.VerticalSeparator()
         self.tab_win = windows.GlobalInfoBar()
@@ -879,12 +886,12 @@ class RosterInfoTab(Tab):
             return
         roster_width = self.width//2
         info_width = self.width-roster_width-1
-        self.v_separator.resize(self.height-2, 1, 0, roster_width, self.core.stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.info_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.stdscr, self.core.information_buffer)
-        self.roster_win.resize(self.height-2, roster_width, 0, 0, self.core.stdscr)
-        self.contact_info_win.resize(4, info_width, self.height-2-4, roster_width+1, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.v_separator.resize(self.height-2, 1, 0, roster_width)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.info_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.information_buffer)
+        self.roster_win.resize(self.height-2, roster_width, 0, 0)
+        self.contact_info_win.resize(4, info_width, self.height-2-4, roster_width+1)
+        self.input.resize(1, self.width, self.height-1, 0)
 
     def completion(self):
         # Check if we are entering a command (with the '/' key)
@@ -971,7 +978,7 @@ class RosterInfoTab(Tab):
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
-    def refresh(self, tabs, informations, roster):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
@@ -980,8 +987,8 @@ class RosterInfoTab(Tab):
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
         # self.core.global_information_win.refresh(informations)
-        self.info_win.refresh(informations)
-        self.tab_win.refresh(tabs, tabs[0])
+        self.info_win.refresh(self.core.informations)
+        self.tab_win.refresh()
         self.input.refresh()
 
     def get_name(self):
@@ -1017,7 +1024,7 @@ class RosterInfoTab(Tab):
         """
         curses.curs_set(1)
         self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0)
         self.input.do_command("/") # we add the slash
 
     def reset_help_message(self, _=None):
@@ -1098,13 +1105,13 @@ class RosterInfoTab(Tab):
         """
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0)
         return True
 
     def start_search_slow(self):
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter_slow)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0)
         return True
 
     def set_roster_filter_slow(self, txt):
@@ -1134,9 +1141,9 @@ class ConversationTab(ChatTab, TabWithInfoWin):
     The tab containg a normal conversation (not from a MUC)
     """
     message_type = 'chat'
-    def __init__(self, core, jid):
+    def __init__(self, jid):
         txt_buff = text_buffer.TextBuffer()
-        ChatTab.__init__(self, core, txt_buff)
+        ChatTab.__init__(self, txt_buff)
         TabWithInfoWin.__init__(self)
         self.color_state = theme.COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
@@ -1176,15 +1183,15 @@ class ConversationTab(ChatTab, TabWithInfoWin):
             return
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0, self.core.stdscr)
+        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.text_win.rebuild_everything(self._room)
-        self.upper_bar.resize(1, self.width, 0, 0, self.core.stdscr)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr, self.core.information_buffer)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.upper_bar.resize(1, self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.information_buffer)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
-    def refresh(self, tabs, informations, roster):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
@@ -1192,8 +1199,8 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         self.text_win.refresh(self._room)
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
-        self.info_win.refresh(informations)
-        self.tab_win.refresh(tabs, tabs[0])
+        self.info_win.refresh(self.core.informations)
+        self.tab_win.refresh()
         self.input.refresh()
 
     def get_color_state(self):
@@ -1240,9 +1247,9 @@ class ConversationTab(ChatTab, TabWithInfoWin):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0, self.core.stdscr)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0, self.core.stdscr)
-        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0, self.core.stdscr)
+        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_win.resize(self.core.information_win_size, self.width, self.height-2-self.core.information_win_size, 0)
 
     def get_room(self):
         return self._room
@@ -1262,8 +1269,8 @@ class MucListTab(Tab):
     A tab listing rooms from a specific server, displaying various information,
     scrollable, and letting the user join them, etc
     """
-    def __init__(self, core, server):
-        Tab.__init__(self, core)
+    def __init__(self, server):
+        Tab.__init__(self)
         self._color_state = theme.COLOR_TAB_NORMAL
         self.name = server
         self.upper_message = windows.Topic()
@@ -1285,7 +1292,7 @@ class MucListTab(Tab):
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab"), None)
         self.resize()
 
-    def refresh(self, tabs, informations, roster):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
@@ -1293,23 +1300,23 @@ class MucListTab(Tab):
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
-        self.tab_win.refresh(tabs, tabs[0])
+        self.tab_win.refresh()
         self.input.refresh()
 
     def resize(self):
         Tab.resize(self)
         if not self.visible:
             return
-        self.upper_message.resize(1, self.width, 0, 0, self.core.stdscr)
+        self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
                        'users': 5}
         self.list_header.resize_columns(column_size)
-        self.list_header.resize(1, self.width, 1, 0, self.core.stdscr)
+        self.list_header.resize(1, self.width, 1, 0)
         self.listview.resize_columns(column_size)
-        self.listview.resize(self.height-4, self.width, 2, 0, self.core.stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.listview.resize(self.height-4, self.width, 2, 0)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
     def on_slash(self):
         """
@@ -1317,7 +1324,7 @@ class MucListTab(Tab):
         """
         curses.curs_set(1)
         self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0)
         self.input.do_command("/") # we add the slash
 
     def close(self, arg=None):
@@ -1396,8 +1403,8 @@ class SimpleTextTab(Tab):
     information or whatever.
     For example used to display tracebacks
     """
-    def __init__(self, core, text):
-        Tab.__init__(self, core)
+    def __init__(self, text):
+        Tab.__init__(self)
         self._color_state = theme.COLOR_TAB_NORMAL
         self.text_win = windows.SimpleTextWin(text)
         self.tab_win = windows.GlobalInfoBar()
@@ -1413,7 +1420,7 @@ class SimpleTextTab(Tab):
         """
         curses.curs_set(1)
         self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.input.resize(1, self.width, self.height-1, 0)
         self.input.do_command("/") # we add the slash
 
     def on_input(self, key):
@@ -1430,17 +1437,17 @@ class SimpleTextTab(Tab):
         Tab.resize(self)
         if not self.visible:
             return
-        self.text_win.resize(self.height-2, self.width, 0, 0, self.core.stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
-        self.input.resize(1, self.width, self.height-1, 0, self.core.stdscr)
+        self.text_win.resize(self.height-2, self.width, 0, 0)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
 
-    def refresh(self, tabs, information, roster):
+    def refresh(self):
         if not self.visible:
             return
         if self.need_resize:
             self.resize()
         self.text_win.refresh()
-        self.tab_win.refresh(tabs, tabs[0])
+        self.tab_win.refresh()
         self.input.refresh()
 
     def on_lose_focus(self):

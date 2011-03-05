@@ -46,23 +46,32 @@ from tabs import MIN_WIDTH, MIN_HEIGHT
 
 from sleekxmpp.xmlstream.stanzabase import JID
 
+import core
 import theme
 import common
 import wcwidth
+import singleton
 
 g_lock = Lock()
 
 LINES_NB_LIMIT = 4096
 
 class Win(object):
+    _win_core = None
     def __init__(self):
         pass
 
-    def _resize(self, height, width, y, x, parent_win):
+    def _resize(self, height, width, y, x):
         self.height, self.width, self.x, self.y = height, width, x, y
         if height == 0 or width == 0:
             return
         self._win = curses.newwin(height, width, y, x)
+
+    def resize(self, height, width, y, x):
+        """
+        Override if something has to be done on resize
+        """
+        self._resize(height, width, y, x)
 
     def _refresh(self):
         self._win.noutrefresh()
@@ -92,6 +101,12 @@ class Win(object):
         (y, x) = self._win.getyx()
         size = self.width-x
         self.addnstr(' '*size, size, common.curses_color_pair(color))
+
+    @property
+    def core(self):
+        if not Win._win_core:
+            Win._win_core = singleton.Singleton(core.Core)
+        return Win._win_core
 
 class UserList(Win):
     def __init__(self):
@@ -154,8 +169,8 @@ class UserList(Win):
                 self.draw_plus(self.height-1)
             self._refresh()
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
+    def resize(self, height, width, y, x):
+        self._resize(height, width, y, x)
         self._win.attron(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
         self._win.vline(0, 0, curses.ACS_VLINE, self.height)
         self._win.attroff(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
@@ -164,9 +179,6 @@ class Topic(Win):
     def __init__(self):
         Win.__init__(self)
         self._message = ''
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, topic=None):
         with g_lock:
@@ -190,18 +202,14 @@ class GlobalInfoBar(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-
-    def refresh(self, tabs, current):
+    def refresh(self):
         def compare_room(a):
-            # return a.nb - b.nb
             return a.nb
         comp = lambda x: x.nb
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, "[", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-            sorted_tabs = sorted(tabs, key=comp)
+            sorted_tabs = sorted(self.core.tabs, key=comp)
             for tab in sorted_tabs:
                 color = tab.get_color_state()
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
@@ -246,9 +254,6 @@ class PrivateInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-
     def refresh(self, room, window, chatstate):
 
         with g_lock:
@@ -287,9 +292,6 @@ class ConversationInfoWin(InfoWin):
 
     def __init__(self):
         InfoWin.__init__(self)
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, jid, contact, text_buffer, window, chatstate):
         # contact can be None, if we receive a message
@@ -360,9 +362,6 @@ class ConversationStatusMessageWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-
     def refresh(self, jid, contact):
         jid = JID(jid)
         if contact:
@@ -389,9 +388,6 @@ class MucInfoWin(InfoWin):
     """
     def __init__(self):
         InfoWin.__init__(self)
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, room, window=None):
         with g_lock:
@@ -660,8 +656,8 @@ class TextWin(Win):
         self.addstr(theme.CHAR_TIME_RIGHT, common.curses_color_pair(theme.COLOR_TIME_LIMITER))
         self.addstr(' ')
 
-    def resize(self, height, width, y, x, stdscr, room=None):
-        self._resize(height, width, y, x, stdscr)
+    def resize(self, height, width, y, x, room=None):
+        self._resize(height, width, y, x)
         if room:
             self.rebuild_everything(room)
 
@@ -683,9 +679,6 @@ class HelpText(Win):
     def __init__(self, text=''):
         Win.__init__(self)
         self.txt = text
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def refresh(self, txt=None):
         if txt:
@@ -750,11 +743,6 @@ class Input(Win):
 
     def is_empty(self):
         return len(self.text) == 0
-
-    def resize(self, height, width, y, x, stdscr=None): # TODO remove stdscr
-        self._resize(height, width, y, x, stdscr)
-        # self._win.erase()
-        # self.addnstr(0, 0, self.text, self.width-1)
 
     def jump_word_left(self):
         """
@@ -1199,9 +1187,6 @@ class VerticalSeparator(Win):
             self._win.vline(0, 0, curses.ACS_VLINE, self.height, common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
             self._refresh()
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-
     def refresh(self):
         self.rewrite_line()
 
@@ -1222,9 +1207,6 @@ class RosterWin(Win):
         self.start_pos = 1      # position of the start of the display
         self.roster_len = 0
         self.selected_row = None
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def move_cursor_down(self):
         """
@@ -1408,9 +1390,6 @@ class ContactInfoWin(Win):
     def __init__(self):
         Win.__init__(self)
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-
     def draw_contact_info(self, contact):
         """
         draw the contact information
@@ -1463,9 +1442,6 @@ class ListWin(Win):
         self.lines = []         # a list of dicts
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def resize_columns(self, dic):
         """
@@ -1555,9 +1531,6 @@ class ColumnHeaderWin(Win):
 
     def resize_columns(self, dic):
         self._columns_sizes = dic
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
 
     def refresh(self):
         with g_lock:

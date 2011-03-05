@@ -37,10 +37,11 @@ class Connection(sleekxmpp.ClientXMPP):
     Receives everything from Jabber and emits the
     appropriate signals
     """
+    __init = False
     def __init__(self):
         resource = config.get('resource', '')
         if config.get('jid', ''):
-            self.anon = False  # Field used to know if we are anonymous or not.
+            self.anon = False # Field used to know if we are anonymous or not.
             # many features will be handled diferently
             # depending on this setting
             jid = '%s/%s' % (config.get('jid', ''), resource)
@@ -79,6 +80,3 @@ class Connection(sleekxmpp.ClientXMPP):
             return False
         self.process(threaded=True)
         return True
-
-# Global connection object
-connection = Connection()

@@ -26,18 +26,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import signal
 import logging
 
-from connection import connection
 from config import config, options
-from core import core
+import singleton
+import core
+import connection
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
-    sys.stderr = open('/dev/null', 'a')
     if options.debug:
         logging.basicConfig(filename=options.debug,level=logging.DEBUG)
-    if not connection.start():  # Connect to remote server
-        core.on_failed_connection()
-    # Disable any display of non-wanted text on the terminal
-    # by redirecting stderr to /dev/null
-    # sys.stderr = open('/dev/null', 'a')
-    core.main_loop()    # Refresh the screen, wait for user events etc
+    the_core = singleton.Singleton(core.Core)
+    the_core.start()
+    if not the_core.xmpp.start():  # Connect to remote server
+        the_core.on_failed_connection()
+    the_core.main_loop()    # Refresh the screen, wait for user events etc

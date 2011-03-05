@@ -16,7 +16,6 @@
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
-from os.path import isfile
 
 from time import sleep
 
@@ -32,6 +31,7 @@ from datetime import datetime
 import common
 import theme
 import logging
+import singleton
 
 from sleekxmpp.xmlstream.stanzabase import JID
 
@@ -40,9 +40,9 @@ log = logging.getLogger(__name__)
 import multiuserchat as muc
 import tabs
 import windows
+import connection
 
 from data_forms import DataFormsTab
-from connection import connection
 from config import config
 from logger import logger
 from user import User
@@ -87,23 +87,18 @@ class Core(object):
     """
     User interface using ncurses
     """
-    def __init__(self, xmpp):
+    def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
         self.running = True
-        self.stdscr = curses.initscr()
-        self.init_curses(self.stdscr)
-        self.xmpp = xmpp
+        self.xmpp = singleton.Singleton(connection.Connection)
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
-        default_tab = tabs.InfoTab(self) if self.xmpp.anon\
-            else tabs.RosterInfoTab(self)
-        default_tab.on_gain_focus()
-        self.tabs = [default_tab]
+        self.tabs = []
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
@@ -175,6 +170,17 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
+
+    def start(self):
+        """
+        Init curses, create the first tab, etc
+        """
+        self.stdscr = curses.initscr()
+        self.init_curses(self.stdscr)
+        default_tab = tabs.InfoTab() if self.xmpp.anon\
+            else tabs.RosterInfoTab()
+        default_tab.on_gain_focus()
+        self.tabs.append(default_tab)
         self.information(_('Welcome to poezio!'))
         self.refresh_window()
 
@@ -189,9 +195,11 @@ class Core(object):
             pass
         sys.__excepthook__(typ, value, trace)
 
+    @property
+    def informations(self):
+        return self.information_buffer
+
     def grow_information_win(self):
-        """
-        """
         if self.information_win_size == 14:
             return
         self.information_win_size += 1
@@ -200,8 +208,6 @@ class Core(object):
         self.refresh_window()
 
     def shrink_information_win(self):
-        """
-        """
         if self.information_win_size == 0:
             return
         self.information_win_size -= 1
@@ -273,7 +279,7 @@ class Core(object):
         The callback are called with the completed form as parameter in
         addition with kwargs
         """
-        form_tab = DataFormsTab(self, form, on_cancel, on_send, kwargs)
+        form_tab = DataFormsTab(form, on_cancel, on_send, kwargs)
         self.add_tab(form_tab, True)
 
     def on_got_offline(self, presence):
@@ -380,11 +386,6 @@ class Core(object):
             if not tab:
                 self.open_new_room(jid.bare, nick, False)
             muc.join_groupchat(self.xmpp, jid.bare, nick)
-        # if not self.xmpp.anon:
-        # Todo: SEND VCARD
-        return
-        if config.get('jid', '') == '': # Don't send the vcard if we're not anonymous
-            self.vcard_sender.start()   # because the user ALREADY has one on the server
 
     def on_groupchat_presence(self, presence):
         """
@@ -835,7 +836,7 @@ class Core(object):
         Refresh everything
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
-        self.current_tab().refresh(self.tabs, self.information_buffer, roster)
+        self.current_tab().refresh()
         self.doupdate()
 
     def add_tab(self, new_tab, focus=False):
@@ -858,7 +859,7 @@ class Core(object):
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
         r = Room(room, nick)
-        new_tab = tabs.MucTab(self, r)
+        new_tab = tabs.MucTab(r)
         self.add_tab(new_tab, focus)
         self.refresh_window()
 
@@ -952,7 +953,7 @@ class Core(object):
         """
         open a new conversation tab and focus it if needed
         """
-        new_tab = tabs.ConversationTab(self, jid)
+        new_tab = tabs.ConversationTab(jid)
         # insert it in the rooms
         self.add_tab(new_tab, focus)
         self.refresh_window()
@@ -971,7 +972,7 @@ class Core(object):
             return None
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
-        new_tab = tabs.PrivateTab(self, r)
+        new_tab = tabs.PrivateTab(r)
         # insert it in the tabs
         self.add_tab(new_tab, focus)
         # self.window.new_room(r)
@@ -1123,7 +1124,7 @@ class Core(object):
             server = JID(self.current_tab().get_name()).server
         else:
             server = arg.strip()
-        list_tab = tabs.MucListTab(self, server)
+        list_tab = tabs.MucListTab(server)
         self.add_tab(list_tab, True)
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
@@ -1473,6 +1474,3 @@ class Core(object):
             return
         self.current_tab().just_before_refresh()
         curses.doupdate()
-
-# global core object
-core = Core(connection)

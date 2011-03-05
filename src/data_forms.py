@@ -31,8 +31,8 @@ class DataFormsTab(Tab):
     A tab contaning various window type, displaying
     a form that the user needs to fill.
     """
-    def __init__(self, core, form, on_cancel, on_send, kwargs):
-        Tab.__init__(self, core)
+    def __init__(self, form, on_cancel, on_send, kwargs):
+        Tab.__init__(self)
         self._form = form
         self._on_cancel = on_cancel
         self._on_send = on_send
@@ -74,11 +74,11 @@ class DataFormsTab(Tab):
         Tab.resize(self)
         if not self.visible:
             return
-        self.topic_win.resize(1, self.width, 0, 0, self.core.stdscr)
-        self.tab_win.resize(1, self.width, self.height-2, 0, self.core.stdscr)
+        self.topic_win.resize(1, self.width, 0, 0)
+        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.form_win.resize(self.height-4, self.width, 1, 0)
-        self.help_win.resize(1, self.width, self.height-1, 0, None)
-        self.help_win_dyn.resize(1, self.width, self.height-3, 0, None)
+        self.help_win.resize(1, self.width, self.height-1, 0)
+        self.help_win_dyn.resize(1, self.width, self.height-3, 0)
         self.lines = []
 
     def refresh(self, tabs, informations, _):
@@ -108,7 +108,7 @@ class FieldInput(object):
         raise NotImplementedError
 
     def resize(self, height, width, y, x):
-        self._resize(height, width, y, x, None)
+        self._resize(height, width, y, x)
 
     def is_dummy(self):
         return False
