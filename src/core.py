@@ -64,14 +64,6 @@ ERROR_AND_STATUS_CODES = {
     '503': _('The maximum number of users has been reached'),
     }
 
-SHOW_NAME = {
-    'dnd': _('busy'),
-    'away': _('away'),
-    'xa': _('not available'),
-    'chat': _('chatty'),
-    '': _('available')
-    }
-
 possible_show = {'available':None,
                  'chat':'chat',
                  'away':'away',
@@ -239,8 +231,8 @@ class Core(object):
     def on_chatstate(self, message, state):
         if message['type'] == 'chat':
             if not self.on_chatstate_normal_conversation(message, state):
-                room = self.get_room_by_name(message['from'].full)
-                if not room:
+                tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+                if not tab:
                     return
                 self.on_chatstate_private_conversation(message, state)
         elif message['type'] == 'groupchat':
@@ -393,201 +385,32 @@ class Core(object):
         Display the presence on the room window and update the
         presence information of the concerned user
         """
-        from_nick = presence['from'].resource
         from_room = presence['from'].bare
-        room = self.get_room_by_name(from_room)
-        code = presence.find('{jabber:client}status')
-        status_codes = set([s.attrib['code'] for s in presence.findall('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}status')])
-        # Check if it's not an error presence.
-        if presence['type'] == 'error':
-            return self.room_error(presence, from_room)
-        if not room:
-            return
-        msg = None
-        affiliation = presence['muc']['affiliation']
-        show = presence['show']
-        status = presence['status']
-        role = presence['muc']['role']
-        jid = presence['muc']['jid']
-        typ = presence['type']
-        if not room.joined:     # user in the room BEFORE us.
-            # ignore redondant presence message, see bug #1509
-            if from_nick not in [user.nick for user in room.users]:
-                new_user = User(from_nick, affiliation, show, status, role, jid)
-                room.users.append(new_user)
-                if from_nick == room.own_nick:
-                    room.joined = True
-                    new_user.color = theme.COLOR_OWN_NICK
-                    self.add_message_to_text_buffer(room, _("Your nickname is %s") % (from_nick))
-                    if '170' in status_codes:
-                        self.add_message_to_text_buffer(room, 'Warning: this room is publicly logged')
-        else:
-            change_nick = '303' in status_codes
-            kick = '307' in status_codes and typ == 'unavailable'
-            ban = '301' in status_codes and typ == 'unavailable'
-            user = room.get_user_by_name(from_nick)
-            # New user
-            if not user:
-                self.on_user_join(room, from_nick, affiliation, show, status, role, jid)
-            # nick change
-            elif change_nick:
-                self.on_user_nick_change(room, presence, user, from_nick, from_room)
-            elif ban:
-                self.on_user_banned(room, presence, user, from_nick)
-            # kick
-            elif kick:
-                self.on_user_kicked(room, presence, user, from_nick)
-            # user quit
-            elif typ == 'unavailable':
-                self.on_user_leave_groupchat(room, user, jid, status, from_nick, from_room)
-            # status change
-            else:
-                self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
-        self.refresh_window()
-        self.doupdate()
+        tab = self.get_tab_by_name(from_room, tabs.MucTab)
+        if tab:
+            tab.handle_presence(presence)
 
-    def on_user_join(self, room, from_nick, affiliation, show, status, role, jid):
+    def rename_private_tabs(self, room_name, old_nick, new_nick):
         """
-        When a new user joins a groupchat
+        Call this method when someone changes his/her nick in a MUC, this updates
+        the name of all the opened private conversations with him/her
         """
-        room.users.append(User(from_nick, affiliation,
-                               show, status, role, jid))
-        hide_exit_join = config.get('hide_exit_join', -1)
-        if hide_exit_join != 0:
-            if not jid.full:
-                self.add_message_to_text_buffer(room, _('%(spec)s "[%(nick)s]" joined the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_JOIN.replace('"', '\\"')}, colorized=True)
-            else:
-                self.add_message_to_text_buffer(room, _('%(spec)s "[%(nick)s]" "(%(jid)s)" joined the room') % {'spec':theme.CHAR_JOIN.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full}, colorized=True)
+        tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick), tabs.PrivateTab)
+        if tab:
+            tab.rename_user(old_nick, new_nick)
 
-    def on_user_nick_change(self, room, presence, user, from_nick, from_room):
-        new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
-        if user.nick == room.own_nick:
-            room.own_nick = new_nick
-            # also change our nick in all private discussion of this room
-            for _tab in self.tabs:
-                if isinstance(_tab, tabs.PrivateTab) and JID(_tab.get_name()).bare == room.name:
-                    _tab.get_room().own_nick = new_nick
-        user.change_nick(new_nick)
-        self.add_message_to_text_buffer(room, _('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
-        # rename the private tabs if needed
-        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-        if private_room:
-            self.add_message_to_text_buffer(private_room, _('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':from_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
-            new_jid = JID(private_room.name).bare+'/'+new_nick
-            private_room.name = new_jid
+    def on_user_left_private_conversation(self, room_name, nick, status_message):
+        """
+        The user left the MUC: add a message in the associated private conversation
+        """
+        tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
+        if tab:
+            tab.user_left(status_message, nick)
 
-    def on_user_banned(self, room, presence, user, from_nick):
-        """
-        When someone is banned from a muc
-        """
-        room.users.remove(user)
-        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
-        by = by.attrib['jid'] if by is not None else None
-        if from_nick == room.own_nick: # we are banned
-            room.disconnect()
-            if by:
-                kick_msg = _('%(spec)s [You] have been banned by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
-            else:
-                kick_msg = _('%(spec)s [You] have been banned.') % {'spec':theme.CHAR_KICK.replace('"', '\\"')}
-        else:
-            if by:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been banned by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
-            else:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
-        if reason is not None and reason.text:
-            kick_msg += _(' Reason: %(reason)s') % {'reason': reason.text}
-        self.add_message_to_text_buffer(room, kick_msg, colorized=True)
-
-    def on_user_kicked(self, room, presence, user, from_nick):
-        """
-        When someone is kicked from a muc
-        """
-        room.users.remove(user)
-        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
-        by = by.attrib['jid'] if by is not None else None
-        if from_nick == room.own_nick: # we are kicked
-            room.disconnect()
-            if by:
-                kick_msg = _('%(spec)s [You] have been kicked by "[%(by)s]"') % {'spec': theme.CHAR_KICK.replace('"', '\\"'), 'by':by}
-            else:
-                kick_msg = _('%(spec)s [You] have been kicked.') % {'spec':theme.CHAR_KICK.replace('"', '\\"')}
-            # try to auto-rejoin
-            if config.get('autorejoin', 'false') == 'true':
-                muc.join_groupchat(self.xmpp, room.name, room.own_nick)
-        else:
-            if by:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
-            else:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
-        if reason is not None and reason.text:
-            kick_msg += _(' Reason: %(reason)s') % {'reason': reason.text}
-        self.add_message_to_text_buffer(room, kick_msg, colorized=True)
-
-    def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
-        """
-        When an user leaves a groupchat
-        """
-        room.users.remove(user)
-        if room.own_nick == user.nick:
-            # We are now out of the room. Happens with some buggy (? not sure) servers
-            room.disconnect()
-        hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
-        if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            if not jid.full:
-                leave_msg = _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}
-            else:
-                leave_msg = _('%(spec)s "[%(nick)s]" "(%(jid)s)" has left the room') % {'spec':theme.CHAR_QUIT.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'jid':jid.full.replace('"', '\\"')}
-            if status:
-                leave_msg += ' (%s)' % status
-            self.add_message_to_text_buffer(room, leave_msg, colorized=True)
-        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-        if private_room:
-            if not status:
-                self.add_message_to_text_buffer(private_room, _('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}, colorized=True)
-            else:
-                self.add_message_to_text_buffer(private_room, _('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status.replace('"', '\\"')}, colorized=True)
-
-    def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
-        """
-        When an user changes her status
-        """
-        # build the message
-        display_message = False # flag to know if something significant enough
-        # to be displayed has changed
-        msg = _('"%s" changed: ')% from_nick.replace('"', '\\"')
-        if affiliation != user.affiliation:
-            msg += _('affiliation: %s, ') % affiliation
-            display_message = True
-        if role != user.role:
-            msg += _('role: %s, ') % role
-            display_message = True
-        if show != user.show and show in list(SHOW_NAME.keys()):
-            msg += _('show: %s, ') % SHOW_NAME[show]
-            display_message = True
-        if status and status != user.status:
-            msg += _('status: %s, ') % status
-            display_message = True
-        if not display_message:
-            return
-        msg = msg[:-2] # remove the last ", "
-        hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
-        if (hide_status_change == -1 or \
-                user.has_talked_since(hide_status_change) or\
-                user.nick == room.own_nick)\
-                and\
-                (affiliation != user.affiliation or\
-                    role != user.role or\
-                    show != user.show or\
-                    status != user.status):
-            # display the message in the room
-            self.add_message_to_text_buffer(room, msg, colorized=True)
-        private_room = self.get_room_by_name('%s/%s' % (from_room, from_nick))
-        if private_room: # display the message in private
-            self.add_message_to_text_buffer(private_room, msg, colorized=True)
-        # finally, effectively change the user status
-        user.update(affiliation, show, status, role)
+    def on_user_changed_status_in_private(self, jid, msg):
+        tab = self.get_tab_by_name(jid)
+        if tab: # display the message in private
+            tab.get_room().add_message(msg, colorized=True)
 
     def on_message(self, message):
         """
