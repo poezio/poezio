@@ -81,11 +81,11 @@ class DataFormsTab(Tab):
         self.help_win_dyn.resize(1, self.width, self.height-3, 0)
         self.lines = []
 
-    def refresh(self, tabs, informations, _):
+    def refresh(self):
         if not self.visible:
             return
         self.topic_win.refresh(self._form['title'])
-        self.tab_win.refresh(tabs, tabs[0])
+        self.tab_win.refresh()
         self.help_win.refresh()
         self.help_win_dyn.refresh(self.form_win.get_help_message())
         self.form_win.refresh()
