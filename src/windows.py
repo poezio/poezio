@@ -28,9 +28,6 @@ from os.path import isfile
 import logging
 log = logging.getLogger(__name__)
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
-
 import shlex
 import curses
 import string
