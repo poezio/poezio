@@ -1200,12 +1200,15 @@ class Core(object):
         if isinstance(tab, tabs.RosterInfoTab) or\
                 isinstance(tab, tabs.InfoTab):
             return              # The tab 0 should NEVER be closed
+        del tab.key_func      # Remove self references
+        del tab.commands      # and make the object collectable
         tab.on_close()
         self.tabs.remove(tab)
-        self.rotate_rooms_left()
-        del tab.key_func        # Remove self references
-        del tab.commands        # and make the object collectable
+        import gc
+        gc.collect()
+        log.debug('___ Referrers of closing tab:\n%s\n______' % gc.get_referrers(tab))
         del tab
+        self.refresh_window()
 
     def move_separator(self):
         """

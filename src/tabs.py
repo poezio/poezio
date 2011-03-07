@@ -61,6 +61,7 @@ class Tab(object):
     number = 0
     tab_core = None
     def __init__(self):
+        self.input = None
         self._color_state = theme.COLOR_TAB_NORMAL
         self.need_resize = False
         self.nb = Tab.number
@@ -226,10 +227,10 @@ class Tab(object):
         """
         Called when the tab is to be closed
         """
-        pass
+        self.input.on_delete()
 
     def __del__(self):
-        log.debug('Closing tab %s' % self.__class__.__name__)
+        log.debug('------ Closing tab %s' % self.__class__.__name__)
 
 class ChatTab(Tab):
     """
@@ -382,9 +383,6 @@ class InfoTab(ChatTab, TabWithInfoWin):
         return
 
     def just_before_refresh(self):
-        return
-
-    def on_close(self):
         return
 
 class MucTab(ChatTab, TabWithInfoWin):
@@ -726,9 +724,6 @@ class MucTab(ChatTab, TabWithInfoWin):
     def just_before_refresh(self):
         return
 
-    def on_close(self):
-        return
-
     def handle_presence(self, presence):
         from_nick = presence['from'].resource
         from_room = presence['from'].bare
@@ -1034,9 +1029,6 @@ class PrivateTab(ChatTab, TabWithInfoWin):
         return self.text_win
 
     def just_before_refresh(self):
-        return
-
-    def on_close(self):
         return
 
     def rename_user(self, old_nick, new_nick):
@@ -1474,6 +1466,7 @@ class ConversationTab(ChatTab, TabWithInfoWin):
         return
 
     def on_close(self):
+        Tab.on_close(self)
         if config.get('send_chat_states', 'true') == 'true':
             self.send_chat_state('gone')
 
@@ -1541,6 +1534,7 @@ class MucListTab(Tab):
         self.input.do_command("/") # we add the slash
 
     def close(self, arg=None):
+        self.input.on_delete()
         self.core.close_tab(self)
 
     def join_selected_no_focus(self):

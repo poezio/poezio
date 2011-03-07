@@ -734,6 +734,13 @@ class Input(Win):
         self.on_input = None    # callback called on any key pressed
         self.color = None       # use this color on addstr
 
+    def on_delete(self):
+        """
+        Remove all references kept to a tab, so that the tab
+        can be garbage collected
+        """
+        del self.key_func
+
     def set_color(self, color):
         self.color = color
         self.rewrite_text()
@@ -1170,6 +1177,22 @@ class CommandInput(Input):
             self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
             self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
             self._refresh()
+
+    def on_delete(self):
+        """
+        SERIOUSLY BIG WTF.
+
+        I can do
+        self.key_func.clear()
+
+        but not
+        del self.key_func
+        because that would raise an AttributeError exception. WTF.
+        """
+        self.on_abort = None
+        self.on_success = None
+        self.on_input = None
+        self.key_func.clear()
 
 class VerticalSeparator(Win):
     """
