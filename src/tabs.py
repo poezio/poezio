@@ -28,7 +28,7 @@ MIN_HEIGHT = 16
 import logging
 log = logging.getLogger(__name__)
 
-from gettext import gettext as _)
+from gettext import gettext as _
 
 import windows
 import theme
