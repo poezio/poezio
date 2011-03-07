@@ -25,11 +25,10 @@ Windows are displayed, resized, etc
 MIN_WIDTH = 50
 MIN_HEIGHT = 16
 
-from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
-                     gettext as _)
-
 import logging
 log = logging.getLogger(__name__)
+
+from gettext import gettext as _)
 
 import windows
 import theme
@@ -41,13 +40,14 @@ import common
 import core
 import singleton
 
+import multiuserchat as muc
+
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
 from user import User
 from logger import logger
-import multiuserchat as muc
 
 SHOW_NAME = {
     'dnd': _('busy'),

@@ -37,6 +37,7 @@ class DataFormsTab(Tab):
         self._on_cancel = on_cancel
         self._on_send = on_send
         self._kwargs = kwargs
+        self.fields = []
         for field in self._form:
             self.fields.append(field)
         self.topic_win = windows.Topic()

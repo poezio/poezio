@@ -39,7 +39,6 @@ import mimetypes
 import hashlib
 import subprocess
 import curses
-import sys
 import time
 import shlex
 
