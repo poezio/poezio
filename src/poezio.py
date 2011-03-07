@@ -26,17 +26,22 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import signal
 import logging
 
-from config import config, options
+from config import options
 import singleton
 import core
-import connection
 
-if __name__ == '__main__':
+def main():
+    """
+    Enter point
+    """
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
     if options.debug:
-        logging.basicConfig(filename=options.debug,level=logging.DEBUG)
-    the_core = singleton.Singleton(core.Core)
-    the_core.start()
-    if not the_core.xmpp.start():  # Connect to remote server
-        the_core.on_failed_connection()
-    the_core.main_loop()    # Refresh the screen, wait for user events etc
+        logging.basicConfig(filename=options.debug, level=logging.DEBUG)
+    cocore = singleton.Singleton(core.Core)
+    cocore.start()
+    if not cocore.xmpp.start():  # Connect to remote server
+        cocore.on_failed_connection()
+    cocore.main_loop()    # Refresh the screen, wait for user events etc
+
+if __name__ == '__main__':
+    main()
