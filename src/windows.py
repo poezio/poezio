@@ -56,13 +56,17 @@ LINES_NB_LIMIT = 4096
 class Win(object):
     _win_core = None
     def __init__(self):
-        pass
+        self._win = None
 
     def _resize(self, height, width, y, x):
         self.height, self.width, self.x, self.y = height, width, x, y
         if height == 0 or width == 0:
             return
-        self._win = curses.newwin(height, width, y, x)
+        if not self._win:
+            self._win = curses.newwin(height, width, y, x)
+        else:
+            self._win.resize(height, width)
+            self._win.mvwin(y, x)
 
     def resize(self, height, width, y, x):
         """
@@ -1456,6 +1460,7 @@ class ListWin(Win):
     scrolled up and down, with one selected line at a time
     """
     def __init__(self, columns, with_headers=True):
+        Win.__init__(self)
         self._columns = columns # a tuple with the name of the columns
         self._columns_sizes = {} # a dict {'column_name': size}
         self.sorted_by = (None, None) # for example: ('name', '↑')
@@ -1546,6 +1551,7 @@ class ColumnHeaderWin(Win):
     A class displaying the column's names
     """
     def __init__(self, columns):
+        Win.__init__(self)
         self._columns = columns
         self._columns_sizes = {}
 
@@ -1566,6 +1572,7 @@ class ColumnHeaderWin(Win):
 
 class SimpleTextWin(Win):
     def __init__(self, text):
+        Win.__init__(self)
         self._text = text
         self.built_lines = []
 

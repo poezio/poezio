@@ -89,6 +89,8 @@ class Core(object):
         # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
+        self.information_win = windows.TextWin(20)
+        self.information_buffer.add_window(self.information_win)
         self.tabs = []
         self.previous_tab_nb = 0
         self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
@@ -168,12 +170,23 @@ class Core(object):
         """
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
+        # Init the tab's size.
+        tabs.Tab.resize(self.stdscr)
+        # resize the information_win to its initial size
+        self.resize_global_information_win()
         default_tab = tabs.InfoTab() if self.xmpp.anon\
             else tabs.RosterInfoTab()
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information(_('Welcome to poezio!'))
         self.refresh_window()
+
+    def resize_global_information_win(self):
+        """
+        Resize the global_information_win only once at each resize.
+        """
+        self.information_win.resize(self.information_win_size, tabs.Tab.width,
+                                          tabs.Tab.height - 2 - self.information_win_size, 0)
 
     def on_exception(self, typ, value, trace):
         """
@@ -194,6 +207,7 @@ class Core(object):
         if self.information_win_size == 14:
             return
         self.information_win_size += 1
+        self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
@@ -202,6 +216,7 @@ class Core(object):
         if self.information_win_size == 0:
             return
         self.information_win_size -= 1
+        self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
@@ -574,16 +589,18 @@ class Core(object):
         """
         Called when we want to resize the screen
         """
+        tabs.Tab.resize(self.stdscr)
+        self.resize_global_information_win()
         with resize_lock:
             for tab in self.tabs:
-                tab.need_resize = True
+                tab.resize()
             self.refresh_window()
 
     def main_loop(self):
         """
         main loop waiting for the user to press a key
         """
-        curses.ungetch(0)    # FIXME
+        # curses.ungetch(0)    # FIXME
         while self.running:
             char = read_char(self.stdscr)
             # search for keyboard shortcut
