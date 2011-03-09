@@ -46,11 +46,11 @@ class TextBuffer(object):
         msg = {'txt': txt, 'colorized':colorized,
                'time':time or datetime.now()}
         if nickname:
-            message['nickname'] = nickname
+            msg['nickname'] = nickname
         if nick_color:
-            message['nick_color'] = nick_color
+            msg['nick_color'] = nick_color
         if color:
-            message['color'] = color
+            msg['color'] = color
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
