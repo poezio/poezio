@@ -569,12 +569,10 @@ class TextWin(Win):
                 if line is None:
                     self.write_line_separator()
                 else:
-                    if line.get('time'):
-                        self.write_time(line.get('time'))
-                    if line.get('nickname'):
-                        self.write_nickname(line.get('nickname'), line.get('nickname_color'))
+                    self.write_time(line.get('time'))
+                    self.write_nickname(line.get('nickname'), line.get('nickname_color'))
                     self.write_text(y, line.get('text_offset'), line.get('text'), line.get('text_color'), line.get('colorized'))
-                if y != self.height-1 or (not line or line.get('text_offset')+wcwidth.wcswidth(line.get('text')) < self.width):
+                if y != self.height-1:
                     self.addstr('\n')
             self._refresh()
 
@@ -585,7 +583,6 @@ class TextWin(Win):
         """
         write the text of a line.
         """
-        txt = txt
         if not colorized:
             if color:
                 self._win.attron(common.curses_color_pair(color))
@@ -627,6 +624,8 @@ class TextWin(Win):
         Write the nickname, using the user's color
         and return the number of written characters
         """
+        if not nickname:
+            return
         if color:
             self._win.attron(common.curses_color_pair(color))
         self.addstr(nickname)
@@ -638,8 +637,9 @@ class TextWin(Win):
         """
         Write the date on the yth line of the window
         """
-        self.addstr(time)
-        self.addstr(' ')
+        if time:
+            self.addstr(time)
+            self.addstr(' ')
 
     def resize(self, height, width, y, x, room=None):
         self._resize(height, width, y, x)

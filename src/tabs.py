@@ -260,7 +260,7 @@ class ChatTab(Tab):
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
-            txt = msg.txt
+            txt = msg.get('txt')
             for char in char_we_dont_want:
                 txt = txt.replace(char, ' ')
             for word in txt.split():
