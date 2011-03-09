@@ -233,6 +233,22 @@ def wcswidth(s):
             width += w
     return width
 
+def wcsislonger(s, l):
+    """
+    Returns the same result than "wcswidth(s) > l" but
+    is faster.
+    """
+    width = 0
+    for c in s:
+        w = wcwidth(c)
+        if w < 0:
+            return -1
+        else:
+            width += w
+            if width > l:
+                return True
+    return False
+
 def widthcut(s, m):
     """
     Return the first characters of s that can be contained in

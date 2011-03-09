@@ -38,7 +38,7 @@ from threading import Lock
 from contact import Contact, Resource
 from roster import RosterGroup, roster
 
-from message import Line
+# from message import Line
 from tabs import MIN_WIDTH, MIN_HEIGHT
 
 from sleekxmpp.xmlstream.stanzabase import JID
@@ -495,67 +495,57 @@ class TextWin(Win):
         Return the number of lines that are built for the given
         message.
         """
-        if message == None:  # line separator
+        def cut_text(text, width):
+            """
+            returns the text that should be displayed on the line, and the rest
+            of the text, in a tuple
+            """
+            cutted = wcwidth.widthcut(text, width) or text[:width]
+            limit = cutted.find('\n')
+            if limit >= 0:
+                return (text[limit+1:], text[:limit])
+            if not wcwidth.wcsislonger(text, width):
+                return ('', text)
+            limit = cutted.rfind(' ')
+            if limit <= 0:
+                return (text[len(cutted):], cutted)
+            else:
+                return (text[limit+1:], text[:limit])
+
+        if message is None:  # line separator
             self.built_lines.append(None)
             return 0
-        txt = message.txt
+        txt = message.get('txt')
         if not txt:
             return 0
         else:
             txt = txt.replace('\t', '    ')
         # length of the time
         offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
-        if message.nickname and wcwidth.wcswidth(message.nickname) >= 25:
-            nick = message.nickname[:25]+'…'
+        nickname = message.get('nickname')
+        if nickname and len(nickname) >= 25:
+            nick = nickname[:25]+'…'
         else:
-            nick = message.nickname
+            nick = nickname
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         first = True
-        this_line_was_broken_by_space = False
         nb = 0
         while txt != '':
-            cutted_txt = wcwidth.widthcut(txt, self.width-offset) or txt[:self.width-offset]
-            limit = cutted_txt.find('\n')
-            if limit < 0:
-                # break between words if possible
-                if wcwidth.wcswidth(txt) >= self.width-offset:
-                    cutted_txt = wcwidth.widthcut(txt, self.width-offset) or txt[:self.width-offset]
-                    limit = cutted_txt.rfind(' ')
-                    this_line_was_broken_by_space = True
-                    if limit <= 0:
-                        limit = self.width-offset
-                        this_line_was_broken_by_space = False
-                else:
-                    limit = self.width-offset-1
-                    this_line_was_broken_by_space = False
-            color = message.user.color if message.user else message.nick_color
-            if not first:
-                nick = None
-                time = None
-            else:               # strftime is VERY slow, improve performance
-                                # by calling it only one time here, and
-                                # not at each refresh
-                time = {'hour': '%s'%(message.time.strftime("%H"),),
-                        'minute': '%s'%(message.time.strftime("%M"),),
-                        'second': '%s'%(message.time.strftime("%S"),),
-                        }
-            l = Line(nick, color,
-                     time,
-                     wcwidth.widthcut(txt, limit) or txt[:limit], message.color,
-                     offset,
-                     message.colorized)
+            (txt, cutted_txt) = cut_text(txt, self.width-offset)
+            l = {'colorized': message.get('colorized'),
+                 'text_offset':offset,
+                 'text_color':message.get('color'),
+                 'text': cutted_txt
+                    }
+            color = message.get('user').color if message.get('user') else message.get('nick_color')
+            if first and color:
+                l['nickname_color'] = color
+            if first:
+                l['time'] = message.get('time').strftime("%H:%M:%S")
+                l['nickname'] = nick
             self.built_lines.append(l)
             nb += 1
-            if this_line_was_broken_by_space:
-                limit += 1   # jump the space at the start of the line
-            cutted_txt = wcwidth.widthcut(txt, limit)
-            if not cutted_txt:
-                txt = txt[limit:]
-            else:
-                txt = txt[len(cutted_txt):]
-            if txt.startswith('\n'):
-                txt = txt[1:]
             first = False
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
@@ -579,12 +569,12 @@ class TextWin(Win):
                 if line is None:
                     self.write_line_separator()
                 else:
-                    if line.time:
-                        self.write_time(line.time)
-                    if line.nickname:
-                        self.write_nickname(line.nickname, line.nickname_color)
-                    self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
-                if y != self.height-1 or (not line or line.text_offset+wcwidth.wcswidth(line.text) < self.width):
+                    if line.get('time'):
+                        self.write_time(line.get('time'))
+                    if line.get('nickname'):
+                        self.write_nickname(line.get('nickname'), line.get('nickname_color'))
+                    self.write_text(y, line.get('text_offset'), line.get('text'), line.get('text_color'), line.get('colorized'))
+                if y != self.height-1 or (not line or line.get('text_offset')+wcwidth.wcswidth(line.get('text')) < self.width):
                     self.addstr('\n')
             self._refresh()
 
@@ -648,13 +638,7 @@ class TextWin(Win):
         """
         Write the date on the yth line of the window
         """
-        self.addstr(theme.CHAR_TIME_LEFT, common.curses_color_pair(theme.COLOR_TIME_LIMITER))
-        self.addstr(time['hour'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(':', common.curses_color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time['minute'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(':', common.curses_color_pair(theme.COLOR_TIME_SEPARATOR))
-        self.addstr(time['second'], common.curses_color_pair(theme.COLOR_TIME_NUMBERS))
-        self.addstr(theme.CHAR_TIME_RIGHT, common.curses_color_pair(theme.COLOR_TIME_LIMITER))
+        self.addstr(time)
         self.addstr(' ')
 
     def resize(self, height, width, y, x, room=None):

@@ -19,7 +19,6 @@ from datetime import datetime
 from random import randrange
 from config import config
 from logger import logger
-from message import Message
 
 import common
 import theme
@@ -114,7 +113,17 @@ class Room(TextBuffer):
             color = theme.COLOR_INFORMATION_TEXT
         time = time if time is not None else datetime.now()
         nick_color = nick_color or user.color if user else None
-        message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
+        message = {'txt': txt, 'colorized':colorized,
+                   'time':time}
+        if nickname:
+            message['nickname'] = nickname
+        if nick_color:
+            message['nick_color'] = nick_color
+        if color:
+            message['color'] = color
+        if user:
+            message['user'] = user
+        # message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
         self.messages.append(message)

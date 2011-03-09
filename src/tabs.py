@@ -781,7 +781,7 @@ class MucTab(ChatTab):
         user.change_nick(new_nick)
         room.add_message(_('"[%(old)s]" is now known as "[%(new)s]"') % {'old':from_nick.replace('"', '\\"'), 'new':new_nick.replace('"', '\\"')}, colorized=True)
         # rename the private tabs if needed
-        self.core.rename_private_tab(room.name, from_nick, new_nick)
+        self.core.rename_private_tabs(room.name, from_nick, new_nick)
 
     def on_user_banned(self, room, presence, user, from_nick):
         """
