@@ -72,7 +72,6 @@ class DataFormsTab(Tab):
             self.form_win.on_input(key)
 
     def resize(self):
-        Tab.resize(self)
         if not self.visible:
             return
         self.topic_win.resize(1, self.width, 0, 0)
