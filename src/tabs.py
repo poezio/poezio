@@ -1042,7 +1042,6 @@ class RosterInfoTab(Tab):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.key_func['^I'] = self.completion
         self.key_func['M-i'] = self.completion
-        self.key_func["^M"] = self.on_enter
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
         self.key_func["KEY_UP"] = self.move_cursor_up
@@ -1179,10 +1178,15 @@ class RosterInfoTab(Tab):
         self._color_state = color
 
     def on_input(self, key):
+        if key == '^M':
+            selected_row = self.roster_win.get_selected_row()
         res = self.input.do_command(key)
         if res:
             return True
-        if key in self.key_func:
+        if key == '^M':
+            self.core.on_roster_enter_key(selected_row)
+            return selected_row
+        elif key in self.key_func:
             return self.key_func[key]()
 
     def toggle_offline_show(self):
@@ -1267,11 +1271,6 @@ class RosterInfoTab(Tab):
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
             return True
-
-    def on_enter(self):
-        selected_row = self.roster_win.get_selected_row()
-        self.core.on_roster_enter_key(selected_row)
-        return selected_row
 
     def start_search(self):
         """
