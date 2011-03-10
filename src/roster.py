@@ -149,14 +149,15 @@ class Roster(object):
         for the whole roster
         """
         length = 0
+        show_offline = config.get('roster_show_offline', 'false') == 'true'
         for group in self._roster_groups:
-            if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
+            if not show_offline and group.get_nb_connected_contacts() == 0:
                 continue
             length += 1              # One for the group's line itself
             if not group.folded:
                 for contact in group.get_contacts(self._contact_filter):
                     # We do not count the offline contacts (depending on config)
-                    if config.get('roster_show_offline', 'false') == 'false' and\
+                    if not show_offline and\
                             contact.get_nb_resources() == 0:
                         continue
                     length += 1      # One for the contact's line

@@ -1257,8 +1257,9 @@ class RosterWin(Win):
             self._win.erase()
             self.draw_roster_information(roster)
             y = 1
+            show_offline = config.get('roster_show_offline', 'false') == 'true'
             for group in roster.get_groups():
-                if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
+                if not show_offline and group.get_nb_connected_contacts() == 0:
                     continue    # Ignore empty groups
                 # This loop is really REALLY ugly :^)
                 if y-1 == self.pos:
