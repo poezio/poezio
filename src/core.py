@@ -109,17 +109,17 @@ class Core(object):
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
-            'show': (self.command_show, _("Usage: /show <availability> [status]\nShow: Change your availability and (optionaly) your status, but only in the MUCs. This doesn’t affect the way your contacts will see you in their roster. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message"), self.completion_show),
-            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optional) sets your status message. This is equivalent to '/show away [message]'"), None),
-            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optional) sets your status message. This is equivalent to '/show busy [message]'"), None),
-            'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
-            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optional) sets your status message. This is equivalent to '/show available [message]'"), None),
+            'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
+            'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
+            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optionaly) your status message. This is equivalent to '/status away [message]'"), None),
+            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optionaly) your status message. This is equivalent to '/status busy [message]'"), None),
+            'avail': (self.command_avail, _("Usage: /avail [message]\nAvail: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status avail [message]'"), None),
+            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status available [message]'"), None),
            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
-            'list': (self.command_list, _('Usage: /list\n/List: get the list of public chatrooms on the specified server'), self.completion_list),
-            'status': (self.command_status, _('Usage: /status <availability> [status message]\n/Status: Globally change your status and your status message.'), self.completion_status),
-            'message': (self.command_message, _('Usage: /message <jid> [optional message]\n/Message: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
+            'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
+            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             }
 
         self.key_func = {
@@ -914,11 +914,14 @@ class Core(object):
         return the_input.auto_completion(commands, ' ')
 
     def command_status(self, arg):
+        """
+        /status <status> [msg]
+        """
         args = arg.split()
         if len(args) < 1:
             return
         if not args[0] in possible_show.keys():
-            self.command_help('show')
+            self.command_help('status')
             return
         show = possible_show[args[0]]
         if len(args) > 1:
@@ -930,7 +933,9 @@ class Core(object):
             pres['status'] = msg
         pres['type'] = show
         pres.send()
-        self.command_show(arg)
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
+                muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
@@ -1169,45 +1174,23 @@ class Core(object):
         msg = "%s=%s" % (option, value)
         self.information(msg)
 
-    def command_show(self, arg):
-        """
-        /show <status> [msg]
-        """
-        args = arg.split()
-        if len(args) < 1:
-            return
-        if not args[0] in list(possible_show.keys()):
-            self.command_help('show')
-            return
-        show = possible_show[args[0]]
-        if len(args) > 1:
-            msg = ' '.join(args[1:])
-        else:
-            msg = None
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
-                muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
-
-    def completion_show(self, the_input):
-        return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
-
     def command_away(self, arg):
         """
         /away [msg]
         """
-        self.command_show("away "+arg)
+        self.command_status("away "+arg)
 
     def command_busy(self, arg):
         """
         /busy [msg]
         """
-        self.command_show("busy "+arg)
+        self.command_status("busy "+arg)
 
     def command_avail(self, arg):
         """
         /avail [msg]
         """
-        self.command_show("available "+arg)
+        self.command_status("available "+arg)
 
     def close_tab(self, tab=None):
         """
