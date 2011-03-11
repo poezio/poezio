@@ -632,9 +632,9 @@ class MucTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
-        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
         return False
 
@@ -966,9 +966,9 @@ class PrivateTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
-        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
         return False
 
@@ -1390,9 +1390,9 @@ class ConversationTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
-        empty_after = self.input.get_text() == '' or self.input.get_text().startswith('/')
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
         return False
 
