@@ -532,7 +532,7 @@ class TextWin(Win):
         first = True
         nb = 0
         while txt != '':
-            (txt, cutted_txt) = cut_text(txt, self.width-offset)
+            (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
             l = {'colorized': message.get('colorized'),
                  'text_offset':offset,
                  'text_color':message.get('color'),
