@@ -119,6 +119,7 @@ class Core(object):
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
+            'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
             }
 
         self.key_func = {
@@ -951,6 +952,23 @@ class Core(object):
         tab = self.open_conversation_window(jid, focus=True)
         if len(args) > 1:
             tab.command_say(arg.strip()[len(jid):])
+
+    def command_version(self, arg):
+        """
+        /version <jid>
+        """
+        args = arg.split()
+        if len(args) < 1:
+            return self.command_help('version')
+        jid = args[0]
+        res = self.xmpp.plugin['xep_0092'].get_version(jid)
+        if not res:
+            return self.information('Could not get the software version from %s' % (jid,))
+        version = '%s is running %s version %s on %s' % (jid,
+                                                         res.get('name') or _('an unknown software'),
+                                                         res.get('version') or _('unknown'),
+                                                         res.get('os') or _('on an unknown platform'))
+        self.information(version)
 
     def command_list(self, arg):
         """
