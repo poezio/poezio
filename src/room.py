@@ -59,7 +59,7 @@ class Room(TextBuffer):
         """
         color = theme.COLOR_NORMAL_TEXT
         if not time and nickname and nickname != self.own_nick and self.joined:
-            if self.own_nick in txt:
+            if self.own_nick.lower() in txt.lower():
                 self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                 color = theme.COLOR_HIGHLIGHT_TEXT
             else:
