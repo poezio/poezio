@@ -120,6 +120,7 @@ class Core(object):
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
+            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             }
 
         self.key_func = {
@@ -970,6 +971,12 @@ class Core(object):
                                                          res.get('os') or _('on an unknown platform'))
         self.information(version)
 
+    def command_reconnect(self, args):
+        """
+        /reconnect
+        """
+        self.disconnect(True)
+
     def command_list(self, arg):
         """
         /list <server>
@@ -1247,6 +1254,17 @@ class Core(object):
         # TODO: refresh only the correct window in the current tab
         self.refresh_window()
 
+    def disconnect(self, msg=None):
+        """
+        Disconnect from remote server and correctly set the states of all
+        parts of the client (for example, set the MucTabs as not joined, etc)
+        """
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab):
+                muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
+        self.save_config()
+        self.xmpp.disconnect(False)
+
     def command_quit(self, arg):
         """
         /quit
@@ -1255,11 +1273,7 @@ class Core(object):
             msg = arg
         else:
             msg = None
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
-        self.save_config()
-        self.xmpp.disconnect()
+        self.disconnect(msg)
         self.running = False
         self.reset_curses()
         sys.exit()
