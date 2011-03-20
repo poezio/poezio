@@ -124,7 +124,6 @@ class Core(object):
             }
 
         self.key_func = {
-            
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
             "KEY_F(5)": self.rotate_rooms_left,
@@ -614,7 +613,7 @@ class Core(object):
                 else:
                     self.command_win('%s' % nb)
             # search for keyboard shortcut
-            elif char in list(self.key_func.keys()):
+            if char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
                 self.do_command(char)
