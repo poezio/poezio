@@ -124,6 +124,7 @@ class Core(object):
             }
 
         self.key_func = {
+            
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
             "KEY_F(5)": self.rotate_rooms_left,
@@ -604,8 +605,16 @@ class Core(object):
         # curses.ungetch(0)    # FIXME
         while self.running:
             char = read_char(self.stdscr)
+            # Special case for M-x where x is a number
+            if char.startswith('M-') and len(char) == 3:
+                try:
+                    nb = int(char[2])
+                except:
+                    pass
+                else:
+                    self.command_win('%s' % nb)
             # search for keyboard shortcut
-            if char in list(self.key_func.keys()):
+            elif char in list(self.key_func.keys()):
                 self.key_func[char]()
             else:
                 self.do_command(char)
