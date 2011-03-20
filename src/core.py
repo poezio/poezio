@@ -142,6 +142,7 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             'M-v': self.move_separator,
             '^L': self.full_screen_redraw,
+            'M-j': self.go_to_room_number,
             }
 
         # Add handlers
@@ -1241,6 +1242,23 @@ class Core(object):
         log.debug('___ Referrers of closing tab:\n%s\n______' % gc.get_referrers(tab))
         del tab
         self.refresh_window()
+
+    def go_to_room_number(self):
+        """
+        Read 2 more chars and go to the tab
+        with the given number
+        """
+        char = read_char(self.stdscr)
+        try:
+            nb1 = int(char)
+        except ValueError:
+            return
+        char = read_char(self.stdscr)
+        try:
+            nb2 = int(char)
+        except ValueError:
+            return
+        self.command_win('%s%s' % (nb1, nb2))
 
     def move_separator(self):
         """
