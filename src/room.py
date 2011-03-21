@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
 
-from text_buffer import TextBuffer
+from text_buffer import TextBuffer, Message
 from datetime import datetime
 from random import randrange
 from config import config
@@ -111,18 +111,10 @@ class Room(TextBuffer):
             color = self.do_highlight(txt, time, nickname)
         if time:                # History messages are colored to be distinguished
             color = theme.COLOR_INFORMATION_TEXT
-        time = time if time is not None else datetime.now()
+        time = time or datetime.now()
         nick_color = nick_color or user.color if user else None
-        message = {'txt': txt, 'colorized':colorized,
-                   'time':time}
-        if nickname:
-            message['nickname'] = nickname
-        if nick_color:
-            message['nick_color'] = nick_color
-        if color:
-            message['color'] = color
-        if user:
-            message['user'] = user
+        message = Message(txt=txt, colorized=colorized, nick_color=nick_color,
+                      time=time, nickname=nickname, color=color, user=user)
         # message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

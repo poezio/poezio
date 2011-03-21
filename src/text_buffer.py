@@ -21,9 +21,13 @@ Define the TextBuffer class
 import logging
 log = logging.getLogger(__name__)
 
+import collections
+
 from datetime import datetime
 import theme
 from config import config
+
+Message = collections.namedtuple('Message', 'txt colorized nick_color time nickname color user')
 
 class TextBuffer(object):
     """
@@ -43,14 +47,8 @@ class TextBuffer(object):
     def add_message(self, txt, time=None, nickname=None, colorized=False, nick_color=None):
         color = theme.COLOR_NORMAL_TEXT if nickname is not None else theme.COLOR_INFORMATION_TEXT
         nick_color = nick_color
-        msg = {'txt': txt, 'colorized':colorized,
-               'time':time or datetime.now()}
-        if nickname:
-            msg['nickname'] = nickname
-        if nick_color:
-            msg['nick_color'] = nick_color
-        if color:
-            msg['color'] = color
+        msg = Message(txt=txt, colorized=colorized, nick_color=nick_color,
+                      time=time or datetime.now(), nickname=nickname, color=color, user=None)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

@@ -48,6 +48,9 @@ import theme
 import common
 import wcwidth
 import singleton
+import collections
+
+Line = collections.namedtuple('Line', 'text colorized text_offset text_color nickname_color time nickname')
 
 g_lock = Lock()
 
@@ -515,14 +518,14 @@ class TextWin(Win):
         if message is None:  # line separator
             self.built_lines.append(None)
             return 0
-        txt = message.get('txt')
+        txt = message.txt
         if not txt:
             return 0
         else:
             txt = txt.replace('\t', '    ')
         # length of the time
         offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
-        nickname = message.get('nickname')
+        nickname = message.nickname
         if nickname and len(nickname) >= 25:
             nick = nickname[:25]+'…'
         else:
@@ -533,18 +536,20 @@ class TextWin(Win):
         nb = 0
         while txt != '':
             (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
-            l = {'colorized': message.get('colorized'),
-                 'text_offset':offset,
-                 'text_color':message.get('color'),
-                 'text': cutted_txt
-                    }
-            color = message.get('user').color if message.get('user') else message.get('nick_color')
-            if first and color:
-                l['nickname_color'] = color
             if first:
-                l['time'] = message.get('time').strftime("%H:%M:%S")
-                l['nickname'] = nick
-            self.built_lines.append(l)
+                color = message.user.color if message.user else message.nick_color
+            else:
+                color = None
+            if first:
+                time = message.time.strftime("%H:%M:%S")
+                nickname = nick
+            else:
+                time = None
+                nickname = None
+            self.built_lines.append(Line(text=cutted_txt, colorized=message.colorized,
+                                         text_offset=offset, text_color=message.color,
+                                         nickname_color=color, time=time,
+                                         nickname=nickname))
             nb += 1
             first = False
         while len(self.built_lines) > self.lines_nb_limit:
@@ -569,9 +574,9 @@ class TextWin(Win):
                 if line is None:
                     self.write_line_separator()
                 else:
-                    self.write_time(line.get('time'))
-                    self.write_nickname(line.get('nickname'), line.get('nickname_color'))
-                    self.write_text(y, line.get('text_offset'), line.get('text'), line.get('text_color'), line.get('colorized'))
+                    self.write_time(line.time)
+                    self.write_nickname(line.nickname, line.nickname_color)
+                    self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
                 if y != self.height-1:
                     self.addstr('\n')
             self._refresh()
