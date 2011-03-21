@@ -1,4 +1,4 @@
-# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
+c# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
@@ -260,7 +260,7 @@ class ChatTab(Tab):
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
-            txt = msg.get('txt')
+            txt = msg.txt
             for char in char_we_dont_want:
                 txt = txt.replace(char, ' ')
             for word in txt.split():
