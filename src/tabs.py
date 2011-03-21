@@ -1,4 +1,4 @@
-c# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
+# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
