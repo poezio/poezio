@@ -127,6 +127,9 @@ class FieldInput(object):
         return ''
 
 class DummyInput(FieldInput, windows.Win):
+    """
+    Used for fields that do not require any input ('fixed')
+    """
     def __init__(self, field):
         FieldInput.__init__(self, field)
         windows.Win.__init__(self)
@@ -401,7 +404,7 @@ class FormWin(object):
                 continue
             try:
                 input_class = self.input_classes[field['type']]
-            except:
+            except IndexError:
                 continue
             label = field['label']
             desc = field['desc']
@@ -478,9 +481,7 @@ class FormWin(object):
                 label = self.inputs[i]['label']
                 self._win.addstr(y, 0, label)
                 self.inputs[i]['input'].resize(1, self.width//3, y+1, 2*self.width//3)
-                # if field['description']:
-                #     y += 1
-                #     self._win.addstr(y, 0, field['description'])
+                # TODO: display the field description
                 y += 1
                 i += 1
                 if y >= self.height:
