@@ -961,7 +961,7 @@ class Core(object):
         jid = args[0]
         tab = self.open_conversation_window(jid, focus=True)
         if len(args) > 1:
-            tab.command_say(arg.strip()[len(jid):])
+            tab.command_say(arg.strip()[len(jid)+1:])
 
     def command_version(self, arg):
         """
