@@ -621,42 +621,6 @@ class TextWin(Win):
         write the text of a line.
         """
         self.addstr_colored(txt, y, x)
-        return
-        if not colorized:
-            if color:
-                self._win.attron(common.curses_color_pair(color))
-            self.addstr(y, x, txt)
-            if color:
-                self._win.attroff(common.curses_color_pair(color))
-
-        else:                   # Special messages like join or quit
-            special_words = {
-                theme.CHAR_JOIN: theme.COLOR_JOIN_CHAR,
-                theme.CHAR_QUIT: theme.COLOR_QUIT_CHAR,
-                theme.CHAR_KICK: theme.COLOR_KICK_CHAR,
-                }
-            try:
-                splitted = shlex.split(txt)
-            except ValueError:
-                # FIXME colors are disabled on too long words
-                txt = txt.replace('"[', '').replace(']"', '')\
-                    .replace('"{', '').replace('}"', '')\
-                    .replace('"(', '').replace(')"', '')
-                splitted = txt.split()
-            for word in splitted:
-                if word in special_words.keys():
-                    self.addstr(word, common.curses_color_pair(special_words[word]))
-                elif word.startswith('(') and word.endswith(')'):
-                    self.addstr('(', common.curses_color_pair(color))
-                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_CURLYBRACKETED_WORD))
-                    self.addstr(')', common.curses_color_pair(color))
-                elif word.startswith('{') and word.endswith('}'):
-                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_ACCOLADE_WORD))
-                elif word.startswith('[') and word.endswith(']'):
-                    self.addstr(word[1:-1], common.curses_color_pair(theme.COLOR_BRACKETED_WORD))
-                else:
-                    self.addstr(word, common.curses_color_pair(color))
-                self.addstr(' ')
 
     def write_nickname(self, nickname, color):
         """

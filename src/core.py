@@ -426,7 +426,7 @@ class Core(object):
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)
         if tab: # display the message in private
-            tab.get_room().add_message(msg, colorized=True)
+            tab.get_room().add_message(msg)
 
     def on_message(self, message):
         """
@@ -459,7 +459,6 @@ class Core(object):
                 return
         body = message['body']
         room.add_message(body, time=None, nickname=nick_from,
-                         colorized=False,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:

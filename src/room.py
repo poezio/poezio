@@ -114,7 +114,6 @@ class Room(TextBuffer):
         time = time or datetime.now()
         message = Message(txt=txt, nick_color=nick_color,
                           time=time, nickname=nickname, user=user)
-        # message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
         self.messages.append(message)

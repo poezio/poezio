@@ -802,7 +802,7 @@ class MucTab(ChatTab):
                 kick_msg = _('\x191%(spec)s \x193%(nick)s \x195has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
             kick_msg += _(' Reason: \x196%(reason)s') % {'reason': reason.text}
-        room.add_message(kick_msg, colorized=True)
+        room.add_message(kick_msg)
 
     def on_user_kicked(self, room, presence, user, from_nick):
         """
@@ -882,7 +882,7 @@ class MucTab(ChatTab):
                     show != user.show or\
                     status != user.status):
             # display the message in the room
-            room.add_message(msg, colorized=True)
+            room.add_message(msg)
         self.core.on_user_changed_status_in_private('%s/%s' % (from_room, from_nick), msg)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
@@ -1009,7 +1009,7 @@ class PrivateTab(ChatTab):
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.get_room().add_message(_('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':old_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')}, colorized=True)
+        self.get_room().add_message(_('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':old_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')})
         new_jid = JID(self.get_room().name).bare+'/'+new_nick
         self.get_room().name = new_jid
 
@@ -1018,9 +1018,9 @@ class PrivateTab(ChatTab):
         The user left the associated MUC
         """
         if not status_message:
-            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')}, colorized=True)
+            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')})
         else:
-            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')}, colorized=True)
+            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
 
 class RosterInfoTab(Tab):
     """
