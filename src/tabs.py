@@ -727,9 +727,9 @@ class MucTab(ChatTab):
                 if from_nick == room.own_nick:
                     room.joined = True
                     new_user.color = theme.COLOR_OWN_NICK
-                    room.add_message(_("\x195Your nickname is %s") % (from_nick))
+                    room.add_message(_("\x195Your nickname is \x193%s") % (from_nick))
                     if '170' in status_codes:
-                        room.add_message('\x195Warning: this room is publicly logged')
+                        room.add_message('\x191Warning: \x195this room is publicly logged')
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -766,7 +766,7 @@ class MucTab(ChatTab):
             if not jid.full:
                 room.add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':from_nick, 'spec':theme.CHAR_JOIN})
             else:
-                room.add_message('\x194%(spec)s \x193%(nick)s (\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
+                room.add_message('\x194%(spec)s \x193%(nick)s \x195(\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
         new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
@@ -801,7 +801,7 @@ class MucTab(ChatTab):
             else:
                 kick_msg = _('\x191%(spec)s \x193%(nick)s \x195has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
-            kick_msg += _(' Reason: \x196%(reason)s') % {'reason': reason.text}
+            kick_msg += _(' Reason: %(\x196reason\x195)s') % {'reason': reason.text}
         room.add_message(kick_msg)
 
     def on_user_kicked(self, room, presence, user, from_nick):
@@ -815,19 +815,19 @@ class MucTab(ChatTab):
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             if by:
-                kick_msg = _('\x191%(spec)s \x193You \x195have been kicked by \x194%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked by \x193%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
             else:
-                kick_msg = _('\x191%(spec)s \x193You \x195have been kicked.') % {'spec':theme.CHAR_KICK}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked.') % {'spec':theme.CHAR_KICK}
             # try to auto-rejoin
             if config.get('autorejoin', 'false') == 'true':
                 muc.join_groupchat(self.core.xmpp, room.name, room.own_nick)
         else:
             if by:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked by "[%(by)s]"') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked by \x193%(by)s') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
             else:
-                kick_msg = _('%(spec)s "[%(nick)s]" has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
-            kick_msg += _(' Reason: (\x196%reason\x195)s') % {'reason': reason.text}
+            kick_msg += _(' Reason: \x196(%reason)s') % {'reason': reason.text}
         room.add_message(kick_msg)
 
     def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
@@ -841,9 +841,9 @@ class MucTab(ChatTab):
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:
-                leave_msg = _('\x191%(spec)s \x193%(nick)s \x195has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
+                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
             else:
-                leave_msg = _('\x191%(spec)s \x193%(nick)s (\x194%(jid)s) \x195has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 (\x194%(jid)s\x195) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
             if status:
                 leave_msg += ' (%s)' % status
             room.add_message(leave_msg)
@@ -856,7 +856,7 @@ class MucTab(ChatTab):
         # build the message
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
-        msg = _('\x193%s \x195changed: ')% from_nick.replace('"', '\\"')
+        msg = _('\x193%s\x195 changed: ')% from_nick.replace('"', '\\"')
         if affiliation != user.affiliation:
             msg += _('affiliation: %s, ') % affiliation
             display_message = True
