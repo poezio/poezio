@@ -49,6 +49,50 @@ def get_body_from_message_stanza(message):
             return shell_colors_to_poezio_colors(shell_body)
     return message['body']
 
+number_to_color_names = {
+    1: 'red',
+    2: 'green',
+}
+
+def poezio_colors_to_html(string):
+    """
+    Convert poezio colors to html makups
+    (e.g. \x191: <span style='color: red'>)
+    """
+    # TODO underlined
+
+    # a list of all opened elements, e.g. ['strong', 'span']
+    # So that we know what we need to close
+    opened_elements = []
+    res = "<body xmlns='http://www.w3.org/1999/html'>"
+    next_attr_char = string.find('\x19')
+    while next_attr_char != -1:
+        attr_char = string[next_attr_char+1].lower()
+        if next_attr_char != 0:
+            res += string[:next_attr_char]
+        string = string[next_attr_char+2:]
+        if attr_char == 'o':
+            for elem in opened_elements[::-1]:
+                res += '</%s>' % (elem,)
+            opened_elements = []
+        elif attr_char == 'b':
+            if 'strong' not in opened_elements:
+                opened_elements.append('strong')
+                res += '<strong>'
+        elif attr_char.isdigit():
+            number = int(attr_char)
+            if number in number_to_color_names:
+                if 'span' in opened_elements:
+                    res += '</span>'
+                res += "<span style='color: %s'>" % (number_to_color_names[number])
+                opened_elements.append('span')
+        next_attr_char = string.find('\x19')
+    res += string
+    for elem in opened_elements[::-1]:
+        res += '</%s>' % (elem,)
+    res += "</body>"
+    return res
+
 def shell_colors_to_poezio_colors(string):
     """
     'shell colors' means something like:
@@ -82,13 +126,14 @@ def xhtml_code_to_shell_colors(string):
     return result.decode('utf-8').strip()
 
 if __name__ == '__main__':
-    print(xhtml_code_to_shell_colors("""
-  <html xmlns='http://jabber.org/protocol/xhtml-im'>
-    <body xmlns='http://www.w3.org/1999/xhtml'>
-      <p style='font-size:large'>
-        <em>Wow</em>, I&apos;m <span style='color:green'>green</span>
-        with <strong>envy</strong>!
-      </p>
-    </body>
-  </html>
-"""))
+#     print(xhtml_code_to_shell_colors("""
+#   <html xmlns='http://jabber.org/protocol/xhtml-im'>
+#     <body xmlns='http://www.w3.org/1999/xhtml'>
+#       <p style='font-size:large'>
+#         <em>Wow</em>, I&apos;m <span style='color:green'>green</span>
+#         with <strong>envy</strong>!
+#       </p>
+#     </body>
+#   </html>
+# """))
+    print(poezio_colors_to_html('\x191red\x19o \x192green\x19o \x19b\x192green and bold'))
