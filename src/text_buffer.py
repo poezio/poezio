@@ -45,8 +45,6 @@ class TextBuffer(object):
         self.windows.append(win)
 
     def add_message(self, txt, time=None, nickname=None, nick_color=None):
-        if not nickname:
-            txt = '\x195%s' % (txt,)
         nick_color = nick_color
         msg = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
                       time=time or datetime.now(), nickname=nickname, user=None)
