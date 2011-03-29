@@ -766,7 +766,7 @@ class MucTab(ChatTab):
             if not jid.full:
                 room.add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':from_nick, 'spec':theme.CHAR_JOIN})
             else:
-                room.add_message('\x194%(spec)s \x193%(nick)s (\x196%(jid)s\x195 joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
+                room.add_message('\x194%(spec)s \x193%(nick)s (\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
         new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
