@@ -557,6 +557,7 @@ class MucTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
         msg['body'] = line
+        msg['xhtml_im'] = "<body><p>coucou</p></body>"
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
         msg.send()

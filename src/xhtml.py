@@ -26,7 +26,28 @@ poezio colors to xhtml code
 import re
 import subprocess
 
+import logging
+
+log = logging.getLogger(__name__)
+
+
 shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
+
+def get_body_from_message_stanza(message):
+    """
+    Returns a string with xhtml markups converted to
+    poezio colors if there's an xhtml_im element, or
+    the body (without any color) otherwise
+    """
+    xhtml_body = message['xhtml_im']
+    if xhtml_body:
+        try:
+            shell_body = xhtml_code_to_shell_colors(xhtml_body)
+        except OSError:
+            log.error('html parsing failed')
+        else:
+            return shell_colors_to_poezio_colors(shell_body)
+    return message['body']
 
 def shell_colors_to_poezio_colors(string):
     """

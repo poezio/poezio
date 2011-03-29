@@ -54,8 +54,9 @@ class Connection(sleekxmpp.ClientXMPP):
         self.auto_reconnect = False
         self.auto_authorize = None
         self.register_plugin('xep_0030')
-        self.register_plugin('xep_0045')
         self.register_plugin('xep_0004')
+        self.register_plugin('xep_0045')
+        self.register_plugin('xep_0071')
         self.register_plugin('xep_0085')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',

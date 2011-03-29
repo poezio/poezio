@@ -38,6 +38,7 @@ log = logging.getLogger(__name__)
 
 import multiuserchat as muc
 import tabs
+import xhtml
 import windows
 import connection
 
@@ -457,7 +458,7 @@ class Core(object):
             room = self.open_private_window(room_from, nick_from, False)
             if not room:
                 return
-        body = message['body']
+        body = xhtml.get_body_from_message_stanza(message)
         room.add_message(body, time=None, nickname=nick_from,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
@@ -499,7 +500,7 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
-        body = message['body']
+        body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
@@ -878,7 +879,7 @@ class Core(object):
         if not room:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
-        body = message['body']
+        body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
             self.add_message_to_text_buffer(room, body, date, nick_from)
