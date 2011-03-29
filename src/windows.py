@@ -569,7 +569,7 @@ class TextWin(Win):
         while txt != '':
             (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
             if first:
-                color = message.user.color if message.user else message.nick_color
+                color = message.nick_color or message.user.color if message.user else None
             else:
                 color = None
             if first:
