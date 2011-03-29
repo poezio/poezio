@@ -64,7 +64,7 @@ def poezio_colors_to_html(string):
     # a list of all opened elements, e.g. ['strong', 'span']
     # So that we know what we need to close
     opened_elements = []
-    res = "<body xmlns='http://www.w3.org/1999/html'>"
+    res = "<body xmlns='http://www.w3.org/1999/html'><p>"
     next_attr_char = string.find('\x19')
     while next_attr_char != -1:
         attr_char = string[next_attr_char+1].lower()
@@ -90,8 +90,8 @@ def poezio_colors_to_html(string):
     res += string
     for elem in opened_elements[::-1]:
         res += '</%s>' % (elem,)
-    res += "</body>"
-    return res
+    res += "</p></body>"
+    return res.replace('\n', '<br />')
 
 def shell_colors_to_poezio_colors(string):
     """

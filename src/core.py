@@ -665,6 +665,7 @@ class Core(object):
         curses.curs_set(1)
         curses.noecho()
         curses.nonl()
+        curses.raw()
         theme.init_colors()
         stdscr.keypad(True)
         curses.ungetch(" ")    # H4X: without this, the screen is

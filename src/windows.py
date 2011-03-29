@@ -50,6 +50,8 @@ import wcwidth
 import singleton
 import collections
 
+from keyboard import read_char
+
 Line = collections.namedtuple('Line', 'text text_offset nickname_color time nickname')
 
 g_lock = Lock()
@@ -1065,8 +1067,10 @@ class MessageInput(Input):
     """
     The input featuring history and that is being used in
     Conversation, Muc and Private tabs
+    Also letting the user enter colors or other text markups
     """
     history = list()            # The history is common to all MessageInput
+    text_attributes = set(('b', 'o', 'u'))
 
     def __init__(self):
         Input.__init__(self)
@@ -1076,6 +1080,7 @@ class MessageInput(Input):
         self.key_func["M-A"] =  self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
+        self.key_func['^C'] = self.enter_attrib
 
     def key_up(self):
         """
@@ -1091,6 +1096,14 @@ class MessageInput(Input):
             self.histo_pos += 1
             self.text = MessageInput.history[self.histo_pos]
         self.key_end()
+
+    def enter_attrib(self):
+        """
+        Read one more char (c) and add \x19c to the string
+        """
+        attr_char = read_char(self.core.stdscr)
+        if attr_char in self.text_attributes or attr_char.isdigit():
+            self.do_command('\x19%s' % attr_char)
 
     def key_down(self):
         """
