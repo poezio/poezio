@@ -112,7 +112,6 @@ class Win(object):
         if y is not None and x is not None:
             self._win.move(y, x)
         next_attr_char = string.find('\x19')
-        self._win.attrset(0)    # reset all attr
         while next_attr_char != -1:
             attr_char = string[next_attr_char+1].lower()
             if next_attr_char != 0:
@@ -128,7 +127,6 @@ class Win(object):
                 self._win.attron(common.curses_color_pair(int(attr_char)))
             next_attr_char = string.find('\x19')
         self.addstr(string)
-        self._win.attrset(0)
 
     def finish_line(self, color):
         """
@@ -608,9 +606,16 @@ class TextWin(Win):
                 else:
                     self.write_time(line.time)
                     self.write_nickname(line.nickname, line.nickname_color)
-                    self.write_text(y, line.text_offset, line.text)
                 if y != self.height-1:
                     self.addstr('\n')
+            self._win.attrset(0)
+            for y, line in enumerate(lines):
+                if not line:
+                    continue
+                self.write_text(y, line.text_offset, line.text)
+                if y != self.height-1:
+                    self.addstr('\n')
+            self._win.attrset(0)
             self._refresh()
 
     def write_line_separator(self):

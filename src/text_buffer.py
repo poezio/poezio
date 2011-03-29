@@ -48,7 +48,7 @@ class TextBuffer(object):
         if not nickname:
             txt = '\x195%s' % (txt,)
         nick_color = nick_color
-        msg = Message(txt=txt, nick_color=nick_color,
+        msg = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
                       time=time or datetime.now(), nickname=nickname, user=None)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:

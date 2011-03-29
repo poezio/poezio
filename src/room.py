@@ -112,7 +112,7 @@ class Room(TextBuffer):
             if highlight:
                 nick_color = highlight
         time = time or datetime.now()
-        message = Message(txt=txt, nick_color=nick_color,
+        message = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
                           time=time, nickname=nickname, user=user)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
