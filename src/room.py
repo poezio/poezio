@@ -55,19 +55,19 @@ class Room(TextBuffer):
 
     def do_highlight(self, txt, time, nickname):
         """
-        Set the tab color and returns the txt color
+        Set the tab color and returns the nick color
         """
-        color = theme.COLOR_NORMAL_TEXT
+        color = None
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
                 self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                color = theme.COLOR_HIGHLIGHT_TEXT
+                color = theme.COLOR_HIGHLIGHT_NICK
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
                         self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                        color = theme.COLOR_HIGHLIGHT_TEXT
+                        color = theme.COLOR_HIGHLIGHT_NICK
                         break
         return color
 
@@ -84,7 +84,7 @@ class Room(TextBuffer):
         """
         self.color_state = color
 
-    def add_message(self, txt, time=None, nickname=None, colorized=False, forced_user=None, nick_color=None):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -92,29 +92,28 @@ class Room(TextBuffer):
         """
         self.log_message(txt, time, nickname)
         if txt.startswith('/me '):
-            txt = "* " + nickname + ' ' + txt[4:]
+            txt = "\x192* \x195" + nickname + ' ' + txt[4:]
             nickname = None
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
         if not user and forced_user:
             user = forced_user
-        color = theme.COLOR_NORMAL_TEXT
         if not time and nickname and\
                 nickname != self.own_nick and\
                 self.color_state != theme.COLOR_TAB_CURRENT:
             if self.color_state != theme.COLOR_TAB_HIGHLIGHT:
                 self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
-        if not nickname:
-            color = theme.COLOR_INFORMATION_TEXT
-        else:
-            color = self.do_highlight(txt, time, nickname)
-        if time:                # History messages are colored to be distinguished
-            color = theme.COLOR_INFORMATION_TEXT
-        time = time or datetime.now()
         nick_color = nick_color or user.color if user else None
-        message = Message(txt=txt, colorized=colorized, nick_color=nick_color,
-                      time=time, nickname=nickname, color=color, user=user)
+        if not nickname or time:
+            txt = '\x195%s' % (txt,)
+        else:                   # TODO
+            highlight = self.do_highlight(txt, time, nickname)
+            if highlight:
+                nick_color = highlight
+        time = time or datetime.now()
+        message = Message(txt=txt, nick_color=nick_color,
+                          time=time, nickname=nickname, user=user)
         # message = Message(txt, time, nickname, nick_color, color, colorized, user=user)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

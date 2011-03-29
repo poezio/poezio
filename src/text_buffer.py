@@ -27,7 +27,7 @@ from datetime import datetime
 import theme
 from config import config
 
-Message = collections.namedtuple('Message', 'txt colorized nick_color time nickname color user')
+Message = collections.namedtuple('Message', 'txt nick_color time nickname user')
 
 class TextBuffer(object):
     """
@@ -44,11 +44,12 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, colorized=False, nick_color=None):
-        color = theme.COLOR_NORMAL_TEXT if nickname is not None else theme.COLOR_INFORMATION_TEXT
+    def add_message(self, txt, time=None, nickname=None, nick_color=None):
+        if not nickname:
+            txt = '\x195%s' % (txt,)
         nick_color = nick_color
-        msg = Message(txt=txt, colorized=colorized, nick_color=nick_color,
-                      time=time or datetime.now(), nickname=nickname, color=color, user=None)
+        msg = Message(txt=txt, nick_color=nick_color,
+                      time=time or datetime.now(), nickname=nickname, user=None)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

@@ -50,7 +50,7 @@ import wcwidth
 import singleton
 import collections
 
-Line = collections.namedtuple('Line', 'text colorized text_offset text_color nickname_color time nickname')
+Line = collections.namedtuple('Line', 'text text_offset nickname_color time nickname')
 
 g_lock = Lock()
 
@@ -97,6 +97,38 @@ class Win(object):
             self._win.addstr(*args)
         except:
             pass
+
+    def addstr_colored(self, string, y=None, x=None):
+        """
+        Write a string on the window, setting the
+        attributes as they are in the string.
+        For example:
+        \x19bhello → hello in bold
+        \xc1Bonj\xc2our → 'Bonj' in red and 'our' in green
+        next_attr_char is the \x19 delimiter
+        attr_char is the char following it, it can be
+        one of 'u', 'b', 'c[0-9]'
+        """
+        if y is not None and x is not None:
+            self._win.move(y, x)
+        next_attr_char = string.find('\x19')
+        self._win.attrset(0)    # reset all attr
+        while next_attr_char != -1:
+            attr_char = string[next_attr_char+1].lower()
+            if next_attr_char != 0:
+                self.addstr(string[:next_attr_char])
+            string = string[next_attr_char+2:]
+            if attr_char == 'o':
+                self._win.attrset(0)
+            elif attr_char == 'u':
+                self._win.attron(curses.A_UNDERLINE)
+            elif attr_char == 'b':
+                self._win.attron(curses.A_BOLD)
+            elif attr_char.isdigit():
+                self._win.attron(common.curses_color_pair(int(attr_char)))
+            next_attr_char = string.find('\x19')
+        self.addstr(string)
+        self._win.attrset(0)
 
     def finish_line(self, color):
         """
@@ -546,8 +578,8 @@ class TextWin(Win):
             else:
                 time = None
                 nickname = None
-            self.built_lines.append(Line(text=cutted_txt, colorized=message.colorized,
-                                         text_offset=offset, text_color=message.color,
+            self.built_lines.append(Line(text=cutted_txt,
+                                         text_offset=offset,
                                          nickname_color=color, time=time,
                                          nickname=nickname))
             nb += 1
@@ -576,7 +608,7 @@ class TextWin(Win):
                 else:
                     self.write_time(line.time)
                     self.write_nickname(line.nickname, line.nickname_color)
-                    self.write_text(y, line.text_offset, line.text, line.text_color, line.colorized)
+                    self.write_text(y, line.text_offset, line.text)
                 if y != self.height-1:
                     self.addstr('\n')
             self._refresh()
@@ -584,10 +616,12 @@ class TextWin(Win):
     def write_line_separator(self):
         self.addnstr('- '*(self.width//2-1)+'-', self.width, common.curses_color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
 
-    def write_text(self, y, x, txt, color, colorized):
+    def write_text(self, y, x, txt):
         """
         write the text of a line.
         """
+        self.addstr_colored(txt, y, x)
+        return
         if not colorized:
             if color:
                 self._win.attron(common.curses_color_pair(color))

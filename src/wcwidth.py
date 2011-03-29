@@ -186,9 +186,17 @@ def wcwidth(ucs):
   if ucs == '\u0000':
     return 0
 
+  # special case for \x19
+  if ucs == '\x19':
+      # -1 is not an error, that’s the real size that
+      # should be counted, because if a \x19 is found,
+      # the next char should not be counted
+      # So '\x19' and 'a' is -1 + 1 = 0
+      return -1
+
   # non-printable chars.
   if ucs < '\u0020' or (ucs >= '\u007f' and ucs < '\u00a0'):
-    return -1
+    return -2
 
   # binary search in table of non-spacing characters
   if bisearch(ucs):
@@ -225,7 +233,7 @@ def wcswidth(s):
     width = 0
     for c in s:
         w = wcwidth(c)
-        if w < 0:
+        if w < -1:
             # If s contains a non-printable char, we should return -1.
             # This includes newlines and tabs!
             return -1
@@ -241,8 +249,8 @@ def wcsislonger(s, l):
     width = 0
     for c in s:
         w = wcwidth(c)
-        if w < 0:
-            return -1
+        if w < -1:
+            return True
         else:
             width += w
             if width > l:
@@ -258,7 +266,7 @@ def widthcut(s, m):
     width = 0
     for c in s:
         w = wcwidth(c)
-        if w < 0:
+        if w < -1:
             return None
         else:
             width += w

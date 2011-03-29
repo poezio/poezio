@@ -887,7 +887,7 @@ class Core(object):
             self.refresh_window()
             self.doupdate()
 
-    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, colorized=False):
+    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None):
         """
         Add the message to the room if possible, else, add it to the Info window
         (in the Info tab of the info window in the RosterTab)
@@ -895,7 +895,7 @@ class Core(object):
         if not room:
             self.information('Error, trying to add a message in no room: %s' % txt)
         else:
-            room.add_message(txt, time, nickname, colorized)
+            room.add_message(txt, time, nickname)
         self.refresh_window()
 
     def command_help(self, arg):
