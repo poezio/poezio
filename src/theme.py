@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 # Message text color
 COLOR_NORMAL_TEXT = 0
 COLOR_INFORMATION_TEXT = 5
-COLOR_HIGHLIGHT_NICK = 10
+COLOR_HIGHLIGHT_NICK = -46
 
 # User list color
 COLOR_USER_VISITOR = 7
