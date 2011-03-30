@@ -133,7 +133,7 @@ def shell_colors_to_poezio_colors(string):
             elif num == 1:
                 res += '\x19b'
             elif num >= 31 and num <= 37:
-                res += '\x19%s' % (num-30,)
+                res += '\x19%d' % (num-30,)
         return res
     def remove_elinks_indent(string):
         lines = string.split('\n')

@@ -38,6 +38,7 @@ log = logging.getLogger(__name__)
 
 import multiuserchat as muc
 import tabs
+
 import xhtml
 import windows
 import connection
@@ -298,15 +299,15 @@ class Core(object):
             return
         resource = contact.get_resource_by_fulljid(jid.full)
         assert resource
-        self.information('%s is offline' % (resource.get_jid()), "Roster")
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        self.add_information_message_to_conversation_tab(jid.full, '%s is offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x191offline' % (resource.get_jid().full))
         contact.remove_resource(resource)
         # Display the message in the conversation with the bare JID only if that was
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
-            self.add_information_message_to_conversation_tab(jid.bare, '%s is offline' % (jid.bare))
+            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x191offline' % (jid.bare))
+            self.information('\x193%s \x195is \x191offline' % (resource.get_jid().bare), "Roster")
         self.refresh_window()
 
     def on_got_online(self, presence):
@@ -324,11 +325,11 @@ class Core(object):
         resource.set_status(status_message)
         resource.set_presence(status)
         resource.set_priority(priority)
-        self.information("%s is online (%s)" % (resource.get_jid().full, status), "Roster")
-        self.add_information_message_to_conversation_tab(jid.full, '%s is online' % (jid.full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x194online' % (jid.full))
         if not contact.get_highest_priority_resource():
             # No connected resource yet: the user's just connecting
-            self.add_information_message_to_conversation_tab(jid.bare, '%s is online' % (jid.bare))
+            self.information("\x193%s \x195is \x194online\x195 (\x190%s\x195)" % (resource.get_jid().bare, status), "Roster")
+            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x194online' % (jid.bare))
         contact.add_resource(resource)
 
     def add_information_message_to_conversation_tab(self, jid, msg):
@@ -508,7 +509,7 @@ class Core(object):
             remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
             remote_nick = jid.user
-        conversation.get_room().add_message(body, None, remote_nick, False, theme.COLOR_REMOTE_USER)
+        conversation.get_room().add_message(body, nickname=remote_nick, nick_color=theme.COLOR_REMOTE_USER)
         if conversation.remote_wants_chatstates is None:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
