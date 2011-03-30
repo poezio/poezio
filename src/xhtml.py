@@ -32,6 +32,8 @@ log = logging.getLogger(__name__)
 
 
 shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
+start_indent_re = re.compile(r'\[0;30m\[0;37m   ')
+newline_indent_re = re.compile('\n\[0;37m   ')
 
 def get_body_from_message_stanza(message):
     """
@@ -49,9 +51,24 @@ def get_body_from_message_stanza(message):
             return shell_colors_to_poezio_colors(shell_body)
     return message['body']
 
+def clean_text(string):
+    """
+    Remove all \x19 from the string
+    """
+    pos = string.find('\x19')
+    while pos != -1:
+        string = string[:pos] + string[pos+2:]
+        pos = string.find('\x19')
+    return string
+
 number_to_color_names = {
     1: 'red',
     2: 'green',
+    3: 'yellow',
+    4: 'blue',
+    5: 'violet',
+    6: 'turquoise',
+    7: 'white'
 }
 
 def poezio_colors_to_html(string):
@@ -64,7 +81,7 @@ def poezio_colors_to_html(string):
     # a list of all opened elements, e.g. ['strong', 'span']
     # So that we know what we need to close
     opened_elements = []
-    res = "<body xmlns='http://www.w3.org/1999/html'><p>"
+    res = "<body xmlns='http://www.w3.org/1999/xhtml'><p>"
     next_attr_char = string.find('\x19')
     while next_attr_char != -1:
         attr_char = string[next_attr_char+1].lower()
@@ -101,6 +118,7 @@ def shell_colors_to_poezio_colors(string):
 
     The current understanding of this syntax is:
     n = 0: reset all attributes to defaults
+    n = 1: activate bold
     n >= 30 and n <= 37: set the foreground to n-30
 
     """
@@ -110,11 +128,20 @@ def shell_colors_to_poezio_colors(string):
         res = ''
         for num in numbers:
             if num == 0:
-                res += r'\x19o'
-            elif num >= 30 and num <= 37:
-                res += r'\x19%s' % (num-30,)
+                res += '\x19o'
+            elif num == 1:
+                res += '\x19b'
+            elif num >= 31 and num <= 37:
+                res += '\x19%s' % (num-30,)
         return res
-    return shell_colors_re.sub(repl, string)
+    def remove_elinks_indent(string):
+        lines = string.split('\n')
+        for i, line in enumerate(lines):
+            lines[i] = re.sub('   ', '', line, 1)
+        return '\n'.join(lines)
+    res = shell_colors_re.sub(repl, string).strip()
+    res = remove_elinks_indent(res)
+    return res
 
 def xhtml_code_to_shell_colors(string):
     """
@@ -124,6 +151,32 @@ def xhtml_code_to_shell_colors(string):
     process = subprocess.Popen(["elinks", "-dump", "-dump-color-mode", "2"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     result = process.communicate(input=string.encode('utf-8'))[0]
     return result.decode('utf-8').strip()
+
+def poezio_colors_to_xhtml(string):
+    """
+    Generate a valid xhtml string from
+    the poezio colors in the given string
+    """
+    res = "<body xmlns='http://www.w3.org/1999/xhtml'>"
+    next_attr_char = string.find('\x19')
+    open_elements = []
+    while next_attr_char != -1:
+        attr_char = string[next_attr_char+1].lower()
+        if next_attr_char != 0:
+            res += string[:next_attr_char]
+        string = string[next_attr_char+2:]
+        if attr_char == 'o':
+            # close all opened elements
+            for elem in open_elements:
+                res += '</%s>'
+            open_elements = []
+        elif attr_char == 'b':
+            if 'strong' not in open_elements:
+                res += '<strong>'
+                open_elements.append('strong')
+        elif attr_char.isdigit():
+            self._win.attron(common.curses_color_pair(int(attr_char)))
+        next_attr_char = string.find('\x19')
 
 if __name__ == '__main__':
 #     print(xhtml_code_to_shell_colors("""

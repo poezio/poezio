@@ -1103,7 +1103,8 @@ class MessageInput(Input):
         """
         attr_char = read_char(self.core.stdscr)
         if attr_char in self.text_attributes or attr_char.isdigit():
-            self.do_command('\x19%s' % attr_char)
+            self.do_command('\x19', False)
+            self.do_command(attr_char)
 
     def key_down(self):
         """
@@ -1130,6 +1131,23 @@ class MessageInput(Input):
             self.histo_pos = -1
         self.clear_text()
         return txt
+
+    def rewrite_text(self):
+        """
+        Refresh the line onscreen, from the pos and pos_line, with colors
+        """
+        with g_lock:
+            text = self.text.replace('\n', '|')
+            self._win.erase()
+            if self.color:
+                self._win.attron(common.curses_color_pair(self.color))
+            displayed_text = text[self.line_pos:self.line_pos+self.width-1]
+            self._win.attrset(0)
+            self.addstr_colored(displayed_text)
+            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
+            if self.color:
+                self._win.attroff(common.curses_color_pair(self.color))
+            self._refresh()
 
 class CommandInput(Input):
     """
