@@ -101,8 +101,9 @@ def poezio_colors_to_html(string):
             if number in number_to_color_names:
                 if 'span' in opened_elements:
                     res += '</span>'
+                else:
+                    opened_elements.append('span')
                 res += "<span style='color: %s'>" % (number_to_color_names[number])
-                opened_elements.append('span')
         next_attr_char = string.find('\x19')
     res += string
     for elem in opened_elements[::-1]:
