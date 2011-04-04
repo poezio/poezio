@@ -26,10 +26,10 @@ poezio colors to xhtml code
 import re
 import subprocess
 
+from config import config
 import logging
 
 log = logging.getLogger(__name__)
-
 
 shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
 start_indent_re = re.compile(r'\[0;30m\[0;37m   ')
@@ -41,14 +41,15 @@ def get_body_from_message_stanza(message):
     poezio colors if there's an xhtml_im element, or
     the body (without any color) otherwise
     """
-    xhtml_body = message['xhtml_im']
-    if xhtml_body:
-        try:
-            shell_body = xhtml_code_to_shell_colors(xhtml_body)
-        except OSError:
-            log.error('html parsing failed')
-        else:
-            return shell_colors_to_poezio_colors(shell_body)
+    if config.get('enable_xhtml_im', 'false') == 'true':
+        xhtml_body = message['xhtml_im']
+        if xhtml_body:
+            try:
+                shell_body = xhtml_code_to_shell_colors(xhtml_body)
+            except OSError:
+                log.error('html parsing failed')
+            else:
+                return shell_colors_to_poezio_colors(shell_body)
     return message['body']
 
 def clean_text(string):
@@ -133,7 +134,7 @@ def shell_colors_to_poezio_colors(string):
             elif num == 1:
                 res += '\x19b'
             elif num >= 31 and num <= 37:
-                res += '\x19%d' % (num-30,)
+                res += '\x19%d' % ((num-30)%7,)
         return res
     def remove_elinks_indent(string):
         lines = string.split('\n')
