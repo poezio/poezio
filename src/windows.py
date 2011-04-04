@@ -815,7 +815,8 @@ class Input(Win):
         if not Input.clipboard or len(Input.clipboard) == 0:
             return
         for letter in Input.clipboard:
-            self.do_command(letter)
+            self.do_command(letter, False)
+        self.rewrite_text()
         return True
 
     def key_dc(self):
@@ -859,12 +860,14 @@ class Input(Win):
         Move the cursor one char to the left
         """
         self.reset_completion()
-        (y, x) = self._win.getyx()
         if self.pos == self.width-1 and self.line_pos > 0:
             self.line_pos -= 1
         elif self.pos >= 1:
             self.pos -= 1
-        self.rewrite_text()
+        if self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
+            self.key_left()
+        else:
+            self.rewrite_text()
         return True
 
     def key_right(self):
@@ -872,13 +875,15 @@ class Input(Win):
         Move the cursor one char to the right
         """
         self.reset_completion()
-        (y, x) = self._win.getyx()
         if self.pos == self.width-1:
             if self.line_pos + self.width-1 < len(self.text):
                 self.line_pos += 1
         elif self.pos < len(self.text):
             self.pos += 1
-        self.rewrite_text()
+        if self.pos+self.line_pos < len(self.text)-1 and self.text[self.pos+self.line_pos] == '\x19':
+            self.key_right()
+        else:
+            self.rewrite_text()
         return True
 
     def key_backspace(self, reset=True):
@@ -886,11 +891,12 @@ class Input(Win):
         Delete the char just before the cursor
         """
         self.reset_completion()
-        (y, x) = self._win.getyx()
         if self.pos == 0:
             return
         self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
         self.key_left()
+        if self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
+            self.key_backspace()
         if reset:
             self.rewrite_text()
         return True
