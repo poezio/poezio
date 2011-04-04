@@ -826,6 +826,8 @@ class Input(Win):
         self.reset_completion()
         if self.pos + self.line_pos == len(self.text):
             return              # end of line, nothing to delete
+        if self.text[self.pos+self.line_pos] == '\x19':
+            self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
         self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
         self.rewrite_text()
         return True
@@ -855,7 +857,7 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_left(self):
+    def key_left(self, jump=True):
         """
         Move the cursor one char to the left
         """
@@ -864,13 +866,13 @@ class Input(Win):
             self.line_pos -= 1
         elif self.pos >= 1:
             self.pos -= 1
-        if self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
+        if jump and self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
             self.key_left()
         else:
             self.rewrite_text()
         return True
 
-    def key_right(self):
+    def key_right(self, jump=True):
         """
         Move the cursor one char to the right
         """
@@ -880,7 +882,7 @@ class Input(Win):
                 self.line_pos += 1
         elif self.pos < len(self.text):
             self.pos += 1
-        if self.pos+self.line_pos < len(self.text)-1 and self.text[self.pos+self.line_pos] == '\x19':
+        if jump and self.pos+self.line_pos < len(self.text) and self.text[self.pos+self.line_pos-1] == '\x19':
             self.key_right()
         else:
             self.rewrite_text()
@@ -894,9 +896,9 @@ class Input(Win):
         if self.pos == 0:
             return
         self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
-        self.key_left()
+        self.key_left(False)
         if self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
-            self.key_backspace()
+            self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
         if reset:
             self.rewrite_text()
         return True
