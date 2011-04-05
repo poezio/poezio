@@ -57,14 +57,14 @@ def change_subject(xmpp, jid, subject):
     msg['subject'] = subject
     msg.send()
 
-def change_nick(xmpp, jid, nick):
+def change_nick(xmpp, jid, nick, status=None, show=None):
     """
     Change our own nick in a room
     """
-    xmpp.make_presence(pto='%s/%s' % (jid, nick)).send()
+    xmpp.make_presence(pshow=show, pstatus=status, pto='%s/%s' % (jid, nick)).send()
 
-def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None):
-    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd)
+def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, show=None):
+    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd, pstatus=status, pshow=show)
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """

@@ -31,6 +31,7 @@ import common
 import theme
 import logging
 import singleton
+import collections
 
 from sleekxmpp.xmlstream.stanzabase import JID
 
@@ -76,6 +77,8 @@ possible_show = {'available':None,
 
 resize_lock = threading.Lock()
 
+Status = collections.namedtuple('Status', 'show message')
+
 class Core(object):
     """
     User interface using ncurses
@@ -83,6 +86,7 @@ class Core(object):
     def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
+        self.status = Status(show=None, message='')
         sys.excepthook = self.on_exception
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
@@ -224,6 +228,20 @@ class Core(object):
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
+
+    def get_status(self):
+        """
+        Get the last status that was previously set
+        """
+        return self.status
+
+    def set_status(self, pres, msg):
+        """
+        Set our current status so we can remember
+        it and use it back when needed (for example to display it
+        or to use it when joining a new muc)
+        """
+        self.status = Status(show=pres, message=msg)
 
     def on_data_form(self, message):
         """
@@ -948,6 +966,7 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
+        self.set_status(show, msg)
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
@@ -1143,11 +1162,14 @@ class Core(object):
         if room.startswith('@'):
             room = room[1:]
         room = room.lower()
+        current_status = self.get_status()
         if r and not r.joined:
-            muc.join_groupchat(self.xmpp, room, nick, password, histo_length)
+            muc.join_groupchat(self.xmpp, room, nick, password,
+                               histo_length, current_status.message, current_status.show)
         if not r:   # if the room window exists, we don't recreate it.
             self.open_new_room(room, nick)
-            muc.join_groupchat(self.xmpp, room, nick, password, histo_length)
+            muc.join_groupchat(self.xmpp, room, nick, password,
+                               histo_length, current_status.message, current_status.show)
         else:
             r.own_nick = nick
             r.users = []

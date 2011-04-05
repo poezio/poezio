@@ -487,7 +487,8 @@ class MucTab(ChatTab):
         room = self.get_room()
         if not room.joined:
             return
-        muc.change_nick(self.core.xmpp, room.name, nick)
+        current_status = self.core.get_status()
+        muc.change_nick(self.core.xmpp, room.name, nick, current_status.message, current_status.show)
 
     def command_part(self, arg):
         """
