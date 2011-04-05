@@ -628,10 +628,13 @@ class Core(object):
             if char.startswith('M-') and len(char) == 3:
                 try:
                     nb = int(char[2])
-                except:
+                except ValueError:
                     pass
                 else:
-                    self.command_win('%s' % nb)
+                    if self.current_tab().nb == nb:
+                        self.go_to_previous_tab()
+                    else:
+                        self.command_win('%d' % nb)
             # search for keyboard shortcut
             if char in list(self.key_func.keys()):
                 self.key_func[char]()
