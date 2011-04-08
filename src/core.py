@@ -172,6 +172,8 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
+        self.timed_events = set()
+
     def start(self):
         """
         Init curses, create the first tab, etc
@@ -617,13 +619,29 @@ class Core(object):
                 tab.resize()
             self.refresh_window()
 
+    def check_timed_events(self):
+        pass
+
+    def read_keyboard(self):
+        """
+        Get the next keyboard key pressed and returns it.
+        read_char() has a timeout: it returns None when the timeout
+        occurs. In that case we do not return (we loop until we get
+        a non-None value), but we check for timed events instead.
+        """
+        res = read_char(self.stdscr)
+        while res is None:
+            self.check_timed_events()
+            res = read_char(self.stdscr)
+        return res
+
     def main_loop(self):
         """
         main loop waiting for the user to press a key
         """
         # curses.ungetch(0)    # FIXME
         while self.running:
-            char = read_char(self.stdscr)
+            char = self.read_keyboard()
             # Special case for M-x where x is a number
             if char.startswith('M-') and len(char) == 3:
                 try:
@@ -1275,12 +1293,12 @@ class Core(object):
         Read 2 more chars and go to the tab
         with the given number
         """
-        char = read_char(self.stdscr)
+        char = self.read_keyboard()
         try:
             nb1 = int(char)
         except ValueError:
             return
-        char = read_char(self.stdscr)
+        char = self.read_keyboard()
         try:
             nb2 = int(char)
         except ValueError:
