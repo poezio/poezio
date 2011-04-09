@@ -35,7 +35,7 @@ def get_next_byte(s):
     try:
         c = s.getkey()
     except:
-        return (None, "KEY_RESIZE")
+        return (None, None)
     if len(c) >= 4:
         return (None, c)
     return (ord(c), c.encode('latin-1')) # returns a number and a bytes object
@@ -47,9 +47,12 @@ def read_char(s):
     """
     # We use a timer to know if we are pasting from the
     # clipboard or not
-    global last_char_time
-    last_char_time = time.time()
+    # global last_char_time
+    # last_char_time = time.time()
+    s.timeout(1000)
     (first, char) = get_next_byte(s)
+    if first is None:
+        return None
     if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
         return char
     if first == 127 or first == 8:
@@ -57,8 +60,8 @@ def read_char(s):
     if first < 127:  # ASCII char on one byte
         if first <= 26:         # transform Ctrl+* keys
             char = chr(first + 64)
-            if char == 'M' and time.time() - last_char_time < 0.0005:
-                char = 'J'
+            # if char == 'M' and time.time() - last_char_time < 0.0005:
+            #     char = 'J'
             return  "^"+char
         if first == 27:
             second = read_char(s)

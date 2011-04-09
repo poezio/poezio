@@ -43,9 +43,10 @@ import tabs
 import xhtml
 import windows
 import connection
+import timed_events
 
 from data_forms import DataFormsTab
-from config import config
+from config import config, options
 from logger import logger
 from user import User
 from room import Room
@@ -619,9 +620,6 @@ class Core(object):
                 tab.resize()
             self.refresh_window()
 
-    def check_timed_events(self):
-        pass
-
     def read_keyboard(self):
         """
         Get the next keyboard key pressed and returns it.
@@ -631,6 +629,7 @@ class Core(object):
         """
         res = read_char(self.stdscr)
         while res is None:
+            log.debug('checking events')
             self.check_timed_events()
             res = read_char(self.stdscr)
         return res
@@ -705,7 +704,8 @@ class Core(object):
         curses.curs_set(1)
         curses.noecho()
         curses.nonl()
-        curses.raw()
+        if not options.debug:
+            curses.raw()
         theme.init_colors()
         stdscr.keypad(True)
         curses.ungetch(" ")    # H4X: without this, the screen is
@@ -1378,6 +1378,18 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.get_jid().full)
         self.refresh_window()
+
+    def add_timed_event(self, event):
+        self.timed_events.add(event)
+
+    def check_timed_events(self):
+        now = datetime.now()
+        for event in self.timed_events:
+            if event.has_timed_out(now):
+                res = event()
+                if not res:
+                    self.timed_events.remove(event)
+                    break
 
     def execute(self,line):
         """
