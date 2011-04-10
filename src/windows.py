@@ -1403,7 +1403,7 @@ class RosterWin(Win):
         else:
             self.addstr(display_name)
         if contact.get_ask() == 'asked':
-            self.addstr('?', common.curses_color_pair(theme.COLOR_HIGHLIGHT_TEXT))
+            self.addstr('?', common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
 
     def draw_resource_line(self, y, resource, colored):
         """
@@ -1462,7 +1462,7 @@ class ContactInfoWin(Win):
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
         if contact.get_ask():
             if contact.get_ask() == 'asked':
-                self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_TEXT))
+                self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
             else:
                 self.addstr(' Ask: %s' % (contact.get_ask(),))
 

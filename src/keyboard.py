@@ -23,7 +23,7 @@ shortcut, like ^A, M-a or KEY_RESIZE)
 
 import time
 
-last_char_time = None
+last_timeout = time.time()
 
 def get_next_byte(s):
     """
@@ -45,13 +45,11 @@ def read_char(s):
     Read one utf-8 char
     see http://en.wikipedia.org/wiki/UTF-8#Description
     """
-    # We use a timer to know if we are pasting from the
-    # clipboard or not
-    # global last_char_time
-    # last_char_time = time.time()
+    global last_timeout
     s.timeout(1000)
     (first, char) = get_next_byte(s)
     if first is None and char is None:
+        last_timeout = time.time()
         return None
     if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
         return char
