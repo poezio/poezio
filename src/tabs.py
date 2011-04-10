@@ -291,7 +291,6 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
-        state = '%s' % state
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = self.message_type
         msg['chat_state'] = state

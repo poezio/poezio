@@ -77,5 +77,5 @@ class DelayedEvent(TimedEvent):
     """
     def __init__(self, delay, callback, *args):
         date = datetime.datetime.now() + datetime.timedelta(seconds=delay)
-        TimedEvent.__init__(self, date, callback, args)
+        TimedEvent.__init__(self, date, callback, *args)
 
