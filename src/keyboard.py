@@ -66,9 +66,6 @@ def read_char(s):
         if first == 27:
             second = read_char(s)
             res = 'M-%s' % (second,)
-            if second == '[':
-                for i in range(4):
-                    res += read_char(s)
             return res
     if 194 <= first:
         (code, c) = get_next_byte(s) # 2 bytes char
