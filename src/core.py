@@ -629,7 +629,6 @@ class Core(object):
         """
         res = read_char(self.stdscr)
         while res is None:
-            log.debug('checking events')
             self.check_timed_events()
             res = read_char(self.stdscr)
         return res
@@ -707,6 +706,7 @@ class Core(object):
         if not options.debug:
             curses.raw()
         theme.init_colors()
+        stdscr.idlok(True)
         stdscr.keypad(True)
         curses.ungetch(" ")    # H4X: without this, the screen is
         stdscr.getkey()        # erased on the first "getkey()"

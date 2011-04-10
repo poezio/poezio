@@ -31,6 +31,7 @@ class TimedEvent(object):
     Note that these events can NOT be used for very small delay or a very
     precise date, since the check for events is done once per second, as
     a maximum.
+    The callback and its arguments should be passed as the lasts arguments.
     """
     def __init__(self, date, callback, *args):
         self._callback = callback
@@ -57,12 +58,24 @@ class TimedEvent(object):
         else:
             return False
 
+    def change_date(self, date):
+        """
+        Simply change the date of the event
+        """
+        self.next_call_date = date
+
+    def add_delay(self, delay):
+        """
+        Add a delay (in seconds) to the date
+        """
+        self.next_call_date += datetime.timedelta(seconds=delay)
+
 class DelayedEvent(TimedEvent):
     """
     The date is calculated from now + a delay in seconds
     Use it if you want an event to happen in, e.g. 6 seconds
     """
     def __init__(self, delay, callback, *args):
-        date = datetime.datetime.now() + datetime.timedelta(0, delay)
+        date = datetime.datetime.now() + datetime.timedelta(seconds=delay)
         TimedEvent.__init__(self, date, callback, args)
 

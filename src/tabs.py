@@ -40,6 +40,8 @@ import common
 import core
 import singleton
 import xhtml
+import weakref
+import timed_events
 
 import multiuserchat as muc
 
@@ -49,6 +51,8 @@ from roster import RosterGroup, roster
 from contact import Contact, Resource
 from user import User
 from logger import logger
+
+from datetime import datetime, timedelta
 
 SHOW_NAME = {
     'dnd': _('busy'),
@@ -245,6 +249,12 @@ class ChatTab(Tab):
         # we know that the remote user wants chatstates, or not.
         # None means we don’t know yet, and we send only "active" chatstates
         self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
+        # We keep a weakref of the event that will set our chatstate to "paused", so that
+        # we can delete it or change it if we need to
+        self.timed_event_paused = None
+        # if that’s None, then no paused chatstate was sent recently
+        # if that’s a weakref returning None, then a paused chatstate was sent
+        # since the last input
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
@@ -281,6 +291,7 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
+        state = '%s' % state
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = self.message_type
         msg['chat_state'] = state
@@ -294,8 +305,40 @@ class ChatTab(Tab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
             if not empty_before and empty_after:
                 self.send_chat_state("active")
-            elif empty_before and not empty_after:
+            elif (empty_before or (self.timed_event_paused is not None and not self.timed_event_paused())) and not empty_after:
                 self.send_chat_state("composing")
+
+    def set_paused_delay(self, composing):
+        """
+        we create a timed event that will put us to paused
+        in a few seconds
+        """
+        if config.get('send_chat_states', 'true') != 'true':
+            return
+        if self.timed_event_paused:
+            # check the weakref
+            event = self.timed_event_paused()
+            if event:
+                # the event already exists: we just update
+                # its date
+                event.change_date(datetime.now() + timedelta(seconds=4))
+                return
+        new_event = timed_events.DelayedEvent(4, self.send_chat_state, 'paused')
+        self.core.add_timed_event(new_event)
+        self.timed_event_paused = weakref.ref(new_event)
+
+    def cancel_paused_delay(self):
+        """
+        Remove that event from the list and set it to None.
+        Called for example when the input is emptied, or when the message
+        is sent
+        """
+        if self.timed_event_paused:
+            event = self.timed_event_paused()
+            if event:
+                self.core.timed_events.remove(event)
+                del event
+        self.timed_event_paused = None
 
     def command_say(self, line):
         raise NotImplementedError
@@ -643,6 +686,9 @@ class MucTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
+        if not empty_before and empty_after:
+            self.cancel_paused_delay()
+        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def completion(self):
@@ -975,6 +1021,9 @@ class PrivateTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
+        if not empty_before and empty_after:
+            self.cancel_paused_delay()
+        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def on_lose_focus(self):
@@ -1399,6 +1448,9 @@ class ConversationTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
+        if not empty_before and empty_after:
+            self.cancel_paused_delay()
+        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def on_lose_focus(self):

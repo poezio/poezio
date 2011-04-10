@@ -51,7 +51,7 @@ def read_char(s):
     # last_char_time = time.time()
     s.timeout(1000)
     (first, char) = get_next_byte(s)
-    if first is None:
+    if first is None and char is None:
         return None
     if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
         return char
