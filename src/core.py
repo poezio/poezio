@@ -481,6 +481,8 @@ class Core(object):
             if not room:
                 return
         body = xhtml.get_body_from_message_stanza(message)
+        if not body:
+            return
         room.add_message(body, time=None, nickname=nick_from,
                          forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
