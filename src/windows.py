@@ -50,8 +50,6 @@ import wcwidth
 import singleton
 import collections
 
-from keyboard import read_char
-
 Line = collections.namedtuple('Line', 'text text_offset nickname_color time nickname')
 
 g_lock = Lock()
@@ -1109,7 +1107,7 @@ class MessageInput(Input):
         """
         Read one more char (c) and add \x19c to the string
         """
-        attr_char = read_char(self.core.stdscr)
+        attr_char = self.core.read_keyboard()
         if attr_char in self.text_attributes or (attr_char.isdigit() and int(attr_char) < 7):
             self.do_command('\x19', False)
             self.do_command(attr_char)
