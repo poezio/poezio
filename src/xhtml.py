@@ -25,6 +25,8 @@ poezio colors to xhtml code
 
 import re
 import subprocess
+from sleekxmpp.xmlstream import ET
+from xml.etree.ElementTree import ElementTree
 
 from config import config
 import logging
@@ -41,9 +43,10 @@ def get_body_from_message_stanza(message):
     poezio colors if there's an xhtml_im element, or
     the body (without any color) otherwise
     """
-    if config.get('enable_xhtml_im', 'false') == 'true':
+    if config.get('enable_xhtml_im', 'true') == 'true':
         xhtml_body = message['xhtml_im']
         if xhtml_body:
+            xhtml_body = convert_links_to_plaintext(xhtml_body)
             try:
                 shell_body = xhtml_code_to_shell_colors(xhtml_body)
             except OSError:
@@ -51,6 +54,35 @@ def get_body_from_message_stanza(message):
             else:
                 return shell_colors_to_poezio_colors(shell_body)
     return message['body']
+
+def convert_links_to_plaintext(text):
+    """
+    Replace
+    <a href='URL'>click</a>
+    by
+    <url> (click)
+    in plain text
+    """
+    log.debug(text)
+    xml = ElementTree(ET.fromstring(text))
+    for parent in xml.getiterator():
+        previous_child = None
+        for child in parent:
+            if child.tag == '{http://www.w3.org/1999/xhtml}a':
+                link_text = '\n%s (%s)'%(child.attrib['href'], child.text)
+                if previous_child is not None:
+                    if previous_child.tail is None:
+                        previous_child.tail = link_text
+                    else:
+                        previous_child.tail += link_text
+                else:
+                    if parent.text is None:
+                        parent.text = link_text
+                    else:
+                        parent.text += link_text
+                parent.remove(child)
+            previous_child = child
+    return ET.tostring(xml.getroot())
 
 def clean_text(string):
     """
@@ -180,15 +212,4 @@ def poezio_colors_to_xhtml(string):
             self._win.attron(common.curses_color_pair(int(attr_char)))
         next_attr_char = string.find('\x19')
 
-if __name__ == '__main__':
-#     print(xhtml_code_to_shell_colors("""
-#   <html xmlns='http://jabber.org/protocol/xhtml-im'>
-#     <body xmlns='http://www.w3.org/1999/xhtml'>
-#       <p style='font-size:large'>
-#         <em>Wow</em>, I&apos;m <span style='color:green'>green</span>
-#         with <strong>envy</strong>!
-#       </p>
-#     </body>
-#   </html>
-# """))
-    print(poezio_colors_to_html('\x191red\x19o \x192green\x19o \x19b\x192green and bold'))
+
