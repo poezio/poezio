@@ -1,4 +1,13 @@
 #!/bin/bash
+# Use this script to Download or Update all dependances to their last
+# developpement version.
+# The dependances will be placed in the sources directory, so you do not
+# need to install them on your system at all.
+
+# Use launch.sh to start poezio directly from here
+
+echo 'Updating poezio'
+hg pull -u || echo 'You do not seem to be in poezio’s directory. Exiting.' && exit 1
 
 if [ -e "SleekXMPP" ]
 then
