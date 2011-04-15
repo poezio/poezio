@@ -853,7 +853,7 @@ class MucTab(ChatTab):
             else:
                 kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
-            kick_msg += _('\x195 Reason: \x196%(reason\x195)s') % {'reason': reason.text}
+            kick_msg += _('\x195 Reason: \x196%(reason)s\x195') % {'reason': reason.text}
         room.add_message(kick_msg)
 
     def on_user_kicked(self, room, presence, user, from_nick):
