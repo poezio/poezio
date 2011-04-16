@@ -66,7 +66,8 @@ class Room(TextBuffer):
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
-                        self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                        if self.color_state != theme.COLOR_TAB_CURRENT:
+                            self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                         color = theme.COLOR_HIGHLIGHT_NICK
                         break
         return color

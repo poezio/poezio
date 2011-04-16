@@ -816,6 +816,7 @@ class MucTab(ChatTab):
             else:
                 self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
         if self.core.current_tab() is self:
+            self.text_win.refresh(self._room)
             self.user_win.refresh(self._room.users)
             self.info_header.refresh(self._room, self.text_win)
             self.input.refresh()
@@ -949,7 +950,6 @@ class MucTab(ChatTab):
                     status != user.status):
             # display the message in the room
             room.add_message(msg)
-            self.text_win.refresh(self._room)
         self.core.on_user_changed_status_in_private('%s/%s' % (from_room, from_nick), msg)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
