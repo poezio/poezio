@@ -147,7 +147,6 @@ class Core(object):
             'M-e': self.go_to_important_room,
             'M-r': self.go_to_roster,
             'M-z': self.go_to_previous_tab,
-            'M-v': self.move_separator,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
             }
@@ -345,7 +344,6 @@ class Core(object):
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
             self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x191offline' % (jid.bare))
             self.information('\x193%s \x195is \x191offline' % (resource.get_jid().bare), "Roster")
-        self.refresh_window()
 
     def on_got_online(self, presence):
         jid = presence['from']
@@ -508,8 +506,9 @@ class Core(object):
             else:
                 conversation.remote_wants_chatstates = False
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
-        self.refresh_window()
-        self.doupdate()
+        if conversation is self.current_tab():
+            self.refresh_window()
+            self.doupdate()
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
@@ -557,7 +556,8 @@ class Core(object):
         logger.log_message(jid.bare, remote_nick, body)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
-        self.refresh_window()
+        else:
+            self.refresh_window()
 
     def on_presence(self, presence):
         jid = presence['from']
@@ -573,7 +573,9 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        self.refresh_window()
+        if isinstance(self.current_tab(), tabs.RosterTab) or\
+                isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
 
     def on_roster_update(self, iq):
         """
@@ -902,7 +904,8 @@ class Core(object):
         else:
             self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
         room.topic = subject.replace('\n', '|')
-        self.refresh_window()
+        if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
+            self.refresh_window()
 
     def on_groupchat_message(self, message):
         """
@@ -942,9 +945,10 @@ class Core(object):
         if body:
             date = date if delayed == True else None
             self.add_message_to_text_buffer(room, body, date, nick_from)
-            # TODO, only if we are focused on this MUC
-            self.refresh_window()
-            self.doupdate()
+            if tab is self.current_tab():
+                tab.text_win.refresh(tab._room)
+                tab.input.refresh()
+                self.doupdate()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None):
         """
@@ -955,7 +959,6 @@ class Core(object):
             self.information('Trying to add a message in no room: %s' % txt, 'Error')
         else:
             room.add_message(txt, time, nickname)
-        self.refresh_window()
 
     def command_help(self, arg):
         """
@@ -1322,18 +1325,6 @@ class Core(object):
         except ValueError:
             return
         self.command_win('%s%s' % (nb1, nb2))
-
-    def move_separator(self):
-        """
-        Move the new-messages separator at the bottom on the current
-        text.
-        """
-        window = self.current_tab().get_text_window()
-        if not window:
-            return
-        window.remove_line_separator()
-        window.add_line_separator()
-        self.refresh_window()
 
     def information(self, msg, typ=''):
         """

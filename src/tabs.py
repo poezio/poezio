@@ -255,6 +255,7 @@ class ChatTab(Tab):
         # if that’s None, then no paused chatstate was sent recently
         # if that’s a weakref returning None, then a paused chatstate was sent
         # since the last input
+        self.key_func['M-v'] = self.move_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
@@ -338,6 +339,12 @@ class ChatTab(Tab):
                 self.core.timed_events.remove(event)
                 del event
         self.timed_event_paused = None
+
+    def move_separator(self):
+        self.text_win.remove_line_separator()
+        self.text_win.add_line_separator()
+        self.text_win.refresh(self._room)
+        self.input.refresh()
 
     def command_say(self, line):
         raise NotImplementedError
@@ -457,11 +464,13 @@ class MucTab(ChatTab):
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
-        self.core.refresh_window()
+        self.user_win.refresh(self._room.users)
+        self.input.refresh()
 
     def scroll_user_list_down(self):
         self.user_win.scroll_down()
-        self.core.refresh_window()
+        self.user_win.refresh(self._room.users)
+        self.input.refresh()
 
     def command_info(self, arg):
         args = common.shell_split(arg)
@@ -470,8 +479,9 @@ class MucTab(ChatTab):
         user = self.get_room().get_user_by_name(args[0])
         if not user:
             return self.core.information("Unknown user: %s" % args[0])
-        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s\n%s"% (args[0], ' (%s)'%user.jid if user.jid else '', user.show or 'Available', user.role or 'None', user.affiliation or 'None', user.status))
-        self.core.refresh_window()
+        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s%s"% (args[0], ' (%s)'%user.jid if user.jid else '', user.show or 'Available', user.role or 'None', user.affiliation or 'None', '\n%s' % user.status if user.status else ''))
+        self.text_win.refresh(self._room)
+        self.input.refresh()
 
     def command_configure(self, arg):
         form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
@@ -516,7 +526,8 @@ class MucTab(ChatTab):
             user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
             i += 1
         self.text_win.rebuild_everything(self.get_room())
-        self.core.refresh_window()
+        self.text_win.refresh(self._room)
+        self.input.refresh()
 
     def command_nick(self, arg):
         """
@@ -804,8 +815,11 @@ class MucTab(ChatTab):
             # status change
             else:
                 self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
-        self.core.refresh_window()
-        self.core.doupdate()
+        if self.core.current_tab() is self:
+            self.text_win.refresh(self._room)
+            self.user_win.refresh(self._room.users)
+            self.info_header.refresh(self._room, self.text_win)
+            self.core.doupdate()
 
     def on_user_join(self, room, from_nick, affiliation, show, status, role, jid):
         """
@@ -1265,7 +1279,8 @@ class RosterInfoTab(Tab):
     def reset_help_message(self, _=None):
         curses.curs_set(0)
         self.input = self.default_help_message
-        self.core.refresh_window()
+        self.input.refresh()
+        self.core.doupdate()
         return True
 
     def execute_slash_command(self, txt):
@@ -1299,14 +1314,18 @@ class RosterInfoTab(Tab):
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_up():
                 break
-        self.core.refresh_window()
+        self.roster_win.refresh(roster)
+        self.input.refresh()
+        self.core.doupdate()
 
     def move_cursor_to_next_group(self):
         self.roster_win.move_cursor_down()
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_down():
                 break
-        self.core.refresh_window()
+        self.roster_win.refresh(roster)
+        self.input.refresh()
+        self.core.doupdate()
 
     def on_scroll_down(self):
         for i in range(self.height-1):
