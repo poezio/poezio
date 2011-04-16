@@ -508,6 +508,8 @@ class Core(object):
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
         if conversation is self.current_tab():
             self.refresh_window()
+        else:
+            self.current_tab().tab_win.refresh()
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
@@ -555,6 +557,7 @@ class Core(object):
         logger.log_message(jid.bare, remote_nick, body)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
+            self.current_tab().tab_win.refresh()
         else:
             self.refresh_window()
 
@@ -746,6 +749,11 @@ class Core(object):
         """
         self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
         self.current_tab().refresh()
+        self.doupdate()
+
+    def refresh_tab_win(self):
+        self.current_tab().tab_win.refresh()
+        self.current_tab().input.refresh()
         self.doupdate()
 
     def add_tab(self, new_tab, focus=False):
@@ -946,8 +954,7 @@ class Core(object):
             self.add_message_to_text_buffer(room, body, date, nick_from)
             if tab is self.current_tab():
                 tab.text_win.refresh(tab._room)
-                tab.input.refresh()
-                self.doupdate()
+            self.refresh_tab_win()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None):
         """

@@ -986,6 +986,8 @@ class PrivateTab(ChatTab):
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        self.text_win.refresh(self._room)
+        self.input.refresh()
 
     def command_unquery(self, arg):
         """
@@ -1419,6 +1421,8 @@ class ConversationTab(ChatTab):
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        self.text_win.refresh(self._room)
+        self.input.refresh()
 
     def command_unquery(self, arg):
         self.core.close_tab()
