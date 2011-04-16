@@ -508,7 +508,6 @@ class Core(object):
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
         if conversation is self.current_tab():
             self.refresh_window()
-            self.doupdate()
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
