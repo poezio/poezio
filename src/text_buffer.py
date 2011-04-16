@@ -50,11 +50,15 @@ class TextBuffer(object):
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
+        ret_val = None
         for window in self.windows: # make the associated windows
             # build the lines from the new message
             nb = window.build_new_message(msg)
+            if ret_val is None:
+                ret_val = nb
             if window.pos != 0:
                 window.scroll_up(nb)
+        return ret_val or 1
 
     def del_window(self, win):
         self.windows.remove(win)

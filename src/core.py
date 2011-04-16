@@ -214,23 +214,39 @@ class Core(object):
     def informations(self):
         return self.information_buffer
 
-    def grow_information_win(self):
+    def grow_information_win(self, nb=1):
         if self.information_win_size == 14:
             return
-        self.information_win_size += 1
+        self.information_win_size += nb
+        if self.information_win_size > 14:
+            self.information_win_size = 14
         self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
 
-    def shrink_information_win(self):
+    def shrink_information_win(self, nb=1):
         if self.information_win_size == 0:
             return
-        self.information_win_size -= 1
+        self.information_win_size -= nb
+        if self.information_win_size < 0:
+            self.information_win_size = 0
         self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
+
+    def pop_information_win_up(self, size, time):
+        """
+        Temporarly increase the size of the information win of size lines
+        during time seconds.
+        After that delay, the size will decrease from size lines.
+        """
+        if time <= 0 or size <= 0:
+            return
+        self.grow_information_win(size)
+        timed_event = timed_events.DelayedEvent(time, self.shrink_information_win, size)
+        self.add_timed_event(timed_event)
 
     def get_status(self):
         """
@@ -600,7 +616,7 @@ class Core(object):
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
             self.tabs[0].set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-            self.information('%s wants to subscribe to your presence'%jid)
+            self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -936,7 +952,7 @@ class Core(object):
         (in the Info tab of the info window in the RosterTab)
         """
         if not room:
-            self.information('Error, trying to add a message in no room: %s' % txt)
+            self.information('Trying to add a message in no room: %s' % txt, 'Error')
         else:
             room.add_message(txt, time, nickname)
         self.refresh_window()
@@ -960,7 +976,7 @@ class Core(object):
                 msg = self.current_tab().commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
-        self.information(msg)
+        self.information(msg, 'Help')
 
     def completion_help(self, the_input):
         commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
@@ -1017,12 +1033,12 @@ class Core(object):
         jid = args[0]
         res = self.xmpp.plugin['xep_0092'].get_version(jid)
         if not res:
-            return self.information('Could not get the software version from %s' % (jid,))
+            return self.information('Could not get the software version from %s' % (jid,), 'Warning')
         version = '%s is running %s version %s on %s' % (jid,
                                                          res.get('name') or _('an unknown software'),
                                                          res.get('version') or _('unknown'),
                                                          res.get('os') or _('on an unknown platform'))
-        self.information(version)
+        self.information(version, 'Info')
 
     def command_reconnect(self, args):
         """
@@ -1041,7 +1057,7 @@ class Core(object):
             return
         elif len(args) == 0:
             if not isinstance(self.current_tab(), tabs.MucTab):
-                return self.information('Warning: Please provide a server')
+                return self.information('Please provide a server', 'Error')
             server = JID(self.current_tab().get_name()).server
         else:
             server = arg.strip()
@@ -1235,7 +1251,7 @@ class Core(object):
         else:
             bookmarks = res
         config.set_and_save('rooms', bookmarks)
-        self.information(_('Your bookmarks are now: %s') % bookmarks)
+        self.information(_('Your bookmarks are now: %s') % bookmarks, 'Info')
 
     def command_set(self, arg):
         """
@@ -1252,7 +1268,7 @@ class Core(object):
             value = ''
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
-        self.information(msg)
+        self.information(msg, 'Info')
 
     def command_away(self, arg):
         """
@@ -1323,7 +1339,11 @@ class Core(object):
         """
         Displays an informational message in the "Info" room window
         """
-        self.information_buffer.add_message(msg, nickname=typ)
+        nb_lines = self.information_buffer.add_message(msg, nickname=typ)
+        if typ != '' and typ.lower() in config.get('information_buffer_popup_on',
+                                           'error roster warning help info').split():
+            popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
+            self.pop_information_win_up(nb_lines, popup_time)
         # TODO: refresh only the correct window in the current tab
         self.refresh_window()
 
