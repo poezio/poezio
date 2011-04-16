@@ -25,9 +25,14 @@ MUCs, especially XEP 0045.
 	Install
 =======================
 You need python 3.0 or higher, and the SleekXMPP python library.
-SleekXMPP can be found at http://github.com/fritzy/SleekXMPP.
+In the developpement version, you’ll need this fork of SleekXMPP
+http://github.com/louiz/SleekXMPP.
 
-you can launch poezio with
+The simplest way to have up-to-date dependencies and to be able to test
+this developpement version is to use the update.sh script that downloads
+and places them in the right directory.
+
+you can then launch poezio with
 ./launch.sh
 
 or you can install it with (as root or with sudo)
