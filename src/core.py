@@ -1398,6 +1398,11 @@ class Core(object):
                 self.focus_tab_named(roster_row.get_jid().full)
         self.refresh_window()
 
+    def remove_timed_event(self, event):
+        if event and event in self.timed_events:
+            log.debug('removing event')
+            self.timed_events.remove(event)
+
     def add_timed_event(self, event):
         self.timed_events.add(event)
 

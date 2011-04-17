@@ -1340,7 +1340,7 @@ class RosterWin(Win):
                 if y-self.start_pos+1 == self.height:
                     break
             line = ' '*self.width
-            while y <= self.height:
+            while y < self.height:
                 self.addstr(y, 0, line)
                 y += 1
             if self.start_pos > 1:

@@ -336,7 +336,7 @@ class ChatTab(Tab):
         if self.timed_event_paused:
             event = self.timed_event_paused()
             if event:
-                self.core.timed_events.remove(event)
+                self.core.remove_timed_event(event)
                 del event
         self.timed_event_paused = None
 
@@ -619,6 +619,7 @@ class MucTab(ChatTab):
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
+        self.cancel_paused_delay()
         msg.send()
 
     def command_ignore(self, arg):
@@ -986,6 +987,7 @@ class PrivateTab(ChatTab):
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        self.cancel_paused_delay()
         self.text_win.refresh(self._room)
         self.input.refresh()
 
@@ -1421,6 +1423,7 @@ class ConversationTab(ChatTab):
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        self.cancel_paused_delay()
         self.text_win.refresh(self._room)
         self.input.refresh()
 
