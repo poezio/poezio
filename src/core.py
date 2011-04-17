@@ -575,7 +575,7 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        if isinstance(self.current_tab(), tabs.RosterTab) or\
+        if isinstance(self.current_tab(), tabs.InfoTab) or\
                 isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
