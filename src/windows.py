@@ -1340,7 +1340,7 @@ class RosterWin(Win):
                 if y-self.start_pos+1 == self.height:
                     break
             line = ' '*self.width
-            while y != self.height:
+            while y <= self.height:
                 self.addstr(y, 0, line)
                 y += 1
             if self.start_pos > 1:
@@ -1472,7 +1472,6 @@ class ContactInfoWin(Win):
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
-        self.finish_line()
         if contact.get_ask():
             if contact.get_ask() == 'asked':
                 self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
