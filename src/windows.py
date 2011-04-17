@@ -128,13 +128,16 @@ class Win(object):
             next_attr_char = string.find('\x19')
         self.addstr(string)
 
-    def finish_line(self, color):
+    def finish_line(self, color=None):
         """
         Write colored spaces until the end of line
         """
         (y, x) = self._win.getyx()
         size = self.width-x
-        self.addnstr(' '*size, size, common.curses_color_pair(color))
+        if color:
+            self.addnstr(' '*size, size, common.curses_color_pair(color))
+        else:
+            self.addnstr(' '*size, size)
 
     @property
     def core(self):
@@ -1299,7 +1302,8 @@ class RosterWin(Win):
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
                 self.move_cursor_up()
-            self._win.erase()
+            # self._win.erase()
+            self._win.move(0, 0)
             self.draw_roster_information(roster)
             y = 1
             show_offline = config.get('roster_show_offline', 'false') == 'true'
@@ -1315,8 +1319,7 @@ class RosterWin(Win):
                 if group.folded:
                     continue
                 for contact in group.get_contacts(roster._contact_filter):
-                    if config.get('roster_show_offline', 'false') == 'false' and\
-                            contact.get_nb_resources() == 0:
+                    if not show_offline and contact.get_nb_resources() == 0:
                         continue
                     if y-1 == self.pos:
                         self.selected_row = contact
@@ -1336,6 +1339,10 @@ class RosterWin(Win):
                             y += 1
                 if y-self.start_pos+1 == self.height:
                     break
+            line = ' '*self.width
+            while y != self.height:
+                self.addstr(y, 0, line)
+                y += 1
             if self.start_pos > 1:
                 self.draw_plus(1)
             if self.start_pos + self.height-2 < self.roster_len:
@@ -1351,6 +1358,7 @@ class RosterWin(Win):
 
     def draw_roster_information(self, roster):
         """
+        The header at the top
         """
         self.addstr('Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(), roster.get_contact_len())\
                 , common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
@@ -1370,6 +1378,7 @@ class RosterWin(Win):
         self.addstr(y, 4, group.name + contacts)
         if colored:
             self._win.attroff(common.curses_color_pair(theme.COLOR_SELECTED_ROW))
+        self.finish_line()
 
     def draw_contact_line(self, y, contact, colored):
         """
@@ -1394,9 +1403,10 @@ class RosterWin(Win):
                                         contact.get_bare_jid(), nb,)
         else:
             display_name = '%s%s' % (contact.get_bare_jid(), nb,)
-        self.addstr(y, 1, " ", common.curses_color_pair(color))
+        self.addstr(y, 0, ' ')
+        self.addstr(" ", common.curses_color_pair(color))
         if resource:
-            self.addstr(y, 2, ' [+]' if contact._folded else ' [-]')
+            self.addstr(' [+]' if contact._folded else ' [-]')
         self.addstr(' ')
         if colored:
             self.addstr(display_name, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
@@ -1404,6 +1414,7 @@ class RosterWin(Win):
             self.addstr(display_name)
         if contact.get_ask() == 'asked':
             self.addstr('?', common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
+        self.finish_line()
 
     def draw_resource_line(self, y, resource, colored):
         """
@@ -1415,6 +1426,7 @@ class RosterWin(Win):
             self.addstr(y, 6, resource.get_jid().full, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
         else:
             self.addstr(y, 6, resource.get_jid().full)
+        self.finish_line()
 
     def get_selected_row(self):
         y = 1
@@ -1460,11 +1472,14 @@ class ContactInfoWin(Win):
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
         self.finish_line(theme.COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
+        self.finish_line()
         if contact.get_ask():
             if contact.get_ask() == 'asked':
                 self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
             else:
                 self.addstr(' Ask: %s' % (contact.get_ask(),))
+        self.finish_line()
+
 
     def draw_group_info(self, group):
         """
