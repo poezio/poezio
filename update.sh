@@ -7,7 +7,7 @@
 # Use launch.sh to start poezio directly from here
 
 echo 'Updating poezio'
-hg pull -u || echo 'You do not seem to be in poezio’s directory. Exiting.' && exit 1
+hg pull -u
 
 if [ -e "SleekXMPP" ]
 then
