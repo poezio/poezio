@@ -175,6 +175,7 @@ class UserList(Win):
         self.addstr(y, self.width-2, '++', common.curses_color_pair(theme.COLOR_MORE_INDICATOR))
 
     def refresh(self, users):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             y = 0
@@ -218,6 +219,7 @@ class Topic(Win):
         self._message = ''
 
     def refresh(self, topic=None):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if topic:
@@ -240,6 +242,7 @@ class GlobalInfoBar(Win):
         Win.__init__(self)
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         def compare_room(a):
             return a.nb
         comp = lambda x: x.nb
@@ -292,7 +295,7 @@ class PrivateInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, room, window, chatstate):
-
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -334,6 +337,7 @@ class ConversationInfoWin(InfoWin):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
+        log.debug('Refresh: %s'%self.__class__.__name__)
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -400,6 +404,7 @@ class ConversationStatusMessageWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, jid, contact):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -427,6 +432,7 @@ class MucInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, room, window=None):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -590,10 +596,7 @@ class TextWin(Win):
         return nb
 
     def refresh(self, room):
-        """
-        Build the Line objects from the messages, and then write
-        them in the text area
-        """
+        log.debug('Refresh: %s'%self.__class__.__name__)
         if self.height <= 0:
             return
         if self.pos == 0:
@@ -677,6 +680,7 @@ class HelpText(Win):
         self.txt = text
 
     def refresh(self, txt=None):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         if txt:
             self.txt = txt
         with g_lock:
@@ -1059,6 +1063,7 @@ class Input(Win):
             self._refresh()
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         self.rewrite_text()
 
     def clear_text(self):
@@ -1244,6 +1249,7 @@ class VerticalSeparator(Win):
             self._refresh()
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         self.rewrite_line()
 
 class RosterWin(Win):
@@ -1298,6 +1304,7 @@ class RosterWin(Win):
         """
         We get the roster object
         """
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
@@ -1429,28 +1436,7 @@ class RosterWin(Win):
         self.finish_line()
 
     def get_selected_row(self):
-        y = 1
-        for group in roster.get_groups():
-            if config.get('roster_show_offline', 'false') == 'false' and group.get_nb_connected_contacts() == 0:
-                continue    # Ignore empty groups
-            if y-1 == self.pos:
-                return group
-            y += 1
-            if group.folded:
-                continue
-            for contact in group.get_contacts(roster._contact_filter):
-                if config.get('roster_show_offline', 'false') == 'false' and\
-                        contact.get_nb_resources() == 0:
-                    continue
-                if y-1 == self.pos:
-                    return contact
-                y += 1
-                if not contact._folded:
-                    for resource in contact.get_resources():
-                        if y-1 == self.pos:
-                            return resource
-                        y += 1
-        return None
+        return self.selected_row
 
 class ContactInfoWin(Win):
     def __init__(self):
@@ -1488,6 +1474,7 @@ class ContactInfoWin(Win):
         self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if isinstance(selected_row, RosterGroup):
@@ -1543,6 +1530,7 @@ class ListWin(Win):
         return None
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             lines = self.lines[self._starting_pos:self._starting_pos+self.height]
@@ -1603,6 +1591,7 @@ class ColumnHeaderWin(Win):
         self._columns_sizes = dic
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             x = 0
@@ -1642,6 +1631,7 @@ class SimpleTextWin(Win):
             self.built_lines.append(line)
 
     def refresh(self):
+        log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
             for y, line in enumerate(self.built_lines):

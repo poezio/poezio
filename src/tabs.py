@@ -1308,11 +1308,17 @@ class RosterInfoTab(Tab):
 
     def move_cursor_down(self):
         self.roster_win.move_cursor_down()
-        return True
+        self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
+        self.input.refresh()
+        self.core.doupdate()
 
     def move_cursor_up(self):
         self.roster_win.move_cursor_up()
-        return True
+        self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
+        self.input.refresh()
+        self.core.doupdate()
 
     def move_cursor_to_prev_group(self):
         self.roster_win.move_cursor_up()
@@ -1320,6 +1326,7 @@ class RosterInfoTab(Tab):
             if not self.roster_win.move_cursor_up():
                 break
         self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
         self.input.refresh()
         self.core.doupdate()
 
@@ -1329,6 +1336,7 @@ class RosterInfoTab(Tab):
             if not self.roster_win.move_cursor_down():
                 break
         self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
         self.input.refresh()
         self.core.doupdate()
 
