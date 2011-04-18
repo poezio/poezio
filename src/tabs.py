@@ -420,9 +420,6 @@ class InfoTab(ChatTab):
     def on_info_win_size_changed(self):
         return
 
-    def just_before_refresh(self):
-        return
-
 class MucTab(ChatTab):
     """
     The tab containing a multi-user-chat room.
@@ -766,9 +763,6 @@ class MucTab(ChatTab):
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
         self.user_win.resize(self.height-3-self.core.information_win_size-1, self.width-text_width-1, 1, text_width+1)
 
-    def just_before_refresh(self):
-        return
-
     def handle_presence(self, presence):
         from_nick = presence['from'].resource
         from_room = presence['from'].bare
@@ -1022,6 +1016,10 @@ class PrivateTab(ChatTab):
         self.tab_win.refresh()
         self.input.refresh()
 
+    def refresh_info_header(self):
+        self.info_header.refresh(self._room, self.text_win, self.chatstate)
+        self.input.refresh()
+
     def get_color_state(self):
         if self._room.color_state == theme.COLOR_TAB_NORMAL or\
                 self._room.color_state == theme.COLOR_TAB_CURRENT:
@@ -1077,9 +1075,6 @@ class PrivateTab(ChatTab):
 
     def get_text_window(self):
         return self.text_win
-
-    def just_before_refresh(self):
-        return
 
     def rename_user(self, old_nick, new_nick):
         """
@@ -1393,9 +1388,6 @@ class RosterInfoTab(Tab):
         self.reset_help_message()
         return False
 
-    def just_before_refresh(self):
-        return
-
     def on_close(self):
         return
 
@@ -1467,6 +1459,10 @@ class ConversationTab(ChatTab):
         self.tab_win.refresh()
         self.input.refresh()
 
+    def refresh_info_header(self):
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
+        self.input.refresh()
+
     def get_color_state(self):
         if self.color_state == theme.COLOR_TAB_NORMAL or\
                 self.color_state == theme.COLOR_TAB_CURRENT:
@@ -1522,9 +1518,6 @@ class ConversationTab(ChatTab):
 
     def get_text_window(self):
         return self.text_win
-
-    def just_before_refresh(self):
-        return
 
     def on_close(self):
         Tab.on_close(self)

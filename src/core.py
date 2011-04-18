@@ -298,7 +298,8 @@ class Core(object):
             return False
         tab.chatstate = state
         if tab == self.current_tab():
-            self.refresh_window()
+            tab.refresh_info_header()
+            self.doupdate()
         return True
 
     def on_chatstate_private_conversation(self, message, state):
@@ -307,7 +308,8 @@ class Core(object):
             return
         tab.chatstate = state
         if tab == self.current_tab():
-            self.refresh_window()
+            tab.refresh_info_header()
+            self.doupdate()
         return True
 
     def on_chatstate_groupchat_conversation(self, message, state):
@@ -317,7 +319,9 @@ class Core(object):
         if tab and tab.get_room() and tab.get_room().get_user_by_name(nick):
             tab.get_room().get_user_by_name(nick).chatstate = state
         if tab == self.current_tab():
-            self.refresh_window()
+            tab.user_win.refresh(tab._room.users)
+            tab.input.refresh()
+            self.doupdate()
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
@@ -510,7 +514,7 @@ class Core(object):
         if conversation is self.current_tab():
             self.refresh_window()
         else:
-            self.current_tab().tab_win.refresh()
+            self.refresh_tab_win()
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
@@ -558,7 +562,7 @@ class Core(object):
         logger.log_message(jid.bare, remote_nick, body)
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
-            self.current_tab().tab_win.refresh()
+            self.refresh_tab_win()
         else:
             self.refresh_window()
 
@@ -1434,5 +1438,4 @@ class Core(object):
     def doupdate(self):
         if not self.running:
             return
-        self.current_tab().just_before_refresh()
         curses.doupdate()
