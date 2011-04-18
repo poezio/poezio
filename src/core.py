@@ -16,11 +16,10 @@
 
 from gettext import gettext as _
 
-from time import sleep
-
 import os
 import re
 import sys
+import time
 import curses
 import threading
 import traceback
@@ -87,6 +86,7 @@ class Core(object):
     def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
+        self.connection_time = time.time()
         self.status = Status(show=None, message='')
         sys.excepthook = self.on_exception
         self.running = True
@@ -368,7 +368,9 @@ class Core(object):
         self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x194online' % (jid.full))
         if not contact.get_highest_priority_resource():
             # No connected resource yet: the user's just connecting
-            self.information("\x193%s \x195is \x194online\x195 (\x190%s\x195)" % (resource.get_jid().bare, status), "Roster")
+            if time.time() - self.connection_time > 12:
+                # We do not display messages if we recently logged in
+                self.information("\x193%s \x195is \x194online\x195 (\x190%s\x195)" % (resource.get_jid().bare, status), "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x194online' % (jid.bare))
         contact.add_resource(resource)
 
@@ -412,6 +414,7 @@ class Core(object):
         """
         Called when we are connected and authenticated
         """
+        self.connection_time = time.time()
         self.information(_("Authentication success."))
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
         if not self.xmpp.anon:
