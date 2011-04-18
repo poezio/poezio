@@ -333,6 +333,7 @@ class Core(object):
         contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
             return
+        log.debug('on_got_offline: %s' % presence)
         resource = contact.get_resource_by_fulljid(jid.full)
         assert resource
         # If a resource got offline, display the message in the conversation with this
@@ -1341,8 +1342,6 @@ class Core(object):
                                            'error roster warning help info').split():
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
-        # TODO: refresh only the correct window in the current tab
-        self.refresh_window()
 
     def disconnect(self, msg=None):
         """

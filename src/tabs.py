@@ -377,6 +377,7 @@ class InfoTab(ChatTab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.info_win.refresh(self.core.informations)
         self.tab_win.refresh()
         self.input.refresh()
@@ -680,6 +681,7 @@ class MucTab(ChatTab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.topic_win.refresh(self._room.topic)
         self.text_win.refresh(self._room)
         self.v_separator.refresh()
@@ -1013,6 +1015,7 @@ class PrivateTab(ChatTab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh(self._room)
         self.info_header.refresh(self._room, self.text_win, self.chatstate)
         self.info_win.refresh(self.core.informations)
@@ -1233,6 +1236,7 @@ class RosterInfoTab(Tab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -1455,6 +1459,7 @@ class ConversationTab(ChatTab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh(self._room)
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
@@ -1559,6 +1564,7 @@ class MucListTab(Tab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
@@ -1707,6 +1713,7 @@ class SimpleTextTab(Tab):
             return
         if self.need_resize:
             self.resize()
+        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
