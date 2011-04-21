@@ -30,17 +30,18 @@ else
     hg clone http://hg.louiz.org/dnspython
 fi
 
-if [ -h "src/dns" ]
+cd src
+if [ -h "dns" ]
 then
     echo 'Link src/dns already exists'
 else
     echo "Creating link src/dns"
-    ln -s dnspython/dns src/dns
+    ln -s ../dnspython/dns dns
 fi
-if [ -h "src/sleekxmpp" ]
+if [ -h "sleekxmpp" ]
 then
     echo 'Link src/sleekxmpp already exists'
 else
     echo "Creating link src/sleekxmpp"
-    ln -s SleekXMPP/sleekxmpp src/sleekxmpp
+    ln -s ../SleekXMPP/sleekxmpp sleekxmpp
 fi
