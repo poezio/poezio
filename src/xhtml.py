@@ -27,6 +27,7 @@ import re
 import subprocess
 from sleekxmpp.xmlstream import ET
 from xml.etree.ElementTree import ElementTree
+from sys import version_info
 
 from config import config
 import logging
@@ -82,7 +83,10 @@ def convert_links_to_plaintext(text):
                         parent.text += link_text
                 parent.remove(child)
             previous_child = child
+    if version_info.minor <= 1:
+        return ET.tostring(xml.getroot())
     return ET.tostring(xml.getroot(), encoding=str)
+
 
 def clean_text(string):
     """
