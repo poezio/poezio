@@ -287,6 +287,7 @@ class ChatTab(Tab):
             if txt.startswith('//'):
                 txt = txt[1:]
             self.command_say(txt)
+        self.cancel_paused_delay()
 
     def send_chat_state(self, state):
         """
@@ -305,6 +306,7 @@ class ChatTab(Tab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
             if not empty_before and empty_after:
                 self.send_chat_state("active")
+                self.cancel_paused_delay()
             elif (empty_before or (self.timed_event_paused is not None and not self.timed_event_paused())) and not empty_after:
                 self.send_chat_state("composing")
 
@@ -1483,22 +1485,22 @@ class ConversationTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
+        self.set_paused_delay(empty_before and not empty_after)
         if not empty_before and empty_after:
             self.cancel_paused_delay()
-        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def on_lose_focus(self):
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('active')
 
     def on_scroll_up(self):
