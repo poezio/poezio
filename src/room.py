@@ -60,7 +60,8 @@ class Room(TextBuffer):
         color = None
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
-                self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+                if self.color_state != theme.COLOR_TAB_CURRENT:
+                    self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                 color = theme.COLOR_HIGHLIGHT_NICK
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
@@ -105,7 +106,7 @@ class Room(TextBuffer):
                 self.color_state != theme.COLOR_TAB_CURRENT:
             if self.color_state != theme.COLOR_TAB_HIGHLIGHT:
                 self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
-        nick_color = nick_color or user.color if user else None
+        nick_color = nick_color or None
         if not nickname or time:
             txt = '\x195%s' % (txt,)
         else:                   # TODO

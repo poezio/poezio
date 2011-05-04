@@ -576,10 +576,10 @@ class TextWin(Win):
         while txt != '':
             (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
             if first:
-                if message.user:
-                    color = message.user.color
-                elif message.nick_color:
+                if message.nick_color:
                     color = message.nick_color
+                elif message.user:
+                    color = message.user.color
                 else:
                     color = None
             else:
