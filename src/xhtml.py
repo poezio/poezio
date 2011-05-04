@@ -82,7 +82,7 @@ def convert_links_to_plaintext(text):
                         parent.text += link_text
                 parent.remove(child)
             previous_child = child
-    return ET.tostring(xml.getroot())
+    return ET.tostring(xml.getroot(), encoding=str)
 
 def clean_text(string):
     """

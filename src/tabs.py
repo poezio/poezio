@@ -512,7 +512,6 @@ class MucTab(ChatTab):
         Re-assign color to the participants of the room
         """
         room = self.get_room()
-        i = 0
         compare_users = lambda x: x.last_talked
         users = list(room.users)
         # search our own user, to remove it from the room
@@ -520,10 +519,9 @@ class MucTab(ChatTab):
             if user.nick == room.own_nick:
                 users.remove(user)
         nb_color = len(theme.LIST_COLOR_NICKNAMES)
-        for user in sorted(users, key=compare_users, reverse=True):
+        for i, user in enumerate(sorted(users, key=compare_users, reverse=True)):
             user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
-            i += 1
-        self.text_win.rebuild_everything(self.get_room())
+        self.text_win.rebuild_everything(self._room)
         self.text_win.refresh(self._room)
         self.input.refresh()
 
@@ -580,6 +578,8 @@ class MucTab(ChatTab):
         if not arg.strip():
             self.core.add_message_to_text_buffer(self.get_room(),
                                                  _("The subject of the room is: %s") % self.get_room().topic)
+            self.text_win.refresh(self.get_room())
+            self.input.refresh()
             return
         subject = arg
         muc.change_subject(self.core.xmpp, self.get_room().name, subject)
