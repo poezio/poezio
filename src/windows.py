@@ -732,6 +732,7 @@ class Input(Win):
             'M-f': self.jump_word_right,
             "M-[1;5C": self.jump_word_right,
             "KEY_BACKSPACE": self.key_backspace,
+            "M-KEY_BACKSPACE": self.delete_word,
             '^?': self.key_backspace,
             '^J': self.add_line_break,
             }
@@ -755,6 +756,19 @@ class Input(Win):
 
     def is_empty(self):
         return len(self.text) == 0
+
+    def delete_word(self):
+        """
+        Delete the word behind the cursor.
+        """
+        if not len(self.text) or self.pos == 0:
+            return
+        separators = string.punctuation+' '
+        while self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
+            self.key_backspace()
+        while self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
+            self.key_backspace()
+        return True
 
     def jump_word_left(self):
         """
