@@ -757,19 +757,6 @@ class Input(Win):
     def is_empty(self):
         return len(self.text) == 0
 
-    def delete_word(self):
-        """
-        Delete the word behind the cursor.
-        """
-        if not len(self.text) or self.pos == 0:
-            return
-        separators = string.punctuation+' '
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
-            self.key_backspace()
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
-            self.key_backspace()
-        return True
-
     def jump_word_left(self):
         """
         Move the cursor one word to the left
