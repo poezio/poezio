@@ -535,7 +535,6 @@ class MucTab(ChatTab):
         args = common.shell_split(arg)
         if len(args) < 1:
             return
-        log.debug('ALLO: %s' % args[0])
         if args[0] in [user.nick for user in self.get_room().users]:
             jid = self._room.name + '/' + args[0]
         else:
