@@ -135,10 +135,10 @@ class Tab(object):
                 not txt.startswith('/me '):
             command = txt.strip().split()[0][1:]
             arg = txt[2+len(command):] # jump the '/' and the ' '
-            if command in self.core.commands: # check global commands
-                self.core.commands[command][0](arg)
-            elif command in self.commands: # check tab-specific commands
+            if command in self.commands: # check tab-specific commands
                 self.commands[command][0](arg)
+            elif command in self.core.commands: # check global commands
+                self.core.commands[command][0](arg)
             else:
                 self.core.information(_("Unknown command (%s)") % (command), _('Error'))
             return True
@@ -460,6 +460,7 @@ class MucTab(ChatTab):
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: get the software version of the given JID or nick in room (usually its XMPP client and Operating System)'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -526,6 +527,27 @@ class MucTab(ChatTab):
         self.text_win.rebuild_everything(self._room)
         self.text_win.refresh(self._room)
         self.input.refresh()
+
+    def command_version(self, arg):
+        """
+        /version <jid or nick>
+        """
+        args = common.shell_split(arg)
+        if len(args) < 1:
+            return
+        log.debug('ALLO: %s' % args[0])
+        if args[0] in [user.nick for user in self.get_room().users]:
+            jid = self._room.name + '/' + args[0]
+        else:
+            jid = args[0]
+        res = self.core.xmpp.plugin['xep_0092'].get_version(jid)
+        if not res:
+            return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
+        version = '%s is running %s version %s on %s' % (jid,
+                                                         res.get('name') or _('an unknown software'),
+                                                         res.get('version') or _('unknown'),
+                                                         res.get('os') or _('on an unknown platform'))
+        self.core.information(version, 'Info')
 
     def command_nick(self, arg):
         """

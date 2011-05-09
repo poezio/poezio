@@ -194,7 +194,9 @@ def datetime_tuple(timestamp):
     return ret
 
 def shell_split(string):
-    sh = shlex.shlex(string, posix=True)
+    sh = shlex.shlex(string, posix=False)
+    sh.whitespace_split = True
+    sh.quotes = '"'
     ret = list()
     try:
         w = sh.get_token()
@@ -203,7 +205,7 @@ def shell_split(string):
             w = sh.get_token()
         return ret
     except ValueError:
-        return string.split()
+        return string.split(" ")
 
 def curses_color_pair(color):
     if color < 0:

@@ -1044,7 +1044,7 @@ class Core(object):
         """
         /version <jid>
         """
-        args = arg.split()
+        args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
         jid = args[0]
