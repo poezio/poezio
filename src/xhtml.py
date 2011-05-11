@@ -133,9 +133,12 @@ def poezio_colors_to_html(string):
             if 'strong' not in opened_elements:
                 opened_elements.append('strong')
                 res += '<strong>'
-        elif attr_char.isdigit():
+        elif attr_char.isnumeric():
             number = int(attr_char)
             if number in number_to_color_names:
+                if 'strong' in opened_elements:
+                    res += '</strong>'
+                    opened_elements.remove('strong')
                 if 'span' in opened_elements:
                     res += '</span>'
                 else:
@@ -212,7 +215,7 @@ def poezio_colors_to_xhtml(string):
             if 'strong' not in open_elements:
                 res += '<strong>'
                 open_elements.append('strong')
-        elif attr_char.isdigit():
+        elif attr_char.isnumeric():
             self._win.attron(common.curses_color_pair(int(attr_char)))
         next_attr_char = string.find('\x19')
 

@@ -98,7 +98,7 @@ class Win(object):
         except:
             pass
 
-    def addstr_colored(self, string, y=None, x=None):
+    def addstr_colored(self, text, y=None, x=None):
         """
         Write a string on the window, setting the
         attributes as they are in the string.
@@ -111,22 +111,25 @@ class Win(object):
         """
         if y is not None and x is not None:
             self._win.move(y, x)
-        next_attr_char = string.find('\x19')
+        next_attr_char = text.find('\x19')
         while next_attr_char != -1:
-            attr_char = string[next_attr_char+1].lower()
+            if next_attr_char + 1 < len(text):
+                attr_char = text[next_attr_char+1].lower()
+            else:
+                attr_char = str()
             if next_attr_char != 0:
-                self.addstr(string[:next_attr_char])
-            string = string[next_attr_char+2:]
+                self.addstr(text[:next_attr_char])
+            text = text[next_attr_char+2:]
             if attr_char == 'o':
                 self._win.attrset(0)
             elif attr_char == 'u':
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
-            elif attr_char.isdigit():
+            elif attr_char.isnumeric():
                 self._win.attron(common.curses_color_pair(int(attr_char)))
-            next_attr_char = string.find('\x19')
-        self.addstr(string)
+            next_attr_char = text.find('\x19')
+        self.addstr(text)
 
     def finish_line(self, color=None):
         """
@@ -1122,7 +1125,7 @@ class MessageInput(Input):
         Read one more char (c) and add \x19c to the string
         """
         attr_char = self.core.read_keyboard()
-        if attr_char in self.text_attributes or (attr_char.isdigit() and int(attr_char) < 7):
+        if attr_char in self.text_attributes or (attr_char.isnumeric() and int(attr_char) < 7):
             self.do_command('\x19', False)
             self.do_command(attr_char)
 

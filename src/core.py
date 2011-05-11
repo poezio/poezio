@@ -733,8 +733,7 @@ class Core(object):
         curses.curs_set(1)
         curses.noecho()
         curses.nonl()
-        if not options.debug:
-            curses.raw()
+        curses.raw()
         theme.init_colors()
         stdscr.idlok(True)
         stdscr.keypad(True)
