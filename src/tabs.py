@@ -294,10 +294,11 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
-        msg = self.core.xmpp.make_message(self.get_name())
-        msg['type'] = self.message_type
-        msg['chat_state'] = state
-        msg.send()
+        if not isinstance(self, MucTab) or self.get_room().joined:
+            msg = self.core.xmpp.make_message(self.get_name())
+            msg['type'] = self.message_type
+            msg['chat_state'] = state
+            msg.send()
 
     def send_composing_chat_state(self, empty_before, empty_after):
         """

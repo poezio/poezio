@@ -128,6 +128,7 @@ class Core(object):
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
+            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             }
 
         self.key_func = {
@@ -1326,6 +1327,31 @@ class Core(object):
         log.debug('___ Referrers of closing tab:\n%s\n______' % gc.get_referrers(tab))
         del tab
         self.refresh_window()
+
+    def command_server_cycle(self, arg):
+        """
+        Do a /cycle on each room of the given server. If none, do it on the current tab
+        """
+        args = common.shell_split(arg)
+        tab = self.current_tab()
+        message = ""
+
+        if len(args):
+            domain = args[0]
+            if len(args) > 1:
+                message = args[1]
+        else:
+            if isinstance(tab, tabs.MucTab):
+                domain = JID(tab.get_name()).domain
+            else:
+                self.information(_("No server specified"), "Error")
+                return
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab) and JID(tab.get_name()).domain == domain:
+                if tab.get_room().joined:
+                    muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.get_room().own_nick, message)
+                tab.get_room().joined = False
+                self.command_join(tab.get_name())
 
     def go_to_room_number(self):
         """

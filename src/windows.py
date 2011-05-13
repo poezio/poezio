@@ -68,8 +68,9 @@ class Win(object):
         if not self._win:
             self._win = curses.newwin(height, width, y, x)
         else:
-            self._win.resize(height, width)
-            self._win.mvwin(y, x)
+            if height > 5 and width > 40:
+                self._win.resize(height, width)
+                self._win.mvwin(y, x)
 
     def resize(self, height, width, y, x):
         """
