@@ -877,6 +877,11 @@ class Core(object):
         """
         open a new conversation tab and focus it if needed
         """
+        for tab in self.tabs: # if the room exists, focus it and return
+            if isinstance(tab, tabs.ConversationTab):
+                if tab.get_name() == jid:
+                    self.command_win('%s' % tab.nb)
+                    return tab
         new_tab = tabs.ConversationTab(jid)
         # insert it in the rooms
         self.add_tab(new_tab, focus)
