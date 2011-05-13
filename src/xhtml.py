@@ -28,6 +28,7 @@ import subprocess
 from sleekxmpp.xmlstream import ET
 from xml.etree.ElementTree import ElementTree
 from sys import version_info
+from string import digits
 
 from config import config
 import logging
@@ -133,7 +134,7 @@ def poezio_colors_to_html(string):
             if 'strong' not in opened_elements:
                 opened_elements.append('strong')
                 res += '<strong>'
-        elif attr_char in string.digits:
+        elif attr_char in digits:
             number = int(attr_char)
             if number in number_to_color_names:
                 if 'strong' in opened_elements:
@@ -215,7 +216,7 @@ def poezio_colors_to_xhtml(string):
             if 'strong' not in open_elements:
                 res += '<strong>'
                 open_elements.append('strong')
-        elif attr_char in string.digits:
+        elif attr_char in digits:
             self._win.attron(common.curses_color_pair(int(attr_char)))
         next_attr_char = string.find('\x19')
 

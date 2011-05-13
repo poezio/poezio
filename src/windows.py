@@ -566,7 +566,11 @@ class TextWin(Win):
         else:
             txt = txt.replace('\t', '    ')
         # length of the time
-        offset = 9+len(theme.CHAR_TIME_LEFT[:1])+len(theme.CHAR_TIME_RIGHT[:1])
+        offset = 9
+        if theme.CHAR_TIME_RIGHT:
+            offset += 1
+        if theme.CHAR_TIME_RIGHT:
+            offset += 1
         nickname = message.nickname
         if nickname and len(nickname) >= 25:
             nick = nickname[:25]+'…'
