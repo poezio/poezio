@@ -126,7 +126,7 @@ class Win(object):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
-            elif attr_char.isnumeric():
+            elif attr_char in string.digits:
                 self._win.attron(common.curses_color_pair(int(attr_char)))
             next_attr_char = text.find('\x19')
         self.addstr(text)
@@ -1125,7 +1125,7 @@ class MessageInput(Input):
         Read one more char (c) and add \x19c to the string
         """
         attr_char = self.core.read_keyboard()
-        if attr_char in self.text_attributes or (attr_char.isnumeric() and int(attr_char) < 7):
+        if attr_char in self.text_attributes or (attr_char in string.digits and int(attr_char) < 7):
             self.do_command('\x19', False)
             self.do_command(attr_char)
 
