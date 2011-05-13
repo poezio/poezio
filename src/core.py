@@ -682,7 +682,7 @@ class Core(object):
                     else:
                         self.command_win('%d' % nb)
             # search for keyboard shortcut
-            if char in list(self.key_func.keys()):
+            if char in self.key_func:
                 self.key_func[char]()
             else:
                 self.do_command(char)
@@ -853,7 +853,7 @@ class Core(object):
         code = error['error']['code']
         body = error['error']['text']
         if not body:
-            if code in list(ERROR_AND_STATUS_CODES.keys()):
+            if code in ERROR_AND_STATUS_CODES:
                 body = ERROR_AND_STATUS_CODES[code]
             else:
                 body = condition or _('Unknown error')
@@ -980,15 +980,15 @@ class Core(object):
         args = arg.split()
         if len(args) == 0:
             msg = _('Available commands are: ')
-            for command in list(self.commands.keys()):
+            for command in self.commands:
                 msg += "%s " % command
-            for command in list(self.current_tab().commands.keys()):
+            for command in self.current_tab().commands:
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
         if len(args) >= 1:
-            if args[0] in list(self.commands.keys()):
+            if args[0] in self.commands:
                 msg = self.commands[args[0]][1]
-            elif args[0] in list(self.current_tab().commands.keys()):
+            elif args[0] in self.current_tab().commands:
                 msg = self.current_tab().commands[args[0]][1]
             else:
                 msg = _('Unknown command: %s') % args[0]
@@ -1024,7 +1024,7 @@ class Core(object):
         self.set_status(show, msg)
 
     def completion_status(self, the_input):
-        return the_input.auto_completion([status for status in list(possible_show.keys())], ' ')
+        return the_input.auto_completion([status for status in possible_show], ' ')
 
     def command_message(self, arg):
         """
@@ -1430,12 +1430,12 @@ class Core(object):
             command = line.strip()[:].split()[0][1:]
             arg = line[2+len(command):] # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
-            if command in list(self.commands.keys()):
+            if command in self.commands:
                 func = self.commands[command][0]
                 func(arg)
                 return
             else:
-                self.information(_("unknown command (%s)") % (command), _('Error'))
+                self.information(_("Unknown command (%s)") % (command), _('Error'))
 
     def doupdate(self):
         if not self.running:

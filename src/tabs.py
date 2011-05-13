@@ -119,8 +119,8 @@ class Tab(object):
                     return command[2](the_input)
             else:
                 # complete the command's name
-                words = ['/%s'%(name) for name in list(self.core.commands.keys())] +\
-                    ['/%s'% (name) for name in list(self.commands.keys())]
+                words = ['/%s'%(name) for name in self.core.commands] +\
+                    ['/%s'% (name) for name in self.commands]
                 the_input.auto_completion(words, '')
                 return True
         return False
@@ -307,8 +307,10 @@ class ChatTab(Tab):
             if not empty_before and empty_after:
                 self.send_chat_state("active")
                 self.cancel_paused_delay()
-            elif (empty_before or (self.timed_event_paused is not None and not self.timed_event_paused())) and not empty_after:
+            elif (empty_before or (self.timed_event_paused is not None and not self.timed_event_paused())):
+                self.cancel_paused_delay()
                 self.send_chat_state("composing")
+                self.set_paused_delay(True)
 
     def set_paused_delay(self, composing):
         """
@@ -593,6 +595,8 @@ class MucTab(ChatTab):
             msg = arg[len(nick)+1:]
             muc.send_private_message(self.core.xmpp, r.name, msg)
             self.core.add_message_to_text_buffer(r, msg, None, r.own_nick)
+        if not r:
+            self.core.information(_("Cannot find user: %s" % nick), 'Error')
 
     def command_topic(self, arg):
         """
@@ -719,9 +723,6 @@ class MucTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
-        if not empty_before and empty_after:
-            self.cancel_paused_delay()
-        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def completion(self):
@@ -730,6 +731,11 @@ class MucTab(ChatTab):
         """
         if self.complete_commands(self.input):
             return
+
+        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        self.send_composing_chat_state(empty_before, empty_after)
+
         # If we are not completing a command or a command's argument, complete a nick
         compare_users = lambda x: x.last_talked
         word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
@@ -740,6 +746,7 @@ class MucTab(ChatTab):
             add_after = after
         else:
             add_after = ' '
+
         self.input.auto_completion(word_list, add_after)
 
     def get_color_state(self):
@@ -1063,9 +1070,6 @@ class PrivateTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
-        if not empty_before and empty_after:
-            self.cancel_paused_delay()
-        self.set_paused_delay(empty_before and not empty_after)
         return False
 
     def on_lose_focus(self):
@@ -1195,6 +1199,7 @@ class RosterInfoTab(Tab):
         """
         jid = JID(args.strip()).bare
         if not jid:
+            self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
@@ -1242,7 +1247,7 @@ class RosterInfoTab(Tab):
             if isinstance(item, Contact) and item.get_ask() == 'asked':
                 jid = item.get_bare_jid()
             else:
-                self.core.information('No subscription to deny')
+                self.core.information('No subscription to accept')
                 return
         else:
             jid = args[0]
@@ -1506,9 +1511,6 @@ class ConversationTab(ChatTab):
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_before, empty_after)
-        self.set_paused_delay(empty_before and not empty_after)
-        if not empty_before and empty_after:
-            self.cancel_paused_delay()
         return False
 
     def on_lose_focus(self):
