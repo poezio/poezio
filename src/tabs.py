@@ -282,11 +282,12 @@ class ChatTab(Tab):
 
     def on_enter(self):
         txt = self.input.key_enter()
-        clean_text = xhtml.clean_text(txt)
-        if not self.execute_command(clean_text):
-            if txt.startswith('//'):
-                txt = txt[1:]
-            self.command_say(txt)
+        if txt:
+            clean_text = xhtml.clean_text(txt)
+            if not self.execute_command(clean_text):
+                if txt.startswith('//'):
+                    txt = txt[1:]
+                self.command_say(txt)
         self.cancel_paused_delay()
 
     def send_chat_state(self, state):
