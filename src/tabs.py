@@ -306,10 +306,10 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
-            if not empty_before and empty_after:
+            if empty_after:
                 self.send_chat_state("active")
                 self.cancel_paused_delay()
-            elif (empty_before or (self.timed_event_paused is not None and not self.timed_event_paused())):
+            elif empty_before or (self.timed_event_paused is not None and not self.timed_event_paused()):
                 self.cancel_paused_delay()
                 self.send_chat_state("composing")
                 self.set_paused_delay(True)
@@ -734,10 +734,6 @@ class MucTab(ChatTab):
         if self.complete_commands(self.input):
             return
 
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
-
         # If we are not completing a command or a command's argument, complete a nick
         compare_users = lambda x: x.last_talked
         word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
@@ -749,7 +745,10 @@ class MucTab(ChatTab):
         else:
             add_after = ' '
 
+        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.auto_completion(word_list, add_after)
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        self.send_composing_chat_state(empty_before, empty_after)
 
     def get_color_state(self):
         return self._room.color_state

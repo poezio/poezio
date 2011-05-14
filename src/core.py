@@ -951,8 +951,6 @@ class Core(object):
         room_from = message.getMucroom()
         if message['type'] == 'error': # Check if it's an error
             return self.room_error(message, from_room)
-        if nick_from == room_from:
-            nick_from = None
         room = self.get_room_by_name(room_from)
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_room() and tab.get_room().get_user_by_name(nick_from) and\
