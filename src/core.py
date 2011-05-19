@@ -1007,7 +1007,7 @@ class Core(object):
         /status <status> [msg]
         """
         args = common.shell_split(arg)
-        if len(args) != 2 and len(args) != 1:
+        if len(args) < 1:
             return
         if not args[0] in possible_show.keys():
             self.command_help('status')
@@ -1015,6 +1015,8 @@ class Core(object):
         show = possible_show[args[0]]
         if len(args) == 2:
             msg = args[1]
+        elif len(args) > 2:
+            msg = arg[len(args[0])+1:]
         else:
             msg = None
         pres = self.xmpp.make_presence()
