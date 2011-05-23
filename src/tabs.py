@@ -511,7 +511,7 @@ class MucTab(ChatTab):
     def command_cycle(self, arg):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
-        self.get_room().joined = False
+        self.get_room().disconnect()
         self.core.command_join('/', "0")
 
     def command_recolor(self, arg):
@@ -812,7 +812,7 @@ class MucTab(ChatTab):
         room = self.get_room()
         if not room.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
-            if from_nick not in [user.nick for user in room.users]:
+            if from_nick not in [user.nick for user in room.users] and typ != "unavailable":
                 new_user = User(from_nick, affiliation, show, status, role, jid)
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
