@@ -22,6 +22,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from config import config
+from os import path as p
 from contact import Contact, Resource
 from sleekxmpp.xmlstream.stanzabase import JID
 
@@ -32,6 +33,17 @@ class Roster(object):
                                     # on search, for example
         self._contacts = {}     # key = bare jid; value = Contact()
         self._roster_groups = []
+
+    def export(self, path):
+        if p.isfile(path):
+            return
+        try:
+            f = open(path, 'w+')
+            f.writelines([i + "\n" for i in self._contacts])
+            f.close()
+            return True
+        except IOError:
+            return
 
     def add_contact(self, contact, jid):
         """
