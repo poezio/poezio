@@ -19,6 +19,7 @@ from os import environ, makedirs
 import os
 from datetime import datetime
 from config import config
+from xhtml import clean_text
 
 import logging
 
@@ -70,6 +71,7 @@ class Logger(object):
         if not fd:
             return
         try:
+            msg = clean_text(msg)
             if nick:
                 fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
             else:
