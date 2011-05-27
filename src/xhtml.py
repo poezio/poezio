@@ -71,7 +71,13 @@ def convert_links_to_plaintext(text):
         previous_child = None
         for child in parent:
             if child.tag == '{http://www.w3.org/1999/xhtml}a':
-                link_text = '\n%s (%s)'%(child.attrib['href'], child.text)
+                if child.attrib['href'] != child.text:
+                    if child.text is None and 'title' in child.attrib:
+                        link_text = '\n%s (%s)'%(child.attrib['href'], child.attrib['title'])
+                    else:
+                        link_text = '\n%s (%s)'%(child.attrib['href'], child.text)
+                else:
+                    link_text = child.text
                 if previous_child is not None:
                     if previous_child.tail is None:
                         previous_child.tail = link_text
