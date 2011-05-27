@@ -50,6 +50,7 @@ from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
 from user import User
+from os import getenv, path
 from logger import logger
 
 from datetime import datetime, timedelta
@@ -511,7 +512,7 @@ class MucTab(ChatTab):
     def command_cycle(self, arg):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
-        self.get_room().joined = False
+        self.get_room().disconnect()
         self.core.command_join('/', "0")
 
     def command_recolor(self, arg):
@@ -812,7 +813,7 @@ class MucTab(ChatTab):
         room = self.get_room()
         if not room.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
-            if from_nick not in [user.nick for user in room.users]:
+            if from_nick not in [user.nick for user in room.users] and typ != "unavailable":
                 new_user = User(from_nick, affiliation, show, status, role, jid)
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
@@ -1155,6 +1156,8 @@ class RosterInfoTab(Tab):
         self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
         self.commands['add'] = (self.command_add, _("Usage: /add <jid>\Add: Use this command to add the specified JID to your roster. The reverse authorization will automatically be accepted if the remote JID accepts your subscription, leading to a mutual presence subscription."), None)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\Remove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
+        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Use this command to export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Use this command to import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.resize()
 
     def resize(self):
@@ -1221,6 +1224,56 @@ class RosterInfoTab(Tab):
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
         self.core.xmpp.del_roster_item(jid=jid)
+
+    def command_import(self, arg):
+        """
+        Import the contacts
+        """
+        args = common.shell_split(arg)
+        if len(args):
+            if args[0].startswith('/'):
+                filepath = args[0]
+            else:
+                filepath = path.join(getenv('HOME'), args[0])
+        else:
+            filepath = path.join(getenv('HOME'), 'poezio_contacts')
+        if not path.isfile(filepath):
+            self.core.information('The file %s does not exist' % filepath, 'Error')
+            return
+        try:
+            handle = open(filepath, 'r')
+            lines = handle.readlines()
+            handle.close()
+        except IOError:
+            self.core.information('Could not open %s' % filepath, 'Error')
+            return
+        for jid in lines:
+            self.command_add(jid.lstrip('\n'))
+        self.core.information('Contacts imported from %s' % filepath, 'Info')
+
+
+    def command_export(self, arg):
+        """
+        Export the contacts
+        """
+        args = common.shell_split(arg)
+        if len(args):
+            if args[0].startswith('/'):
+                filepath = args[0]
+            else:
+                filepath = path.join(getenv('HOME'), args[0])
+        else:
+            filepath = path.join(getenv('HOME'), 'poezio_contacts')
+        if path.isfile(filepath):
+            self.core.information('The file already exists', 'Error')
+            return
+        elif not path.isdir(path.dirname(filepath)):
+            self.core.information('Parent directory not found', 'Error')
+            return
+        if roster.export(filepath):
+            self.core.information('Contacts exported to %s' % filepath, 'Info')
+        else:
+            self.core.information('Failed to export contacts to %s' % filepath, 'Info')
 
     def completion_remove(self, the_input):
         """
