@@ -24,8 +24,6 @@ shortcut, like ^A, M-a or KEY_RESIZE)
 
 import time
 
-last_timeout = time.time()
-
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
@@ -41,44 +39,57 @@ def get_next_byte(s):
         return (None, c)
     return (ord(c), c.encode('latin-1')) # returns a number and a bytes object
 
-def read_char(s):
+def read_char(s, timeout=1000):
     """
     Read one utf-8 char
     see http://en.wikipedia.org/wiki/UTF-8#Description
     """
-    global last_timeout
-    s.timeout(1000)
+    s.timeout(timeout) # The timeout for timed events to be checked every second
+    ret_list = []
+    # The list of all chars. For example if you paste a text, the list the chars pasted
+    # so that they can be handled at once.
     (first, char) = get_next_byte(s)
-    if first is None and char is None:
-        last_timeout = time.time()
+    while first is not None or char is not None:
+        if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
+            return [char]
+        if first == 127 or first == 8:
+            return ["KEY_BACKSPACE"]
+        s.timeout(0)            # we are now getting the missing utf-8 bytes to get a whole char
+        if first < 127:  # ASCII char on one byte
+            if first <= 26:         # transform Ctrl+* keys
+                char = chr(first + 64)
+                ret_list.append("^"+char)
+                (first, char) = get_next_byte(s)
+                continue
+            if first == 27:
+                second = read_char(s, 0)
+                res = 'M-%s' % (second[0],)
+                ret_list.append(res)
+                (first, char) = get_next_byte(s)
+                continue
+        if 194 <= first:
+            (code, c) = get_next_byte(s) # 2 bytes char
+            char += c
+        if 224 <= first:
+            (code, c) = get_next_byte(s) # 3 bytes char
+            char += c
+        if 240 <= first:
+            (code, c) = get_next_byte(s) # 4 bytes char
+            char += c
+        try:
+            ret_list.append(char.decode('utf-8')) # return all the concatened byte objets, decoded
+        except UnicodeDecodeError:
+            return None
+        # s.timeout(1)            # timeout to detect a paste of many chars
+        (first, char) = get_next_byte(s)
+    if not ret_list:
+        # nothing at all was read, that’s a timed event timeout
         return None
-    if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
-        return char
-    if first == 127 or first == 8:
-        return "KEY_BACKSPACE"
-    if first < 127:  # ASCII char on one byte
-        if first <= 26:         # transform Ctrl+* keys
-            char = chr(first + 64)
-            # if char == 'M' and time.time() - last_char_time < 0.0005:
-            #     char = 'J'
-            return  "^"+char
-        if first == 27:
-            second = read_char(s)
-            res = 'M-%s' % (second,)
-            return res
-    if 194 <= first:
-        (code, c) = get_next_byte(s) # 2 bytes char
-        char += c
-    if 224 <= first:
-        (code, c) = get_next_byte(s) # 3 bytes char
-        char += c
-    if 240 <= first:
-        (code, c) = get_next_byte(s) # 4 bytes char
-        char += c
-    try:
-        return char.decode('utf-8') # return all the concatened byte objets, decoded
-    except UnicodeDecodeError:
-        return None
+    if len(ret_list) != 1:
+        if ret_list[-1] == '^M':
+            ret_list.pop(-1)
+        return [char if char != '^M' else '^J' for char in ret_list]
+    return ret_list
 
 if __name__ == '__main__':
     import curses

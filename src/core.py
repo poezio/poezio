@@ -670,23 +670,31 @@ class Core(object):
         """
         # curses.ungetch(0)    # FIXME
         while self.running:
-            char = self.read_keyboard()
+            char_list = self.read_keyboard()
             # Special case for M-x where x is a number
-            if char.startswith('M-') and len(char) == 3:
-                try:
-                    nb = int(char[2])
-                except ValueError:
-                    pass
-                else:
-                    if self.current_tab().nb == nb:
-                        self.go_to_previous_tab()
+            if len(char_list) == 1:
+                char = char_list[0]
+                if char.startswith('M-') and len(char) == 3:
+                    try:
+                        nb = int(char[2])
+                    except ValueError:
+                        pass
                     else:
-                        self.command_win('%d' % nb)
-            # search for keyboard shortcut
-            if char in self.key_func:
-                self.key_func[char]()
+                        if self.current_tab().nb == nb:
+                            self.go_to_previous_tab()
+                        else:
+                            self.command_win('%d' % nb)
+                    # search for keyboard shortcut
+                if char in self.key_func:
+                    self.key_func[char]()
+                else:
+                    res = self.do_command(char)
+                    if res:
+                        self.refresh_window()
             else:
-                self.do_command(char)
+                for char in char_list:
+                    self.do_command(char)
+                self.refresh_window()
             self.doupdate()
 
     def current_tab(self):
@@ -1419,9 +1427,7 @@ class Core(object):
     def do_command(self, key):
         if not key:
             return
-        res = self.current_tab().on_input(key)
-        if res:
-            self.refresh_window()
+        return self.current_tab().on_input(key)
 
     def on_roster_enter_key(self, roster_row):
         """
