@@ -8,140 +8,135 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-06-13 16:13+0200\n"
+"POT-Creation-Date: 2011-05-28 23:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/connection.py:105
-#, python-format
-msgid ""
-"Error: Could not authenticate. Please make sure the server you chose (%s) "
-"supports anonymous authentication"
+#: src/core.py:59
+msgid "A password is required"
 msgstr ""
 
-#: src/gui.py:67
+#: src/core.py:60
+msgid "Permission denied"
+msgstr ""
+
+#: src/core.py:61
+msgid "The room does'nt exist"
+msgstr ""
+
+#: src/core.py:62
+msgid "Your are not allowed to create a new room"
+msgstr ""
+
+#: src/core.py:63
+msgid "A reserved nick must be used"
+msgstr ""
+
+#: src/core.py:64
+msgid "You are not in the member list"
+msgstr ""
+
+#: src/core.py:65
+msgid "This nickname is already in use or has been reserved"
+msgstr ""
+
+#: src/core.py:66
+msgid "The maximum number of users has been reached"
+msgstr ""
+
+#: src/core.py:113
 msgid ""
-"Usage: /join [room_name][/nick] [password]\n"
+"Usage: /join [room_name][@server][/nick] [password]\n"
 "Join: Join the specified room. You can specify a nickname after a slash (/). "
 "If no nickname is specified, you will use the default_nick in the "
 "configuration file. You can omit the room name: you will then join the room "
 "you're looking at (useful if you were kicked). You can also provide a "
-"password to join the room.\n"
+"room_name without specifying a server, the server of the room you're "
+"currently in will be used. You can also provide a password to join the "
+"room.\n"
 "Examples:\n"
 "/join room@server.tld\n"
-"/join room@server.tld/ John\n"
+"/join room@server.tld/John\n"
+"/join room2\n"
 "/join /me_again\n"
 "/join\n"
 "/join room@server.tld/my_nick password\n"
-"/join / pass"
+"/join / password"
 msgstr ""
 
-#: src/gui.py:68
-msgid ""
-"Usage: /quit\n"
-"Quit: Just disconnect from the server and exit poezio."
-msgstr ""
-
-#: src/gui.py:69
+#: src/core.py:114
 msgid ""
 "Usage: /exit\n"
 "Exit: Just disconnect from the server and exit poezio."
 msgstr ""
 
-#: src/gui.py:70
+#: src/core.py:115
 msgid ""
 "Usage: /next\n"
 "Next: Go to the next room."
 msgstr ""
 
-#: src/gui.py:71
-msgid ""
-"Usage: /n\n"
-"N: Go to the next room."
-msgstr ""
-
-#: src/gui.py:72
+#: src/core.py:116
 msgid ""
 "Usage: /prev\n"
 "Prev: Go to the previous room."
 msgstr ""
 
-#: src/gui.py:73
-msgid ""
-"Usage: /p\n"
-"P: Go to the previous room."
-msgstr ""
-
-#: src/gui.py:74
+#: src/core.py:117
 msgid ""
 "Usage: /win <number>\n"
 "Win: Go to the specified room."
 msgstr ""
 
-#: src/gui.py:75
+#: src/core.py:118
 msgid ""
 "Usage: /w <number>\n"
 "W: Go to the specified room."
 msgstr ""
 
-#: src/gui.py:76
-msgid "Usage: /ignore <nickname> \\Ignore: Ignore a specified nickname."
-msgstr ""
-
-#: src/gui.py:77
+#: src/core.py:119
 msgid ""
-"Usage: /unignore <nickname>\\Unignore: Remove the specified nickname from "
-"the ignore list."
+"Usage: /show <availability> [status message]\n"
+"Show: Sets your availability and (optionaly) your status message. The "
+"<availability> argument is one of \"available, chat, away, afk, dnd, busy, xa"
+"\" and the optional [status] argument will be your status message."
 msgstr ""
 
-#: src/gui.py:78
+#: src/core.py:120
 msgid ""
-"Usage: /part [message]\n"
-" Part: disconnect from a room. You can specify an optional message."
+"Usage: /status <availability> [status message]\n"
+"Status: Sets your availability and (optionaly) your status message. The "
+"<availability> argument is one of \"available, chat, away, afk, dnd, busy, xa"
+"\" and the optional [status] argument will be your status message."
 msgstr ""
 
-#: src/gui.py:79
-msgid ""
-"Usage: /show <availability> [status]\n"
-"Show: Change your availability and (optionaly) your status. The "
-"<availability> argument is one of \"avail, available, ok, here, chat, away, "
-"afk, dnd, busy, xa\" and the optional [message] argument will be your status "
-"message"
-msgstr ""
-
-#: src/gui.py:80
+#: src/core.py:121
 msgid ""
 "Usage: /away [message]\n"
-"Away: Sets your availability to away and (optional) sets your status "
-"message. This is equivalent to '/show away [message]'"
+"Away: Sets your availability to away and (optionaly) your status message. "
+"This is equivalent to '/status away [message]'"
 msgstr ""
 
-#: src/gui.py:81
+#: src/core.py:122
 msgid ""
 "Usage: /busy [message]\n"
-"Busy: Sets your availability to busy and (optional) sets your status "
-"message. This is equivalent to '/show busy [message]'"
+"Busy: Sets your availability to busy and (optionaly) your status message. "
+"This is equivalent to '/status busy [message]'"
 msgstr ""
 
-#: src/gui.py:82
-msgid ""
-"Usage: /avail [message]\n"
-"Avail: Sets your availability to available and (optional) sets your status "
-"message. This is equivalent to '/show available [message]'"
-msgstr ""
-
-#: src/gui.py:83
+#: src/core.py:123
 msgid ""
 "Usage: /available [message]\n"
-"Available: Sets your availability to available and (optional) sets your "
-"status message. This is equivalent to '/show available [message]'"
+"Available: Sets your availability to available and (optionaly) your status "
+"message. This is equivalent to '/status available [message]'"
 msgstr ""
 
-#: src/gui.py:84
+#: src/core.py:124
 msgid ""
 "Usage: /bookmark [roomname][/nick]\n"
 "Bookmark: Bookmark the specified room (you will then auto-join it on each "
@@ -151,7 +146,7 @@ msgid ""
 "room (instead of default_nick)"
 msgstr ""
 
-#: src/gui.py:85
+#: src/core.py:125
 msgid ""
 "Usage: /set <option> [value]\n"
 "Set: Sets the value to the option in your configuration file. You can, for "
@@ -160,197 +155,471 @@ msgid ""
 "(nothing) by providing no [value] after <option>."
 msgstr ""
 
-#: src/gui.py:86
+#: src/core.py:126
+msgid ""
+"Usage: /theme\n"
+"Theme: Reload the theme defined in the config file."
+msgstr ""
+
+#: src/core.py:127
+msgid ""
+"Usage: /list\n"
+"List: get the list of public chatrooms on the specified server"
+msgstr ""
+
+#: src/core.py:128
+msgid ""
+"Usage: /message <jid> [optional message]\n"
+"Message: Open a conversation with the specified JID (even if it is not in "
+"our roster), and send a message to it, if specified"
+msgstr ""
+
+#: src/core.py:129
+msgid ""
+"Usage: /version <jid>\n"
+"Version: get the software version of the given JID (usually its XMPP client "
+"and Operating System)"
+msgstr ""
+
+#: src/core.py:130
+msgid ""
+"Usage: /connect\n"
+"Connect: disconnect from the remote server if you are currently connected "
+"and then connect to it again"
+msgstr ""
+
+#: src/core.py:131
+msgid ""
+"Usage: /server_cycle [domain] [message]\n"
+"Server Cycle: disconnect and reconnects in all the rooms in domain."
+msgstr ""
+
+#: src/core.py:192
+msgid "Welcome to poezio!"
+msgstr ""
+
+#: src/core.py:391
+msgid "Connection to remote server failed"
+msgstr ""
+
+#: src/core.py:400
+msgid "Disconnected from server."
+msgstr ""
+
+#: src/core.py:406
+msgid "Authentication failed."
+msgstr ""
+
+#: src/core.py:412
+msgid "Connected to server."
+msgstr ""
+
+#: src/core.py:419
+msgid "Authentication success."
+msgstr ""
+
+#: src/core.py:420
+#, python-format
+msgid "Your JID is %s"
+msgstr ""
+
+#: src/core.py:860
+msgid "Unknown error"
+msgstr ""
+
+#: src/core.py:862 src/tabs.py:1680
+#, python-format
+msgid "Error: %(code)s - %(msg)s: %(body)s"
+msgstr ""
+
+#: src/core.py:865
+#, python-format
+msgid "Error: %(msg)s: %(body)s"
+msgstr ""
+
+#: src/core.py:868
+msgid ""
+"To provide a password in order to join the room, type \"/join / password"
+"\" (replace \"password\" by the real password)"
+msgstr ""
+
+#: src/core.py:874
+msgid ""
+"You can join the room with an other nick, by typing \"/join /other_nick\""
+msgstr ""
+
+#: src/core.py:923
+#, python-format
+msgid "%(nick)s set the subject to: %(subject)s"
+msgstr ""
+
+#: src/core.py:925
+#, python-format
+msgid "The subject is: %(subject)s"
+msgstr ""
+
+#: src/core.py:960
+#, python-format
+msgid "message received for a non-existing room: %s"
+msgstr ""
+
+#: src/core.py:986
+msgid "Available commands are: "
+msgstr ""
+
+#: src/core.py:991
+msgid ""
+"\n"
+"Type /help <command_name> to know what each command does"
+msgstr ""
+
+#: src/core.py:998
+#, python-format
+msgid "Unknown command: %s"
+msgstr ""
+
+#: src/core.py:1060 src/tabs.py:551
+msgid "an unknown software"
+msgstr ""
+
+#: src/core.py:1061 src/tabs.py:552
+msgid "unknown"
+msgstr ""
+
+#: src/core.py:1062 src/tabs.py:553
+msgid "on an unknown platform"
+msgstr ""
+
+#: src/core.py:1215
+msgid "You didn't specify a server for the room you want to join"
+msgstr ""
+
+#: src/core.py:1276
+#, python-format
+msgid "Your bookmarks are now: %s"
+msgstr ""
+
+#: src/core.py:1347
+msgid "No server specified"
+msgstr ""
+
+#: src/core.py:1474 src/tabs.py:144
+#, python-format
+msgid "Unknown command (%s)"
+msgstr ""
+
+#: src/core.py:1474 src/tabs.py:144
+msgid "Error"
+msgstr ""
+
+#: src/tabs.py:59
+msgid "busy"
+msgstr ""
+
+#: src/tabs.py:60
+msgid "away"
+msgstr ""
+
+#: src/tabs.py:61
+msgid "not available"
+msgstr ""
+
+#: src/tabs.py:62
+msgid "chatty"
+msgstr ""
+
+#: src/tabs.py:63
+msgid "available"
+msgstr ""
+
+#: src/tabs.py:263
+msgid ""
+"Usage: /say <message>\n"
+"Say: Just send the message.\n"
+"                                        Useful if you want your message to "
+"begin with a '/'"
+msgstr ""
+
+#: src/tabs.py:457
+msgid ""
+"Usage: /ignore <nickname> \n"
+"Ignore: Ignore a specified nickname."
+msgstr ""
+
+#: src/tabs.py:458
+msgid ""
+"Usage: /unignore <nickname>\n"
+"Unignore: Remove the specified nickname from the ignore list."
+msgstr ""
+
+#: src/tabs.py:459
 msgid ""
 "Usage: /kick <nick> [reason]\n"
 "Kick: Kick the user with the specified nickname. You also can give an "
 "optional reason."
 msgstr ""
 
-#: src/gui.py:87
+#: src/tabs.py:460
 msgid ""
-"Usage: /topic <subject> \n"
+"Usage: /topic <subject>\n"
 "Topic: Change the subject of the room"
 msgstr ""
 
-#: src/gui.py:88
+#: src/tabs.py:461
 msgid ""
-"Usage: /query <nick>\n"
+"Usage: /query <nick> [message]\n"
 "Query: Open a private conversation with <nick>. This nick has to be present "
-"in the room you're currently in."
+"in the room you're currently in. If you specified a message after the "
+"nickname, it will immediately be sent to this user"
 msgstr ""
 
-#: src/gui.py:90
+#: src/tabs.py:462
 msgid ""
-"Usage: /nick <nickname> \n"
+"Usage: /part [message]\n"
+" Part: disconnect from a room. You can specify an optional message."
+msgstr ""
+
+#: src/tabs.py:463
+msgid ""
+"Usage: /nick <nickname>\n"
 "Nick: Change your nickname in the current room"
 msgstr ""
 
-#: src/gui.py:219
-msgid "Welcome on Poezio \\o/!"
-msgstr ""
-
-#: src/gui.py:220
-#, python-format
-msgid "Your JID is %s"
-msgstr ""
-
-#: src/gui.py:281
-msgid "Unknown error"
-msgstr ""
-
-#: src/gui.py:282
-#, python-format
-msgid "Error: %(code)s-%(msg)s: %(body)s"
-msgstr ""
-
-#: src/gui.py:285
+#: src/tabs.py:464
 msgid ""
-"To provide a password in order to join the room, type \"/join / password"
-"\" (replace \"password\" by the real password)"
+"Usage: /recolor\n"
+"Recolor: Re-assign a color to all participants of the current room, based on "
+"the last time they talked. Use this if the participants currently talking "
+"have too many identical colors."
 msgstr ""
 
-#: src/gui.py:345
-#, python-format
-msgid "message received for a non-existing room: %s"
-msgstr ""
-
-#: src/gui.py:351
-#, python-format
-msgid "%(nick)s changed the subject to: %(subject)s"
-msgstr ""
-
-#: src/gui.py:353
-#, python-format
-msgid "The subject is: %(subject)s"
-msgstr ""
-
-#: src/gui.py:389
-#, python-format
-msgid "Your nickname is %s"
-msgstr ""
-
-#: src/gui.py:391
-#, python-format
-msgid "%s is in the room"
-msgstr ""
-
-#: src/gui.py:402
-#, python-format
-msgid "%(nick)s joined the room %(roomname)s"
-msgstr ""
-
-#: src/gui.py:414
-#, python-format
-msgid "%(old)s is now known as %(new)s"
-msgstr ""
-
-#: src/gui.py:418
-#, python-format
-msgid "%(old_nick)s is now known as %(new_nick)s"
-msgstr ""
-
-#: src/gui.py:437
-#, python-format
-msgid "You have been kicked by %(by)s. Reason: %(reason)s"
-msgstr ""
-
-#: src/gui.py:439
-#, python-format
-msgid "You have been kicked. Reason: %s"
-msgstr ""
-
-#: src/gui.py:442
-#, python-format
-msgid "%(nick)s has been kicked by %(by)s. Reason: %(reason)s"
-msgstr ""
-
-#: src/gui.py:444
-#, python-format
-msgid "%(nick)s has been kicked. Reason: %(reason)s"
-msgstr ""
-
-#: src/gui.py:450 src/gui.py:453
-#, python-format
-msgid "%s has left the room"
-msgstr ""
-
-#: src/gui.py:457
-#, python-format
-msgid "%s changed his/her status: "
-msgstr ""
-
-#: src/gui.py:459
-#, python-format
-msgid "affiliation: %s,"
-msgstr ""
-
-#: src/gui.py:461
-#, python-format
-msgid "role: %s,"
-msgstr ""
-
-#: src/gui.py:463
-#, python-format
-msgid "show: %s,"
-msgstr ""
-
-#: src/gui.py:465
-#, python-format
-msgid "status: %s,"
-msgstr ""
-
-#: src/gui.py:518
-#, python-format
-msgid "Error: unknown command (%s)"
-msgstr ""
-
-#: src/gui.py:534
-msgid "Available commands are: "
-msgstr ""
-
-#: src/gui.py:537
+#: src/tabs.py:465
 msgid ""
-"\n"
-"Type /help <command_name> to know what each command does"
+"Usage: /cycle [message]\n"
+"Cycle: Leaves the current room and rejoin it immediately"
 msgstr ""
 
-#: src/gui.py:542
+#: src/tabs.py:466
+msgid ""
+"Usage: /info <nickname>\n"
+"Info: Display some information about the user in the MUC: his/here role, "
+"affiliation, status and status message."
+msgstr ""
+
+#: src/tabs.py:467
+msgid ""
+"Usage: /configure\n"
+"Configure: Configure the current room, through a form."
+msgstr ""
+
+#: src/tabs.py:468
+msgid ""
+"Usage: /version <jid or nick>\n"
+"Version: get the software version of the given JID or nick in room (usually "
+"its XMPP client and Operating System)"
+msgstr ""
+
+#: src/tabs.py:602
 #, python-format
-msgid "Unknown command: %s"
+msgid "Cannot find user: %s"
 msgstr ""
 
-#: src/gui.py:616
-#, python-format
-msgid "already in room [%s]"
-msgstr ""
-
-#: src/gui.py:720
-#, python-format
-msgid "%s is now ignored"
-msgstr ""
-
-#: src/gui.py:722
-#, python-format
-msgid "%s is already ignored"
-msgstr ""
-
-#: src/gui.py:736
-#, python-format
-msgid "%s was not ignored"
-msgstr ""
-
-#: src/gui.py:741
-#, python-format
-msgid "%s is now unignored"
-msgstr ""
-
-#: src/gui.py:798
+#: src/tabs.py:610
 #, python-format
 msgid "The subject of the room is: %s"
 msgstr ""
 
-#: src/window.py:135
+#: src/tabs.py:664 src/tabs.py:682
 #, python-format
-msgid "%(nick)s from room %(room)s"
+msgid "%s is not in the room"
+msgstr ""
+
+#: src/tabs.py:666
+#, python-format
+msgid "%s is already ignored"
+msgstr ""
+
+#: src/tabs.py:669
+#, python-format
+msgid "%s is now ignored"
+msgstr ""
+
+#: src/tabs.py:684
+#, python-format
+msgid "%s is not ignored"
+msgstr ""
+
+#: src/tabs.py:687
+#, python-format
+msgid "%s is now unignored"
+msgstr ""
+
+#: src/tabs.py:822
+#, python-format
+msgid "5Your nickname is 3%s"
+msgstr ""
+
+#: src/tabs.py:891
+#, python-format
+msgid "1%(spec)s 3You5 have been banned by 4%(by)s"
+msgstr ""
+
+#: src/tabs.py:893
+#, python-format
+msgid "1%(spec)s 3You5 have been banned."
+msgstr ""
+
+#: src/tabs.py:896
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 has been banned by 4%(by)s"
+msgstr ""
+
+#: src/tabs.py:898
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 has been banned"
+msgstr ""
+
+#: src/tabs.py:900
+#, python-format
+msgid "5 Reason: 6%(reason)s5"
+msgstr ""
+
+#: src/tabs.py:914
+#, python-format
+msgid "1%(spec)s 3You5 have been kicked by 3%(by)s"
+msgstr ""
+
+#: src/tabs.py:916
+#, python-format
+msgid "1%(spec)s 3You5 have been kicked."
+msgstr ""
+
+#: src/tabs.py:922
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 has been kicked by 3%(by)s"
+msgstr ""
+
+#: src/tabs.py:924
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 has been kicked"
+msgstr ""
+
+#: src/tabs.py:926
+#, python-format
+msgid "5 Reason: 6%(reason)s"
+msgstr ""
+
+#: src/tabs.py:940
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 has left the room"
+msgstr ""
+
+#: src/tabs.py:942
+#, python-format
+msgid "1%(spec)s 3%(nick)s5 (4%(jid)s5) has left the room"
+msgstr ""
+
+#: src/tabs.py:955
+#, python-format
+msgid "3%s5 changed: "
+msgstr ""
+
+#: src/tabs.py:957
+#, python-format
+msgid "affiliation: %s, "
+msgstr ""
+
+#: src/tabs.py:960
+#, python-format
+msgid "role: %s, "
+msgstr ""
+
+#: src/tabs.py:963
+#, python-format
+msgid "show: %s, "
+msgstr ""
+
+#: src/tabs.py:966
+#, python-format
+msgid "status: %s, "
+msgstr ""
+
+#: src/tabs.py:1002 src/tabs.py:1496
+msgid ""
+"Usage: /unquery\n"
+"Unquery: close the tab"
+msgstr ""
+
+#: src/tabs.py:1003 src/tabs.py:1497
+msgid "Usage: /part\\Part: close the tab"
+msgstr ""
+
+#: src/tabs.py:1113
+#, python-format
+msgid "\"[%(old_nick)s]\" is now known as \"[%(new_nick)s]\""
+msgstr ""
+
+#: src/tabs.py:1122
+#, python-format
+msgid "%(spec)s \"[%(nick)s]\" has left the room"
+msgstr ""
+
+#: src/tabs.py:1124
+#, python-format
+msgid "%(spec)s \"[%(nick)s]\" has left the room \"(%(status)s)\""
+msgstr ""
+
+#: src/tabs.py:1155
+msgid ""
+"Usage: /deny [jid]\n"
+"Deny: Use this command to remove and deny your presence to the provided JID "
+"(or the selected contact in your roster), who is asking you to be in his/"
+"here roster"
+msgstr ""
+
+#: src/tabs.py:1156
+msgid ""
+"Usage: /accept [jid]\n"
+"Accept: Use this command to authorize the provided JID (or the selected "
+"contact in your roster), to see your presence, and to ask to subscribe to it "
+"(mutual presence subscription)."
+msgstr ""
+
+#: src/tabs.py:1157
+msgid ""
+"Usage: /add <jid>\\Add: Use this command to add the specified JID to your "
+"roster. The reverse authorization will automatically be accepted if the "
+"remote JID accepts your subscription, leading to a mutual presence "
+"subscription."
+msgstr ""
+
+#: src/tabs.py:1158
+msgid ""
+"Usage: /remove [jid]\\Remove: Use this command to remove the specified JID "
+"from your roster. This wil unsubscribe you from its presence, cancel its "
+"subscription to yours, and remove the item from your roster"
+msgstr ""
+
+#: src/tabs.py:1159
+msgid ""
+"Usage: /export [/path/to/file]\n"
+"Export: Use this command to export your contacts into /path/to/file if "
+"specified, or $HOME/poezio_contacts if not."
+msgstr ""
+
+#: src/tabs.py:1160
+msgid ""
+"Usage: /import [/path/to/file]\n"
+"Import: Use this command to import your contacts from /path/to/file if "
+"specified, or $HOME/poezio_contacts if not."
+msgstr ""
+
+#: src/tabs.py:1206
+msgid "No JID specified"
+msgstr ""
+
+#: src/tabs.py:1631
+msgid ""
+"Usage: /close\n"
+"Close: Just close this tab"
 msgstr ""
