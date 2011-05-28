@@ -923,7 +923,7 @@ class Core(object):
             self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
         else:
             self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
-        room.topic = subject.replace('\n', '|')
+        room.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
             self.refresh_window()
 

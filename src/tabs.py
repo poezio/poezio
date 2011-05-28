@@ -709,7 +709,7 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
-        self.topic_win.refresh(self._room.topic)
+        self.topic_win.refresh(self._room.get_single_line_topic())
         self.text_win.refresh(self._room)
         self.v_separator.refresh()
         self.user_win.refresh(self._room.users)

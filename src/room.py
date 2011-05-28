@@ -45,6 +45,9 @@ class Room(TextBuffer):
         self.users = []
         self.joined = False
 
+    def get_single_line_topic(self):
+        return self.topic.replace('\n', '|')
+
     def log_message(self, txt, time, nickname):
         """
         Log the messages in the archives, if it needs
