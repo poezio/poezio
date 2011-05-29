@@ -185,8 +185,7 @@ class Core(object):
         tabs.Tab.resize(self.stdscr)
         # resize the information_win to its initial size
         self.resize_global_information_win()
-        default_tab = tabs.InfoTab() if self.xmpp.anon\
-            else tabs.RosterInfoTab()
+        default_tab = tabs.RosterInfoTab()
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information(_('Welcome to poezio!'))
