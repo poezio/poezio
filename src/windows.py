@@ -1128,7 +1128,7 @@ class MessageInput(Input):
         """
         Read one more char (c) and add \x19c to the string
         """
-        attr_char = self.core.read_keyboard()
+        attr_char = self.core.read_keyboard()[0]
         if attr_char in self.text_attributes or (attr_char in string.digits and int(attr_char) < 7):
             self.do_command('\x19', False)
             self.do_command(attr_char)

@@ -1366,12 +1366,12 @@ class Core(object):
         Read 2 more chars and go to the tab
         with the given number
         """
-        char = self.read_keyboard()
+        char = self.read_keyboard()[0]
         try:
             nb1 = int(char)
         except ValueError:
             return
-        char = self.read_keyboard()
+        char = self.read_keyboard()[0]
         try:
             nb2 = int(char)
         except ValueError:
