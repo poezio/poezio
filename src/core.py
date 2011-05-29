@@ -583,8 +583,7 @@ class Core(object):
         resource.set_presence(status)
         resource.set_priority(priority)
         resource.set_status(status_message)
-        if isinstance(self.current_tab(), tabs.InfoTab) or\
-                isinstance(self.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def on_roster_update(self, iq):
@@ -1322,8 +1321,7 @@ class Core(object):
         Close the given tab. If None, close the current one
         """
         tab = tab or self.current_tab()
-        if isinstance(tab, tabs.RosterInfoTab) or\
-                isinstance(tab, tabs.InfoTab):
+        if isinstance(tab, tabs.RosterInfoTab):
             return              # The tab 0 should NEVER be closed
         del tab.key_func      # Remove self references
         del tab.commands      # and make the object collectable
