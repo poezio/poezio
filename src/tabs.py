@@ -295,6 +295,8 @@ class ChatTab(Tab):
         Send an empty chatstate message
         """
         if not isinstance(self, MucTab) or self.get_room().joined:
+            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away'):
+                return
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = self.message_type
             msg['chat_state'] = state
