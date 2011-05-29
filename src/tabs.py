@@ -72,7 +72,6 @@ class Tab(object):
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
-        self.visible = True
         self.need_resize = False
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
@@ -633,8 +632,6 @@ class MucTab(ChatTab):
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
@@ -955,8 +952,6 @@ class PrivateTab(ChatTab):
         self.core.close_tab()
 
     def resize(self):
-        if not self.visible:
-            return
         if self.core.information_win_size >= self.height-3:
             return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
@@ -966,8 +961,6 @@ class PrivateTab(ChatTab):
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
@@ -1090,8 +1083,6 @@ class RosterInfoTab(Tab):
         self.resize()
 
     def resize(self):
-        if not self.visible:
-            return
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
@@ -1238,8 +1229,6 @@ class RosterInfoTab(Tab):
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
@@ -1446,8 +1435,6 @@ class ConversationTab(ChatTab):
         self.core.close_tab()
 
     def resize(self):
-        if not self.visible:
-            return
         if self.core.information_win_size >= self.height-3:
             return
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
@@ -1458,8 +1445,6 @@ class ConversationTab(ChatTab):
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
@@ -1561,8 +1546,6 @@ class MucListTab(Tab):
         self.resize()
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
@@ -1573,8 +1556,6 @@ class MucListTab(Tab):
         self.input.refresh()
 
     def resize(self):
-        if not self.visible:
-            return
         self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1703,15 +1684,11 @@ class SimpleTextTab(Tab):
         self.core.close_tab()
 
     def resize(self):
-        if not self.visible:
-            return
         self.text_win.resize(self.height-2, self.width, 0, 0)
         self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
-        if not self.visible:
-            return
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
