@@ -396,6 +396,7 @@ class MucTab(ChatTab):
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: get the software version of the given JID or nick in room (usually its XMPP client and Operating System)'), None)
+        self.commands['names'] = (self.command_names, _('Usage: /names\nNames: get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -543,6 +544,40 @@ class MucTab(ChatTab):
             return
         subject = arg
         muc.change_subject(self.core.xmpp, self.get_room().name, subject)
+
+    def command_names(self, arg=None):
+        """
+        /names
+        """
+        room = self.get_room()
+        if not room.joined:
+            return
+        users, visitors, moderators, participants, others = [], [], [], [], []
+        for user in room.users:
+            if user.role == 'visitor':
+                visitors.append(user.nick)
+            elif user.role == 'participant':
+                participants.append(user.nick)
+            elif user.role == 'moderator':
+                moderators.append(user.nick)
+            else:
+                others.append(user.nick)
+            users.append(user.nick)
+
+        message = ''
+        roles = (('Users', users), ('Visitors', visitors), ('Participants', participants), ('Moderators', moderators), ('Others', others))
+        for role in roles:
+            if role[1]:
+                role[1].sort()
+                message += '%s: %i\n    ' % (role[0], len(role[1]))
+                last = role[1].pop()
+                for item in role[1]:
+                    message += '%s, ' % item
+                message += '%s\n' % last
+
+        self.core.add_message_to_text_buffer(room, message)
+        self.text_win.refresh(self.get_room())
+        self.input.refresh()
 
     def completion_topic(self, the_input):
         current_topic = self.get_room().topic
