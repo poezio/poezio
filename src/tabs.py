@@ -140,7 +140,13 @@ class Tab(object):
             elif command in self.core.commands: # check global commands
                 self.core.commands[command][0](arg)
             else:
-                self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+                low = command.lower()
+                if low in self.commands:
+                    self.commands[low][0](arg)
+                elif low in self.core.commands:
+                    self.core.commands[low][0](arg)
+                else:
+                    self.core.information(_("Unknown command (%s)") % (command), _('Error'))
             return True
         else:
             return False
