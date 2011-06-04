@@ -134,15 +134,15 @@ class Config(RawConfigParser):
 # and copy the default config in it
 CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
 if not CONFIG_HOME:
-    CONFIG_HOME = environ.get('HOME')+'/.config'
-CONFIG_PATH = CONFIG_HOME + '/poezio/'
+    CONFIG_HOME = path.join(environ.get('HOME'), '/.config')
+CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
 try:
     makedirs(CONFIG_PATH)
 except OSError:
     pass
 
 if not path.isfile(CONFIG_PATH+'poezio.cfg'):
-    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), CONFIG_PATH+'poezio.cfg')
+    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), path.join(CONFIG_PATH, 'poezio.cfg'))
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", default=CONFIG_PATH+'poezio.cfg',

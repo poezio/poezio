@@ -63,6 +63,8 @@ SHOW_NAME = {
     '': _('available')
     }
 
+NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
+
 class Tab(object):
     number = 0
     tab_core = None
@@ -119,8 +121,8 @@ class Tab(object):
                     return command[2](the_input)
             else:
                 # complete the command's name
-                words = ['/%s'%(name) for name in self.core.commands] +\
-                    ['/%s'% (name) for name in self.commands]
+                words = ['/%s'% (name) for name in self.core.commands] +\
+                    ['/%s' % (name) for name in self.commands]
                 the_input.auto_completion(words, '')
                 return True
         return False
@@ -767,12 +769,10 @@ class MucTab(ChatTab):
     def handle_presence(self, presence):
         from_nick = presence['from'].resource
         from_room = presence['from'].bare
-        code = presence.find('{jabber:client}status')
-        status_codes = set([s.attrib['code'] for s in presence.findall('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}status')])
+        status_codes = set([s.attrib['code'] for s in presence.findall('{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER))])
         # Check if it's not an error presence.
         if presence['type'] == 'error':
             return self.core.room_error(presence, from_room)
-        msg = None
         affiliation = presence['muc']['affiliation']
         show = presence['show']
         status = presence['status']
@@ -834,7 +834,7 @@ class MucTab(ChatTab):
                 room.add_message('\x194%(spec)s \x193%(nick)s \x195(\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
-        new_nick = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item').attrib['nick']
+        new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
         if user.nick == room.own_nick:
             room.own_nick = new_nick
             # also change our nick in all private discussion of this room
@@ -851,8 +851,8 @@ class MucTab(ChatTab):
         When someone is banned from a muc
         """
         room.users.remove(user)
-        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
+        by = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
         if from_nick == room.own_nick: # we are banned
             room.disconnect()
@@ -874,8 +874,8 @@ class MucTab(ChatTab):
         When someone is kicked from a muc
         """
         room.users.remove(user)
-        by = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}actor')
-        reason = presence.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item/{http://jabber.org/protocol/muc#user}reason')
+        by = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
@@ -931,9 +931,14 @@ class MucTab(ChatTab):
         if show != user.show and show in SHOW_NAME:
             msg += _('show: %s, ') % SHOW_NAME[show]
             display_message = True
-        if status and status != user.status:
-            msg += _('status: %s, ') % status
+        if status != user.status:
+            # if the user sets his status to nothing
+            if not status:
+                msg += _('show: %s, ') % SHOW_NAME[show]
+            else:
+                msg += _('status: %s, ') % status
             display_message = True
+
         if not display_message:
             return
         msg = msg[:-2] # remove the last ", "
@@ -1571,7 +1576,7 @@ class MucListTab(Tab):
         self.name = server
         self.upper_message = windows.Topic()
         self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
-        columns = ('node-part','name', 'users')
+        columns = ('node-part', 'name', 'users')
         self.list_header = windows.ColumnHeaderWin(columns)
         self.listview = windows.ListWin(columns)
         self.tab_win = windows.GlobalInfoBar()
@@ -1764,6 +1769,7 @@ def diffmatch(search, string):
 
 def jid_and_name_match(contact, txt):
     """
+    Match jid with text precisely
     """
     if not txt:
         return True
@@ -1776,7 +1782,6 @@ def jid_and_name_match_slow(contact, txt):
     A function used to know if a contact in the roster should
     be shown in the roster
     """
-    ratio = 0.7
     if not txt:
         return True             # Everything matches when search is empty
     user = JID(contact.get_bare_jid()).user

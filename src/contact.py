@@ -166,5 +166,5 @@ class Contact(object):
     def __repr__(self):
         ret = '<Contact: %s' % self._jid
         for resource in self._resources:
-            ret += '\n\t\t%s'%resource
+            ret += '\n\t\t%s' % resource
         return ret + ' />\n'
