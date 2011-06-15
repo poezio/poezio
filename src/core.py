@@ -971,6 +971,7 @@ class Core(object):
             self.add_message_to_text_buffer(room, body, date, nick_from)
             if tab is self.current_tab():
                 tab.text_win.refresh(tab._room)
+                tab.info_header.refresh(tab._room, tab.text_win)
             self.refresh_tab_win()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None):
