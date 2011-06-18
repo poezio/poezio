@@ -550,6 +550,8 @@ class Core(object):
         jid = message['from']
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
+            if message['type'] == 'error':
+                self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         if roster.get_contact_by_jid(jid.bare):
@@ -851,26 +853,34 @@ class Core(object):
         self.current_tab().on_scroll_up()
         self.refresh_window()
 
-    def room_error(self, error, room_name):
+    def get_error_message_from_error_stanza(self, stanza):
         """
-        Display the error on the room window
+        Takes a stanza of the form <message type='error'><error/></message>
+        and return a well formed string containing the error informations
         """
-        room = self.get_room_by_name(room_name)
-        msg = error['error']['type']
-        condition = error['error']['condition']
-        code = error['error']['code']
-        body = error['error']['text']
+        msg = stanza['error']['type']
+        condition = stanza['error']['condition']
+        code = stanza['error']['code']
+        body = stanza['error']['text']
         if not body:
             if code in ERROR_AND_STATUS_CODES:
                 body = ERROR_AND_STATUS_CODES[code]
             else:
                 body = condition or _('Unknown error')
         if code:
-            msg = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
-            self.add_message_to_text_buffer(room, msg)
+            message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
         else:
-            msg = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
-            self.add_message_to_text_buffer(room, msg)
+            message = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
+        return message
+
+    def room_error(self, error, room_name):
+        """
+        Display the error on the room window
+        """
+        room = self.get_room_by_name(room_name)
+        error_message = self.get_error_message_from_error_stanza(error)
+        self.add_message_to_text_buffer(room, error_message)
+        code = error['error']['code']
         if code == '401':
             msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
             self.add_message_to_text_buffer(room, msg)
