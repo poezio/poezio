@@ -919,6 +919,7 @@ class MucTab(ChatTab):
             if status:
                 leave_msg += ' (%s)' % status
             room.add_message(leave_msg)
+            self.refresh_window()
         self.core.on_user_left_private_conversation(from_room, from_nick, status)
 
     def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
@@ -1096,9 +1097,9 @@ class PrivateTab(ChatTab):
         The user left the associated MUC
         """
         if not status_message:
-            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')})
+            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')})
         else:
-            self.get_room().add_message(_('%(spec)s "[%(nick)s]" has left the room "(%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
+            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
 
 class RosterInfoTab(Tab):
     """
