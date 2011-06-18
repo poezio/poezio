@@ -196,6 +196,10 @@ class UserList(Win):
                     show_col = self.color_show[user.show]
                 if user.chatstate == 'composing':
                     char = 'X'
+                elif user.chatstate == 'active':
+                    char = 'A'
+                elif user.chatstate == 'paused':
+                    char = 'p'
                 else:
                     char = theme.CHAR_STATUS
                 self.addstr(y, 0, char, common.curses_color_pair(show_col))

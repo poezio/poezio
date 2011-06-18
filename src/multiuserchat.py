@@ -25,6 +25,8 @@ from xml.etree import cElementTree as ET
 import logging
 log = logging.getLogger(__name__)
 
+NS_MUC_ADMIN = 'http://jabber.org/protocol/muc#admin'
+
 def send_private_message(xmpp, jid, line):
     """
     Send a private message
@@ -77,10 +79,10 @@ def eject_user(xmpp, jid, nick, reason):
     (try to) Eject an user from the room
     """
     iq = xmpp.makeIqSet()
-    query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
-    item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'nick':nick, 'role':'none'})
+    query = ET.Element('{%s}query' % NS_MUC_ADMIN)
+    item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'role':'none'})
     if reason:
-        reason_el = ET.Element('{http://jabber.org/protocol/muc#admin}reason')
+        reason_el = ET.Element('{%s}reason' % NS_MUC_ADMIN)
         reason_el.text = reason
         item.append(reason_el)
     query.append(item)

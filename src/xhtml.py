@@ -28,10 +28,11 @@ import subprocess
 from sleekxmpp.xmlstream import ET
 from xml.etree.ElementTree import ElementTree
 from sys import version_info
-from string import digits
 
 from config import config
 import logging
+
+digits = '0123456789' # never trust the modules
 
 log = logging.getLogger(__name__)
 
@@ -73,9 +74,9 @@ def convert_links_to_plaintext(text):
             if child.tag == '{http://www.w3.org/1999/xhtml}a':
                 if child.attrib['href'] != child.text:
                     if child.text is None and 'title' in child.attrib:
-                        link_text = '\n%s (%s)'%(child.attrib['href'], child.attrib['title'])
+                        link_text = '\n%s (%s)' % (child.attrib['href'], child.attrib['title'])
                     else:
-                        link_text = '\n%s (%s)'%(child.attrib['href'], child.text)
+                        link_text = '\n%s (%s)' % (child.attrib['href'], child.text)
                 else:
                     link_text = child.text
                 if previous_child is not None:
