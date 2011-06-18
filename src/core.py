@@ -1393,13 +1393,10 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab):
                 muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
+        roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
-        try:
-            sys.stderr = None
-            self.xmpp.disconnect(reconnect)
-        except:
-            pass
+        self.xmpp.disconnect(reconnect)
 
     def command_quit(self, arg):
         """

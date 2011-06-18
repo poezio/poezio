@@ -45,6 +45,10 @@ class Roster(object):
         except IOError:
             return
 
+    def empty(self):
+        self._contacts = {}
+        self._roster_groups = []
+
     def add_contact(self, contact, jid):
         """
         Add a contact to the contact list
