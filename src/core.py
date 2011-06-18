@@ -127,7 +127,7 @@ class Core(object):
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
-            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
+            'reconnect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             }
 
@@ -1072,7 +1072,7 @@ class Core(object):
         """
         /reconnect
         """
-        self.disconnect(True)
+        self.disconnect(reconnect=True)
 
     def command_list(self, arg):
         """
@@ -1385,7 +1385,7 @@ class Core(object):
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
 
-    def disconnect(self, msg=None):
+    def disconnect(self, msg=None, reconnect=False):
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
@@ -1397,7 +1397,7 @@ class Core(object):
         # Ugly fix thanks to gmail servers
         try:
             sys.stderr = None
-            self.xmpp.disconnect(False)
+            self.xmpp.disconnect(reconnect)
         except:
             pass
 
