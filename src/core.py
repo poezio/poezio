@@ -215,6 +215,7 @@ class Core(object):
 
     def grow_information_win(self, nb=1):
         if self.information_win_size == 14:
+            self.refresh_window()
             return
         self.information_win_size += nb
         if self.information_win_size > 14:
@@ -335,6 +336,7 @@ class Core(object):
     def on_got_offline(self, presence):
         jid = presence['from']
         contact = roster.get_contact_by_jid(jid.bare)
+        logger.log_roster_change(jid.bare, 'got offline')
         if not contact:
             return
         log.debug('on_got_offline: %s' % presence)
@@ -356,6 +358,7 @@ class Core(object):
         if not contact:
             # Todo, handle presence comming from contacts not in roster
             return
+        logger.log_roster_change(jid.bare, 'got online')
         resource = contact.get_resource_by_fulljid(jid.full)
         assert not resource
         resource = Resource(jid.full)
@@ -483,11 +486,12 @@ class Core(object):
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
-            if tab.get_name() == jid_from.bare and isinstance(tab, tabs.MucTab):
+            if tab.get_name() == jid_from and isinstance(tab, tabs.PrivateTab):
                 if message['type'] == 'error':
-                    return self.room_error(message, tab.get_room().name)
+                    return self.room_error(message, jid_from)
                 else:
                     return self.on_groupchat_private_message(message)
+
         return self.on_normal_message(message)
 
     def on_groupchat_private_message(self, message):
@@ -1388,13 +1392,17 @@ class Core(object):
 
     def information(self, msg, typ=''):
         """
-        Displays an informational message in the "Info" room window
+        Displays an informational message in the "Info" buffer
         """
         nb_lines = self.information_buffer.add_message(msg, nickname=typ)
         if typ != '' and typ.lower() in config.get('information_buffer_popup_on',
                                            'error roster warning help info').split():
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
+        else:
+            if self.information_win_size != 0:
+                self.information_win.refresh(self.information_buffer)
+                self.current_tab().input.refresh()
 
     def disconnect(self, msg=None, reconnect=False):
         """

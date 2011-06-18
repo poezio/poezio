@@ -34,6 +34,7 @@ class Logger(object):
     """
     def __init__(self):
         self.logfile = config.get('logfile', 'logs')
+        self.roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
         self.fds = dict()
 
@@ -80,5 +81,14 @@ class Logger(object):
             pass
         else:
             fd.flush()          # TODO do something better here?
+
+    def log_roster_change(self, jid, message):
+        if not self.roster_logfile:
+            try:
+                self.roster_logfile = open(os.path.join(DATA_HOME, 'logs', 'roster.log'), 'a')
+            except IOError:
+                return
+        self.roster_logfile.write('%s %s %s\n' % (datetime.now().strftime('%d-%m-%y [%H:%M:%S]'), jid, message))
+        self.roster_logfile.flush()
 
 logger = Logger()

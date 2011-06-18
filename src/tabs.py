@@ -1049,7 +1049,8 @@ class PrivateTab(ChatTab):
         empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        if self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab).get_room().joined:
+            self.send_composing_chat_state(empty_before, empty_after)
         return False
 
     def on_lose_focus(self):
@@ -1062,7 +1063,7 @@ class PrivateTab(ChatTab):
     def on_gain_focus(self):
         self._room.set_color_state(theme.COLOR_TAB_CURRENT)
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
