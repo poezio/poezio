@@ -767,7 +767,8 @@ class Core(object):
 
     def refresh_tab_win(self):
         self.current_tab().tab_win.refresh()
-        self.current_tab().input.refresh()
+        if self.current_tab().input:
+            self.current_tab().input.refresh()
         self.doupdate()
 
     def add_tab(self, new_tab, focus=False):
