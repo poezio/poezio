@@ -269,6 +269,7 @@ class ChatTab(Tab):
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'"""), None)
+        self.chat_state = None
 
     def last_words_completion(self):
         """
@@ -308,6 +309,7 @@ class ChatTab(Tab):
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = self.message_type
             msg['chat_state'] = state
+            self.chat_state = state
             msg.send()
 
     def send_composing_chat_state(self, empty_before, empty_after):
@@ -316,8 +318,13 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
-            if empty_after:
+            if self.chat_state == "composing" and not empty_after:
+                self.cancel_paused_delay()
+                self.set_paused_delay(True)
+            elif empty_after and not self.chat_state == 'active':
+                self.cancel_paused_delay()
                 self.send_chat_state("active")
+            elif empty_after:
                 self.cancel_paused_delay()
             elif empty_before or (self.timed_event_paused is not None and not self.timed_event_paused()):
                 self.cancel_paused_delay()
