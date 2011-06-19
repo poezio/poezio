@@ -215,7 +215,6 @@ class Core(object):
 
     def grow_information_win(self, nb=1):
         if self.information_win_size == 14:
-            self.refresh_window()
             return
         self.information_win_size += nb
         if self.information_win_size > 14:
