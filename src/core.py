@@ -127,7 +127,7 @@ class Core(object):
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
-            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
+            'reconnect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             }
 
@@ -550,6 +550,8 @@ class Core(object):
         jid = message['from']
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
+            if message['type'] == 'error':
+                self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         if roster.get_contact_by_jid(jid.bare):
@@ -767,7 +769,8 @@ class Core(object):
 
     def refresh_tab_win(self):
         self.current_tab().tab_win.refresh()
-        self.current_tab().input.refresh()
+        if self.current_tab().input:
+            self.current_tab().input.refresh()
         self.doupdate()
 
     def add_tab(self, new_tab, focus=False):
@@ -850,26 +853,34 @@ class Core(object):
         self.current_tab().on_scroll_up()
         self.refresh_window()
 
-    def room_error(self, error, room_name):
+    def get_error_message_from_error_stanza(self, stanza):
         """
-        Display the error on the room window
+        Takes a stanza of the form <message type='error'><error/></message>
+        and return a well formed string containing the error informations
         """
-        room = self.get_room_by_name(room_name)
-        msg = error['error']['type']
-        condition = error['error']['condition']
-        code = error['error']['code']
-        body = error['error']['text']
+        msg = stanza['error']['type']
+        condition = stanza['error']['condition']
+        code = stanza['error']['code']
+        body = stanza['error']['text']
         if not body:
             if code in ERROR_AND_STATUS_CODES:
                 body = ERROR_AND_STATUS_CODES[code]
             else:
                 body = condition or _('Unknown error')
         if code:
-            msg = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
-            self.add_message_to_text_buffer(room, msg)
+            message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
         else:
-            msg = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
-            self.add_message_to_text_buffer(room, msg)
+            message = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
+        return message
+
+    def room_error(self, error, room_name):
+        """
+        Display the error on the room window
+        """
+        room = self.get_room_by_name(room_name)
+        error_message = self.get_error_message_from_error_stanza(error)
+        self.add_message_to_text_buffer(room, error_message)
+        code = error['error']['code']
         if code == '401':
             msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
             self.add_message_to_text_buffer(room, msg)
@@ -1072,7 +1083,7 @@ class Core(object):
         """
         /reconnect
         """
-        self.disconnect(True)
+        self.disconnect(reconnect=True)
 
     def command_list(self, arg):
         """
@@ -1385,7 +1396,7 @@ class Core(object):
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
 
-    def disconnect(self, msg=None):
+    def disconnect(self, msg=None, reconnect=False):
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
@@ -1393,13 +1404,10 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab):
                 muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
+        roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
-        try:
-            sys.stderr = None
-            self.xmpp.disconnect(False)
-        except:
-            pass
+        self.xmpp.disconnect(reconnect)
 
     def command_quit(self, arg):
         """

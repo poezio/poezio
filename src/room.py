@@ -46,6 +46,9 @@ class Room(TextBuffer):
         self.joined = False
 
     def get_single_line_topic(self):
+        """
+        Return the topic as a single-line string (for the window header)
+        """
         return self.topic.replace('\n', '|')
 
     def log_message(self, txt, time, nickname):
@@ -77,6 +80,9 @@ class Room(TextBuffer):
         return color
 
     def get_user_by_name(self, nick):
+        """
+        Gets the user associated with the given nick, or None if not found
+        """
         for user in self.users:
             if user.nick == nick:
                 return user
