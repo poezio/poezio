@@ -1603,6 +1603,9 @@ class ColumnHeaderWin(Win):
     def resize_columns(self, dic):
         self._columns_sizes = dic
 
+    def get_columns(self):
+        return self._columns
+
     def refresh(self):
         log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
