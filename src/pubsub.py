@@ -26,21 +26,22 @@ from sleekxmpp.xmlstream import ElementBase, ET
 
 class PubsubNode(object):
     node_type = None            # unknown yet
-    def __init__(self, name):
+    def __init__(self, name, parent=None):
         self.items = []
         self.name = name
+        self.parent = parent
 
 
 class LeafNode(PubsubNode):
     node_type = "leaf"
-    def __init__(self, name):
-        PubsubNode.__init__(self, name)
+    def __init__(self, name, parent=None):
+        PubsubNode.__init__(self, name, parent)
 
 
 class CollectionNode(PubsubNode):
     node_type = "collection"
-    def __init__(self, name):
-        PubsubNode.__init__(self, name)
+    def __init__(self, name, parent=None):
+        PubsubNode.__init__(self, name, parent)
         self.subnodes = []
 
 
@@ -84,8 +85,10 @@ class PubsubBrowserTab(tabs.Tab):
         self.input = self.default_help_message
 
         self.key_func['c'] = self.command_create_node
-        self.key_func["KEY_DOWN"] = self.node_listview.move_cursor_down
-        self.key_func["KEY_UP"] = self.node_listview.move_cursor_up
+        self.key_func["M-KEY_DOWN"] = self.node_listview.move_cursor_down
+        self.key_func["M-KEY_UP"] = self.node_listview.move_cursor_up
+        self.key_func["KEY_DOWN"] = self.item_listview.move_cursor_down
+        self.key_func["KEY_UP"] = self.item_listview.move_cursor_up
         self.resize()
 
         self.get_nodes()
@@ -139,7 +142,7 @@ class PubsubBrowserTab(tabs.Tab):
         item_list = []
         if items:
             for it in items:
-                item_list.append(PubsubItem(it.attrib['id'], ET.tostring(it)))
+                item_list.append(PubsubItem(it.attrib['id'], it))
             node.items = item_list
         log.debug('Item on node %s: %s' % (node.name, item_list))
 
