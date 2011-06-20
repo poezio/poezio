@@ -40,6 +40,7 @@ import multiuserchat as muc
 import tabs
 
 import xhtml
+import pubsub
 import windows
 import connection
 import timed_events
@@ -129,6 +130,7 @@ class Core(object):
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
             'reconnect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
+            'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
             }
 
         self.key_func = {
@@ -1368,6 +1370,22 @@ class Core(object):
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.get_room().own_nick, message)
                 tab.get_room().joined = False
                 self.command_join(tab.get_name())
+
+    def command_pubsub(self, args):
+        """
+        Opens a pubsub browser on the given domain
+        """
+        args = common.shell_split(args)
+        if len(args) != 1:
+            return self.command_help('pubsub')
+        domain = args[0]
+        tab = self.get_tab_by_name('%s@@pubsubbrowser' % (domain,), pubsub.PubsubBrowserTab)
+        if tab:
+            self.command_win('%s' % tab.nb)
+        else:
+            new_tab = pubsub.PubsubBrowserTab(domain)
+            self.add_tab(new_tab, True)
+        self.refresh_window()
 
     def go_to_room_number(self):
         """
