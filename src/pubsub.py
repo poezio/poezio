@@ -89,6 +89,8 @@ class PubsubBrowserTab(tabs.Tab):
         self.item_list_header = windows.ColumnHeaderWin(item_columns)
         self.item_listview = windows.ListWin(item_columns)
 
+        # Item viewer
+        self.item_viewer = windows.SimpleTextWin('')
         self.default_help_message = windows.HelpText("“c”: create a node.")
         self.input = self.default_help_message
 
@@ -97,6 +99,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.key_func["M-KEY_UP"] = self.scroll_node_up
         self.key_func["KEY_DOWN"] = self.item_listview.move_cursor_down
         self.key_func["KEY_UP"] = self.item_listview.move_cursor_up
+        self.key_func["^M"] = self.open_selected_item
         self.resize()
 
         self.get_nodes()
@@ -118,6 +121,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.item_listview.resize_columns(column_size)
         self.item_listview.resize(self.height//2-3, self.width//2, self.height//2+1, 0)
 
+        self.item_viewer.resize(self.height-3, self.width//2+1, 1, self.width//2)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -129,6 +133,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.node_listview.refresh()
         self.item_list_header.refresh()
         self.item_listview.refresh()
+        self.item_viewer.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
@@ -154,13 +159,37 @@ class PubsubBrowserTab(tabs.Tab):
 
     def get_node_by_name(self, name):
         """
-        in the current browsed node (or on the root), return the node with that name
+        in the currently browsed node (or on the root), return the node with that name
         """
         nodes = self.current_node and self.current_node.subnodes or self.nodes
         for node in nodes:
             if node.name == name:
                 return node
         return None
+
+    def get_item_by_id(self, idd):
+        """
+        in the currently selected node, return the item with that id
+        """
+        selected_node_name = self.get_selected_node_name()
+        if not selected_node_name:
+            return None
+        selected_node = self.get_node_by_name(selected_node_name)
+        if not selected_node:
+            return None
+        for item in selected_node.items:
+            if item.id == idd:
+                return item
+        return None
+
+    def get_selected_item_id(self):
+        """
+        returns the id of the currently selected item
+        """
+        line = self.item_listview.get_selected_row()
+        if not line:
+            return None
+        return line['id']
 
     def get_items(self, node):
         """
@@ -265,3 +294,14 @@ class PubsubBrowserTab(tabs.Tab):
             return True
         return False
 
+    def open_selected_item(self):
+        """
+        displays the currently selected item in the item view window
+        """
+        selected_item = self.get_item_by_id(self.get_selected_item_id())
+        if not selected_item:
+            return
+        log.debug('Content: %s'%ET.tostring(selected_item.content))
+        self.item_viewer._text = str(ET.tostring(selected_item.content))
+        self.item_viewer.rebuild_text()
+        return True

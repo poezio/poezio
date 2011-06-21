@@ -1633,10 +1633,6 @@ class SimpleTextWin(Win):
         self._text = text
         self.built_lines = []
 
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-        self.rebuild_text()
-
     def rebuild_text(self):
         """
         Transform the text in lines than can then be
