@@ -919,7 +919,7 @@ class MucTab(ChatTab):
             if status:
                 leave_msg += ' (%s)' % status
             room.add_message(leave_msg)
-            self.refresh_window()
+            self.core.refresh_window()
         self.core.on_user_left_private_conversation(from_room, from_nick, status)
 
     def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
