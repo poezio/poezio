@@ -183,7 +183,7 @@ class PubsubBrowserTab(tabs.Tab):
         node’s items
         """
         columns = self.item_list_header.get_columns()
-        self.item_listview.lines = []
+        self.item_listview.empty()
         log.debug('display_items_from_node: %s' % node.items)
         for item in node.items:
             self.item_listview.lines.append(item.to_dict(columns))

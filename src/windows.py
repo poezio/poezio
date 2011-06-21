@@ -1512,6 +1512,14 @@ class ListWin(Win):
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
 
+    def empty(self):
+        """
+        emtpy the list and reset some important values as well
+        """
+        self.lines = []
+        self._selected_row = 0
+        self._starting_pos = 0
+
     def resize_columns(self, dic):
         """
         Resize the width of the columns
