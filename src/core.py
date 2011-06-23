@@ -486,12 +486,11 @@ class Core(object):
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.tabs:
-            if tab.get_name() == jid_from and isinstance(tab, tabs.PrivateTab):
+            if tab.get_name() == jid_from.bare and isinstance(tab, tabs.MucTab):
                 if message['type'] == 'error':
                     return self.room_error(message, jid_from)
                 else:
                     return self.on_groupchat_private_message(message)
-
         return self.on_normal_message(message)
 
     def on_groupchat_private_message(self, message):
