@@ -982,12 +982,12 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
-            self.add_message_to_text_buffer(room, body, date, nick_from)
+            self.add_message_to_text_buffer(room, body, date, nick_from, history=True if date else False)
             if tab is self.current_tab():
                 tab.text_win.refresh(tab._room)
             self.refresh_tab_win()
 
-    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None):
+    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, history=None):
         """
         Add the message to the room if possible, else, add it to the Info window
         (in the Info tab of the info window in the RosterTab)
@@ -995,7 +995,7 @@ class Core(object):
         if not room:
             self.information('Trying to add a message in no room: %s' % txt, 'Error')
         else:
-            room.add_message(txt, time, nickname)
+            room.add_message(txt, time, nickname, history=history)
 
     def command_help(self, arg):
         """

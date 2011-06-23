@@ -534,7 +534,7 @@ class TextWin(Win):
         if None not in self.built_lines:
             self.built_lines.append(None)
 
-    def build_new_message(self, message):
+    def build_new_message(self, message, history=None):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
@@ -566,7 +566,10 @@ class TextWin(Win):
         else:
             txt = txt.replace('\t', '    ')
         # length of the time
-        offset = 9
+        if history:
+            offset = 20
+        else:
+            offset = 9
         if theme.CHAR_TIME_RIGHT:
             offset += 1
         if theme.CHAR_TIME_RIGHT:
@@ -592,7 +595,10 @@ class TextWin(Win):
             else:
                 color = None
             if first:
-                time = message.time.strftime("%H:%M:%S")
+                if history:
+                    time = message.time.strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    time = message.time.strftime("%H:%M:%S")
                 nickname = nick
             else:
                 time = None

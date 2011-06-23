@@ -95,7 +95,7 @@ class Room(TextBuffer):
         """
         self.color_state = color
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -130,7 +130,7 @@ class Room(TextBuffer):
         self.messages.append(message)
         for window in self.windows: # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(message)
+            nb = window.build_new_message(message, history=history)
             if window.pos != 0:
                 window.scroll_up(nb)
         return nb
