@@ -44,7 +44,7 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None):
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None):
         msg = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
                       time=time or datetime.now(), nickname=nickname, user=None)
         self.messages.append(msg)
