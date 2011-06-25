@@ -991,7 +991,11 @@ class PrivateTab(ChatTab):
     def command_say(self, line):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        msg['body'] = line
+        if line.find('\x19') == -1:
+            msg['body'] = line
+        else:
+            msg['body'] = xhtml.clean_text(line)
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
         msg.send()
@@ -1478,7 +1482,11 @@ class ConversationTab(ChatTab):
     def command_say(self, line):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        msg['body'] = line
+        if line.find('\x19') == -1:
+            msg['body'] = line
+        else:
+            msg['body'] = xhtml.clean_text(line)
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
         msg.send()
