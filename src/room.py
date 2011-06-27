@@ -24,6 +24,7 @@ import common
 import theme
 
 import logging
+import curses
 
 log = logging.getLogger(__name__)
 
@@ -77,6 +78,10 @@ class Room(TextBuffer):
                             self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
                         color = theme.COLOR_HIGHLIGHT_NICK
                         break
+        if color:
+            beep_on = config.get('beep_on', 'highlight private').split()
+            if 'highlight' in beep_on and 'message' not in beep_on:
+                curses.beep()
         return color
 
     def get_user_by_name(self, nick):

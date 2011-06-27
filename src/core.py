@@ -516,6 +516,8 @@ class Core(object):
                 conversation.remote_wants_chatstates = True
             else:
                 conversation.remote_wants_chatstates = False
+        if 'private' in config.get('beep_on', 'highlight private').split():
+            curses.beep()
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
         if conversation is self.current_tab():
             self.refresh_window()
@@ -568,6 +570,8 @@ class Core(object):
             else:
                 conversation.remote_wants_chatstates = False
         logger.log_message(jid.bare, remote_nick, body)
+        if 'private' in config.get('beep_on', 'highlight private').split():
+            curses.beep()
         if self.current_tab() is not conversation:
             conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
             self.refresh_tab_win()
@@ -986,6 +990,8 @@ class Core(object):
             if tab is self.current_tab():
                 tab.text_win.refresh(tab._room)
             self.refresh_tab_win()
+            if 'message' in config.get('beep_on', 'highlight private').split():
+                curses.beep()
 
     def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, history=None):
         """
