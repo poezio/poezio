@@ -1240,6 +1240,7 @@ class Core(object):
                 else:           # no server could be found, print a message and return
                     self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
+        room = room.lower()
         r = self.get_room_by_name(room)
         if len(args) == 2:       # a password is provided
             password = args[1]
@@ -1248,7 +1249,6 @@ class Core(object):
             return
         if room.startswith('@'):
             room = room[1:]
-        room = room.lower()
         current_status = self.get_status()
         if r and not r.joined:
             muc.join_groupchat(self.xmpp, room, nick, password,
