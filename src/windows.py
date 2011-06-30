@@ -1328,7 +1328,7 @@ class RosterWin(Win):
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
                 self.move_cursor_up()
-            # self._win.erase()
+            self._win.erase()
             self._win.move(0, 0)
             self.draw_roster_information(roster)
             y = 1
@@ -1365,10 +1365,6 @@ class RosterWin(Win):
                             y += 1
                 if y-self.start_pos+1 == self.height:
                     break
-            line = ' '*self.width
-            while y < self.height:
-                self.addstr(y, 0, line)
-                y += 1
             if self.start_pos > 1:
                 self.draw_plus(1)
             if self.start_pos + self.height-2 < self.roster_len:
