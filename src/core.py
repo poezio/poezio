@@ -129,6 +129,7 @@ class Core(object):
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
+            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.')),
             }
 
         self.key_func = {
@@ -1378,6 +1379,16 @@ class Core(object):
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.get_room().own_nick, message)
                 tab.get_room().joined = False
                 self.command_join(tab.get_name())
+
+    def command_bind(self, arg):
+        """
+        Bind a key.
+        """
+        args = common.shell_split(arg)
+        if len(args) != 2:
+            return self.command_help('bind')
+        config.set_and_save(args[0], args[1], section='bindings')
+        self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
 
     def go_to_room_number(self):
         """
