@@ -677,7 +677,8 @@ class Core(object):
         """
         # curses.ungetch(0)    # FIXME
         while self.running:
-            char_list = self.read_keyboard()
+            char_list = [common.replace_key_with_bound(key)\
+                             for key in self.read_keyboard()]
             # Special case for M-x where x is a number
             if len(char_list) == 1:
                 char = char_list[0]

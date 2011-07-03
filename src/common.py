@@ -42,6 +42,8 @@ import curses
 import time
 import shlex
 
+from config import config
+
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
 ROOM_STATE_PRIVATE = 15
@@ -211,3 +213,9 @@ def curses_color_pair(color):
     if color < 0:
         return curses.color_pair(-color) | curses.A_BOLD
     return curses.color_pair(color)
+
+def replace_key_with_bound(key):
+    if config.has_option('bindings', key):
+        return config.get(key, key, 'bindings')
+    else:
+        return key

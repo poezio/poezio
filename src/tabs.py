@@ -395,7 +395,6 @@ class MucTab(ChatTab):
         self.ignores = []       # set of Users
         # keys
         self.key_func['^I'] = self.completion
-        self.key_func['M-i'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
         self.key_func['M-y'] = self.scroll_user_list_up
         # commands
@@ -979,7 +978,6 @@ class PrivateTab(ChatTab):
         self.input = windows.MessageInput()
         # keys
         self.key_func['^I'] = self.completion
-        self.key_func['M-i'] = self.completion
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
@@ -1123,7 +1121,6 @@ class RosterInfoTab(Tab):
         self.input = self.default_help_message
         self.set_color_state(theme.COLOR_TAB_NORMAL)
         self.key_func['^I'] = self.completion
-        self.key_func['M-i'] = self.completion
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
         self.key_func["KEY_UP"] = self.move_cursor_up
@@ -1470,7 +1467,6 @@ class ConversationTab(ChatTab):
         self.input = windows.MessageInput()
         # keys
         self.key_func['^I'] = self.completion
-        self.key_func['M-i'] = self.completion
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
@@ -1602,7 +1598,6 @@ class MucListTab(Tab):
         self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
         self.key_func["KEY_UP"] = self.listview.move_cursor_up
         self.key_func['^I'] = self.completion
-        self.key_func['M-i'] = self.completion
         self.key_func["/"] = self.on_slash
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
