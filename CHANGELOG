@@ -6,7 +6,7 @@ http://dev.louiz.org/project/poezio/roadmap
 - Chatstate notifications (in private AND in MUCs)
 - /message command to talk to any JID
 - /version command to get the software version of an entity
-- 
+- /bind command, and keys can be bound in the config file
 - Multiline edition
 
 * Poezio 0.7.1 - 2 Feb 2010
