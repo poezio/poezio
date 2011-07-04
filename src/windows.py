@@ -1514,6 +1514,14 @@ class ListWin(Win):
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
 
+    def empty(self):
+        """
+        emtpy the list and reset some important values as well
+        """
+        self.lines = []
+        self._selected_row = 0
+        self._starting_pos = 0
+
     def resize_columns(self, dic):
         """
         Resize the width of the columns
@@ -1605,6 +1613,9 @@ class ColumnHeaderWin(Win):
     def resize_columns(self, dic):
         self._columns_sizes = dic
 
+    def get_columns(self):
+        return self._columns
+
     def refresh(self):
         log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
@@ -1623,10 +1634,6 @@ class SimpleTextWin(Win):
         Win.__init__(self)
         self._text = text
         self.built_lines = []
-
-    def resize(self, height, width, y, x, stdscr):
-        self._resize(height, width, y, x, stdscr)
-        self.rebuild_text()
 
     def rebuild_text(self):
         """
