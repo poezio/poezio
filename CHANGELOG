@@ -2,6 +2,7 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://dev.louiz.org/project/poezio/roadmap
 
+
 * Poezio 0.7.2 - dev
 - Chatstate notifications (in private AND in MUCs)
 - /message command to talk to any JID
@@ -9,10 +10,12 @@ http://dev.louiz.org/project/poezio/roadmap
 - /bind command, and keys can be bound in the config file
 - Multiline edition
 
+
 * Poezio 0.7.1 - 2 Feb 2010
 - /status command to globally change the status
 - /win command now accepts part of tab name as argument
 - bugfixes
+
 
 * Poezio 0.7 - 14 jan 2010
 Codename ”Koshie & Mathieui”
