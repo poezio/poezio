@@ -35,6 +35,10 @@ class Config(RawConfigParser):
         self.file_name = file_name
         RawConfigParser.__init__(self, None)
         RawConfigParser.read(self, file_name)
+        # Check config integrity and fix it if it’s wrong
+        for section in ('bindings', 'var'):
+            if not self.has_section(section):
+                self.add_section(section)
 
     def get(self, option, default, section=DEFSECTION):
         """
