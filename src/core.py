@@ -40,6 +40,7 @@ import multiuserchat as muc
 import tabs
 
 import xhtml
+import pubsub
 import windows
 import connection
 import timed_events
@@ -130,6 +131,7 @@ class Core(object):
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.')),
+            'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
             }
 
         self.key_func = {
@@ -149,6 +151,7 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
+            'M-c': self.coucou,
             }
 
         # Add handlers
@@ -173,6 +176,9 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
+
+    def coucou(self):
+        self.command_pubsub('psgxs.linkmauve.fr')
 
     def start(self):
         """
@@ -1387,6 +1393,22 @@ class Core(object):
             return self.command_help('bind')
         config.set_and_save(args[0], args[1], section='bindings')
         self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
+
+    def command_pubsub(self, args):
+        """
+        Opens a pubsub browser on the given domain
+        """
+        args = common.shell_split(args)
+        if len(args) != 1:
+            return self.command_help('pubsub')
+        domain = args[0]
+        tab = self.get_tab_by_name('%s@@pubsubbrowser' % (domain,), pubsub.PubsubBrowserTab)
+        if tab:
+            self.command_win('%s' % tab.nb)
+        else:
+            new_tab = pubsub.PubsubBrowserTab(domain)
+            self.add_tab(new_tab, True)
+        self.refresh_window()
 
     def go_to_room_number(self):
         """

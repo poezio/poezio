@@ -77,7 +77,7 @@ class PubsubBrowserTab(tabs.Tab):
 
         self.tab_win = windows.GlobalInfoBar()
         self.upper_message = windows.Topic()
-        self.upper_message.set_message('Pubsub server: %s/%s' % (self.server,self.current_node or ''))
+        self.set_info_message('Loading')
 
         # Node List View
         node_columns = ('node', 'name',)
@@ -103,6 +103,12 @@ class PubsubBrowserTab(tabs.Tab):
         self.resize()
 
         self.get_nodes()
+
+    def set_info_message(self, message):
+        """
+        Set an informative message in the upper line, near the server name
+        """
+        self.upper_message.set_message('Pubsub server: %s/%s [%s]' % (self.server, self.current_node or '', message))
 
     def resize(self):
         self.upper_message.resize(1, self.width, 0, 0)
@@ -136,6 +142,10 @@ class PubsubBrowserTab(tabs.Tab):
         self.item_viewer.refresh()
         self.tab_win.refresh()
         self.input.refresh()
+
+    def force_refresh(self):
+        if self.core.current_tab() is self:
+            self.core.refresh_window()
 
     def get_name(self):
         return '%s@@pubsubbrowser' % (self.server,)
@@ -195,16 +205,20 @@ class PubsubBrowserTab(tabs.Tab):
         """
         Get all items in the given node
         """
-        items = self.core.xmpp.plugin['xep_0060'].get_items(self.server, node.name)
-        item_list = []
-        if items:
-            for it in items:
-                item_list.append(PubsubItem(it.attrib['id'], it))
-            node.items = item_list
-            log.debug('get_selected_node_name: %s' % self.get_selected_node_name())
-            if self.get_selected_node_name() == node.name:
-                self.display_items_from_node(node)
-        log.debug('Item on node %s: %s' % (node.name, item_list))
+        def callback(items):
+            item_list = []
+            if items:
+                for it in items:
+                    item_list.append(PubsubItem(it.attrib['id'], it))
+                node.items = item_list
+                log.debug('get_selected_node_name: %s' % self.get_selected_node_name())
+                if self.get_selected_node_name() == node.name:
+                    self.display_items_from_node(node)
+            log.debug('Item on node %s: %s' % (node.name, item_list))
+            self.set_info_message('Items received')
+            self.force_refresh()
+
+        self.core.xmpp.plugin['xep_0060'].get_items(self.server, node.name, callback=callback)
 
     def display_items_from_node(self, node):
         """
@@ -240,17 +254,21 @@ class PubsubBrowserTab(tabs.Tab):
         Get all subnodes of the given node. If no node is given, get
         the root nodes
         """
-        nodes = self.core.xmpp.plugin['xep_0060'].get_nodes(self.server)
-        lines = [{'name': nodes[node] or '',
+        def callback(nodes):
+            lines = [{'name': nodes[node] or '',
                   'node': node} for node in nodes.keys()]
-        self.add_nodes(lines)
+            self.add_nodes(lines)
+            self.set_info_message('Nodes received')
+            self.force_refresh()
+        self.core.xmpp.plugin['xep_0060'].get_nodes(self.server, callback=callback)
 
     def create_node(self, node_name):
-        if node_name:
-            res = self.core.xmpp.plugin['xep_0060'].create_node(self.server, node_name)
+        def callback(res):
             if res:
                 self.node_listview.add_lines([{'name': '', 'node': node_name}])
-        self.reset_help_message()
+            self.reset_help_message()
+        if node_name:
+            self.core.xmpp.plugin['xep_0060'].create_node(self.server, node_name)
         return True
 
     def reset_help_message(self, txt=None):
