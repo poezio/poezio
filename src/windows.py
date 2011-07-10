@@ -1661,5 +1661,5 @@ class SimpleTextWin(Win):
         with g_lock:
             self._win.erase()
             for y, line in enumerate(self.built_lines):
-                self.addstr(y, 0, line)
+                self.addstr_colored(line, y, 0)
             self._refresh()

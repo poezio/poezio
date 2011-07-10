@@ -19,10 +19,17 @@ log = logging.getLogger(__name__)
 
 import curses
 
-import windows
 import tabs
+import windows
+import atom_parser
 
 from sleekxmpp.xmlstream import ElementBase, ET
+
+try:
+    import feedparser
+    has_feedparser = True
+except ImportError:
+    has_feedparser = False
 
 class PubsubNode(object):
     node_type = None            # unknown yet
@@ -49,6 +56,7 @@ class PubsubItem(object):
     def __init__(self, idd, content):
         self.id = idd
         self.content = content
+        self.parsed_content = atom_parser.parse_atom_entry(content)
 
     def to_dict(self, columns):
         """
@@ -57,6 +65,9 @@ class PubsubItem(object):
         ret = {}
         for col in columns:
             ret[col] = self.__dict__.get(col) or ''
+        if self.parsed_content:
+            ret['title'] = self.parsed_content.get('title')
+            ret['author'] = self.parsed_content['author'].get('name')
         return ret
 
 class PubsubBrowserTab(tabs.Tab):
@@ -85,9 +96,12 @@ class PubsubBrowserTab(tabs.Tab):
         self.node_listview = windows.ListWin(node_columns)
 
         # Item List View
-        item_columns = ('id',)
+        item_columns = ('title', 'author', 'id')
         self.item_list_header = windows.ColumnHeaderWin(item_columns)
         self.item_listview = windows.ListWin(item_columns)
+
+        # Vertical Separator
+        self.vertical_separator = windows.VerticalSeparator()
 
         # Item viewer
         self.item_viewer = windows.SimpleTextWin('')
@@ -121,13 +135,18 @@ class PubsubBrowserTab(tabs.Tab):
         self.node_listview.resize_columns(column_size)
         self.node_listview.resize(self.height//2-2, self.width//2, 2, 0)
 
-        column_size = {'id': self.width//2,}
+        w = self.width//2
+        column_size = {'id': w//8,
+                       'title':w//8*5,
+                       'author':w//8*2}
         self.item_list_header.resize_columns(column_size)
         self.item_list_header.resize(self.height//2+1, self.width//2, self.height//2, 0)
         self.item_listview.resize_columns(column_size)
         self.item_listview.resize(self.height//2-3, self.width//2, self.height//2+1, 0)
 
-        self.item_viewer.resize(self.height-3, self.width//2+1, 1, self.width//2)
+        self.vertical_separator.resize(self.height-3, 1, 1, self.width//2)
+
+        self.item_viewer.resize(self.height-3, self.width//2+1, 1, self.width//2+1)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -141,6 +160,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.item_listview.refresh()
         self.item_viewer.refresh()
         self.tab_win.refresh()
+        self.vertical_separator.refresh()
         self.input.refresh()
 
     def force_refresh(self):
@@ -229,6 +249,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.item_listview.empty()
         log.debug('display_items_from_node: %s' % node.items)
         for item in node.items:
+            line = item.to_dict(columns)
             self.item_listview.lines.append(item.to_dict(columns))
 
     def add_nodes(self, node_list, parent=None):
@@ -320,6 +341,24 @@ class PubsubBrowserTab(tabs.Tab):
         if not selected_item:
             return
         log.debug('Content: %s'%ET.tostring(selected_item.content))
-        self.item_viewer._text = str(ET.tostring(selected_item.content))
+        if not has_feedparser:
+            self.item_viewer._text = str(ET.tostring(selected_item.content))
+        else:
+            entry = atom_parser.parse_atom_entry(selected_item.content)
+            self.item_viewer._text = \
+"""\x193Title:\x19o %(title)s
+\x193Author:\x19o %(author_name)s (%(author_uri)s)
+%(dates)s\x193Link:\x19o %(link)s
+
+\x193Summary:\x19o
+%(summary)s
+""" % {'title': entry.get('title') or '',
+       'author_name': entry['author'].get('name') or '',
+       'author_uri': entry['author'].get('uri') or '',
+       'link': entry.get('link_href') or '',
+       'summary': entry.get('summary') or '',
+       'dates': '\x193Published:\x19o %(published)s\n%(updated)s' % {'published':entry.get('published') or '',
+                                                                'updated': '' if (entry.get('updated') is None) or (entry.get('published') == entry.get('updated')) else '\x193Published:\x19o %s\n' % entry.get('updated')}
+       }
         self.item_viewer.rebuild_text()
         return True
