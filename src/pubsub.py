@@ -25,12 +25,6 @@ import atom_parser
 
 from sleekxmpp.xmlstream import ElementBase, ET
 
-try:
-    import feedparser
-    has_feedparser = True
-except ImportError:
-    has_feedparser = False
-
 class PubsubNode(object):
     node_type = None            # unknown yet
     def __init__(self, name, parent=None):
@@ -341,11 +335,8 @@ class PubsubBrowserTab(tabs.Tab):
         if not selected_item:
             return
         log.debug('Content: %s'%ET.tostring(selected_item.content))
-        if not has_feedparser:
-            self.item_viewer._text = str(ET.tostring(selected_item.content))
-        else:
-            entry = atom_parser.parse_atom_entry(selected_item.content)
-            self.item_viewer._text = \
+        entry = atom_parser.parse_atom_entry(selected_item.content)
+        self.item_viewer._text = \
 """\x193Title:\x19o %(title)s
 \x193Author:\x19o %(author_name)s (%(author_uri)s)
 %(dates)s\x193Link:\x19o %(link)s
