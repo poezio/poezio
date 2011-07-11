@@ -1051,7 +1051,8 @@ class PrivateTab(ChatTab):
         empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        if self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab).get_room().joined:
+        tab = self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab)
+        if tab and tab.get_room().joined:
             self.send_composing_chat_state(empty_before, empty_after)
         return False
 

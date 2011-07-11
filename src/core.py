@@ -178,7 +178,7 @@ class Core(object):
         self.timed_events = set()
 
     def coucou(self):
-        self.command_pubsub('psgxs.linkmauve.fr')
+        self.command_pubsub('pubsub.louiz.org')
 
     def start(self):
         """
@@ -649,7 +649,8 @@ class Core(object):
         Completely erase and redraw the screen
         """
         self.stdscr.clear()
-        self.call_for_resize()
+        self.stdscr.refresh()
+        self.refresh_window()
 
     def call_for_resize(self):
         """
@@ -751,6 +752,8 @@ class Core(object):
         """
         ncurses initialization
         """
+        self.background = False  # Bool to know if curses can draw
+        # or be quiet while an other console app is running.
         curses.curs_set(1)
         curses.noecho()
         curses.nonl()
@@ -1530,6 +1533,6 @@ class Core(object):
                 self.information(_("Unknown command (%s)") % (command), _('Error'))
 
     def doupdate(self):
-        if not self.running:
+        if not self.running or self.background is True:
             return
         curses.doupdate()

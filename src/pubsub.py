@@ -17,13 +17,100 @@
 import logging
 log = logging.getLogger(__name__)
 
+import os
 import curses
+import tempfile
+import subprocess
 
 import tabs
 import windows
 import atom_parser
 
+from config import config
+
+from datetime import datetime
 from sleekxmpp.xmlstream import ElementBase, ET
+
+ATOM_XMLNS = "http://www.w3.org/2005/Atom"
+
+item_template = \
+"""
+-- About you
+-- Your name
+Author: %(author)s
+
+-- Your jid (e.g. xmpp:romeo@example.com) or website’s url (http://example.com)
+URI: xmpp:%(jid)s
+
+-- Your email address (e.g. romeo@mail.com)
+email: 
+Title: 
+
+-- Please use the form dd/mm/yyy hh:mm:ss, or leave empty
+-- If you leave the date empty it will automatically be filled with the current time and date (recommended)
+Date: 
+
+--- body --- Until the end of file, this will be your item's body
+
+"""
+
+def parse_template(lines):
+    """
+    takes a template string (splitted by lines) and returns a dict with the correstponding values
+    """
+    lines = [line.lower() for line in lines]
+    res = {}
+    reading_body = False
+    body = []
+    for line in lines:
+        if line.startswith('--- body ---'):
+            reading_body = True
+            continue
+        if reading_body:
+            body.append(line)
+            continue
+        if line.startswith('-- '):
+            continue
+        for value in ('author', 'uri', 'email', 'title', 'date'):
+            if line.startswith('%s:' % (value,)):
+                res[value] = line.split(':', 1)[1].strip()
+    res['body'] = ''.join(body)
+    return res
+
+def create_entry_from_dict(dic):
+    """
+    Takes a dict with the correct values and returns an ET.Element
+    representing an Atom entry
+    """
+    entry_elem = ET.Element('entry', xmlns=ATOM_XMLNS)
+
+    author_elem = ET.Element('author', xmlns=ATOM_XMLNS)
+    if dic.get('author'):
+        name_elem = ET.Element('name', xmlns=ATOM_XMLNS)
+        name_elem.text = dic.get('author')
+        author_elem.append(name_elem)
+    if dic.get('uri'):
+        uri_elem = ET.Element('uri', xmlns=ATOM_XMLNS)
+        uri_elem.text = dic.get('uri')
+        author_elem.append(uri_elem)
+    if dic.get('email'):
+        email_elem = ET.Element('email', xmlns=ATOM_XMLNS)
+        email_elem.text = dic.get('email')
+        author_elem.append(email_elem)
+    entry_elem.append(author_elem)
+    if dic.get('title'):
+        title_elem = ET.Element('title', xmlns=ATOM_XMLNS)
+        title_elem.text = dic.get('title')
+        entry_elem.append(title_elem)
+    # TODO
+    # if dic.get('date'):
+    date_elem =  ET.Element('published', xmlns=ATOM_XMLNS)
+    date_elem.text = '%s' % datetime.now()
+    entry_elem.append(date_elem)
+    summary_elem = ET.Element('summary', xmlns=ATOM_XMLNS)
+    summary_elem.text = dic.get('body') or ''
+    entry_elem.append(summary_elem)
+    return entry_elem
 
 class PubsubNode(object):
     node_type = None            # unknown yet
@@ -103,6 +190,7 @@ class PubsubBrowserTab(tabs.Tab):
         self.input = self.default_help_message
 
         self.key_func['c'] = self.command_create_node
+        self.key_func['p'] = self.command_publish_item
         self.key_func["M-KEY_DOWN"] = self.scroll_node_down
         self.key_func["M-KEY_UP"] = self.scroll_node_up
         self.key_func["KEY_DOWN"] = self.item_listview.move_cursor_down
@@ -111,6 +199,38 @@ class PubsubBrowserTab(tabs.Tab):
         self.resize()
 
         self.get_nodes()
+
+    def command_publish_item(self):
+        self.core.background = True
+        editor = config.get('editor', '') or os.getenv('EDITOR') or 'vi'
+        log.debug('Starting item edition with command %s' % editor)
+        tmpfile = tempfile.NamedTemporaryFile(mode='r+')
+        tmpfile.write(item_template % {'author': self.core.xmpp.boundjid.user, 'jid': self.core.xmpp.boundjid.bare})
+        tmpfile.flush()
+        process = subprocess.call(editor.split() + [tmpfile.name])
+        tmpfile.flush()
+        tmpfile.seek(0)
+        item_dict = parse_template(tmpfile.readlines())
+        tmpfile.close()
+        log.debug('[%s]' % item_dict)
+
+        self.core.background = False
+        self.core.full_screen_redraw()
+        entry = create_entry_from_dict(item_dict)
+        self.publish_item(entry, self.get_selected_node_name())
+
+    def publish_item(self, content, node_name):
+        """
+        publish the given item on the given node
+        """
+        def callback(res):
+            if res:
+                self.set_info_message('Item published')
+            else:
+                self.set_info_message('Item not published')
+            self.force_refresh()
+
+        self.core.xmpp.plugin['xep_0060'].setItem(self.server, node_name, content, callback=callback)
 
     def set_info_message(self, message):
         """
@@ -281,9 +401,13 @@ class PubsubBrowserTab(tabs.Tab):
         def callback(res):
             if res:
                 self.node_listview.add_lines([{'name': '', 'node': node_name}])
+                self.set_info_message('Node created')
+            else:
+                self.set_info_message('Node not created')
             self.reset_help_message()
+            self.force_refresh()
         if node_name:
-            self.core.xmpp.plugin['xep_0060'].create_node(self.server, node_name)
+            self.core.xmpp.plugin['xep_0060'].create_node(self.server, node_name, callback=callback)
         return True
 
     def reset_help_message(self, txt=None):
@@ -336,7 +460,10 @@ class PubsubBrowserTab(tabs.Tab):
             return
         log.debug('Content: %s'%ET.tostring(selected_item.content))
         entry = atom_parser.parse_atom_entry(selected_item.content)
-        self.item_viewer._text = \
+        if not entry:
+            self.item_viewer._text = str(ET.tostring(selected_item.content))
+        else:
+            self.item_viewer._text = \
 """\x193Title:\x19o %(title)s
 \x193Author:\x19o %(author_name)s (%(author_uri)s)
 %(dates)s\x193Link:\x19o %(link)s
