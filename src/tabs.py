@@ -1567,7 +1567,7 @@ class ConversationTab(ChatTab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 1, 0)
+        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
 
     def get_room(self):
