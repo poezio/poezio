@@ -78,7 +78,7 @@ class User(object):
         return ">%s<" % (self.nick)
 
     def __eq__(self, b):
-        return self.role == b.role and self.nick.lower() == b.nick.lower()
+        return self.role == b.role and self.nick == b.nick
 
     def __gt__(self, b):
         if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
