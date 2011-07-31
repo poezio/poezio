@@ -63,6 +63,9 @@ def read_char(s, timeout=1000):
                 continue
             if first == 27:
                 second = read_char(s, 0)
+                if second is None: # if escape was pressed, a second char
+                                   # has to be read. But it timed out.
+                    return None
                 res = 'M-%s' % (second[0],)
                 ret_list.append(res)
                 (first, char) = get_next_byte(s)
