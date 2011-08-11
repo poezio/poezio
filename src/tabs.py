@@ -931,6 +931,9 @@ class MucTab(ChatTab):
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
         msg = _('\x193%s\x195 changed: ')% from_nick.replace('"', '\\"')
+        if show not in SHOW_NAME:
+            self.core.information("%s from room %s sent an invalid show: %s" %\
+                                      (from_nick, from_room, show), "warning")
         if affiliation != user.affiliation:
             msg += _('affiliation: %s, ') % affiliation
             display_message = True
@@ -942,7 +945,7 @@ class MucTab(ChatTab):
             display_message = True
         if status != user.status:
             # if the user sets his status to nothing
-            if not status:
+            if not status and show in SHOW_NAME:
                 msg += _('show: %s, ') % SHOW_NAME[show]
             else:
                 msg += _('status: %s, ') % status
