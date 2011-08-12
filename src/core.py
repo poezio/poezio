@@ -873,6 +873,7 @@ class Core(object):
         Takes a stanza of the form <message type='error'><error/></message>
         and return a well formed string containing the error informations
         """
+        sender = stanza.attrib['from']
         msg = stanza['error']['type']
         condition = stanza['error']['condition']
         code = stanza['error']['code']
@@ -883,9 +884,9 @@ class Core(object):
             else:
                 body = condition or _('Unknown error')
         if code:
-            message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
+            message = _('%(from)s: %(code)s - %(msg)s: %(body)s') % {'from':sender, 'msg':msg, 'body':body, 'code':code}
         else:
-            message = _('Error: %(msg)s: %(body)s') % {'msg':msg, 'body':body}
+            message = _('%(from)s: %(msg)s: %(body)s') % {'from':sender, 'msg':msg, 'body':body}
         return message
 
     def room_error(self, error, room_name):
