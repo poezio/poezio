@@ -430,9 +430,13 @@ class MucTab(ChatTab):
         user = self.get_room().get_user_by_name(args[0])
         if not user:
             return self.core.information("Unknown user: %s" % args[0])
-        self.get_room().add_message("%s%s: show: %s, affiliation: %s, role: %s%s"% (args[0], ' (%s)'%user.jid if user.jid else '', user.show or 'Available', user.role or 'None', user.affiliation or 'None', '\n%s' % user.status if user.status else ''))
-        self.text_win.refresh(self._room)
-        self.input.refresh()
+        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (args[0],
+                                                                ' (%s)' % user.jid if user.jid else '',
+                                                                user.show or 'Available',
+                                                                user.role or 'None',
+                                                                user.affiliation or 'None',
+                                                                '\n%s' % user.status if user.status else '')
+        self.core.information(info, 'Info')
 
     def command_configure(self, arg):
         form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
