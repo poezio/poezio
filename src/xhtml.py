@@ -53,7 +53,7 @@ def get_body_from_message_stanza(message):
             try:
                 shell_body = xhtml_code_to_shell_colors(xhtml_body)
             except OSError:
-                log.error('html parsing failed')
+                log.debug('html parsing failed')
             else:
                 return shell_colors_to_poezio_colors(shell_body)
     return message['body']
