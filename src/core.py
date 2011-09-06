@@ -113,6 +113,7 @@ class Core(object):
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
+            'quit': (self.command_quit, _("Usage: /quit\nQuit: Just disconnect from the server and exit poezio."), None),
             'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
