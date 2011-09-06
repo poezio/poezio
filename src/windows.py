@@ -982,10 +982,6 @@ class Input(Win):
         """
         Shell-like completion
         """
-        if " " in self.text.strip() or add_after is not None:
-            after = " " # don't put the "," if it's not the begining of the sentence
-        else:
-            after = config.get('after_completion', ',')+" "
         (y, x) = self._win.getyx()
         if self.text != '':
             begin = self.text.split()[-1].lower()
