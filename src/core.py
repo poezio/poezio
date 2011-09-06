@@ -92,7 +92,7 @@ class Core(object):
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
         self.previous_tab_nb = 0
-        self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
+        self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
