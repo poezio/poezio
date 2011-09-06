@@ -547,8 +547,7 @@ class MucTab(ChatTab):
                 r = self.core.open_private_window(room.name, user.nick)
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
-            muc.send_private_message(self.core.xmpp, r.name, msg)
-            self.core.add_message_to_text_buffer(r, msg, None, r.own_nick)
+            self.core.current_tab().command_say(msg)
         if not r:
             self.core.information(_("Cannot find user: %s" % nick), 'Error')
 
