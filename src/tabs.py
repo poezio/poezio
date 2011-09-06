@@ -290,12 +290,12 @@ class ChatTab(Tab):
                 self.command_say(txt)
         self.cancel_paused_delay()
 
-    def send_chat_state(self, state):
+    def send_chat_state(self, state, always_send=False):
         """
         Send an empty chatstate message
         """
         if not isinstance(self, MucTab) or self.get_room().joined:
-            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away'):
+            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away') and not always_send:
                 return
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = self.message_type
@@ -303,24 +303,20 @@ class ChatTab(Tab):
             self.chat_state = state
             msg.send()
 
-    def send_composing_chat_state(self, empty_before, empty_after):
+    def send_composing_chat_state(self, empty_after):
         """
         Send the "active" or "composing" chatstate, depending
         on the the current status of the input
         """
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
-            if self.chat_state == "composing" and not empty_after:
-                self.cancel_paused_delay()
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            self.cancel_paused_delay()
+            if not empty_after:
+                if self.chat_state != "composing":
+                    self.send_chat_state("composing")
                 self.set_paused_delay(True)
-            elif empty_after and not self.chat_state == 'active':
-                self.cancel_paused_delay()
-                self.send_chat_state("active")
-            elif empty_after:
-                self.cancel_paused_delay()
-            elif empty_before or (self.timed_event_paused is not None and not self.timed_event_paused()):
-                self.cancel_paused_delay()
-                self.send_chat_state("composing")
-                self.set_paused_delay(True)
+            elif empty_after and self.chat_state != needed:
+                self.send_chat_state(needed, True)
 
     def set_paused_delay(self, composing):
         """
@@ -695,10 +691,9 @@ class MucTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
         return False
 
     def completion(self):
@@ -719,10 +714,9 @@ class MucTab(ChatTab):
         else:
             add_after = ' '
 
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.auto_completion(word_list, add_after)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
 
     def get_color_state(self):
         return self._room.color_state
@@ -1048,12 +1042,11 @@ class PrivateTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         tab = self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab)
         if tab and tab.get_room().joined:
-            self.send_composing_chat_state(empty_before, empty_after)
+            self.send_composing_chat_state(empty_after)
         return False
 
     def on_lose_focus(self):
@@ -1537,10 +1530,9 @@ class ConversationTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
         return False
 
     def on_lose_focus(self):
