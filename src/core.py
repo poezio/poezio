@@ -458,6 +458,7 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick), tabs.PrivateTab)
         if tab:
             tab.rename_user(old_nick, new_nick)
+        self.on_user_rejoined_private_conversation(room_name, new_nick)
 
     def on_user_left_private_conversation(self, room_name, nick, status_message):
         """
@@ -466,6 +467,30 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
         if tab:
             tab.user_left(status_message, nick)
+
+    def on_user_rejoined_private_conversation(self, room_name, nick):
+        """
+        The user joined a MUC: add a message in the associated private conversation
+        """
+        tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
+        if tab:
+            tab.user_rejoined(nick)
+
+    def disable_private_tabs(self, room_name):
+        """
+        Disable private tabs when leaving a room
+        """
+        for tab in self.tabs:
+            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+                tab.deactivate()
+
+    def enable_private_tabs(self,room_name):
+        """
+        Enable private tabs when joining a room
+        """
+        for tab in self.tabs:
+            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+                tab.activate()
 
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)
@@ -1265,6 +1290,7 @@ class Core(object):
         else:
             r.own_nick = nick
             r.users = []
+        self.enable_private_tabs(room)
 
     def command_bookmark(self, arg):
         """
