@@ -783,6 +783,7 @@ class MucTab(ChatTab):
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
                     room.joined = True
+                    self.send_chat_state('active')
                     new_user.color = theme.COLOR_OWN_NICK
                     room.add_message(_("\x195Your nickname is \x193%s") % (from_nick))
                     if '170' in status_codes:
