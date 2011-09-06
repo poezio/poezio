@@ -1052,6 +1052,9 @@ class Core(object):
             pres['status'] = msg
         pres['type'] = show
         pres.send()
+        current = self.current_tab()
+        if isinstance(current, tabs.MucTab) and current.get_room().joined:
+            current.send_chat_state('inactive')
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
