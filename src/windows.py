@@ -1,18 +1,9 @@
-# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
+# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
-#
-# Poezio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
+# it under the terms of the MIT license. See the COPYING file.
 
 """
 Define all the windows.
@@ -37,6 +28,7 @@ from threading import Lock
 
 from contact import Contact, Resource
 from roster import RosterGroup, roster
+from poopt import cut_text
 
 # from message import Line
 from tabs import MIN_WIDTH, MIN_HEIGHT
@@ -50,7 +42,10 @@ import wcwidth
 import singleton
 import collections
 
-Line = collections.namedtuple('Line', 'text text_offset nickname_color time nickname')
+# msg is a reference to the corresponding Message tuple. text_start and text_end are the position
+# delimiting the text in this line.
+# first is a bool telling if this is the first line of the message.
+Line = collections.namedtuple('Line', 'msg start_pos end_pos first')
 
 g_lock = Lock()
 
@@ -544,23 +539,7 @@ class TextWin(Win):
         Return the number of lines that are built for the given
         message.
         """
-        def cut_text(text, width):
-            """
-            returns the text that should be displayed on the line, and the rest
-            of the text, in a tuple
-            """
-            cutted = wcwidth.widthcut(text, width) or text[:width]
-            limit = cutted.find('\n')
-            if limit >= 0:
-                return (text[limit+1:], text[:limit])
-            if not wcwidth.wcsislonger(text, width):
-                return ('', text)
-            limit = cutted.rfind(' ')
-            if limit <= 0:
-                return (text[len(cutted):], cutted)
-            else:
-                return (text[limit+1:], text[:limit])
-
+        log.debug('LEEEN: %s [%s]' % (len(message.txt), repr(message.txt)))
         if message is None:  # line separator
             self.built_lines.append(None)
             return 0
@@ -574,7 +553,7 @@ class TextWin(Win):
             offset = 20
         else:
             offset = 9
-        if theme.CHAR_TIME_RIGHT:
+        if theme.CHAR_TIME_LEFT:
             offset += 1
         if theme.CHAR_TIME_RIGHT:
             offset += 1
@@ -586,36 +565,21 @@ class TextWin(Win):
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         first = True
-        nb = 0
-        while txt != '':
-            (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
-            if first:
-                if message.nick_color:
-                    color = message.nick_color
-                elif message.user:
-                    color = message.user.color
-                else:
-                    color = None
-            else:
-                color = None
-            if first:
-                if history:
-                    time = message.time.strftime("%Y-%m-%d %H:%M:%S")
-                else:
-                    time = message.time.strftime("%H:%M:%S")
-                nickname = nick
-            else:
-                time = None
-                nickname = None
-            self.built_lines.append(Line(text=cutted_txt,
-                                         text_offset=offset,
-                                         nickname_color=color, time=time,
-                                         nickname=nickname))
-            nb += 1
+        start_pos = 0
+        end_pos = 0
+        text_len = len(txt)
+        offset = (3 if message.nickname else 1) + len(message.str_time)+len(message.nickname or '')
+        lines = cut_text(txt, self.width-offset-1)
+        for line in lines:
+            self.built_lines.append(Line(msg=message,
+                                         start_pos=line[0],
+                                         end_pos=line[1],
+                                         first=first))
             first = False
+            start_pos = next_start_pos
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
-        return nb
+        return len(lines)
 
     def refresh(self, room):
         log.debug('Refresh: %s'%self.__class__.__name__)
@@ -632,15 +596,23 @@ class TextWin(Win):
                 if line is None:
                     self.write_line_separator()
                 else:
-                    self.write_time(line.time)
-                    self.write_nickname(line.nickname, line.nickname_color)
+                    msg = line.msg
+                    if line.first:
+                        if msg.nick_color:
+                            color = msg.nick_color
+                        elif msg.user:
+                            color = msg.user.color
+                        else:
+                            color = None
+                        self.write_time(msg.str_time)
+                        self.write_nickname(msg.nickname, color)
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
             for y, line in enumerate(lines):
                 if not line:
                     continue
-                self.write_text(y, line.text_offset, line.text)
+                self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(line.msg.nickname or ''), line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
@@ -991,10 +963,6 @@ class Input(Win):
         """
         Shell-like completion
         """
-        if " " in self.text.strip() or add_after is not None:
-            after = " " # don't put the "," if it's not the begining of the sentence
-        else:
-            after = config.get('after_completion', ',')+" "
         (y, x) = self._win.getyx()
         if self.text != '':
             begin = self.text.split()[-1].lower()

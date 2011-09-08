@@ -27,7 +27,7 @@ from datetime import datetime
 import theme
 from config import config
 
-Message = collections.namedtuple('Message', 'txt nick_color time nickname user')
+Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user')
 
 class TextBuffer(object):
     """
@@ -45,8 +45,11 @@ class TextBuffer(object):
         self.windows.append(win)
 
     def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None):
-        msg = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
-                      time=time or datetime.now(), nickname=nickname, user=None)
+        time = time or datetime.now()
+        msg = Message(txt='%s'%(txt,), nick_color=nick_color,
+                      time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
+                                          if history else time.strftime("%H:%M:%S"),\
+                      nickname=nickname, user=None)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
