@@ -565,8 +565,6 @@ class TextWin(Win):
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         first = True
-        start_pos = 0
-        end_pos = 0
         text_len = len(txt)
         offset = (3 if message.nickname else 1) + len(message.str_time)+len(message.nickname or '')
         lines = cut_text(txt, self.width-offset-1)
@@ -576,7 +574,6 @@ class TextWin(Win):
                                          end_pos=line[1],
                                          first=first))
             first = False
-            start_pos = next_start_pos
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
         return len(lines)

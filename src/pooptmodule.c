@@ -17,7 +17,6 @@ otherwise it will just use the equivalent python functions. */
 #include "Python.h"
 
 PyObject *ErrorObject;
-#define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 
 /***
     The module functions
@@ -35,11 +34,11 @@ PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(width, text)\n\n\nReturn the list of 
 
 static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 {
-  int length;
+  /* int length; */
   unsigned char *buffer;
   int width;
 
-  if (PyArg_ParseTuple(args, "es#i", NULL, &buffer, &length, &width) == 0)
+  if (PyArg_ParseTuple(args, "si", &buffer, &width) == 0)
     return NULL;
 
   int bpos = 0;			/* the real position in the char* */
@@ -49,7 +48,7 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 
   PyObject* retlist = PyList_New(0);
 
-  while (bpos < length)
+  while (buffer[bpos])
     {
       if (buffer[bpos] == ' ')
 	last_space = spos;
@@ -78,17 +77,20 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
       	}
       if (buffer[bpos] == 25)	/* \x19 */
       	{
-      	  spos--;
-      	  bpos += 1;
+      	  spos++;
+      	  bpos += 2;
       	}
-      else if (buffer[bpos] <= 127) /* ASCII char on one byte */
-	bpos += 1;
-      else if (buffer[bpos] <= 195)
-	bpos += 2;
-      else if (buffer[bpos] <= 225)
-	bpos += 3;
       else
-	bpos += 4;
+      if (buffer[bpos] <= 127) /* ASCII char on one byte */
+      	bpos += 1;
+      else if (buffer[bpos] >= 194 && buffer[bpos] <= 223)
+      	bpos += 2;
+      else if (buffer[bpos] >= 224 && buffer[bpos] <= 239)
+      	bpos += 3;
+      else if (buffer[bpos] >= 240 && buffer[bpos] <= 244)
+      	bpos += 4;
+      else
+	return NULL;
       spos++;
     }
   if (PyList_Append(retlist, Py_BuildValue("(i,i)", start_pos, spos)) == -1)

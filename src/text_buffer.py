@@ -46,7 +46,7 @@ class TextBuffer(object):
 
     def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None):
         time = time or datetime.now()
-        msg = Message(txt='%s'%(txt,), nick_color=nick_color,
+        msg = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
                                           if history else time.strftime("%H:%M:%S"),\
                       nickname=nickname, user=None)
