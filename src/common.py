@@ -1,32 +1,9 @@
-# some functions coming from gajim sources (thanks)
-
-## Copyright (C) 2003-2008 Yann Leboulanger <asterix AT lagaule.org>
-## Copyright (C) 2005-2006 Dimitur Kirov <dkirov AT gmail.com>
-##                         Nikos Kouremenos <kourem AT gmail.com>
-## Copyright (C) 2006 Alex Mauer <hawke AT hawkesnest.net>
-## Copyright (C) 2006-2007 Travis Shirk <travis AT pobox.com>
-## Copyright (C) 2006-2008 Jean-Marie Traissard <jim AT lapin.org>
-## Copyright (C) 2007 Lukas Petrovicky <lukas AT petrovicky.net>
-##                    James Newton <redshodan AT gmail.com>
-##                    Julien Pivotto <roidelapluie AT gmail.com>
-## Copyright (C) 2007-2008 Stephan Erb <steve-e AT h3c.de>
-## Copyright (C) 2008 Brendan Taylor <whateley AT gmail.com>
-##                    Jonathan Schleifer <js-gajim AT webkeks.org>
-##
-
-# Copyright 2010-2011, Florent Le Coz <louiz@louiz.org>
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation version 3 of the License.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
+#
+# This file is part of Poezio.
+#
+# Poezio is free software: you can redistribute it and/or modify
+# it under the terms of the MIT license. See the COPYING file.
 
 """
 various useful functions

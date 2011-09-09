@@ -1,18 +1,9 @@
-# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
+# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
-#
-# Poezio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
+# it under the terms of the MIT license. See the COPYING file.
 
 """
 a Tab object is a way to organize various Windows (see windows.py)
@@ -299,12 +290,12 @@ class ChatTab(Tab):
                 self.command_say(txt)
         self.cancel_paused_delay()
 
-    def send_chat_state(self, state):
+    def send_chat_state(self, state, always_send=False):
         """
         Send an empty chatstate message
         """
         if not isinstance(self, MucTab) or self.get_room().joined:
-            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away'):
+            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away') and not always_send:
                 return
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = self.message_type
@@ -312,24 +303,20 @@ class ChatTab(Tab):
             self.chat_state = state
             msg.send()
 
-    def send_composing_chat_state(self, empty_before, empty_after):
+    def send_composing_chat_state(self, empty_after):
         """
         Send the "active" or "composing" chatstate, depending
         on the the current status of the input
         """
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
-            if self.chat_state == "composing" and not empty_after:
-                self.cancel_paused_delay()
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            self.cancel_paused_delay()
+            if not empty_after:
+                if self.chat_state != "composing":
+                    self.send_chat_state("composing")
                 self.set_paused_delay(True)
-            elif empty_after and not self.chat_state == 'active':
-                self.cancel_paused_delay()
-                self.send_chat_state("active")
-            elif empty_after:
-                self.cancel_paused_delay()
-            elif empty_before or (self.timed_event_paused is not None and not self.timed_event_paused()):
-                self.cancel_paused_delay()
-                self.send_chat_state("composing")
-                self.set_paused_delay(True)
+            elif empty_after and self.chat_state != needed:
+                self.send_chat_state(needed, True)
 
     def set_paused_delay(self, composing):
         """
@@ -462,6 +449,7 @@ class MucTab(ChatTab):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
         self.get_room().disconnect()
+        self.core.disable_private_tabs(self.get_room().name)
         self.core.command_join('/', "0")
 
     def command_recolor(self, arg):
@@ -531,6 +519,7 @@ class MucTab(ChatTab):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, room.name, room.own_nick, arg)
         self.core.close_tab()
+        self.core.disable_private_tabs(self.get_room().name)
 
     def command_query(self, arg):
         """
@@ -704,10 +693,9 @@ class MucTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
         return False
 
     def completion(self):
@@ -728,10 +716,9 @@ class MucTab(ChatTab):
         else:
             add_after = ' '
 
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.auto_completion(word_list, add_after)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
 
     def get_color_state(self):
         return self._room.color_state
@@ -798,6 +785,7 @@ class MucTab(ChatTab):
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
                     room.joined = True
+                    self.send_chat_state('active')
                     new_user.color = theme.COLOR_OWN_NICK
                     room.add_message(_("\x195Your nickname is \x193%s") % (from_nick))
                     if '170' in status_codes:
@@ -843,6 +831,8 @@ class MucTab(ChatTab):
                 room.add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':from_nick, 'spec':theme.CHAR_JOIN})
             else:
                 room.add_message('\x194%(spec)s \x193%(nick)s \x195(\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
+        self.core.on_user_rejoined_private_conversation(room.name, from_nick)
+
 
     def on_user_nick_change(self, room, presence, user, from_nick, from_room):
         new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
@@ -867,6 +857,7 @@ class MucTab(ChatTab):
         by = by.attrib['jid'] if by is not None else None
         if from_nick == room.own_nick: # we are banned
             room.disconnect()
+            self.core.disable_private_tabs(room.name)
             if by:
                 kick_msg = _('\x191%(spec)s \x193You\x195 have been banned by \x194%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
             else:
@@ -890,6 +881,7 @@ class MucTab(ChatTab):
         by = by.attrib['jid'] if by is not None else None
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
+            self.core.disable_private_tabs(room.name)
             if by:
                 kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked by \x193%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
             else:
@@ -914,6 +906,7 @@ class MucTab(ChatTab):
         if room.own_nick == user.nick:
             # We are now out of the room. Happens with some buggy (? not sure) servers
             room.disconnect()
+            self.core.disable_private_tabs(from_room)
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:
@@ -991,11 +984,14 @@ class PrivateTab(ChatTab):
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
         self.resize()
+        self.on = True
 
     def completion(self):
         self.complete_commands(self.input)
 
     def command_say(self, line):
+        if not self.on:
+            return
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         if line.find('\x19') == -1:
@@ -1006,7 +1002,7 @@ class PrivateTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = 'active'
         msg.send()
-        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
+        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick or self.get_room().own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh(self._room)
@@ -1057,12 +1053,13 @@ class PrivateTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
+        if not self.on:
+            return False
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         tab = self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab)
         if tab and tab.get_room().joined:
-            self.send_composing_chat_state(empty_before, empty_after)
+            self.send_composing_chat_state(empty_after)
         return False
 
     def on_lose_focus(self):
@@ -1113,6 +1110,22 @@ class PrivateTab(ChatTab):
             self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')})
         else:
             self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
+        self.deactivate()
+        self.refresh()
+
+    def user_rejoined(self, nick):
+        """
+        The user (or at least someone with the same nick) came back in the MUC
+        """
+        self.get_room().add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':nick, 'spec':theme.CHAR_JOIN})
+        self.activate()
+        self.refresh()
+
+    def activate(self):
+        self.on = True
+
+    def deactivate(self):
+        self.on = False
 
 class RosterInfoTab(Tab):
     """
@@ -1546,10 +1559,9 @@ class ConversationTab(ChatTab):
         if key in self.key_func:
             self.key_func[key]()
             return False
-        empty_before = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.input.do_command(key)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_before, empty_after)
+        self.send_composing_chat_state(empty_after)
         return False
 
     def on_lose_focus(self):

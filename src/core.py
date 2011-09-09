@@ -1,18 +1,9 @@
-# Copyright 2010-2011 Le Coz Florent <louiz@louiz.org>
+# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
 #
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
-#
-# Poezio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Poezio.  If not, see <http://www.gnu.org/licenses/>.
+# it under the terms of the MIT license. See the COPYING file.
 
 from gettext import gettext as _
 
@@ -101,7 +92,7 @@ class Core(object):
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
         self.previous_tab_nb = 0
-        self.own_nick = config.get('own_nick', '') or self.xmpp.boundjid.user
+        self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
@@ -113,6 +104,7 @@ class Core(object):
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
             'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
+            'quit': (self.command_quit, _("Usage: /quit\nQuit: Just disconnect from the server and exit poezio."), None),
             'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
@@ -466,6 +458,7 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick), tabs.PrivateTab)
         if tab:
             tab.rename_user(old_nick, new_nick)
+        self.on_user_rejoined_private_conversation(room_name, new_nick)
 
     def on_user_left_private_conversation(self, room_name, nick, status_message):
         """
@@ -474,6 +467,30 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
         if tab:
             tab.user_left(status_message, nick)
+
+    def on_user_rejoined_private_conversation(self, room_name, nick):
+        """
+        The user joined a MUC: add a message in the associated private conversation
+        """
+        tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
+        if tab:
+            tab.user_rejoined(nick)
+
+    def disable_private_tabs(self, room_name):
+        """
+        Disable private tabs when leaving a room
+        """
+        for tab in self.tabs:
+            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+                tab.deactivate()
+
+    def enable_private_tabs(self,room_name):
+        """
+        Enable private tabs when joining a room
+        """
+        for tab in self.tabs:
+            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+                tab.activate()
 
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)
@@ -660,8 +677,11 @@ class Core(object):
         self.resize_global_information_win()
         with resize_lock:
             for tab in self.tabs:
-                tab.resize()
-            self.refresh_window()
+                if config.get('lazy_resize', 'true') == 'true':
+                    tab.need_resize = True
+                else:
+                    tab.resize()
+            self.full_screen_redraw()
 
     def read_keyboard(self):
         """
@@ -1060,6 +1080,9 @@ class Core(object):
             pres['status'] = msg
         pres['type'] = show
         pres.send()
+        current = self.current_tab()
+        if isinstance(current, tabs.MucTab) and current.get_room().joined:
+            current.send_chat_state('inactive')
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
@@ -1270,6 +1293,7 @@ class Core(object):
         else:
             r.own_nick = nick
             r.users = []
+        self.enable_private_tabs(room)
 
     def command_bookmark(self, arg):
         """
