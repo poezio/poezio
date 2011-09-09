@@ -677,8 +677,11 @@ class Core(object):
         self.resize_global_information_win()
         with resize_lock:
             for tab in self.tabs:
-                tab.resize()
-            self.refresh_window()
+                if config.get('lazy_resize', 'true') == 'true':
+                    tab.need_resize = True
+                else:
+                    tab.resize()
+            self.full_screen_redraw()
 
     def read_keyboard(self):
         """
