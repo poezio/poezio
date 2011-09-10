@@ -533,13 +533,12 @@ class TextWin(Win):
         if None not in self.built_lines:
             self.built_lines.append(None)
 
-    def build_new_message(self, message, history=None):
+    def build_new_message(self, message, history=None, clean=True):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        log.debug('LEEEN: %s [%s]' % (len(message.txt), repr(message.txt)))
         if message is None:  # line separator
             self.built_lines.append(None)
             return 0
@@ -548,35 +547,32 @@ class TextWin(Win):
             return 0
         else:
             txt = txt.replace('\t', '    ')
-        # length of the time
-        if history:
-            offset = 20
-        else:
-            offset = 9
+        nick = message.nickname
+        if nick and len(nick) >= 25:
+            nick = nick[:25]+'…'
+        offset = 1 + len(message.str_time)
+        if nick:
+            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
+        if nick:
+            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         if theme.CHAR_TIME_LEFT:
             offset += 1
         if theme.CHAR_TIME_RIGHT:
             offset += 1
-        nickname = message.nickname
-        if nickname and len(nickname) >= 25:
-            nick = nickname[:25]+'…'
-        else:
-            nick = nickname
-        if nick:
-            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
-        first = True
-        text_len = len(txt)
-        offset = (3 if message.nickname else 1) + len(message.str_time)+len(message.nickname or '')
+
         lines = cut_text(txt, self.width-offset-1)
+
+        first = True
         for line in lines:
             self.built_lines.append(Line(msg=message,
                                          start_pos=line[0],
                                          end_pos=line[1],
                                          first=first))
             first = False
-        while len(self.built_lines) > self.lines_nb_limit:
-            self.built_lines.pop(0)
-        return len(lines)
+        if clean:
+            while len(self.built_lines) > self.lines_nb_limit:
+                self.built_lines.pop(0)
+            return len(lines)
 
     def refresh(self, room):
         log.debug('Refresh: %s'%self.__class__.__name__)
@@ -654,7 +650,9 @@ class TextWin(Win):
     def rebuild_everything(self, room):
         self.built_lines = []
         for message in room.messages:
-            self.build_new_message(message)
+            self.build_new_message(message, clean=False)
+        while len(self.built_lines) > self.lines_nb_limit:
+            self.built_lines.pop(0)
 
     def __del__(self):
         log.debug('** TextWin: deleting %s built lines' % (len(self.built_lines)))
