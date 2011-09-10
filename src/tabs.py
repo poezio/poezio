@@ -77,6 +77,12 @@ class Tab(object):
         return Tab.tab_core
 
     @property
+    def tab_win(self):
+        if not Tab.tab_core:
+            Tab.tab_core = singleton.Singleton(core.Core)
+        return Tab.tab_core.tab_win
+
+    @property
     def info_win(self):
         return self.core.information_win
 
@@ -377,7 +383,6 @@ class MucTab(ChatTab):
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
-        self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         self.ignores = []       # set of Users
         # keys
@@ -673,7 +678,6 @@ class MucTab(ChatTab):
         self.text_win.rebuild_everything(self._room)
         self.user_win.resize(self.height-3-self.core.information_win_size-1, self.width-text_width-1, 1, text_width+1)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -975,7 +979,6 @@ class PrivateTab(ChatTab):
         self.text_win = windows.TextWin()
         room.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
-        self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         # keys
         self.key_func['^I'] = self.completion
@@ -1020,7 +1023,6 @@ class PrivateTab(ChatTab):
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -1135,7 +1137,6 @@ class RosterInfoTab(Tab):
         Tab.__init__(self)
         self.name = "Roster"
         self.v_separator = windows.VerticalSeparator()
-        self.tab_win = windows.GlobalInfoBar()
         self.information_win = windows.TextWin()
         self.core.information_buffer.add_window(self.information_win)
         self.roster_win = windows.RosterWin()
@@ -1167,7 +1168,6 @@ class RosterInfoTab(Tab):
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.information_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.information_buffer)
         self.roster_win.resize(self.height-2, roster_width, 0, 0)
         self.contact_info_win.resize(4, info_width, self.height-2-4, roster_width+1)
@@ -1486,7 +1486,6 @@ class ConversationTab(ChatTab):
         txt_buff.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.info_header = windows.ConversationInfoWin()
-        self.tab_win = windows.GlobalInfoBar()
         self.input = windows.MessageInput()
         # keys
         self.key_func['^I'] = self.completion
@@ -1525,7 +1524,6 @@ class ConversationTab(ChatTab):
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -1614,7 +1612,6 @@ class MucListTab(Tab):
         columns = ('node-part', 'name', 'users')
         self.list_header = windows.ColumnHeaderWin(columns)
         self.listview = windows.ListWin(columns)
-        self.tab_win = windows.GlobalInfoBar()
         self.default_help_message = windows.HelpText("“j”: join room.")
         self.input = self.default_help_message
         self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
@@ -1646,7 +1643,6 @@ class MucListTab(Tab):
         self.list_header.resize(1, self.width, 1, 0)
         self.listview.resize_columns(column_size)
         self.listview.resize(self.height-4, self.width, 2, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def on_slash(self):
@@ -1739,7 +1735,6 @@ class SimpleTextTab(Tab):
         Tab.__init__(self)
         self._color_state = theme.COLOR_TAB_NORMAL
         self.text_win = windows.SimpleTextWin(text)
-        self.tab_win = windows.GlobalInfoBar()
         self.default_help_message = windows.HelpText("“Ctrl+q”: close")
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
@@ -1767,7 +1762,6 @@ class SimpleTextTab(Tab):
 
     def resize(self):
         self.text_win.resize(self.height-2, self.width, 0, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):

@@ -89,6 +89,7 @@ class Core(object):
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
         self.information_win = windows.TextWin(20)
+        self.tab_win = windows.GlobalInfoBar()
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
         self.previous_tab_nb = 0
@@ -182,6 +183,8 @@ class Core(object):
         tabs.Tab.resize(self.stdscr)
         # resize the information_win to its initial size
         self.resize_global_information_win()
+        # resize the global_info_bar to its initial size
+        self.resize_global_info_bar()
         default_tab = tabs.RosterInfoTab()
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
@@ -194,6 +197,13 @@ class Core(object):
         """
         self.information_win.resize(self.information_win_size, tabs.Tab.width,
                                           tabs.Tab.height - 2 - self.information_win_size, 0)
+
+
+    def resize_global_info_bar(self):
+        """
+        Resize the GlobalInfoBar only once at each resize
+        """
+        self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
 
     def on_exception(self, typ, value, trace):
         """
@@ -675,6 +685,7 @@ class Core(object):
         """
         tabs.Tab.resize(self.stdscr)
         self.resize_global_information_win()
+        self.resize_global_info_bar()
         with resize_lock:
             for tab in self.tabs:
                 if config.get('lazy_resize', 'true') == 'true':
