@@ -540,6 +540,7 @@ class TextWin(Win):
         message.
         """
         if message is None:  # line separator
+            log.debug('je build NON, cool non ? +++++++++++++++++++++++++++')
             self.built_lines.append(None)
             return 0
         txt = message.txt
@@ -587,6 +588,7 @@ class TextWin(Win):
             self._win.erase()
             for y, line in enumerate(lines):
                 if line is None:
+                    log.debug('COUCOU JE SUIS NONE\n\n-----------------')
                     self.write_line_separator()
                 else:
                     msg = line.msg
