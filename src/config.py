@@ -124,6 +124,18 @@ class Config(RawConfigParser):
             return
         self.write_in_file(section, option, value)
 
+    def set(self, option, value, section=DEFSECTION):
+        """
+        Set the value of an option temporarily
+        """
+        try:
+            RawConfigParser.set(self, section, option, value)
+        except NoSectionError:
+            pass
+
+
+firstrun = False
+
 # creates the configuration directory if it doesn't exist
 # and copy the default config in it
 CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
@@ -137,6 +149,7 @@ except OSError:
 
 if not path.isfile(path.join(CONFIG_PATH, 'poezio.cfg')):
     copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), path.join(CONFIG_PATH, 'poezio.cfg'))
+    firstrun = True
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", default=path.join(CONFIG_PATH, 'poezio.cfg'),
@@ -145,3 +158,5 @@ parser.add_option("-d", "--debug", dest="debug",
                   help="The file where debug will be written", metavar="DEBUG_FILE")
 (options, args) = parser.parse_args()
 config = Config(options.filename)
+if firstrun:
+    config.set('firstrun', True)

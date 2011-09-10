@@ -189,6 +189,14 @@ class Core(object):
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information(_('Welcome to poezio!'))
+        if config.get('firstrun', ''):
+            self.information(_(
+                'It seems that it is the first time you start poezio.\n' + \
+                'The configuration help is here: http://dev.louiz.org/project/poezio/doc/HowToConfigure\n' + \
+                'And the documentation for users is here: http://dev.louiz.org/project/poezio/doc/HowToUse\n' + \
+                'By default, you are in poezio’s chatroom, where you can ask for help or tell us how great it is.\n' + \
+                'Just press Ctrl-n.' \
+            ))
         self.refresh_window()
 
     def resize_global_information_win(self):
