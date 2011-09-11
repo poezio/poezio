@@ -14,7 +14,7 @@ Windows are displayed, resized, etc
 """
 
 MIN_WIDTH = 50
-MIN_HEIGHT = 16
+MIN_HEIGHT = 22
 
 import logging
 log = logging.getLogger(__name__)
@@ -89,6 +89,10 @@ class Tab(object):
     @staticmethod
     def resize(scr):
         Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
+        if Tab.height < MIN_HEIGHT or Tab.width < MIN_WIDTH:
+            Tab.visible = False
+        else:
+            Tab.visible = True
 
     def complete_commands(self, the_input):
         """
@@ -671,6 +675,8 @@ class MucTab(ChatTab):
         """
         Resize the whole window. i.e. all its sub-windows
         """
+        if not self.visible:
+            return
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0)
         self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
@@ -1018,7 +1024,7 @@ class PrivateTab(ChatTab):
         self.core.close_tab()
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
@@ -1165,6 +1171,8 @@ class RosterInfoTab(Tab):
         self.resize()
 
     def resize(self):
+        if not self.visible:
+            return
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
@@ -1518,7 +1526,7 @@ class ConversationTab(ChatTab):
         self.core.close_tab()
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.text_win.rebuild_everything(self._room)
@@ -1635,6 +1643,8 @@ class MucListTab(Tab):
         self.input.refresh()
 
     def resize(self):
+        if not self.visible:
+            return
         self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1761,6 +1771,8 @@ class SimpleTextTab(Tab):
         self.core.close_tab()
 
     def resize(self):
+        if not self.visible:
+            return
         self.text_win.resize(self.height-2, self.width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 

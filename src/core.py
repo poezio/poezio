@@ -355,7 +355,8 @@ class Core(object):
             return
         log.debug('on_got_offline: %s' % presence)
         resource = contact.get_resource_by_fulljid(jid.full)
-        assert resource
+        if not resource:
+            return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x191offline' % (resource.get_jid().full))
@@ -674,7 +675,7 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
-            self.tabs[0].set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+            self.get_tab_by_number(0).set_color_state(theme.COLOR_TAB_HIGHLIGHT)
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -775,6 +776,12 @@ class Core(object):
                 if (typ and isinstance(tab, typ)) or\
                         not typ:
                     return tab
+        return None
+
+    def get_tab_by_number(self, number):
+        for tab in self.tabs:
+            if tab.nb == number:
+                return tab
         return None
 
     def get_room_by_name(self, name):

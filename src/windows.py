@@ -28,6 +28,7 @@ from threading import Lock
 
 from contact import Contact, Resource
 from roster import RosterGroup, roster
+from poopt import cut_text
 
 # from message import Line
 from tabs import MIN_WIDTH, MIN_HEIGHT
@@ -41,7 +42,10 @@ import wcwidth
 import singleton
 import collections
 
-Line = collections.namedtuple('Line', 'text text_offset nickname_color time nickname')
+# msg is a reference to the corresponding Message tuple. text_start and text_end are the position
+# delimiting the text in this line.
+# first is a bool telling if this is the first line of the message.
+Line = collections.namedtuple('Line', 'msg start_pos end_pos first')
 
 g_lock = Lock()
 
@@ -89,6 +93,12 @@ class Win(object):
         except:
             pass
 
+    def move(self, y, x):
+        try:
+            self._win.move(y, x)
+        except:
+            self._win.move(0, 0)
+
     def addstr_colored(self, text, y=None, x=None):
         """
         Write a string on the window, setting the
@@ -101,7 +111,7 @@ class Win(object):
         one of 'u', 'b', 'c[0-9]'
         """
         if y is not None and x is not None:
-            self._win.move(y, x)
+            self.move(y, x)
         next_attr_char = text.find('\x19')
         while next_attr_char != -1:
             if next_attr_char + 1 < len(text):
@@ -529,30 +539,14 @@ class TextWin(Win):
         if None not in self.built_lines:
             self.built_lines.append(None)
 
-    def build_new_message(self, message, history=None):
+    def build_new_message(self, message, history=None, clean=True):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        def cut_text(text, width):
-            """
-            returns the text that should be displayed on the line, and the rest
-            of the text, in a tuple
-            """
-            cutted = wcwidth.widthcut(text, width) or text[:width]
-            limit = cutted.find('\n')
-            if limit >= 0:
-                return (text[limit+1:], text[:limit])
-            if not wcwidth.wcsislonger(text, width):
-                return ('', text)
-            limit = cutted.rfind(' ')
-            if limit <= 0:
-                return (text[len(cutted):], cutted)
-            else:
-                return (text[limit+1:], text[:limit])
-
         if message is None:  # line separator
+            log.debug('je build NON, cool non ? +++++++++++++++++++++++++++')
             self.built_lines.append(None)
             return 0
         txt = message.txt
@@ -560,53 +554,32 @@ class TextWin(Win):
             return 0
         else:
             txt = txt.replace('\t', '    ')
-        # length of the time
-        if history:
-            offset = 20
-        else:
-            offset = 9
-        if theme.CHAR_TIME_RIGHT:
-            offset += 1
-        if theme.CHAR_TIME_RIGHT:
-            offset += 1
-        nickname = message.nickname
-        if nickname and len(nickname) >= 25:
-            nick = nickname[:25]+'…'
-        else:
-            nick = nickname
+        nick = message.nickname
+        if nick and len(nick) >= 25:
+            nick = nick[:25]+'…'
+        offset = 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
+        if nick:
+            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
+        if theme.CHAR_TIME_LEFT:
+            offset += 1
+        if theme.CHAR_TIME_RIGHT:
+            offset += 1
+
+        lines = cut_text(txt, self.width-offset-1)
+
         first = True
-        nb = 0
-        while txt != '':
-            (txt, cutted_txt) = cut_text(txt, self.width-offset-1)
-            if first:
-                if message.nick_color:
-                    color = message.nick_color
-                elif message.user:
-                    color = message.user.color
-                else:
-                    color = None
-            else:
-                color = None
-            if first:
-                if history:
-                    time = message.time.strftime("%Y-%m-%d %H:%M:%S")
-                else:
-                    time = message.time.strftime("%H:%M:%S")
-                nickname = nick
-            else:
-                time = None
-                nickname = None
-            self.built_lines.append(Line(text=cutted_txt,
-                                         text_offset=offset,
-                                         nickname_color=color, time=time,
-                                         nickname=nickname))
-            nb += 1
+        for line in lines:
+            self.built_lines.append(Line(msg=message,
+                                         start_pos=line[0],
+                                         end_pos=line[1],
+                                         first=first))
             first = False
-        while len(self.built_lines) > self.lines_nb_limit:
-            self.built_lines.pop(0)
-        return nb
+        if clean:
+            while len(self.built_lines) > self.lines_nb_limit:
+                self.built_lines.pop(0)
+            return len(lines)
 
     def refresh(self, room):
         log.debug('Refresh: %s'%self.__class__.__name__)
@@ -621,17 +594,26 @@ class TextWin(Win):
             self._win.erase()
             for y, line in enumerate(lines):
                 if line is None:
+                    log.debug('COUCOU JE SUIS NONE\n\n-----------------')
                     self.write_line_separator()
                 else:
-                    self.write_time(line.time)
-                    self.write_nickname(line.nickname, line.nickname_color)
+                    msg = line.msg
+                    if line.first:
+                        if msg.nick_color:
+                            color = msg.nick_color
+                        elif msg.user:
+                            color = msg.user.color
+                        else:
+                            color = None
+                        self.write_time(msg.str_time)
+                        self.write_nickname(msg.nickname, color)
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
             for y, line in enumerate(lines):
                 if not line:
                     continue
-                self.write_text(y, line.text_offset, line.text)
+                self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(line.msg.nickname or ''), line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
@@ -676,7 +658,9 @@ class TextWin(Win):
     def rebuild_everything(self, room):
         self.built_lines = []
         for message in room.messages:
-            self.build_new_message(message)
+            self.build_new_message(message, clean=False)
+        while len(self.built_lines) > self.lines_nb_limit:
+            self.built_lines.pop(0)
 
     def __del__(self):
         log.debug('** TextWin: deleting %s built lines' % (len(self.built_lines)))
