@@ -3,7 +3,7 @@
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the MIT license. See the COPYING file.
+# it under the terms of the zlib license. See the COPYING file.
 
 """
 Define the variables (colors and some other stuff) that are
