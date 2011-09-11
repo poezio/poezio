@@ -119,7 +119,7 @@ class Room(TextBuffer):
             if highlight:
                 nick_color = highlight
         time = time or datetime.now()
-        message = Message(txt='%s\x19o'%(txt,), nick_color=nick_color,
+        message = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                           time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
                                           if history else time.strftime("%H:%M:%S"),\
                           nickname=nickname, user=user)

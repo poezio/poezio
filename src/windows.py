@@ -552,8 +552,6 @@ class TextWin(Win):
         txt = message.txt
         if not txt:
             return 0
-        else:
-            txt = txt.replace('\t', '    ')
         nick = message.nickname
         if nick and len(nick) >= 25:
             nick = nick[:25]+'…'
