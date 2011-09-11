@@ -560,15 +560,11 @@ class TextWin(Win):
         offset = 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
-        if nick:
-            offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
         if theme.CHAR_TIME_LEFT:
             offset += 1
         if theme.CHAR_TIME_RIGHT:
             offset += 1
-
         lines = cut_text(txt, self.width-offset-1)
-
         first = True
         for line in lines:
             self.built_lines.append(Line(msg=message,
