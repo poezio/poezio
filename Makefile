@@ -21,7 +21,7 @@ install:
 	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
 
 	install -m644 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
-	for sourcefile in `find src/ -maxdepth 1 -type f -name \*.py` ; do \
+	for sourcefile in `ls -1 src/*.py src/*.so` ; do \
 		install -m644 $$sourcefile $(DESTDIR)$(DATADIR)/poezio/src; \
 	done
 
