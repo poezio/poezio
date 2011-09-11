@@ -93,6 +93,12 @@ class Win(object):
         except:
             pass
 
+    def move(self, y, x):
+        try:
+            self._win.move(y, x)
+        except:
+            self._win.move(0, 0)
+
     def addstr_colored(self, text, y=None, x=None):
         """
         Write a string on the window, setting the
@@ -105,7 +111,7 @@ class Win(object):
         one of 'u', 'b', 'c[0-9]'
         """
         if y is not None and x is not None:
-            self._win.move(y, x)
+            self.move(y, x)
         next_attr_char = text.find('\x19')
         while next_attr_char != -1:
             if next_attr_char + 1 < len(text):
