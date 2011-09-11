@@ -1160,6 +1160,8 @@ class CommandInput(Input):
     HelpMessage when a command is started
     The on_input callback
     """
+    history = list()
+
     def __init__(self, help_message, on_abort, on_success, on_input=None):
         Input.__init__(self)
         self.on_abort = on_abort
@@ -1169,6 +1171,11 @@ class CommandInput(Input):
         self.key_func['^M'] = self.success
         self.key_func['^G'] = self.abort
         self.key_func['^C'] = self.abort
+        self.key_func["KEY_UP"] = self.key_up
+        self.key_func["M-A"] =  self.key_up
+        self.key_func["KEY_DOWN"] = self.key_down
+        self.key_func["M-B"] = self.key_down
+        self.histo_pos = -1
 
     def do_command(self, key):
         res = Input.do_command(self, key)
@@ -1222,6 +1229,46 @@ class CommandInput(Input):
         self.on_success = None
         self.on_input = None
         self.key_func.clear()
+
+    def key_up(self):
+        """
+        Get the previous line in the history
+        """
+        self.reset_completion()
+        if self.histo_pos == -1 and self.get_text():
+            if not self.history or self.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                self.history.insert(0, self.get_text())
+                self.histo_pos += 1
+        if self.histo_pos < len(self.history) - 1:
+            self.histo_pos += 1
+            self.text = self.history[self.histo_pos]
+        self.key_end()
+
+    def key_down(self):
+        """
+        Get the next line in the history
+        """
+        self.reset_completion()
+        if self.histo_pos > 0:
+            self.histo_pos -= 1
+            self.text = self.history[self.histo_pos]
+        elif self.histo_pos <= 0 and self.get_text():
+            if not self.history or self.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                self.history.insert(0, self.get_text())
+            self.text = ''
+            self.histo_pos = -1
+        self.key_end()
+
+    def key_enter(self):
+        txt = self.get_text()
+        if len(txt) != 0:
+            if not self.history or self.history[0] != txt:
+                # add the message to history, but avoid duplicates
+                self.history.insert(0, txt)
+            self.histo_pos = -1
+
 
 class VerticalSeparator(Win):
     """
