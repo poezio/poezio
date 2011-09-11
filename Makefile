@@ -6,8 +6,7 @@ LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
 
 all: Makefile
-	python3 setup.py build
-	cp build/lib.linux-x86_64-3.2/poopt.cpython-32mu.so src/
+	cd src/ && python3 ../setup.py build_ext --inplace
 
 clean:
 	find ./ -name \*.pyc -delete

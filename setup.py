@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 
 module_poopt = Extension('poopt',
-                    sources = ['src/pooptmodule.c'])
+                    sources = ['pooptmodule.c'])
 
 setup (name = 'BuildLines',
        version = '0.0.1',
