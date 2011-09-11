@@ -1736,6 +1736,12 @@ class MucListTab(Tab):
     def get_color_state(self):
         return self._color_state
 
+    def on_scroll_up(self):
+        self.listview.scroll_up()
+
+    def on_scroll_down(self):
+        self.listview.scroll_down()
+
 class SimpleTextTab(Tab):
     """
     A very simple tab, with just a text displaying some

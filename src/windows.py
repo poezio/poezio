@@ -1617,6 +1617,28 @@ class ListWin(Win):
             self._starting_pos -= self.height // 2
         return True
 
+    def scroll_down(self):
+        if not self.lines:
+            return
+        self._selected_row += self.height
+        if self._selected_row > len(self.lines) - 1:
+            self._selected_row = len(self.lines) -1
+        while self._selected_row >= self._starting_pos + self.height:
+            self._starting_pos += self.height // 2
+        if self._starting_pos < 0:
+            self._starting_pos = 0
+        return True
+
+    def scroll_up(self):
+        if not self.lines:
+            return
+        self._selected_row -= self.height + 1
+        if self._selected_row < 0:
+            self._selected_row = 0
+        while self._selected_row < self._starting_pos:
+            self._starting_pos -= self.height // 2
+        return True
+
 class ColumnHeaderWin(Win):
     """
     A class displaying the column's names
