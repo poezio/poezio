@@ -656,7 +656,7 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
-            self.tabs[0].set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+            self.get_tab_by_number(0).set_color_state(theme.COLOR_TAB_HIGHLIGHT)
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -756,6 +756,12 @@ class Core(object):
                 if (typ and isinstance(tab, typ)) or\
                         not typ:
                     return tab
+        return None
+
+    def get_tab_by_number(self, number):
+        for tab in self.tabs:
+            if tab.nb == number:
+                return tab
         return None
 
     def get_room_by_name(self, name):
