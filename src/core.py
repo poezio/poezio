@@ -337,7 +337,8 @@ class Core(object):
             return
         log.debug('on_got_offline: %s' % presence)
         resource = contact.get_resource_by_fulljid(jid.full)
-        assert resource
+        if not resource:
+            return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x191offline' % (resource.get_jid().full))
