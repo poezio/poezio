@@ -144,7 +144,7 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
-            'M-c': self.coucou,
+#            'M-c': self.coucou,
             }
 
         # Add handlers

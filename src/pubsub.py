@@ -158,7 +158,6 @@ class PubsubBrowserTab(tabs.Tab):
         self.server = server
         self.nodes = []         # the lower level of nodes
 
-        self.tab_win = windows.GlobalInfoBar()
         self.upper_message = windows.Topic()
         self.set_info_message('Loading')
 
