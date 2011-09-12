@@ -868,6 +868,8 @@ class MucTab(ChatTab):
         if from_nick == room.own_nick: # we are banned
             room.disconnect()
             self.core.disable_private_tabs(room.name)
+            self.tab_win.refresh()
+            self.core.doupdate()
             if by:
                 kick_msg = _('\x191%(spec)s \x193You\x195 have been banned by \x194%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
             else:
@@ -892,6 +894,8 @@ class MucTab(ChatTab):
         if from_nick == room.own_nick: # we are kicked
             room.disconnect()
             self.core.disable_private_tabs(room.name)
+            self.tab_win.refresh()
+            self.core.doupdate()
             if by:
                 kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked by \x193%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
             else:
@@ -917,6 +921,8 @@ class MucTab(ChatTab):
             # We are now out of the room. Happens with some buggy (? not sure) servers
             room.disconnect()
             self.core.disable_private_tabs(from_room)
+            self.tab_win.refresh()
+            self.core.doupdate()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:

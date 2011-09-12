@@ -35,6 +35,7 @@ class Room(TextBuffer):
         we can know if we can join it, send messages to it, etc
         """
         self.users = []
+        self.color_state = theme.COLOR_TAB_DISCONNECTED
         self.joined = False
 
     def get_single_line_topic(self):
