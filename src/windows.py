@@ -45,7 +45,7 @@ import collections
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
 # delimiting the text in this line.
 # first is a bool telling if this is the first line of the message.
-Line = collections.namedtuple('Line', 'msg start_pos end_pos first')
+Line = collections.namedtuple('Line', 'msg start_pos end_pos')
 
 g_lock = Lock()
 
@@ -567,13 +567,10 @@ class TextWin(Win):
         if theme.CHAR_TIME_RIGHT:
             offset += 1
         lines = cut_text(txt, self.width-offset)
-        first = True
         for line in lines:
             self.built_lines.append(Line(msg=message,
                                          start_pos=line[0],
-                                         end_pos=line[1],
-                                         first=first))
-            first = False
+                                         end_pos=line[1]))
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
                 self.built_lines.pop(0)
@@ -595,7 +592,7 @@ class TextWin(Win):
                     self.write_line_separator()
                 else:
                     msg = line.msg
-                    if line.first:
+                    if line.start_pos == 0:
                         if msg.nick_color:
                             color = msg.nick_color
                         elif msg.user:
