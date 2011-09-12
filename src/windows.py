@@ -51,6 +51,12 @@ g_lock = Lock()
 
 LINES_NB_LIMIT = 4096
 
+def truncate_nick(nick, size=25):
+    if nick and len(nick) >= size:
+        return nick[:size]+'…'
+    return nick
+
+
 class Win(object):
     _win_core = None
     def __init__(self):
@@ -474,9 +480,7 @@ class MucInfoWin(InfoWin):
         nick = room.own_nick
         if not nick:
             return
-        if len(nick) > 13:
-            nick = nick[:13]+'…'
-        self.addstr(nick, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(truncate_nick(nick, 13), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
 
     def write_role(self, room):
         """
@@ -549,15 +553,12 @@ class TextWin(Win):
         message.
         """
         if message is None:  # line separator
-            log.debug('je build NON, cool non ? +++++++++++++++++++++++++++')
             self.built_lines.append(None)
             return 0
         txt = message.txt
         if not txt:
             return 0
-        nick = message.nickname
-        if nick and len(nick) >= 25:
-            nick = nick[:25]+'…'
+        nick = truncate_nick(message.nickname)
         offset = 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
@@ -565,7 +566,7 @@ class TextWin(Win):
             offset += 1
         if theme.CHAR_TIME_RIGHT:
             offset += 1
-        lines = cut_text(txt, self.width-offset-1)
+        lines = cut_text(txt, self.width-offset)
         first = True
         for line in lines:
             self.built_lines.append(Line(msg=message,
@@ -591,7 +592,6 @@ class TextWin(Win):
             self._win.erase()
             for y, line in enumerate(lines):
                 if line is None:
-                    log.debug('COUCOU JE SUIS NONE\n\n-----------------')
                     self.write_line_separator()
                 else:
                     msg = line.msg
@@ -610,7 +610,7 @@ class TextWin(Win):
             for y, line in enumerate(lines):
                 if not line:
                     continue
-                self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(line.msg.nickname or ''), line.msg.txt[line.start_pos:line.end_pos])
+                self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''), line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
@@ -634,7 +634,7 @@ class TextWin(Win):
             return
         if color:
             self._win.attron(common.curses_color_pair(color))
-        self.addstr(nickname)
+        self.addstr(truncate_nick(nickname))
         if color:
             self._win.attroff(common.curses_color_pair(color))
         self.addstr("> ")
