@@ -460,6 +460,7 @@ class MucTab(ChatTab):
         self.get_room().disconnect()
         self.core.disable_private_tabs(self.get_room().name)
         self.core.command_join('/', "0")
+        self.user_win.pos = 0
 
     def command_recolor(self, arg):
         """
