@@ -1126,6 +1126,7 @@ class PrivateTab(ChatTab):
             self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
         self.deactivate()
         self.refresh()
+        self.core.doupdate()
 
     def user_rejoined(self, nick):
         """
@@ -1134,6 +1135,7 @@ class PrivateTab(ChatTab):
         self.get_room().add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':nick, 'spec':theme.CHAR_JOIN})
         self.activate()
         self.refresh()
+        self.core.doupdate()
 
     def activate(self):
         self.on = True
