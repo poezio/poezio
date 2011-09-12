@@ -620,6 +620,7 @@ class MucTab(ChatTab):
             self.core.room_error(res, self.get_name())
 
     def command_say(self, line):
+        needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
         if line.find('\x19') == -1:
@@ -628,9 +629,10 @@ class MucTab(ChatTab):
             msg['body'] = xhtml.clean_text(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
-            msg['chat_state'] = 'active'
+            msg['chat_state'] = needed
         self.cancel_paused_delay()
         msg.send()
+        self.chat_state = needed
 
     def command_ignore(self, arg):
         """
