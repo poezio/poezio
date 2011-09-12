@@ -64,7 +64,10 @@ class Win(object):
             self._win = curses.newwin(height, width, y, x)
         else:
             self._win.resize(height, width)
-            self._win.mvwin(y, x)
+            try:
+                self._win.mvwin(y, x)
+            except:
+                log.debug('DEBUG: mvwin returned ERR. Please investigate')
 
     def resize(self, height, width, y, x):
         """
