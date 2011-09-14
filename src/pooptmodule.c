@@ -9,8 +9,7 @@
 **/
 
 /* This file is a python3 module for poezio, used to replace some time-critical
-python functions that are too slow. If compiled, poezio will use this module,
-otherwise it will just use the equivalent python functions. */
+python functions that are too slow. */
 
 #define PY_SSIZE_T_CLEAN
 
@@ -30,11 +29,10 @@ PyObject *ErrorObject;
    will return [(0, 6), (7, 10), (11, 17), (17, 22)], meaning that the lines are
    "vivent", "les", "frigid" and "aires"
 */
-PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(width, text)\n\n\nReturn the list of strings, cut according to the given size.");
+PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(text, width)\n\n\nReturn a list of two-tuple, the first int is the starting position of the line and the second is its end.");
 
 static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 {
-  /* int length; */
   unsigned char *buffer;
   int width;
 
@@ -144,8 +142,6 @@ static PyTypeObject Str_Type = {
     0,                          /*tp_free*/
     0,                          /*tp_is_gc*/
 };
-
-/* ---------- */
 
 static PyObject *
 null_richcompare(PyObject *self, PyObject *other, int op)
@@ -269,11 +265,3 @@ PyInit_poopt(void)
   Py_XDECREF(m);
   return NULL;
 }
-
-/* /\* test function *\/ */
-/* int main(void) */
-/* { */
-/*   char coucou[] = "vive le foutre, le beurre et le caca boudin"; */
-
-/*   cut_text(coucou, 8); */
-/* } */
