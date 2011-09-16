@@ -99,9 +99,10 @@ class Room(TextBuffer):
         in the room anymore
         """
         self.log_message(txt, time, nickname)
+        special_message = False
         if txt.startswith('/me '):
             txt = "\x192* \x195" + nickname + ' ' + txt[4:]
-            nickname = None
+            special_message = True
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
@@ -119,6 +120,9 @@ class Room(TextBuffer):
             highlight = self.do_highlight(txt, time, nickname)
             if highlight:
                 nick_color = highlight
+            if special_message:
+                txt = '\x195%s' % (txt,)
+                nickname = None
         time = time or datetime.now()
         message = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                           time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
