@@ -588,9 +588,7 @@ class TextWin(Win):
         with g_lock:
             self._win.erase()
             for y, line in enumerate(lines):
-                if line is None:
-                    self.write_line_separator()
-                else:
+                if line:
                     msg = line.msg
                     if line.start_pos == 0:
                         if msg.nick_color:
@@ -606,8 +604,9 @@ class TextWin(Win):
             self._win.attrset(0)
             for y, line in enumerate(lines):
                 if not line:
-                    continue
-                self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''), line.msg.txt[line.start_pos:line.end_pos])
+                    self.write_line_separator()
+                else:
+                    self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''), line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
