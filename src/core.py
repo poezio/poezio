@@ -884,6 +884,10 @@ class Core(object):
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
+            if tab.get_color_state() == theme.COLOR_TAB_DISCONNECTED:
+                self.command_win('%s' % tab.nb)
+                return
+        for tab in self.tabs:
             if isinstance(tab, tabs.ChatTab) and not tab.input.is_empty():
                 self.command_win('%s' % tab.nb)
                 return
