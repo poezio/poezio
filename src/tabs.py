@@ -680,6 +680,7 @@ class MucTab(ChatTab):
         """
         if not self.visible:
             return
+        self.need_resize = False
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0)
         self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
@@ -1035,6 +1036,7 @@ class PrivateTab(ChatTab):
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
@@ -1184,6 +1186,7 @@ class RosterInfoTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
@@ -1540,6 +1543,7 @@ class ConversationTab(ChatTab):
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0)
@@ -1657,6 +1661,7 @@ class MucListTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1791,6 +1796,7 @@ class SimpleTextTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-2, self.width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
