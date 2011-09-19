@@ -999,11 +999,12 @@ class PrivateTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        #self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
+        self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
         self.on = True
 
     def completion(self):
@@ -1048,6 +1049,16 @@ class PrivateTab(ChatTab):
             self.core.information(version, 'Info')
         jid = self.get_room().name
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+
+    def command_info(self, arg):
+        """
+        /info
+        """
+        if arg:
+            self.parent_muc.command_info(arg)
+        else:
+            user = JID(self.get_room().name).resource
+            self.parent_muc.command_info(user)
 
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
