@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 import collections
 
 from datetime import datetime
-import theme
 from config import config
 
 Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user')

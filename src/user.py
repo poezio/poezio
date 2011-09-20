@@ -10,11 +10,13 @@ Define the user class.
 An user is a MUC participant, not a roster contact (see contact.py)
 """
 
+import curses
+
 from random import randrange, choice
 from config import config
 from datetime import timedelta, datetime
-import curses
-import theme
+
+from theming import get_theme
 
 ROLE_DICT = {
     '':0,
@@ -32,7 +34,7 @@ class User(object):
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.color = choice(theme.LIST_COLOR_NICKNAMES)
+        self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
         self.jid = jid
         self.chatstate = None
 

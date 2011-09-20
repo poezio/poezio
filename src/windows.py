@@ -33,11 +33,12 @@ from poopt import cut_text
 from sleekxmpp.xmlstream.stanzabase import JID
 
 import core
-import theme
 import common
 import wcwidth
 import singleton
 import collections
+
+from theming import get_theme, to_curses_attr
 
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
 # delimiting the text in this line.
@@ -134,7 +135,7 @@ class Win(object):
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
             elif attr_char in string.digits and attr_char != '':
-                self._win.attron(common.curses_color_pair(int(attr_char)))
+                self._win.attron(to_curses_attr((int(attr_char), -1)))
             next_attr_char = text.find('\x19')
         self.addstr(text)
 
@@ -145,7 +146,7 @@ class Win(object):
         (y, x) = self._win.getyx()
         size = self.width-x
         if color:
-            self.addnstr(' '*size, size, common.curses_color_pair(color))
+            self.addnstr(' '*size, size, to_curses_attr(color))
         else:
             self.addnstr(' '*size, size)
 
@@ -159,18 +160,18 @@ class UserList(Win):
     def __init__(self):
         Win.__init__(self)
         self.pos = 0
-        self.color_role = {'moderator': theme.COLOR_USER_MODERATOR,
-                           'participant':theme.COLOR_USER_PARTICIPANT,
-                           'visitor':theme.COLOR_USER_VISITOR,
-                           'none':theme.COLOR_USER_NONE,
-                           '':theme.COLOR_USER_NONE
+        self.color_role = {'moderator': get_theme().COLOR_USER_MODERATOR,
+                           'participant':get_theme().COLOR_USER_PARTICIPANT,
+                           'visitor':get_theme().COLOR_USER_VISITOR,
+                           'none':get_theme().COLOR_USER_NONE,
+                           '':get_theme().COLOR_USER_NONE
                            }
-        self.color_show = {'xa':theme.COLOR_STATUS_XA,
-                           'none':theme.COLOR_STATUS_NONE,
-                           '':theme.COLOR_STATUS_NONE,
-                           'dnd':theme.COLOR_STATUS_DND,
-                           'away':theme.COLOR_STATUS_AWAY,
-                           'chat':theme.COLOR_STATUS_CHAT
+        self.color_show = {'xa':get_theme().COLOR_STATUS_XA,
+                           'none':get_theme().COLOR_STATUS_NONE,
+                           '':get_theme().COLOR_STATUS_NONE,
+                           'dnd':get_theme().COLOR_STATUS_DND,
+                           'away':get_theme().COLOR_STATUS_AWAY,
+                           'chat':get_theme().COLOR_STATUS_CHAT
                            }
 
     def scroll_up(self):
@@ -182,7 +183,7 @@ class UserList(Win):
             self.pos = 0
 
     def draw_plus(self, y):
-        self.addstr(y, self.width-2, '++', common.curses_color_pair(theme.COLOR_MORE_INDICATOR))
+        self.addstr(y, self.width-2, '++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
     def refresh(self, users):
         log.debug('Refresh: %s'%self.__class__.__name__)
@@ -194,11 +195,11 @@ class UserList(Win):
                 self.pos = len(users)-1
             for user in users[self.pos:]:
                 if not user.role in self.color_role:
-                    role_col = theme.COLOR_USER_NONE
+                    role_col = get_theme().COLOR_USER_NONE
                 else:
                     role_col = self.color_role[user.role]
                 if not user.show in self.color_show:
-                    show_col = theme.COLOR_STATUS_NONE
+                    show_col = get_theme().COLOR_STATUS_NONE
                 else:
                     show_col = self.color_show[user.show]
                 if user.chatstate == 'composing':
@@ -208,9 +209,9 @@ class UserList(Win):
                 elif user.chatstate == 'paused':
                     char = 'p'
                 else:
-                    char = theme.CHAR_STATUS
-                self.addstr(y, 0, char, common.curses_color_pair(show_col))
-                self.addstr(y, 1, user.nick[:self.width-2], common.curses_color_pair(role_col))
+                    char = get_theme().CHAR_STATUS
+                self.addstr(y, 0, char, to_curses_attr(show_col))
+                self.addstr(y, 1, user.nick[:self.width-2], to_curses_attr(role_col))
                 y += 1
                 if y == self.height:
                     break
@@ -223,9 +224,9 @@ class UserList(Win):
 
     def resize(self, height, width, y, x):
         self._resize(height, width, y, x)
-        self._win.attron(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
         self._win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self._win.attroff(common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+        self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
 
 class Topic(Win):
     def __init__(self):
@@ -240,12 +241,12 @@ class Topic(Win):
                 msg = topic[:self.width-1]
             else:
                 msg = self._message[:self.width-1]
-            self.addstr(0, 0, msg, common.curses_color_pair(theme.COLOR_TOPIC_BAR))
+            self.addstr(0, 0, msg, to_curses_attr(get_theme().COLOR_TOPIC_BAR))
             (y, x) = self._win.getyx()
             remaining_size = self.width - x
             if remaining_size:
                 self.addnstr(' '*remaining_size, remaining_size,
-                             common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+                             to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             self._refresh()
 
     def set_message(self, message):
@@ -262,24 +263,24 @@ class GlobalInfoBar(Win):
         comp = lambda x: x.nb
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, "[", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             sorted_tabs = sorted(self.core.tabs, key=comp)
             for tab in sorted_tabs:
                 color = tab.get_color_state()
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
-                        color == theme.COLOR_TAB_NORMAL:
+                        color == get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
-                    self.addstr("%s" % str(tab.nb), common.curses_color_pair(color))
-                    self.addstr("|", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+                    self.addstr("%s" % str(tab.nb), to_curses_attr(color))
+                    self.addstr("|", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                 except:             # end of line
                     break
             (y, x) = self._win.getyx()
-            self.addstr(y, x-1, '] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(y, x-1, '] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             (y, x) = self._win.getyx()
             remaining_size = self.width - x
             self.addnstr(' '*remaining_size, remaining_size,
-                         common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             self._refresh()
 
 class InfoWin(Win):
@@ -298,7 +299,7 @@ class InfoWin(Win):
         """
         if window.pos > 0:
             plus = ' -PLUS(%s)-' % window.pos
-            self.addstr(plus, common.curses_color_pair(theme.COLOR_SCROLLABLE_NUMBER))
+            self.addstr(plus, to_curses_attr(get_theme().COLOR_SCROLLABLE_NUMBER))
 
 class PrivateInfoWin(InfoWin):
     """
@@ -315,33 +316,33 @@ class PrivateInfoWin(InfoWin):
             self.write_room_name(room)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
     def write_room_name(self, room):
         jid = JID(room.name)
         room_name, nick = jid.bare, jid.resource
-        self.addstr(nick, common.curses_color_pair(theme.COLOR_PRIVATE_NAME))
+        self.addstr(nick, to_curses_attr(get_theme().COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
-        self.addstr(txt, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(txt, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_chatstate(self, state):
         if state:
-            self.addstr(' %s' % (state,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class ConversationInfoWin(InfoWin):
     """
     The line above the information window, displaying informations
     about the user we are talking to
     """
-    color_show = {'xa':theme.COLOR_STATUS_XA,
-                  'none':theme.COLOR_STATUS_ONLINE,
-                  '':theme.COLOR_STATUS_ONLINE,
-                  'available':theme.COLOR_STATUS_ONLINE,
-                  'dnd':theme.COLOR_STATUS_DND,
-                  'away':theme.COLOR_STATUS_AWAY,
-                  'chat':theme.COLOR_STATUS_CHAT,
-                  'unavailable':theme.COLOR_STATUS_UNAVAILABLE
+    color_show = {'xa':get_theme().COLOR_STATUS_XA,
+                  'none':get_theme().COLOR_STATUS_ONLINE,
+                  '':get_theme().COLOR_STATUS_ONLINE,
+                  'available':get_theme().COLOR_STATUS_ONLINE,
+                  'dnd':get_theme().COLOR_STATUS_DND,
+                  'away':get_theme().COLOR_STATUS_AWAY,
+                  'chat':get_theme().COLOR_STATUS_CHAT,
+                  'unavailable':get_theme().COLOR_STATUS_UNAVAILABLE
                   }
 
     def __init__(self):
@@ -372,7 +373,7 @@ class ConversationInfoWin(InfoWin):
             self.write_resource_information(resource)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
     def write_resource_information(self, resource):
@@ -384,31 +385,31 @@ class ConversationInfoWin(InfoWin):
         else:
             presence = resource.get_presence()
         color = RosterWin.color_show[presence]
-        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(" ", common.curses_color_pair(color))
-        self.addstr(']', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(" ", to_curses_attr(color))
+        self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_informations(self, contact):
         """
         Write the informations about the contact
         """
         if not contact:
-            self.addstr("(contact not in roster)", common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr("(contact not in roster)", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             return
         display_name = contact.get_name() or contact.get_bare_jid()
-        self.addstr('%s '%(display_name), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('%s '%(display_name), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_jid(self, jid):
         """
         Just write the jid that we are talking to
         """
-        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(jid.full, common.curses_color_pair(theme.COLOR_CONVERSATION_NAME))
-        self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(jid.full, to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
+        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_chatstate(self, state):
         if state:
-            self.addstr(' %s' % (state,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class ConversationStatusMessageWin(InfoWin):
     """
@@ -431,11 +432,11 @@ class ConversationStatusMessageWin(InfoWin):
             self._win.erase()
             if resource:
                 self.write_status_message(resource)
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
     def write_status_message(self, resource):
-        self.addstr(resource.get_status(), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(resource.get_status(), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
     """
@@ -455,20 +456,20 @@ class MucInfoWin(InfoWin):
             self.write_role(room)
             if window:
                 self.print_scroll_position(window)
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
     def write_room_name(self, room):
-        self.addstr('[', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.addstr(room.name, common.curses_color_pair(theme.COLOR_GROUPCHAT_NAME))
-        self.addstr('] ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(room.name, to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
+        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_disconnected(self, room):
         """
         Shows a message if the room is not joined
         """
         if not room.joined:
-            self.addstr(' -!- Not connected ', common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(' -!- Not connected ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_own_nick(self, room):
         """
@@ -477,7 +478,7 @@ class MucInfoWin(InfoWin):
         nick = room.own_nick
         if not nick:
             return
-        self.addstr(truncate_nick(nick, 13), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(truncate_nick(nick, 13), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_role(self, room):
         """
@@ -494,7 +495,7 @@ class MucInfoWin(InfoWin):
         if own_user.affiliation != 'none':
             txt += own_user.affiliation+', '
         txt += own_user.role+')'
-        self.addstr(txt, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+        self.addstr(txt, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class TextWin(Win):
     def __init__(self, lines_nb_limit=config.get('max_lines_in_memory', 2048)):
@@ -559,9 +560,9 @@ class TextWin(Win):
         offset = 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
-        if theme.CHAR_TIME_LEFT:
+        if get_theme().CHAR_TIME_LEFT:
             offset += 1
-        if theme.CHAR_TIME_RIGHT:
+        if get_theme().CHAR_TIME_RIGHT:
             offset += 1
         lines = cut_text(txt, self.width-offset)
         for line in lines:
@@ -610,7 +611,7 @@ class TextWin(Win):
             self._refresh()
 
     def write_line_separator(self):
-        self.addnstr('- '*(self.width//2-1)+'-', self.width, common.curses_color_pair(theme.COLOR_NEW_TEXT_SEPARATOR))
+        self.addnstr('- '*(self.width//2-1)+'-', self.width, to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt):
         """
@@ -626,10 +627,10 @@ class TextWin(Win):
         if not nickname:
             return
         if color:
-            self._win.attron(common.curses_color_pair(color))
+            self._win.attron(to_curses_attr(color))
         self.addstr(truncate_nick(nickname))
         if color:
-            self._win.attroff(common.curses_color_pair(color))
+            self._win.attroff(to_curses_attr(color))
         self.addstr("> ")
 
     def write_time(self, time):
@@ -672,8 +673,8 @@ class HelpText(Win):
             self.txt = txt
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, self.txt[:self.width-1], common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-            self.finish_line(theme.COLOR_INFORMATION_BAR)
+            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
     def do_command(self, key):
@@ -1034,16 +1035,16 @@ class Input(Win):
             text = self.text.replace('\n', '|')
             self._win.erase()
             if self.color:
-                self._win.attron(common.curses_color_pair(self.color))
+                self._win.attron(to_curses_attr(self.color))
             displayed_text = text[self.line_pos:self.line_pos+self.width-1]
             self.addstr(displayed_text)
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
-                self.addnstr(' '*size, size, common.curses_color_pair(self.color))
+                self.addnstr(' '*size, size, to_curses_attr(self.color))
             self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
             if self.color:
-                self._win.attroff(common.curses_color_pair(self.color))
+                self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
     def refresh(self):
@@ -1138,13 +1139,13 @@ class MessageInput(Input):
             text = self.text.replace('\n', '|')
             self._win.erase()
             if self.color:
-                self._win.attron(common.curses_color_pair(self.color))
+                self._win.attron(to_curses_attr(self.color))
             displayed_text = text[self.line_pos:self.line_pos+self.width-1]
             self._win.attrset(0)
             self.addstr_colored(displayed_text)
             self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
             if self.color:
-                self._win.attroff(common.curses_color_pair(self.color))
+                self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
 class CommandInput(Input):
@@ -1201,7 +1202,7 @@ class CommandInput(Input):
         """
         with g_lock:
             self._win.erase()
-            self.addstr(self.help_message, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+            self.addstr(self.help_message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             cursor_pos = self.pos + len(self.help_message)
             if len(self.help_message):
                 self.addstr(' ')
@@ -1276,7 +1277,7 @@ class VerticalSeparator(Win):
 
     def rewrite_line(self):
         with g_lock:
-            self._win.vline(0, 0, curses.ACS_VLINE, self.height, common.curses_color_pair(theme.COLOR_VERTICAL_SEPARATOR))
+            self._win.vline(0, 0, curses.ACS_VLINE, self.height, to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
             self._refresh()
 
     def refresh(self):
@@ -1284,14 +1285,14 @@ class VerticalSeparator(Win):
         self.rewrite_line()
 
 class RosterWin(Win):
-    color_show = {'xa':theme.COLOR_STATUS_XA,
-                  'none':theme.COLOR_STATUS_ONLINE,
-                  '':theme.COLOR_STATUS_ONLINE,
-                  'available':theme.COLOR_STATUS_ONLINE,
-                  'dnd':theme.COLOR_STATUS_DND,
-                  'away':theme.COLOR_STATUS_AWAY,
-                  'chat':theme.COLOR_STATUS_CHAT,
-                  'unavailable':theme.COLOR_STATUS_UNAVAILABLE
+    color_show = {'xa':get_theme().COLOR_STATUS_XA,
+                  'none':get_theme().COLOR_STATUS_ONLINE,
+                  '':get_theme().COLOR_STATUS_ONLINE,
+                  'available':get_theme().COLOR_STATUS_ONLINE,
+                  'dnd':get_theme().COLOR_STATUS_DND,
+                  'away':get_theme().COLOR_STATUS_AWAY,
+                  'chat':get_theme().COLOR_STATUS_CHAT,
+                  'unavailable':get_theme().COLOR_STATUS_UNAVAILABLE
                   }
 
     def __init__(self):
@@ -1388,22 +1389,22 @@ class RosterWin(Win):
         Draw the indicator that shows that
         the list is longer than what is displayed
         """
-        self.addstr(y, self.width-5, '++++', common.curses_color_pair(theme.COLOR_MORE_INDICATOR))
+        self.addstr(y, self.width-5, '++++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
     def draw_roster_information(self, roster):
         """
         The header at the top
         """
         self.addstr('Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(), roster.get_contact_len())\
-                , common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
+                , to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
         """
         Draw a groupname on a line
         """
         if colored:
-            self._win.attron(common.curses_color_pair(theme.COLOR_SELECTED_ROW))
+            self._win.attron(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         if group.folded:
             self.addstr(y, 0, '[+] ')
         else:
@@ -1411,7 +1412,7 @@ class RosterWin(Win):
         contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
         self.addstr(y, 4, group.name + contacts)
         if colored:
-            self._win.attroff(common.curses_color_pair(theme.COLOR_SELECTED_ROW))
+            self._win.attroff(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         self.finish_line()
 
     def draw_contact_line(self, y, contact, colored):
@@ -1438,16 +1439,16 @@ class RosterWin(Win):
         else:
             display_name = '%s%s' % (contact.get_bare_jid(), nb,)
         self.addstr(y, 0, ' ')
-        self.addstr(" ", common.curses_color_pair(color))
+        self.addstr(" ", to_curses_attr(color))
         if resource:
             self.addstr(' [+]' if contact._folded else ' [-]')
         self.addstr(' ')
         if colored:
-            self.addstr(display_name, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
+            self.addstr(display_name, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
         if contact.get_ask() == 'asked':
-            self.addstr('?', common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
+            self.addstr('?', to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
         self.finish_line()
 
     def draw_resource_line(self, y, resource, colored):
@@ -1455,9 +1456,9 @@ class RosterWin(Win):
         Draw a specific resource line
         """
         color = RosterWin.color_show[resource.get_presence()]
-        self.addstr(y, 4, " ", common.curses_color_pair(color))
+        self.addstr(y, 4, " ", to_curses_attr(color))
         if colored:
-            self.addstr(y, 6, resource.get_jid().full, common.curses_color_pair(theme.COLOR_SELECTED_ROW))
+            self.addstr(y, 6, resource.get_jid().full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(y, 6, resource.get_jid().full)
         self.finish_line()
@@ -1482,12 +1483,12 @@ class ContactInfoWin(Win):
             presence = resource.get_presence()
         else:
             presence = 'unavailable'
-        self.addstr(0, 0, '%s (%s)'%(jid, presence,), common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
+        self.addstr(0, 0, '%s (%s)'%(jid, presence,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
         if contact.get_ask():
             if contact.get_ask() == 'asked':
-                self.addstr(' Ask: %s' % (contact.get_ask(),), common.curses_color_pair(theme.COLOR_HIGHLIGHT_NICK))
+                self.addstr(' Ask: %s' % (contact.get_ask(),), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
             else:
                 self.addstr(' Ask: %s' % (contact.get_ask(),))
         self.finish_line()
@@ -1497,8 +1498,8 @@ class ContactInfoWin(Win):
         """
         draw the group information
         """
-        self.addstr(0, 0, group.name, common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
-        self.finish_line(theme.COLOR_INFORMATION_BAR)
+        self.addstr(0, 0, group.name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
         log.debug('Refresh: %s'%self.__class__.__name__)
@@ -1581,7 +1582,7 @@ class ListWin(Win):
                     if not txt:
                         continue
                     if line is self.lines[self._selected_row]:
-                        self.addstr(y, x, txt[:size], common.curses_color_pair(theme.COLOR_INFORMATION_BAR))
+                        self.addstr(y, x, txt[:size], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                     else:
                         self.addstr(y, x, txt[:size])
                     x += size
@@ -1659,7 +1660,7 @@ class ColumnHeaderWin(Win):
                 txt = col
                 size = self._columns_sizes[col]
                 txt += ' ' * (size-len(txt))
-                self.addstr(0, x, txt, common.curses_color_pair(theme.COLOR_COLUMN_HEADER))
+                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
                 x += size
             self._refresh()
 

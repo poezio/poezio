@@ -186,11 +186,6 @@ def shell_split(st):
     except ValueError:
         return st.split(" ")
 
-def curses_color_pair(color):
-    if color < 0:
-        return curses.color_pair(-color) | curses.A_BOLD
-    return curses.color_pair(color)
-
 def replace_key_with_bound(key):
     if config.has_option('bindings', key):
         return config.get(key, key, 'bindings')

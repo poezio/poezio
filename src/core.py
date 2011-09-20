@@ -18,7 +18,7 @@ import traceback
 from datetime import datetime
 
 import common
-import theme
+import theming
 import logging
 import singleton
 import collections
@@ -45,6 +45,7 @@ from roster import Roster, RosterGroup, roster
 from contact import Contact, Resource
 from text_buffer import TextBuffer
 from keyboard import read_char
+from theming import get_theme
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -603,7 +604,7 @@ class Core(object):
             remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
             remote_nick = jid.user
-        conversation.get_room().add_message(body, nickname=remote_nick, nick_color=theme.COLOR_REMOTE_USER)
+        conversation.get_room().add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
         if conversation.remote_wants_chatstates is None:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
@@ -613,7 +614,7 @@ class Core(object):
         if 'private' in config.get('beep_on', 'highlight private').split():
             curses.beep()
         if self.current_tab() is not conversation:
-            conversation.set_color_state(theme.COLOR_TAB_PRIVATE)
+            conversation.set_color_state(get_theme().COLOR_TAB_PRIVATE)
             self.refresh_tab_win()
         else:
             self.refresh_window()
@@ -675,7 +676,7 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
-            self.get_tab_by_number(0).set_color_state(theme.COLOR_TAB_HIGHLIGHT)
+            self.get_tab_by_number(0).set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -804,9 +805,10 @@ class Core(object):
         curses.noecho()
         curses.nonl()
         curses.raw()
-        theme.init_colors()
         stdscr.idlok(True)
         stdscr.keypad(True)
+        curses.start_color()
+        curses.use_default_colors()
         curses.ungetch(" ")    # H4X: without this, the screen is
         stdscr.getkey()        # erased on the first "getkey()"
 
@@ -824,7 +826,7 @@ class Core(object):
         """
         Refresh everything
         """
-        self.current_tab().set_color_state(theme.COLOR_TAB_CURRENT)
+        self.current_tab().set_color_state(get_theme().COLOR_TAB_CURRENT)
         self.current_tab().refresh()
         self.doupdate()
 
@@ -872,15 +874,15 @@ class Core(object):
         - A Muc with any new message
         """
         for tab in self.tabs:
-            if tab.get_color_state() == theme.COLOR_TAB_PRIVATE:
+            if tab.get_color_state() == get_theme().COLOR_TAB_PRIVATE:
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == theme.COLOR_TAB_HIGHLIGHT:
+            if tab.get_color_state() == get_theme().COLOR_TAB_HIGHLIGHT:
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == theme.COLOR_TAB_NEW_MESSAGE:
+            if tab.get_color_state() == get_theme().COLOR_TAB_NEW_MESSAGE:
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
@@ -1179,7 +1181,7 @@ class Core(object):
     def command_theme(self, arg):
         """
         """
-        theme.reload_theme()
+        # get_theme().reload_theme()
         self.refresh_window()
 
     def command_win(self, arg):

@@ -12,7 +12,7 @@ from config import config
 from logger import logger
 
 import common
-import theme
+from theming import get_theme
 
 import logging
 import curses
@@ -24,7 +24,7 @@ class Room(TextBuffer):
         TextBuffer.__init__(self, messages_nb_limit)
         self.name = name
         self.own_nick = nick
-        self.color_state = theme.COLOR_TAB_NORMAL   # color used in RoomInfo
+        self.color_state = get_theme().COLOR_TAB_NORMAL   # color used in RoomInfo
         self.joined = False     # false until self presence is receied
         self.users = []         # User objects
         self.topic = ''
@@ -35,7 +35,7 @@ class Room(TextBuffer):
         we can know if we can join it, send messages to it, etc
         """
         self.users = []
-        self.color_state = theme.COLOR_TAB_DISCONNECTED
+        self.color_state = get_theme().COLOR_TAB_DISCONNECTED
         self.joined = False
 
     def get_single_line_topic(self):
@@ -59,16 +59,16 @@ class Room(TextBuffer):
         color = None
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
-                if self.color_state != theme.COLOR_TAB_CURRENT:
-                    self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                color = theme.COLOR_HIGHLIGHT_NICK
+                if self.color_state != get_theme().COLOR_TAB_CURRENT:
+                    self.set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+                color = get_theme().COLOR_HIGHLIGHT_NICK
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
-                        if self.color_state != theme.COLOR_TAB_CURRENT:
-                            self.set_color_state(theme.COLOR_TAB_HIGHLIGHT)
-                        color = theme.COLOR_HIGHLIGHT_NICK
+                        if self.color_state != get_theme().COLOR_TAB_CURRENT:
+                            self.set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+                        color = get_theme().COLOR_HIGHLIGHT_NICK
                         break
         if color:
             beep_on = config.get('beep_on', 'highlight private').split()
@@ -110,9 +110,9 @@ class Room(TextBuffer):
             user = forced_user
         if not time and nickname and\
                 nickname != self.own_nick and\
-                self.color_state != theme.COLOR_TAB_CURRENT:
-            if self.color_state != theme.COLOR_TAB_HIGHLIGHT:
-                self.set_color_state(theme.COLOR_TAB_NEW_MESSAGE)
+                self.color_state != get_theme().COLOR_TAB_CURRENT:
+            if self.color_state != get_theme().COLOR_TAB_HIGHLIGHT:
+                self.set_color_state(get_theme().COLOR_TAB_NEW_MESSAGE)
         nick_color = nick_color or None
         if not nickname or time:
             txt = '\x195%s' % (txt,)

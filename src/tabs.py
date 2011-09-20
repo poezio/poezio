@@ -13,13 +13,15 @@ Each Tab object has different refresh() and resize() methods, defining how its
 Windows are displayed, resized, etc
 """
 
+MIN_WIDTH = 50
+MIN_HEIGHT = 22
+
 import logging
 log = logging.getLogger(__name__)
 
 from gettext import gettext as _
 
 import windows
-import theme
 import curses
 import difflib
 import text_buffer
@@ -32,6 +34,8 @@ import weakref
 import timed_events
 
 import multiuserchat as muc
+
+from theming import get_theme
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
@@ -58,7 +62,7 @@ class Tab(object):
     tab_core = None
     def __init__(self):
         self.input = None
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
@@ -86,7 +90,10 @@ class Tab(object):
     @staticmethod
     def resize(scr):
         Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
-        Tab.visible = True
+        if Tab.height < MIN_HEIGHT or Tab.width < MIN_WIDTH:
+            Tab.visible = False
+        else:
+            Tab.visible = True
 
     def complete_commands(self, the_input):
         """
@@ -185,13 +192,13 @@ class Tab(object):
         """
         called when this tab loses the focus.
         """
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        self._color_state = theme.COLOR_TAB_CURRENT
+        self._color_state = get_theme().COLOR_TAB_CURRENT
 
     def add_message(self):
         """
@@ -467,9 +474,9 @@ class MucTab(ChatTab):
         for user in users:
             if user.nick == room.own_nick:
                 users.remove(user)
-        nb_color = len(theme.LIST_COLOR_NICKNAMES)
+        nb_color = len(get_theme().LIST_COLOR_NICKNAMES)
         for i, user in enumerate(sorted(users, key=compare_users, reverse=True)):
-            user.color = theme.LIST_COLOR_NICKNAMES[i % nb_color]
+            user.color = get_theme().LIST_COLOR_NICKNAMES[i % nb_color]
         self.text_win.rebuild_everything(self._room)
         self.text_win.refresh(self._room)
         self.input.refresh()
@@ -674,7 +681,6 @@ class MucTab(ChatTab):
         """
         if not self.visible:
             return
-        self.need_resize = False
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0)
         self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
@@ -744,14 +750,14 @@ class MucTab(ChatTab):
         return self._room
 
     def on_lose_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_NORMAL)
+        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_CURRENT)
+        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
@@ -794,7 +800,7 @@ class MucTab(ChatTab):
                 if from_nick == room.own_nick:
                     room.joined = True
                     self.send_chat_state('active')
-                    new_user.color = theme.COLOR_OWN_NICK
+                    new_user.color = get_theme().COLOR_OWN_NICK
                     room.add_message(_("\x195Your nickname is \x193%s") % (from_nick))
                     if '170' in status_codes:
                         room.add_message('\x191Warning: \x195this room is publicly logged')
@@ -836,9 +842,9 @@ class MucTab(ChatTab):
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
             if not jid.full:
-                room.add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':from_nick, 'spec':theme.CHAR_JOIN})
+                room.add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':from_nick, 'spec':get_theme().CHAR_JOIN})
             else:
-                room.add_message('\x194%(spec)s \x193%(nick)s \x195(\x194%(jid)s\x195) joined the room' % {'spec':theme.CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
+                room.add_message('\x194%(spec)s \x193%(nick)s \x195(\x194%(jid)s\x195) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
         self.core.on_user_rejoined_private_conversation(room.name, from_nick)
 
 
@@ -869,14 +875,14 @@ class MucTab(ChatTab):
             self.tab_win.refresh()
             self.core.doupdate()
             if by:
-                kick_msg = _('\x191%(spec)s \x193You\x195 have been banned by \x194%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been banned by \x194%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by}
             else:
-                kick_msg = _('\x191%(spec)s \x193You\x195 have been banned.') % {'spec':theme.CHAR_KICK}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been banned.') % {'spec':get_theme().CHAR_KICK}
         else:
             if by:
-                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been banned by \x194%(by)s') % {'spec':theme.CHAR_KICK, 'nick':from_nick, 'by':by}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been banned by \x194%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'by':by}
             else:
-                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been banned') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been banned') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
             kick_msg += _('\x195 Reason: \x196%(reason)s\x195') % {'reason': reason.text}
         room.add_message(kick_msg)
@@ -895,17 +901,17 @@ class MucTab(ChatTab):
             self.tab_win.refresh()
             self.core.doupdate()
             if by:
-                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked by \x193%(by)s') % {'spec': theme.CHAR_KICK, 'by':by}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked by \x193%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by}
             else:
-                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked.') % {'spec':theme.CHAR_KICK}
+                kick_msg = _('\x191%(spec)s \x193You\x195 have been kicked.') % {'spec':get_theme().CHAR_KICK}
             # try to auto-rejoin
             if config.get('autorejoin', 'false') == 'true':
                 muc.join_groupchat(self.core.xmpp, room.name, room.own_nick)
         else:
             if by:
-                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked by \x193%(by)s') % {'spec':theme.CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked by \x193%(by)s') % {'spec':get_theme().CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
             else:
-                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked') % {'spec':theme.CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+                kick_msg = _('\x191%(spec)s \x193%(nick)s\x195 has been kicked') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
         if reason is not None and reason.text:
             kick_msg += _('\x195 Reason: \x196%(reason)s') % {'reason': reason.text}
         room.add_message(kick_msg)
@@ -924,9 +930,9 @@ class MucTab(ChatTab):
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
             if not jid.full:
-                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick, 'spec':theme.CHAR_QUIT}
+                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT}
             else:
-                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 (\x194%(jid)s\x195) has left the room') % {'spec':theme.CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+                leave_msg = _('\x191%(spec)s \x193%(nick)s\x195 (\x194%(jid)s\x195) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
             if status:
                 leave_msg += ' (%s)' % status
             room.add_message(leave_msg)
@@ -993,12 +999,10 @@ class PrivateTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
+        #self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
-        self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
         self.on = True
 
     def completion(self):
@@ -1029,35 +1033,9 @@ class PrivateTab(ChatTab):
         """
         self.core.close_tab()
 
-    def command_version(self, arg):
-        """
-        /version
-        """
-        def callback(res):
-            if not res:
-                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
-            version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or _('an unknown software'),
-                                                             res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
-            self.core.information(version, 'Info')
-        jid = self.get_room().name
-        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
-
-    def command_info(self, arg):
-        """
-        /info
-        """
-        if arg:
-            self.parent_muc.command_info(arg)
-        else:
-            user = JID(self.get_room().name).resource
-            self.parent_muc.command_info(user)
-
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
-        self.need_resize = False
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
@@ -1078,10 +1056,10 @@ class PrivateTab(ChatTab):
         self.input.refresh()
 
     def get_color_state(self):
-        if self._room.color_state == theme.COLOR_TAB_NORMAL or\
-                self._room.color_state == theme.COLOR_TAB_CURRENT:
+        if self._room.color_state == get_theme().COLOR_TAB_NORMAL or\
+                self._room.color_state == get_theme().COLOR_TAB_CURRENT:
             return self._room.color_state
-        return theme.COLOR_TAB_PRIVATE
+        return get_theme().COLOR_TAB_PRIVATE
 
     def set_color_state(self, color):
         self._room.color_state = color
@@ -1103,14 +1081,14 @@ class PrivateTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_NORMAL)
+        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(theme.COLOR_TAB_CURRENT)
+        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
         curses.curs_set(1)
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
@@ -1146,24 +1124,22 @@ class PrivateTab(ChatTab):
         """
         The user left the associated MUC
         """
-        self.deactivate()
         if not status_message:
-            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT.replace('"', '\\"')})
+            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT.replace('"', '\\"')})
         else:
-            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':theme.CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
-        if self.core.current_tab() is self:
-            self.refresh()
-            self.core.doupdate()
+            self.get_room().add_message(_('\x191%(spec)s \x193%(nick)s\x195 has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
+        self.deactivate()
+        self.refresh()
+        self.core.doupdate()
 
     def user_rejoined(self, nick):
         """
         The user (or at least someone with the same nick) came back in the MUC
         """
+        self.get_room().add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':nick, 'spec':get_theme().CHAR_JOIN})
         self.activate()
-        self.get_room().add_message('\x194%(spec)s \x193%(nick)s\x195 joined the room' % {'nick':nick, 'spec':theme.CHAR_JOIN})
-        if self.core.current_tab() is self:
-            self.refresh()
-            self.core.doupdate()
+        self.refresh()
+        self.core.doupdate()
 
     def activate(self):
         self.on = True
@@ -1185,7 +1161,7 @@ class RosterInfoTab(Tab):
         self.contact_info_win = windows.ContactInfoWin()
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
-        self.set_color_state(theme.COLOR_TAB_NORMAL)
+        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
         self.key_func['^I'] = self.completion
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
@@ -1209,7 +1185,6 @@ class RosterInfoTab(Tab):
     def resize(self):
         if not self.visible:
             return
-        self.need_resize = False
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
@@ -1420,10 +1395,10 @@ class RosterInfoTab(Tab):
         return self.reset_help_message()
 
     def on_lose_focus(self):
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
-        self._color_state = theme.COLOR_TAB_CURRENT
+        self._color_state = get_theme().COLOR_TAB_CURRENT
         if isinstance(self.input, windows.HelpText):
             curses.curs_set(0)
         else:
@@ -1526,7 +1501,7 @@ class ConversationTab(ChatTab):
     def __init__(self, jid):
         txt_buff = text_buffer.TextBuffer()
         ChatTab.__init__(self, txt_buff)
-        self.color_state = theme.COLOR_TAB_NORMAL
+        self.color_state = get_theme().COLOR_TAB_NORMAL
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         txt_buff.add_window(self.text_win)
@@ -1566,7 +1541,6 @@ class ConversationTab(ChatTab):
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
-        self.need_resize = False
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0)
@@ -1589,10 +1563,10 @@ class ConversationTab(ChatTab):
         self.input.refresh()
 
     def get_color_state(self):
-        if self.color_state == theme.COLOR_TAB_NORMAL or\
-                self.color_state == theme.COLOR_TAB_CURRENT:
+        if self.color_state == get_theme().COLOR_TAB_NORMAL or\
+                self.color_state == get_theme().COLOR_TAB_CURRENT:
             return self.color_state
-        return theme.COLOR_TAB_PRIVATE
+        return get_theme().COLOR_TAB_PRIVATE
 
     def set_color_state(self, color):
         self.color_state = color
@@ -1610,14 +1584,14 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self.set_color_state(theme.COLOR_TAB_NORMAL)
+        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self.set_color_state(theme.COLOR_TAB_CURRENT)
+        self.set_color_state(get_theme().COLOR_TAB_CURRENT)
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('active')
@@ -1652,7 +1626,7 @@ class MucListTab(Tab):
     """
     def __init__(self, server):
         Tab.__init__(self)
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
         self.name = server
         self.upper_message = windows.Topic()
         self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
@@ -1684,7 +1658,6 @@ class MucListTab(Tab):
     def resize(self):
         if not self.visible:
             return
-        self.need_resize = False
         self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1766,10 +1739,10 @@ class MucListTab(Tab):
             return self.key_func[key]()
 
     def on_lose_focus(self):
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
-        self._color_state = theme.COLOR_TAB_CURRENT
+        self._color_state = get_theme().COLOR_TAB_CURRENT
         curses.curs_set(0)
 
     def get_color_state(self):
@@ -1789,7 +1762,7 @@ class SimpleTextTab(Tab):
     """
     def __init__(self, text):
         Tab.__init__(self)
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
         self.text_win = windows.SimpleTextWin(text)
         self.default_help_message = windows.HelpText("“Ctrl+q”: close")
         self.input = self.default_help_message
@@ -1819,7 +1792,6 @@ class SimpleTextTab(Tab):
     def resize(self):
         if not self.visible:
             return
-        self.need_resize = False
         self.text_win.resize(self.height-2, self.width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
@@ -1832,10 +1804,10 @@ class SimpleTextTab(Tab):
         self.input.refresh()
 
     def on_lose_focus(self):
-        self._color_state = theme.COLOR_TAB_NORMAL
+        self._color_state = get_theme().COLOR_TAB_NORMAL
 
     def on_gain_focus(self):
-        self._color_state = theme.COLOR_TAB_CURRENT
+        self._color_state = get_theme().COLOR_TAB_CURRENT
         curses.curs_set(0)
 
     def get_color_state(self):
