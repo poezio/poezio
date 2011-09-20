@@ -38,51 +38,126 @@ def get_body_from_message_stanza(message):
     if config.get('enable_xhtml_im', 'true') == 'true':
         xhtml_body = message['xhtml_im']
         if xhtml_body:
-            xhtml_body = convert_links_to_plaintext(xhtml_body)
-            try:
-                shell_body = xhtml_code_to_shell_colors(xhtml_body)
-            except OSError:
-                log.debug('html parsing failed')
-            else:
-                return shell_colors_to_poezio_colors(shell_body)
+            return xhtml_to_poezio_colors(xhtml_body)
     return message['body']
 
-def convert_links_to_plaintext(text):
-    """
-    Replace
-    <a href='URL'>click</a>
-    by
-    <url> (click)
-    in plain text
-    """
+
+def xhtml_to_poezio_colors(text):
+    def parse_css(css):
+        def get_color(string):
+            if value == 'black':
+                return 0
+            if value == 'red':
+                return 1
+            if value == 'green':
+                return 2
+            if value == 'yellow':
+                return 3
+            if value == 'blue':
+                return 4
+            if value == 'magenta':
+                return 5
+            if value == 'cyan':
+                return 6
+            if value == 'white':
+                return 7
+            if value == 'default':
+                return 8
+        shell = ''
+        rules = css.split(';')
+        for rule in rules:
+            key, value = rule.split(':', 1)
+            key = key.strip()
+            value = value.strip()
+            log.debug(value)
+            if key == 'background-color':
+                pass#shell += '\x191'
+            elif key == 'color':
+                shell += '\x19%d' % get_color(value)
+            elif key == 'font-style':
+                shell += '\x19i'
+            elif key == 'font-weight':
+                shell += '\x19b'
+            elif key == 'margin-left':
+                shell += '    '
+            elif key == 'text-align':
+                pass
+            elif key == 'text-decoration':
+                if value == 'underline':
+                    shell += '\x19u'
+                elif value == 'blink':
+                    shell += '\x19a'
+        return shell
+
     log.debug(text)
-    xml = ElementTree(ET.fromstring(text))
-    for parent in xml.getiterator():
-        previous_child = None
-        for child in parent:
-            if child.tag == '{http://www.w3.org/1999/xhtml}a':
-                if child.attrib['href'] != child.text:
-                    if child.text is None and 'title' in child.attrib:
-                        link_text = '\n%s (%s)' % (child.attrib['href'], child.attrib['title'])
-                    else:
-                        link_text = '\n%s (%s)' % (child.attrib['href'], child.text)
-                else:
-                    link_text = child.text
-                if previous_child is not None:
-                    if previous_child.tail is None:
-                        previous_child.tail = link_text
-                    else:
-                        previous_child.tail += link_text
-                else:
-                    if parent.text is None:
-                        parent.text = link_text
-                    else:
-                        parent.text += link_text
-                parent.remove(child)
-            previous_child = child
-    if version_info.minor <= 1:
-        return ET.tostring(xml.getroot())
-    return ET.tostring(xml.getroot(), encoding=str)
+    xml = ET.fromstring(text)
+    message = ''
+    for elem in xml.iter():
+        if elem.tag == '{http://www.w3.org/1999/xhtml}a':
+            if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
+                message += '\x19u%s\x19o (%s)' % (elem.attrib['href'], elem.text)
+            else:
+                message += '\x19u' + elem.text + '\x19o'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
+            message += '“'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}body':
+            pass
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}br':
+            message += '\n'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
+            message += '\x19u'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
+            message += '\x19i'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}img' and 'src' in elem.attrib:
+            if elem.attrib['alt']:
+                message += '%s (%s)' % (elem.attrib['src'], elem.attrib['alt'])
+            else:
+                message += elem.attrib['src']
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}li':
+            pass
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}ol':
+            pass
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}p':
+            pass
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}span':
+            pass
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}strong':
+            message += '\x19b'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}ul':
+            pass
+
+        if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
+                                   and elem.tag != '{http://www.w3.org/1999/xhtml}em'
+                                   and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
+            message += parse_css(elem.attrib['style'])
+
+        if (elem.text and elem.tag != '{http://www.w3.org/1999/xhtml}a'
+                      and elem.tag != '{http://www.w3.org/1999/xhtml}br'
+                      and elem.tag != '{http://www.w3.org/1999/xhtml}img'):
+            message += elem.text
+
+        if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
+                                   and elem.tag != '{http://www.w3.org/1999/xhtml}em'
+                                   and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
+            message += '\x19o'
+
+        if elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
+            message += '”'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
+            message += '\x19o'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
+            message += '\x19o'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}strong' or elem.tag == '{http://www.w3.org/1999/xhtml}b':
+            message += '\x19o'
+        elif elem.tag == '{http://www.w3.org/1999/xhtml}u':
+            message += '\x19o'
+
+        if 'title' in elem.attrib:
+            message += ' [' + elem.attrib['title'] + ']'
+
+        if elem.tail:
+            message += elem.tail
+    return message
 
 
 def clean_text(string):
@@ -148,47 +223,6 @@ def poezio_colors_to_html(string):
     res += "</p></body>"
     return res.replace('\n', '<br />')
 
-def shell_colors_to_poezio_colors(string):
-    """
-    'shell colors' means something like:
-
-    Bonjour ^[[0;32msalut^[[0m
-
-    The current understanding of this syntax is:
-    n = 0: reset all attributes to defaults
-    n = 1: activate bold
-    n >= 30 and n <= 37: set the foreground to n-30
-
-    """
-    def repl(matchobj):
-        exp = matchobj.group(0)[2:-1]
-        numbers = [int(nb) for nb in exp.split(';')]
-        res = ''
-        for num in numbers:
-            if num == 0:
-                res += '\x19o'
-            elif num == 1:
-                res += '\x19b'
-            elif num >= 31 and num <= 37:
-                res += '\x19%d' % ((num-30)%7,)
-        return res
-    def remove_elinks_indent(string):
-        lines = string.split('\n')
-        for i, line in enumerate(lines):
-            lines[i] = re.sub('   ', '', line, 1)
-        return '\n'.join(lines)
-    res = shell_colors_re.sub(repl, string).strip()
-    res = remove_elinks_indent(res)
-    return res
-
-def xhtml_code_to_shell_colors(string):
-    """
-    Use a console browser to parse the xhtml and
-    make it return a shell-colored string
-    """
-    process = subprocess.Popen(["elinks", "-dump", "-dump-color-mode", "2"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-    result = process.communicate(input=string.encode('utf-8'))[0]
-    return result.decode('utf-8').strip()
 
 def poezio_colors_to_xhtml(string):
     """
