@@ -13,9 +13,6 @@ Each Tab object has different refresh() and resize() methods, defining how its
 Windows are displayed, resized, etc
 """
 
-MIN_WIDTH = 50
-MIN_HEIGHT = 22
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -89,10 +86,7 @@ class Tab(object):
     @staticmethod
     def resize(scr):
         Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
-        if Tab.height < MIN_HEIGHT or Tab.width < MIN_WIDTH:
-            Tab.visible = False
-        else:
-            Tab.visible = True
+        Tab.visible = True
 
     def complete_commands(self, the_input):
         """

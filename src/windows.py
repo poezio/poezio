@@ -30,9 +30,6 @@ from contact import Contact, Resource
 from roster import RosterGroup, roster
 from poopt import cut_text
 
-# from message import Line
-from tabs import MIN_WIDTH, MIN_HEIGHT
-
 from sleekxmpp.xmlstream.stanzabase import JID
 
 import core
@@ -69,8 +66,8 @@ class Win(object):
         if not self._win:
             self._win = curses.newwin(height, width, y, x)
         else:
-            self._win.resize(height, width)
             try:
+                self._win.resize(height, width)
                 self._win.mvwin(y, x)
             except:
                 log.debug('DEBUG: mvwin returned ERR. Please investigate')
