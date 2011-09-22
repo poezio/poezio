@@ -22,6 +22,155 @@ from config import config
 import logging
 
 digits = '0123456789' # never trust the modules
+colors = {
+    'aliceblue': 231,
+    'antiquewhite': 231,
+    'aqua': 51,
+    'aquamarine': 122,
+    'azure': 231,
+    'beige': 231,
+    'bisque': 230,
+    'black': 232,
+    'blanchedalmond': 230,
+    'blue': 21,
+    'blueviolet': 135,
+    'brown': 124,
+    'burlywood': 223,
+    'cadetblue': 109,
+    'chartreuse': 118,
+    'chocolate': 172,
+    'coral': 209,
+    'cornflowerblue': 111,
+    'cornsilk': 231,
+    'crimson': 197,
+    'cyan': 51,
+    'darkblue': 19,
+    'darkcyan': 37,
+    'darkgoldenrod': 178,
+    'darkgray': 247,
+    'darkgreen': 28,
+    'darkgrey': 247,
+    'darkkhaki': 186,
+    'darkmagenta': 127,
+    'darkolivegreen': 65,
+    'darkorange': 214,
+    'darkorchid': 134,
+    'darkred': 124,
+    'darksalmon': 216,
+    'darkseagreen': 151,
+    'darkslateblue': 61,
+    'darkslategray': 59,
+    'darkslategrey': 59,
+    'darkturquoise': 44,
+    'darkviolet': 128,
+    'deeppink': 199,
+    'deepskyblue': 45,
+    'dimgray': 241,
+    'dimgrey': 241,
+    'dodgerblue': 39,
+    'firebrick': 160,
+    'floralwhite': 231,
+    'forestgreen': 34,
+    'fuchsia': 201,
+    'gainsboro': 252,
+    'ghostwhite': 231,
+    'gold': 226,
+    'goldenrod': 214,
+    'gray': 244,
+    'green': 34,
+    'greenyellow': 191,
+    'grey': 244,
+    'honeydew': 231,
+    'hotpink': 212,
+    'indianred': 174,
+    'indigo': 55,
+    'ivory': 231,
+    'khaki': 229,
+    'lavender': 231,
+    'lavenderblush': 231,
+    'lawngreen': 118,
+    'lemonchiffon': 230,
+    'lightblue': 195,
+    'lightcoral': 217,
+    'lightcyan': 231,
+    'lightgoldenrodyellow': 230,
+    'lightgray': 251,
+    'lightgreen': 157,
+    'lightgrey': 251,
+    'lightpink': 224,
+    'lightsalmon': 216,
+    'lightseagreen': 43,
+    'lightskyblue': 153,
+    'lightslategray': 109,
+    'lightslategrey': 109,
+    'lightsteelblue': 189,
+    'lightyellow': 231,
+    'lime': 46,
+    'limegreen': 77,
+    'linen': 231,
+    'magenta': 201,
+    'maroon': 124,
+    'mediumaquamarine': 115,
+    'mediumblue': 20,
+    'mediumorchid': 170,
+    'mediumpurple': 141,
+    'mediumseagreen': 78,
+    'mediumslateblue': 105,
+    'mediumspringgreen': 49,
+    'mediumturquoise': 80,
+    'mediumvioletred': 163,
+    'midnightblue': 18,
+    'mintcream': 231,
+    'mistyrose': 231,
+    'moccasin': 230,
+    'navajowhite': 230,
+    'navy': 19,
+    'oldlace': 231,
+    'olive': 142,
+    'olivedrab': 106,
+    'orange': 214,
+    'orangered': 202,
+    'orchid': 213,
+    'palegoldenrod': 229,
+    'palegreen': 157,
+    'paleturquoise': 195,
+    'palevioletred': 211,
+    'papayawhip': 231,
+    'peachpuff': 230,
+    'peru': 179,
+    'pink': 224,
+    'plum': 219,
+    'powderblue': 195,
+    'purple': 127,
+    'red': 196,
+    'rosybrown': 181,
+    'royalblue': 69,
+    'saddlebrown': 130,
+    'salmon': 216,
+    'sandybrown': 216,
+    'seagreen': 72,
+    'seashell': 231,
+    'sienna': 131,
+    'silver': 250,
+    'skyblue': 153,
+    'slateblue': 104,
+    'slategray': 109,
+    'slategrey': 109,
+    'snow': 231,
+    'springgreen': 48,
+    'steelblue': 74,
+    'tan': 187,
+    'teal': 37,
+    'thistle': 225,
+    'tomato': 209,
+    'turquoise': 86,
+    'violet': 219,
+    'wheat': 230,
+    'white': 255,
+    'whitesmoke': 255,
+    'yellow': 226,
+    'yellowgreen': 149
+}
 
 log = logging.getLogger(__name__)
 
@@ -44,25 +193,31 @@ def get_body_from_message_stanza(message):
 
 def xhtml_to_poezio_colors(text):
     def parse_css(css):
-        def get_color(string):
-            if value == 'black':
-                return 0
-            if value == 'red':
-                return 1
-            if value == 'green':
-                return 2
-            if value == 'yellow':
-                return 3
-            if value == 'blue':
-                return 4
-            if value == 'magenta':
-                return 5
-            if value == 'cyan':
-                return 6
-            if value == 'white':
-                return 7
-            if value == 'default':
-                return 8
+        def get_color(value):
+            if value[0] == '#':
+                value = value[1:]
+                length = len(value)
+                if length != 3 and length != 6:
+                    return -1
+                value = int(value, 16)
+                if length == 6:
+                    r = int(value >> 16)
+                    g = int((value >> 8) & 0xff)
+                    b = int(value & 0xff)
+                    if r == g == b:
+                        return 232 + int(r/10.6251)
+                    div = 42.51
+                else:
+                    r = int(value >> 8)
+                    g = int((value >> 4) & 0xf)
+                    b = int(value & 0xf)
+                    if r == g == b:
+                        return 232 + int(1.54*r)
+                    div = 2.51
+                return 6*6*int(r/div) + 6*int(g/div) + int(b/div) + 16
+            if value in colors:
+                return colors[value]
+            return -1
         shell = ''
         rules = css.split(';')
         for rule in rules:
@@ -73,7 +228,7 @@ def xhtml_to_poezio_colors(text):
             if key == 'background-color':
                 pass#shell += '\x191'
             elif key == 'color':
-                shell += '\x19%d' % get_color(value)
+                shell += '\x19%d}' % get_color(value)
             elif key == 'font-style':
                 shell += '\x19i'
             elif key == 'font-weight':
@@ -109,7 +264,7 @@ def xhtml_to_poezio_colors(text):
         elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
             message += '\x19i'
         elif elem.tag == '{http://www.w3.org/1999/xhtml}img' and 'src' in elem.attrib:
-            if elem.attrib['alt']:
+            if 'alt' in elem.attrib:
                 message += '%s (%s)' % (elem.attrib['src'], elem.attrib['alt'])
             else:
                 message += elem.attrib['src']
