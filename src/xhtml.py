@@ -174,6 +174,7 @@ colors = {
 
 log = logging.getLogger(__name__)
 
+whitespace_re = re.compile(r'\s+')
 
 def get_body_from_message_stanza(message):
     """
