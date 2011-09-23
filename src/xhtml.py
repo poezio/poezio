@@ -174,7 +174,7 @@ colors = {
 
 log = logging.getLogger(__name__)
 
-whitespace_re = re.compile(r'\s')
+whitespace_re = re.compile(r'\s+')
 shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
 start_indent_re = re.compile(r'\[0;30m\[0;37m   ')
 newline_indent_re = re.compile('\n\[0;37m   ')
