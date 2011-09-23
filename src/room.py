@@ -101,7 +101,7 @@ class Room(TextBuffer):
         self.log_message(txt, time, nickname)
         special_message = False
         if txt.startswith('/me '):
-            txt = "\x192* \x195" + nickname + ' ' + txt[4:]
+            txt = "\x192}* \x195}" + nickname + ' ' + txt[4:]
             special_message = True
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
@@ -115,13 +115,13 @@ class Room(TextBuffer):
                 self.set_color_state(get_theme().COLOR_TAB_NEW_MESSAGE)
         nick_color = nick_color or None
         if not nickname or time:
-            txt = '\x195%s' % (txt,)
+            txt = '\x195}%s' % (txt,)
         else:                   # TODO
             highlight = self.do_highlight(txt, time, nickname)
             if highlight:
                 nick_color = highlight
             if special_message:
-                txt = '\x195%s' % (txt,)
+                txt = '\x195}%s' % (txt,)
                 nickname = None
         time = time or datetime.now()
         message = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,

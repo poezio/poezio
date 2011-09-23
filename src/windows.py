@@ -40,6 +40,7 @@ import collections
 
 from theming import get_theme, to_curses_attr
 
+allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
 # delimiting the text in this line.
 # first is a bool telling if this is the first line of the message.
@@ -112,10 +113,41 @@ class Win(object):
         attributes as they are in the string.
         For example:
         \x19bhello → hello in bold
-        \xc1Bonj\xc2our → 'Bonj' in red and 'our' in green
+        \x191}Bonj\x192}our → 'Bonj' in red and 'our' in green
         next_attr_char is the \x19 delimiter
         attr_char is the char following it, it can be
         one of 'u', 'b', 'c[0-9]'
+        """
+        if y is not None and x is not None:
+            self.move(y, x)
+        next_attr_char = text.find('\x19')
+        while next_attr_char != -1 and text:
+            log.debug('Addstr_Colored: [%s]' % text.replace('\x19', '\\x19'))
+            if next_attr_char + 1 < len(text):
+                attr_char = text[next_attr_char+1].lower()
+            else:
+                attr_char = str()
+            if next_attr_char != 0:
+                self.addstr(text[:next_attr_char])
+            if attr_char == 'o':
+                self._win.attrset(0)
+            elif attr_char == 'u':
+                self._win.attron(curses.A_UNDERLINE)
+            elif attr_char == 'b':
+                self._win.attron(curses.A_BOLD)
+            if attr_char in string.digits and attr_char != '':
+                color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
+                self._win.attron(to_curses_attr((int(color_str), -1)))
+                text = text[next_attr_char+len(color_str)+2:]
+            else:
+                text = text[next_attr_char+2:]
+            next_attr_char = text.find('\x19')
+        self.addstr(text)
+
+    def addstr_colored_lite(self, text, y=None, x=None):
+        """
+        Just like addstr_colored, but only handles colors with one digit.
+        \x193 is the 3rd color. We do not use any } char in this version
         """
         if y is not None and x is not None:
             self.move(y, x)
@@ -1101,7 +1133,7 @@ class MessageInput(Input):
         Read one more char (c) and add \x19c to the string
         """
         attr_char = self.core.read_keyboard()[0]
-        if attr_char in self.text_attributes or (attr_char in string.digits and int(attr_char) < 7):
+        if attr_char in self.text_attributes or attr_char in allowed_color_digits:
             self.do_command('\x19', False)
             self.do_command(attr_char)
 
@@ -1142,7 +1174,7 @@ class MessageInput(Input):
                 self._win.attron(to_curses_attr(self.color))
             displayed_text = text[self.line_pos:self.line_pos+self.width-1]
             self._win.attrset(0)
-            self.addstr_colored(displayed_text)
+            self.addstr_colored_lite(displayed_text)
             self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
             if self.color:
                 self._win.attroff(to_curses_attr(self.color))

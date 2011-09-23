@@ -378,7 +378,6 @@ def poezio_colors_to_html(string):
     res += "</p></body>"
     return res.replace('\n', '<br />')
 
-
 def poezio_colors_to_xhtml(string):
     """
     Generate a valid xhtml string from

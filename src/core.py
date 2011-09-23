@@ -360,13 +360,13 @@ class Core(object):
             return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x191offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.get_jid().full))
         contact.remove_resource(resource)
         # Display the message in the conversation with the bare JID only if that was
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
-            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x191offline' % (jid.bare))
-            self.information('\x193%s \x195is \x191offline' % (resource.get_jid().bare), "Roster")
+            self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
+            self.information('\x193}%s \x195}is \x191}offline' % (resource.get_jid().bare), "Roster")
 
     def on_got_online(self, presence):
         jid = presence['from']
@@ -384,13 +384,13 @@ class Core(object):
         resource.set_status(status_message)
         resource.set_presence(status)
         resource.set_priority(priority)
-        self.add_information_message_to_conversation_tab(jid.full, '\x195%s is \x194online' % (jid.full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
         if not contact.get_highest_priority_resource():
             # No connected resource yet: the user's just connecting
             if time.time() - self.connection_time > 12:
                 # We do not display messages if we recently logged in
-                self.information("\x193%s \x195is \x194online\x195 (\x190%s\x195)" % (resource.get_jid().bare, status), "Roster")
-            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x194online' % (jid.bare))
+                self.information("\x193}%s \x195}is \x194}online\x195} (\x190}%s\x195})" % (resource.get_jid().bare, status), "Roster")
+            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x194}online' % (jid.bare))
         contact.add_resource(resource)
 
     def add_information_message_to_conversation_tab(self, jid, msg):
