@@ -36,6 +36,8 @@ import windows
 import connection
 import timed_events
 
+from plugin_manager import PluginManager
+
 from data_forms import DataFormsTab
 from config import config, options
 from logger import logger
@@ -125,6 +127,8 @@ class Core(object):
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
             'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
+            'load': (self.command_load, _('Usage: /load <script.py>\nLoad: Load the specified python script'), None),
+            'unload': (self.command_unload, _('Usage: /unload <script.py>\nUnload: Unload the specified python script'), None),
             }
 
         self.key_func = {
@@ -169,6 +173,7 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
+        self.plugin_manager = PluginManager(self)
 
     def coucou(self):
         self.command_pubsub('pubsub.louiz.org')
@@ -1120,6 +1125,28 @@ class Core(object):
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
+
+    def command_load(self, arg):
+        """
+        /load <script.py>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('load')
+            return
+        filename = args[0]
+        self.plugin_manager.load(filename)
+
+    def command_unload(self, arg):
+        """
+        /unload <script.py>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('unload')
+            return
+        filename = args[0]
+        self.plugin_manager.unload(filename)
 
     def command_message(self, arg):
         """
