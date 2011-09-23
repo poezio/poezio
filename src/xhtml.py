@@ -174,6 +174,7 @@ colors = {
 
 log = logging.getLogger(__name__)
 
+whitespace_re = re.compile(r'\s')
 shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
 start_indent_re = re.compile(r'\[0;30m\[0;37m   ')
 newline_indent_re = re.compile('\n\[0;37m   ')
@@ -221,6 +222,8 @@ def xhtml_to_poezio_colors(text):
         shell = ''
         rules = css.split(';')
         for rule in rules:
+            if ':' not in rule:
+                continue
             key, value = rule.split(':', 1)
             key = key.strip()
             value = value.strip()
@@ -244,13 +247,16 @@ def xhtml_to_poezio_colors(text):
                     shell += '\x19a'
         return shell
 
+    def trim(string):
+        return re.sub(whitespace_re, ' ', string)
+
     log.debug(text)
     xml = ET.fromstring(text)
     message = ''
     for elem in xml.iter():
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
             if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
-                message += '\x19u%s\x19o (%s)' % (elem.attrib['href'].strip(), elem.text.strip())
+                message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text))
             else:
                 message += '\x19u' + elem.text + '\x19o'
         elif elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
@@ -265,7 +271,7 @@ def xhtml_to_poezio_colors(text):
             message += '\x19i'
         elif elem.tag == '{http://www.w3.org/1999/xhtml}img' and 'src' in elem.attrib:
             if 'alt' in elem.attrib:
-                message += '%s (%s)' % (elem.attrib['src'].strip(), elem.attrib['alt'].strip())
+                message += '%s (%s)' % (trim(elem.attrib['src']), trim(elem.attrib['alt']))
             else:
                 message += elem.attrib['src']
         elif elem.tag == '{http://www.w3.org/1999/xhtml}li':
@@ -289,7 +295,7 @@ def xhtml_to_poezio_colors(text):
         if (elem.text and elem.tag != '{http://www.w3.org/1999/xhtml}a'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}img'):
-            message += elem.text.strip()
+            message += trim(elem.text)
 
         if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}em'
@@ -311,7 +317,7 @@ def xhtml_to_poezio_colors(text):
             message += ' [' + elem.attrib['title'] + ']'
 
         if elem.tail:
-            message += elem.tail.strip()
+            message += trim(elem.tail)
     return message
 
 
