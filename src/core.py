@@ -1327,6 +1327,18 @@ class Core(object):
             r.users = []
         self.enable_private_tabs(room)
 
+    def get_bookmark_nickname(self, room_name):
+        """
+        Returns the nickname associated with a bookmark
+        or the default nickname
+        """
+        bookmarks = config.get('rooms', '').split(':')
+        jid = JID(room_name)
+        for bookmark in bookmarks:
+            if JID(bookmark).bare == jid.bare:
+                return JID(bookmark).resource
+        return self.own_nick
+
     def command_bookmark(self, arg):
         """
         /bookmark [room][/nick]
