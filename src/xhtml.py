@@ -174,10 +174,6 @@ colors = {
 
 log = logging.getLogger(__name__)
 
-shell_colors_re = re.compile(r'(\[(?:\d+;)*(?:\d+m))')
-start_indent_re = re.compile(r'\[0;30m\[0;37m   ')
-newline_indent_re = re.compile('\n\[0;37m   ')
-
 def get_body_from_message_stanza(message):
     """
     Returns a string with xhtml markups converted to
@@ -189,7 +185,6 @@ def get_body_from_message_stanza(message):
         if xhtml_body:
             return xhtml_to_poezio_colors(xhtml_body)
     return message['body']
-
 
 def xhtml_to_poezio_colors(text):
     def parse_css(css):
@@ -289,7 +284,7 @@ def xhtml_to_poezio_colors(text):
         if (elem.text and elem.tag != '{http://www.w3.org/1999/xhtml}a'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}img'):
-            message += elem.text.strip()
+            message += elem.text.replace('\n', '')
 
         if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}em'
