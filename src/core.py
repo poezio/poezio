@@ -174,6 +174,12 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
+        self.autoload_plugins()
+
+    def autoload_plugins(self):
+        plugins = config.get('plugins_autoload', '')
+        for plugin in plugins.split():
+            self.plugin_manager.load(plugin)
 
     def coucou(self):
         self.command_pubsub('pubsub.louiz.org')
