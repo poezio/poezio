@@ -103,6 +103,7 @@ class Core(object):
         #  a completion function, taking a Input as argument. Can be None)
         #  The completion function should return True if a completion was
         #  made ; False otherwise
+        self.plugin_manager = PluginManager(self)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
@@ -127,8 +128,8 @@ class Core(object):
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
             'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
-            'load': (self.command_load, _('Usage: /load <script.py>\nLoad: Load the specified python script'), None),
-            'unload': (self.command_unload, _('Usage: /unload <script.py>\nUnload: Unload the specified python script'), None),
+            'load': (self.command_load, _('Usage: /load <script.py>\nLoad: Load the specified python script'), self.plugin_manager.completion_load),
+            'unload': (self.command_unload, _('Usage: /unload <script.py>\nUnload: Unload the specified python script'), self.plugin_manager.completion_unload),
             }
 
         self.key_func = {
@@ -173,7 +174,6 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
-        self.plugin_manager = PluginManager(self)
 
     def coucou(self):
         self.command_pubsub('pubsub.louiz.org')

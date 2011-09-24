@@ -40,7 +40,7 @@ class PluginManager(object):
                 imp.release_lock()
         except Exception as e:
             import traceback
-            self.core.information(_("Could not load plugin: ") + traceback.format_exc())
+            self.core.information(_("Could not load plugin: ") + traceback.format_exc(), 'Error')
             return
         finally:
             if imp.lock_held():
@@ -84,3 +84,22 @@ class PluginManager(object):
         self.core.xmpp.del_event_handler(event_name, handler)
         eh = self.event_handlers[module_name]
         eh = list(filter(lambda e : e != (event_name, handler), eh))
+
+    def completion_load(self, the_input):
+        """
+        completion function that completes the name of the plugins, from
+        all .py files in plugins_dir
+        """
+        try:
+            names = os.listdir(plugins_dir)
+        except OSError as e:
+            self.core.information(_('Completion failed: %s' % e), 'Error')
+            return
+        plugins_files = [name[:-3] for name in names if name.endswith('.py')]
+        return the_input.auto_completion(plugins_files, '')
+
+    def completion_unload(self, the_input):
+        """
+        completion function that completes the name of the plugins that are loaded
+        """
+        return the_input.auto_completion(list(self.plugins.keys()), '')
