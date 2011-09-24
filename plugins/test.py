@@ -1,5 +1,9 @@
+from plugin import BasePlugin
+
 class Plugin(BasePlugin):
     def init(self):
+        self.add_command('plugintest', self.command_plugintest, 'Test command')
+        self.add_event_handler('message', self.on_message)
         self.core.information("Plugin loaded")
 
     def cleanup(self):

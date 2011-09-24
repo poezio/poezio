@@ -1,3 +1,4 @@
+from plugin import BasePlugin
 import os
 import stat
 import pyinotify
