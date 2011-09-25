@@ -32,7 +32,6 @@ class DataFormsTab(Tab):
         for field in self._form:
             self.fields.append(field)
         self.topic_win = windows.Topic()
-        self.tab_win = windows.GlobalInfoBar()
         self.form_win = FormWin(form, self.height-4, self.width, 1, 0)
         self.help_win = windows.HelpText("Ctrl+Y: send form, Ctrl+G: cancel")
         self.help_win_dyn = windows.HelpText()
