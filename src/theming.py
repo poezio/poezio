@@ -163,6 +163,30 @@ theme = Theme()
 # the next time.
 curses_colors_dict = {}
 
+table_256_to_16 = [
+         0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+         0,  4,  4,  4, 12, 12,  2,  6,  4,  4, 12, 12,  2,  2,  6,  4,
+        12, 12,  2,  2,  2,  6, 12, 12, 10, 10, 10, 10, 14, 12, 10, 10,
+        10, 10, 10, 14,  1,  5,  4,  4, 12, 12,  3,  8,  4,  4, 12, 12,
+         2,  2,  6,  4, 12, 12,  2,  2,  2,  6, 12, 12, 10, 10, 10, 10,
+        14, 12, 10, 10, 10, 10, 10, 14,  1,  1,  5,  4, 12, 12,  1,  1,
+         5,  4, 12, 12,  3,  3,  8,  4, 12, 12,  2,  2,  2,  6, 12, 12,
+        10, 10, 10, 10, 14, 12, 10, 10, 10, 10, 10, 14,  1,  1,  1,  5,
+        12, 12,  1,  1,  1,  5, 12, 12,  1,  1,  1,  5, 12, 12,  3,  3,
+         3,  7, 12, 12, 10, 10, 10, 10, 14, 12, 10, 10, 10, 10, 10, 14,
+         9,  9,  9,  9, 13, 12,  9,  9,  9,  9, 13, 12,  9,  9,  9,  9,
+        13, 12,  9,  9,  9,  9, 13, 12, 11, 11, 11, 11,  7, 12, 10, 10,
+        10, 10, 10, 14,  9,  9,  9,  9,  9, 13,  9,  9,  9,  9,  9, 13,
+         9,  9,  9,  9,  9, 13,  9,  9,  9,  9,  9, 13,  9,  9,  9,  9,
+         9, 13, 11, 11, 11, 11, 11, 15,  0,  0,  0,  0,  0,  0,  8,  8,
+         8,  8,  8,  8,  7,  7,  7,  7,  7,  7, 15, 15, 15, 15, 15, 15
+]
+
+def color_256_to_16(color):
+    if color == -1:
+        return color
+    return table_256_to_16[color]
+
 def to_curses_attr(color_tuple):
     """
     Takes a color tuple (as defined at the top of this file) and
@@ -174,6 +198,17 @@ def to_curses_attr(color_tuple):
     else:
         colors = color_tuple
 
+    bold = False
+    if curses.COLORS != 256:
+        # We are not in a term supporting 256 colors, so we convert
+        # colors to numbers between -1 and 8
+        colors = (color_256_to_16(colors[0]), color_256_to_16(colors[1]))
+        if colors[0] >= 8:
+            colors = (colors[0] - 8, colors[1])
+            bold = True
+        if colors[1] >= 8:
+            colors = (colors[0], colors[1] - 8)
+
     # check if we already used these colors
     try:
         pair = curses_colors_dict[colors]
@@ -181,11 +216,10 @@ def to_curses_attr(color_tuple):
         pair = len(curses_colors_dict) + 1
         curses.init_pair(pair, colors[0], colors[1])
         curses_colors_dict[colors] = pair
-        log.debug('New pair: %s (%s)' % (pair, colors,))
     curses_pair = curses.color_pair(pair)
     if len(color_tuple) == 3:
         additional_val = color_tuple[2]
-        if 'b' in additional_val:
+        if 'b' in additional_val or bold is True:
             curses_pair = curses_pair | curses.A_BOLD
         if 'u' in additional_val:
             curses_pair = curses_pair | curses.A_UNDERLINE
