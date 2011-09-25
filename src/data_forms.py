@@ -130,6 +130,26 @@ class DummyInput(FieldInput, windows.Win):
     def is_dummy(self):
         return True
 
+class ColoredLabel(windows.Win):
+    def __init__(self, text):
+        self.text = text
+        self.color = 14
+        windows.Win.__init__(self)
+
+    def resize(self, height, width, y, x):
+        self._resize(height, width, y, x)
+
+    def set_color(self, color):
+        self.color = color
+        self.refresh()
+
+    def refresh(self):
+        with g_lock:
+            self._win.attron(curses.color_pair(self.color))
+            self.addstr(0, 0, self.text)
+            self._win.attroff(curses.color_pair(self.color))
+            self._refresh()
+
 class BooleanWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -398,7 +418,7 @@ class FormWin(object):
             if field['type'] == 'fixed':
                 label = field.getValue()
             inp = input_class(field)
-            self.inputs.append({'label':label,
+            self.inputs.append({'label':ColoredLabel(label),
                                 'description': desc,
                                 'input':inp})
 
@@ -427,6 +447,7 @@ class FormWin(object):
             return
         if self.current_input == len(self.inputs) - 1 or self.current_input >= self.height-1:
             return
+        self.inputs[self.current_input]['label'].set_color(14)
         self.inputs[self.current_input]['input'].set_color(14)
         self.current_input += 1
         jump = 0
@@ -435,6 +456,7 @@ class FormWin(object):
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
         self.current_input += jump
+        self.inputs[self.current_input]['label'].set_color(13)
         self.inputs[self.current_input]['input'].set_color(13)
 
     def go_to_previous_input(self):
@@ -442,6 +464,7 @@ class FormWin(object):
             return
         if self.current_input == 0:
             return
+        self.inputs[self.current_input]['label'].set_color(14)
         self.inputs[self.current_input]['input'].set_color(14)
         self.current_input -= 1
         jump = 0
@@ -450,6 +473,7 @@ class FormWin(object):
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
         self.current_input -= jump
+        self.inputs[self.current_input]['label'].set_color(13)
         self.inputs[self.current_input]['input'].set_color(13)
 
     def on_input(self, key):
@@ -465,8 +489,7 @@ class FormWin(object):
             for name, field in self._form.getFields():
                 if field['type'] == 'hidden':
                     continue
-                label = self.inputs[i]['label']
-                self._win.addstr(y, 0, label)
+                self.inputs[i]['label'].resize(1, self.width//3, y + 1, 0)
                 self.inputs[i]['input'].resize(1, self.width//3, y+1, 2*self.width//3)
                 # TODO: display the field description
                 y += 1
@@ -477,10 +500,13 @@ class FormWin(object):
         for i, inp in enumerate(self.inputs):
             if i >= self.height:
                 break
+            inp['label'].refresh()
             inp['input'].refresh()
         if self.current_input < self.height-1:
             self.inputs[self.current_input]['input'].set_color(13)
             self.inputs[self.current_input]['input'].refresh()
+            self.inputs[self.current_input]['label'].set_color(13)
+            self.inputs[self.current_input]['label'].refresh()
 
     def refresh_current_input(self):
         self.inputs[self.current_input]['input'].refresh()
