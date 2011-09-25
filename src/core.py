@@ -36,6 +36,8 @@ import windows
 import connection
 import timed_events
 
+from plugin_manager import PluginManager
+
 from data_forms import DataFormsTab
 from config import config, options
 from logger import logger
@@ -102,6 +104,7 @@ class Core(object):
         #  a completion function, taking a Input as argument. Can be None)
         #  The completion function should return True if a completion was
         #  made ; False otherwise
+        self.plugin_manager = PluginManager(self)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
@@ -126,6 +129,8 @@ class Core(object):
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
             'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
+            'load': (self.command_load, _('Usage: /load <script.py>\nLoad: Load the specified python script'), self.plugin_manager.completion_load),
+            'unload': (self.command_unload, _('Usage: /unload <script.py>\nUnload: Unload the specified python script'), self.plugin_manager.completion_unload),
             }
 
         self.key_func = {
@@ -170,6 +175,12 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
+        self.autoload_plugins()
+
+    def autoload_plugins(self):
+        plugins = config.get('plugins_autoload', '')
+        for plugin in plugins.split():
+            self.plugin_manager.load(plugin)
 
     def coucou(self):
         self.command_pubsub('pubsub.louiz.org')
@@ -1123,6 +1134,28 @@ class Core(object):
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
+
+    def command_load(self, arg):
+        """
+        /load <script.py>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('load')
+            return
+        filename = args[0]
+        self.plugin_manager.load(filename)
+
+    def command_unload(self, arg):
+        """
+        /unload <script.py>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('unload')
+            return
+        filename = args[0]
+        self.plugin_manager.unload(filename)
 
     def command_message(self, arg):
         """

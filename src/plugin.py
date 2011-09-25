@@ -1,0 +1,55 @@
+import os
+from configparser import ConfigParser
+
+class PluginConfig(ConfigParser):
+    def __init__(self, filename):
+        ConfigParser.__init__(self)
+        self.__config_file__ = filename
+        self.read()
+
+    def read(self):
+        """Read the config file"""
+        ConfigParser.read(self, self.__config_file__)
+
+    def write(self):
+        """Write the config to the disk"""
+        try:
+            fp = open(self.__config_file__, 'w')
+            ConfigParser.write(self, fp)
+            fp.close()
+            return True
+        except IOError:
+            return False
+
+class BasePlugin(object):
+    """
+    Class that all plugins derive from.  Any methods beginning with command_
+    are interpreted as a command and beginning with on_ are interpreted as
+    event handlers
+    """
+
+    def __init__(self, plugin_manager, core, plugins_conf_dir):
+        self.core = core
+        self.plugin_manager = plugin_manager
+        conf = os.path.join(plugins_conf_dir, self.__module__+'.cfg')
+        self.config = PluginConfig(conf)
+        self.init()
+
+    def init(self):
+        pass
+
+    def cleanup(self):
+        pass
+
+    def unload(self):
+
+        self.cleanup()
+
+    def add_command(self, name, handler, help, completion=None):
+        return self.plugin_manager.add_command(self.__module__, name, handler, help, completion)
+
+    def add_event_handler(self, event_name, handler):
+        return self.plugin_manager.add_event_handler(self.__module__, event_name, handler)
+
+    def del_event_handler(self, event_name, handler):
+        return self.plugin_manager.del_event_handler(self.__module__, event_name, handler)
