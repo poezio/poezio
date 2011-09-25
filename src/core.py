@@ -390,7 +390,7 @@ class Core(object):
             if time.time() - self.connection_time > 12:
                 # We do not display messages if we recently logged in
                 self.information("\x193}%s \x195}is \x194}online\x195} (\x190}%s\x195})" % (resource.get_jid().bare, status), "Roster")
-            self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
+            self.add_information_message_to_conversation_tab(jid.bare, '\x195%s is \x194}online' % (jid.bare))
         contact.add_resource(resource)
 
     def add_information_message_to_conversation_tab(self, jid, msg):

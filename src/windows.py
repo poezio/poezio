@@ -137,13 +137,8 @@ class Win(object):
                 self._win.attron(curses.A_BOLD)
             if attr_char in string.digits and attr_char != '':
                 color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
-                try:
-                    self._win.attron(to_curses_attr((int(color_str), -1)))
-                except:
-                    self._win.attron(to_curses_attr((-1, -1)))
-                    text = text[next_attr_char+1+2:]
-                else:
-                    text = text[next_attr_char+len(color_str)+2:]
+                self._win.attron(to_curses_attr((int(color_str), -1)))
+                text = text[next_attr_char+len(color_str)+2:]
             else:
                 text = text[next_attr_char+2:]
             next_attr_char = text.find('\x19')
