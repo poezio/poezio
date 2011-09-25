@@ -16,6 +16,7 @@ import curses
 from windows import g_lock
 import windows
 from tabs import Tab
+from theming import to_curses_attr
 
 class DataFormsTab(Tab):
     """
@@ -32,7 +33,6 @@ class DataFormsTab(Tab):
         for field in self._form:
             self.fields.append(field)
         self.topic_win = windows.Topic()
-        self.tab_win = windows.GlobalInfoBar()
         self.form_win = FormWin(form, self.height-4, self.width, 1, 0)
         self.help_win = windows.HelpText("Ctrl+Y: send form, Ctrl+G: cancel")
         self.help_win_dyn = windows.HelpText()
@@ -86,7 +86,7 @@ class FieldInput(object):
     """
     def __init__(self, field):
         self._field = field
-        self.color = 14
+        self.color = (14, -1)
 
     def set_color(self, color):
         self.color = color
@@ -146,7 +146,7 @@ class BooleanWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
-            self._win.attron(curses.color_pair(self.color))
+            self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*(8), self.width)
             self.addstr(0, 2, "%s"%self.value)
             self.addstr(0, 8, '→')
@@ -155,7 +155,7 @@ class BooleanWin(FieldInput, windows.Win):
                 self.addstr(0, 8, '')
             else:
                 self.addstr(0, 0, '')
-            self._win.attroff(curses.color_pair(self.color))
+            self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
     def reply(self):
@@ -210,7 +210,7 @@ class TextMultiWin(FieldInput, windows.Win):
     def refresh(self):
         if not self.edition_input:
             with g_lock:
-                self._win.attron(curses.color_pair(self.color))
+                self._win.attron(to_curses_attr(self.color))
                 self.addnstr(0, 0, ' '*self.width, self.width)
                 option = self.options[self.val_pos]
                 self.addstr(0, self.width//2-len(option)//2, option)
@@ -218,7 +218,7 @@ class TextMultiWin(FieldInput, windows.Win):
                     self.addstr(0, 0, '←')
                 if self.val_pos < len(self.options)-1:
                     self.addstr(0, self.width-1, '→')
-                self._win.attroff(curses.color_pair(self.color))
+                self._win.attroff(to_curses_attr(self.color))
                 self._refresh()
         else:
             self.edition_input.refresh()
@@ -262,7 +262,7 @@ class ListMultiWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
-            self._win.attron(curses.color_pair(self.color))
+            self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*self.width, self.width)
             if self.val_pos > 0:
                 self.addstr(0, 0, '←')
@@ -271,7 +271,7 @@ class ListMultiWin(FieldInput, windows.Win):
             option = self.options[self.val_pos]
             self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
             self.addstr(0, 2, '✔' if option[1] else '☐')
-            self._win.attroff(curses.color_pair(self.color))
+            self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
     def reply(self):
@@ -308,7 +308,7 @@ class ListSingleWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
-            self._win.attron(curses.color_pair(self.color))
+            self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*self.width, self.width)
             if self.val_pos > 0:
                 self.addstr(0, 0, '←')
@@ -316,7 +316,7 @@ class ListSingleWin(FieldInput, windows.Win):
                 self.addstr(0, self.width-1, '→')
             option = self.options[self.val_pos]['label']
             self.addstr(0, self.width//2-len(option)//2, option)
-            self._win.attroff(curses.color_pair(self.color))
+            self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
     def reply(self):
@@ -334,7 +334,7 @@ class TextSingleWin(FieldInput, windows.Input):
         self.text = field.getValue() if isinstance(field.getValue(), str)\
             else ""
         self.pos = len(self.text)
-        self.color = 14
+        self.color = (14, -1)
 
     def reply(self):
         self._field['label'] = ''
@@ -351,15 +351,15 @@ class TextPrivateWin(TextSingleWin):
         with g_lock:
             self._win.erase()
             if self.color:
-                self._win.attron(curses.color_pair(self.color))
+                self._win.attron(to_curses_attr(self.color))
             self.addstr('*'*len(self.text[self.line_pos:self.line_pos+self.width-1]))
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
-                self.addnstr(' '*size, size, curses.color_pair(self.color))
+                self.addnstr(' '*size, size, to_curses_attr(self.color))
             self.addstr(0, self.pos, '')
             if self.color:
-                self._win.attroff(curses.color_pair(self.color))
+                self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
     def get_help_message(self):
@@ -428,7 +428,7 @@ class FormWin(object):
             return
         if self.current_input == len(self.inputs) - 1 or self.current_input >= self.height-1:
             return
-        self.inputs[self.current_input]['input'].set_color(14)
+        self.inputs[self.current_input]['input'].set_color((14, -1))
         self.current_input += 1
         jump = 0
         while self.current_input+jump != len(self.inputs) - 1 and self.inputs[self.current_input+jump]['input'].is_dummy():
@@ -436,14 +436,14 @@ class FormWin(object):
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
         self.current_input += jump
-        self.inputs[self.current_input]['input'].set_color(13)
+        self.inputs[self.current_input]['input'].set_color((13, -1))
 
     def go_to_previous_input(self):
         if not self.inputs:
             return
         if self.current_input == 0:
             return
-        self.inputs[self.current_input]['input'].set_color(14)
+        self.inputs[self.current_input]['input'].set_color((14, -1))
         self.current_input -= 1
         jump = 0
         while self.current_input-jump > 0 and self.inputs[self.current_input+jump]['input'].is_dummy():
@@ -451,7 +451,7 @@ class FormWin(object):
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
         self.current_input -= jump
-        self.inputs[self.current_input]['input'].set_color(13)
+        self.inputs[self.current_input]['input'].set_color((13, -1))
 
     def on_input(self, key):
         if not self.inputs:
@@ -480,7 +480,7 @@ class FormWin(object):
                 break
             inp['input'].refresh()
         if self.current_input < self.height-1:
-            self.inputs[self.current_input]['input'].set_color(13)
+            self.inputs[self.current_input]['input'].set_color((13, -1))
             self.inputs[self.current_input]['input'].refresh()
 
     def refresh_current_input(self):
