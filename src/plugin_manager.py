@@ -9,10 +9,20 @@ plugins_dir = plugins_dir or\
     os.path.join(os.environ.get('XDG_DATA_HOME') or\
                      os.path.join(os.environ.get('HOME'), '.local', 'share'),
                  'poezio', 'plugins')
+
+plugins_conf_dir = os.path.join(os.environ.get('XDG_CONFIG_HOME'), 'poezio',\
+        'plugins')
+
 try:
     os.makedirs(plugins_dir)
 except OSError:
     pass
+
+try:
+    os.makedirs(plugins_conf_dir)
+except OSError:
+    pass
+
 
 sys.path.append(plugins_dir)
 
@@ -49,7 +59,7 @@ class PluginManager(object):
         self.modules[name] = module
         self.commands[name] = {}
         self.event_handlers[name] = []
-        self.plugins[name] = module.Plugin(self, self.core)
+        self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
 
     def unload(self, name):
         if name in self.plugins:
