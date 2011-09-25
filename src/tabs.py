@@ -799,7 +799,8 @@ class MucTab(ChatTab):
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
                     room.joined = True
-                    self.send_chat_state('active')
+                    if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
+                        self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
                     room.add_message(_("\x195}Your nickname is \x193}%s") % (from_nick))
                     if '170' in status_codes:
@@ -1021,7 +1022,8 @@ class PrivateTab(ChatTab):
             msg['body'] = xhtml.clean_text(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
-            msg['chat_state'] = 'active'
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            msg['chat_state'] = needed
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick or self.get_room().own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
@@ -1557,7 +1559,8 @@ class ConversationTab(ChatTab):
             msg['body'] = xhtml.clean_text(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
-            msg['chat_state'] = 'active'
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            msg['chat_state'] = needed
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
