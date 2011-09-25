@@ -10,8 +10,10 @@ plugins_dir = plugins_dir or\
                      os.path.join(os.environ.get('HOME'), '.local', 'share'),
                  'poezio', 'plugins')
 
-plugins_conf_dir = os.path.join(os.environ.get('XDG_CONFIG_HOME'), 'poezio',\
-        'plugins')
+config_home = os.environ.get("XDG_CONFIG_HOME")
+if not config_home:
+    config_home = os.path.join(os.environ.get('HOME'), '.config')
+plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
 
 try:
     os.makedirs(plugins_dir)
@@ -22,7 +24,6 @@ try:
     os.makedirs(plugins_conf_dir)
 except OSError:
     pass
-
 
 sys.path.append(plugins_dir)
 
