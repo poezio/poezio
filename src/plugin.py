@@ -42,7 +42,6 @@ class BasePlugin(object):
         pass
 
     def unload(self):
-
         self.cleanup()
 
     def add_command(self, name, handler, help, completion=None):
