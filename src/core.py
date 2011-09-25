@@ -1637,3 +1637,13 @@ class Core(object):
         if not self.running or self.background is True:
             return
         curses.doupdate()
+
+    def send_message(self, msg):
+        """
+        Function to use in plugins to send a message in the current conversation.
+        Returns False if the current tab is not a conversation tab
+        """
+        if not isinstance(self.current_tab(), tabs.ChatTab):
+            return False
+        self.current_tab().command_say(msg)
+        return True
