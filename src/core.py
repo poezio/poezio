@@ -809,6 +809,7 @@ class Core(object):
         stdscr.keypad(True)
         curses.start_color()
         curses.use_default_colors()
+        theming.reload_theme()
         curses.ungetch(" ")    # H4X: without this, the screen is
         stdscr.getkey()        # erased on the first "getkey()"
 
@@ -886,7 +887,7 @@ class Core(object):
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == theme.COLOR_TAB_DISCONNECTED:
+            if tab.get_color_state() == get_theme().COLOR_TAB_DISCONNECTED:
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
@@ -1179,9 +1180,7 @@ class Core(object):
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_theme(self, arg):
-        """
-        """
-        # get_theme().reload_theme()
+        theming.reload_theme()
         self.refresh_window()
 
     def command_win(self, arg):

@@ -34,24 +34,18 @@ is a string and can contain one or more of these characteres:
 
 For example, (200, 208, 'bu') is bold, underlined and pink foreground on orange background.
 
-A theme file is a python file containing two objects named 'theme' and 'theme8', which both are
-instances of two classes (derived from the Theme class) defined in that same file.
-For example, in darktheme.py:
+A theme file is a python file containing one object named 'theme', which is an
+instance of a class (derived from the Theme class) defined in that same file.
+For example, in pinkytheme.py:
 
 import theming
-class DarkTheme(theming.Theme):
+class PinkyTheme(theming.Theme):
     COLOR_NORMAL_TEXT = (200, -1)
-    [...]
 
-class DarkTheme8(theming.Theme):
-    COLOR_NORMAL_TEXT = (1, -1)
-    [...]
+theme = PinkyTheme()
 
-theme = DarkTheme()
-theme8 = DarkTheme8()
-
-if the command '/theme darktheme' is issued, we import the darktheme.py file
-and set the global variable 'theme' to darktheme.theme.
+if the command '/theme pinkytheme' is issued, we import the pinkytheme.py file
+and set the global variable 'theme' to pinkytheme.theme.
 
 And in poezio's code we just use theme.COLOR_NORMAL_TEXT etc
 
@@ -84,14 +78,14 @@ class Theme(object):
     """
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
-    COLOR_INFORMATION_TEXT = (137, -1)
-    COLOR_HIGHLIGHT_NICK = (208, 22)
+    COLOR_INFORMATION_TEXT = (137, -1) # TODO
+    COLOR_HIGHLIGHT_NICK = (3, 5, 'b')
 
     # User list color
-    COLOR_USER_VISITOR = (13, -1)
-    COLOR_USER_PARTICIPANT = (7, -1)
-    COLOR_USER_NONE = (243, -1)
-    COLOR_USER_MODERATOR = (160, -1)
+    COLOR_USER_VISITOR = (0, -1)
+    COLOR_USER_PARTICIPANT = (4, -1)
+    COLOR_USER_NONE = (0, -1)
+    COLOR_USER_MODERATOR = (1, -1)
 
     # nickname colors
     COLOR_REMOTE_USER = (5, -1)
@@ -106,7 +100,7 @@ class Theme(object):
     COLOR_MORE_INDICATOR = (6, 4)
 
     # Time
-    COLOR_TIME_SEPARATOR = (6, -1)
+    COLOR_TIME_SEPARATOR = (106, -1)
     COLOR_TIME_LIMITER = (0, -1)
     CHAR_TIME_LEFT = ''
     CHAR_TIME_RIGHT = ''
@@ -115,32 +109,35 @@ class Theme(object):
     # Tabs
     COLOR_TAB_NORMAL = (7, 4)
     COLOR_TAB_CURRENT = (7, 6)
-    COLOR_TAB_NEW_MESSAGE = (7, 3)
-    COLOR_TAB_HIGHLIGHT = (7, 9)
+    COLOR_TAB_NEW_MESSAGE = (7, 5)
+    COLOR_TAB_HIGHLIGHT = (7, 1)
     COLOR_TAB_PRIVATE = (7, 2)
     COLOR_TAB_DISCONNECTED = (7, 8)
 
     # Nickname colors
-    LIST_COLOR_NICKNAMES = [(1, -1), (2, -1), (3, -1), (4, -1), (5, -1), (6, -1), (7, -1), (8, -1), (21, -1), (154, -1), (202, -1), (123, -1), (216, -1)]
+    # A list of colors randomly attributed to nicks in MUCs
+    # Setting more colors makes it harder to have two nicks with the same color,
+    # avoiding confusions.
+    LIST_COLOR_NICKNAMES = [(1, -1), (2, -1), (3, -1), (4, -1), (5, -1), (6, -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1), (12, -1), (13, -1), (14, -1), (23, -1), (23, -1), (88, -1), (99, -1), (100, -1), (154, -1), (213, -1), (216, -1), (227, -1)]
+    # This is your own nickname
     COLOR_OWN_NICK = (254, -1)
 
     # Status color
-    COLOR_STATUS_XA = (234, 90)
-    COLOR_STATUS_NONE = (234, 4)
-    COLOR_STATUS_DND = (234, 1)
-    COLOR_STATUS_AWAY = (234, 3)
-    COLOR_STATUS_CHAT = (234, 2)
+    COLOR_STATUS_XA = (16, 90)
+    COLOR_STATUS_NONE = (16, 4)
+    COLOR_STATUS_DND = (16, 1)
+    COLOR_STATUS_AWAY = (16, 3)
+    COLOR_STATUS_CHAT = (16, 2)
     COLOR_STATUS_UNAVAILABLE = (-1, 247)
-    COLOR_STATUS_ONLINE = (234, 4)
+    COLOR_STATUS_ONLINE = (16, 4)
 
     # Bars
     COLOR_INFORMATION_BAR = (7, 4)
     COLOR_TOPIC_BAR = (7, 4)
-    COLOR_PRIVATE_ROOM_BAR = (-1, 4)
-    COLOR_SCROLLABLE_NUMBER = (214, 4, 'b')
+    COLOR_SCROLLABLE_NUMBER = (220, 4, 'b')
     COLOR_SELECTED_ROW = (-1, 33)
     COLOR_PRIVATE_NAME = (-1, 4)
-    COLOR_CONVERSATION_NAME = (4, 4)
+    COLOR_CONVERSATION_NAME = (2, 4)
     COLOR_GROUPCHAT_NAME = (7, 4)
     COLOR_COLUMN_HEADER = (36, 4)
 
@@ -223,7 +220,7 @@ def to_curses_attr(color_tuple):
             curses_pair = curses_pair | curses.A_BOLD
         if 'u' in additional_val:
             curses_pair = curses_pair | curses.A_UNDERLINE
-        if 'x' in additional_val:
+        if 'a' in additional_val:
             curses_pair = curses_pair | curses.A_BLINK
     return curses_pair
 
@@ -247,11 +244,13 @@ def reload_theme():
     if not theme_name:
         return
     try:
-        new_theme = imp.load_source('theme', os.path.join(themes_dir, theme_name))
+        file_path  = os.path.join(themes_dir, theme_name)+'.py'
+        log.debug('Theme file to load: %s' %(file_path,))
+        new_theme = imp.load_source('theme', os.path.join(themes_dir, theme_name)+'.py')
     except:                     # TODO warning: theme not found
         return
     global theme
-    theme = new_theme
+    theme = new_theme.theme
 
 if __name__ == '__main__':
     """
@@ -260,7 +259,7 @@ if __name__ == '__main__':
     s = curses.initscr()
     curses.start_color()
     curses.use_default_colors()
-    s.addstr('%s' % curses.COLORS, to_curses_attr((3, -1, 'x')))
+    s.addstr('%s' % curses.COLORS, to_curses_attr((3, -1, 'a')))
     s.refresh()
     s.getkey()
     curses.endwin()
