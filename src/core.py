@@ -1275,7 +1275,7 @@ class Core(object):
             t = self.current_tab()
             if not isinstance(t, tabs.MucTab) and not isinstance(t, tabs.PrivateTab):
                 return
-            room = t.get_name()
+            room = JID(t.get_name()).bare
             nick = t.get_room().own_nick
         else:
             info = JID(args[0])
