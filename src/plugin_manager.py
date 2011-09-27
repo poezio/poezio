@@ -37,7 +37,7 @@ class PluginManager(object):
 
     def load(self, name):
         if name in self.plugins:
-            self.plugins[name].unload()
+            self.unload(name)
 
         try:
             if name in self.modules:

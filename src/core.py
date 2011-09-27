@@ -129,8 +129,8 @@ class Core(object):
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
             'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
-            'load': (self.command_load, _('Usage: /load <script.py>\nLoad: Load the specified python script'), self.plugin_manager.completion_load),
-            'unload': (self.command_unload, _('Usage: /unload <script.py>\nUnload: Unload the specified python script'), self.plugin_manager.completion_unload),
+            'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
+            'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             }
 
         self.key_func = {
@@ -1137,7 +1137,7 @@ class Core(object):
 
     def command_load(self, arg):
         """
-        /load <script.py>
+        /load <plugin>
         """
         args = arg.split()
         if len(args) != 1:
@@ -1148,7 +1148,7 @@ class Core(object):
 
     def command_unload(self, arg):
         """
-        /unload <script.py>
+        /unload <plugin>
         """
         args = arg.split()
         if len(args) != 1:
