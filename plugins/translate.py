@@ -28,6 +28,7 @@ class Plugin(BasePlugin):
                 text, lang = translate(body)
                 if lang != TARGET_LANG:
                     room.add_message(text, nickname=nick_from)
+                    self.core.refresh_window()
         except Exception as e:
             import traceback
             self.core.information("Exception in translator! %s" % (traceback.format_exc(),))
