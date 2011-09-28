@@ -128,7 +128,6 @@ class Core(object):
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
-            'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             }
@@ -1308,7 +1307,7 @@ class Core(object):
             t = self.current_tab()
             if not isinstance(t, tabs.MucTab) and not isinstance(t, tabs.PrivateTab):
                 return
-            room = t.get_name()
+            room = JID(t.get_name()).bare
             nick = t.get_room().own_nick
         else:
             info = JID(args[0])

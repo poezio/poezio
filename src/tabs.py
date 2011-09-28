@@ -681,6 +681,7 @@ class MucTab(ChatTab):
         """
         if not self.visible:
             return
+        self.need_resize = False
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0)
         self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
@@ -799,7 +800,8 @@ class MucTab(ChatTab):
                 room.users.append(new_user)
                 if from_nick == room.own_nick:
                     room.joined = True
-                    self.send_chat_state('active')
+                    if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
+                        self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
                     room.add_message(_("\x195}Your nickname is \x193}%s") % (from_nick))
                     if '170' in status_codes:
@@ -999,10 +1001,12 @@ class PrivateTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        #self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
+        self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
         self.on = True
 
     def completion(self):
@@ -1019,7 +1023,8 @@ class PrivateTab(ChatTab):
             msg['body'] = xhtml.clean_text(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
-            msg['chat_state'] = 'active'
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            msg['chat_state'] = needed
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick or self.get_room().own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
@@ -1033,9 +1038,35 @@ class PrivateTab(ChatTab):
         """
         self.core.close_tab()
 
+    def command_version(self, arg):
+        """
+        /version
+        """
+        def callback(res):
+            if not res:
+                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.core.information(version, 'Info')
+        jid = self.get_room().name
+        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+
+    def command_info(self, arg):
+        """
+        /info
+        """
+        if arg:
+            self.parent_muc.command_info(arg)
+        else:
+            user = JID(self.get_room().name).resource
+            self.parent_muc.command_info(user)
+
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.text_win.rebuild_everything(self._room)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
@@ -1124,22 +1155,25 @@ class PrivateTab(ChatTab):
         """
         The user left the associated MUC
         """
+        self.deactivate()
         if not status_message:
             self.get_room().add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT.replace('"', '\\"')})
         else:
             self.get_room().add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
-        self.deactivate()
-        self.refresh()
-        self.core.doupdate()
+        if self.core.current_tab() is self:
+            self.refresh()
+            self.core.doupdate()
 
     def user_rejoined(self, nick):
         """
         The user (or at least someone with the same nick) came back in the MUC
         """
-        self.get_room().add_message('\x194}%(spec)s \x193}%(nick)s\x195} joined the room' % {'nick':nick, 'spec':get_theme().CHAR_JOIN})
         self.activate()
-        self.refresh()
-        self.core.doupdate()
+        self.get_room().add_message('\x194}%(spec)s \x193}%(nick)s\x195} joined the room' % {'nick':nick, 'spec':get_theme().CHAR_JOIN})
+        if self.core.current_tab() is self:
+            self.refresh()
+            self.core.doupdate()
+
 
     def activate(self):
         self.on = True
@@ -1185,6 +1219,7 @@ class RosterInfoTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         roster_width = self.width//2
         info_width = self.width-roster_width-1
         self.v_separator.resize(self.height-2, 1, 0, roster_width)
@@ -1527,7 +1562,8 @@ class ConversationTab(ChatTab):
             msg['body'] = xhtml.clean_text(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
-            msg['chat_state'] = 'active'
+            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            msg['chat_state'] = needed
         msg.send()
         self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
@@ -1541,6 +1577,7 @@ class ConversationTab(ChatTab):
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.text_win.rebuild_everything(self._room)
         self.upper_bar.resize(1, self.width, 0, 0)
@@ -1658,6 +1695,7 @@ class MucListTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         self.upper_message.resize(1, self.width, 0, 0)
         column_size = {'node-part': (self.width-5)//4,
                        'name': (self.width-5)//4*3,
@@ -1792,6 +1830,7 @@ class SimpleTextTab(Tab):
     def resize(self):
         if not self.visible:
             return
+        self.need_resize = False
         self.text_win.resize(self.height-2, self.width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 

@@ -1,9 +1,9 @@
 .\" Copyright 2010 Le Coz Florent
 .\" This man page is distributed under the GPLv3 license.
 .\" See COPYING file
-.TH "Poezio" "1" "August 1, 2010" "Poezio dev team" ""
+.TH "Poezio" "1" "September 26, 2011" "Poezio dev team" ""
 .SH "NAME"
-Poezio \- a ncurses jabber client
+Poezio \- a ncurses jabber client written in python3
 .SH "SYNOPSIS"
 .B poezio [\-f \fICONFIG_FILE\fR] [\-d \fIDEBUG_FILE\fR] [\-h]
 .SH "DESCRIPTION"
@@ -20,10 +20,164 @@ Log debug from both poezio and SleekXMPP in \fIDEBUG_FILE\fR. Debug contains inc
 .TP
 \fB\-h\fR
 Display an help message
+
+.SH "TABS"
+A \fItab\fR, in Poezio, is the base structure of the interface. A tab may contains one or more \fIwindows\fR, and can be of different types:
+.RS
+.TP 6
+.I Roster \fRtab
+It contains a list of your contacts on the left, as well as an info window on the right.
+.TP
+.I MUC \fRtab
+MUC stands for "Multi-User Chat".
+.TP
+.I Conversation \fRtab
+It is used for one-to-one communication, usually when using a real Jabber account.
+.TP
+.I Private \fRtab
+It is used to privately communicate with someone in a MUC.
+
+.SH "KEY BINDINGS"
+While most of the keyboard shortcuts are common to all types of tabs, some of them are tab-specific.
+.SS Text edition 
+These shortcuts work in any kind of tab; most of them are identical to emacs' ones.
+.RS
+.TP 8
+.B Ctrl+A
+Move the cursor to the begining of the line.
+.TP
+.B Ctrl+E
+Move the cursor to the end of the line.
+.TP
+.B Ctrl+W
+Delete the word before the cursor.
+.TP
+.B Ctrl+K
+Delete the text from the cursor to the end of the line and save it in the clipboard.
+.TP
+.B Ctrl+U
+Delete the text from the beginning of the line to the cursor and save it in the clipboard.
+.TP
+.B Ctrl+Y
+Insert the text in the clipboard after the cursor.
+.TP
+.B Ctrl+D
+Delete the char after the cursor (same as the Suppr key)
+
+.SS Navigation keybindings
+.RS
+.TP 8
+.B F5, Ctrl+N
+Go to the previous tab.
+.TP
+.B F6, Ctrl+P
+Go to the next tab.
+.TP
+.B Alt+<number>
+Go to the specified tab (from 0 to 9)
+.TP
+.B Alt+J <two-digits-number>
+Go to the specified tab (from 00 to 99)
+.TP
+.B Alt+Z
+Go to the last visited tab.
+.TP
+.B Alt+E
+Go to the next important tab (private message, highlight, simple message)
+.TP
+.B F7
+Decrease the information window size.
+.TP
+.B F8
+Increase the information window size.
+.TP
+.B Alt+R
+Go to the roster.
+.TP
+.B Ctrl+L
+Redraw the screen.
+.TP
+.B Up, Down
+Browse the history of the last messages or commands you've entered.
+
+.SS Roster keybindings
+.RS
+.TP 8
+.B o
+Hide or show the offline contacts.
+.TP
+.B s
+Search through your contact list.
+.TP
+.B Ctrl+G
+Cancel a search.
+
+.SS MUC-specific keybindings
+.RS
+.TP 8
+.B Alt+V
+Move the line separator at the bottom of the text window.
+.TP
+.B Tab
+Complete the nickname that you're typing. If nothing has been entered, insert the nickname of the last user who spoke.
+.TP
+.B Alt+/
+Complete the word that you're typing, based on the list of the recently said words in the conversation.
+
+.SH "COMMANDS"
+Most commands support tab completion, both for their names and for their arguments. You can use the \fI/help\fR command to list all available commands, and \fI/help <command>\fR for a complete description of <command>.
+
+The following is a basic description of the most widely used commands; you should refer to \fI/help\fR inside poezio for more documentation. \fI<foo>\fR denotes a obligatory argument, while \fI[bar]\fR is an optional argument (without argument, the \fI/remove\fR command, for example, acts on the currently selected contact)
+.SS Roster commands
+.RS
+.TP 5
+.B /add <jid>
+Add a JID to your roster.
+.TP
+.B /remove [jid]
+Remove a contact from your roster.
+.TP
+.B /accept [jid]
+Accept a JID that wants to subscribe to your presence.
+.TP
+.B /deny [jid]
+The opposite of \fI/accept\fR.
+
+.SS MUC-specific commands
+.RS
+.TP 5
+.B /recolor
+Change the color of the nicknames in the conversation. Useful when a few people are talking and their random color happen to be the same: using this command will let you differentiate them more easily.
+.TP
+.B /kick <user>
+Kick the specified user from the room.
+.TP
+.B /show <status> [message]
+Change your status, and status message, in the current room. You can use “avail”, “busy”, “away” and “xa” as your status, followed by an optional message.
+.TP
+.B /ignore <user>
+Ignore the specified user.
+.TP
+.B /topic [topic text]
+View or change the topic of the room.
+.TP
+.B /query <user>
+Talk privately with the specified participant.
+.TP
+.B /part
+Leave the current room. 
+
 .SH "BUGS"
 Sure.
+
+.SH "KNOWN ISSUES"
+If you're using a terminal multiplexer such as \fIscreen\fR or \fItmux\fR, it may be setting $TERM to "screen", which breaks 256-color support. Consider setting your $TERM to something like "screen-256color".
+
 .SH "FEEDBACK"
 You are encouraged to report bugs or feature requests on http://dev.louiz.org/project/poezio.
 You can also find us on the Jabber chatroom poezio@kikoo.louiz.org
+
 .SH "AUTHORS"
 Written by Florent Le Coz <louiz@louiz.org>
+
+Later completed by Baptiste Jonglez <baptiste--poezio@jonglez.org>
