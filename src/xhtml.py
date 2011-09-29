@@ -249,7 +249,11 @@ def xhtml_to_poezio_colors(text):
     log.debug(text)
     xml = ET.fromstring(text)
     message = ''
-    for elem in xml.iter():
+    if version_info[1] == 2:
+        elems = xml.iter()
+    else:
+        elems = xml.getiterator()
+    for elem in elems:
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
             if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
                 message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text))
