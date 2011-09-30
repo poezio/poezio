@@ -8,6 +8,7 @@ class DarkTheme(theming.Theme):
     COLOR_STATUS_CHAT = (34 , -1)
     COLOR_STATUS_UNAVAILABLE = (242 , -1)
     COLOR_STATUS_ONLINE = (27 , -1)
+    COLOR_STATUS_NONE = (27 , -1)
 
     COLOR_VERTICAL_SEPARATOR = (236, -1)
     COLOR_NEW_TEXT_SEPARATOR = (213, -1)
