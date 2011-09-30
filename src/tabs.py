@@ -1417,7 +1417,8 @@ class RosterInfoTab(Tab):
         self.input.do_command("/") # we add the slash
 
     def reset_help_message(self, _=None):
-        curses.curs_set(0)
+        if self.core.current_tab() is self:
+            curses.curs_set(0)
         self.input = self.default_help_message
         self.input.refresh()
         self.core.doupdate()
