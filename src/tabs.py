@@ -125,7 +125,7 @@ class Tab(object):
                 # complete the command's name
                 words = ['/%s'% (name) for name in self.core.commands] +\
                     ['/%s' % (name) for name in self.commands]
-                the_input.auto_completion(words, '')
+                the_input.auto_completion(words, ' ')
                 return True
         return False
 
@@ -725,12 +725,12 @@ class MucTab(ChatTab):
         word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
                          if user.nick != self._room.own_nick]
         after = config.get('after_completion', ',')+" "
-        if ' ' not in self.input.get_text() or (self.input.last_completion and\
-                     self.input.get_text()[:-len(after)] == self.input.last_completion):
+        input_pos = self.input.pos + self.input.line_pos
+        if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
+                     self.input.get_text()[:input_pos] == self.input.last_completion + after):
             add_after = after
         else:
             add_after = ' '
-
         self.input.auto_completion(word_list, add_after)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)

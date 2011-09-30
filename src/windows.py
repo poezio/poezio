@@ -883,26 +883,28 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_left(self, jump=True):
+    def key_left(self, jump=True, reset=True):
         """
         Move the cursor one char to the left
         """
-        self.reset_completion()
+        if reset:
+            self.reset_completion()
         if self.pos == self.width-1 and self.line_pos > 0:
             self.line_pos -= 1
         elif self.pos >= 1:
             self.pos -= 1
         if jump and self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
             self.key_left()
-        else:
+        elif reset:
             self.rewrite_text()
         return True
 
-    def key_right(self, jump=True):
+    def key_right(self, jump=True, reset=True):
         """
         Move the cursor one char to the right
         """
-        self.reset_completion()
+        if reset:
+            self.reset_completion()
         if self.pos == self.width-1:
             if self.line_pos + self.width-1 < len(self.text):
                 self.line_pos += 1
@@ -910,7 +912,7 @@ class Input(Win):
             self.pos += 1
         if jump and self.pos+self.line_pos < len(self.text) and self.text[self.pos+self.line_pos-1] == '\x19':
             self.key_right()
-        else:
+        elif reset:
             self.rewrite_text()
         return True
 
@@ -936,8 +938,6 @@ class Input(Win):
         plus a space, after the completion. If it's a string, we use it after the
         completion (with no additional space)
         """
-        if self.pos+self.line_pos != len(self.text): # or len(self.text) == 0
-            return # we don't complete if cursor is not at the end of line
         completion_type = config.get('completion', 'normal')
         if completion_type == 'shell' and self.text != '':
             self.shell_completion(word_list, add_after)
@@ -957,12 +957,15 @@ class Input(Win):
         Normal completion
         """
         (y, x) = self._win.getyx()
+        pos = self.pos + self.line_pos
+        if pos < len(self.text) and after.endswith(' ') and self.text[pos] == ' ':
+            after = after[:-1]  # remove the last space if we are already on a space
         if not self.last_completion:
-            # begin is the begining of the word we want to complete
-            if self.text.strip() and not self.text.endswith(' '):
-                begin = self.text.split()[-1].lower()
+            space_before_cursor = self.text.rfind(' ', 0, pos-1)
+            if space_before_cursor != -1:
+                begin = self.text[space_before_cursor+1:pos]
             else:
-                begin = ''
+                begin = self.text[:pos]
             hit_list = []       # list of matching nicks
             for word in word_list:
                 if word.lower().startswith(begin):
@@ -972,18 +975,24 @@ class Input(Win):
             self.hit_list = hit_list
             end = len(begin)
         else:
-            if after:
-                begin = self.text[-len(after)-len(self.last_completion):-len(after)]
-            else:
-                begin = self.last_completion
-            self.hit_list.append(self.hit_list.pop(0)) # rotate list
+            begin = self.last_completion
             end = len(begin) + len(after)
-        if end:
-            self.text = self.text[:-end]
+            self.hit_list.append(self.hit_list.pop(0)) # rotate list
+
+        self.text = self.text[:pos-end] + self.text[pos:]
+        pos -= end
         nick = self.hit_list[0] # take the first hit
+        self.text = self.text[:pos] + nick + after + self.text[pos:]
+        for i in range(end):
+            try:
+                self.key_left(reset=False)
+            except:
+                pass
+        for i in range(len(nick + after)):
+            self.key_right(reset=False)
+
+        self.rewrite_text()
         self.last_completion = nick
-        self.text += nick +after
-        self.key_end(False)
 
     def shell_completion(self, word_list, after):
         """
