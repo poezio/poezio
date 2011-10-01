@@ -1211,6 +1211,9 @@ class RosterInfoTab(Tab):
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
         self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
         self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Use this command to add the specified JID to your roster. The reverse authorization will automatically be accepted if the remote JID accepts your subscription, leading to a mutual presence subscription."), None)
+        self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name"), self.completion_name)
+        self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group"), self.completion_groupadd)
+        self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group"), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Use this command to export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Use this command to import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
@@ -1262,6 +1265,87 @@ class RosterInfoTab(Tab):
             self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+
+    def command_name(self, args):
+        """
+        Set a name for the specified JID in your roster
+        """
+        args = args.split(None, 1)
+        if len(args) < 1:
+            return
+        jid = JID(args[0]).bare
+        name = args[1] if len(args) == 2 else ''
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        groups = set(contact.get_groups())
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
+            contact.set_name(name)
+
+    def command_groupadd(self, args):
+        """
+        Add the specified JID to the specified group
+        """
+        args = args.split(None, 1)
+        if len(args) != 2:
+            return
+        jid = JID(args[0]).bare
+        group = args[1]
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.get_groups())
+        if group in new_groups:
+            self.core.information(_('JID already in group'), 'Error')
+            return
+
+        new_groups.add(group)
+        try:
+            new_groups.remove('none')
+        except KeyError:
+            pass
+
+        name = contact.get_name()
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
+
+    def command_groupremove(self, args):
+        """
+        Remove the specified JID to the specified group
+        """
+        args = args.split(None, 1)
+        if len(args) != 2:
+            return
+        jid = JID(args[0]).bare
+        group = args[1]
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.get_groups())
+        try:
+            new_groups.remove('none')
+        except KeyError:
+            pass
+        if group not in new_groups:
+            self.core.information(_('JID not in group'), 'Error')
+            return
+
+        new_groups.remove(group)
+        name = contact.get_name()
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
 
     def command_remove(self, args):
         """
@@ -1337,6 +1421,53 @@ class RosterInfoTab(Tab):
         """
         jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
         return the_input.auto_completion(jids, '')
+
+    def completion_name(self, the_input):
+        text = the_input.get_text()
+        n = len(text.split())
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        return False
+
+    def completion_groupadd(self, the_input):
+        text = the_input.get_text()
+        n = len(text.split())
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            groups = [group.name for group in roster.get_groups() if group.name != 'none']
+            return the_input.auto_completion(groups, '')
+        return False
+
+    def completion_groupremove(self, the_input):
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            contact = roster.get_contact_by_jid(args[1])
+            if not contact:
+                return False
+            groups = list(contact.get_groups())
+            try:
+                groups.remove('none')
+            except ValueError:
+                pass
+            return the_input.auto_completion(groups, '')
+        return False
 
     def completion_deny(self, the_input):
         """

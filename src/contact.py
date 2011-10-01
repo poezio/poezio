@@ -66,6 +66,12 @@ class Contact(object):
         self._ask = None
         self._groups = []       # a list of groups the contact is in
 
+    def get_groups(self):
+        """
+        Return the groups the contact is in
+        """
+        return self._groups
+
     def get_bare_jid(self):
         """
         Just get the bare_jid or the contact
