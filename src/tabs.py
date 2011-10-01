@@ -414,6 +414,8 @@ class MucTab(ChatTab):
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: get the software version of the given JID or nick in room (usually its XMPP client and Operating System)'), None)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: get the list of the users in the room, and the list of the people assuming the different roles.'), None)
+        self.commands['clear'] =  (self.command_clear,
+                                 _("""Usage: /clear\nClear: clears the current buffer'"""), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -460,6 +462,15 @@ class MucTab(ChatTab):
         """
         self.core.xmpp.plugin['xep_0045'].configureRoom(self.get_name(), form)
         self.core.close_tab()
+
+    def command_clear(self, args):
+        """
+        /clear
+        """
+        self._room.messages = []
+        self.text_win.rebuild_everything(self._room)
+        self.refresh()
+        self.core.doupdate()
 
     def command_cycle(self, arg):
         if self.get_room().joined:
