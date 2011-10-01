@@ -69,6 +69,9 @@ class PluginManager(object):
                     del self.core.commands[command]
                 for event_name, handler in self.event_handlers[name]:
                     self.core.xmpp.del_event_handler(event_name, handler)
+                for event_name in self.core.internal_events:
+                    if name in event_name:
+                        del event_name[name]
 
                 self.plugins[name].unload()
                 del self.plugins[name]

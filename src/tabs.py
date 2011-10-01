@@ -298,6 +298,7 @@ class ChatTab(Tab):
             if not self.execute_command(clean_text):
                 if txt.startswith('//'):
                     txt = txt[1:]
+                self.core.run_event('enter', line=txt)
                 self.command_say(txt)
         self.cancel_paused_delay()
 

@@ -16,6 +16,7 @@ import threading
 import traceback
 
 from datetime import datetime
+from inspect import getargspec
 
 import common
 import theming
@@ -78,6 +79,13 @@ class Core(object):
     """
     User interface using ncurses
     """
+
+    # dict containing the name of the internal events
+    # used with the plugins, the key is the name of the event
+    # and the value is the number of arguments the handler must take
+    internal_events = {
+        'enter': 2,
+    }
     def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
@@ -174,6 +182,8 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
+
+        self.connected_events = {}
         self.autoload_plugins()
 
     def autoload_plugins(self):
@@ -209,6 +219,57 @@ class Core(object):
                 'Just press Ctrl-n.' \
             ))
         self.refresh_window()
+
+    def connect(self, event, handler):
+        """
+        Connect an handler to an internal event of poezio
+        (eg "enter pressed in a chattab")
+        """
+        # Fail if the method doesn’t take at least the good number of arguments
+        # or if the event is unknown
+        if not event in self.internal_events \
+                or len(getargspec(handler).args) < self.internal_events[event]:
+            return False
+
+        module_name = handler.__module__
+        if not event in self.connected_events:
+            self.connected_events[event] = {}
+        if not module_name in self.connected_events[event]:
+            self.connected_events[event][module_name] = []
+
+        self.connected_events[event][module_name].append(handler)
+        return True
+
+    def run_event(self, event, **kwargs):
+        """
+        Call the handlers associated with an event
+        """
+        if event in self.connected_events:
+            for module in self.connected_events[event]:
+                for handler in self.connected_events[event][module]:
+                    try:
+                        handler(**kwargs)
+                    except:
+                        import traceback
+                        tp = traceback.format_exc()
+                        module_name = handler.__name__
+                        log.debug('ERROR: in plugin %s, \n%s' % (module_name, tp))
+
+    def disconnect(self, event, handler):
+        """
+        Disconnect a handler from an event
+        """
+        if not event in self.internal_events:
+            return False
+
+        module_name = getmodule(handler).__name__
+        if not event in self.connected_events:
+            return False
+        if not module_name in self.connected_events[event]:
+            return False
+
+        self.connected_events[event][module_name].remove(handler)
+        return True
 
     def resize_global_information_win(self):
         """
