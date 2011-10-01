@@ -118,7 +118,7 @@ class Theme(object):
     # A list of colors randomly attributed to nicks in MUCs
     # Setting more colors makes it harder to have two nicks with the same color,
     # avoiding confusions.
-    LIST_COLOR_NICKNAMES = [(1, -1), (2, -1), (3, -1), (4, -1), (5, -1), (6, -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1), (12, -1), (13, -1), (14, -1), (23, -1), (23, -1), (88, -1), (99, -1), (100, -1), (154, -1), (213, -1), (216, -1), (227, -1)]
+    LIST_COLOR_NICKNAMES = [(1, -1), (2, -1), (3, -1), (4, -1), (5, -1), (6, -1), (8, -1), (9, -1), (10, -1), (11, -1), (12, -1), (13, -1), (14, -1), (23, -1), (23, -1), (88, -1), (99, -1), (100, -1), (154, -1), (213, -1), (216, -1), (227, -1)]
     # This is your own nickname
     COLOR_OWN_NICK = (254, -1)
 
