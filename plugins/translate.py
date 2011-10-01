@@ -21,7 +21,7 @@ class Plugin(BasePlugin):
             if message['type'] == 'error':
                 return
 
-            if room_from == 'poezio@kikoo.louiz.org':
+            if room_from == 'poezio@muc.poezio.eu':
                 nick_from = message['mucnick']
                 body = xhtml.get_body_from_message_stanza(message)
                 room = self.core.get_room_by_name(room_from)
