@@ -122,7 +122,6 @@ class Win(object):
             self.move(y, x)
         next_attr_char = text.find('\x19')
         while next_attr_char != -1 and text:
-            log.debug('Addstr_Colored: [%s]' % text.replace('\x19', '\\x19'))
             if next_attr_char + 1 < len(text):
                 attr_char = text[next_attr_char+1].lower()
             else:
@@ -961,7 +960,7 @@ class Input(Win):
         if pos < len(self.text) and after.endswith(' ') and self.text[pos] == ' ':
             after = after[:-1]  # remove the last space if we are already on a space
         if not self.last_completion:
-            space_before_cursor = self.text.rfind(' ', 0, pos-1)
+            space_before_cursor = self.text.rfind(' ', 0, pos)
             if space_before_cursor != -1:
                 begin = self.text[space_before_cursor+1:pos]
             else:
@@ -1043,7 +1042,8 @@ class Input(Win):
             return res
         if not key or len(key) > 1:
             return False   # ignore non-handled keyboard shortcuts
-        self.reset_completion()
+        if reset:
+            self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
         if x == self.width-1:

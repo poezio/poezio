@@ -125,7 +125,13 @@ class Tab(object):
                 # complete the command's name
                 words = ['/%s'% (name) for name in self.core.commands] +\
                     ['/%s' % (name) for name in self.commands]
-                the_input.auto_completion(words, ' ')
+                the_input.auto_completion(words, '')
+                # Do not try to cycle command completion if there was only
+                # one possibily. The next tab will complete the argument.
+                # Otherwise we would need to add a useless space before being
+                # able to complete the arguments.
+                if len(the_input.hit_list) == 1:
+                    the_input.do_command(' ')
                 return True
         return False
 
@@ -600,7 +606,7 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         current_topic = self.get_room().topic
-        return the_input.auto_completion([current_topic], ' ')
+        return the_input.auto_completion([current_topic], '')
 
     def command_kick(self, arg):
         """
