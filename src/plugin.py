@@ -1,5 +1,7 @@
 import os
 from configparser import ConfigParser
+import inspect
+import traceback
 
 class PluginConfig(ConfigParser):
     def __init__(self, filename):
@@ -21,7 +23,30 @@ class PluginConfig(ConfigParser):
         except IOError:
             return False
 
-class BasePlugin(object):
+class SafetyMetaclass(type):
+    # A hack
+    core = None
+
+    @staticmethod
+    def safe_func(f):
+        def helper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except:
+                if inspect.stack()[1][1] == inspect.getfile(f):
+                    raise
+                elif SafetyMetaclass.core:
+                    SafetyMetaclass.core.information(traceback.format_exc())
+                    return None
+        return helper
+
+    def __new__(meta, name, bases, class_dict):
+        for k, v in class_dict.items():
+            if inspect.isfunction(v):
+                class_dict[k] = SafetyMetaclass.safe_func(v)
+        return type.__new__(meta, name, bases, class_dict)
+
+class BasePlugin(object, metaclass=SafetyMetaclass):
     """
     Class that all plugins derive from.  Any methods beginning with command_
     are interpreted as a command and beginning with on_ are interpreted as
@@ -30,6 +55,8 @@ class BasePlugin(object):
 
     def __init__(self, plugin_manager, core, plugins_conf_dir):
         self.core = core
+        # More hack; luckily we'll never have more than one core object
+        SafetyMetaclass.core = core
         self.plugin_manager = plugin_manager
         conf = os.path.join(plugins_conf_dir, self.__module__+'.cfg')
         self.config = PluginConfig(conf)
