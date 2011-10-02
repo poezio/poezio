@@ -81,6 +81,12 @@ class PluginManager(object):
                 import traceback
                 self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())
 
+    def del_command(self, module_name, name):
+        if name in self.commands[module_name]:
+            del self.commands[module_name][name]
+            if name in self.core.commands:
+                del self.core.commands[name]
+
     def add_command(self, module_name, name, handler, help, completion=None):
         if name in self.core.commands:
             raise Exception(_("Command '%s' already exists") % (name,))

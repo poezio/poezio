@@ -74,6 +74,9 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     def add_command(self, name, handler, help, completion=None):
         return self.plugin_manager.add_command(self.__module__, name, handler, help, completion)
 
+    def del_command(self, name):
+        return self.plugin_manager.del_command(self.__module__, name)
+
     def add_event_handler(self, event_name, handler):
         return self.plugin_manager.add_event_handler(self.__module__, event_name, handler)
 
