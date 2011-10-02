@@ -967,7 +967,7 @@ class Input(Win):
                 begin = self.text[:pos]
             hit_list = []       # list of matching nicks
             for word in word_list:
-                if word.lower().startswith(begin):
+                if word.lower().startswith(begin.lower()):
                     hit_list.append(word)
             if len(hit_list) == 0:
                 return
