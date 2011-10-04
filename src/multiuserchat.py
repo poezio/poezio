@@ -81,4 +81,8 @@ def eject_user(xmpp, jid, nick, reason):
     query.append(item)
     iq.append(query)
     iq['to'] = jid
-    return iq.send()
+    try:
+        iq.send()
+    except Exception as e:
+        return e.iq
+
