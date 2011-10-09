@@ -1269,7 +1269,7 @@ class Core(object):
         """
         /join [room][/nick] [password]
         """
-        args = arg.split()
+        args = common.shell_split(arg)
         password = None
         if len(args) == 0:
             t = self.current_tab()
