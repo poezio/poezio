@@ -281,7 +281,7 @@ class Core(object):
         """
         When a data form is received
         """
-        self.information('%s' % messsage)
+        self.information('%s' % message)
 
     def on_chatstate_active(self, message):
         self.on_chatstate(message, "active")
@@ -1036,7 +1036,7 @@ class Core(object):
         nick_from = message['mucnick']
         room_from = message.getMucroom()
         if message['type'] == 'error': # Check if it's an error
-            return self.room_error(message, from_room)
+            return self.room_error(message, room_from)
         room = self.get_room_by_name(room_from)
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_room() and tab.get_room().get_user_by_name(nick_from) and\
