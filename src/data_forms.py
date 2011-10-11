@@ -408,7 +408,7 @@ class FormWin(object):
         self._win = curses.newwin(height, width, y, x)
         self.current_input = 0
         self.inputs = []        # dict list
-        for (name, field) in self._form.getFields():
+        for (name, field) in self._form.getFields().items():
             if field['type'] == 'hidden':
                 continue
             try:
@@ -488,7 +488,7 @@ class FormWin(object):
             self._win.erase()
             y = 0
             i = 0
-            for name, field in self._form.getFields():
+            for name, field in self._form.getFields().items():
                 if field['type'] == 'hidden':
                     continue
                 self.inputs[i]['label'].resize(1, self.width//3, y + 1, 0)
