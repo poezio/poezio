@@ -404,6 +404,9 @@ class MucTab(ChatTab):
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['moderator'] =  (self.command_moderator, _("Usage: /moderator <nick> [reason]\nModerator: Op the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['visitor'] =  (self.command_visitor, _("Usage: /visitor <nick> [reason]\nVisitor: Mute the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['participant'] =  (self.command_participant, _("Usage: /participant <nick> [reason]\nParticipant: Voice the user with the specified nickname. You also can give an optional reason."), None)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
@@ -623,9 +626,33 @@ class MucTab(ChatTab):
         """
         /kick <nick> [reason]
         """
+        self._command_change_role('none', 'kick', arg)
+
+    def command_visitor(self, arg):
+        """
+        /visitor <nick> [reason]
+        """
+        self._command_change_role('visitor', 'visitor', arg)
+
+    def command_participant(self, arg):
+        """
+        /participant <nick> [reason]
+        """
+        self._command_change_role('participant', 'participant', arg)
+
+    def command_moderator(self, arg):
+        """
+        /moderator <nick> [reason]
+        """
+        self._command_change_role('moderator', 'moderator', arg)
+
+    def _command_change_role(self, role, command, arg):
+        """
+        Changes the role of the nick in args[0]
+        """
         args = common.shell_split(arg)
         if len(args) < 1:
-            self.core.command_help('kick')
+            self.core.command_help('command')
             return
         nick = args[0]
         if len(args) >= 2:
@@ -634,7 +661,7 @@ class MucTab(ChatTab):
             reason = ''
         if not self.get_room().joined:
             return
-        res = muc.eject_user(self.core.xmpp, self.get_name(), nick, reason)
+        res = muc.set_user_role(self.core.xmpp, self.get_name(), nick, reason, role)
         if res['type'] == 'error':
             self.core.room_error(res, self.get_name())
 

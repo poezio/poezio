@@ -67,13 +67,14 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
     """
     xmpp.plugin['xep_0045'].leaveMUC(jid, own_nick, msg)
 
-def eject_user(xmpp, jid, nick, reason):
+def set_user_role(xmpp, jid, nick, reason, role):
     """
-    (try to) Eject an user from the room
+    (try to) Set the role of a MUC user
+    (role =) 'none': eject user)
     """
     iq = xmpp.makeIqSet()
     query = ET.Element('{%s}query' % NS_MUC_ADMIN)
-    item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'role':'none'})
+    item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'role':role})
     if reason:
         reason_el = ET.Element('{%s}reason' % NS_MUC_ADMIN)
         reason_el.text = reason
@@ -82,7 +83,6 @@ def eject_user(xmpp, jid, nick, reason):
     iq.append(query)
     iq['to'] = jid
     try:
-        iq.send()
+        return iq.send()
     except Exception as e:
         return e.iq
-
