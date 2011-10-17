@@ -70,7 +70,7 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
 def set_user_role(xmpp, jid, nick, reason, role):
     """
     (try to) Set the role of a MUC user
-    (role =) 'none': eject user)
+    (role = 'none': eject user)
     """
     iq = xmpp.makeIqSet()
     query = ET.Element('{%s}query' % NS_MUC_ADMIN)
