@@ -7,13 +7,13 @@
 # Use launch.sh to start poezio directly from here
 
 echo 'Updating poezio'
-git pull
+git pull origin master
 
 if [ -e "SleekXMPP" ]
 then
     echo "Updating SleekXMPP"
     cd SleekXMPP
-    git pull origin master
+    git pull
     cd ..
 else
     echo "Downloading SleekXMPP"
