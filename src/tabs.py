@@ -404,9 +404,8 @@ class MucTab(ChatTab):
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
-        self.commands['moderator'] =  (self.command_moderator, _("Usage: /moderator <nick> [reason]\nModerator: Op the user with the specified nickname. You also can give an optional reason."), None)
-        self.commands['visitor'] =  (self.command_visitor, _("Usage: /visitor <nick> [reason]\nVisitor: Mute the user with the specified nickname. You also can give an optional reason."), None)
-        self.commands['participant'] =  (self.command_participant, _("Usage: /participant <nick> [reason]\nParticipant: Voice the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
+        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner. You also can give an optional reason."), None)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
@@ -626,42 +625,54 @@ class MucTab(ChatTab):
         """
         /kick <nick> [reason]
         """
-        self._command_change_role('none', 'kick', arg)
+        args = common.shell_split(arg)
+        if not len(args):
+            self.core.command_help('kick')
+        self._command_change_role('kick '+arg)
 
-    def command_visitor(self, arg):
+    def command_role(self, arg):
         """
-        /visitor <nick> [reason]
-        """
-        self._command_change_role('visitor', 'visitor', arg)
-
-    def command_participant(self, arg):
-        """
-        /participant <nick> [reason]
-        """
-        self._command_change_role('participant', 'participant', arg)
-
-    def command_moderator(self, arg):
-        """
-        /moderator <nick> [reason]
-        """
-        self._command_change_role('moderator', 'moderator', arg)
-
-    def _command_change_role(self, role, command, arg):
-        """
-        Changes the role of the nick in args[0]
+        /role <nick> <role> [reason]
+        Changes the role of an user
+        roles can be: none, visitor, participant, moderator
         """
         args = common.shell_split(arg)
-        if len(args) < 1:
-            self.core.command_help(command)
+        if len(args) < 2:
+            self.core.command_help('role')
             return
-        nick = args[0]
-        if len(args) >= 2:
-            reason = ' '.join(args[1:])
+        nick, role = args[0],args[1]
+        if len(args) > 2:
+            reason = ' '.join(args[2:])
         else:
             reason = ''
-        if not self.get_room().joined:
+        if not self.get_room().joined or \
+                not role in ('none', 'visitor', 'participant', 'moderator'):
             return
         res = muc.set_user_role(self.core.xmpp, self.get_name(), nick, reason, role)
+        if res['type'] == 'error':
+            self.core.room_error(res, self.get_name())
+
+    def command_affiliation(self, arg):
+        """
+        /affiliation <nick> <role> [reason]
+        Changes the affiliation of an user
+        roles can be: none, visitor, participant, moderator
+        """
+        args = common.shell_split(arg)
+        if len(args) < 2:
+            self.core.command_help('role')
+            return
+        nick, affiliation = args[0],args[1]
+        if len(args) > 2:
+            reason = ' '.join(args[2:])
+        else:
+            reason = ''
+        if not self.get_room().joined or \
+                not affiliation in ('none', 'member', 'admin', 'owner'):
+#                replace this ↑ with this ↓ when the ban list support is done
+#                not affiliation in ('outcast', 'none', 'member', 'admin', 'owner'):
+            return
+        res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), nick, reason, affiliation)
         if res['type'] == 'error':
             self.core.room_error(res, self.get_name())
 
