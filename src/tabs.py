@@ -652,7 +652,7 @@ class MucTab(ChatTab):
         """
         args = common.shell_split(arg)
         if len(args) < 1:
-            self.core.command_help('command')
+            self.core.command_help(command)
             return
         nick = args[0]
         if len(args) >= 2:
