@@ -13,7 +13,7 @@ if [ -e "SleekXMPP" ]
 then
     echo "Updating SleekXMPP"
     cd SleekXMPP
-    git pull
+    git pull origin master
     cd ..
 else
     echo "Downloading SleekXMPP"
