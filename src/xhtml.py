@@ -176,6 +176,8 @@ log = logging.getLogger(__name__)
 
 whitespace_re = re.compile(r'\s+')
 
+xhtml_attr_re = re.compile(r'\x19\d{0,3}\}|\x19[buaio]')
+
 def get_body_from_message_stanza(message):
     """
     Returns a string with xhtml markups converted to
@@ -321,9 +323,18 @@ def xhtml_to_poezio_colors(text):
     return message
 
 
-def clean_text(string):
+def clean_text(s):
     """
-    Remove all \x19 from the string
+    Remove all xhtml-im attributes (\x19etc) from the string with the
+    complete color format, i.e \x19xxx}
+    """
+    s = re.sub(xhtml_attr_re, "", s)
+    return s
+
+def clean_text_simple(string):
+    """
+    Remove all \x19 from the string formatted with simple colors:
+    \x198
     """
     pos = string.find('\x19')
     while pos != -1:

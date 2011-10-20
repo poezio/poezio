@@ -289,7 +289,7 @@ class ChatTab(Tab):
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
-            txt = msg.txt
+            txt = xhtml.clean_text(msg.txt)
             for char in char_we_dont_want:
                 txt = txt.replace(char, ' ')
             for word in txt.split():
@@ -300,7 +300,7 @@ class ChatTab(Tab):
     def on_enter(self):
         txt = self.input.key_enter()
         if txt:
-            clean_text = xhtml.clean_text(txt)
+            clean_text = xhtml.clean_text_simple(txt)
             if not self.execute_command(clean_text):
                 if txt.startswith('//'):
                     txt = txt[1:]
@@ -683,7 +683,7 @@ class MucTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
@@ -1075,7 +1075,7 @@ class PrivateTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
@@ -1746,7 +1746,7 @@ class ConversationTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
