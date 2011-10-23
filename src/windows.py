@@ -606,7 +606,7 @@ class TextWin(Win):
                 self.built_lines.pop(0)
             return len(lines)
 
-    def refresh(self, room):
+    def refresh(self):
         log.debug('Refresh: %s'%self.__class__.__name__)
         if self.height <= 0:
             return
