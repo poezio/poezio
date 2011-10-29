@@ -159,7 +159,6 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
-#            'M-c': self.coucou,
             }
 
         # Add handlers
@@ -192,9 +191,6 @@ class Core(object):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
             self.plugin_manager.load(plugin)
-
-    def coucou(self):
-        self.command_pubsub('pubsub.louiz.org')
 
     def start(self):
         """
