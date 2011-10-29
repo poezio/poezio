@@ -1,9 +1,10 @@
 import os
 from configparser import ConfigParser
+import config
 import inspect
 import traceback
 
-class PluginConfig(ConfigParser):
+class PluginConfig(config.Config):
     def __init__(self, filename):
         ConfigParser.__init__(self)
         self.__config_file__ = filename
@@ -22,6 +23,7 @@ class PluginConfig(ConfigParser):
             return True
         except IOError:
             return False
+
 
 class SafetyMetaclass(type):
     # A hack
