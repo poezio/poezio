@@ -48,7 +48,7 @@ you can now simply launch `poezio'
 
 You can edit the config file (~/.config/poezio/poezio.cfg by default)
 or data/default_config.cfg (if you want to edit the config before the
-first launch). The default config file is fully commented.
+first launch).  The default config file is fully commented.
 
 Please, see the online documentation for more information on installing,
 configuring or using poezio:
@@ -66,12 +66,14 @@ feature you want.
 Florent Le Coz (louiz’) <louiz@louiz.org> (main developper)
 Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developper)
 
+
 =======================
     Contact/support
 =======================
-Jabber ChatRoom:   poezio@kikoo.louiz.org
+Jabber ChatRoom:   poezio@muc.poezio.eu
 Forum:             http://dev.louiz.org/project/poezio/forum
 Report a bug:      http://dev.louiz.org/project/poezio/bugs/add
+
 
 =======================
 	License
@@ -84,6 +86,52 @@ Please read the COPYING file for details.
 
 The artwork logo was made by Gaëtan Ribémont and released under
 the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
+
+
+=======================
+       Hacking
+=======================
+If you want to contribute, you are invited on poezio@muc.poezio.eu to
+announce your ideas, what you are going to do, or to seek help if you
+have trouble understanding some of the code.
+The preferred way to submit changes is through a public git repository.
+But mercurial repositories or simple patches are also welcome.
+
+For contributors having commit access:
+
+This section explains how the git repository is organized.
+The “master” branch is the branch where all recent development is made.  This is
+the unstable version, which can be broken, but we should try to keep it usable
+and crash-free as much as possible (so, never push to it if you are adding a
+*known* crash).
+
+New big features that take time to be complete should be developped in feature
+branches (for example the “plugins” or the “opt” branches).
+If it’s a really long feature, merge the “master” branch in that feature branch
+from time to time, to avoid huge merges (and merge issues) when you’ll have to
+merge your feature back in “master”.
+Merge your work in master once it works and is usable, not necessarily when
+it’s 100% finished.  Polishing and last bug fixes can take place in “master”.
+
+Conflicts should be solved with *rebase* and not with merge.  This means
+that if two developpers commited one thing at the same time in their own
+repository, the first pushes on the public public repos, and the other
+has to pull before being able to push too.  In that case, the second
+developper should use the rebase command instead of merge.  This avoids
+creating unnecessary “branches” and visible merges.
+On the contrary, when merging feature branches back to “master”, we should
+use merge with the --no-ff tag (this makes sure the branch will always
+distinctly appear in the logs), even if no conflict occured.
+
+Finally, when a release is ready, we should merge the “master” branch
+into the releases branch, then tag it to that version number.
+If an “urgent” bugfix has to be made for a release (for example
+a security issue is discovered on the last stable version, and
+the current master has evolved too much to be released in the current
+state), we create a new bugfix branch from the “releases” branch, we fix
+it and finally merge it back to the “releases” branch, and tag it (and
+we merge it to “master” as well, of course).
+
 
 =======================
 	Thanks

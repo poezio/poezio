@@ -10,7 +10,7 @@ setup (name = 'BuildLines',
        author = 'Florent Le Coz',
        author_email = 'louiz@louiz.org',
        long_description = """
-       a python3 module for poezio, used to replace some time-critical
-       python functions that are too slow. If compiled, poezio will use this module,
-       otherwise it will just use the equivalent python functions.
-       """)
+           a python3 module for poezio, used to replace some time-critical
+           python functions that are too slow. If compiled, poezio will use this module,
+           otherwise it will just use the equivalent python functions.
+           """)

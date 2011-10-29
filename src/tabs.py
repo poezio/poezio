@@ -126,6 +126,12 @@ class Tab(object):
                 words = ['/%s'% (name) for name in self.core.commands] +\
                     ['/%s' % (name) for name in self.commands]
                 the_input.auto_completion(words, '')
+                # Do not try to cycle command completion if there was only
+                # one possibily. The next tab will complete the argument.
+                # Otherwise we would need to add a useless space before being
+                # able to complete the arguments.
+                if len(the_input.hit_list) == 1:
+                    the_input.do_command(' ')
                 return True
         return False
 
@@ -283,7 +289,7 @@ class ChatTab(Tab):
         for msg in self._room.messages[:-40:-1]:
             if not msg:
                 continue
-            txt = msg.txt
+            txt = xhtml.clean_text(msg.txt)
             for char in char_we_dont_want:
                 txt = txt.replace(char, ' ')
             for word in txt.split():
@@ -294,7 +300,7 @@ class ChatTab(Tab):
     def on_enter(self):
         txt = self.input.key_enter()
         if txt:
-            clean_text = xhtml.clean_text(txt)
+            clean_text = xhtml.clean_text_simple(txt)
             if not self.execute_command(clean_text):
                 if txt.startswith('//'):
                     txt = txt[1:]
@@ -402,6 +408,8 @@ class MucTab(ChatTab):
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
+        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
+        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner. You also can give an optional reason."), None)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
@@ -412,6 +420,8 @@ class MucTab(ChatTab):
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: get the software version of the given JID or nick in room (usually its XMPP client and Operating System)'), None)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: get the list of the users in the room, and the list of the people assuming the different roles.'), None)
+        self.commands['clear'] =  (self.command_clear,
+                                 _("""Usage: /clear\nClear: clears the current buffer'"""), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -459,12 +469,21 @@ class MucTab(ChatTab):
         self.core.xmpp.plugin['xep_0045'].configureRoom(self.get_name(), form)
         self.core.close_tab()
 
+    def command_clear(self, args):
+        """
+        /clear
+        """
+        self._room.messages = []
+        self.text_win.rebuild_everything(self._room)
+        self.refresh()
+        self.core.doupdate()
+
     def command_cycle(self, arg):
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
         self.get_room().disconnect()
         self.core.disable_private_tabs(self.get_room().name)
-        self.core.command_join('/%s' % self.core.get_bookmark_nickname(self.get_room().name), '0')
+        self.core.command_join('"/%s"' % self.core.get_bookmark_nickname(self.get_room().name), '0')
         self.user_win.pos = 0
 
     def command_recolor(self, arg):
@@ -604,24 +623,60 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         current_topic = self.get_room().topic
-        return the_input.auto_completion([current_topic], ' ')
+        return the_input.auto_completion([current_topic], '')
 
     def command_kick(self, arg):
         """
         /kick <nick> [reason]
         """
         args = common.shell_split(arg)
-        if len(args) < 1:
+        if not len(args):
             self.core.command_help('kick')
+        self._command_change_role('kick '+arg)
+
+    def command_role(self, arg):
+        """
+        /role <nick> <role> [reason]
+        Changes the role of an user
+        roles can be: none, visitor, participant, moderator
+        """
+        args = common.shell_split(arg)
+        if len(args) < 2:
+            self.core.command_help('role')
             return
-        nick = args[0]
-        if len(args) >= 2:
-            reason = ' '.join(args[1:])
+        nick, role = args[0],args[1]
+        if len(args) > 2:
+            reason = ' '.join(args[2:])
         else:
             reason = ''
-        if not self.get_room().joined:
+        if not self.get_room().joined or \
+                not role in ('none', 'visitor', 'participant', 'moderator'):
             return
-        res = muc.eject_user(self.core.xmpp, self.get_name(), nick, reason)
+        res = muc.set_user_role(self.core.xmpp, self.get_name(), nick, reason, role)
+        if res['type'] == 'error':
+            self.core.room_error(res, self.get_name())
+
+    def command_affiliation(self, arg):
+        """
+        /affiliation <nick> <role> [reason]
+        Changes the affiliation of an user
+        roles can be: none, visitor, participant, moderator
+        """
+        args = common.shell_split(arg)
+        if len(args) < 2:
+            self.core.command_help('role')
+            return
+        nick, affiliation = args[0],args[1]
+        if len(args) > 2:
+            reason = ' '.join(args[2:])
+        else:
+            reason = ''
+        if not self.get_room().joined or \
+                not affiliation in ('none', 'member', 'admin', 'owner'):
+#                replace this ↑ with this ↓ when the ban list support is done
+#                not affiliation in ('outcast', 'none', 'member', 'admin', 'owner'):
+            return
+        res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), nick, reason, affiliation)
         if res['type'] == 'error':
             self.core.room_error(res, self.get_name())
 
@@ -632,7 +687,7 @@ class MucTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
@@ -729,12 +784,12 @@ class MucTab(ChatTab):
         word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
                          if user.nick != self._room.own_nick]
         after = config.get('after_completion', ',')+" "
-        if ' ' not in self.input.get_text() or (self.input.last_completion and\
-                     self.input.get_text()[:-len(after)] == self.input.last_completion):
+        input_pos = self.input.pos + self.input.line_pos
+        if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
+                     self.input.get_text()[:input_pos] == self.input.last_completion + after):
             add_after = after
         else:
             add_after = ' '
-
         self.input.auto_completion(word_list, add_after)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
@@ -1024,7 +1079,7 @@ class PrivateTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
@@ -1215,6 +1270,9 @@ class RosterInfoTab(Tab):
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
         self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
         self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Use this command to add the specified JID to your roster. The reverse authorization will automatically be accepted if the remote JID accepts your subscription, leading to a mutual presence subscription."), None)
+        self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name"), self.completion_name)
+        self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group"), self.completion_groupadd)
+        self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group"), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Use this command to export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Use this command to import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
@@ -1266,6 +1324,87 @@ class RosterInfoTab(Tab):
             self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+
+    def command_name(self, args):
+        """
+        Set a name for the specified JID in your roster
+        """
+        args = args.split(None, 1)
+        if len(args) < 1:
+            return
+        jid = JID(args[0]).bare
+        name = args[1] if len(args) == 2 else ''
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        groups = set(contact.get_groups())
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
+            contact.set_name(name)
+
+    def command_groupadd(self, args):
+        """
+        Add the specified JID to the specified group
+        """
+        args = args.split(None, 1)
+        if len(args) != 2:
+            return
+        jid = JID(args[0]).bare
+        group = args[1]
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.get_groups())
+        if group in new_groups:
+            self.core.information(_('JID already in group'), 'Error')
+            return
+
+        new_groups.add(group)
+        try:
+            new_groups.remove('none')
+        except KeyError:
+            pass
+
+        name = contact.get_name()
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
+
+    def command_groupremove(self, args):
+        """
+        Remove the specified JID to the specified group
+        """
+        args = args.split(None, 1)
+        if len(args) != 2:
+            return
+        jid = JID(args[0]).bare
+        group = args[1]
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.get_groups())
+        try:
+            new_groups.remove('none')
+        except KeyError:
+            pass
+        if group not in new_groups:
+            self.core.information(_('JID not in group'), 'Error')
+            return
+
+        new_groups.remove(group)
+        name = contact.get_name()
+        subscription = contact.get_subscription()
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
 
     def command_remove(self, args):
         """
@@ -1341,6 +1480,53 @@ class RosterInfoTab(Tab):
         """
         jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
         return the_input.auto_completion(jids, '')
+
+    def completion_name(self, the_input):
+        text = the_input.get_text()
+        n = len(text.split())
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        return False
+
+    def completion_groupadd(self, the_input):
+        text = the_input.get_text()
+        n = len(text.split())
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            groups = [group.name for group in roster.get_groups() if group.name != 'none']
+            return the_input.auto_completion(groups, '')
+        return False
+
+    def completion_groupremove(self, the_input):
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            contact = roster.get_contact_by_jid(args[1])
+            if not contact:
+                return False
+            groups = list(contact.get_groups())
+            try:
+                groups.remove('none')
+            except ValueError:
+                pass
+            return the_input.auto_completion(groups, '')
+        return False
 
     def completion_deny(self, the_input):
         """
@@ -1421,7 +1607,8 @@ class RosterInfoTab(Tab):
         self.input.do_command("/") # we add the slash
 
     def reset_help_message(self, _=None):
-        curses.curs_set(0)
+        if self.core.current_tab() is self:
+            curses.curs_set(0)
         self.input = self.default_help_message
         self.input.refresh()
         self.core.doupdate()
@@ -1563,7 +1750,7 @@ class ConversationTab(ChatTab):
         if line.find('\x19') == -1:
             msg['body'] = line
         else:
-            msg['body'] = xhtml.clean_text(line)
+            msg['body'] = xhtml.clean_text_simple(line)
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'

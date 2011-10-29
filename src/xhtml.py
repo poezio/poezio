@@ -176,6 +176,8 @@ log = logging.getLogger(__name__)
 
 whitespace_re = re.compile(r'\s+')
 
+xhtml_attr_re = re.compile(r'\x19\d{0,3}\}|\x19[buaio]')
+
 def get_body_from_message_stanza(message):
     """
     Returns a string with xhtml markups converted to
@@ -249,7 +251,11 @@ def xhtml_to_poezio_colors(text):
     log.debug(text)
     xml = ET.fromstring(text)
     message = ''
-    for elem in xml.iter():
+    if version_info[1] == 2:
+        elems = xml.iter()
+    else:
+        elems = xml.getiterator()
+    for elem in elems:
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
             if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
                 message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text))
@@ -317,9 +323,18 @@ def xhtml_to_poezio_colors(text):
     return message
 
 
-def clean_text(string):
+def clean_text(s):
     """
-    Remove all \x19 from the string
+    Remove all xhtml-im attributes (\x19etc) from the string with the
+    complete color format, i.e \x19xxx}
+    """
+    s = re.sub(xhtml_attr_re, "", s)
+    return s
+
+def clean_text_simple(string):
+    """
+    Remove all \x19 from the string formatted with simple colors:
+    \x198
     """
     pos = string.find('\x19')
     while pos != -1:

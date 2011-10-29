@@ -27,6 +27,8 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
     if options.debug:
         logging.basicConfig(filename=options.debug, level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
     cocore = singleton.Singleton(core.Core)
     cocore.start()
     if not cocore.xmpp.start():  # Connect to remote server

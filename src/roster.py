@@ -90,6 +90,7 @@ class Roster(object):
         for group in contact._groups:
             if group not in groups:
                 # the contact is not in the group anymore
+                contact._groups.remove(group)
                 self.remove_contact_from_group(group, contact)
 
     def remove_contact_from_group(self, group_name, contact):

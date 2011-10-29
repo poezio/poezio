@@ -7,7 +7,7 @@
 # Use launch.sh to start poezio directly from here
 
 echo 'Updating poezio'
-hg pull -u
+git pull origin master
 
 if [ -e "SleekXMPP" ]
 then
