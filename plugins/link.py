@@ -19,10 +19,9 @@ class Plugin(BasePlugin):
         if not messages:
             return None
         for message in messages[::-1]:
-            match = url_pattern.search(clean_text(message.txt))
-            if match:
-                self.core.information('[%s]' % (match.groups(),))
-                for url in list(match.groups())[::-1]:
+            matches = url_pattern.findall(clean_text(message.txt))
+            if matches:
+                for url in matches[::-1]:
                     if nb == 1:
                         return url
                     else:

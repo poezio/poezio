@@ -1730,7 +1730,7 @@ class Core(object):
             try:
                 self.remote_fifo.write(command)
             except (IOError) as e:
-                self.information('Could not execute [%s]: %s' % (command, e,), 'Error')
+                self.information('Could not execute [%s]: %s' % (command.strip(), e,), 'Error')
                 self.remote_fifo = None
         else:
             pass
