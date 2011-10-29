@@ -21,7 +21,6 @@ class Plugin(BasePlugin):
         for message in messages[::-1]:
             match = url_pattern.search(clean_text(message.txt))
             if match:
-                self.core.information('[%s]' % (match.groups(),))
                 for url in list(match.groups())[::-1]:
                     if nb == 1:
                         return url
