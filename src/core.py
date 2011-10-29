@@ -1718,6 +1718,7 @@ class Core(object):
         poezio is not running). A very simple daemon reads on that fifo,
         and executes any command that is read in it.
         """
+        command = '%s\n' % (command,)
         if config.get('exec_remote', 'false') == 'true':
             # We just write the command in the fifo
             if not self.remote_fifo:
