@@ -124,11 +124,7 @@ class Core(object):
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
-            'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
-            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optionaly) your status message. This is equivalent to '/status away [message]'"), None),
-            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optionaly) your status message. This is equivalent to '/status busy [message]'"), None),
-            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status available [message]'"), None),
            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
@@ -1485,24 +1481,6 @@ class Core(object):
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
-
-    def command_away(self, arg):
-        """
-        /away [msg]
-        """
-        self.command_status("away "+arg)
-
-    def command_busy(self, arg):
-        """
-        /busy [msg]
-        """
-        self.command_status("busy "+arg)
-
-    def command_avail(self, arg):
-        """
-        /avail [msg]
-        """
-        self.command_status("available "+arg)
 
     def close_tab(self, tab=None):
         """
