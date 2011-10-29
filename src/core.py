@@ -49,6 +49,7 @@ from contact import Contact, Resource
 from text_buffer import TextBuffer
 from keyboard import read_char
 from theming import get_theme
+from fifo import Fifo
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -94,6 +95,7 @@ class Core(object):
         sys.excepthook = self.on_exception
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
+        self.remote_fifo = None
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
@@ -157,7 +159,6 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
-#            'M-c': self.coucou,
             }
 
         # Add handlers
@@ -190,9 +191,6 @@ class Core(object):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
             self.plugin_manager.load(plugin)
-
-    def coucou(self):
-        self.command_pubsub('pubsub.louiz.org')
 
     def start(self):
         """
@@ -1707,3 +1705,31 @@ class Core(object):
             return False
         self.current_tab().command_say(msg)
         return True
+
+    def exec_command(self, command):
+        """
+        Execute an external command on the local or a remote
+        machine, depending on the conf. For example, to open a link in a
+        browser, do exec_command("firefox http://poezio.eu"),
+        and this will call the command on the correct computer.
+        The remote execution is done by writing the command on a fifo.
+        That fifo has to be on the machine where poezio is running, and
+        accessible (through sshfs for example) from the local machine (where
+        poezio is not running). A very simple daemon reads on that fifo,
+        and executes any command that is read in it.
+        """
+        if config.get('exec_remote', 'false') == 'true':
+            # We just write the command in the fifo
+            if not self.remote_fifo:
+                try:
+                    self.remote_fifo = Fifo(os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'), 'w')
+                except (OSError, IOError) as e:
+                    self.information('Could not open fifo file for writing: %s' % (e,), 'Error')
+                    return
+            try:
+                self.remote_fifo.write(command)
+            except (IOError) as e:
+                self.information('Could not execute [%s]: %s' % (command, e,), 'Error')
+                self.remote_fifo = None
+        else:
+            pass
