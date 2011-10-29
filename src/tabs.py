@@ -368,6 +368,9 @@ class ChatTab(Tab):
         self.text_win.refresh(self._room)
         self.input.refresh()
 
+    def get_conversation_messages(self):
+        return self._room.messages
+
     def command_say(self, line):
         raise NotImplementedError
 

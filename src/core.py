@@ -1734,3 +1734,15 @@ class Core(object):
                 self.remote_fifo = None
         else:
             pass
+
+    def get_conversation_messages(self):
+        """
+        Returns a list of all the messages in the current chat.
+        If the current tab is not a ChatTab, returns None.
+
+        Messages are namedtuples of the form
+        ('txt nick_color time str_time nickname user')
+        """
+        if not isinstance(self.current_tab(), tabs.ChatTab):
+            return None
+        return self.current_tab().get_conversation_messages()
