@@ -409,6 +409,7 @@ class MucTab(ChatTab):
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
+        self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
@@ -548,8 +549,19 @@ class MucTab(ChatTab):
             msg = None
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, room.name, room.own_nick, arg)
-        self.core.close_tab()
+            self.get_room().joined = False
+            self.get_room().add_message(_("\x195}You left the chatroom\x193}"))
+            self.refresh()
+            self.core.doupdate()
         self.core.disable_private_tabs(self.get_room().name)
+
+    def command_close(self, arg):
+        """
+        /close [msg]
+        """
+        self.command_part(arg)
+        self.core.close_tab()
+
 
     def command_query(self, arg):
         """
@@ -1059,7 +1071,7 @@ class PrivateTab(ChatTab):
         # commands
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: close the tab"), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
@@ -1735,7 +1747,7 @@ class ConversationTab(ChatTab):
         self.key_func['^I'] = self.completion
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
         self.resize()
 
     def completion(self):
