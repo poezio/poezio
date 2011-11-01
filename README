@@ -28,6 +28,9 @@ You need python 3.0 (and the associated devel package, to build C modules)
 or higher, and the SleekXMPP python library.
 In the developpement version, you’ll need this fork of SleekXMPP
 http://github.com/louiz/SleekXMPP.
+Additionally, you’ll need asciidoc to build the html documentation pages.
+You can read the documentation using the .txt files, as well, if you don’t
+have asciidoc, or read it on the web.
 
 The simplest way to have up-to-date dependencies and to be able to test
 this developpement version is to use the update.sh script that downloads
