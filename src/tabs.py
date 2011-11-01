@@ -1643,6 +1643,8 @@ class RosterInfoTab(Tab):
         return False
 
     def move_cursor_down(self):
+        if isinstance(self.input, windows.CommandInput):
+            return
         self.roster_win.move_cursor_down()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -1650,6 +1652,8 @@ class RosterInfoTab(Tab):
         self.core.doupdate()
 
     def move_cursor_up(self):
+        if isinstance(self.input, windows.CommandInput):
+            return
         self.roster_win.move_cursor_up()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
