@@ -1,0 +1,9 @@
+Configure poezio
+================
+
+On its first startup, poezio will create the file ~/.config/poezio/poezio.cfg.
+
+You can edit this file, it is read at each poezio startup.
+
+This page doesn't contain more information, because an english explanation of each option is available directly in the configuration file, read it for more details.
+(last version can be read online, here) 
