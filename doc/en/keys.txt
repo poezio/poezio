@@ -53,8 +53,14 @@ Bindings are keyboard shortcut aliases. You can use them
 to define your own keys to replace the default ones.
 where ^x means Control + x
 and M-x means Alt + x
-.Make 
-==================
-zouzou
-==================
 
+To know exactly what the code of a key is, just run
+==================
+python3 src/keyboard.py
+==================
+And enter any keys
+
+.Turn Alt-i into a tab key (completion, etc)
+==================
+M-i = ^I
+==================
