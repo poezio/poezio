@@ -1025,7 +1025,7 @@ class MucTab(ChatTab):
         # to be displayed has changed
         color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
         if from_nick == room.own_nick:
-            msg = _('\x193d}You\x195} changed: ')
+            msg = _('\x193}You\x195} changed: ')
         else:
             msg = _('\x19%(color)d}%(nick)s\x195} changed: ') % {'nick': from_nick.replace('"', '\\"'), 'color': color}
         if show not in SHOW_NAME:
