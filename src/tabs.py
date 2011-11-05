@@ -840,18 +840,22 @@ class MucTab(ChatTab):
         return self._room
 
     @property
-    def color(self):
-        return STATE_COLORS[self._room.state]()
+    def state(self):
+        return self._room.state
+
+    @state.setter
+    def state(self, value):
+        self._room.state = value
 
     def on_lose_focus(self):
-        self._room.state = 'normal'
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.state = 'current'
+        self.state = 'current'
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
@@ -1193,11 +1197,12 @@ class PrivateTab(ChatTab):
         self.input.refresh()
 
     @property
-    def color(self):
-        if self._room.state == 'normal' or\
-                self._room.state == 'current':
-            return STATE_COLORS[self._room.state]()
-        return get_theme().COLOR_TAB_PRIVATE
+    def state(self):
+        return self._room.state
+
+    @state.setter
+    def state(self, value):
+        self._room.state = value
 
     def get_name(self):
         return self._room.name
@@ -1216,14 +1221,14 @@ class PrivateTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self._room.state = 'normal'
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.state = 'CURRENT'
+        self.state = 'current'
         curses.curs_set(1)
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
@@ -1832,13 +1837,6 @@ class ConversationTab(ChatTab):
     def refresh_info_header(self):
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
         self.input.refresh()
-
-    @property
-    def color(self):
-        if self.state == 'normal' or \
-                self.state == 'current':
-            return STATE_COLORS[self.state]()
-        return get_theme().COLOR_TAB_PRIVATE
 
     def get_name(self):
         return self._name
