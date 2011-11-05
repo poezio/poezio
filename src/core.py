@@ -1114,12 +1114,14 @@ class Core(object):
         pres['type'] = show
         pres.send()
         current = self.current_tab()
-        if isinstance(current, tabs.MucTab) and current.get_room().joined:
+        if isinstance(current, tabs.MucTab) and current.get_room().joined and show in ('away', 'xa'):
             current.send_chat_state('inactive')
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
                 muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
         self.set_status(show, msg)
+        if isinstance(current, tabs.MucTab) and current.get_room().joined and show not in ('away', 'xa'):
+            current.send_chat_state('active')
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
