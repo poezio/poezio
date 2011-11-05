@@ -971,6 +971,8 @@ class Core(object):
                     return tab
         new_tab = tabs.ConversationTab(jid)
         # insert it in the rooms
+        if not focus:
+            new_tab.state = "private"
         self.add_tab(new_tab, focus)
         self.refresh_window()
         return new_tab
@@ -989,6 +991,8 @@ class Core(object):
         own_nick = room.own_nick
         r = Room(complete_jid, own_nick) # PrivateRoom here
         new_tab = tabs.PrivateTab(r)
+        if not focus:
+            new_tab.state = "private"
         # insert it in the tabs
         self.add_tab(new_tab, focus)
         # self.window.new_room(r)

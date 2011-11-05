@@ -64,6 +64,17 @@ STATE_COLORS = {
         'private': lambda: get_theme().COLOR_TAB_PRIVATE,
         'normal': lambda: get_theme().COLOR_TAB_NORMAL,
         'current': lambda: get_theme().COLOR_TAB_CURRENT,
+#        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
+    }
+
+STATE_PRIORITY = {
+        'normal': -1,
+        'current': -1,
+        'disconnected': 0,
+        'message': 1,
+        'highlight': 2,
+        'private': 2,
+#        'attention': 3
     }
 
 class Tab(object):
@@ -71,7 +82,7 @@ class Tab(object):
     tab_core = None
     def __init__(self):
         self.input = None
-        self.state = 'normal'
+        self._state = 'normal'
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
@@ -108,6 +119,10 @@ class Tab(object):
     def state(self, value):
         if not value in STATE_COLORS:
             log.debug("WARNING: invalid value for tab state")
+            return
+        elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
+                value != 'current':
+            log.debug("WARNING: did not set status because of lower priority")
             return
         self._state = value
 
