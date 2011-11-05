@@ -24,7 +24,7 @@ class Room(TextBuffer):
         TextBuffer.__init__(self, messages_nb_limit)
         self.name = name
         self.own_nick = nick
-        self.color_state = get_theme().COLOR_TAB_NORMAL   # color used in RoomInfo
+        self.state = 'normal'   # color used in RoomInfo
         self.joined = False     # false until self presence is receied
         self.users = []         # User objects
         self.topic = ''
@@ -35,7 +35,7 @@ class Room(TextBuffer):
         we can know if we can join it, send messages to it, etc
         """
         self.users = []
-        self.color_state = get_theme().COLOR_TAB_DISCONNECTED
+        self.state = 'disconnected'
         self.joined = False
 
     def get_single_line_topic(self):
@@ -59,15 +59,15 @@ class Room(TextBuffer):
         color = None
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
-                if self.color_state != get_theme().COLOR_TAB_CURRENT:
-                    self.set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+                if self.state != 'current':
+                    self.state = 'highlight'
                 color = get_theme().COLOR_HIGHLIGHT_NICK
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
-                        if self.color_state != get_theme().COLOR_TAB_CURRENT:
-                            self.set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+                        if self.state != 'current':
+                            self.state = 'highlight'
                         color = get_theme().COLOR_HIGHLIGHT_NICK
                         break
         if color:
@@ -84,13 +84,6 @@ class Room(TextBuffer):
             if user.nick == nick:
                 return user
         return None
-
-    def set_color_state(self, color):
-        """
-        Set the color that will be used to display the room's
-        number in the RoomInfo window
-        """
-        self.color_state = color
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None):
         """
@@ -110,9 +103,9 @@ class Room(TextBuffer):
             user = forced_user
         if not time and nickname and\
                 nickname != self.own_nick and\
-                self.color_state != get_theme().COLOR_TAB_CURRENT:
-            if self.color_state != get_theme().COLOR_TAB_HIGHLIGHT:
-                self.set_color_state(get_theme().COLOR_TAB_NEW_MESSAGE)
+                    self.state != 'current':
+            if self.state != 'highlight':
+                self.state = 'message'
         nick_color = nick_color or None
         if not nickname or time:
             txt = '\x195}%s' % (txt,)

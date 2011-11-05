@@ -614,7 +614,7 @@ class Core(object):
         if 'private' in config.get('beep_on', 'highlight private').split():
             curses.beep()
         if self.current_tab() is not conversation:
-            conversation.set_color_state(get_theme().COLOR_TAB_PRIVATE)
+            conversation.state = 'private'
             self.refresh_tab_win()
         else:
             self.refresh_window()
@@ -676,7 +676,7 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
-            self.get_tab_by_number(0).set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+            self.get_tab_by_number(0).state = 'highlight'
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -827,7 +827,7 @@ class Core(object):
         """
         Refresh everything
         """
-        self.current_tab().set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.current_tab().state = 'current'
         self.current_tab().refresh()
         self.doupdate()
 
@@ -875,19 +875,19 @@ class Core(object):
         - A Muc with any new message
         """
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_PRIVATE:
+            if tab.state == 'private':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_HIGHLIGHT:
+            if tab.state == 'highlight':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_NEW_MESSAGE:
+            if tab.state == 'message':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_DISCONNECTED:
+            if tab.state == 'disconnected':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:

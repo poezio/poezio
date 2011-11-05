@@ -57,12 +57,21 @@ SHOW_NAME = {
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
+STATE_COLORS = {
+    'disconnected': 'COLOR_TAB_DISCONNECTED',
+    'message': 'COLOR_TAB_NEW_MESSAGE',
+    'highlight': 'COLOR_TAB_HIGHLIGHT',
+    'private': 'COLOR_TAB_PRIVATE',
+    'normal': 'COLOR_TAB_NORMAL',
+    'current': 'COLOR_TAB_CURRENT',
+    }
+
 class Tab(object):
     number = 0
     tab_core = None
     def __init__(self):
         self.input = None
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
@@ -86,6 +95,21 @@ class Tab(object):
     @property
     def info_win(self):
         return self.core.information_win
+
+    @property
+    def color(self):
+        return getattr(get_theme(), STATE_COLORS[self.state])
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        if not value in STATE_COLORS:
+            log.debug("WARNING: invalid value for tab state")
+            return
+        self._state = value
 
     @staticmethod
     def resize(scr):
@@ -167,18 +191,6 @@ class Tab(object):
         """
         raise NotImplementedError
 
-    def get_color_state(self):
-        """
-        returns the color that should be used in the GlobalInfoBar
-        """
-        return self._color_state
-
-    def set_color_state(self, color):
-        """
-        set the color state
-        """
-        pass
-
     def get_name(self):
         """
         get the name of the tab
@@ -198,13 +210,13 @@ class Tab(object):
         """
         called when this tab loses the focus.
         """
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
 
     def add_message(self):
         """
@@ -803,12 +815,6 @@ class MucTab(ChatTab):
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
-    def get_color_state(self):
-        return self._room.color_state
-
-    def set_color_state(self, color):
-        self._room.set_color_state(color)
-
     def get_name(self):
         return self._room.name
 
@@ -818,15 +824,19 @@ class MucTab(ChatTab):
     def get_room(self):
         return self._room
 
+    @property
+    def color(self):
+        return getattr(get_theme(), STATE_COLORS[self._room.state])
+
     def on_lose_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self._room.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self._room.state = 'current'
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
@@ -1167,14 +1177,12 @@ class PrivateTab(ChatTab):
         self.info_header.refresh(self._room, self.text_win, self.chatstate)
         self.input.refresh()
 
-    def get_color_state(self):
-        if self._room.color_state == get_theme().COLOR_TAB_NORMAL or\
-                self._room.color_state == get_theme().COLOR_TAB_CURRENT:
-            return self._room.color_state
-        return get_theme().COLOR_TAB_PRIVATE
-
-    def set_color_state(self, color):
-        self._room.color_state = color
+    @property
+    def color(self):
+        if self._room.state == 'normal' or\
+                self._room.state == 'current':
+            return getattr(get_theme(), STATE_COLORS[self._room.state])
+        return getattr(get_theme(), 'COLOR_TAB_PRIVATE')
 
     def get_name(self):
         return self._room.name
@@ -1193,14 +1201,14 @@ class PrivateTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self._room.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self._room.state = 'CURRENT'
         curses.curs_set(1)
         if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
@@ -1276,7 +1284,7 @@ class RosterInfoTab(Tab):
         self.contact_info_win = windows.ContactInfoWin()
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
-        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.key_func['^I'] = self.completion
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
@@ -1590,12 +1598,6 @@ class RosterInfoTab(Tab):
     def get_name(self):
         return self.name
 
-    def get_color_state(self):
-        return self._color_state
-
-    def set_color_state(self, color):
-        self._color_state = color
-
     def on_input(self, key):
         if key == '^M':
             selected_row = self.roster_win.get_selected_row()
@@ -1643,10 +1645,10 @@ class RosterInfoTab(Tab):
         return self.reset_help_message()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         if isinstance(self.input, windows.HelpText):
             curses.curs_set(0)
         else:
@@ -1753,7 +1755,7 @@ class ConversationTab(ChatTab):
     def __init__(self, jid):
         txt_buff = text_buffer.TextBuffer()
         ChatTab.__init__(self, txt_buff)
-        self.color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         txt_buff.add_window(self.text_win)
@@ -1816,14 +1818,12 @@ class ConversationTab(ChatTab):
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
         self.input.refresh()
 
-    def get_color_state(self):
-        if self.color_state == get_theme().COLOR_TAB_NORMAL or\
-                self.color_state == get_theme().COLOR_TAB_CURRENT:
-            return self.color_state
+    @property
+    def color(self):
+        if self.state == 'normal' or \
+                self.state == 'current':
+                return getattr(get_theme(), STATE_COLORS[self.state])
         return get_theme().COLOR_TAB_PRIVATE
-
-    def set_color_state(self, color):
-        self.color_state = color
 
     def get_name(self):
         return self._name
@@ -1838,14 +1838,14 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.state = 'current'
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('active')
@@ -1880,7 +1880,7 @@ class MucListTab(Tab):
     """
     def __init__(self, server):
         Tab.__init__(self)
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self.name = server
         self.upper_message = windows.Topic()
         self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
@@ -1994,14 +1994,11 @@ class MucListTab(Tab):
             return self.key_func[key]()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         curses.curs_set(0)
-
-    def get_color_state(self):
-        return self._color_state
 
     def on_scroll_up(self):
         self.listview.scroll_up()
@@ -2017,7 +2014,7 @@ class SimpleTextTab(Tab):
     """
     def __init__(self, text):
         Tab.__init__(self)
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self.text_win = windows.SimpleTextWin(text)
         self.default_help_message = windows.HelpText("“Ctrl+q”: close")
         self.input = self.default_help_message
@@ -2060,14 +2057,11 @@ class SimpleTextTab(Tab):
         self.input.refresh()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         curses.curs_set(0)
-
-    def get_color_state(self):
-        return self._color_state
 
 def diffmatch(search, string):
     """
