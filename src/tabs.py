@@ -413,6 +413,7 @@ class MucTab(ChatTab):
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
+        self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
@@ -552,8 +553,19 @@ class MucTab(ChatTab):
             msg = None
         if self.get_room().joined:
             muc.leave_groupchat(self.core.xmpp, room.name, room.own_nick, arg)
-        self.core.close_tab()
+            self.get_room().joined = False
+            self.get_room().add_message(_("\x195}You left the chatroom\x193}"))
+            self.refresh()
+            self.core.doupdate()
         self.core.disable_private_tabs(self.get_room().name)
+
+    def command_close(self, arg):
+        """
+        /close [msg]
+        """
+        self.command_part(arg)
+        self.core.close_tab()
+
 
     def command_query(self, arg):
         """
@@ -632,7 +644,8 @@ class MucTab(ChatTab):
         args = common.shell_split(arg)
         if not len(args):
             self.core.command_help('kick')
-        self._command_change_role('kick '+arg)
+        else:
+            self.command_role('none '+arg)
 
     def command_role(self, arg):
         """
@@ -898,14 +911,16 @@ class MucTab(ChatTab):
         """
         When a new user joins the groupchat
         """
-        room.users.append(User(from_nick, affiliation,
-                               show, status, role, jid))
+        user = User(from_nick, affiliation,
+                    show, status, role, jid)
+        room.users.append(user)
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
+            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if not jid.full:
-                room.add_message('\x194}%(spec)s \x193}%(nick)s\x195} joined the room' % {'nick':from_nick, 'spec':get_theme().CHAR_JOIN})
+                room.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN})
             else:
-                room.add_message('\x194}%(spec)s \x193}%(nick)s \x195}(\x194}%(jid)s\x195}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'jid':jid.full})
+                room.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s \x195}(\x194}%(jid)s\x195}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full})
         self.core.on_user_rejoined_private_conversation(room.name, from_nick)
 
 
@@ -918,7 +933,8 @@ class MucTab(ChatTab):
                 if isinstance(_tab, PrivateTab) and JID(_tab.get_name()).bare == room.name:
                     _tab.get_room().own_nick = new_nick
         user.change_nick(new_nick)
-        room.add_message('\x193}%(old)s\x195} is now known as \x193}%(new)s' % {'old':from_nick, 'new':new_nick})
+        color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+        room.add_message('\x19%(color)d}%(old)s\x195} is now known as \x19%(color)d}%(new)s' % {'old':from_nick, 'new':new_nick, 'color':color})
         # rename the private tabs if needed
         self.core.rename_private_tabs(room.name, from_nick, new_nick)
 
@@ -940,10 +956,11 @@ class MucTab(ChatTab):
             else:
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been banned.') % {'spec':get_theme().CHAR_KICK}
         else:
+            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} has been banned by \x194}%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'by':by}
+                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been banned by \x194}%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} has been banned') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been banned') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"'), 'color':color}
         if reason is not None and reason.text:
             kick_msg += _('\x195} Reason: \x196}%(reason)s\x195}') % {'reason': reason.text}
         room.add_message(kick_msg)
@@ -969,10 +986,11 @@ class MucTab(ChatTab):
             if config.get('autorejoin', 'false') == 'true':
                 muc.join_groupchat(self.core.xmpp, room.name, room.own_nick)
         else:
+            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} has been kicked by \x193}%(by)s') % {'spec':get_theme().CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'by':by.replace('"', '\\"')}
+                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been kicked by \x193}%(by)s') % {'spec':get_theme().CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'color':color, 'by':by.replace('"', '\\"')}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} has been kicked') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"')}
+                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been kicked') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"'), 'color':color}
         if reason is not None and reason.text:
             kick_msg += _('\x195} Reason: \x196}%(reason)s') % {'reason': reason.text}
         room.add_message(kick_msg)
@@ -990,10 +1008,12 @@ class MucTab(ChatTab):
             self.core.doupdate()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
+            log.debug("\n\nALLO: USERCOLOR: %s\n\n" % user.color.__repr__())
+            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if not jid.full:
-                leave_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT}
+                leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT}
             else:
-                leave_msg = _('\x191}%(spec)s \x193}%(nick)s\x195} (\x194}%(jid)s\x195}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'jid':jid.full}
+                leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} (\x194}%(jid)s\x195}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'color':color, 'jid':jid.full}
             if status:
                 leave_msg += ' (%s)' % status
             room.add_message(leave_msg)
@@ -1007,7 +1027,11 @@ class MucTab(ChatTab):
         # build the message
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
-        msg = _('\x193}%s\x195} changed: ')% from_nick.replace('"', '\\"')
+        color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+        if from_nick == room.own_nick:
+            msg = _('\x193}You\x195} changed: ')
+        else:
+            msg = _('\x19%(color)d}%(nick)s\x195} changed: ') % {'nick': from_nick.replace('"', '\\"'), 'color': color}
         if show not in SHOW_NAME:
             self.core.information("%s from room %s sent an invalid show: %s" %\
                                       (from_nick, from_room, show), "warning")
@@ -1031,7 +1055,9 @@ class MucTab(ChatTab):
         if not display_message:
             return
         msg = msg[:-2] # remove the last ", "
-        hide_status_change = config.get('hide_status_change', -1) if config.get('hide_status_change', -1) >= -1 else -1
+        hide_status_change = config.get('hide_status_change', -1)
+        if hide_status_change < -1:
+            hide_status_change = -1
         if (hide_status_change == -1 or \
                 user.has_talked_since(hide_status_change) or\
                 user.nick == room.own_nick)\
@@ -1062,7 +1088,7 @@ class PrivateTab(ChatTab):
         # commands
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\nPart: close the tab"), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: close the tab"), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
@@ -1228,7 +1254,7 @@ class PrivateTab(ChatTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
-        self.get_room().add_message('\x194}%(spec)s \x193}%(nick)s\x195} joined the room' % {'nick':nick, 'spec':get_theme().CHAR_JOIN})
+        self.get_room().add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':nick, 'color':user.color, 'spec':get_theme().CHAR_JOIN})
         if self.core.current_tab() is self:
             self.refresh()
             self.core.doupdate()
@@ -1634,6 +1660,8 @@ class RosterInfoTab(Tab):
         return False
 
     def move_cursor_down(self):
+        if isinstance(self.input, windows.CommandInput):
+            return
         self.roster_win.move_cursor_down()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -1641,6 +1669,8 @@ class RosterInfoTab(Tab):
         self.core.doupdate()
 
     def move_cursor_up(self):
+        if isinstance(self.input, windows.CommandInput):
+            return
         self.roster_win.move_cursor_up()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -1738,7 +1768,7 @@ class ConversationTab(ChatTab):
         self.key_func['^I'] = self.completion
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['part'] = (self.command_unquery, _("Usage: /part\Part: close the tab"), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
         self.resize()
 
     def completion(self):
