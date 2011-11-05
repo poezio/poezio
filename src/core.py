@@ -230,6 +230,9 @@ class Core(object):
         return self.information_buffer
 
     def grow_information_win(self, nb=1):
+        if self.information_win_size >= self.current_tab().height -5 or \
+                self.information_win_size+nb >= self.current_tab().height-4:
+            return
         if self.information_win_size == 14:
             return
         self.information_win_size += nb

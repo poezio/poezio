@@ -62,9 +62,10 @@ class Win(object):
         self._win = None
 
     def _resize(self, height, width, y, x):
-        self.height, self.width, self.x, self.y = height, width, x, y
         if height == 0 or width == 0:
+            self.height, self.width = height, width
             return
+        self.height, self.width, self.x, self.y = height, width, x, y
         if not self._win:
             self._win = curses.newwin(height, width, y, x)
         else:

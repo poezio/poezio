@@ -13,8 +13,8 @@ Each Tab object has different refresh() and resize() methods, defining how its
 Windows are displayed, resized, etc
 """
 
-MIN_WIDTH = 50
-MIN_HEIGHT = 22
+MIN_WIDTH = 42
+MIN_HEIGHT = 6
 
 import logging
 log = logging.getLogger(__name__)
