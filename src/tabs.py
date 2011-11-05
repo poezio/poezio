@@ -58,12 +58,12 @@ SHOW_NAME = {
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
 STATE_COLORS = {
-    'disconnected': 'COLOR_TAB_DISCONNECTED',
-    'message': 'COLOR_TAB_NEW_MESSAGE',
-    'highlight': 'COLOR_TAB_HIGHLIGHT',
-    'private': 'COLOR_TAB_PRIVATE',
-    'normal': 'COLOR_TAB_NORMAL',
-    'current': 'COLOR_TAB_CURRENT',
+        'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
+        'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
+        'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
+        'private': lambda: get_theme().COLOR_TAB_PRIVATE,
+        'normal': lambda: get_theme().COLOR_TAB_NORMAL,
+        'current': lambda: get_theme().COLOR_TAB_CURRENT,
     }
 
 class Tab(object):
@@ -98,7 +98,7 @@ class Tab(object):
 
     @property
     def color(self):
-        return getattr(get_theme(), STATE_COLORS[self.state])
+        return STATE_COLORS[self.state]()
 
     @property
     def state(self):
@@ -826,7 +826,7 @@ class MucTab(ChatTab):
 
     @property
     def color(self):
-        return getattr(get_theme(), STATE_COLORS[self._room.state])
+        return STATE_COLORS[self._room.state]()
 
     def on_lose_focus(self):
         self._room.state = 'normal'
@@ -1181,8 +1181,8 @@ class PrivateTab(ChatTab):
     def color(self):
         if self._room.state == 'normal' or\
                 self._room.state == 'current':
-            return getattr(get_theme(), STATE_COLORS[self._room.state])
-        return getattr(get_theme(), 'COLOR_TAB_PRIVATE')
+            return STATE_COLORS[self._room.state]()
+        return get_theme().COLOR_TAB_PRIVATE
 
     def get_name(self):
         return self._room.name
@@ -1822,7 +1822,7 @@ class ConversationTab(ChatTab):
     def color(self):
         if self.state == 'normal' or \
                 self.state == 'current':
-                return getattr(get_theme(), STATE_COLORS[self.state])
+            return STATE_COLORS[self.state]()
         return get_theme().COLOR_TAB_PRIVATE
 
     def get_name(self):

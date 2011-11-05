@@ -191,19 +191,19 @@ class UserList(Win):
     def __init__(self):
         Win.__init__(self)
         self.pos = 0
-        self.color_role = {'moderator': get_theme().COLOR_USER_MODERATOR,
-                           'participant':get_theme().COLOR_USER_PARTICIPANT,
-                           'visitor':get_theme().COLOR_USER_VISITOR,
-                           'none':get_theme().COLOR_USER_NONE,
-                           '':get_theme().COLOR_USER_NONE
-                           }
-        self.color_show = {'xa':get_theme().COLOR_STATUS_XA,
-                           'none':get_theme().COLOR_STATUS_NONE,
-                           '':get_theme().COLOR_STATUS_NONE,
-                           'dnd':get_theme().COLOR_STATUS_DND,
-                           'away':get_theme().COLOR_STATUS_AWAY,
-                           'chat':get_theme().COLOR_STATUS_CHAT
-                           }
+        self.color_role = {'moderator': lambda: get_theme().COLOR_USER_MODERATOR,
+                'participant': lambda: get_theme().COLOR_USER_PARTICIPANT,
+                'visitor': lambda: get_theme().COLOR_USER_VISITOR,
+                'none': lambda: get_theme().COLOR_USER_NONE,
+                '': lambda: get_theme().COLOR_USER_NONE
+               }
+        self.color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
+                'none': lambda: get_theme().COLOR_STATUS_NONE,
+                '': lambda: get_theme().COLOR_STATUS_NONE,
+                'dnd': lambda: get_theme().COLOR_STATUS_DND,
+                'away': lambda: get_theme().COLOR_STATUS_AWAY,
+                'chat': lambda: get_theme().COLOR_STATUS_CHAT
+               }
 
     def scroll_up(self):
         self.pos += self.height-1
@@ -228,11 +228,11 @@ class UserList(Win):
                 if not user.role in self.color_role:
                     role_col = get_theme().COLOR_USER_NONE
                 else:
-                    role_col = self.color_role[user.role]
+                    role_col = self.color_role[user.role]()
                 if not user.show in self.color_show:
                     show_col = get_theme().COLOR_STATUS_NONE
                 else:
-                    show_col = self.color_show[user.show]
+                    show_col = self.color_show[user.show]()
                 if user.chatstate == 'composing':
                     char = 'X'
                 elif user.chatstate == 'active':
