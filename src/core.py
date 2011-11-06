@@ -629,6 +629,7 @@ class Core(object):
         if conversation is self.current_tab():
             self.refresh_window()
         else:
+            conversation.state = 'private'
             self.refresh_tab_win()
 
     def focus_tab_named(self, tab_name):
@@ -1220,18 +1221,20 @@ class Core(object):
         """
         /version <jid>
         """
+        def callback(res):
+            if not res:
+                return self.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.information(version, 'Info')
+
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
         jid = args[0]
-        res = self.xmpp.plugin['xep_0092'].get_version(jid)
-        if not res:
-            return self.information('Could not get the software version from %s' % (jid,), 'Warning')
-        version = '%s is running %s version %s on %s' % (jid,
-                                                         res.get('name') or _('an unknown software'),
-                                                         res.get('version') or _('unknown'),
-                                                         res.get('os') or _('on an unknown platform'))
-        self.information(version, 'Info')
+        self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_reconnect(self, args):
         """
@@ -1573,14 +1576,15 @@ class Core(object):
                 self.information_win.refresh()
                 self.current_tab().input.refresh()
 
-    def disconnect(self, msg=None, reconnect=False):
+    def disconnect(self, msg='', reconnect=False):
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
+        msg = msg or ''
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                muc.leave_groupchat(self.xmpp, tab.name, tab.own_nick, msg)
+            if isinstance(tab, tabs.MucTab) and tab.joined:
+                tab.command_part(msg)
         roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
