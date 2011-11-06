@@ -40,7 +40,6 @@ class TextBuffer(object):
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
                                           if history else time.strftime("%H:%M:%S"),\
                       nickname=nickname, user=user)
-        log.debug('Coucou, le message ajouté : %s' % (msg,))
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

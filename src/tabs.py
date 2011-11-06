@@ -389,7 +389,7 @@ class ChatTab(Tab):
     def move_separator(self):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        self.text_win.refresh(self._text_buffer)
+        self.text_win.refresh()
         self.input.refresh()
 
     def command_say(self, line):
@@ -607,9 +607,8 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not arg.strip():
-            self._text_buffer.add_message_to_text_buffer(self,
-                                                 _("The subject of the room is: %s") % self.topic)
-            self.text_win.refresh(self._text_buffer)
+            self._text_buffer.add_message(_("The subject of the room is: %s") % self.topic)
+            self.text_win.refresh()
             self.input.refresh()
             return
         subject = arg
