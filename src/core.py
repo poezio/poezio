@@ -1134,18 +1134,20 @@ class Core(object):
         """
         /version <jid>
         """
+        def callback(res):
+            if not res:
+                return self.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.information(version, 'Info')
+
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
         jid = args[0]
-        res = self.xmpp.plugin['xep_0092'].get_version(jid)
-        if not res:
-            return self.information('Could not get the software version from %s' % (jid,), 'Warning')
-        version = '%s is running %s version %s on %s' % (jid,
-                                                         res.get('name') or _('an unknown software'),
-                                                         res.get('version') or _('unknown'),
-                                                         res.get('os') or _('on an unknown platform'))
-        self.information(version, 'Info')
+        self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_reconnect(self, args):
         """

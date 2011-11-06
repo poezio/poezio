@@ -1859,6 +1859,7 @@ class ConversationTab(ChatTab):
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
 
     def completion(self):
@@ -1884,6 +1885,21 @@ class ConversationTab(ChatTab):
 
     def command_unquery(self, arg):
         self.core.close_tab()
+
+    def command_version(self, arg):
+        """
+        /version
+        """
+        def callback(res):
+            if not res:
+                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.core.information(version, 'Info')
+        jid = self._name
+        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
