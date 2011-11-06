@@ -1217,7 +1217,7 @@ class PrivateTab(ChatTab):
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick or self.own_nick)
+        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -1579,7 +1579,6 @@ class RosterInfoTab(Tab):
             self.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
-
     def command_export(self, arg):
         """
         Export the contacts
@@ -1881,7 +1880,7 @@ class ConversationTab(ChatTab):
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick)
+        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()

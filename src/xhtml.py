@@ -178,6 +178,8 @@ whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19\d{0,3}\}|\x19[buaio]')
 
+xhtml_simple_attr_re = re.compile(r'\x19\d')
+
 def get_body_from_message_stanza(message):
     """
     Returns a string with xhtml markups converted to
@@ -342,6 +344,15 @@ def clean_text_simple(string):
         pos = string.find('\x19')
     return string
 
+def convert_simple_to_full_colors(text):
+    """
+    takes a \x19n formatted string and returns
+    a \x19n} formatted one.
+    """
+    def add_curly_bracket(match):
+        return match.group(0) + '}'
+    return re.sub(xhtml_simple_attr_re, add_curly_bracket, text)
+
 number_to_color_names = {
     1: 'red',
     2: 'green',
@@ -394,31 +405,3 @@ def poezio_colors_to_html(string):
         res += '</%s>' % (elem,)
     res += "</p></body>"
     return res.replace('\n', '<br />')
-
-def poezio_colors_to_xhtml(string):
-    """
-    Generate a valid xhtml string from
-    the poezio colors in the given string
-    """
-    res = "<body xmlns='http://www.w3.org/1999/xhtml'>"
-    next_attr_char = string.find('\x19')
-    open_elements = []
-    while next_attr_char != -1:
-        attr_char = string[next_attr_char+1].lower()
-        if next_attr_char != 0:
-            res += string[:next_attr_char]
-        string = string[next_attr_char+2:]
-        if attr_char == 'o':
-            # close all opened elements
-            for elem in open_elements:
-                res += '</%s>'
-            open_elements = []
-        elif attr_char == 'b':
-            if 'strong' not in open_elements:
-                res += '<strong>'
-                open_elements.append('strong')
-        elif attr_char in digits:
-            self._win.attron(common.curses_color_pair(int(attr_char)))
-        next_attr_char = string.find('\x19')
-
-
