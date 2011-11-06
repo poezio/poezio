@@ -84,3 +84,9 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
 
     def del_event_handler(self, event_name, handler):
         return self.plugin_manager.del_event_handler(self.__module__, event_name, handler)
+
+    def add_poezio_event_handler(self, event_name, handler, first=True, last=False, position=None):
+        return self.plugin_manager.add_poezio_event_handler(self.__module__, event_name, handler, first, last, position)
+
+    def del_poezio_event_handler(self, event_name, handler):
+        return self.plugin_manager.del_poezio_event_handler(self.__module__, event_name, handler)

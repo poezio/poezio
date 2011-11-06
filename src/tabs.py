@@ -323,7 +323,6 @@ class ChatTab(Tab):
             if not self.execute_command(clean_text):
                 if txt.startswith('//'):
                     txt = txt[1:]
-                self.core.run_event('enter', line=txt)
                 self.command_say(txt)
         self.cancel_paused_delay()
 
@@ -723,6 +722,7 @@ class MucTab(ChatTab):
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
+        self.core.events.trigger('muc_say', msg)
         self.cancel_paused_delay()
         msg.send()
         self.chat_state = needed
@@ -1216,6 +1216,7 @@ class PrivateTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('private_say', msg)
         msg.send()
         self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
@@ -1879,6 +1880,7 @@ class ConversationTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('conversation_say', msg)
         msg.send()
         self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
