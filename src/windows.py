@@ -62,9 +62,10 @@ class Win(object):
         self._win = None
 
     def _resize(self, height, width, y, x):
-        self.height, self.width, self.x, self.y = height, width, x, y
         if height == 0 or width == 0:
+            self.height, self.width = height, width
             return
+        self.height, self.width, self.x, self.y = height, width, x, y
         if not self._win:
             self._win = curses.newwin(height, width, y, x)
         else:
@@ -191,19 +192,19 @@ class UserList(Win):
     def __init__(self):
         Win.__init__(self)
         self.pos = 0
-        self.color_role = {'moderator': get_theme().COLOR_USER_MODERATOR,
-                           'participant':get_theme().COLOR_USER_PARTICIPANT,
-                           'visitor':get_theme().COLOR_USER_VISITOR,
-                           'none':get_theme().COLOR_USER_NONE,
-                           '':get_theme().COLOR_USER_NONE
-                           }
-        self.color_show = {'xa':get_theme().COLOR_STATUS_XA,
-                           'none':get_theme().COLOR_STATUS_NONE,
-                           '':get_theme().COLOR_STATUS_NONE,
-                           'dnd':get_theme().COLOR_STATUS_DND,
-                           'away':get_theme().COLOR_STATUS_AWAY,
-                           'chat':get_theme().COLOR_STATUS_CHAT
-                           }
+        self.color_role = {'moderator': lambda: get_theme().COLOR_USER_MODERATOR,
+                'participant': lambda: get_theme().COLOR_USER_PARTICIPANT,
+                'visitor': lambda: get_theme().COLOR_USER_VISITOR,
+                'none': lambda: get_theme().COLOR_USER_NONE,
+                '': lambda: get_theme().COLOR_USER_NONE
+               }
+        self.color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
+                'none': lambda: get_theme().COLOR_STATUS_NONE,
+                '': lambda: get_theme().COLOR_STATUS_NONE,
+                'dnd': lambda: get_theme().COLOR_STATUS_DND,
+                'away': lambda: get_theme().COLOR_STATUS_AWAY,
+                'chat': lambda: get_theme().COLOR_STATUS_CHAT
+               }
 
     def scroll_up(self):
         self.pos += self.height-1
@@ -228,11 +229,11 @@ class UserList(Win):
                 if not user.role in self.color_role:
                     role_col = get_theme().COLOR_USER_NONE
                 else:
-                    role_col = self.color_role[user.role]
+                    role_col = self.color_role[user.role]()
                 if not user.show in self.color_show:
                     show_col = get_theme().COLOR_STATUS_NONE
                 else:
-                    show_col = self.color_show[user.show]
+                    show_col = self.color_show[user.show]()
                 if user.chatstate == 'composing':
                     char = 'X'
                 elif user.chatstate == 'active':
@@ -297,7 +298,7 @@ class GlobalInfoBar(Win):
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             sorted_tabs = sorted(self.core.tabs, key=comp)
             for tab in sorted_tabs:
-                color = tab.get_color_state()
+                color = tab.color
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
                         color == get_theme().COLOR_TAB_NORMAL:
                     continue
@@ -340,18 +341,18 @@ class PrivateInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, room, window, chatstate):
+    def refresh(self, name, window, chatstate):
         log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
-            self.write_room_name(room)
+            self.write_room_name(name)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
-    def write_room_name(self, room):
-        jid = JID(room.name)
+    def write_room_name(self, name):
+        jid = JID(name)
         room_name, nick = jid.bare, jid.resource
         self.addstr(nick, to_curses_attr(get_theme().COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
@@ -379,7 +380,7 @@ class ConversationInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, jid, contact, text_buffer, window, chatstate):
+    def refresh(self, jid, contact, window, chatstate):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -605,7 +606,7 @@ class TextWin(Win):
                 self.built_lines.pop(0)
             return len(lines)
 
-    def refresh(self, room):
+    def refresh(self):
         log.debug('Refresh: %s'%self.__class__.__name__)
         if self.height <= 0:
             return

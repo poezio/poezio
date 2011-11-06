@@ -1,0 +1,265 @@
+Configure
+=========
+
+The configuration is located in the file *~/.config/poezio/poezio.cfg*
+On its first startup, poezio will create that file (and its containing
+directories) with the default configuration. You can edit that file manually
+or use the */set* command to edit some of its values directly from poezio.
+This file is also used to configure key bindings, but this is explained
+in the _keys_ documentation file.
+
+That file is read at each startup and the configuration is saved when poezio
+is closed.
+
+This configuration file *requires* all the options to be in a section
+named [Poezio].
+
+An option is formatted with the form
+======================
+option = value
+======================
+
+An empty value *doesn’t* mean that the default value will be used. That’s
+just an empty value. To use the default value, just comment or remove the
+option entirely.
+
+Here is a list of all the avalaible configuration options, their meaning
+and their default value.
+
+Configuration options
+---------------------
+
+[horizontal]
+*server*:: anon.louiz.org
+
+  The server to use for *anonymous* authentication.
+  Make sure it accepts anonymous authentification
+  Note that this option doesn’t do anything at all if you’re using your own JID.
+
+*port*:: 5222
+
+ The port you’ll use to connect.
+
+*resource*:: [empty]
+
+  the resource you will use
+  If it's empty, your resource will be chosen (most likely randomly) by the server
+  It is not recommended to use a resource that is easy to guess, because it can lead
+  to presence leak.
+
+
+*default_nick*:: [empty]
+
+  the nick you will use when joining a room with no associated nick
+  If this is empty, the $USER environnement variable will be used
+
+
+*jid*:: [empty]
+
+  Jabber identifiant. Specify it only if you want to connect using an existing
+  account on a server. This is optional and useful only for some features,
+  like room administration, nickname registration.
+  The 'server' option will be ignored if you specify a JID (Jabber identifiant)
+  It should be in the form nickname@server.tld
+
+*password*:: [empty]
+
+  A password is needed only if you specified a jid. It will be ignored otherwise
+  If you leave this empty, the password will be asked at each startup
+
+
+
+*rooms*:: poezio@muc.poezio.eu
+
+  the rooms you will join automatically on startup, with associated nickname or not
+  format : room@server.tld/nickname:room2@server.tld/nickname2
+  default_nick will be used if "/nickname" is not specified
+
+*completion*:: normal
+
+  the completion type you will use to complete nicknames
+  if "normal", complete the entire name to the first available completion
+  and then cycle through the possible completion with the next TABs
+  if "shell", if there's more than one nick for this completion, complete
+  only the part that all then nicks have in common (like in a shell)
+
+
+*after_completion*:: ,
+
+  what will be put after the name, when using autocompletion
+  a SPACE will always be added after that
+
+*highlight_on*:: [empty]
+
+  a list of words (separated by a colon (:)) that will be
+  highlighted if said by someone on a room
+
+*enable_xhtml_im*:: true
+
+  XHTML-IM is an XMPP extension letting users send messages
+  containing XHTML and CSS formating. We can use this to make
+  colored text for example.
+  It is disabled by default because this is only in an experimental
+  state: you could miss some part of a message (mainly the URL)
+  but you can still send colored messages. You just won’t be able te see
+  the colors, though
+  Set to true if you want to see colored messages
+
+*hide_status_change*:: 120
+
+  Set a number for this setting.
+  The join OR status-change notices will be
+  displayed according to this number.
+  -1: the notices will ALWAYS be displayed
+   0: the notices will NEVER be displayed
+   n: On any other number, the notices will only be displayed
+      if the user involved has talked since the last n seconds
+  if the value is incorrect, -1 is assumed
+  Default setting means :
+   - status changes won't be displayed unless
+     the user talked in the last 2 minutes
+
+*hide_exit_join*:: -1
+
+  Exact same thing than hide_status_change, except that it concerns
+  the quit message, and that it will be hidden only if the value is 0.
+  Default setting means:
+   - all quit and join notices will be displayed
+
+
+*information_buffer_popup_on*:: error roster warning help info
+
+  Some informational messages (error, a contact getting connected, etc)
+  are sometimes added to the information buffer. These settings can make
+  that buffer grow temporarly so you can read these information when they
+  appear.
+
+  A list of message types that should make the information buffer grow
+  Possible values; error, roster, warning, info, help
+
+*popup_time*:: 4
+
+  The time the message will be visible in the information buffer when it
+  pops up.
+  If the message takes more than one line, the popup will stay visible
+  two more second per additional lines
+
+*autorejoin*:: false
+
+  set to 'true' if you want to automatically rejoin the
+  room when you're kicked
+
+*alternative_nickname*:: [empty]
+
+  If you want poezio to join
+  the room with an alternative nickname when
+  your nickname is already in use in the room you
+  wanted to join, put a non-empty value.
+  Else, poezio won't join the room
+  This value will be added to your nickname to
+  create the alternative nickname.
+  For example, if you set "\_", and wanted to use
+  the nickname "john", your alternative nickname
+  will be "john_"
+
+*muc_history_length*:: 50
+
+  Limit the number of messages you want to receive when the
+  multiuserchat rooms send you recent history
+  0: You won't receive any
+  -1: You will receive the maximum
+  n: You will receive at most n messages
+  Note that if you set a huge number (like the default value), you
+  may not receive that much messages. The server has its own
+  maximum too
+
+*use_log*:: true
+
+  set to 'false' if you don’t want to save logs of all the messages
+  in files.
+
+
+*log_dir*:: [empty]
+
+  If log_dir is not set, logs will be saved in $XDG_DATA_HOME/poezio/logs,
+  i.e. in ~/.local/share/poezio/logs/. So, you should specify the directory
+  you want to use instead. This directory will be created if it doesn't exist
+
+*show_inactive_tabs*:: true
+
+  If you want to show all the tabs in the Tab bar, even those
+  with no activity, set to true. Else, set to false
+
+
+*beep_on*:: highlight private
+
+  The terminal can beep on various event. Put the event you want in a list
+  (separated by spaces).
+  The events can be
+  - highlight (when you are highlighted in a MUC)
+  - private (when a new private message is received, from your contacts or
+             someone from a MUC)
+  - message (any message from a MUC)
+
+*themes_dir*:: [empty]
+
+  If themes_dir is not set, themes will searched for in $XDG_DATA_HOME/poezio/themes,
+  i.e. in ~/.local/share/poezio/themes/. So you should specify the directory you
+  want to use instead. This directory will be created at startup if it doesn't
+  exist
+
+
+*theme*:: [empty]
+
+  The name of the theme file (without the .py extension) that will be used.
+  The file should be located in the theme_dir directory.
+  If the file is not found (or no filename is specified) the default
+  theme will be used instead
+
+*send_chat_states*:: true
+
+  if true, chat states will be sent to the people you are talking to.
+  Chat states are, for example, messages informing that you are composing
+  a message or that you closed the tab, etc
+  Set to false if you don't want people to know these information
+  Note that you won’t receive the chat states of your contacts
+  if you don't send yours.
+
+
+*send_poezio_info*:: true
+
+  if true, information about the software (name and version)
+  will be sent if requested by anyone
+  Set to false if you don't want people to know these information
+
+
+*send_os_info*:: true
+
+  if true, information about the Operation System you're using
+  will be sent when requested by anyone
+  Set to false if you don't want people to know these information
+  Note that this information will not be sent if send_poezio_info is False
+
+*send_time*:: true
+
+  if true, your current time will be sent if asked
+  Set to false if you don't want people to know that information
+
+
+*max_messages_in_memory*:: 2048
+
+  Configure the number of maximum messages (for each tab) that
+  can be kept in memory. If poezio consumes too much memory, lower these
+  values
+
+*max_lines_in_memory*:: 2048
+
+  Configure the number of maximum lines (for each tab) that
+  can be kept in memory. If poezio consumes too much memory, lower these
+  values
+
+*lazy_resize*:: true
+
+  Defines if all tabs are resized at the same time (if set to false)
+  or if they are really resized only when needed (if set to true).
+  “true” should be the most comfortable value

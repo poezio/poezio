@@ -1,0 +1,83 @@
+Poezio documentation
+====================
+
+This page is the documentation for poezio.
+
+Poezio is an XMPP console client mostly written in python and a little
+bit in C.
+
+It uses curses to draw its user interface.
+
+It has been written to create an XMPP client that could very easily be used by
+any IRC user. Its interface tries to be like the ones of famous clients such
+as irssi or weechat.
+
+:numbered:
+== Usage ==
+
+Poezio is composed of tabs which can be of various types. Each tab type has
+a distinct interface, list of commands and list of key shortcuts, in addition
+to the global commands and key shortcuts.
+
+
+=== Commands ===
+
+Commands start with the */* character and can take a list of any number
+of arguments, separated by spaces. If an argument should contain a space,
+you can use the *"* character to surround this argument.
+
+.The command nick with only one argument
+==========================================
+/nick "my new nick"
+==========================================
+
+.The command status with two arguments
+==========================================
+/status away "on vacation"
+==========================================
+
+.Note
+The character *'* cannot be used instead of *"*.
+
+
+To know the list of all available commands, use the *help* command with no
+argument. To know more about the command (what it does and how to use it),
+use the *help* command and pass the command name as its first argument.
+
+The list of all global commands is as follow:
+
+[horizontal]
+*help*:: [command_name] + 
+  Displays the list of all available commands in the current tab, or displays
+  the usage of the given command.
+*message*:: <jid> [message] + 
+  Open a conversation with the specified JID, and send a message to it,
+  if specified.
+
+
+
+
+
+.Get information on the status command
+==========================================
+/help status
+==========================================
+
+
+=== Tabs ===
+This section lists and describes all the tab types.
+
+
+==== Roster Tab ====
+This is the first tab that you will see when starting poezio.
+
+It contains your roster
+
+[glossary]
+== Glossary ==
+
+This glossary explains some terms that are used in this documentation.
+
+[glossary]
+Roster::
+  The list of contacts, sorted by groups, status, or anything the client wishes.

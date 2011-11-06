@@ -1,0 +1,66 @@
+Keys
+====
+
+This file describes the default keys of poezio and explains how to
+configure them.
+
+By default, most keys manipulating the input (where you type your
+messages and commands) behave like emacs does.
+
+Note that keys are case sensitive. Ctrl-X is not the same than Ctrl-x
+
+Key bindings listing
+--------------------
+Some key bindings are available only in some tabs, others are global.
+
+Global keys
+~~~~~~~~~~~
+These keys work in *any* tab.
+
+*Ctrl-n*:: Go to the next tab.
+
+*Ctrl-p*:: Go to the previous tab.
+
+*Alt-number*:: Go to tab number x.
+
+*Alt-j*:: Waits for you to type a two-digits number. Go to tab number xx.
+
+Input keys
+~~~~~~~~~~
+These keys concern only the inputs.
+
+*Ctrl-a*:: Move the cursor to the beginning of line.
+
+*Ctrl-e*:: Move the cursor to the end of line.
+
+Chat tab input keys
+~~~~~~~~~~~~~~~~~~~~~
+These keys work in any conversation tab (MultiUserChat, Private or Conversation tabs)
+
+*Key Up*:: Use the previous message from the message history.
+
+*Key Down*:: Use the next message from the message history.
+
+*Page Up*:: Scroll up in the conversation by x lines, where x is the height of the conversation window - 1.
+
+*Page Down*:: Likfe Page Up, but down.
+
+*Alt-/*:: Complete what you’re typing using the "recent" words from the current conversation, if any.
+
+Key configuration
+-----------------
+Bindings are keyboard shortcut aliases. You can use them
+to define your own keys to replace the default ones.
+where ^x means Control + x
+and M-x means Alt + x
+
+To know exactly what the code of a key is, just run
+==================
+python3 src/keyboard.py
+==================
+And enter any keys
+
+.Turn Alt-i into a tab key (completion, etc)
+==================
+M-i = ^I
+==================

@@ -34,19 +34,20 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None):
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None):
         time = time or datetime.now()
         msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
                                           if history else time.strftime("%H:%M:%S"),\
-                      nickname=nickname, user=None)
+                      nickname=nickname, user=user)
+        log.debug('Coucou, le message ajouté : %s' % (msg,))
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
         ret_val = None
         for window in self.windows: # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(msg)
+            nb = window.build_new_message(msg, history=history)
             if ret_val is None:
                 ret_val = nb
             if window.pos != 0:
