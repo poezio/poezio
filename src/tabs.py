@@ -305,7 +305,7 @@ class ChatTab(Tab):
         # build the list of the recent words
         char_we_dont_want = string.punctuation+' '
         words = list()
-        for msg in self.messages[:-40:-1]:
+        for msg in self._text_buffer.messages[:-40:-1]:
             if not msg:
                 continue
             txt = xhtml.clean_text(msg.txt)
@@ -494,7 +494,7 @@ class MucTab(ChatTab):
         """
         /clear
         """
-        self.messages = []
+        self._text_buffer.messages = []
         self.text_win.rebuild_everything(self._text_buffer)
         self.refresh()
         self.core.doupdate()
