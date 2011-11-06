@@ -1,0 +1,132 @@
+Plugins
+=======
+
+Currently, the plugins are in a plugin branch on the git repo.
+
+Location
+--------
+
+The plugins have to be present in '$XDG_DATA_HOME/poezio/plugins/plugin_name.py'
+(or '~/.local/share' if not defined)
+
+Structure
+---------
+
+A plugin must always be a class named Plugin that inherits the
+plugin.BasePlugin class defined into the *plugin* poezio module.
+
+Methods
+-------
+
+Overridden methods
+~~~~~~~~~~~~~~~~~~
+The *Plugin* class has several method that you can override for your own convenience
+
+[[init]]
+*init*:: +self+ +
+This method is called when the plugin is loaded, this is where you call
+the other methods, for example <<add-command,add_command>>, and initialize
+everything to make your plugin actually do something. <<example-1,ex 1>>, <<example-2,ex 2>>
+
+*cleanup*:: +self+ +
+Called when the plugin is unloaded (or when poezio is exited). Clean everything
+that needs to be cleaned here.
+
+Callable methods
+~~~~~~~~~~~~~~~~
+The BasePlugin has several methods that can be used. Here is a list of
+all its methods that you could use in your plugin, describing what they
+do, their arguments, and giving some example for each of them.
+
+[[add-command]]
+*add_command*:: +self+, +name+, +handler+, +help+, +completion=None+ + 
+This method adds a global command to poezio. For example you can add a /foo
+command that the user could call when the plugin is loaded, by calling this
+method with _foo_ as its _name_ argument. <<example-1,ex 1>>
+
+* _name_: (string) the name of the command (for example, if it is 'plugintest', it can
+add a /plugintest command)
+* _handler_: (function) the function to be called when the command is executed.
+the handler takes *args* as a parameter, which is a string of what
+is entered after the command. Split *args* (with _common.shell_split_) to use
+that as command arguments.
+* _help_: (string) the help message available for that command through the _/help_
+command.
+* _completion_: (function) the completion for the args of that command. It takes
+an input object as its only argument. This function should call the
+_auto_completion()_ method on the input object, passing a list of possible strings
+for the completion and returning the value of that call directly.
+Everything else is handled by that _auto_completion()_ method (checking what strings
+match, how to cycle between matches, etc). If you don’t want any special completion
+for that command, just pass None (the default value).
+
+*add_event_handler**: +self+, +event_name+, +handler+ +
+This methods adds a callback that will be called whenever the given event
+occurs. <<example-2,ex 2>>
+
+* _event_name_: (string) The name of the event you want to ``monitor''.
+This can be a sleekxmpp event, or a poezio event. See the list of
+<<events-list,all available events>>.
+* _handler_: The method that will be called whenever the event occurs.
+It must accept the arguments specified for that event in the <<events-list,events list>>.
+
+Attributes
+----------
+
+Config
+~~~~~~
+By default, each plugin has a PluginConfig object accessible with *self.config*.
+
+*PluginConfig.read*:: +self+ + 
+Reads the config file from $XDG_CONFIG_HOME/poezio/plugins/plugin_name.cfg, it is called upon initialization, so you should not need it.
+
+*PluginConfig.write*:: +self+ +
+Writes the config to the same file mentioned previously.
+
+Core
+~~~~
+Each plugin has a reference to the Core object accessible with *self.core*, that allows you to do about anything with poezio. Remember to use it only when you need it, and to use the functions described in this documentation only, even if much more is available. If your plugin needs to do something not available with these methods, please do a feature request instead of doing some dirty hacks with some other methods.
+
+Core methods
+^^^^^^^^^^^^
+CAUTION: TODO
+
+
+[[events-list]]
+Events list
+-----------
+CAUTION: TODO
+
+Examples
+--------
+
+[[example-1]]
+.Add a simple command that sends "Hello World!" into the conversation
+=====================================================================
+[source,python]
+---------------
+class Plugin(BasePlugin):
+    def init(self):
+    	self.add_command('hello', self.command_hello, "Usage: /hello\nHello: Send 'Hello World!'", None)
+
+    def command_hello(self, args):
+        self.core.send_message('Hello World!')
+---------------
+=====================================================================
+
+[[example-2]]
+
+.Adds an event handler that sends ``tg'' to a groupchat when a message is received from someone named ``Partauch''
+=====================================================================
+[source,python]
+---------------
+class Plugin(BasePlugin):
+    def init(self):
+    	self.add_event_handler('groupchat_message', self.on_groupchat_message)
+
+    def on_groupchat_message(self, message):
+        if message['mucnick'] == "Partauche":
+            self.core.send_message('tg', to=message.getMucroom())
+---------------
+=====================================================================
+
