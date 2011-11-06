@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 from config import config
 from os import path as p
-from contact import Contact, Resource
+from contact import Contact
 from sleekxmpp.xmlstream.stanzabase import JID
 
 class Roster(object):

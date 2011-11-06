@@ -10,10 +10,7 @@ Define the user class.
 An user is a MUC participant, not a roster contact (see contact.py)
 """
 
-import curses
-
-from random import randrange, choice
-from config import config
+from random import choice
 from datetime import timedelta, datetime
 
 from theming import get_theme

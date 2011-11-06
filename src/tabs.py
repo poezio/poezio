@@ -24,7 +24,6 @@ from gettext import gettext as _
 import windows
 import curses
 import difflib
-import text_buffer
 import string
 import common
 import core
@@ -40,7 +39,7 @@ from theming import get_theme
 from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
-from contact import Contact, Resource
+from contact import Contact
 from text_buffer import TextBuffer
 from user import User
 from os import getenv, path
@@ -565,9 +564,9 @@ class MucTab(ChatTab):
         """
         args = arg.split()
         if len(args):
-            msg = ' '.join(args)
+            arg = ' '.join(args)
         else:
-            msg = None
+            arg = None
         if self.joined:
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             self.add_message(_("\x195}You left the chatroom\x193}"))
@@ -932,7 +931,7 @@ class MucTab(ChatTab):
                 self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN})
             else:
                 self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s \x195}(\x194}%(jid)s\x195}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full})
-        self.core.on_user_rejoined_private_conversation(room.name, from_nick)
+        self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
         new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']

@@ -12,8 +12,6 @@ of the time ONE char, but may be longer if it's a keyboard
 shortcut, like ^A, M-a or KEY_RESIZE)
 """
 
-import time
-
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char

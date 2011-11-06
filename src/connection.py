@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
-import sys
 import getpass
 import sleekxmpp
 

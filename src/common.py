@@ -15,7 +15,6 @@ import os
 import mimetypes
 import hashlib
 import subprocess
-import curses
 import time
 import shlex
 
