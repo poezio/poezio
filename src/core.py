@@ -124,7 +124,6 @@ class Core(object):
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
-# nope            'pubsub': (self.command_pubsub, _('Usage: /pubsub <domain>\nPubsub: Open a pubsub browser on the given domain'), None),
             }
 
         self.key_func = {
@@ -144,7 +143,6 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
-#            'M-c': self.coucou,
             }
 
         # Add handlers
@@ -169,9 +167,6 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
 
         self.timed_events = set()
-
-    def coucou(self):
-        self.command_pubsub('pubsub.louiz.org')
 
     def start(self):
         """
@@ -205,7 +200,6 @@ class Core(object):
         """
         self.information_win.resize(self.information_win_size, tabs.Tab.width,
                                           tabs.Tab.height - 2 - self.information_win_size, 0)
-
 
     def resize_global_info_bar(self):
         """
