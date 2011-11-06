@@ -2369,7 +2369,9 @@ class MucListTab(Tab):
         return True
 
     def execute_slash_command(self, txt):
-        self.execute_command(txt)
+        if txt.startswith('/'):
+            self.input.key_enter()
+            self.execute_command(txt)
         return self.reset_help_message()
 
     def get_name(self):
