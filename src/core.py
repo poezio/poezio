@@ -45,6 +45,7 @@ from contact import Contact, Resource
 from text_buffer import TextBuffer
 from keyboard import read_char
 from theming import get_theme
+from windows import g_lock
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -66,8 +67,6 @@ possible_show = {'available':None,
                  'busy':'dnd',
                  'xa':'xa'
                  }
-
-resize_lock = threading.Lock()
 
 Status = collections.namedtuple('Status', 'show message')
 
@@ -198,14 +197,16 @@ class Core(object):
         """
         Resize the global_information_win only once at each resize.
         """
-        self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                          tabs.Tab.height - 2 - self.information_win_size, 0)
+        with g_lock:
+            self.information_win.resize(self.information_win_size, tabs.Tab.width,
+                                        tabs.Tab.height - 2 - self.information_win_size, 0)
 
     def resize_global_info_bar(self):
         """
         Resize the GlobalInfoBar only once at each resize
         """
-        self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
+        with g_lock:
+            self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
 
     def on_exception(self, typ, value, trace):
         """
@@ -692,7 +693,7 @@ class Core(object):
         tabs.Tab.resize(self.stdscr)
         self.resize_global_information_win()
         self.resize_global_info_bar()
-        with resize_lock:
+        with g_lock:
             for tab in self.tabs:
                 if config.get('lazy_resize', 'true') == 'true':
                     tab.need_resize = True
