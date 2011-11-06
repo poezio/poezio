@@ -8,7 +8,6 @@
 from gettext import gettext as _
 
 import os
-import re
 import sys
 import time
 import curses
@@ -44,8 +43,7 @@ from plugin_manager import PluginManager
 from data_forms import DataFormsTab
 from config import config, options
 from logger import logger
-from user import User
-from roster import Roster, RosterGroup, roster
+from roster import roster
 from contact import Contact, Resource
 from text_buffer import TextBuffer
 from keyboard import read_char
@@ -1286,7 +1284,6 @@ class Core(object):
                 the_input.auto_completion(items, '')
             else:
                 # we are writing the server: complete the server
-                serv = jid.server
                 serv_list = []
                 for tab in self.tabs:
                     if isinstance(tab, tabs.MucTab):
@@ -1295,7 +1292,6 @@ class Core(object):
         return True
 
     def completion_list(self, the_input):
-        txt = the_input.get_text()
         muc_serv_list = []
         for tab in self.tabs:   # TODO, also from an history
             if isinstance(tab, tabs.MucTab) and\

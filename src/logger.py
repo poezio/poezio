@@ -5,7 +5,6 @@
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
 
-import sys
 from os import environ, makedirs
 import os
 from datetime import datetime

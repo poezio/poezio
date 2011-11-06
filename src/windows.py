@@ -14,26 +14,23 @@ A Tab (see tab.py) is composed of multiple Windows
 
 from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
-from os.path import isfile
 
 import logging
 log = logging.getLogger(__name__)
 
-import shlex
 import curses
 import string
 from config import config
 
 from threading import RLock
 
-from contact import Contact, Resource
-from roster import RosterGroup, roster
+from contact import Contact
+from roster import RosterGroup
 from poopt import cut_text
 
 from sleekxmpp.xmlstream.stanzabase import JID
 
 import core
-import common
 import wcwidth
 import singleton
 import collections
@@ -1472,11 +1469,9 @@ class RosterWin(Win):
         if not resource:
             # There's no online resource
             presence = 'unavailable'
-            folder = '   '
             nb = ''
         else:
             presence = resource.get_presence()
-            folder = '[+]' if contact._folded else '[-]'
             nb = ' (%s)' % (contact.get_nb_resources(),)
         color = RosterWin.color_show[presence]
         if contact.get_name():
@@ -1520,11 +1515,11 @@ class ContactInfoWin(Win):
         """
         draw the contact information
         """
+        resource = contact.get_highest_priority_resource()
         if contact:
             jid = contact.get_bare_jid()
         else:
             jid = jid or resource.get_jid().full
-        resource = contact.get_highest_priority_resource()
         if resource:
             presence = resource.get_presence()
         else:

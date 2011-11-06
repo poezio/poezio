@@ -11,8 +11,6 @@ Add some facilities that are not available on the XEP_0045
 sleek plugin
 """
 
-import sleekxmpp
-
 from xml.etree import cElementTree as ET
 
 import logging
