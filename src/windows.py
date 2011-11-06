@@ -341,18 +341,18 @@ class PrivateInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, room, window, chatstate):
+    def refresh(self, name, window, chatstate):
         log.debug('Refresh: %s'%self.__class__.__name__)
         with g_lock:
             self._win.erase()
-            self.write_room_name(room)
+            self.write_room_name(name)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
-    def write_room_name(self, room):
-        jid = JID(room.name)
+    def write_room_name(self, name):
+        jid = JID(name)
         room_name, nick = jid.bare, jid.resource
         self.addstr(nick, to_curses_attr(get_theme().COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
@@ -380,7 +380,7 @@ class ConversationInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, jid, contact, text_buffer, window, chatstate):
+    def refresh(self, jid, contact, window, chatstate):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
