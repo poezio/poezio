@@ -13,8 +13,8 @@ Each Tab object has different refresh() and resize() methods, defining how its
 Windows are displayed, resized, etc
 """
 
-MIN_WIDTH = 50
-MIN_HEIGHT = 22
+MIN_WIDTH = 42
+MIN_HEIGHT = 6
 
 import logging
 log = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ from sleekxmpp.xmlstream.stanzabase import JID
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
+from text_buffer import TextBuffer
 from user import User
 from os import getenv, path
 from logger import logger
@@ -57,12 +58,32 @@ SHOW_NAME = {
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
+STATE_COLORS = {
+        'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
+        'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
+        'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
+        'private': lambda: get_theme().COLOR_TAB_PRIVATE,
+        'normal': lambda: get_theme().COLOR_TAB_NORMAL,
+        'current': lambda: get_theme().COLOR_TAB_CURRENT,
+#        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
+    }
+
+STATE_PRIORITY = {
+        'normal': -1,
+        'current': -1,
+        'disconnected': 0,
+        'message': 1,
+        'highlight': 2,
+        'private': 2,
+#        'attention': 3
+    }
+
 class Tab(object):
     number = 0
     tab_core = None
     def __init__(self):
         self.input = None
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self._state = 'normal'
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
@@ -86,6 +107,25 @@ class Tab(object):
     @property
     def info_win(self):
         return self.core.information_win
+
+    @property
+    def color(self):
+        return STATE_COLORS[self._state]()
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        if not value in STATE_COLORS:
+            log.debug("WARNING: invalid value for tab state")
+            return
+        elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
+                value != 'current':
+            log.debug("WARNING: did not set status because of lower priority")
+            return
+        self._state = value
 
     @staticmethod
     def resize(scr):
@@ -167,18 +207,6 @@ class Tab(object):
         """
         raise NotImplementedError
 
-    def get_color_state(self):
-        """
-        returns the color that should be used in the GlobalInfoBar
-        """
-        return self._color_state
-
-    def set_color_state(self, color):
-        """
-        set the color state
-        """
-        pass
-
     def get_name(self):
         """
         get the name of the tab
@@ -198,22 +226,13 @@ class Tab(object):
         """
         called when this tab loses the focus.
         """
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        self._color_state = get_theme().COLOR_TAB_CURRENT
-
-    def add_message(self):
-        """
-        Adds a message in the tab.
-        If the tab cannot add a message in itself (for example
-        FormTab, where text is not intented to be appened), it returns False.
-        If the tab can, it returns True
-        """
-        return False
+        self.state = 'current'
 
     def on_scroll_down(self):
         """
@@ -258,9 +277,9 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
-    def __init__(self, room):
+    def __init__(self):
         Tab.__init__(self)
-        self._room = room
+        self._text_buffer = TextBuffer()
         self.remote_wants_chatstates = None # change this to True or False when
         # we know that the remote user wants chatstates, or not.
         # None means we don’t know yet, and we send only "active" chatstates
@@ -286,7 +305,7 @@ class ChatTab(Tab):
         # build the list of the recent words
         char_we_dont_want = string.punctuation+' '
         words = list()
-        for msg in self._room.messages[:-40:-1]:
+        for msg in self.messages[:-40:-1]:
             if not msg:
                 continue
             txt = xhtml.clean_text(msg.txt)
@@ -312,7 +331,7 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
-        if not isinstance(self, MucTab) or self.get_room().joined:
+        if not isinstance(self, MucTab) or self.joined:
             if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away') and not always_send:
                 return
             msg = self.core.xmpp.make_message(self.get_name())
@@ -371,7 +390,7 @@ class ChatTab(Tab):
     def move_separator(self):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        self.text_win.refresh(self._room)
+        self.text_win.refresh()
         self.input.refresh()
 
     def get_conversation_messages(self):
@@ -386,15 +405,20 @@ class MucTab(ChatTab):
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
-    def __init__(self, room):
-        ChatTab.__init__(self, room)
+    def __init__(self, jid, nick):
+        ChatTab.__init__(self)
+        self.own_nick = nick
+        self.name = jid
+        self.joined = False
+        self.users = []
+        self.topic = ''
         self.remote_wants_chatstates = True
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
         # that’s not our problem.
         self.topic_win = windows.Topic()
         self.text_win = windows.TextWin()
-        room.add_window(self.text_win)
+        self._text_buffer.add_window(self.text_win)
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
@@ -427,19 +451,19 @@ class MucTab(ChatTab):
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
-        self.user_win.refresh(self._room.users)
+        self.user_win.refresh(self.users)
         self.input.refresh()
 
     def scroll_user_list_down(self):
         self.user_win.scroll_down()
-        self.user_win.refresh(self._room.users)
+        self.user_win.refresh(self.users)
         self.input.refresh()
 
     def command_info(self, arg):
         args = common.shell_split(arg)
         if len(args) != 1:
             return self.core.information("Info command takes only 1 argument")
-        user = self.get_room().get_user_by_name(args[0])
+        user = self.get_user_by_name(args[0])
         if not user:
             return self.core.information("Unknown user: %s" % args[0])
         info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (args[0],
@@ -474,35 +498,34 @@ class MucTab(ChatTab):
         """
         /clear
         """
-        self._room.messages = []
-        self.text_win.rebuild_everything(self._room)
+        self.messages = []
+        self.text_win.rebuild_everything(self._text_buffer)
         self.refresh()
         self.core.doupdate()
 
     def command_cycle(self, arg):
-        if self.get_room().joined:
-            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.get_room().own_nick, arg)
-        self.get_room().disconnect()
-        self.core.disable_private_tabs(self.get_room().name)
-        self.core.command_join('"/%s"' % self.core.get_bookmark_nickname(self.get_room().name), '0')
+        if self.joined:
+            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.own_nick, arg)
+        self.disconnect()
+        self.core.disable_private_tabs(self.name)
+        self.core.command_join('"/%s"' % self.core.get_bookmark_nickname(self.name), '0')
         self.user_win.pos = 0
 
     def command_recolor(self, arg):
         """
         Re-assign color to the participants of the room
         """
-        room = self.get_room()
         compare_users = lambda x: x.last_talked
-        users = list(room.users)
+        users = list(self.users)
         # search our own user, to remove it from the room
         for user in users:
-            if user.nick == room.own_nick:
+            if user.nick == self.own_nick:
                 users.remove(user)
         nb_color = len(get_theme().LIST_COLOR_NICKNAMES)
         for i, user in enumerate(sorted(users, key=compare_users, reverse=True)):
             user.color = get_theme().LIST_COLOR_NICKNAMES[i % nb_color]
-        self.text_win.rebuild_everything(self._room)
-        self.text_win.refresh(self._room)
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.text_win.refresh()
         self.input.refresh()
 
     def command_version(self, arg):
@@ -521,8 +544,8 @@ class MucTab(ChatTab):
         args = common.shell_split(arg)
         if len(args) < 1:
             return
-        if args[0] in [user.nick for user in self.get_room().users]:
-            jid = self._room.name + '/' + args[0]
+        if args[0] in [user.nick for user in self.users]:
+            jid = self.name + '/' + args[0]
         else:
             jid = args[0]
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
@@ -535,29 +558,27 @@ class MucTab(ChatTab):
         if len(args) != 1:
             return
         nick = args[0]
-        room = self.get_room()
-        if not room.joined:
+        if not self.joined:
             return
         current_status = self.core.get_status()
-        muc.change_nick(self.core.xmpp, room.name, nick, current_status.message, current_status.show)
+        muc.change_nick(self.core.xmpp, self.name, nick, current_status.message, current_status.show)
 
     def command_part(self, arg):
         """
         /part [msg]
         """
         args = arg.split()
-        room = self.get_room()
         if len(args):
             msg = ' '.join(args)
         else:
             msg = None
-        if self.get_room().joined:
-            muc.leave_groupchat(self.core.xmpp, room.name, room.own_nick, arg)
-            self.get_room().joined = False
-            self.get_room().add_message(_("\x195}You left the chatroom\x193}"))
-            self.refresh()
+        if self.joined:
+            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
+            self.add_message(_("\x195}You left the chatroom\x193}"))
+            if self == self.core.current_tab():
+                self.refresh()
             self.core.doupdate()
-        self.core.disable_private_tabs(self.get_room().name)
+        self.core.disable_private_tabs(self.name)
 
     def command_close(self, arg):
         """
@@ -575,11 +596,10 @@ class MucTab(ChatTab):
         if len(args) < 1:
             return
         nick = args[0]
-        room = self.get_room()
         r = None
-        for user in room.users:
+        for user in self.users:
             if user.nick == nick:
-                r = self.core.open_private_window(room.name, user.nick)
+                r = self.core.open_private_window(self.name, user.nick)
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
             self.core.current_tab().command_say(msg)
@@ -591,23 +611,21 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not arg.strip():
-            self.core.add_message_to_text_buffer(self.get_room(),
-                                                 _("The subject of the room is: %s") % self.get_room().topic)
-            self.text_win.refresh(self.get_room())
+            self._text_buffer.add_message(_("The subject of the room is: %s") % self.topic)
+            self.text_win.refresh()
             self.input.refresh()
             return
         subject = arg
-        muc.change_subject(self.core.xmpp, self.get_room().name, subject)
+        muc.change_subject(self.core.xmpp, self.name, subject)
 
     def command_names(self, arg=None):
         """
         /names
         """
-        room = self.get_room()
-        if not room.joined:
+        if not self.joined:
             return
         users, visitors, moderators, participants, others = [], [], [], [], []
-        for user in room.users:
+        for user in self.users:
             if user.role == 'visitor':
                 visitors.append(user.nick)
             elif user.role == 'participant':
@@ -629,12 +647,13 @@ class MucTab(ChatTab):
                     message += '%s, ' % item
                 message += '%s\n' % last
 
-        self.core.add_message_to_text_buffer(room, message)
-        self.text_win.refresh(self.get_room())
+        # self.core.add_message_to_text_buffer(room, message)
+        self._text_buffer.add_message(message)
+        self.text_win.refresh()
         self.input.refresh()
 
     def completion_topic(self, the_input):
-        current_topic = self.get_room().topic
+        current_topic = self.topic
         return the_input.auto_completion([current_topic], '')
 
     def command_kick(self, arg):
@@ -645,7 +664,7 @@ class MucTab(ChatTab):
         if not len(args):
             self.core.command_help('kick')
         else:
-            self.command_role('none '+arg)
+            self.command_role(arg+ ' none')
 
     def command_role(self, arg):
         """
@@ -662,7 +681,7 @@ class MucTab(ChatTab):
             reason = ' '.join(args[2:])
         else:
             reason = ''
-        if not self.get_room().joined or \
+        if not self.joined or \
                 not role in ('none', 'visitor', 'participant', 'moderator'):
             return
         res = muc.set_user_role(self.core.xmpp, self.get_name(), nick, reason, role)
@@ -684,7 +703,7 @@ class MucTab(ChatTab):
             reason = ' '.join(args[2:])
         else:
             reason = ''
-        if not self.get_room().joined or \
+        if not self.joined or \
                 not affiliation in ('none', 'member', 'admin', 'owner'):
 #                replace this ↑ with this ↓ when the ban list support is done
 #                not affiliation in ('outcast', 'none', 'member', 'admin', 'owner'):
@@ -717,7 +736,7 @@ class MucTab(ChatTab):
             self.core.command_help('ignore')
             return
         nick = args[0]
-        user = self._room.get_user_by_name(nick)
+        user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
         elif user in self.ignores:
@@ -735,7 +754,7 @@ class MucTab(ChatTab):
             self.core.command_help('unignore')
             return
         nick = args[0]
-        user = self._room.get_user_by_name(nick)
+        user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
         elif user not in self.ignores:
@@ -758,7 +777,7 @@ class MucTab(ChatTab):
         self.topic_win.resize(1, self.width, 0, 0)
         self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
         self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0)
-        self.text_win.rebuild_everything(self._room)
+        self.text_win.rebuild_everything(self._text_buffer)
         self.user_win.resize(self.height-3-self.core.information_win_size-1, self.width-text_width-1, 1, text_width+1)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
         self.input.resize(1, self.width, self.height-1, 0)
@@ -767,13 +786,13 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
-        self.topic_win.refresh(self._room.get_single_line_topic())
-        self.text_win.refresh(self._room)
+        self.topic_win.refresh(self.get_single_line_topic())
+        self.text_win.refresh()
         self.v_separator.refresh()
-        self.user_win.refresh(self._room.users)
-        self.info_header.refresh(self._room, self.text_win)
+        self.user_win.refresh(self.users)
+        self.info_header.refresh(self, self.text_win)
         self.tab_win.refresh()
-        self.info_win.refresh(self.core.informations)
+        self.info_win.refresh()
         self.input.refresh()
 
     def on_input(self, key):
@@ -794,8 +813,8 @@ class MucTab(ChatTab):
 
         # If we are not completing a command or a command's argument, complete a nick
         compare_users = lambda x: x.last_talked
-        word_list = [user.nick for user in sorted(self._room.users, key=compare_users, reverse=True)\
-                         if user.nick != self._room.own_nick]
+        word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
+                         if user.nick != self.own_nick]
         after = config.get('after_completion', ',')+" "
         input_pos = self.input.pos + self.input.line_pos
         if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
@@ -808,33 +827,30 @@ class MucTab(ChatTab):
         self.send_composing_chat_state(empty_after)
 
     def get_color_state(self):
-        return self._room.color_state
+        return self.color_state
 
     def set_color_state(self, color):
-        self._room.set_color_state(color)
+        self.set_color_state(color)
 
     def get_name(self):
-        return self._room.name
+        return self.name
 
     def get_text_window(self):
         return self.text_win
 
-    def get_room(self):
-        return self._room
-
     def on_lose_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.state = 'current'
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
-        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if self.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
@@ -864,91 +880,89 @@ class MucTab(ChatTab):
         role = presence['muc']['role']
         jid = presence['muc']['jid']
         typ = presence['type']
-        room = self.get_room()
-        if not room.joined:     # user in the room BEFORE us.
+        if not self.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
-            if from_nick not in [user.nick for user in room.users] and typ != "unavailable":
+            if from_nick not in [user.nick for user in self.users] and typ != "unavailable":
                 new_user = User(from_nick, affiliation, show, status, role, jid)
-                room.users.append(new_user)
-                if from_nick == room.own_nick:
-                    room.joined = True
+                self.users.append(new_user)
+                if from_nick == self.own_nick:
+                    self.joined = True
                     if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
-                    room.add_message(_("\x195}Your nickname is \x193}%s") % (from_nick))
+                    self.add_message(_("\x195}Your nickname is \x193}%s") % (from_nick))
                     if '170' in status_codes:
-                        room.add_message('\x191}Warning: \x195}this room is publicly logged')
+                        self.add_message('\x191}Warning: \x195}this room is publicly logged')
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
             ban = '301' in status_codes and typ == 'unavailable'
-            user = room.get_user_by_name(from_nick)
+            user = self.get_user_by_name(from_nick)
             # New user
             if not user:
-                self.on_user_join(room, from_nick, affiliation, show, status, role, jid)
+                self.on_user_join(from_nick, affiliation, show, status, role, jid)
             # nick change
             elif change_nick:
-                self.on_user_nick_change(room, presence, user, from_nick, from_room)
+                self.on_user_nick_change(presence, user, from_nick, from_room)
             elif ban:
-                self.on_user_banned(room, presence, user, from_nick)
+                self.on_user_banned(presence, user, from_nick)
             # kick
             elif kick:
-                self.on_user_kicked(room, presence, user, from_nick)
+                self.on_user_kicked(presence, user, from_nick)
             # user quit
             elif typ == 'unavailable':
-                self.on_user_leave_groupchat(room, user, jid, status, from_nick, from_room)
+                self.on_user_leave_groupchat(user, jid, status, from_nick, from_room)
             # status change
             else:
-                self.on_user_change_status(room, user, from_nick, from_room, affiliation, role, show, status)
+                self.on_user_change_status(user, from_nick, from_room, affiliation, role, show, status)
         if self.core.current_tab() is self:
-            self.text_win.refresh(self._room)
-            self.user_win.refresh(self._room.users)
-            self.info_header.refresh(self._room, self.text_win)
+            self.text_win.refresh()
+            self.user_win.refresh(self.users)
+            self.info_header.refresh(self, self.text_win)
             self.input.refresh()
             self.core.doupdate()
 
-    def on_user_join(self, room, from_nick, affiliation, show, status, role, jid):
+    def on_user_join(self, from_nick, affiliation, show, status, role, jid):
         """
         When a new user joins the groupchat
         """
         user = User(from_nick, affiliation,
                     show, status, role, jid)
-        room.users.append(user)
+        self.users.append(user)
         hide_exit_join = config.get('hide_exit_join', -1)
         if hide_exit_join != 0:
             color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if not jid.full:
-                room.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN})
+                self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN})
             else:
-                room.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s \x195}(\x194}%(jid)s\x195}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full})
+                self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s \x195}(\x194}%(jid)s\x195}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full})
         self.core.on_user_rejoined_private_conversation(room.name, from_nick)
 
-
-    def on_user_nick_change(self, room, presence, user, from_nick, from_room):
+    def on_user_nick_change(self, presence, user, from_nick, from_room):
         new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
-        if user.nick == room.own_nick:
-            room.own_nick = new_nick
+        if user.nick == self.own_nick:
+            self.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.core.tabs:
-                if isinstance(_tab, PrivateTab) and JID(_tab.get_name()).bare == room.name:
-                    _tab.get_room().own_nick = new_nick
+                if isinstance(_tab, PrivateTab) and JID(_tab.get_name()).bare == self.name:
+                    _tab.own_nick = new_nick
         user.change_nick(new_nick)
         color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
-        room.add_message('\x19%(color)d}%(old)s\x195} is now known as \x19%(color)d}%(new)s' % {'old':from_nick, 'new':new_nick, 'color':color})
+        self.add_message('\x19%(color)d}%(old)s\x195} is now known as \x19%(color)d}%(new)s' % {'old':from_nick, 'new':new_nick, 'color':color})
         # rename the private tabs if needed
-        self.core.rename_private_tabs(room.name, from_nick, new_nick)
+        self.core.rename_private_tabs(self.name, from_nick, new_nick)
 
-    def on_user_banned(self, room, presence, user, from_nick):
+    def on_user_banned(self, presence, user, from_nick):
         """
         When someone is banned from a muc
         """
-        room.users.remove(user)
+        self.users.remove(user)
         by = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
-        if from_nick == room.own_nick: # we are banned
-            room.disconnect()
-            self.core.disable_private_tabs(room.name)
+        if from_nick == self.own_nick: # we are banned
+            self.disconnect()
+            self.core.disable_private_tabs(self.name)
             self.tab_win.refresh()
             self.core.doupdate()
             if by:
@@ -963,19 +977,19 @@ class MucTab(ChatTab):
                 kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been banned') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"'), 'color':color}
         if reason is not None and reason.text:
             kick_msg += _('\x195} Reason: \x196}%(reason)s\x195}') % {'reason': reason.text}
-        room.add_message(kick_msg)
+        self._text_buffer.add_message(kick_msg)
 
-    def on_user_kicked(self, room, presence, user, from_nick):
+    def on_user_kicked(self, presence, user, from_nick):
         """
         When someone is kicked from a muc
         """
-        room.users.remove(user)
+        self.users.remove(user)
         by = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
-        if from_nick == room.own_nick: # we are kicked
-            room.disconnect()
-            self.core.disable_private_tabs(room.name)
+        if from_nick == self.own_nick: # we are kicked
+            self.disconnect()
+            self.core.disable_private_tabs(self.name)
             self.tab_win.refresh()
             self.core.doupdate()
             if by:
@@ -984,7 +998,7 @@ class MucTab(ChatTab):
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been kicked.') % {'spec':get_theme().CHAR_KICK}
             # try to auto-rejoin
             if config.get('autorejoin', 'false') == 'true':
-                muc.join_groupchat(self.core.xmpp, room.name, room.own_nick)
+                muc.join_groupchat(self.core.xmpp, self.name, self.own_nick)
         else:
             color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if by:
@@ -993,16 +1007,16 @@ class MucTab(ChatTab):
                 kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been kicked') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick.replace('"', '\\"'), 'color':color}
         if reason is not None and reason.text:
             kick_msg += _('\x195} Reason: \x196}%(reason)s') % {'reason': reason.text}
-        room.add_message(kick_msg)
+        self.add_message(kick_msg)
 
-    def on_user_leave_groupchat(self, room, user, jid, status, from_nick, from_room):
+    def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room):
         """
         When an user leaves a groupchat
         """
-        room.users.remove(user)
-        if room.own_nick == user.nick:
+        self.users.remove(user)
+        if self.own_nick == user.nick:
             # We are now out of the room. Happens with some buggy (? not sure) servers
-            room.disconnect()
+            self.disconnect()
             self.core.disable_private_tabs(from_room)
             self.tab_win.refresh()
             self.core.doupdate()
@@ -1016,11 +1030,11 @@ class MucTab(ChatTab):
                 leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} (\x194}%(jid)s\x195}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'color':color, 'jid':jid.full}
             if status:
                 leave_msg += ' (%s)' % status
-            room.add_message(leave_msg)
+            self.add_message(leave_msg)
             self.core.refresh_window()
         self.core.on_user_left_private_conversation(from_room, from_nick, status)
 
-    def on_user_change_status(self, room, user, from_nick, from_room, affiliation, role, show, status):
+    def on_user_change_status(self, user, from_nick, from_room, affiliation, role, show, status):
         """
         When an user changes her status
         """
@@ -1028,7 +1042,7 @@ class MucTab(ChatTab):
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
         color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
-        if from_nick == room.own_nick:
+        if from_nick == self.own_nick:
             msg = _('\x193}You\x195} changed: ')
         else:
             msg = _('\x19%(color)d}%(nick)s\x195} changed: ') % {'nick': from_nick.replace('"', '\\"'), 'color': color}
@@ -1060,27 +1074,119 @@ class MucTab(ChatTab):
             hide_status_change = -1
         if (hide_status_change == -1 or \
                 user.has_talked_since(hide_status_change) or\
-                user.nick == room.own_nick)\
+                user.nick == self.own_nick)\
                 and\
                 (affiliation != user.affiliation or\
                     role != user.role or\
                     show != user.show or\
                     status != user.status):
             # display the message in the room
-            room.add_message(msg)
+            self._text_buffer.add_message(msg)
         self.core.on_user_changed_status_in_private('%s/%s' % (from_room, from_nick), msg)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
+
+    def disconnect(self):
+        """
+        Set the state of the room as not joined, so
+        we can know if we can join it, send messages to it, etc
+        """
+        self.users = []
+        self.state = 'disconnected'
+        self.joined = False
+
+    def get_single_line_topic(self):
+        """
+        Return the topic as a single-line string (for the window header)
+        """
+        return self.topic.replace('\n', '|')
+
+    def log_message(self, txt, time, nickname):
+        """
+        Log the messages in the archives, if it needs
+        to be
+        """
+        if time is None and self.joined:        # don't log the history messages
+            logger.log_message(self.name, nickname, txt)
+
+    def do_highlight(self, txt, time, nickname):
+        """
+        Set the tab color and returns the nick color
+        """
+        color = None
+        if not time and nickname and nickname != self.own_nick and self.joined:
+            if self.own_nick.lower() in txt.lower():
+                if self.state != 'current':
+                    self.state = 'highlight'
+                color = get_theme().COLOR_HIGHLIGHT_NICK
+            else:
+                highlight_words = config.get('highlight_on', '').split(':')
+                for word in highlight_words:
+                    if word and word.lower() in txt.lower():
+                        if self.state != 'current':
+                            self.state = 'highlight'
+                        color = get_theme().COLOR_HIGHLIGHT_NICK
+                        break
+        if color:
+            beep_on = config.get('beep_on', 'highlight private').split()
+            if 'highlight' in beep_on and 'message' not in beep_on:
+                curses.beep()
+        return color
+
+    def get_user_by_name(self, nick):
+        """
+        Gets the user associated with the given nick, or None if not found
+        """
+        for user in self.users:
+            if user.nick == nick:
+                return user
+        return None
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None):
+        """
+        Note that user can be None even if nickname is not None. It happens
+        when we receive an history message said by someone who is not
+        in the room anymore
+        """
+        self.log_message(txt, time, nickname)
+        special_message = False
+        if txt.startswith('/me '):
+            txt = "\x192}* \x195}" + nickname + ' ' + txt[4:]
+            special_message = True
+        user = self.get_user_by_name(nickname) if nickname is not None else None
+        if user:
+            user.set_last_talked(datetime.now())
+        if not user and forced_user:
+            user = forced_user
+        if not time and nickname and\
+                nickname != self.own_nick and\
+                    self.state != 'current':
+            if self.state != 'highlight':
+                self.state = 'message'
+        nick_color = nick_color or None
+        if not nickname or time:
+            txt = '\x195}%s' % (txt,)
+        else:                   # TODO
+            highlight = self.do_highlight(txt, time, nickname)
+            if highlight:
+                nick_color = highlight
+            if special_message:
+                txt = '\x195}%s' % (txt,)
+                nickname = None
+        time = time or datetime.now()
+        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
 
 class PrivateTab(ChatTab):
     """
     The tab containg a private conversation (someone from a MUC)
     """
     message_type = 'chat'
-    def __init__(self, room):
-        ChatTab.__init__(self, room)
+    def __init__(self, name, nick):
+        ChatTab.__init__(self)
+        self.own_nick = nick
+        self.name = name
         self.text_win = windows.TextWin()
-        room.add_window(self.text_win)
+        self._text_buffer.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
         # keys
@@ -1091,7 +1197,7 @@ class PrivateTab(ChatTab):
         self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: close the tab"), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
-        self.parent_muc = self.core.get_tab_by_name(JID(room.name).bare, MucTab)
+        self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
         self.on = True
 
     def completion(self):
@@ -1111,10 +1217,9 @@ class PrivateTab(ChatTab):
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick or self.get_room().own_nick)
-        logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
-        self.text_win.refresh(self._room)
+        self.text_win.refresh()
         self.input.refresh()
 
     def command_unquery(self, arg):
@@ -1135,7 +1240,7 @@ class PrivateTab(ChatTab):
                                                              res.get('version') or _('unknown'),
                                                              res.get('os') or _('on an unknown platform'))
             self.core.information(version, 'Info')
-        jid = self.get_room().name
+        jid = self.name
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_info(self, arg):
@@ -1145,7 +1250,7 @@ class PrivateTab(ChatTab):
         if arg:
             self.parent_muc.command_info(arg)
         else:
-            user = JID(self.get_room().name).resource
+            user = JID(self.name).resource
             self.parent_muc.command_info(user)
 
     def resize(self):
@@ -1153,7 +1258,7 @@ class PrivateTab(ChatTab):
             return
         self.need_resize = False
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
-        self.text_win.rebuild_everything(self._room)
+        self.text_win.rebuild_everything(self._text_buffer)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
@@ -1161,27 +1266,18 @@ class PrivateTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
-        self.text_win.refresh(self._room)
-        self.info_header.refresh(self._room, self.text_win, self.chatstate)
-        self.info_win.refresh(self.core.informations)
+        self.text_win.refresh()
+        self.info_header.refresh(self.name, self.text_win, self.chatstate)
+        self.info_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self._room, self.text_win, self.chatstate)
+        self.info_header.refresh(self.name, self.text_win, self.chatstate)
         self.input.refresh()
 
-    def get_color_state(self):
-        if self._room.color_state == get_theme().COLOR_TAB_NORMAL or\
-                self._room.color_state == get_theme().COLOR_TAB_CURRENT:
-            return self._room.color_state
-        return get_theme().COLOR_TAB_PRIVATE
-
-    def set_color_state(self, color):
-        self._room.color_state = color
-
     def get_name(self):
-        return self._room.name
+        return self.name
 
     def on_input(self, key):
         if key in self.key_func:
@@ -1191,22 +1287,24 @@ class PrivateTab(ChatTab):
         if not self.on:
             return False
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        tab = self.core.get_tab_by_name(JID(self.get_room().name).bare, MucTab)
-        if tab and tab.get_room().joined:
+        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        if tab and tab.joined:
             self.send_composing_chat_state(empty_after)
         return False
 
     def on_lose_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        if tab.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._room.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.state = 'current'
         curses.curs_set(1)
-        if self.get_room().joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        if tab.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
@@ -1221,9 +1319,6 @@ class PrivateTab(ChatTab):
         self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
 
-    def get_room(self):
-        return self._room
-
     def get_text_window(self):
         return self.text_win
 
@@ -1232,9 +1327,9 @@ class PrivateTab(ChatTab):
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.get_room().add_message(_('"[%(old_nick)s]" is now known as "[%(new_nick)s]"') % {'old_nick':old_nick.replace('"', '\\"'), 'new_nick':new_nick.replace('"', '\\"')})
-        new_jid = JID(self.get_room().name).bare+'/'+new_nick
-        self.get_room().name = new_jid
+        self.add_message('\x193}%(old)s\x195} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick})
+        new_jid = JID(self.name).bare+'/'+new_nick
+        self.name = new_jid
 
     def user_left(self, status_message, from_nick):
         """
@@ -1242,9 +1337,9 @@ class PrivateTab(ChatTab):
         """
         self.deactivate()
         if not status_message:
-            self.get_room().add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT.replace('"', '\\"')})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT.replace('"', '\\"')})
         else:
-            self.get_room().add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x195} has left the room (%(status)s)"') % {'nick':from_nick.replace('"', '\\"'), 'spec':get_theme().CHAR_QUIT, 'status': status_message.replace('"', '\\"')})
         if self.core.current_tab() is self:
             self.refresh()
             self.core.doupdate()
@@ -1254,17 +1349,25 @@ class PrivateTab(ChatTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
-        self.get_room().add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':nick, 'color':user.color, 'spec':get_theme().CHAR_JOIN})
+        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        color = None
+        if tab:
+            user = tab.get_user_by_name(nick)
+            if user:
+                color = user.color
+        self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':nick, 'color': color or 3, 'spec':get_theme().CHAR_JOIN})
         if self.core.current_tab() is self:
             self.refresh()
             self.core.doupdate()
-
 
     def activate(self):
         self.on = True
 
     def deactivate(self):
         self.on = False
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None):
+        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
 
 class RosterInfoTab(Tab):
     """
@@ -1280,7 +1383,7 @@ class RosterInfoTab(Tab):
         self.contact_info_win = windows.ContactInfoWin()
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
-        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.key_func['^I'] = self.completion
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
@@ -1587,18 +1690,12 @@ class RosterInfoTab(Tab):
         self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.information_win.refresh(self.core.informations)
+        self.information_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
     def get_name(self):
         return self.name
-
-    def get_color_state(self):
-        return self._color_state
-
-    def set_color_state(self, color):
-        self._color_state = color
 
     def on_input(self, key):
         if key == '^M':
@@ -1647,17 +1744,14 @@ class RosterInfoTab(Tab):
         return self.reset_help_message()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         if isinstance(self.input, windows.HelpText):
             curses.curs_set(0)
         else:
             curses.curs_set(1)
-
-    def add_message(self):
-        return False
 
     def move_cursor_down(self):
         if isinstance(self.input, windows.CommandInput):
@@ -1755,12 +1849,11 @@ class ConversationTab(ChatTab):
     """
     message_type = 'chat'
     def __init__(self, jid):
-        txt_buff = text_buffer.TextBuffer()
-        ChatTab.__init__(self, txt_buff)
-        self.color_state = get_theme().COLOR_TAB_NORMAL
+        ChatTab.__init__(self)
+        self.state = 'normal'
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
-        txt_buff.add_window(self.text_win)
+        self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.info_header = windows.ConversationInfoWin()
         self.input = windows.MessageInput()
@@ -1769,6 +1862,7 @@ class ConversationTab(ChatTab):
         # commands
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
         self.resize()
 
     def completion(self):
@@ -1786,21 +1880,36 @@ class ConversationTab(ChatTab):
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self.get_room(), line, None, self.core.own_nick)
+        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
-        self.text_win.refresh(self._room)
+        self.text_win.refresh()
         self.input.refresh()
 
     def command_unquery(self, arg):
         self.core.close_tab()
+
+    def command_version(self, arg):
+        """
+        /version
+        """
+        def callback(res):
+            if not res:
+                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.core.information(version, 'Info')
+        jid = self._name
+        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.need_resize = False
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
-        self.text_win.rebuild_everything(self._room)
+        self.text_win.rebuild_everything(self._text_buffer)
         self.upper_bar.resize(1, self.width, 0, 0)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
         self.input.resize(1, self.width, self.height-1, 0)
@@ -1809,25 +1918,16 @@ class ConversationTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
-        self.text_win.refresh(self._room)
+        self.text_win.refresh()
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
-        self.info_win.refresh(self.core.informations)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
+        self.info_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self._room, self.text_win, self.chatstate)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
         self.input.refresh()
-
-    def get_color_state(self):
-        if self.color_state == get_theme().COLOR_TAB_NORMAL or\
-                self.color_state == get_theme().COLOR_TAB_CURRENT:
-            return self.color_state
-        return get_theme().COLOR_TAB_PRIVATE
-
-    def set_color_state(self, color):
-        self.color_state = color
 
     def get_name(self):
         return self._name
@@ -1842,14 +1942,14 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self.set_color_state(get_theme().COLOR_TAB_NORMAL)
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self.set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.state = 'current'
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('active')
@@ -1866,9 +1966,6 @@ class ConversationTab(ChatTab):
         self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
         self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
 
-    def get_room(self):
-        return self._room
-
     def get_text_window(self):
         return self.text_win
 
@@ -1884,7 +1981,7 @@ class MucListTab(Tab):
     """
     def __init__(self, server):
         Tab.__init__(self)
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self.name = server
         self.upper_message = windows.Topic()
         self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
@@ -1998,14 +2095,11 @@ class MucListTab(Tab):
             return self.key_func[key]()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         curses.curs_set(0)
-
-    def get_color_state(self):
-        return self._color_state
 
     def on_scroll_up(self):
         self.listview.scroll_up()
@@ -2021,7 +2115,7 @@ class SimpleTextTab(Tab):
     """
     def __init__(self, text):
         Tab.__init__(self)
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
         self.text_win = windows.SimpleTextWin(text)
         self.default_help_message = windows.HelpText("“Ctrl+q”: close")
         self.input = self.default_help_message
@@ -2064,14 +2158,11 @@ class SimpleTextTab(Tab):
         self.input.refresh()
 
     def on_lose_focus(self):
-        self._color_state = get_theme().COLOR_TAB_NORMAL
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._color_state = get_theme().COLOR_TAB_CURRENT
+        self.state = 'current'
         curses.curs_set(0)
-
-    def get_color_state(self):
-        return self._color_state
 
 def diffmatch(search, string):
     """

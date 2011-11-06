@@ -43,7 +43,6 @@ from data_forms import DataFormsTab
 from config import config, options
 from logger import logger
 from user import User
-from room import Room
 from roster import Roster, RosterGroup, roster
 from contact import Contact, Resource
 from text_buffer import TextBuffer
@@ -295,6 +294,9 @@ class Core(object):
         return self.information_buffer
 
     def grow_information_win(self, nb=1):
+        if self.information_win_size >= self.current_tab().height -5 or \
+                self.information_win_size+nb >= self.current_tab().height-4:
+            return
         if self.information_win_size == 14:
             return
         self.information_win_size += nb
@@ -397,10 +399,10 @@ class Core(object):
         nick = message['mucnick']
         room_from = message.getMucroom()
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
-        if tab and tab.get_room() and tab.get_room().get_user_by_name(nick):
-            tab.get_room().get_user_by_name(nick).chatstate = state
+        if tab and tab.get_user_by_name(nick):
+            tab.get_user_by_name(nick).chatstate = state
         if tab == self.current_tab():
-            tab.user_win.refresh(tab._room.users)
+            tab.user_win.refresh(tab.users)
             tab.input.refresh()
             self.doupdate()
 
@@ -419,7 +421,6 @@ class Core(object):
         logger.log_roster_change(jid.bare, 'got offline')
         if not contact:
             return
-        log.debug('on_got_offline: %s' % presence)
         resource = contact.get_resource_by_fulljid(jid.full)
         if not resource:
             return
@@ -465,7 +466,7 @@ class Core(object):
         """
         tab = self.get_tab_by_name(jid, tabs.ConversationTab)
         if tab:
-            self.add_message_to_text_buffer(tab.get_room(), msg)
+            self.add_message_to_text_buffer(tab._text_buffer, msg)
 
     def on_failed_connection(self):
         """
@@ -479,7 +480,7 @@ class Core(object):
         """
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab):
-                tab.get_room().disconnect()
+                tab.disconnect()
         self.information(_("Disconnected from server."))
 
     def on_failed_auth(self, event):
@@ -580,7 +581,7 @@ class Core(object):
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)
         if tab: # display the message in private
-            tab.get_room().add_message(msg)
+            tab.add_message(msg)
 
     def on_message(self, message):
         """
@@ -606,16 +607,16 @@ class Core(object):
         jid = message['from']
         nick_from = jid.resource
         room_from = jid.bare
-        room = self.get_room_by_name(jid.full) # get the tab with the private conversation
-        if not room: # It's the first message we receive: create the tab
-            room = self.open_private_window(room_from, nick_from, False)
-            if not room:
+        tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
+        if not tab: # It's the first message we receive: create the tab
+            tab = self.open_private_window(room_from, nick_from, False)
+            if not tab:
                 return
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
-        room.add_message(body, time=None, nickname=nick_from,
-                         forced_user=self.get_room_by_name(room_from).get_user_by_name(nick_from))
+        tab.add_message(body, time=None, nickname=nick_from,
+                         forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:
@@ -628,6 +629,7 @@ class Core(object):
         if conversation is self.current_tab():
             self.refresh_window()
         else:
+            conversation.state = 'private'
             self.refresh_tab_win()
 
     def focus_tab_named(self, tab_name):
@@ -669,7 +671,7 @@ class Core(object):
             remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
             remote_nick = jid.user
-        conversation.get_room().add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
+        conversation._text_buffer.add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
         if conversation.remote_wants_chatstates is None:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
@@ -679,7 +681,7 @@ class Core(object):
         if 'private' in config.get('beep_on', 'highlight private').split():
             curses.beep()
         if self.current_tab() is not conversation:
-            conversation.set_color_state(get_theme().COLOR_TAB_PRIVATE)
+            conversation.state = 'private'
             self.refresh_tab_win()
         else:
             self.refresh_window()
@@ -741,7 +743,7 @@ class Core(object):
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
             contact.set_ask('asked')
-            self.get_tab_by_number(0).set_color_state(get_theme().COLOR_TAB_HIGHLIGHT)
+            self.get_tab_by_number(0).state = 'highlight'
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -829,7 +831,7 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.ConversationTab):
                 if tab.get_name() == jid:
-                    return tab.get_room()
+                    return tab
         return None
 
     def get_tab_by_name(self, name, typ=None):
@@ -848,16 +850,6 @@ class Core(object):
         for tab in self.tabs:
             if tab.nb == number:
                 return tab
-        return None
-
-    def get_room_by_name(self, name):
-        """
-        returns the room that has this name
-        """
-        for tab in self.tabs:
-            if (isinstance(tab, tabs.MucTab) or
-                isinstance(tab, tabs.PrivateTab)) and tab.get_name() == name:
-                return tab.get_room()
         return None
 
     def init_curses(self, stdscr):
@@ -892,7 +884,7 @@ class Core(object):
         """
         Refresh everything
         """
-        self.current_tab().set_color_state(get_theme().COLOR_TAB_CURRENT)
+        self.current_tab().state = 'current'
         self.current_tab().refresh()
         self.doupdate()
 
@@ -921,8 +913,7 @@ class Core(object):
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
-        r = Room(room, nick)
-        new_tab = tabs.MucTab(r)
+        new_tab = tabs.MucTab(room, nick)
         self.add_tab(new_tab, focus)
         self.refresh_window()
 
@@ -940,19 +931,19 @@ class Core(object):
         - A Muc with any new message
         """
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_PRIVATE:
+            if tab.state == 'private':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_HIGHLIGHT:
+            if tab.state == 'highlight':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_NEW_MESSAGE:
+            if tab.state == 'message':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
-            if tab.get_color_state() == get_theme().COLOR_TAB_DISCONNECTED:
+            if tab.state == 'disconnected':
                 self.command_win('%s' % tab.nb)
                 return
         for tab in self.tabs:
@@ -1009,20 +1000,20 @@ class Core(object):
 
     def room_error(self, error, room_name):
         """
-        Display the error on the room window
+        Display the error in the tab
         """
-        room = self.get_room_by_name(room_name)
+        tab = self.get_tab_by_name(room_name)
         error_message = self.get_error_message_from_error_stanza(error)
-        self.add_message_to_text_buffer(room, error_message)
+        self.add_message_to_text_buffer(tab._text_buffer, error_message)
         code = error['error']['code']
         if code == '401':
             msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
-            self.add_message_to_text_buffer(room, msg)
+            self.add_message_to_text_buffer(tab._text_buffer, msg)
         if code == '409':
             if config.get('alternative_nickname', '') != '':
-                self.command_join('%s/%s'% (room.name, room.own_nick+config.get('alternative_nickname', '')))
+                self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
             else:
-                self.add_message_to_text_buffer(room, _('You can join the room with an other nick, by typing "/join /other_nick"'))
+                self.add_message_to_text_buffer(tab._text_buffer, _('You can join the room with an other nick, by typing "/join /other_nick"'))
         self.refresh_window()
 
     def open_conversation_window(self, jid, focus=True):
@@ -1036,6 +1027,8 @@ class Core(object):
                     return tab
         new_tab = tabs.ConversationTab(jid)
         # insert it in the rooms
+        if not focus:
+            new_tab.state = "private"
         self.add_tab(new_tab, focus)
         self.refresh_window()
         return new_tab
@@ -1046,19 +1039,18 @@ class Core(object):
             if isinstance(tab, tabs.PrivateTab):
                 if tab.get_name() == complete_jid:
                     self.command_win('%s' % tab.nb)
-                    return tab.get_room()
+                    return tab
         # create the new tab
-        room = self.get_room_by_name(room_name)
-        if not room:
+        tab = self.get_tab_by_name(room_name, tabs.MucTab)
+        if not tab:
             return None
-        own_nick = room.own_nick
-        r = Room(complete_jid, own_nick) # PrivateRoom here
-        new_tab = tabs.PrivateTab(r)
+        new_tab = tabs.PrivateTab(complete_jid, tab.own_nick)
+        if not focus:
+            new_tab.state = "private"
         # insert it in the tabs
         self.add_tab(new_tab, focus)
-        # self.window.new_room(r)
         self.refresh_window()
-        return r
+        return new_tab
 
     def on_groupchat_subject(self, message):
         """
@@ -1066,15 +1058,15 @@ class Core(object):
         """
         nick_from = message['mucnick']
         room_from = message.getMucroom()
-        room = self.get_room_by_name(room_from)
+        tab = self.get_tab_by_name(room_from, tabs.MucTab)
         subject = message['subject']
-        if not subject or not room:
+        if not subject or not tab:
             return
         if nick_from:
-            self.add_message_to_text_buffer(room, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+            self.add_message_to_text_buffer(tab._text_buffer, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
         else:
-            self.add_message_to_text_buffer(room, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
-        room.topic = subject
+            self.add_message_to_text_buffer(tab._text_buffer, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
+        tab.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
             self.refresh_window()
 
@@ -1102,34 +1094,33 @@ class Core(object):
         room_from = message.getMucroom()
         if message['type'] == 'error': # Check if it's an error
             return self.room_error(message, room_from)
-        room = self.get_room_by_name(room_from)
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
-        if tab and tab.get_room() and tab.get_room().get_user_by_name(nick_from) and\
-                tab.get_room().get_user_by_name(nick_from) in tab.ignores:
-            return
-        if not room:
+        if not tab:
             self.information(_("message received for a non-existing room: %s") % (room_from))
+            return
+        if tab.get_user_by_name(nick_from) and\
+                tab.get_user_by_name(nick_from) in tab.ignores:
             return
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
-            self.add_message_to_text_buffer(room, body, date, nick_from, history=True if date else False)
+            tab.add_message(body, date, nick_from, history=True if date else False)
             if tab is self.current_tab():
-                tab.text_win.refresh(tab._room)
-                tab.info_header.refresh(tab._room, tab.text_win)
+                tab.text_win.refresh()
+                tab.info_header.refresh(tab, tab.text_win)
             self.refresh_tab_win()
             if 'message' in config.get('beep_on', 'highlight private').split():
                 curses.beep()
 
-    def add_message_to_text_buffer(self, room, txt, time=None, nickname=None, history=None):
+    def add_message_to_text_buffer(self, buff, txt, time=None, nickname=None, history=None):
         """
         Add the message to the room if possible, else, add it to the Info window
         (in the Info tab of the info window in the RosterTab)
         """
-        if not room:
+        if not buff:
             self.information('Trying to add a message in no room: %s' % txt, 'Error')
         else:
-            room.add_message(txt, time, nickname, history=history)
+            buff.add_message(txt, time, nickname, history=history)
 
     def command_help(self, arg):
         """
@@ -1179,12 +1170,14 @@ class Core(object):
         pres['type'] = show
         pres.send()
         current = self.current_tab()
-        if isinstance(current, tabs.MucTab) and current.get_room().joined:
+        if isinstance(current, tabs.MucTab) and current.joined and show in ('away', 'xa'):
             current.send_chat_state('inactive')
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and tab.get_room().joined:
-                muc.change_show(self.xmpp, tab.get_room().name, tab.get_room().own_nick, show, msg)
+            if isinstance(tab, tabs.MucTab) and tab.joined:
+                muc.change_show(self.xmpp, tab.name, tab.own_nick, show, msg)
         self.set_status(show, msg)
+        if isinstance(current, tabs.MucTab) and current.joined and show not in ('away', 'xa'):
+            current.send_chat_state('active')
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
@@ -1228,18 +1221,20 @@ class Core(object):
         """
         /version <jid>
         """
+        def callback(res):
+            if not res:
+                return self.information('Could not get the software version from %s' % (jid,), 'Warning')
+            version = '%s is running %s version %s on %s' % (jid,
+                                                             res.get('name') or _('an unknown software'),
+                                                             res.get('version') or _('unknown'),
+                                                             res.get('os') or _('on an unknown platform'))
+            self.information(version, 'Info')
+
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
         jid = args[0]
-        res = self.xmpp.plugin['xep_0092'].get_version(jid)
-        if not res:
-            return self.information('Could not get the software version from %s' % (jid,), 'Warning')
-        version = '%s is running %s version %s on %s' % (jid,
-                                                         res.get('name') or _('an unknown software'),
-                                                         res.get('version') or _('unknown'),
-                                                         res.get('os') or _('on an unknown platform'))
-        self.information(version, 'Info')
+        self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_reconnect(self, args):
         """
@@ -1359,11 +1354,11 @@ class Core(object):
         args = common.shell_split(arg)
         password = None
         if len(args) == 0:
-            t = self.current_tab()
-            if not isinstance(t, tabs.MucTab) and not isinstance(t, tabs.PrivateTab):
+            tab = self.current_tab()
+            if not isinstance(tab, tabs.MucTab) and not isinstance(tab, tabs.PrivateTab):
                 return
-            room = JID(t.get_name()).bare
-            nick = t.get_room().own_nick
+            room = JID(tab.get_name()).bare
+            nick = tab.own_nick
         else:
             info = JID(args[0])
             if info.resource == '':
@@ -1374,12 +1369,12 @@ class Core(object):
             else:
                 nick = info.resource
             if info.bare == '':   # happens with /join /nickname, which is OK
-                t = self.current_tab()
-                if not isinstance(t, tabs.MucTab):
+                tab = self.current_tab()
+                if not isinstance(tab, tabs.MucTab):
                     return
-                room = t.get_name()
+                room = tab.get_name()
                 if nick == '':
-                    nick = t.get_room().own_nick
+                    nick = tab.own_nick
             else:
                 room = info.bare
             if room.find('@') == -1: # no server is provided, like "/join hello"
@@ -1392,25 +1387,25 @@ class Core(object):
                     self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
         room = room.lower()
-        r = self.get_room_by_name(room)
+        tab = self.get_tab_by_name(room, tabs.MucTab)
         if len(args) == 2:       # a password is provided
             password = args[1]
-        if r and r.joined:       # if we are already in the room
-            self.focus_tab_named(r.name)
+        if tab and tab.joined:       # if we are already in the room
+            self.focus_tab_named(tab.name)
             return
         if room.startswith('@'):
             room = room[1:]
         current_status = self.get_status()
-        if r and not r.joined:
+        if tab and not tab.joined:
             muc.join_groupchat(self.xmpp, room, nick, password,
                                histo_length, current_status.message, current_status.show)
-        if not r:   # if the room window exists, we don't recreate it.
+        if not tab:
             self.open_new_room(room, nick)
             muc.join_groupchat(self.xmpp, room, nick, password,
                                histo_length, current_status.message, current_status.show)
         else:
-            r.own_nick = nick
-            r.users = []
+            tab.own_nick = nick
+            tab.users = []
         self.enable_private_tabs(room)
 
     def get_bookmark_nickname(self, room_name):
@@ -1434,10 +1429,10 @@ class Core(object):
         if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
             return
         if len(args) == 0:
-            room = self.current_tab().get_room()
-            roomname = self.current_tab().get_name()
-            if room.joined:
-                nick = room.own_nick
+            tab = self.current_tab()
+            roomname = tab.get_name()
+            if tab.joined:
+                nick = tab.own_nick
         else:
             info = JID(args[0])
             if info.resource != '':
@@ -1519,9 +1514,9 @@ class Core(object):
                 return
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and JID(tab.get_name()).domain == domain:
-                if tab.get_room().joined:
-                    muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.get_room().own_nick, message)
-                tab.get_room().joined = False
+                if tab.joined:
+                    muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
+                tab.joined = False
                 self.command_join(tab.get_name())
 
     def command_bind(self, arg):
@@ -1578,17 +1573,18 @@ class Core(object):
             self.pop_information_win_up(nb_lines, popup_time)
         else:
             if self.information_win_size != 0:
-                self.information_win.refresh(self.information_buffer)
+                self.information_win.refresh()
                 self.current_tab().input.refresh()
 
-    def disconnect(self, msg=None, reconnect=False):
+    def disconnect(self, msg='', reconnect=False):
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
+        msg = msg or ''
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                muc.leave_groupchat(self.xmpp, tab.get_room().name, tab.get_room().own_nick, msg)
+            if isinstance(tab, tabs.MucTab) and tab.joined:
+                tab.command_part(msg)
         roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
@@ -1637,7 +1633,6 @@ class Core(object):
 
     def remove_timed_event(self, event):
         if event and event in self.timed_events:
-            log.debug('removing event')
             self.timed_events.remove(event)
 
     def add_timed_event(self, event):
