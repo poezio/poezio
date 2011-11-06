@@ -546,7 +546,7 @@ class Core(object):
         if not body:
             return
         tab.add_message(body, time=None, nickname=nick_from,
-                         forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
+                        forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:
