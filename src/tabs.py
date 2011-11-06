@@ -1345,12 +1345,12 @@ class PrivateTab(ChatTab):
         """
         self.activate()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        color = None
-        if tab:
+        color = 3
+        if tab and config.get('display_user_color_in_join_part', ''):
             user = tab.get_user_by_name(nick)
             if user:
-                color = user.color
-        self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':nick, 'color': color or 3, 'spec':get_theme().CHAR_JOIN})
+                color = user.color[0]
+        self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN})
         if self.core.current_tab() is self:
             self.refresh()
             self.core.doupdate()
