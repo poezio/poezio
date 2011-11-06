@@ -564,6 +564,7 @@ class Core(object):
         if conversation is self.current_tab():
             self.refresh_window()
         else:
+            conversation.state = 'private'
             self.refresh_tab_win()
 
     def focus_tab_named(self, tab_name):

@@ -226,13 +226,13 @@ class Tab(object):
         """
         called when this tab loses the focus.
         """
-        self._state = 'normal'
+        self.state = 'normal'
 
     def on_gain_focus(self):
         """
         called when this tab gains the focus.
         """
-        self._state = 'current'
+        self.state = 'current'
 
     def on_scroll_down(self):
         """
@@ -835,23 +835,15 @@ class MucTab(ChatTab):
     def get_text_window(self):
         return self.text_win
 
-    @property
-    def state(self):
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        self._state = value
-
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
@@ -1097,7 +1089,7 @@ class MucTab(ChatTab):
         we can know if we can join it, send messages to it, etc
         """
         self.users = []
-        self._state = 'disconnected'
+        self.state = 'disconnected'
         self.joined = False
 
     def get_single_line_topic(self):
@@ -1121,15 +1113,15 @@ class MucTab(ChatTab):
         color = None
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
-                if self._state != 'current':
-                    self._state = 'highlight'
+                if self.state != 'current':
+                    self.state = 'highlight'
                 color = get_theme().COLOR_HIGHLIGHT_NICK
             else:
                 highlight_words = config.get('highlight_on', '').split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
-                        if self._state != 'current':
-                            self._state = 'highlight'
+                        if self.state != 'current':
+                            self.state = 'highlight'
                         color = get_theme().COLOR_HIGHLIGHT_NICK
                         break
         if color:
@@ -1165,9 +1157,9 @@ class MucTab(ChatTab):
             user = forced_user
         if not time and nickname and\
                 nickname != self.own_nick and\
-                    self._state != 'current':
-            if self._state != 'highlight':
-                self._state = 'message'
+                    self.state != 'current':
+            if self.state != 'highlight':
+                self.state = 'message'
         nick_color = nick_color or None
         if not nickname or time:
             txt = '\x195}%s' % (txt,)
@@ -1281,14 +1273,6 @@ class PrivateTab(ChatTab):
         self.info_header.refresh(self.name, self.text_win, self.chatstate)
         self.input.refresh()
 
-    @property
-    def state(self):
-        return self._state
-
-    @state.setter
-    def state(self, value):
-        self._state = value
-
     def get_name(self):
         return self.name
 
@@ -1306,7 +1290,7 @@ class PrivateTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
@@ -1314,7 +1298,7 @@ class PrivateTab(ChatTab):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
         if tab.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
@@ -1396,7 +1380,7 @@ class RosterInfoTab(Tab):
         self.contact_info_win = windows.ContactInfoWin()
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
-        self._state = 'normal'
+        self.state = 'normal'
         self.key_func['^I'] = self.completion
         self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
@@ -1757,10 +1741,10 @@ class RosterInfoTab(Tab):
         return self.reset_help_message()
 
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         if isinstance(self.input, windows.HelpText):
             curses.curs_set(0)
         else:
@@ -1863,7 +1847,7 @@ class ConversationTab(ChatTab):
     message_type = 'chat'
     def __init__(self, jid):
         ChatTab.__init__(self)
-        self._state = 'normal'
+        self.state = 'normal'
         self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
@@ -1939,14 +1923,14 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
             self.send_chat_state('active')
@@ -1978,7 +1962,7 @@ class MucListTab(Tab):
     """
     def __init__(self, server):
         Tab.__init__(self)
-        self._state = 'normal'
+        self.state = 'normal'
         self.name = server
         self.upper_message = windows.Topic()
         self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
@@ -2092,10 +2076,10 @@ class MucListTab(Tab):
             return self.key_func[key]()
 
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         curses.curs_set(0)
 
     def on_scroll_up(self):
@@ -2112,7 +2096,7 @@ class SimpleTextTab(Tab):
     """
     def __init__(self, text):
         Tab.__init__(self)
-        self._state = 'normal'
+        self.state = 'normal'
         self.text_win = windows.SimpleTextWin(text)
         self.default_help_message = windows.HelpText("“Ctrl+q”: close")
         self.input = self.default_help_message
@@ -2155,10 +2139,10 @@ class SimpleTextTab(Tab):
         self.input.refresh()
 
     def on_lose_focus(self):
-        self._state = 'normal'
+        self.state = 'normal'
 
     def on_gain_focus(self):
-        self._state = 'current'
+        self.state = 'current'
         curses.curs_set(0)
 
 def diffmatch(search, string):
