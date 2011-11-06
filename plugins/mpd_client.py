@@ -11,7 +11,7 @@ class Plugin(BasePlugin):
     def command_mpd(self, args):
         args = shell_split(args)
         c = mpd.MPDClient()
-        c.connect(host=self.config.get('host', 'localhost'), port=self.config.get('host', '6600'))
+        c.connect(host=self.config.get('host', 'localhost'), port=self.config.get('port', '6600'))
         password = self.config.get('password', '')
         if password:
             c.password(password)
