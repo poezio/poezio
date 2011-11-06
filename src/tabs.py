@@ -570,9 +570,9 @@ class MucTab(ChatTab):
             msg = None
         if self.joined:
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
-            self.joined = False
             self.add_message(_("\x195}You left the chatroom\x193}"))
-            self.refresh()
+            if self == self.core.current_tab():
+                self.refresh()
             self.core.doupdate()
         self.core.disable_private_tabs(self.name)
 

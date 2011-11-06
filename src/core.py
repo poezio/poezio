@@ -1505,14 +1505,15 @@ class Core(object):
                 self.information_win.refresh()
                 self.current_tab().input.refresh()
 
-    def disconnect(self, msg=None, reconnect=False):
+    def disconnect(self, msg='', reconnect=False):
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
+        msg = msg or ''
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                muc.leave_groupchat(self.xmpp, tab.name, tab.own_nick, msg)
+            if isinstance(tab, tabs.MucTab) and tab.joined:
+                tab.command_part(msg)
         roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
