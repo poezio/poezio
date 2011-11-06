@@ -10,7 +10,7 @@ class Plugin(BasePlugin):
 
     def command_mpd(self, args):
         args = shell_split(args)
-            c = mpd.MPDClient()
+        c = mpd.MPDClient()
         try:
         c.connect(host=self.config.get('host', 'localhost'), port=self.config.get('host', '6600'))
         except Exception as e:
