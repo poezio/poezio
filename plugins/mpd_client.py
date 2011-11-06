@@ -11,18 +11,10 @@ class Plugin(BasePlugin):
     def command_mpd(self, args):
         args = shell_split(args)
         c = mpd.MPDClient()
-        try:
         c.connect(host=self.config.get('host', 'localhost'), port=self.config.get('host', '6600'))
-        except Exception as e:
-            self.core.information('%s' % (e,), 'Error')
-            return
         password = self.config.get('password', '')
         if password:
-            try:
-                c.password(password)
-            except Exception as e:
-                self.core.information('%s' % (e,), 'Error')
-                return
+            c.password(password)
         current = c.currentsong()
         current_time = float(c.status()['elapsed'])
 
