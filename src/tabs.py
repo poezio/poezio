@@ -1448,6 +1448,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+        self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
 
     def command_name(self, args):
         """
@@ -1675,7 +1676,6 @@ class RosterInfoTab(Tab):
         else:
             jid = args[0]
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
-        self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
     def refresh(self):
         if self.need_resize:
