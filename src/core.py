@@ -132,6 +132,7 @@ class Core(object):
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
+            'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             }
 
         self.key_func = {
@@ -1149,6 +1150,12 @@ class Core(object):
             return
         filename = args[0]
         self.plugin_manager.unload(filename)
+
+    def command_plugins(self, arg):
+        """
+        /plugins
+        """
+        self.information("Plugins currently in use: %s" % repr(list(self.plugin_manager.plugins.keys())), 'Info')
 
     def command_message(self, arg):
         """
