@@ -555,6 +555,7 @@ class Core(object):
             tab = self.open_private_window(room_from, nick_from, False)
             if not tab:
                 return
+        self.events.trigger('private_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
@@ -604,6 +605,7 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
+        self.events.trigger('conversation_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             if message['type'] == 'error':
@@ -1044,6 +1046,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
+        self.events.trigger('muc_mg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None

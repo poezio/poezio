@@ -25,6 +25,9 @@ class EventHandler(object):
             'muc_say': [],
             'conversation_say': [],
             'private_say': [],
+            'conversation_msg': [],
+            'private_msg': [],
+            'muc_msg': [],
             }
 
     def add_event_handler(self, name, callback, first=True, last=False, position=None):
