@@ -30,23 +30,20 @@ class EventHandler(object):
             'muc_msg': [],
             }
 
-    def add_event_handler(self, name, callback, first=True, last=False, position=None):
+    def add_event_handler(self, name, callback, position=0):
         """
         Add a callback to a given event.
         Note that if that event name doesn’t exist, it just returns False.
         If it was successfully added, it returns True
+        position: 0 means insert a the beginning, -1 means end
         """
         if name not in self.events:
             return False
 
-        if first:
-            self.events[name].insert(0, callback)
-        elif last:
-            self.events[name].append(callback)
-        elif position != None and isinstance(position, int):
+        if position >= 0:
             self.events[name].insert(position, callback)
         else:
-            self.events[name].insert(0, callback)
+            self.events[name].append(callback)
 
         return True
 
