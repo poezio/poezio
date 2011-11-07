@@ -6,7 +6,7 @@ import mpd
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, teh message is more verbose.", self.completion_mpd)
+        self.add_command('mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
 
     def command_mpd(self, args):
         args = shell_split(args)
