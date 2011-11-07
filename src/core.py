@@ -379,6 +379,8 @@ class Core(object):
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
             self.information('\x193}%s \x195}is \x191}offline' % (resource.get_jid().bare), "Roster")
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
 
     def on_got_online(self, presence):
         jid = presence['from']
@@ -404,6 +406,8 @@ class Core(object):
                 self.information("\x193}%s \x195}is \x194}online\x195} (\x190}%s\x195})" % (resource.get_jid().bare, status), "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
         contact.add_resource(resource)
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
 
     def add_information_message_to_conversation_tab(self, jid, msg):
         """
