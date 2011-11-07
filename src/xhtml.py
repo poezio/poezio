@@ -14,6 +14,7 @@ poezio colors to xhtml code
 
 import re
 import subprocess
+import curses
 from sleekxmpp.xmlstream import ET
 from xml.etree.ElementTree import ElementTree
 from sys import version_info
@@ -178,6 +179,8 @@ whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19\d{0,3}\}|\x19[buaio]')
 
+xhtml_simple_attr_re = re.compile(r'\x19\d')
+
 def get_body_from_message_stanza(message):
     """
     Returns a string with xhtml markups converted to
@@ -189,6 +192,29 @@ def get_body_from_message_stanza(message):
         if xhtml_body:
             return xhtml_to_poezio_colors(xhtml_body)
     return message['body']
+
+def ncurses_color_to_html(color):
+    """
+    Takes an int between 0 and 256 and returns
+    a string of the form #XXXXXX representing an
+    html color.
+    """
+    if color <= 15:
+        (r, g, b) = curses.color_content(color)
+        r = r / 1000 * 6 - 0.01
+        g = g / 1000 * 6 - 0.01
+        b = b / 1000 * 6 - 0.01
+    elif color <= 231:
+        color = color - 16
+        r = color % 6
+        color = color / 6
+        g = color % 6
+        color = color / 6
+        b = color % 6
+    else:
+        color -= 232
+        r = g = b = color / 24 * 6
+    return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
 
 def xhtml_to_poezio_colors(text):
     def parse_css(css):
@@ -225,7 +251,6 @@ def xhtml_to_poezio_colors(text):
             key, value = rule.split(':', 1)
             key = key.strip()
             value = value.strip()
-            log.debug(value)
             if key == 'background-color':
                 pass#shell += '\x191'
             elif key == 'color':
@@ -248,7 +273,6 @@ def xhtml_to_poezio_colors(text):
     def trim(string):
         return re.sub(whitespace_re, ' ', string)
 
-    log.debug(text)
     xml = ET.fromstring(text)
     message = ''
     if version_info[1] == 2:
@@ -322,7 +346,6 @@ def xhtml_to_poezio_colors(text):
             message += trim(elem.tail)
     return message
 
-
 def clean_text(s):
     """
     Remove all xhtml-im attributes (\x19etc) from the string with the
@@ -341,6 +364,15 @@ def clean_text_simple(string):
         string = string[:pos] + string[pos+2:]
         pos = string.find('\x19')
     return string
+
+def convert_simple_to_full_colors(text):
+    """
+    takes a \x19n formatted string and returns
+    a \x19n} formatted one.
+    """
+    def add_curly_bracket(match):
+        return match.group(0) + '}'
+    return re.sub(xhtml_simple_attr_re, add_curly_bracket, text)
 
 number_to_color_names = {
     1: 'red',
@@ -368,7 +400,6 @@ def poezio_colors_to_html(string):
         attr_char = string[next_attr_char+1].lower()
         if next_attr_char != 0:
             res += string[:next_attr_char]
-        string = string[next_attr_char+2:]
         if attr_char == 'o':
             for elem in opened_elements[::-1]:
                 res += '</%s>' % (elem,)
@@ -377,48 +408,23 @@ def poezio_colors_to_html(string):
             if 'strong' not in opened_elements:
                 opened_elements.append('strong')
                 res += '<strong>'
-        elif attr_char in digits:
-            number = int(attr_char)
-            if number in number_to_color_names:
-                if 'strong' in opened_elements:
-                    res += '</strong>'
-                    opened_elements.remove('strong')
-                if 'span' in opened_elements:
-                    res += '</span>'
-                else:
-                    opened_elements.append('span')
-                res += "<span style='color: %s'>" % (number_to_color_names[number])
+        if attr_char in digits:
+            number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
+            number = int(number_str)
+            if 'strong' in opened_elements:
+                res += '</strong>'
+                opened_elements.remove('strong')
+            if 'span' in opened_elements:
+                res += '</span>'
+            else:
+                opened_elements.append('span')
+            res += "<span style='color: %s'>" % (ncurses_color_to_html(number),)
+            string = string[next_attr_char+len(number_str)+2:]
+        else:
+            string = string[next_attr_char+2:]
         next_attr_char = string.find('\x19')
     res += string
     for elem in opened_elements[::-1]:
         res += '</%s>' % (elem,)
     res += "</p></body>"
     return res.replace('\n', '<br />')
-
-def poezio_colors_to_xhtml(string):
-    """
-    Generate a valid xhtml string from
-    the poezio colors in the given string
-    """
-    res = "<body xmlns='http://www.w3.org/1999/xhtml'>"
-    next_attr_char = string.find('\x19')
-    open_elements = []
-    while next_attr_char != -1:
-        attr_char = string[next_attr_char+1].lower()
-        if next_attr_char != 0:
-            res += string[:next_attr_char]
-        string = string[next_attr_char+2:]
-        if attr_char == 'o':
-            # close all opened elements
-            for elem in open_elements:
-                res += '</%s>'
-            open_elements = []
-        elif attr_char == 'b':
-            if 'strong' not in open_elements:
-                res += '<strong>'
-                open_elements.append('strong')
-        elif attr_char in digits:
-            self._win.attron(common.curses_color_pair(int(attr_char)))
-        next_attr_char = string.find('\x19')
-
-

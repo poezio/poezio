@@ -51,6 +51,7 @@ from text_buffer import TextBuffer
 from keyboard import read_char
 from theming import get_theme
 from fifo import Fifo
+from windows import g_lock
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -72,8 +73,6 @@ possible_show = {'available':None,
                  'busy':'dnd',
                  'xa':'xa'
                  }
-
-resize_lock = threading.Lock()
 
 Status = collections.namedtuple('Status', 'show message')
 
@@ -177,6 +176,8 @@ class Core(object):
 
         self.timed_events = set()
 
+        self.connected_events = {}
+
         self.autoload_plugins()
 
     def autoload_plugins(self):
@@ -209,18 +210,21 @@ class Core(object):
                 'Just press Ctrl-n.' \
             ))
         self.refresh_window()
+
     def resize_global_information_win(self):
         """
         Resize the global_information_win only once at each resize.
         """
-        self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                          tabs.Tab.height - 2 - self.information_win_size, 0)
+        with g_lock:
+            self.information_win.resize(self.information_win_size, tabs.Tab.width,
+                                        tabs.Tab.height - 2 - self.information_win_size, 0)
 
     def resize_global_info_bar(self):
         """
         Resize the GlobalInfoBar only once at each resize
         """
-        self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
+        with g_lock:
+            self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
 
     def on_exception(self, typ, value, trace):
         """
@@ -561,7 +565,7 @@ class Core(object):
         if not body:
             return
         tab.add_message(body, time=None, nickname=nick_from,
-                         forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
+                        forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:
@@ -709,7 +713,7 @@ class Core(object):
         tabs.Tab.resize(self.stdscr)
         self.resize_global_information_win()
         self.resize_global_info_bar()
-        with resize_lock:
+        with g_lock:
             for tab in self.tabs:
                 if config.get('lazy_resize', 'true') == 'true':
                     tab.need_resize = True
@@ -1047,7 +1051,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
-        self.events.trigger('muc_mg', message)
+        self.events.trigger('muc_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None

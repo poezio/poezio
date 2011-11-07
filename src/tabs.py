@@ -305,7 +305,7 @@ class ChatTab(Tab):
         # build the list of the recent words
         char_we_dont_want = string.punctuation+' '
         words = list()
-        for msg in self.messages[:-40:-1]:
+        for msg in self._text_buffer.messages[:-40:-1]:
             if not msg:
                 continue
             txt = xhtml.clean_text(msg.txt)
@@ -323,7 +323,7 @@ class ChatTab(Tab):
             if not self.execute_command(clean_text):
                 if txt.startswith('//'):
                     txt = txt[1:]
-                self.command_say(txt)
+                self.command_say(xhtml.convert_simple_to_full_colors(txt))
         self.cancel_paused_delay()
 
     def send_chat_state(self, state, always_send=False):
@@ -497,7 +497,7 @@ class MucTab(ChatTab):
         """
         /clear
         """
-        self.messages = []
+        self._text_buffer.messages = []
         self.text_win.rebuild_everything(self._text_buffer)
         self.refresh()
         self.core.doupdate()
@@ -601,7 +601,7 @@ class MucTab(ChatTab):
                 r = self.core.open_private_window(self.name, user.nick)
         if r and len(args) > 1:
             msg = arg[len(nick)+1:]
-            self.core.current_tab().command_say(msg)
+            self.core.current_tab().command_say(xhtml.convert_simple_to_full_colors(msg))
         if not r:
             self.core.information(_("Cannot find user: %s" % nick), 'Error')
 
@@ -715,14 +715,16 @@ class MucTab(ChatTab):
         needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('muc_say', msg)
+        if msg['body'].find('\x19') != -1:
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
-        self.core.events.trigger('muc_say', msg)
         self.cancel_paused_delay()
         msg.send()
         self.chat_state = needed
@@ -1208,17 +1210,20 @@ class PrivateTab(ChatTab):
             return
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('private_say', msg)
+        if msg['body'].find('\x19') != -1:
+            msg['body'] = xhtml.clean_text(msg['body'])
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         self.core.events.trigger('private_say', msg)
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick or self.own_nick)
+        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -1580,7 +1585,6 @@ class RosterInfoTab(Tab):
             self.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
-
     def command_export(self, arg):
         """
         Export the contacts
@@ -1864,6 +1868,7 @@ class ConversationTab(ChatTab):
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
         self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: get the status of the contact.'), None)
         self.resize()
 
     def completion(self):
@@ -1872,21 +1877,36 @@ class ConversationTab(ChatTab):
     def command_say(self, line):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('conversation_say', msg)
+        if msg['body'].find('\x19') != -1:
+            msg['body'] = xhtml.clean_text(msg['body'])
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         self.core.events.trigger('conversation_say', msg)
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, line, None, self.core.own_nick)
+        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
+
+    def command_info(self, arg):
+        contact = roster.get_contact_by_jid(self.get_name())
+        jid = JID(self.get_name())
+        if jid.resource:
+            resource = contact.get_resource_by_fulljid(jid.full)
+        else:
+            resource = contact.get_highest_priority_resource()
+        if resource:
+            self._text_buffer.add_message("\x195}Status: %s\x193}" %resource.get_status(), None, None, None, None, None)
+            self.refresh()
+            self.core.doupdate()
 
     def command_unquery(self, arg):
         self.core.close_tab()
