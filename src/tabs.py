@@ -1410,6 +1410,7 @@ class RosterInfoTab(Tab):
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Use this command to export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Use this command to import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
 
     def resize(self):
@@ -1429,6 +1430,15 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
+
+    def command_clear_infos(self, arg):
+        """
+        /clear_infos
+        """
+        self.core.information_buffer.messages = []
+        self.information_win.rebuild_everything(self.core.information_buffer)
+        self.core.information_win.rebuild_everything(self.core.information_buffer)
+        self.refresh()
 
     def command_deny(self, args):
         """
