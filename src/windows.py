@@ -1528,10 +1528,11 @@ class ContactInfoWin(Win):
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
         if contact.get_ask():
+            self.addstr(' ')
             if contact.get_ask() == 'asked':
-                self.addstr(' Ask: %s' % (contact.get_ask(),), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
+                self.addstr('Ask: %s' % (contact.get_ask(),), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
             else:
-                self.addstr(' Ask: %s' % (contact.get_ask(),))
+                self.addstr('Ask: %s' % (contact.get_ask(),))
         self.finish_line()
 
 
