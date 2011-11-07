@@ -107,10 +107,10 @@ class PluginManager(object):
         eh = self.event_handlers[module_name]
         eh = list(filter(lambda e : e != (event_name, handler), eh))
 
-    def add_poezio_event_handler(self, module_name, event_name, handler, first, last, position):
+    def add_poezio_event_handler(self, module_name, event_name, handler, position):
         eh = self.poezio_event_handlers[module_name]
         eh.append(handler)
-        self.core.events.add_event_handler(event_name, handler, first, last, position)
+        self.core.events.add_event_handler(event_name, handler, position)
 
     def del_poezio_event_handler(self, module_name, event_name, handler):
         self.core.events.del_event_handler(None, handler)
