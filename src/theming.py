@@ -240,16 +240,17 @@ def reload_theme():
         os.makedirs(themes_dir)
     except OSError:
         pass
-    theme_name = config.get('theme', '')
-    if not theme_name:
+    theme_name = config.get('theme', 'default')
+    global theme
+    if theme_name == 'default' or not theme_name.strip():
+        theme = Theme()
         return
     try:
         file_path  = os.path.join(themes_dir, theme_name)+'.py'
         log.debug('Theme file to load: %s' %(file_path,))
         new_theme = imp.load_source('theme', os.path.join(themes_dir, theme_name)+'.py')
-    except:                     # TODO warning: theme not found
-        return
-    global theme
+    except:
+        return 'Theme not found'
     theme = new_theme.theme
 
 if __name__ == '__main__':
