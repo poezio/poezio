@@ -1050,7 +1050,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
-        self.events.trigger('muc_mg', message)
+        self.events.trigger('muc_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
