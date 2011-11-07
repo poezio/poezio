@@ -118,13 +118,12 @@ class Tab(object):
     @state.setter
     def state(self, value):
         if not value in STATE_COLORS:
-            log.debug("WARNING: invalid value for tab state")
-            return
+            log.debug("Invalid value for tab state: %s" % value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value != 'current':
-            log.debug("WARNING: did not set status because of lower priority")
-            return
-        self._state = value
+            log.debug("Did not set status because of lower priority, asked: %s, kept: %s" % (value, self.state))
+        else:
+            self._state = value
 
     @staticmethod
     def resize(scr):
