@@ -1215,15 +1215,14 @@ class PrivateTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg)
+        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
-            msg['body'] = xhtml.clean_text(msg['body'])
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
-        self.core.events.trigger('private_say', msg)
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -1879,18 +1878,18 @@ class ConversationTab(ChatTab):
         msg['type'] = 'chat'
         msg['body'] = line
         # trigger the event BEFORE looking for colors.
+        # and before displaying the message in the window
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg)
+        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
-            msg['body'] = xhtml.clean_text(msg['body'])
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
-        self.core.events.trigger('conversation_say', msg)
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()
