@@ -1172,7 +1172,9 @@ class Core(object):
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_theme(self, arg):
-        theming.reload_theme()
+        warning = theming.reload_theme()
+        if warning:
+            self.information(warning, 'Warning')
         self.refresh_window()
 
     def command_win(self, arg):
