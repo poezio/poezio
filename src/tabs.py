@@ -710,11 +710,10 @@ class MucTab(ChatTab):
         needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        if msg['body'].find('\x19') != -1:
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
         self.cancel_paused_delay()
@@ -1202,11 +1201,10 @@ class PrivateTab(ChatTab):
             return
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        if msg['body'].find('\x19') != -1:
+            msg['body'] = xhtml.clean_text(msg['body'])
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
@@ -1865,11 +1863,10 @@ class ConversationTab(ChatTab):
     def command_say(self, line):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
-        if line.find('\x19') == -1:
-            msg['body'] = line
-        else:
-            msg['body'] = xhtml.clean_text_simple(line)
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(line)
+        msg['body'] = line
+        if msg['body'].find('\x19') != -1:
+            msg['body'] = xhtml.clean_text(msg['body'])
+            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
