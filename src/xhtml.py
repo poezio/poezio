@@ -14,6 +14,7 @@ poezio colors to xhtml code
 
 import re
 import subprocess
+import curses
 from sleekxmpp.xmlstream import ET
 from xml.etree.ElementTree import ElementTree
 from sys import version_info
@@ -192,6 +193,29 @@ def get_body_from_message_stanza(message):
             return xhtml_to_poezio_colors(xhtml_body)
     return message['body']
 
+def ncurses_color_to_html(color):
+    """
+    Takes an int between 0 and 256 and returns
+    a string of the form #XXXXXX representing an
+    html color.
+    """
+    if color <= 15:
+        (r, g, b) = curses.color_content(color)
+        r = r / 1000 * 6
+        g = g / 1000 * 6
+        b = b / 1000 * 6
+    elif color <= 231:
+        color = color - 16
+        r = color % 6
+        color = color / 6
+        g = color % 6
+        color = color / 6
+        b = color % 6
+    else:
+        color -= 232
+        r = g = b = color / 24 * 6
+    return '#%X%X%X' % (r*256/6, g*256/6, b*256/6)
+
 def xhtml_to_poezio_colors(text):
     def parse_css(css):
         def get_color(value):
@@ -323,7 +347,6 @@ def xhtml_to_poezio_colors(text):
         if elem.tail:
             message += trim(elem.tail)
     return message
-
 
 def clean_text(s):
     """
