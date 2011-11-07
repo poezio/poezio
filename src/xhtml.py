@@ -201,9 +201,9 @@ def ncurses_color_to_html(color):
     """
     if color <= 15:
         (r, g, b) = curses.color_content(color)
-        r = r / 1000 * 6
-        g = g / 1000 * 6
-        b = b / 1000 * 6
+        r = r / 1000 * 6 - 0.01
+        g = g / 1000 * 6 - 0.01
+        b = b / 1000 * 6 - 0.01
     elif color <= 231:
         color = color - 16
         r = color % 6
@@ -214,7 +214,7 @@ def ncurses_color_to_html(color):
     else:
         color -= 232
         r = g = b = color / 24 * 6
-    return '#%X%X%X' % (r*256/6, g*256/6, b*256/6)
+    return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
 
 def xhtml_to_poezio_colors(text):
     def parse_css(css):
