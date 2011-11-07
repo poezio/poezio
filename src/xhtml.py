@@ -400,7 +400,6 @@ def poezio_colors_to_html(string):
         attr_char = string[next_attr_char+1].lower()
         if next_attr_char != 0:
             res += string[:next_attr_char]
-        string = string[next_attr_char+2:]
         if attr_char == 'o':
             for elem in opened_elements[::-1]:
                 res += '</%s>' % (elem,)
@@ -409,17 +408,20 @@ def poezio_colors_to_html(string):
             if 'strong' not in opened_elements:
                 opened_elements.append('strong')
                 res += '<strong>'
-        elif attr_char in digits:
-            number = int(attr_char)
-            if number in number_to_color_names:
-                if 'strong' in opened_elements:
-                    res += '</strong>'
-                    opened_elements.remove('strong')
-                if 'span' in opened_elements:
-                    res += '</span>'
-                else:
-                    opened_elements.append('span')
-                res += "<span style='color: %s'>" % (number_to_color_names[number])
+        if attr_char in digits:
+            number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
+            number = int(number_str)
+            if 'strong' in opened_elements:
+                res += '</strong>'
+                opened_elements.remove('strong')
+            if 'span' in opened_elements:
+                res += '</span>'
+            else:
+                opened_elements.append('span')
+            res += "<span style='color: %s'>" % (ncurses_color_to_html(number),)
+            string = string[next_attr_char+len(number_str)+2:]
+        else:
+            string = string[next_attr_char+2:]
         next_attr_char = string.find('\x19')
     res += string
     for elem in opened_elements[::-1]:
