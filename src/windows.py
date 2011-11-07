@@ -24,7 +24,7 @@ import curses
 import string
 from config import config
 
-from threading import Lock
+from threading import RLock
 
 from contact import Contact, Resource
 from roster import RosterGroup, roster
@@ -46,7 +46,7 @@ allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # first is a bool telling if this is the first line of the message.
 Line = collections.namedtuple('Line', 'msg start_pos end_pos')
 
-g_lock = Lock()
+g_lock = RLock()
 
 LINES_NB_LIMIT = 4096
 
@@ -79,7 +79,8 @@ class Win(object):
         """
         Override if something has to be done on resize
         """
-        self._resize(height, width, y, x)
+        with g_lock:
+            self._resize(height, width, y, x)
 
     def _refresh(self):
         self._win.noutrefresh()
@@ -255,10 +256,11 @@ class UserList(Win):
             self._refresh()
 
     def resize(self, height, width, y, x):
-        self._resize(height, width, y, x)
-        self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
-        self._win.vline(0, 0, curses.ACS_VLINE, self.height)
-        self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+        with g_lock:
+            self._resize(height, width, y, x)
+            self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            self._win.vline(0, 0, curses.ACS_VLINE, self.height)
+            self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
 
 class Topic(Win):
     def __init__(self):
@@ -674,9 +676,10 @@ class TextWin(Win):
             self.addstr(' ')
 
     def resize(self, height, width, y, x, room=None):
-        self._resize(height, width, y, x)
-        if room:
-            self.rebuild_everything(room)
+        with g_lock:
+            self._resize(height, width, y, x)
+            if room:
+                self.rebuild_everything(room)
 
     def rebuild_everything(self, room):
         self.built_lines = []
