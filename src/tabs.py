@@ -1202,14 +1202,14 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
-            msg['body'] = xhtml.clean_text(msg['body'])
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick or self.own_nick)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -1864,14 +1864,14 @@ class ConversationTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
-            msg['body'] = xhtml.clean_text(msg['body'])
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         msg.send()
-        self.core.add_message_to_text_buffer(self._text_buffer, xhtml.convert_simple_to_full_colors(line), None, self.core.own_nick)
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()
