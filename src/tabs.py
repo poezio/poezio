@@ -1995,6 +1995,9 @@ class ConversationTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true':
             self.send_chat_state('gone')
 
+    def add_message(self, txt, time=None, nickname=None, forced_user=None):
+        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
+
 class MucListTab(Tab):
     """
     A tab listing rooms from a specific server, displaying various information,

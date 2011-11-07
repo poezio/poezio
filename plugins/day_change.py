@@ -24,8 +24,7 @@ class Plugin(BasePlugin):
             if (isinstance(tab, tabs.MucTab) or
                 isinstance(tab, tabs.PrivateTab) or
                 isinstance(tab, tabs.ConversationTab)):
-                room = tab.get_room()
-                room.add_message(msg)
+                tab.add_message(msg)
 
         self.core.refresh_window()
         self.schedule_event()
