@@ -28,9 +28,9 @@ You need python 3.0 (and the associated devel package, to build C modules)
 or higher, and the SleekXMPP python library.
 In the developpement version, you’ll need this fork of SleekXMPP
 http://github.com/louiz/SleekXMPP.
-Additionally, you’ll need asciidoc to build the html documentation pages.
-You can read the documentation using the .txt files, as well, if you don’t
-have asciidoc, or read it on the web.
+Additionally, you’ll need asciidoc and source-highlight to build the html
+documentation pages.  To read the documentation without these dependance,
+just read the .txt files, or read it on the webpage.
 
 The simplest way to have up-to-date dependencies and to be able to test
 this developpement version is to use the update.sh script that downloads
@@ -45,13 +45,16 @@ you can then launch poezio with
 $ ./launch.sh
 
 or you can install it with (as root or with sudo)
+
 $ make install
+
 (`make uninstall' works, don't worry ;))
 you can now simply launch `poezio'
 
-You can edit the config file (~/.config/poezio/poezio.cfg by default)
+You can edit the configuration file (~/.config/poezio/poezio.cfg by default)
 or data/default_config.cfg (if you want to edit the config before the
-first launch).  The default config file is fully commented.
+first launch).  The default config file is fully commented, but you can
+also read the “configure” documentation page.
 
 Please, see the online documentation for more information on installing,
 configuring or using poezio:
@@ -140,11 +143,13 @@ we merge it to “master” as well, of course).
 	Thanks
 =======================
 = People =
- Link Mauve - Code, testing
- Gaëtan Ribémont (http://www.bonbref.com) - Logo design
- Ovart - Testing
- Koshie - Donation
- Gapan - Makefile
- FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
+ - Link Mauve - Code, testing
+ - Gaëtan Ribémont (http://www.bonbref.com) - Logo design
+ - Ovart - Testing
+ - Koshie - Donation
+ - Gapan - Makefile
+ - FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
+ - And all the people using and testing poezio, and especially the one present
+   on the jabber chatroom doing bug reports and/or feature requests.
 = Project =
  Gajim - send_vcard method and common.py
