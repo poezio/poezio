@@ -97,3 +97,25 @@ MultiUserChat tab commands
 
 */clear*:: Clear the current buffer.
 
+Private tab commands
+^^^^^^^^^^^^^^^^^^^^
+
+*/info*:: Display some info about this user in the MultiUserChat.
+
+*/close*:: Close the tab.
+
+*/unquery*:: Close the tab.
+
+*/version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
+
+Normal Conversation tab commands
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*/info*:: Display the status of this contact.
+
+*/close*:: Close the tab.
+
+*/unquery*:: Close the tab.
+
+*/version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
+
