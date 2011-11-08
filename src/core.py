@@ -114,7 +114,7 @@ class Core(object):
             'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status available [message]'"), None),
            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
-            'theme': (self.command_theme, _('Usage: /theme\nTheme: Reload the theme defined in the config file.'), None),
+            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
@@ -1175,6 +1175,9 @@ class Core(object):
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_theme(self, arg):
+        args = arg.split()
+        if len(args) == 1:
+            self.command_set('theme %s' % (args[0],))
         warning = theming.reload_theme()
         if warning:
             self.information(warning, 'Warning')

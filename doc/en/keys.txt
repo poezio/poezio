@@ -7,11 +7,13 @@ configure them.
 By default, most keys manipulating the input (where you type your
 messages and commands) behave like emacs does.
 
-Note that keys are case sensitive. Ctrl-X is not the same than Ctrl-x
+NOTE: keys are case sensitive. Ctrl-X is not the same than Ctrl-x
+
 
 Key bindings listing
 --------------------
 Some key bindings are available only in some tabs, others are global.
+
 
 Global keys
 ~~~~~~~~~~~
@@ -21,44 +23,174 @@ These keys work in *any* tab.
 
 *Ctrl-p*:: Go to the previous tab.
 
-*Alt-number*:: Go to tab number x.
+*Alt-number*:: Go to the tab with that number.
 
 *Alt-j*:: Waits for you to type a two-digits number. Go to tab number xx.
+
+*Alt-e*:: Go to the tab with a higher priority (private message >
+ highlight > message > non-empty input).
+
+*Alt-z*:: Go to the previously selected tab.
+
+*Alt-r*:: Go to the roster tab.
+
+*F7*:: Shrink the information buffer.
+
+*F8*:: Grow the information buffer.
+
+*Ctrl-l*:: Refresh the screen.
+
 
 Input keys
 ~~~~~~~~~~
 These keys concern only the inputs.
 
+NOTE: The clipboard is common to all inputs. This lets you cut a text
+from one input to paste it into an other one.
+
 *Ctrl-a*:: Move the cursor to the beginning of line.
 
 *Ctrl-e*:: Move the cursor to the end of line.
 
+*Ctrl-u*:: Delete the text from the start of the input until the cursor
+ and save it to the clipboard.
+
+*Ctrl-k*:: Delete the text from the cursor until the end of the input
+ and save it to the clipboard.
+
+*Ctrl-y*:: Insert the content of the clipboard at the cursor position.
+
+
 Chat tab input keys
 ~~~~~~~~~~~~~~~~~~~~~
-These keys work in any conversation tab (MultiUserChat, Private or Conversation tabs)
+These keys work in any conversation tab (MultiUserChat, Private or
+Conversation tabs).
 
 *Key Up*:: Use the previous message from the message history.
 
 *Key Down*:: Use the next message from the message history.
 
-*Page Up*:: Scroll up in the conversation by x lines, where x is the height of the conversation window - 1.
+*Page Up*:: Scroll up in the conversation by x lines, where x is the
+height of the conversation window - 1.
 
-*Page Down*:: Likfe Page Up, but down.
+*Page Down*:: Like Page Up, but down.
 
-*Alt-/*:: Complete what you’re typing using the "recent" words from the current conversation, if any.
+*Alt-/*:: Complete what you’re typing using the "recent" words from the
+ current conversation, if any.
+
+*Alt-v*:: Move the separator at the bottom of the tab.
+
+
+MultiUserChat tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These keys work only in the MultiUserChat tab.
+
+*Alt-u*:: Scroll the user list down.
+
+*Alt-y*:: Scroll the user list up.
+
+*tabulation*:: Complete a nick.
+
+
+MultiUserChat List tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+These keys work only in the MultiUserChat List tab (obtained with /list <server>).
+
+*Up*:: Go up one row.
+
+*Down*:: Go down one row.
+
+*j*:: Join the MultiUserChat currently selected.
+
+*J*:: Join the MultiUserChat currently selected, without giving focus to iuts tab.
+
+*Ctrl-M*:: Join the MultiUserChat currently selected (same as "j").
+
+*PageUp*:: Scroll a page of chats up.
+
+*PageDown*:: Scroll a page of messages down.
+
+
+Roster tab input keys
+~~~~~~~~~~~~~~~~~~~~~
+
+These keys work only in the Roster tab (the tab number 0).
+
+*/*:: Open a prompt for commands.
+
+*s*:: Start a search on the contacts.
+
+*S*:: Start a (slow) search with approximation on the contacts.
+
+*Alt-u*:: Move the cursor to the next group.
+
+*Alt-y*:: Move the cursor to the previous group.
+
+*Ctrl-c*:: Cancel the input (search or command)
+
+NOTE: The following will not work if you can still write things in the
+input (meaning you previously typed _s_ or _/_):
+
+*Space*:: Fold/Unfold the current item.
+
+*Up*:: Move the cursor down one contact.
+
+*Down*:: Move the cursor up one contact.
+
+*o*:: Show the offline contacts.
+
+*PageUp*:: Scroll a page of contacts up.
+
+*PageDown*:: Scroll a page of contacts down.
+
+
+Data Forms tab keys
+~~~~~~~~~~~~~~~~~~~
+*Ctrl+y*:: Validate the form, send it and close the tab.
+
+*Ctrl+g*:: Cancel that form (do not send your changes) and close the
+ tab.
+
+*Up*:: Select the next field.
+
+*Down*:: Select the previous field.
+
+*Right/Left*:: Switch between possible values, in a jid-multi,
+ list-multi, list-single or text-multi field.
+
+*Space*:: Select that option
+
+
+MultiUserChat List tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+These keys work only in the MultiUserChat List tab (obtained with /list
+<server>).
+
+*Up*:: Go up one row.
+
+*Down*:: Go down one row.
+
+*j*:: Join the MultiUserChat currently selected.
+
+*J*:: Join the MultiUserChat currently selected, without giving focus to
+ iuts tab.
+
+*Ctrl-M*:: Join the MultiUserChat currently selected (same as _j_).
+
 
 Key configuration
 -----------------
 Bindings are keyboard shortcut aliases. You can use them
 to define your own keys to replace the default ones.
-where ^x means Control + x
-and M-x means Alt + x
+where _^x_ means _Control + x_
+and _M-x_ means _Alt + x_
 
 To know exactly what the code of a key is, just run
 ==================
 python3 src/keyboard.py
 ==================
-And enter any keys
+And enter any key.
 
 .Turn Alt-i into a tab key (completion, etc)
 ==================
