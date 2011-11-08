@@ -19,6 +19,7 @@ http://dev.louiz.org/project/poezio/roadmap
 - /affiliation and /role commands to administrate MUCs
 - /export command to export your roster in a file
 - data forms support (only for room configuration at the moment)
+- documentation is now written in asciidoc format
 - a *lot* of bugfixes
 
 
