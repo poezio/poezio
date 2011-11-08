@@ -95,7 +95,7 @@ Private tab
 This is the tab opened with the _/query_ command, letting you talk in private
 with a participant of a multi-users chat.
 
-image::../images/muc.png["The private tab", title="The private tab"]
+image::../images/private.png["The private tab", title="The private tab"]
 
 This is just a simple one to one conversation, with a line showing the status,
 name and chatstate of the participant.
@@ -232,7 +232,7 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
  Conversation tabs).
 
 */say <message>*:: Just send the message (only useful it you want your message
- to begin with a _/_).Note that you can also send message starting with a _/_
+ to begin with a _/_). Note that you can also send message starting with a _/_
  by starting it with _//_.
 
 MultiUserChat tab commands
@@ -322,8 +322,8 @@ Roster tab commands
  the group is empty after that, it will get deleted).
 
 */remove [jid]*:: Remove the specified JID from your roster. This will
- unsubscribe you from its presence, cancel it subscription to yours, and remove
- the item from your roster.
+ unsubscribe you from its presence, cancel its subscription to yours, and
+ remove the item from your roster.
 
 NOTE: The following commands do not comply with any XEP or whatever, but they
  can still prove useful when you are migrating to an other JID.
