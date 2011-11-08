@@ -44,6 +44,8 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
   int last_space = -1;
   int start_pos = 0;
 
+  int w = width; /* this is a width that increases to make the length of char
+		     of colors attribute be ignored */
   PyObject* retlist = PyList_New(0);
 
   while (buffer[bpos])
@@ -57,7 +59,7 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 	  start_pos = spos + 1;
 	  last_space = -1;
 	}
-      else if ((spos - start_pos) >= width)
+      else if ((spos - start_pos) >= w)
       	{
       	  if (last_space == -1)
       	    {
@@ -72,11 +74,24 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
       	      start_pos = last_space + 1;
       	      last_space = -1;
       	    }
+	  w = width;
       	}
       if (buffer[bpos] == 25)	/* \x19 */
       	{
-      	  spos++;
-      	  bpos += 2;
+	  while (buffer[bpos] &&
+		 buffer[bpos] != 'u' &&
+		 buffer[bpos] != 'b' &&
+		 buffer[bpos] != 'o' &&
+		 buffer[bpos] != '}')
+	    {
+	      bpos++;
+	      spos++;
+	      w++;
+	    }
+	  bpos++;
+	  spos++;
+	  w++;
+	  spos--;
       	}
       else
       if (buffer[bpos] <= 127) /* ASCII char on one byte */
