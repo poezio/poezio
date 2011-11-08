@@ -57,3 +57,43 @@ These commands work in *any* tab.
 
 */bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way than the Up key.
 
+Chat tab commands
+^^^^^^^^^^^^^^^^^
+
+These commands will work in any conversation tab (MultiUserChat, Private, or Conversation tabs).
+
+*/say <message>*:: Just send the message (only useful it you want your message to begin with a "/").
+
+MultiUserChat tab commands
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*/ignore <nickname>*:: Ignore a specified nickname.
+
+*/unignore <nickname>*:: Remove the specified nickname from the ignore list.
+
+*/kick <nick> [reason]*:: Kick the user with the specified nickname. You can also give an optional reason.
+
+*/topic <subject>*:: Change the subject of the room. You might want to knwow that entering "/topic [tab]" will autocomplete the topic.
+
+*/query <nick> [message]*:: Open a private conversation with <nick>. This nick has to be present in the room you’re currently in. If you specified a message after the nickname, it will be sent to this user.
+
+*/part [message]*:: Disconnect you from a room. You can specify an optional message.
+
+*/close [message]*:: Disconnect you from a room (if you are connected) and close the tab. You can specify an optional message if you are still connected.
+
+*/nick <nickname>*:: Change your nickname in the current room.
+
+*/recolor*:: Re-assign a color to all the participants in the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.
+
+*/cycle [message]*:: Leave the current room an rejoint it immediatly. You can specify an optional quit message.
+
+*/info <nickname>*:: Display some information about the user in the room: his/her role, affiliation, status, and status message.
+
+*/version <nickname or jid>*:: Get the software version of the given nick in room or the given jid (usually its XMPP client and Operating System).
+
+*/configure*:: Configure the current room through a form.
+
+*/names*:: Get the list of the users in the room, their number, and the list of the people assuming different roles.
+
+*/clear*:: Clear the current buffer.
+
