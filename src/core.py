@@ -112,7 +112,7 @@ class Core(object):
             'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optionaly) your status message. This is equivalent to '/status away [message]'"), None),
             'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optionaly) your status message. This is equivalent to '/status busy [message]'"), None),
             'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status available [message]'"), None),
-           'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
+           'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
             'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
@@ -120,7 +120,7 @@ class Core(object):
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
-            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
+            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
             }
 
         self.key_func = {
