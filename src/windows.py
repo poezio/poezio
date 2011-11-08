@@ -367,14 +367,14 @@ class ConversationInfoWin(InfoWin):
     The line above the information window, displaying informations
     about the user we are talking to
     """
-    color_show = {'xa':get_theme().COLOR_STATUS_XA,
-                  'none':get_theme().COLOR_STATUS_ONLINE,
-                  '':get_theme().COLOR_STATUS_ONLINE,
-                  'available':get_theme().COLOR_STATUS_ONLINE,
-                  'dnd':get_theme().COLOR_STATUS_DND,
-                  'away':get_theme().COLOR_STATUS_AWAY,
-                  'chat':get_theme().COLOR_STATUS_CHAT,
-                  'unavailable':get_theme().COLOR_STATUS_UNAVAILABLE
+    color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
+            'none': lambda: get_theme().COLOR_STATUS_ONLINE,
+            '': lambda: get_theme().COLOR_STATUS_ONLINE,
+            'available': lambda: get_theme().COLOR_STATUS_ONLINE,
+            'dnd': lambda: get_theme().COLOR_STATUS_DND,
+            'away': lambda: get_theme().COLOR_STATUS_AWAY,
+            'chat': lambda: get_theme().COLOR_STATUS_CHAT,
+            'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
                   }
 
     def __init__(self):
@@ -416,7 +416,7 @@ class ConversationInfoWin(InfoWin):
             presence = "unavailable"
         else:
             presence = resource.get_presence()
-        color = RosterWin.color_show[presence]
+        color = RosterWin.color_show[presence]()
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(" ", to_curses_attr(color))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
@@ -1328,14 +1328,14 @@ class VerticalSeparator(Win):
         self.rewrite_line()
 
 class RosterWin(Win):
-    color_show = {'xa':get_theme().COLOR_STATUS_XA,
-                  'none':get_theme().COLOR_STATUS_ONLINE,
-                  '':get_theme().COLOR_STATUS_ONLINE,
-                  'available':get_theme().COLOR_STATUS_ONLINE,
-                  'dnd':get_theme().COLOR_STATUS_DND,
-                  'away':get_theme().COLOR_STATUS_AWAY,
-                  'chat':get_theme().COLOR_STATUS_CHAT,
-                  'unavailable':get_theme().COLOR_STATUS_UNAVAILABLE
+    color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
+            'none': lambda: get_theme().COLOR_STATUS_ONLINE,
+            '': lambda: get_theme().COLOR_STATUS_ONLINE,
+            'available': lambda: get_theme().COLOR_STATUS_ONLINE,
+            'dnd':lambda: get_theme().COLOR_STATUS_DND,
+            'away': lambda: get_theme().COLOR_STATUS_AWAY,
+            'chat': lambda: get_theme().COLOR_STATUS_CHAT,
+            'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
                   }
 
     def __init__(self):
@@ -1473,7 +1473,7 @@ class RosterWin(Win):
         else:
             presence = resource.get_presence()
             nb = ' (%s)' % (contact.get_nb_resources(),)
-        color = RosterWin.color_show[presence]
+        color = RosterWin.color_show[presence]()
         if contact.get_name():
             display_name = '%s (%s)%s' % (contact.get_name(),
                                         contact.get_bare_jid(), nb,)
@@ -1496,7 +1496,7 @@ class RosterWin(Win):
         """
         Draw a specific resource line
         """
-        color = RosterWin.color_show[resource.get_presence()]
+        color = RosterWin.color_show[resource.get_presence()]()
         self.addstr(y, 4, " ", to_curses_attr(color))
         if colored:
             self.addstr(y, 6, resource.get_jid().full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
