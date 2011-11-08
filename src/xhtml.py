@@ -16,7 +16,11 @@ import re
 import subprocess
 import curses
 from sleekxmpp.xmlstream import ET
+
+import xml.sax.saxutils
+
 from xml.etree.ElementTree import ElementTree
+
 from sys import version_info
 
 from config import config
@@ -401,7 +405,7 @@ def poezio_colors_to_html(string):
     while next_attr_char != -1:
         attr_char = string[next_attr_char+1].lower()
         if next_attr_char != 0:
-            res += string[:next_attr_char]
+            res += xml.sax.saxutils.escape(string[:next_attr_char])
         if attr_char == 'o':
             for elem in opened_elements[::-1]:
                 res += '</%s>' % (elem,)
@@ -425,7 +429,7 @@ def poezio_colors_to_html(string):
         else:
             string = string[next_attr_char+2:]
         next_attr_char = string.find('\x19')
-    res += string
+    res += xml.sax.saxutils.escape(string)
     for elem in opened_elements[::-1]:
         res += '</%s>' % (elem,)
     res += "</p></body>"
