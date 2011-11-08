@@ -8,6 +8,56 @@ Poezio is composed of tabs which can be of various types. Each tab type has
 a distinct interface, list of commands and list of key shortcuts, in addition
 to the global commands and key shortcuts.
 
+Tabs
+----
+On all tabs, you get a line showing the the list of all opened tabs. Each tab
+has a number, each time you open a new tab, it gets the next available number.
+
+
+image::../images/tab_bar.png[title="Example of 5 opened tabs"]
+
+The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any
+type.
+
+
+The status of a tab is represented by its color:
+
+* *[navy]#blue#* (tab _0_): an inactive tab of any type, nothing new to see
+   there.
+* *[purple]#purple#* (tab _1_): a MultiUserChat tab with at least one new
+  unread message.
+* *[green]#green#* (tab _2_): a tab of a private conversation with a new
+   message to read.
+* *[teal]#cyan#* (tab _3_): the current tab.
+* *[red]#red#* (tab _4_): a MultiUserChat tab with at least one new hightlight
+   message.
+
+You can go from one tab to another in many ways:
+
+* Ctrl+n and Ctrl+p
+* <<command-win, win>> command
+* <<command-next, next>> and <<command-prev, prev>> commands
+* Alt+ a number
+* Alt+j followed by a two-digits number
+* Alt+e, this will jump to the next tab with the highest priority. Priority
+  applies in this order: private message > highlight message > normal message.
+
+Roster tab
+~~~~~~~~~~
+This is a unique tab, always numbered _0_. It contains the list of your
+contacts. You can add/remove/edit/search contacts from there, and you can open
+a conversation with one of them.
+
+Use the _arrows_ to browse the list, the _space_ key to fold or unfold a group
+or a contact.
+
+image::../images/roster.png["The roster tab", title="The roster tab"]
+
+* _1_: The area where information messages are displayed.
+* _2_: The actual list of contacts. The first level is group, the second is the
+* contacts and the third is the resources of you online contacts.
+* _3_: More informations about the selected contact.
+
 Commands
 --------
 
@@ -47,10 +97,13 @@ These commands work in *any* tab.
 
 */quit*:: Like /exit.
 
+[[command-next]]
 */next*:: Go to the next room.
 
+[[command-prev]]
 */prev*:: Go to the previous room.
 
+[[command-win]]
 */win <number>*:: Go to the specified room.
 
 */w <number>*:: Like /win.
