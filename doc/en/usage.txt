@@ -10,19 +10,27 @@ to the global commands and key shortcuts.
 
 Tabs
 ----
-On all tabs, you get a line showing the the list of all opened tabs. Each tab has a number, each time you open a new tab, it gets the next available number.
+On all tabs, you get a line showing the the list of all opened tabs. Each tab
+has a number, each time you open a new tab, it gets the next available number.
 
-image::../images/tab_bar.png["Example of 5 opened tabs", title="Example of 5 opened tabs"]
 
-The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any type.
+image::../images/tab_bar.png[title="Example of 5 opened tabs"]
+
+The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any
+type.
+
 
 The status of a tab is represented by its color:
 
-* *[navy]#blue#* (tab _0_): an inactive tab of any type, nothing new to see there.
-* *[purple]#purple#* (tab _1_): a MultiUserChat tab with at least one new unread message.
-* *[green]#green#* (tab _2_): a tab of a private conversation with a new message to read.
+* *[navy]#blue#* (tab _0_): an inactive tab of any type, nothing new to see
+   there.
+* *[purple]#purple#* (tab _1_): a MultiUserChat tab with at least one new
+  unread message.
+* *[green]#green#* (tab _2_): a tab of a private conversation with a new
+   message to read.
 * *[teal]#cyan#* (tab _3_): the current tab.
-* *[red]#red#* (tab _4_): a MultiUserChat tab with at least one new hightlight message.
+* *[red]#red#* (tab _4_): a MultiUserChat tab with at least one new hightlight
+   message.
 
 You can go from one tab to another in many ways:
 
@@ -31,8 +39,8 @@ You can go from one tab to another in many ways:
 * <<command-next, next>> and <<command-prev, prev>> commands
 * Alt+ a number
 * Alt+j followed by a two-digits number
-* Alt+e, this will jump to the next tab with the highest priority. Priority applies in this order: private message > highlight message > normal message.
-
+* Alt+e, this will jump to the next tab with the highest priority. Priority
+  applies in this order: private message > highlight message > normal message.
 
 Commands
 --------
