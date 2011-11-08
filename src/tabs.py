@@ -658,7 +658,12 @@ class MucTab(ChatTab):
         if not len(args):
             self.core.command_help('kick')
         else:
-            self.command_role(arg+ ' none')
+            if len(args) > 1:
+                msg = ' '+args[1]
+                self.core.information("-%s-" % msg)
+            else:
+                msg = ''
+            self.command_role(args[0]+ ' none'+msg)
 
     def command_role(self, arg):
         """
