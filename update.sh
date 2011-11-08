@@ -9,6 +9,15 @@
 echo 'Updating poezio'
 git pull origin master
 
+make
+if [ $? -ne 0 ]
+then
+    echo -e "It seems that you do not have the python development"\
+        "files.\nSearch for a package named python3-dev or python3-devel"\
+        "in your repos."
+    exit -1
+fi
+
 if [ -e "SleekXMPP" ]
 then
     echo "Updating SleekXMPP"

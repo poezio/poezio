@@ -634,7 +634,7 @@ class TextWin(Win):
             self._win.attrset(0)
             for y, line in enumerate(lines):
                 if not line:
-                    self.write_line_separator()
+                    self.write_line_separator(y)
                 else:
                     self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''), line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
@@ -642,8 +642,8 @@ class TextWin(Win):
             self._win.attrset(0)
             self._refresh()
 
-    def write_line_separator(self):
-        self.addnstr('- '*(self.width//2-1)+'-', self.width, to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
+    def write_line_separator(self, y):
+        self.addnstr(y, 0, '- '*(self.width//2-1)+'-', self.width, to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt):
         """
