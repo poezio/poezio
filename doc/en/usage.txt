@@ -149,10 +149,17 @@ The commands described in this page are shown like this:
 /command <mandatory argument> [optional argument]
 ===========================================================
 
+You can get the same help as below with the _/help_ command.
+
+
 Global commands
 ~~~~~~~~~~~~~~~
 
 These commands work in *any* tab.
+
+*/help [command]*:: If called without an argument, this command will list the
+ available commands. If it has a valid command as an argument, this command
+ will show the usage and the help for the given command.
 
 */join [room_name][@server][/nick] [password]*:: Join the specified room. You
  can specify a nickname after a slash (/). If no nickname is specified, you
