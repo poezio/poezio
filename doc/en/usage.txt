@@ -1,0 +1,59 @@
+Usage
+=====
+
+Commands
+--------
+
+Command listing
+~~~~~~~~~~~~~~~
+
+The commands are shown like this:
+
+/command <mandatory argument> [optional argument]
+
+Global commands
+^^^^^^^^^^^^^^^
+
+These commands work in *any* tab.
+
+*/join [room_name][@server][/nick] [password]*:: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you're looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.
+
+- Examples:
+* /join room@server.tld
+* /join room@server.tld/John
+* /join room2
+* /join /me_again
+* /join
+* /join room@server.tld/my_nick password
+* /join / password
+
+*/exit*:: Just disconnect from the server and exit poezio.
+
+*/quit*:: Like /exit.
+
+*/next*:: Go to the next room.
+
+*/prev*:: Go to the previous room.
+
+*/win <number>*:: Go to the specified room.
+
+*/w <number>*:: Like /win.
+
+*/status <availability> [status message]*:: Set your availability and (optionaly) your status message. The <availability> argument is one of "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument will be your status message.'
+
+*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntax as /join. Type /help join for syntax examples. Note that when typing /bookmark on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick).
+
+*/set <option> [value]*:: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing "/set default_nick toto" or your resource with "/set resource blabla". You can also set an empty value (nothing) by providing no [value] after <option>.
+
+*/theme*:: Reload the theme defined in the config file.
+
+*/list [server.tld]*:: Get the list of public chatrooms in the specified server.
+
+*/message <jid> [optional message]*:: Open a conversation with the specified JID (event if it is not in our roster), and send a message to him, if specified.
+
+*/version <jid>*:: Get the software version of the given JID (usually its XMPP client and Operating System).
+
+*/server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the rooms of server.tld.
+
+*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way than the Up key.
+
