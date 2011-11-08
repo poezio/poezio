@@ -129,7 +129,7 @@ Normal Conversation tab commands
 */version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
 
 Roster tab commands
-^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~
 
 */accept [jid]*:: Authorize the provided JID (or the selected contact in the roster) to see your presence.
 
