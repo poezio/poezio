@@ -25,6 +25,22 @@ These keys work in *any* tab.
 
 *Alt-j*:: Waits for you to type a two-digits number. Go to tab number xx.
 
+*Alt-e*:: Go to the tab with a higher priority (highlight = private message > message > non-empty input).
+
+*Alt-z*:: Go to the previous tab.
+
+*Alt-r*:: Go to the roster.
+
+*F7*:: Shrink the information buffer.
+
+*F8*:: Grow the information buffer.
+
+*Ctrl-l*:: Refresh the screen.
+
+*PageUp*:: Scroll a page up.
+
+*PageDown*:: Scroll a page down.
+
 Input keys
 ~~~~~~~~~~
 These keys concern only the inputs.
@@ -46,6 +62,59 @@ These keys work in any conversation tab (MultiUserChat, Private or Conversation 
 *Page Down*:: Likfe Page Up, but down.
 
 *Alt-/*:: Complete what you’re typing using the "recent" words from the current conversation, if any.
+
+*Alt-v*:: Move the separator at the bottom of the tab.
+
+MultiUserChat tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These keys work only in the MultiUserChat tab.
+
+*Alt-u*:: Scroll the user list down.
+
+*Alt-y*:: Scroll the user list up.
+
+*tabulation*:: Complete a nick.
+
+
+MultiUserChat List tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+These keys work only in the MultiUserChat List tab (obtained with /list <server>).
+
+*Up*:: Go up one row.
+
+*Down*:: Go down one row.
+
+*j*:: Join the MultiUserChat currently selected.
+
+*J*:: Join the MultiUserChat currently selected, without giving focus to iuts tab.
+
+*Ctrl-M*:: Join the MultiUserChat currently selected (same as "j").
+
+
+Roster tab input keys
+~~~~~~~~~~~~~~~~~~~~~
+
+These keys work only in the Roster tab (the tab number 0).
+
+*/*:: Open a prompt for commands.
+
+*s*:: Start a search on the contacts.
+
+*Alt-u*:: Move the cursor to the next group.
+
+*Alt-y*:: Move the cursor to the previous group.
+
+The following will not work if you can still write things in the input
+(meaning you previously typed "s" or "/"):
+
+*Space*:: Fold/Unfold the current item.
+
+*Up*:: Move the cursor down one contact.
+
+*Down*:: Move the cursor up one contact.
+
+*o*:: Show the offline contacts.
 
 Key configuration
 -----------------
