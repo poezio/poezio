@@ -57,6 +57,10 @@ These commands work in *any* tab.
 
 */bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way than the Up key.
 
+NOTE: The following command will work everywhere, except in the Roster tab.
+
+*/close*:: Close the tab.
+
 Chat tab commands
 ^^^^^^^^^^^^^^^^^
 
@@ -102,8 +106,6 @@ Private tab commands
 
 */info*:: Display some info about this user in the MultiUserChat.
 
-*/close*:: Close the tab.
-
 */unquery*:: Close the tab.
 
 */version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
@@ -113,9 +115,30 @@ Normal Conversation tab commands
 
 */info*:: Display the status of this contact.
 
-*/close*:: Close the tab.
-
 */unquery*:: Close the tab.
 
 */version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
+
+Roster tab commands
+^^^^^^^^^^^^^^^^^^^
+
+*/accept [jid]*:: Authorize the provided JID (or the selected contact in the roster) to see your presence.
+
+*/deny [jid]*:: Prevent the provided JID (or the selected contact in the roster) from seeing your presence.
+
+*/add <jid>*:: Add the specified JID to your roster and authorize him to see your presence. If he accepts you, the subscription will be mutual (and if he doesn’t, you can still /deny him).
+
+*/name <jid> <name>*:: Set the given JID’s name.
+
+*/groupadd <jid> <group>*:: Add the given JID to the given group (if the group does not exist, it will be created).
+
+*/groupremove <jid> <group>*:: Remove the given JID from the given group (if the group is empty after that, it will get deleted).
+
+*/remove [jid]*:: Remove the specified JID from your roster. TThis will unsubscribe you from its presence, cancel it subscription to yours, and remove the item from your roster.
+
+NOTE: The following commands do not comply with any XEP or whatever, but they can still prove useful when you are migrating to an other JID.
+
+*/export [/path/to/file]*:: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.
+
+*/import [/path/to/file]*:: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.
 
