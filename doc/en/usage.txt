@@ -1,18 +1,27 @@
 Usage
 =====
 
+This page is the main page of the documentation for poezio, explaining how to use it and describing its interfaces.
+
+Poezio is composed of tabs which can be of various types. Each tab type has
+a distinct interface, list of commands and list of key shortcuts, in addition
+to the global commands and key shortcuts.
+
 Commands
 --------
 
-Command listing
-~~~~~~~~~~~~~~~
+Commands start with the _/_ character and can take a list of any number
+of arguments, separated by spaces. If an argument should contain a space,
+you can use the _"_ character to surround this argument.
 
-The commands are shown like this:
+The commands described in this page are shown like this:
 
+===========================================================
 /command <mandatory argument> [optional argument]
+===========================================================
 
 Global commands
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 These commands work in *any* tab.
 
@@ -41,7 +50,7 @@ These commands work in *any* tab.
 
 */status <availability> [status message]*:: Set your availability and (optionaly) your status message. The <availability> argument is one of "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument will be your status message.'
 
-*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntax as /join. Type /help join for syntax examples. Note that when typing /bookmark on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick).
+*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntax as /join. Type /help join for syntax examples. Note that when typing /bookmark on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick).
 
 */set <option> [value]*:: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing "/set default_nick toto" or your resource with "/set resource blabla". You can also set an empty value (nothing) by providing no [value] after <option>.
 
@@ -55,21 +64,21 @@ These commands work in *any* tab.
 
 */server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the rooms of server.tld.
 
-*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way than the Up key.
+*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way as the Up key. See the link:keys.html[key bindings documentation page] for more details.
 
 NOTE: The following command will work everywhere, except in the Roster tab.
 
 */close*:: Close the tab.
 
 Chat tab commands
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 These commands will work in any conversation tab (MultiUserChat, Private, or Conversation tabs).
 
-*/say <message>*:: Just send the message (only useful it you want your message to begin with a "/").
+*/say <message>*:: Just send the message (only useful it you want your message to begin with a _/_).Note that you can also send message starting with a _/_ by starting it with _//_.
 
 MultiUserChat tab commands
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 */ignore <nickname>*:: Ignore a specified nickname.
 
@@ -102,7 +111,7 @@ MultiUserChat tab commands
 */clear*:: Clear the current buffer.
 
 Private tab commands
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 */info*:: Display some info about this user in the MultiUserChat.
 
@@ -111,7 +120,7 @@ Private tab commands
 */version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
 
 Normal Conversation tab commands
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 */info*:: Display the status of this contact.
 
