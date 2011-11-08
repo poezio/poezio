@@ -1,4 +1,5 @@
 from plugin import BasePlugin
+import xhtml
 import random
 
 possible_colors = list(range(256))
@@ -16,4 +17,4 @@ class Plugin(BasePlugin):
         self.add_poezio_event_handler('conversation_say', self.rainbowize)
 
     def rainbowize(self, msg):
-        msg['body'] = ''.join(['%s%s' % (rand_color(),char,) for char in msg['body']])
+        msg['body'] = ''.join(['%s%s' % (rand_color(),char,) for char in xhtml.clean_text(msg['body'])])
