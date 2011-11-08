@@ -37,10 +37,6 @@ These keys work in *any* tab.
 
 *Ctrl-l*:: Refresh the screen.
 
-*PageUp*:: Scroll a page up.
-
-*PageDown*:: Scroll a page down.
-
 Input keys
 ~~~~~~~~~~
 These keys concern only the inputs.
@@ -65,6 +61,10 @@ These keys work in any conversation tab (MultiUserChat, Private or Conversation 
 
 *Alt-v*:: Move the separator at the bottom of the tab.
 
+*PageUp*:: Scroll a page of messages up.
+
+*PageDown*:: Scroll a page of messages down.
+
 MultiUserChat tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -75,7 +75,6 @@ These keys work only in the MultiUserChat tab.
 *Alt-y*:: Scroll the user list up.
 
 *tabulation*:: Complete a nick.
-
 
 MultiUserChat List tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,6 +90,9 @@ These keys work only in the MultiUserChat List tab (obtained with /list <server>
 
 *Ctrl-M*:: Join the MultiUserChat currently selected (same as "j").
 
+*PageUp*:: Scroll a page of chats up.
+
+*PageDown*:: Scroll a page of messages down.
 
 Roster tab input keys
 ~~~~~~~~~~~~~~~~~~~~~
@@ -115,6 +117,11 @@ The following will not work if you can still write things in the input
 *Down*:: Move the cursor up one contact.
 
 *o*:: Show the offline contacts.
+
+*PageUp*:: Scroll a page of contacts up.
+
+*PageDown*:: Scroll a page of contacts down.
+
 
 Key configuration
 -----------------
