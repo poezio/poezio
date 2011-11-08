@@ -12,6 +12,7 @@ clean:
 	find ./ -name \*.pyc -delete
 	find ./ -name \*~ -delete
 	find ./ -name "#*#" -delete
+	find ./ -name "*.html" -delete
 
 install:
 	mkdir -p $(DESTDIR)$(prefix)
