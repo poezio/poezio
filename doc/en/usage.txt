@@ -90,7 +90,51 @@ You can configure the room (if you have the rights to do it) using the
 _/configure_ command, open a private conversation with someone using the
 _/query_ command, change or view the topic using the _/topic_ command…
 
+Private tab
+~~~~~~~~~~~
+This is the tab opened with the _/query_ command, letting you talk in private
+with a participant of a multi-users chat.
 
+image::../images/muc.png["The private tab", title="The private tab"]
+
+This is just a simple one to one conversation, with a line showing the status,
+name and chatstate of the participant.
+
+Conversation tab
+~~~~~~~~~~~~~~~~
+A tab opened from the roster, to talk in private with one of your contacts.
+
+image::../images/conversation.png["The conversation tab", title="The conversation tab"]
+
+This is also just a simple one to one conversation, with a line showing the status,
+name and chatstate of the participant, as well as a line at the top showing the
+status message of the contact.
+
+Dataforms tab
+~~~~~~~~~~~~~
+
+This tab lets you view a form receive from a remote entity, edit the values and
+send everything back. It is mostly used to configure MUCs with the _/configure_
+command but can actually be used for almost anything.
+
+image::../images/data_forms.png["The dataform tab", title="The dataform tab"]
+
+Use the _up_ and _down_ keys to go from one field to the other, and edit the
+value using the _space_, _left_ or _right_ keys, or by entering text.
+
+You can then send the completed form using _Ctrl+y_ or cancel using _Ctrl+g_.
+
+List tab
+~~~~~~~~
+
+This tab lists all public rooms on a MUC service. It is currently very limited
+but will be improved in the future. There currently is no way to search a room
+or even to sort them.
+
+image::../images/list.png["The list tab", title="The list tab"]
+
+Use the _up_ and _down_ or _PageUp_ and _PageDown_ keys to browse the list, and
+use _Enter_ or _j_ to join the selected room.
 
 Commands
 --------
