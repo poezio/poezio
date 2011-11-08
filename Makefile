@@ -14,7 +14,7 @@ clean:
 	find ./ -name "#*#" -delete
 	find ./ -name "*.html" -delete
 
-install:
+install: all
 	mkdir -p $(DESTDIR)$(prefix)
 	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
 
