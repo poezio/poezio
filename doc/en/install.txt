@@ -5,31 +5,44 @@ Install
 Poezio in the GNU/Linux distributions
 -------------------------------------
 
-As far as I know, Poezio is available in the following distributions, you just have to install it by using the package manager of the distribution, if you're using one of these.
+As far as I know, Poezio is available in the following distributions, you just
+ have to install it by using the package manager of the distribution, if you're
+ using one of these.
 
-* *Archlinux*: A poezio and poezio-git packages are in AUR (use your favourite AUR wrapper to install them)
-* *Frugalware*: Just use pacmang-g2 to install the poezio package. (Thanks to its maintainer, Kooda)
+* *Archlinux*: A poezio and poezio-git packages are in AUR (use your favourite
+ AUR wrapper to install them)
+* *Frugalware*: Just use pacmang-g2 to install the poezio package. (Thanks to
+ its maintainer, Kooda)
 * *Debian*: Use an other distro.
 
-(If an other distribution provides a poezio package, please tell us and we will add it to the list)
+(If an other distribution provides a poezio package, please tell us and we will
+ add it to the list)
 
 
 Install poezio from the sources
 -------------------------------
 
-You can download poezio's https://dev.louiz.org/project/poezio/download[stable sources] or fetch the development version (trunk), using git:
+You can download poezio's https://dev.louiz.org/project/poezio/download[stable
+ sources] or fetch the development version (trunk), using git:
 ============================
 git clone https://git.louiz.org/poezio
 ============================
 
-In order for poezio to correctly work, you need the libs SleekXMPP and dnspython. You can install them by downloading it from the https://github.com/fritzy/SleekXMPP/[SleekXMPP] page and the http://www.dnspython.org/[dnspython] page , but you'll need the development versions. Alternatively, you can download poezio's sources including SleekXMPP and dnspython, that's the easier way.
+In order for poezio to correctly work, you need the libs SleekXMPP and
+ dnspython. You can install them by downloading it from the
+ https://github.com/fritzy/SleekXMPP/[SleekXMPP] page and the
+ http://www.dnspython.org/[dnspython] page , but you'll need the development
+ versions. Alternatively, you can download poezio's sources including SleekXMPP
+ and dnspython, that's the easier way.
 
-As for dnspython, you will have to use our python3 fork, or poke them to accept patches.
+As for dnspython, you will have to use our python3 fork, or poke them to accept
+ patches.
 
 === Dependencies ===
 
 
-If you want to install SleekXMPP and dnspython yourself, follow these instructions. Else, go to the next section.
+If you want to install SleekXMPP and dnspython yourself, follow these
+ instructions. Else, go to the next section.
 
 
 Download SleekXMPP
@@ -51,7 +64,8 @@ python3 setup.py build
 su -c "python3 setup.py install"
 ============================
 
-Clone the repository at http://hg.louiz.org/dnspython (this is a fork, because upstream is unresponsive and didn’t fix an important bug).
+Clone the repository at http://hg.louiz.org/dnspython (this is a fork, because
+ upstream is unresponsive and didn’t fix an important bug).
 ============================
 hg clone http://hg.louiz.org/dnspython
 
@@ -68,12 +82,14 @@ su -c "python3 setup.py install"
 
 === Poezio installation ===
 
-If you skipped the installation of the dependencies and you only want to test poezio without a system-wide install, do, in the _poezio_ directory:
+If you skipped the installation of the dependencies and you only want to test
+ poezio without a system-wide install, do, in the _poezio_ directory:
 ============================
 sh update.sh
 ============================
 
-If you have git and hg installed, it will download and update locally the libraries for you.
+If you have git and hg installed, it will download and update locally the
+ libraries for you.
 
 
 If you don't want to install poezio but just test it, do:
