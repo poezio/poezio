@@ -1,7 +1,8 @@
 Usage
 =====
 
-This page is the main page of the documentation for poezio, explaining how to use it and describing its interfaces.
+This page is the main page of the documentation for poezio, explaining how to
+ use it and describing its interfaces.
 
 Poezio is composed of tabs which can be of various types. Each tab type has
 a distinct interface, list of commands and list of key shortcuts, in addition
@@ -25,7 +26,13 @@ Global commands
 
 These commands work in *any* tab.
 
-*/join [room_name][@server][/nick] [password]*:: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you're looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.
+*/join [room_name][@server][/nick] [password]*:: Join the specified room. You
+ can specify a nickname after a slash (/). If no nickname is specified, you
+ will use the default_nick in the configuration file. You can omit the room
+ name: you will then join the room you're looking at (useful if you were
+ kicked). You can also provide a room_name without specifying a server, the
+ server of the room you're currently in will be used. You can also provide a
+ password to join the room.
 
 - Examples:
 * /join room@server.tld
@@ -48,23 +55,40 @@ These commands work in *any* tab.
 
 */w <number>*:: Like /win.
 
-*/status <availability> [status message]*:: Set your availability and (optionaly) your status message. The <availability> argument is one of "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument will be your status message.'
+*/status <availability> [status message]*:: Set your availability and
+ (optionaly) your status message. The <availability> argument is one of
+ "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument
+ will be your status message.'
 
-*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntax as /join. Type /help join for syntax examples. Note that when typing /bookmark on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick).
+*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then
+ auto-join it on each poezio start). This commands uses almost the same syntax
+ as /join. Type /help join for syntax examples. Note that when typing /bookmark
+ on its own, the room will be bookmarked with the nickname you're currently
+ using in this room (instead of default_nick).
 
-*/set <option> [value]*:: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing "/set default_nick toto" or your resource with "/set resource blabla". You can also set an empty value (nothing) by providing no [value] after <option>.
+*/set <option> [value]*:: Sets the value to the option in your configuration
+ file. You can, for example, change your default nickname by doing "/set
+ default_nick toto" or your resource with "/set resource blabla". You can also
+ set an empty value (nothing) by providing no [value] after <option>.
 
 */theme*:: Reload the theme defined in the config file.
 
-*/list [server.tld]*:: Get the list of public chatrooms in the specified server.
+*/list [server.tld]*:: Get the list of public chatrooms in the specified server
+.
 
-*/message <jid> [optional message]*:: Open a conversation with the specified JID (event if it is not in our roster), and send a message to him, if specified.
+*/message <jid> [optional message]*:: Open a conversation with the specified
+ JID (event if it is not in our roster), and send a message to him, if
+ specified.
 
-*/version <jid>*:: Get the software version of the given JID (usually its XMPP client and Operating System).
+*/version <jid>*:: Get the software version of the given JID (usually its XMPP
+ client and Operating System).
 
-*/server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the rooms of server.tld.
+*/server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the
+ rooms of server.tld.
 
-*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way as the Up key. See the link:keys.html[key bindings documentation page] for more details.
+*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example,
+ "/bind ^H KEY_UP" makes Control + h behave the same way as the Up key. See the
+ link:keys.html[key bindings documentation page] for more details.
 
 NOTE: The following command will work everywhere, except in the Roster tab.
 
@@ -73,9 +97,12 @@ NOTE: The following command will work everywhere, except in the Roster tab.
 Chat tab commands
 ~~~~~~~~~~~~~~~~~
 
-These commands will work in any conversation tab (MultiUserChat, Private, or Conversation tabs).
+These commands will work in any conversation tab (MultiUserChat, Private, or
+ Conversation tabs).
 
-*/say <message>*:: Just send the message (only useful it you want your message to begin with a _/_).Note that you can also send message starting with a _/_ by starting it with _//_.
+*/say <message>*:: Just send the message (only useful it you want your message
+ to begin with a _/_).Note that you can also send message starting with a _/_
+ by starting it with _//_.
 
 MultiUserChat tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,29 +111,41 @@ MultiUserChat tab commands
 
 */unignore <nickname>*:: Remove the specified nickname from the ignore list.
 
-*/kick <nick> [reason]*:: Kick the user with the specified nickname. You can also give an optional reason.
+*/kick <nick> [reason]*:: Kick the user with the specified nickname. You can
+ also give an optional reason.
 
-*/topic <subject>*:: Change the subject of the room. You might want to knwow that entering "/topic [tab]" will autocomplete the topic.
+*/topic <subject>*:: Change the subject of the room. You might want to knwow
+ that entering "/topic [tab]" will autocomplete the topic.
 
-*/query <nick> [message]*:: Open a private conversation with <nick>. This nick has to be present in the room you’re currently in. If you specified a message after the nickname, it will be sent to this user.
+*/query <nick> [message]*:: Open a private conversation with <nick>. This nick
+ has to be present in the room you’re currently in. If you specified a message
+ after the nickname, it will be sent to this user.
 
-*/part [message]*:: Disconnect you from a room. You can specify an optional message.
+*/part [message]*:: Disconnect you from a room. You can specify an optional
+ message.
 
-*/close [message]*:: Disconnect you from a room (if you are connected) and close the tab. You can specify an optional message if you are still connected.
+*/close [message]*:: Disconnect you from a room (if you are connected) and
+ close the tab. You can specify an optional message if you are still connected.
 
 */nick <nickname>*:: Change your nickname in the current room.
 
-*/recolor*:: Re-assign a color to all the participants in the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.
+*/recolor*:: Re-assign a color to all the participants in the current room,
+ based on the last time they talked. Use this if the participants currently
+ talking have too many identical colors.
 
-*/cycle [message]*:: Leave the current room an rejoint it immediatly. You can specify an optional quit message.
+*/cycle [message]*:: Leave the current room an rejoint it immediatly. You can
+ specify an optional quit message.
 
-*/info <nickname>*:: Display some information about the user in the room: his/her role, affiliation, status, and status message.
+*/info <nickname>*:: Display some information about the user in the room:
+ his/her role, affiliation, status, and status message.
 
-*/version <nickname or jid>*:: Get the software version of the given nick in room or the given jid (usually its XMPP client and Operating System).
+*/version <nickname or jid>*:: Get the software version of the given nick in
+ room or the given jid (usually its XMPP client and Operating System).
 
 */configure*:: Configure the current room through a form.
 
-*/names*:: Get the list of the users in the room, their number, and the list of the people assuming different roles.
+*/names*:: Get the list of the users in the room, their number, and the list
+ of the people assuming different roles.
 
 */clear*:: Clear the current buffer.
 
@@ -117,7 +156,8 @@ Private tab commands
 
 */unquery*:: Close the tab.
 
-*/version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
+*/version*:: Get the software version of the current interlocutor (usually its
+ XMPP client and Operating System).
 
 Normal Conversation tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,28 +166,40 @@ Normal Conversation tab commands
 
 */unquery*:: Close the tab.
 
-*/version*:: Get the software version of the current interlocutor (usually its XMPP client and Operating System).
+*/version*:: Get the software version of the current interlocutor (usually its
+ XMPP client and Operating System).
 
 Roster tab commands
 ~~~~~~~~~~~~~~~~~~~
 
-*/accept [jid]*:: Authorize the provided JID (or the selected contact in the roster) to see your presence.
+*/accept [jid]*:: Authorize the provided JID (or the selected contact in the
+ roster) to see your presence.
 
-*/deny [jid]*:: Prevent the provided JID (or the selected contact in the roster) from seeing your presence.
+*/deny [jid]*:: Prevent the provided JID (or the selected contact in the
+ roster) from seeing your presence.
 
-*/add <jid>*:: Add the specified JID to your roster and authorize him to see your presence. If he accepts you, the subscription will be mutual (and if he doesn’t, you can still /deny him).
+*/add <jid>*:: Add the specified JID to your roster and authorize him to see
+ your presence. If he accepts you, the subscription will be mutual (and if he
+ doesn’t, you can still /deny him).
 
 */name <jid> <name>*:: Set the given JID’s name.
 
-*/groupadd <jid> <group>*:: Add the given JID to the given group (if the group does not exist, it will be created).
+*/groupadd <jid> <group>*:: Add the given JID to the given group (if the group
+ does not exist, it will be created).
 
-*/groupremove <jid> <group>*:: Remove the given JID from the given group (if the group is empty after that, it will get deleted).
+*/groupremove <jid> <group>*:: Remove the given JID from the given group (if
+ the group is empty after that, it will get deleted).
 
-*/remove [jid]*:: Remove the specified JID from your roster. TThis will unsubscribe you from its presence, cancel it subscription to yours, and remove the item from your roster.
+*/remove [jid]*:: Remove the specified JID from your roster. This will
+ unsubscribe you from its presence, cancel it subscription to yours, and remove
+ the item from your roster.
 
-NOTE: The following commands do not comply with any XEP or whatever, but they can still prove useful when you are migrating to an other JID.
+NOTE: The following commands do not comply with any XEP or whatever, but they
+ can still prove useful when you are migrating to an other JID.
 
-*/export [/path/to/file]*:: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.
+*/export [/path/to/file]*:: Export your contacts into /path/to/file if
+ specified, or $HOME/poezio_contacts if not.
 
-*/import [/path/to/file]*:: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.
+*/import [/path/to/file]*:: Import your contacts from /path/to/file if
+ specified, or $HOME/poezio_contacts if not.
 
