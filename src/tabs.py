@@ -293,7 +293,7 @@ class ChatTab(Tab):
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
-                                        Useful if you want your message to begin with a '/'"""), None)
+                                        Useful if you want your message to begin with a '/'."""), None)
         self.chat_state = None
 
     def last_words_completion(self):
@@ -390,6 +390,9 @@ class ChatTab(Tab):
         self.text_win.refresh()
         self.input.refresh()
 
+    def get_conversation_messages(self):
+        return self._text_buffer.messages
+
     def command_say(self, line):
         raise NotImplementedError
 
@@ -427,20 +430,20 @@ class MucTab(ChatTab):
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
         self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
-        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner. You also can give an optional reason."), None)
-        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room"), self.completion_topic)
-        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user'), None)
-        self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: disconnect from a room. You can specify an optional message."), None)
-        self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
-        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room"), None)
+        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: none, member, admin, owner. You also can give an optional reason."), None)
+        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
+        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), None)
+        self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
+        self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
+        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), None)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
-        self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leaves the current room and rejoin it immediately'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: his/here role, affiliation, status and status message.'), None)
+        self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: get the software version of the given JID or nick in room (usually its XMPP client and Operating System)'), None)
-        self.commands['names'] = (self.command_names, _('Usage: /names\nNames: get the list of the users in the room, and the list of the people assuming the different roles.'), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), None)
+        self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.commands['clear'] =  (self.command_clear,
-                                 _("""Usage: /clear\nClear: clears the current buffer'"""), None)
+                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.resize()
 
     def scroll_user_list_up(self):
@@ -658,7 +661,12 @@ class MucTab(ChatTab):
         if not len(args):
             self.core.command_help('kick')
         else:
-            self.command_role(arg+ ' none')
+            if len(args) > 1:
+                msg = ' '+args[1]
+                self.core.information("-%s-" % msg)
+            else:
+                msg = ''
+            self.command_role(args[0]+ ' none'+msg)
 
     def command_role(self, arg):
         """
@@ -711,6 +719,10 @@ class MucTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('muc_say', msg)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -1185,10 +1197,10 @@ class PrivateTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: '), None)
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: close the tab"), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: Close the tab."), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: Close the tab."), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
         self.on = True
@@ -1202,6 +1214,10 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('private_say', msg)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1388,15 +1404,16 @@ class RosterInfoTab(Tab):
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
-        self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Use this command to remove and deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster"), self.completion_deny)
-        self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Use this command to authorize the provided JID (or the selected contact in your roster), to see your presence, and to ask to subscribe to it (mutual presence subscription)."), self.completion_deny)
-        self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Use this command to add the specified JID to your roster. The reverse authorization will automatically be accepted if the remote JID accepts your subscription, leading to a mutual presence subscription."), None)
-        self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name"), self.completion_name)
-        self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group"), self.completion_groupadd)
-        self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group"), self.completion_groupremove)
-        self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Use this command to remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster"), self.completion_remove)
-        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Use this command to export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
-        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Use this command to import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
+        self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Allow the provided JID (or the selected contact in your roster), to see your presence."), self.completion_deny)
+        self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence."), None)
+        self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name."), self.completion_name)
+        self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
+        self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
+        self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
+        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
 
     def resize(self):
@@ -1416,6 +1433,15 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
+
+    def command_clear_infos(self, arg):
+        """
+        /clear_infos
+        """
+        self.core.information_buffer.messages = []
+        self.information_win.rebuild_everything(self.core.information_buffer)
+        self.core.information_win.rebuild_everything(self.core.information_buffer)
+        self.refresh()
 
     def command_deny(self, args):
         """
@@ -1851,10 +1877,10 @@ class ConversationTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: close the tab"), None)
-        self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: close the tab"), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: get the software version of the current interlocutor (usually its XMPP client and Operating System)'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: get the status of the contact.'), None)
+        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: Close the tab."), None)
+        self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: Close the tab."), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.resize()
 
     def completion(self):
@@ -1864,6 +1890,11 @@ class ConversationTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # and before displaying the message in the window
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('conversation_say', msg)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1977,6 +2008,9 @@ class ConversationTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true':
             self.send_chat_state('gone')
 
+    def add_message(self, txt, time=None, nickname=None, forced_user=None):
+        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
+
 class MucListTab(Tab):
     """
     A tab listing rooms from a specific server, displaying various information,
@@ -2000,7 +2034,7 @@ class MucListTab(Tab):
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
         self.key_func['^M'] = self.join_selected
-        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab"), None)
+        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
         self.resize()
 
     def refresh(self):

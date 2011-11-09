@@ -16,6 +16,8 @@ import traceback
 
 from datetime import datetime
 
+from inspect import getargspec
+
 import common
 import theming
 import logging
@@ -30,10 +32,13 @@ import multiuserchat as muc
 import tabs
 
 import xhtml
+import events
 import pubsub
 import windows
 import connection
 import timed_events
+
+from plugin_manager import PluginManager
 
 from data_forms import DataFormsTab
 from config import config, options
@@ -43,6 +48,7 @@ from contact import Contact, Resource
 from text_buffer import TextBuffer
 from keyboard import read_char
 from theming import get_theme
+from fifo import Fifo
 from windows import g_lock
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
@@ -72,6 +78,7 @@ class Core(object):
     """
     User interface using ncurses
     """
+
     def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
@@ -79,7 +86,9 @@ class Core(object):
         self.status = Status(show=None, message='')
         sys.excepthook = self.on_exception
         self.running = True
+        self.events = events.EventHandler()
         self.xmpp = singleton.Singleton(connection.Connection)
+        self.remote_fifo = None
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
         # information window.
@@ -98,6 +107,7 @@ class Core(object):
         #  a completion function, taking a Input as argument. Can be None)
         #  The completion function should return True if a completion was
         #  made ; False otherwise
+        self.plugin_manager = PluginManager(self)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
@@ -107,20 +117,20 @@ class Core(object):
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
-            'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
-            'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionaly) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status] argument will be your status message.'), self.completion_status),
-            'away': (self.command_away, _("Usage: /away [message]\nAway: Sets your availability to away and (optionaly) your status message. This is equivalent to '/status away [message]'"), None),
-            'busy': (self.command_busy, _("Usage: /busy [message]\nBusy: Sets your availability to busy and (optionaly) your status message. This is equivalent to '/status busy [message]'"), None),
-            'available': (self.command_avail, _("Usage: /available [message]\nAvailable: Sets your availability to available and (optionaly) your status message. This is equivalent to '/status available [message]'"), None),
-           'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
+            'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
+            'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
+            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
+            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
-            'list': (self.command_list, _('Usage: /list\nList: get the list of public chatrooms on the specified server'), self.completion_list),
-            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if specified'), None),
-            'version': (self.command_version, _('Usage: /version <jid>\nVersion: get the software version of the given JID (usually its XMPP client and Operating System)'), None),
-            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: disconnect from the remote server if you are currently connected and then connect to it again'), None),
-            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: disconnect and reconnects in all the rooms in domain.'), None),
-            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same than the Up key.'), None),
+            'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
+            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), None),
+            'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), None),
+            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None),
+            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), None),
+            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: Bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
+            'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
+            'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
+            'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             }
 
         self.key_func = {
@@ -165,6 +175,15 @@ class Core(object):
 
         self.timed_events = set()
 
+        self.connected_events = {}
+
+        self.autoload_plugins()
+
+    def autoload_plugins(self):
+        plugins = config.get('plugins_autoload', '')
+        for plugin in plugins.split():
+            self.plugin_manager.load(plugin)
+
     def start(self):
         """
         Init curses, create the first tab, etc
@@ -184,8 +203,7 @@ class Core(object):
         if config.get('firstrun', ''):
             self.information(_(
                 'It seems that it is the first time you start poezio.\n' + \
-                'The configuration help is here: http://dev.louiz.org/project/poezio/doc/HowToConfigure\n' + \
-                'And the documentation for users is here: http://dev.louiz.org/project/poezio/doc/HowToUse\n' + \
+                'The online help is here http://poezio.eu/en/documentation.php.\n' + \
                 'By default, you are in poezio’s chatroom, where you can ask for help or tell us how great it is.\n' + \
                 'Just press Ctrl-n.' \
             ))
@@ -547,6 +565,7 @@ class Core(object):
             tab = self.open_private_window(room_from, nick_from, False)
             if not tab:
                 return
+        self.events.trigger('private_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
@@ -596,6 +615,7 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
+        self.events.trigger('conversation_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             if message['type'] == 'error':
@@ -1036,6 +1056,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
+        self.events.trigger('muc_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
@@ -1116,6 +1137,34 @@ class Core(object):
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
+
+    def command_load(self, arg):
+        """
+        /load <plugin>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('load')
+            return
+        filename = args[0]
+        self.plugin_manager.load(filename)
+
+    def command_unload(self, arg):
+        """
+        /unload <plugin>
+        """
+        args = arg.split()
+        if len(args) != 1:
+            self.command_help('unload')
+            return
+        filename = args[0]
+        self.plugin_manager.unload(filename)
+
+    def command_plugins(self, arg):
+        """
+        /plugins
+        """
+        self.information("Plugins currently in use: %s" % repr(list(self.plugin_manager.plugins.keys())), 'Info')
 
     def command_message(self, arg):
         """
@@ -1393,24 +1442,6 @@ class Core(object):
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
 
-    def command_away(self, arg):
-        """
-        /away [msg]
-        """
-        self.command_status("away "+arg)
-
-    def command_busy(self, arg):
-        """
-        /busy [msg]
-        """
-        self.command_status("busy "+arg)
-
-    def command_avail(self, arg):
-        """
-        /avail [msg]
-        """
-        self.command_status("available "+arg)
-
     def close_tab(self, tab=None):
         """
         Close the given tab. If None, close the current one
@@ -1602,3 +1633,54 @@ class Core(object):
         if not self.running or self.background is True:
             return
         curses.doupdate()
+
+    def send_message(self, msg):
+        """
+        Function to use in plugins to send a message in the current conversation.
+        Returns False if the current tab is not a conversation tab
+        """
+        if not isinstance(self.current_tab(), tabs.ChatTab):
+            return False
+        self.current_tab().command_say(msg)
+        return True
+
+    def exec_command(self, command):
+        """
+        Execute an external command on the local or a remote
+        machine, depending on the conf. For example, to open a link in a
+        browser, do exec_command("firefox http://poezio.eu"),
+        and this will call the command on the correct computer.
+        The remote execution is done by writing the command on a fifo.
+        That fifo has to be on the machine where poezio is running, and
+        accessible (through sshfs for example) from the local machine (where
+        poezio is not running). A very simple daemon reads on that fifo,
+        and executes any command that is read in it.
+        """
+        command = '%s\n' % (command,)
+        if config.get('exec_remote', 'false') == 'true':
+            # We just write the command in the fifo
+            if not self.remote_fifo:
+                try:
+                    self.remote_fifo = Fifo(os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'), 'w')
+                except (OSError, IOError) as e:
+                    self.information('Could not open fifo file for writing: %s' % (e,), 'Error')
+                    return
+            try:
+                self.remote_fifo.write(command)
+            except (IOError) as e:
+                self.information('Could not execute [%s]: %s' % (command.strip(), e,), 'Error')
+                self.remote_fifo = None
+        else:
+            pass
+
+    def get_conversation_messages(self):
+        """
+        Returns a list of all the messages in the current chat.
+        If the current tab is not a ChatTab, returns None.
+
+        Messages are namedtuples of the form
+        ('txt nick_color time str_time nickname user')
+        """
+        if not isinstance(self.current_tab(), tabs.ChatTab):
+            return None
+        return self.current_tab().get_conversation_messages()

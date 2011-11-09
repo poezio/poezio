@@ -152,6 +152,26 @@ class DummyInput(FieldInput, windows.Win):
     def is_dummy(self):
         return True
 
+class ColoredLabel(windows.Win):
+    def __init__(self, text):
+        self.text = text
+        self.color = 14
+        windows.Win.__init__(self)
+
+    def resize(self, height, width, y, x):
+        self._resize(height, width, y, x)
+
+    def set_color(self, color):
+        self.color = color
+        self.refresh()
+
+    def refresh(self):
+        with g_lock:
+            self._win.attron(curses.color_pair(self.color))
+            self.addstr(0, 0, self.text)
+            self._win.attroff(curses.color_pair(self.color))
+            self._refresh()
+
 class BooleanWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -502,6 +522,7 @@ class FormWin(object):
         for i, inp in enumerate(self.inputs):
             if i >= self.height:
                 break
+            inp['label'].refresh()
             inp['input'].refresh()
             inp['label'].refresh()
         if self.current_input < self.height-1:

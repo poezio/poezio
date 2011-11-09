@@ -1,22 +1,173 @@
 Usage
 =====
 
+This page is the main page of the documentation for poezio, explaining how to
+ use it and describing its interfaces.
+
+Poezio is composed of tabs which can be of various types. Each tab type has
+a distinct interface, list of commands and list of key shortcuts, in addition
+to the global commands and key shortcuts.
+
+Tabs
+----
+On all tabs, you get a line showing the the list of all opened tabs. Each tab
+has a number, each time you open a new tab, it gets the next available number.
+
+
+image::../images/tab_bar.png[title="Example of 5 opened tabs"]
+
+The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any
+type.
+
+
+The status of a tab is represented by its color:
+
+* *[navy]#blue#* (tab _0_): an inactive tab of any type, nothing new to see
+   there.
+* *[purple]#purple#* (tab _1_): a MultiUserChat tab with at least one new
+  unread message.
+* *[green]#green#* (tab _2_): a tab of a private conversation with a new
+   message to read.
+* *[teal]#cyan#* (tab _3_): the current tab.
+* *[red]#red#* (tab _4_): a MultiUserChat tab with at least one new hightlight
+   message.
+
+You can go from one tab to another in many ways:
+
+* Ctrl+n and Ctrl+p
+* <<command-win, win>> command
+* <<command-next, next>> and <<command-prev, prev>> commands
+* Alt+ a number
+* Alt+j followed by a two-digits number
+* Alt+e, this will jump to the next tab with the highest priority. Priority
+  applies in this order: private message > highlight message > normal message.
+
+Roster tab
+~~~~~~~~~~
+This is a unique tab, always numbered _0_. It contains the list of your
+contacts. You can add/remove/edit/search contacts from there, and you can open
+a conversation with one of them.
+
+Use the _arrows_ to browse the list, the _space_ key to fold or unfold a group
+or a contact.
+
+image::../images/roster.png["The roster tab", title="The roster tab"]
+
+* _1_: The area where information messages are displayed.
+* _2_: The actual list of contacts. The first level is group, the second is the
+* contacts and the third is the resources of you online contacts.
+* _3_: More informations about the selected contact.
+
+MultiUserChat tab
+~~~~~~~~~~~~~~~~~
+
+This tab contains a multi-users conversation.
+
+image::../images/muc.png["The MUC tab", title="The MUC tab"]
+
+* _1_: The conversation window, this is where all the messages and events
+  related to the muc will be displayed. It can be scrolled up and down with
+  PageUp and PageDown.
+* _2_: The participant list. Participants are listed by their role first, and
+  then alphabetically.
+  In the default theme, The nick colors mean:
+  - Red: moderator
+  - Blue: participant
+  - gray: visitor + 
+  + 
+  The status of each participant is symbolized using the _color_ of the
+  character on the left of its nick.
+  That character also shows the chatstate of each participant:
+  - _|_: inactive
+  - _X_: composing
+  - _A_: active
+  - _p_: paused
+* _3_: Your information in that MUC (the name of the room, your nick, your role
+  and affiliation).
+* _4_: The topic of the room.
+
+You can configure the room (if you have the rights to do it) using the
+_/configure_ command, open a private conversation with someone using the
+_/query_ command, change or view the topic using the _/topic_ command…
+
+Private tab
+~~~~~~~~~~~
+This is the tab opened with the _/query_ command, letting you talk in private
+with a participant of a multi-users chat.
+
+image::../images/private.png["The private tab", title="The private tab"]
+
+This is just a simple one to one conversation, with a line showing the status,
+name and chatstate of the participant.
+
+Conversation tab
+~~~~~~~~~~~~~~~~
+A tab opened from the roster, to talk in private with one of your contacts.
+
+image::../images/conversation.png["The conversation tab", title="The conversation tab"]
+
+This is also just a simple one to one conversation, with a line showing the status,
+name and chatstate of the participant, as well as a line at the top showing the
+status message of the contact.
+
+Dataforms tab
+~~~~~~~~~~~~~
+
+This tab lets you view a form receive from a remote entity, edit the values and
+send everything back. It is mostly used to configure MUCs with the _/configure_
+command but can actually be used for almost anything.
+
+image::../images/data_forms.png["The dataform tab", title="The dataform tab"]
+
+Use the _up_ and _down_ keys to go from one field to the other, and edit the
+value using the _space_, _left_ or _right_ keys, or by entering text.
+
+You can then send the completed form using _Ctrl+y_ or cancel using _Ctrl+g_.
+
+List tab
+~~~~~~~~
+
+This tab lists all public rooms on a MUC service. It is currently very limited
+but will be improved in the future. There currently is no way to search a room
+or even to sort them.
+
+image::../images/list.png["The list tab", title="The list tab"]
+
+Use the _up_ and _down_ or _PageUp_ and _PageDown_ keys to browse the list, and
+use _Enter_ or _j_ to join the selected room.
+
 Commands
 --------
 
-Command listing
-~~~~~~~~~~~~~~~
+Commands start with the _/_ character and can take a list of any number
+of arguments, separated by spaces. If an argument should contain a space,
+you can use the _"_ character to surround this argument.
 
-The commands are shown like this:
+The commands described in this page are shown like this:
 
+===========================================================
 /command <mandatory argument> [optional argument]
+===========================================================
+
+You can get the same help as below with the _/help_ command.
+
 
 Global commands
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 These commands work in *any* tab.
 
-*/join [room_name][@server][/nick] [password]*:: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you're looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.
+*/help [command]*:: If called without an argument, this command will list the
+ available commands. If it has a valid command as an argument, this command
+ will show the usage and the help for the given command.
+
+*/join [room_name][@server][/nick] [password]*:: Join the specified room. You
+ can specify a nickname after a slash (/). If no nickname is specified, you
+ will use the default_nick in the configuration file. You can omit the room
+ name: you will then join the room you're looking at (useful if you were
+ kicked). You can also provide a room_name without specifying a server, the
+ server of the room you're currently in will be used. You can also provide a
+ password to join the room.
 
 - Examples:
 * /join room@server.tld
@@ -31,29 +182,162 @@ These commands work in *any* tab.
 
 */quit*:: Like /exit.
 
+[[command-next]]
 */next*:: Go to the next room.
 
+[[command-prev]]
 */prev*:: Go to the previous room.
 
+[[command-win]]
 */win <number>*:: Go to the specified room.
 
 */w <number>*:: Like /win.
 
-*/status <availability> [status message]*:: Set your availability and (optionaly) your status message. The <availability> argument is one of "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument will be your status message.'
+*/status <availability> [status message]*:: Set your availability and
+ (optionaly) your status message. The <availability> argument is one of
+ "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument
+ will be your status message.'
 
-*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses the same syntax as /join. Type /help join for syntax examples. Note that when typing /bookmark on its own, the room will be bookmarked with the nickname you're currently using in this room (instead of default_nick).
+*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then
+ auto-join it on each poezio start). This commands uses almost the same syntax
+ as /join. Type /help join for syntax examples. Note that when typing /bookmark
+ on its own, the room will be bookmarked with the nickname you're currently
+ using in this room (instead of default_nick).
 
-*/set <option> [value]*:: Sets the value to the option in your configuration file. You can, for example, change your default nickname by doing "/set default_nick toto" or your resource with "/set resource blabla". You can also set an empty value (nothing) by providing no [value] after <option>.
+*/set <option> [value]*:: Sets the value to the option in your configuration
+ file. You can, for example, change your default nickname by doing "/set
+ default_nick toto" or your resource with "/set resource blabla". You can also
+ set an empty value (nothing) by providing no [value] after <option>.
 
 */theme*:: Reload the theme defined in the config file.
 
-*/list [server.tld]*:: Get the list of public chatrooms in the specified server.
+*/list [server.tld]*:: Get the list of public chatrooms in the specified server
+.
 
-*/message <jid> [optional message]*:: Open a conversation with the specified JID (event if it is not in our roster), and send a message to him, if specified.
+*/message <jid> [optional message]*:: Open a conversation with the specified
+ JID (event if it is not in our roster), and send a message to him, if
+ specified.
 
-*/version <jid>*:: Get the software version of the given JID (usually its XMPP client and Operating System).
+*/version <jid>*:: Get the software version of the given JID (usually its XMPP
+ client and Operating System).
 
-*/server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the rooms of server.tld.
+*/server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the
+ rooms of server.tld.
 
-*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example, "/bind ^H KEY_UP" makes Control + h behave the same way than the Up key.
+*/bind <key> <eq>*:: Bind a key to another key or to a "command". For example,
+ "/bind ^H KEY_UP" makes Control + h behave the same way as the Up key. See the
+ link:keys.html[key bindings documentation page] for more details.
+
+NOTE: The following command will work everywhere, except in the Roster tab.
+
+*/close*:: Close the tab.
+
+Chat tab commands
+~~~~~~~~~~~~~~~~~
+
+These commands will work in any conversation tab (MultiUserChat, Private, or
+ Conversation tabs).
+
+*/say <message>*:: Just send the message (only useful it you want your message
+ to begin with a _/_). Note that you can also send message starting with a _/_
+ by starting it with _//_.
+
+MultiUserChat tab commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*/ignore <nickname>*:: Ignore a specified nickname.
+
+*/unignore <nickname>*:: Remove the specified nickname from the ignore list.
+
+*/kick <nick> [reason]*:: Kick the user with the specified nickname. You can
+ also give an optional reason.
+
+*/topic <subject>*:: Change the subject of the room. You might want to knwow
+ that entering "/topic [tab]" will autocomplete the topic.
+
+*/query <nick> [message]*:: Open a private conversation with <nick>. This nick
+ has to be present in the room you’re currently in. If you specified a message
+ after the nickname, it will be sent to this user.
+
+*/part [message]*:: Disconnect you from a room. You can specify an optional
+ message.
+
+*/close [message]*:: Disconnect you from a room (if you are connected) and
+ close the tab. You can specify an optional message if you are still connected.
+
+*/nick <nickname>*:: Change your nickname in the current room.
+
+*/recolor*:: Re-assign a color to all the participants in the current room,
+ based on the last time they talked. Use this if the participants currently
+ talking have too many identical colors.
+
+*/cycle [message]*:: Leave the current room an rejoint it immediatly. You can
+ specify an optional quit message.
+
+*/info <nickname>*:: Display some information about the user in the room:
+ his/her role, affiliation, status, and status message.
+
+*/version <nickname or jid>*:: Get the software version of the given nick in
+ room or the given jid (usually its XMPP client and Operating System).
+
+*/configure*:: Configure the current room through a form.
+
+*/names*:: Get the list of the users in the room, their number, and the list
+ of the people assuming different roles.
+
+*/clear*:: Clear the current buffer.
+
+Private tab commands
+~~~~~~~~~~~~~~~~~~~~
+
+*/info*:: Display some info about this user in the MultiUserChat.
+
+*/unquery*:: Close the tab.
+
+*/version*:: Get the software version of the current interlocutor (usually its
+ XMPP client and Operating System).
+
+Normal Conversation tab commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*/info*:: Display the status of this contact.
+
+*/unquery*:: Close the tab.
+
+*/version*:: Get the software version of the current interlocutor (usually its
+ XMPP client and Operating System).
+
+Roster tab commands
+~~~~~~~~~~~~~~~~~~~
+
+*/accept [jid]*:: Authorize the provided JID (or the selected contact in the
+ roster) to see your presence.
+
+*/deny [jid]*:: Prevent the provided JID (or the selected contact in the
+ roster) from seeing your presence.
+
+*/add <jid>*:: Add the specified JID to your roster and authorize him to see
+ your presence. If he accepts you, the subscription will be mutual (and if he
+ doesn’t, you can still /deny him).
+
+*/name <jid> <name>*:: Set the given JID’s name.
+
+*/groupadd <jid> <group>*:: Add the given JID to the given group (if the group
+ does not exist, it will be created).
+
+*/groupremove <jid> <group>*:: Remove the given JID from the given group (if
+ the group is empty after that, it will get deleted).
+
+*/remove [jid]*:: Remove the specified JID from your roster. This will
+ unsubscribe you from its presence, cancel its subscription to yours, and
+ remove the item from your roster.
+
+NOTE: The following commands do not comply with any XEP or whatever, but they
+ can still prove useful when you are migrating to an other JID.
+
+*/export [/path/to/file]*:: Export your contacts into /path/to/file if
+ specified, or $HOME/poezio_contacts if not.
+
+*/import [/path/to/file]*:: Import your contacts from /path/to/file if
+ specified, or $HOME/poezio_contacts if not.
 
