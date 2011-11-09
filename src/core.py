@@ -1537,7 +1537,9 @@ class Core(object):
         Displays an informational message in the "Info" buffer
         """
         nb_lines = self.information_buffer.add_message(msg, nickname=typ)
-        if typ != '' and typ.lower() in config.get('information_buffer_popup_on',
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
+        elif typ != '' and typ.lower() in config.get('information_buffer_popup_on',
                                            'error roster warning help info').split():
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
