@@ -1,7 +1,6 @@
 Plugins
 =======
 
-Currently, the plugins are in a plugin branch on the git repo.
 
 Location
 --------
