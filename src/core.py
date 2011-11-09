@@ -621,9 +621,7 @@ class Core(object):
         if not body:
             if message['type'] == 'error':
                 self.information(self.get_error_message_from_error_stanza(message), 'Error')
-                return
-            elif not conversation:
-                return
+            return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
