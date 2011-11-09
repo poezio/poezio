@@ -123,45 +123,81 @@ The handlers for this event are called whenever you say something in a MUC
  (through the /say command or by direct input). The parameters given to the
  handlers are:
 
-* _message_: Message to be sent
-* _tab_: Tab in which the message will be sent
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
 
 *private_say*:: +message+, +tab+ +
 The handlers for this event are called whenever you say something in a private
  conversaton in a MUC (through the /say command or by direct input). The
  parameters given to the handlers are:
 
-* _message_: Message to be sent
-* _tab_: Tab in which the message will be sent
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
 
 *conversation_say*:: +message+, +tab+ +
 The handlers for this event are called whenever you say something in direct
  conversation (through the /say command or by direct input). The parameters
  given to the handler are:
 
-* _message_: Message to be sent
-* _tab_: Tab in which the message will be sent
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
 
 *muc_msg*:: +message+, +tab+ +
 The handlers for this event are called whenever you receive a message in a MUC.
  The parameters given to the handler are:
 
-* _message_: Message received
-* _tab_: Tab in which the message was received
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
 
 *private_msg*:: +message+, +tab+ +
 The handlers for this event are called whenever you receive a message in a
  private conversation in a MUC. The parameters given to the handler are:
 
-* _message_: Message received
-* _tab_: Tab in which the message was received
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
 
 *conversation_msg*:: +message+, +tab+ +
 The handlers for this event are called whenever you receive a message in a
  direct conversation. The parameters given to the handler are:
 
-* _message_: Message received
-* _tab_: Tab in which the message was received
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
+
+*normal_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ direct conversation. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned conversation
+
+*muc_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ MUC. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned MUC.
+
+*private_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ private conversation in a MUC. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned conversation.
+
+*normal_presence*:: +presence+, +resource+ +
+The handlers for this events are called whenever you receive a presence from
+ one of your contacts. The parameters given to this handler are:
+
+* _presence_: Presence received.
+* _resource_: The resource that emitted the presence.
+
+*muc_presence*:: +presence+, +tab+ +
+The handlers for this events are called whenever you receive a presence from
+ someone in a MUC. The parameters given to this handler are:
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
 
 CAUTION: Plugins are in an experimental state and this API might change
  slightly in a near future. You have to be aware of that while making a plugin.
