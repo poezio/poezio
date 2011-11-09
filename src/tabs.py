@@ -390,6 +390,9 @@ class ChatTab(Tab):
         self.text_win.refresh()
         self.input.refresh()
 
+    def get_conversation_messages(self):
+        return self._text_buffer.messages
+
     def command_say(self, line):
         raise NotImplementedError
 
@@ -716,6 +719,10 @@ class MucTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('muc_say', msg)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -1207,6 +1214,10 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('private_say', msg)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1402,6 +1413,7 @@ class RosterInfoTab(Tab):
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
 
     def resize(self):
@@ -1421,6 +1433,15 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
+
+    def command_clear_infos(self, arg):
+        """
+        /clear_infos
+        """
+        self.core.information_buffer.messages = []
+        self.information_win.rebuild_everything(self.core.information_buffer)
+        self.core.information_win.rebuild_everything(self.core.information_buffer)
+        self.refresh()
 
     def command_deny(self, args):
         """
@@ -1869,6 +1890,11 @@ class ConversationTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # and before displaying the message in the window
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('conversation_say', msg)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1981,6 +2007,9 @@ class ConversationTab(ChatTab):
         Tab.on_close(self)
         if config.get('send_chat_states', 'true') == 'true':
             self.send_chat_state('gone')
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None):
+        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
 
 class MucListTab(Tab):
     """

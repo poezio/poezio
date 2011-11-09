@@ -143,6 +143,7 @@ we merge it to “master” as well, of course).
 	Thanks
 =======================
 = People =
+ - Todd Eisenberger (todd@teisen.be) - Plugin system
  - Link Mauve - Code, testing
  - Gaëtan Ribémont (http://www.bonbref.com) - Logo design
  - Ovart - Testing
@@ -153,3 +154,4 @@ we merge it to “master” as well, of course).
    on the jabber chatroom doing bug reports and/or feature requests.
 = Project =
  Gajim - send_vcard method and common.py
+

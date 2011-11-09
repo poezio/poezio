@@ -255,7 +255,6 @@ def xhtml_to_poezio_colors(text):
             key, value = rule.split(':', 1)
             key = key.strip()
             value = value.strip()
-            log.debug(value)
             if key == 'background-color':
                 pass#shell += '\x191'
             elif key == 'color':
@@ -278,7 +277,6 @@ def xhtml_to_poezio_colors(text):
     def trim(string):
         return re.sub(whitespace_re, ' ', string)
 
-    log.debug(text)
     xml = ET.fromstring(text)
     message = ''
     if version_info[1] == 2:
