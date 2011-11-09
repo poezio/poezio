@@ -1027,7 +1027,6 @@ class MucTab(ChatTab):
             self.core.doupdate()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            log.debug("\n\nALLO: USERCOLOR: %s\n\n" % user.color.__repr__())
             color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if not jid.full:
                 leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT}
