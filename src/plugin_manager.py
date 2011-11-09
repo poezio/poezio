@@ -34,7 +34,6 @@ class PluginManager(object):
         self.plugins = {} # module name -> plugin object
         self.commands = {} # module name -> dict of commands loaded for the module
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
-        self.poezio_event_handlers = {}
 
     def load(self, name):
         if name in self.plugins:
@@ -61,7 +60,6 @@ class PluginManager(object):
         self.modules[name] = module
         self.commands[name] = {}
         self.event_handlers[name] = []
-        self.poezio_event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
 
     def unload(self, name):
@@ -70,15 +68,12 @@ class PluginManager(object):
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
                 for event_name, handler in self.event_handlers[name]:
-                    self.core.xmpp.del_event_handler(event_name, handler)
-                for handler in self.poezio_event_handlers[name]:
-                    self.core.events.del_event_handler(None, handler)
+                    self.del_event_handler(name, event_name, handler)
 
                 self.plugins[name].unload()
                 del self.plugins[name]
                 del self.commands[name]
                 del self.event_handlers[name]
-                del self.poezio_event_handlers[name]
             except Exception as e:
                 import traceback
                 self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())
@@ -97,25 +92,21 @@ class PluginManager(object):
         commands[name] = (handler, help, completion)
         self.core.commands[name] = (handler, help, completion)
 
-    def add_event_handler(self, module_name, event_name, handler):
+    def add_event_handler(self, module_name, event_name, handler, position=0):
         eh = self.event_handlers[module_name]
         eh.append((event_name, handler))
-        self.core.xmpp.add_event_handler(event_name, handler)
+        if event_name in self.core.events.events:
+            self.core.events.add_event_handler(event_name, handler, position)
+        else:
+            self.core.xmpp.add_event_handler(event_name, handler)
 
     def del_event_handler(self, module_name, event_name, handler):
-        self.core.xmpp.del_event_handler(event_name, handler)
+        if event_name in self.core.events.events:
+            self.core.events.del_event_handler(None, handler)
+        else:
+            self.core.xmpp.del_event_handler(event_name, handler)
         eh = self.event_handlers[module_name]
         eh = list(filter(lambda e : e != (event_name, handler), eh))
-
-    def add_poezio_event_handler(self, module_name, event_name, handler, position):
-        eh = self.poezio_event_handlers[module_name]
-        eh.append(handler)
-        self.core.events.add_event_handler(event_name, handler, position)
-
-    def del_poezio_event_handler(self, module_name, event_name, handler):
-        self.core.events.del_event_handler(None, handler)
-        eh = self.poezio_event_handlers[module_name]
-        eh = list(filter(lambda e : e != handler, eh))
 
     def completion_load(self, the_input):
         """
