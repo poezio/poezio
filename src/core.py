@@ -560,13 +560,14 @@ class Core(object):
         jid = message['from']
         nick_from = jid.resource
         room_from = jid.bare
+        body = xhtml.get_body_from_message_stanza(message)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
         if not tab: # It's the first message we receive: create the tab
-            tab = self.open_private_window(room_from, nick_from, False)
+            if body:
+                tab = self.open_private_window(room_from, nick_from, False)
             if not tab:
                 return
         self.events.trigger('private_msg', message)
-        body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
         tab.add_message(body, time=None, nickname=nick_from,
