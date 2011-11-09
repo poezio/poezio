@@ -203,8 +203,7 @@ class Core(object):
         if config.get('firstrun', ''):
             self.information(_(
                 'It seems that it is the first time you start poezio.\n' + \
-                'The configuration help is here: http://dev.louiz.org/project/poezio/doc/HowToConfigure\n' + \
-                'And the documentation for users is here: http://dev.louiz.org/project/poezio/doc/HowToUse\n' + \
+                'The online help is here http://poezio.eu/en/documentation.php.\n' + \
                 'By default, you are in poezio’s chatroom, where you can ask for help or tell us how great it is.\n' + \
                 'Just press Ctrl-n.' \
             ))
