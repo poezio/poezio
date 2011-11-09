@@ -1487,10 +1487,10 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        groups = set(contact.get_groups())
-        subscription = contact.get_subscription()
+        groups = set(contact.groups)
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
-            contact.set_name(name)
+            contact.name = name
 
     def command_groupadd(self, args):
         """
@@ -1507,7 +1507,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        new_groups = set(contact.get_groups())
+        new_groups = set(contact.groups)
         if group in new_groups:
             self.core.information(_('JID already in group'), 'Error')
             return
@@ -1518,8 +1518,8 @@ class RosterInfoTab(Tab):
         except KeyError:
             pass
 
-        name = contact.get_name()
-        subscription = contact.get_subscription()
+        name = contact.name
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.edit_groups_of_contact(contact, new_groups)
 
@@ -1538,7 +1538,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        new_groups = set(contact.get_groups())
+        new_groups = set(contact.groups)
         try:
             new_groups.remove('none')
         except KeyError:
@@ -1548,8 +1548,8 @@ class RosterInfoTab(Tab):
             return
 
         new_groups.remove(group)
-        name = contact.get_name()
-        subscription = contact.get_subscription()
+        name = contact.name
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.edit_groups_of_contact(contact, new_groups)
 
@@ -1624,7 +1624,7 @@ class RosterInfoTab(Tab):
         """
         From with any JID presence in the roster
         """
-        jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+        jids = [contact.bare_jid for contact in roster.get_contacts()]
         return the_input.auto_completion(jids, '')
 
     def completion_name(self, the_input):
@@ -1634,7 +1634,7 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         return False
 
@@ -1645,7 +1645,7 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
             groups = [group.name for group in roster.get_groups() if group.name != 'none']
@@ -1660,13 +1660,13 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
             contact = roster.get_contact_by_jid(args[1])
             if not contact:
                 return False
-            groups = list(contact.get_groups())
+            groups = list(contact.groups)
             try:
                 groups.remove('none')
             except ValueError:
@@ -1679,8 +1679,8 @@ class RosterInfoTab(Tab):
         Complete the first argument from the list of the
         contact with ask=='subscribe'
         """
-        jids = [contact.get_bare_jid() for contact in roster.get_contacts()\
-             if contact.get_ask() == 'asked']
+        jids = [contact.bare_jid for contact in roster.get_contacts()\
+             if contact.ask == 'asked']
         return the_input.auto_completion(jids, '')
 
     def command_accept(self, args):
@@ -1915,7 +1915,7 @@ class ConversationTab(ChatTab):
         else:
             resource = contact.get_highest_priority_resource()
         if resource:
-            self._text_buffer.add_message("\x195}Status: %s\x193}" %resource.get_status(), None, None, None, None, None)
+            self._text_buffer.add_message("\x195}Status: %s\x193}" %resource.status, None, None, None, None, None)
             self.refresh()
             self.core.doupdate()
 
@@ -2219,7 +2219,7 @@ def jid_and_name_match(contact, txt):
     """
     if not txt:
         return True
-    if txt in JID(contact.get_bare_jid()).user:
+    if txt in JID(contact.bare_jid).user:
         return True
     return False
 
@@ -2230,9 +2230,9 @@ def jid_and_name_match_slow(contact, txt):
     """
     if not txt:
         return True             # Everything matches when search is empty
-    user = JID(contact.get_bare_jid()).user
+    user = JID(contact.bare_jid).user
     if diffmatch(txt, user):
         return True
-    if contact.get_name() and diffmatch(txt, contact.get_name()):
+    if contact.name and diffmatch(txt, contact.name):
         return True
     return False

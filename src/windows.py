@@ -415,7 +415,7 @@ class ConversationInfoWin(InfoWin):
         if not resource:
             presence = "unavailable"
         else:
-            presence = resource.get_presence()
+            presence = resource.presence
         color = RosterWin.color_show[presence]()
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(" ", to_curses_attr(color))
@@ -428,7 +428,7 @@ class ConversationInfoWin(InfoWin):
         if not contact:
             self.addstr("(contact not in roster)", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             return
-        display_name = contact.get_name() or contact.get_bare_jid()
+        display_name = contact.name or contact.bare_jid
         self.addstr('%s '%(display_name), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_jid(self, jid):
@@ -468,7 +468,7 @@ class ConversationStatusMessageWin(InfoWin):
             self._refresh()
 
     def write_status_message(self, resource):
-        self.addstr(resource.get_status(), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(resource.status, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class MucInfoWin(InfoWin):
     """
@@ -1471,14 +1471,14 @@ class RosterWin(Win):
             presence = 'unavailable'
             nb = ''
         else:
-            presence = resource.get_presence()
+            presence = resource.presence
             nb = ' (%s)' % (contact.get_nb_resources(),)
         color = RosterWin.color_show[presence]()
-        if contact.get_name():
-            display_name = '%s (%s)%s' % (contact.get_name(),
-                                        contact.get_bare_jid(), nb,)
+        if contact.name:
+            display_name = '%s (%s)%s' % (contact.name,
+                                        contact.bare_jid, nb,)
         else:
-            display_name = '%s%s' % (contact.get_bare_jid(), nb,)
+            display_name = '%s%s' % (contact.bare_jid, nb,)
         self.addstr(y, 0, ' ')
         self.addstr(" ", to_curses_attr(color))
         if resource:
@@ -1488,7 +1488,7 @@ class RosterWin(Win):
             self.addstr(display_name, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
-        if contact.get_ask() == 'asked':
+        if contact.ask == 'asked':
             self.addstr('?', to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
         self.finish_line()
 
@@ -1496,12 +1496,12 @@ class RosterWin(Win):
         """
         Draw a specific resource line
         """
-        color = RosterWin.color_show[resource.get_presence()]()
+        color = RosterWin.color_show[resource.presence]()
         self.addstr(y, 4, " ", to_curses_attr(color))
         if colored:
-            self.addstr(y, 6, resource.get_jid().full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self.addstr(y, 6, resource.jid.full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
-            self.addstr(y, 6, resource.get_jid().full)
+            self.addstr(y, 6, resource.jid.full)
         self.finish_line()
 
     def get_selected_row(self):
@@ -1517,22 +1517,22 @@ class ContactInfoWin(Win):
         """
         resource = contact.get_highest_priority_resource()
         if contact:
-            jid = contact.get_bare_jid()
+            jid = contact.bare_jid
         else:
-            jid = jid or resource.get_jid().full
+            jid = jid or resource.jid.full
         if resource:
-            presence = resource.get_presence()
+            presence = resource.presence
         else:
             presence = 'unavailable'
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-        self.addstr(1, 0, 'Subscription: %s' % (contact.get_subscription(),))
-        if contact.get_ask():
+        self.addstr(1, 0, 'Subscription: %s' % (contact.subscription,))
+        if contact.ask:
             self.addstr(' ')
-            if contact.get_ask() == 'asked':
-                self.addstr('Ask: %s' % (contact.get_ask(),), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
+            if contact.ask == 'asked':
+                self.addstr('Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
             else:
-                self.addstr('Ask: %s' % (contact.get_ask(),))
+                self.addstr('Ask: %s' % (contact.ask,))
         self.finish_line()
 
 

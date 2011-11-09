@@ -234,7 +234,7 @@ class RosterGroup(object):
         def compare_contact(a):
             if not a.get_highest_priority_resource():
                 return 0
-            show = a.get_highest_priority_resource().get_presence()
+            show = a.get_highest_priority_resource()
             if show not in PRESENCE_PRIORITY:
                 return 5
             return PRESENCE_PRIORITY[show]

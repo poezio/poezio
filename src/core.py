@@ -372,13 +372,13 @@ class Core(object):
             return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.jid.full))
         contact.remove_resource(resource)
         # Display the message in the conversation with the bare JID only if that was
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
-            self.information('\x193}%s \x195}is \x191}offline' % (resource.get_jid().bare), "Roster")
+            self.information('\x193}%s \x195}is \x191}offline' % (resource.jid.bare), "Roster")
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -395,18 +395,18 @@ class Core(object):
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
-        resource.set_status(status_message)
-        resource.set_presence(status)
-        resource.set_priority(priority)
+        resource.status = status_message
+        resource.presence = status
+        resource.priority = priority
         self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
         if not contact.get_highest_priority_resource():
             # No connected resource yet: the user's just connecting
             if time.time() - self.connection_time > 12:
                 # We do not display messages if we recently logged in
                 if status_message:
-                    self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.get_jid().bare, status_message), "Roster")
+                    self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.jid.bare, status_message), "Roster")
                 else:
-                    self.information("\x193}%s \x195}is \x194}online\x195}" % resource.get_jid().bare, "Roster")
+                    self.information("\x193}%s \x195}is \x194}online\x195}" % resource.jid.bare, "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
         contact.add_resource(resource)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -655,9 +655,9 @@ class Core(object):
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
-        resource.set_presence(status)
-        resource.set_priority(priority)
-        resource.set_status(status_message)
+        resource.presence = status
+        resource.priority = priority
+        resource.status = status_message
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -673,19 +673,19 @@ class Core(object):
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
             if 'ask' in item.attrib:
-                contact.set_ask(item.attrib['ask'])
+                contact.ask = item.attrib['ask']
             else:
-                contact.set_ask(None)
+                contact.ask = None
             if 'name' in item.attrib:
-                contact.set_name(item.attrib['name'])
+                contact.name = item.attrib['name']
             else:
-                contact.set_name(None)
+                contact.name = None
             if item.attrib['subscription']:
-                contact.set_subscription(item.attrib['subscription'])
+                contact.subscription = item.attrib['subscription']
             groups = item.findall('{jabber:iq:roster}group')
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
             if item.attrib['subscription'] == 'remove':
-                roster.remove_contact(contact.get_bare_jid())
+                roster.remove_contact(contact.bare_jid)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -700,7 +700,7 @@ class Core(object):
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
             roster.edit_groups_of_contact(contact, [])
-            contact.set_ask('asked')
+            contact.ask = 'asked'
             self.get_tab_by_number(0).state = 'highlight'
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
