@@ -61,6 +61,7 @@ class PluginManager(object):
         self.commands[name] = {}
         self.event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
+        self.core.information('Plugin %s loaded' % name, 'Info')
 
     def unload(self, name):
         if name in self.plugins:
@@ -74,6 +75,7 @@ class PluginManager(object):
                 del self.plugins[name]
                 del self.commands[name]
                 del self.event_handlers[name]
+                self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 import traceback
                 self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())
