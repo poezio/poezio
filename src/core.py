@@ -626,7 +626,7 @@ class Core(object):
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
-            remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
+            remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
         else:
             remote_nick = jid.user
         conversation._text_buffer.add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
@@ -1590,10 +1590,10 @@ class Core(object):
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            if not self.get_conversation_by_jid(roster_row.get_bare_jid()):
-                self.open_conversation_window(roster_row.get_bare_jid())
+            if not self.get_conversation_by_jid(roster_row.bare_jid):
+                self.open_conversation_window(roster_row.bare_jid)
             else:
-                self.focus_tab_named(roster_row.get_bare_jid())
+                self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
             if not self.get_conversation_by_jid(roster_row.get_jid().full):
                 self.open_conversation_window(roster_row.get_jid().full)

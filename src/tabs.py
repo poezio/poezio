@@ -1975,17 +1975,31 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
+        contact = roster.get_contact_by_jid(self.get_name())
+        jid = JID(self.get_name())
+        if jid.resource:
+            resource = contact.get_resource_by_fulljid(jid.full)
+        else:
+            resource = contact.get_highest_priority_resource()
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
-            self.send_chat_state('inactive')
+            if resource:
+                self.send_chat_state('inactive')
 
     def on_gain_focus(self):
+        contact = roster.get_contact_by_jid(self.get_name())
+        jid = JID(self.get_name())
+        if jid.resource:
+            resource = contact.get_resource_by_fulljid(jid.full)
+        else:
+            resource = contact.get_highest_priority_resource()
         self.state = 'current'
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
-            self.send_chat_state('active')
+            if resource:
+                self.send_chat_state('active')
 
     def on_scroll_up(self):
         self.text_win.scroll_up(self.text_win.height-1)
