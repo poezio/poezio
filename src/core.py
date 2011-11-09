@@ -567,7 +567,7 @@ class Core(object):
                 tab = self.open_private_window(room_from, nick_from, False)
             if not tab:
                 return
-        self.events.trigger('private_msg', message)
+        self.events.trigger('private_msg', message, tab)
         if not body:
             return
         tab.add_message(body, time=None, nickname=nick_from,
@@ -616,13 +616,17 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
-        self.events.trigger('conversation_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
+        conversation = self.get_tab_of_conversation_with_jid(jid, create=False)
         if not body:
             if message['type'] == 'error':
                 self.information(self.get_error_message_from_error_stanza(message), 'Error')
-            return
+                return
+            elif not conversation:
+                return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
+        self.events.trigger('conversation_msg', message, conversation)
+        body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
             remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
         else:
@@ -1057,7 +1061,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
-        self.events.trigger('muc_msg', message)
+        self.events.trigger('muc_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
