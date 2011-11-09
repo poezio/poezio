@@ -722,7 +722,7 @@ class MucTab(ChatTab):
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('muc_say', msg)
+        self.core.events.trigger('muc_say', msg, self)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -1217,7 +1217,7 @@ class PrivateTab(ChatTab):
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('private_say', msg)
+        self.core.events.trigger('private_say', msg, self)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1894,7 +1894,7 @@ class ConversationTab(ChatTab):
         # and before displaying the message in the window
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('conversation_say', msg)
+        self.core.events.trigger('conversation_say', msg, self)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])

@@ -16,5 +16,5 @@ class Plugin(BasePlugin):
         self.add_event_handler('private_say', self.rainbowize)
         self.add_event_handler('conversation_say', self.rainbowize)
 
-    def rainbowize(self, msg):
+    def rainbowize(self, msg, tab):
         msg['body'] = ''.join(['%s%s' % (rand_color(),char,) for char in xhtml.clean_text(msg['body'])])
