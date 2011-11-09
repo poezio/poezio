@@ -325,6 +325,7 @@ class Core(object):
         tab = self.get_tab_of_conversation_with_jid(message['from'], False)
         if not tab:
             return False
+        self.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.current_tab():
             tab.refresh_info_header()
@@ -335,6 +336,7 @@ class Core(object):
         tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
+        self.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.current_tab():
             tab.refresh_info_header()
@@ -346,6 +348,7 @@ class Core(object):
         room_from = message.getMucroom()
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_user_by_name(nick):
+            self.events.trigger('muc_chatstate', message, tab)
             tab.get_user_by_name(nick).chatstate = state
         if tab == self.current_tab():
             tab.user_win.refresh(tab.users)
@@ -487,6 +490,7 @@ class Core(object):
         from_room = presence['from'].bare
         tab = self.get_tab_by_name(from_room, tabs.MucTab)
         if tab:
+            self.events.trigger('muc_presence', presence, tab)
             tab.handle_presence(presence)
 
     def rename_private_tabs(self, room_name, old_nick, new_nick):
@@ -652,6 +656,7 @@ class Core(object):
         resource = contact.get_resource_by_fulljid(jid.full)
         if not resource:
             return
+        self.events.trigger('normal_presence', presence, resource)
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0

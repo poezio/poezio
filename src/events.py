@@ -27,6 +27,11 @@ class EventHandler(object):
             'conversation_msg': [],
             'private_msg': [],
             'muc_msg': [],
+            'normal_chatstate': [],
+            'muc_chatsate': [],
+            'private_chatsate': [],
+            'normal_presence': [],
+            'muc_presence': [],
             }
 
     def add_event_handler(self, name, callback, position=0):
