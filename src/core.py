@@ -1378,7 +1378,12 @@ class Core(object):
         else:
             tab.own_nick = nick
             tab.users = []
-        self.enable_private_tabs(room)
+        if tab and tab.joined:
+            self.enable_private_tabs(room)
+            tab.state = "normal"
+            if tab == self.current_tab():
+                tab.refresh()
+                self.doupdate()
 
     def get_bookmark_nickname(self, room_name):
         """
