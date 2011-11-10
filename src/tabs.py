@@ -2000,10 +2000,13 @@ class ConversationTab(ChatTab):
     def on_lose_focus(self):
         contact = roster.get_contact_by_jid(self.get_name())
         jid = JID(self.get_name())
-        if jid.resource:
-            resource = contact.get_resource_by_fulljid(jid.full)
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
         else:
-            resource = contact.get_highest_priority_resource()
+            resource = None
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
@@ -2014,10 +2017,14 @@ class ConversationTab(ChatTab):
     def on_gain_focus(self):
         contact = roster.get_contact_by_jid(self.get_name())
         jid = JID(self.get_name())
-        if jid.resource:
-            resource = contact.get_resource_by_fulljid(jid.full)
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
         else:
-            resource = contact.get_highest_priority_resource()
+            resource = None
+
         self.state = 'current'
         curses.curs_set(1)
         if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
