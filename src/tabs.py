@@ -1449,8 +1449,8 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.get_ask() == 'asked':
-                jid = item.get_bare_jid()
+            if isinstance(item, Contact) and item.ask == 'asked':
+                jid = item.bare_jid
             else:
                 self.core.information('No subscription to deny')
                 return
@@ -1563,7 +1563,7 @@ class RosterInfoTab(Tab):
         else:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
-                jid = item.get_bare_jid()
+                jid = item.bare_jid
             else:
                 self.core.information('No roster item to remove')
                 return
@@ -1690,8 +1690,8 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.get_ask() == 'asked':
-                jid = item.get_bare_jid()
+            if isinstance(item, Contact) and item.ask == 'asked':
+                jid = item.bare_jid
             else:
                 self.core.information('No subscription to accept')
                 return
