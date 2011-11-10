@@ -2010,7 +2010,7 @@ class ConversationTab(ChatTab):
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
+        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('inactive')
 
@@ -2027,7 +2027,7 @@ class ConversationTab(ChatTab):
 
         self.state = 'current'
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
+        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('active')
 
