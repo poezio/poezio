@@ -264,6 +264,18 @@ Configuration options
   or if they are really resized only when needed (if set to true).
   “true” should be the most comfortable value
 
+*custom_host*:: [empty]
+
+  A custom host that will be used instead of the DNS records for the server
+  (anonymous or the jid’s) defined above.
+  You should not need this in a "normal" use case.
+
+*custom_port*:: [empty]
+
+  A custom port to use instead of the 5222.
+  This option can be combined with custom_host.
+  You should not need this in a "normal" use case.
+
 *plugins_autoload*:: [empty]
 
   Space separated list of plugins to load on startup.
