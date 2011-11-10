@@ -91,6 +91,7 @@ class Tab(object):
                                 # and use them in on_input
         self.commands = {}      # and their own commands
 
+
     @property
     def core(self):
         if not Tab.tab_core:
@@ -220,6 +221,18 @@ class Tab(object):
     def on_input(self, key):
         pass
 
+    def add_plugin_command(self, name, handler, help, completion=None):
+        if name in self.plugin_commands or name in self.commands:
+            return
+        self.plugin_commands[name] = (handler, help, completion)
+        self.commands[name] = (handler, help, completion)
+        self.update_commands()
+
+    def update_commands(self):
+        for c in self.plugin_commands:
+            if not c in self.commands:
+                self.commands[name] = self.plugin_commands[c]
+
     def on_lose_focus(self):
         """
         called when this tab loses the focus.
@@ -275,6 +288,7 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
+    plugin_commands = {}
     def __init__(self):
         Tab.__init__(self)
         self._text_buffer = TextBuffer()
@@ -295,6 +309,7 @@ class ChatTab(Tab):
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'."""), None)
         self.chat_state = None
+        self.update_commands()
 
     def last_words_completion(self):
         """
@@ -402,6 +417,7 @@ class MucTab(ChatTab):
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
+    plugin_commands = {}
     def __init__(self, jid, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -445,6 +461,7 @@ class MucTab(ChatTab):
         self.commands['clear'] =  (self.command_clear,
                                  _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.resize()
+        self.update_commands()
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
@@ -1185,6 +1202,7 @@ class PrivateTab(ChatTab):
     The tab containg a private conversation (someone from a MUC)
     """
     message_type = 'chat'
+    plugin_commands = {}
     def __init__(self, name, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -1203,6 +1221,7 @@ class PrivateTab(ChatTab):
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
         self.on = True
+        self.update_commands()
 
     def completion(self):
         self.complete_commands(self.input)
@@ -1380,6 +1399,7 @@ class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
     """
+    plugin_commands = {}
     def __init__(self):
         Tab.__init__(self)
         self.name = "Roster"
@@ -1414,6 +1434,7 @@ class RosterInfoTab(Tab):
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
+        self.update_commands()
 
     def resize(self):
         if not self.visible:
@@ -1863,6 +1884,7 @@ class ConversationTab(ChatTab):
     """
     The tab containg a normal conversation (not from a MUC)
     """
+    plugin_commands = {}
     message_type = 'chat'
     def __init__(self, jid):
         ChatTab.__init__(self)
@@ -1881,6 +1903,7 @@ class ConversationTab(ChatTab):
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.resize()
+        self.update_commands()
 
     def completion(self):
         self.complete_commands(self.input)
@@ -2029,6 +2052,7 @@ class MucListTab(Tab):
     A tab listing rooms from a specific server, displaying various information,
     scrollable, and letting the user join them, etc
     """
+    plugin_commands = {}
     def __init__(self, server):
         Tab.__init__(self)
         self.state = 'normal'
@@ -2059,6 +2083,7 @@ class MucListTab(Tab):
         self.listview.refresh()
         self.tab_win.refresh()
         self.input.refresh()
+        self.update_commands()
 
     def resize(self):
         if not self.visible:

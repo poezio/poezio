@@ -1,6 +1,7 @@
 import imp
 import os
 import sys
+import tabs
 from config import config
 from gettext import gettext as _
 
@@ -34,6 +35,7 @@ class PluginManager(object):
         self.plugins = {} # module name -> plugin object
         self.commands = {} # module name -> dict of commands loaded for the module
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
+        self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
 
     def load(self, name):
         if name in self.plugins:
@@ -59,6 +61,7 @@ class PluginManager(object):
 
         self.modules[name] = module
         self.commands[name] = {}
+        self.tab_commands[name] = {}
         self.event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
         self.core.information('Plugin %s loaded' % name, 'Info')
@@ -68,12 +71,17 @@ class PluginManager(object):
             try:
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
+                for tab in list(self.tab_commands[name].keys()):
+                    for command in self.tab_commands[name][tab]:
+                        self.del_tab_command(name, getattr(tabs, tab), command[0])
+                    del self.tab_commands[name][tab]
                 for event_name, handler in self.event_handlers[name]:
                     self.del_event_handler(name, event_name, handler)
 
                 self.plugins[name].unload()
                 del self.plugins[name]
                 del self.commands[name]
+                del self.tab_commands[name]
                 del self.event_handlers[name]
                 self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
@@ -85,6 +93,29 @@ class PluginManager(object):
             del self.commands[module_name][name]
             if name in self.core.commands:
                 del self.core.commands[name]
+
+    def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None):
+        commands = self.tab_commands[module_name]
+        t = tab_type.__name__
+        if not t in commands:
+            commands[t] = []
+        commands[t].append((name, handler, help, completion))
+        for tab in self.core.tabs:
+            if isinstance(tab, tab_type):
+                tab.add_plugin_command(name, handler, help, completion)
+
+    def del_tab_command(self, module_name, tab_type, name):
+        commands = self.tab_commands[module_name]
+        t = tab_type.__name__
+        if not t in commands:
+            return
+        for command in commands[t]:
+            if command[0] == name:
+                commands[t].remove(command)
+                del tab_type.plugin_commands[name]
+                for tab in self.core.tabs:
+                    if isinstance(tab, tab_type) and name in tab.commands:
+                        del tab.commands[name]
 
     def add_command(self, module_name, name, handler, help, completion=None):
         if name in self.core.commands:

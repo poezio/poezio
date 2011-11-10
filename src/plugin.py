@@ -93,6 +93,18 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         return self.plugin_manager.del_command(self.__module__, name)
 
+    def add_tab_command(self, tab_type, name, handler, help, completion=None):
+        """
+        Add a command only for a type of tab.
+        """
+        return self.plugin_manager.add_tab_command(self.__module__, tab_type, name, handler, help, completion)
+
+    def del_tab_command(self, tab_type, name):
+        """
+        Delete a command added through add_tab_command.
+        """
+        return self.plugin_manager.del_tab_command(self.__module__, tab_type, name)
+
     def add_event_handler(self, event_name, handler, position=0):
         """
         Add an event handler to the event event_name.
