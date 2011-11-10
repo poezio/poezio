@@ -37,7 +37,7 @@ class PluginManager(object):
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
         self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
 
-    def load(self, name):
+    def load(self, name, notify=True):
         if name in self.plugins:
             self.unload(name)
 
@@ -64,9 +64,10 @@ class PluginManager(object):
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
-        self.core.information('Plugin %s loaded' % name, 'Info')
+        if notify:
+            self.core.information('Plugin %s loaded' % name, 'Info')
 
-    def unload(self, name):
+    def unload(self, name, notify=True):
         if name in self.plugins:
             try:
                 for command in self.commands[name].keys():
@@ -83,7 +84,8 @@ class PluginManager(object):
                 del self.commands[name]
                 del self.tab_commands[name]
                 del self.event_handlers[name]
-                self.core.information('Plugin %s unloaded' % name, 'Info')
+                if notify:
+                    self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 import traceback
                 self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())

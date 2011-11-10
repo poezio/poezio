@@ -177,8 +177,6 @@ class Core(object):
 
         self.connected_events = {}
 
-        self.autoload_plugins()
-
     def autoload_plugins(self):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
@@ -456,6 +454,7 @@ class Core(object):
         Called when we are connected and authenticated
         """
         self.connection_time = time.time()
+        self.autoload_plugins()
         self.information(_("Authentication success."))
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
         if not self.xmpp.anon:
