@@ -22,12 +22,7 @@ class Plugin(BasePlugin):
             self.core.command_help('exec')
             return
         try:
-            cut_command = shlex.split(command)
-        except Exception as e:
-            self.core.information('Failed to parse command: %s' % (e,), 'Error')
-            return
-        try:
-            process = subprocess.Popen(cut_command, stdout=subprocess.PIPE)
+            process = subprocess.Popen(['sh', '-c', command], stdout=subprocess.PIPE)
         except OSError as e:
             self.core.information('Failed to execute command: %s' % (e,), 'Error')
             return
