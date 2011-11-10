@@ -28,8 +28,8 @@ class EventHandler(object):
             'private_msg': [],
             'muc_msg': [],
             'normal_chatstate': [],
-            'muc_chatsate': [],
-            'private_chatsate': [],
+            'muc_chatstate': [],
+            'private_chatstate': [],
             'normal_presence': [],
             'muc_presence': [],
             }
