@@ -132,7 +132,7 @@ class Core(object):
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
-            'presence': (self.command_presence, _('Usage: /presence\nPresence: Send a directed presence.'), None),
+            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
             }
 
         self.key_func = {
@@ -1160,12 +1160,21 @@ class Core(object):
 
     def command_presence(self, arg):
         """
-        /presence <presence stanza>
+        /presence <JID> [type] [status]
         """
-        if not arg:
+        args = common.shell_split(arg)
+        if len(args) == 1:
+            jid, type, status = args[0], None, None
+        elif len(args) == 2:
+            jid, type, status = args[0], args[1], None
+        elif len(args) == 3:
+            jid, type, status = args[0], args[1], args[2]
+        else:
             return
+        if type == 'available':
+            type = None
         try:
-            self.xmpp.Presence(xml=ET.fromstring(arg)).send()
+            self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status).send()
         except :
             import traceback
             self.information(_('Could not send directed presence'), 'Error')
