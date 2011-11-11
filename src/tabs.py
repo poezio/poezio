@@ -46,6 +46,7 @@ from os import getenv, path
 from logger import logger
 
 from datetime import datetime, timedelta
+from xml.etree import cElementTree as ET
 
 SHOW_NAME = {
     'dnd': _('busy'),
@@ -308,6 +309,7 @@ class ChatTab(Tab):
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'."""), None)
+        self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
         self.chat_state = None
         self.update_commands()
 
@@ -338,6 +340,29 @@ class ChatTab(Tab):
                     txt = txt[1:]
                 self.command_say(xhtml.convert_simple_to_full_colors(txt))
         self.cancel_paused_delay()
+
+    def command_xhtml(self, arg):
+        """"
+        /xhtml <custom xhtml>
+        """
+        if not arg:
+            return
+        try:
+            body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg))
+            ET.fromstring(arg)
+        except:
+            self.core.information('Could not send custom xhtml', 'Error')
+            return
+
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['body'] = body
+        msg['xhtml_im'] = arg
+        if isinstance(self, MucTab):
+            msg['type'] = 'groupchat'
+        if isinstance(self, ConversationTab):
+            self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
+            self.refresh()
+        msg.send()
 
     def send_chat_state(self, state, always_send=False):
         """
