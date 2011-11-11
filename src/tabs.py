@@ -1491,7 +1491,6 @@ class RosterInfoTab(Tab):
             self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
-        self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
 
     def command_name(self, args):
         """
@@ -1588,6 +1587,7 @@ class RosterInfoTab(Tab):
             else:
                 self.core.information('No roster item to remove')
                 return
+        self.core.xmpp.sendPresence(pto=jid, ptype='unavailable')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
         self.core.xmpp.del_roster_item(jid=jid)
@@ -1719,6 +1719,12 @@ class RosterInfoTab(Tab):
         else:
             jid = args[0]
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
+        self.core.xmpp.sendPresence(pto=jid, ptype='')
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            return
+        if contact.subscription in ('to', 'none'):
+            self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
     def refresh(self):
         if self.need_resize:

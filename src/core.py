@@ -697,16 +697,30 @@ class Core(object):
         """
         Triggered whenever a presence stanza with a type of subscribe, subscribed, unsubscribe, or unsubscribed is received.
         """
+        jid = presence['from'].bare
+        contact = roster.get_contact_by_jid(jid)
         if presence['type'] == 'subscribe':
-            jid = presence['from'].bare
-            contact = roster.get_contact_by_jid(jid)
             if not contact:
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
+            log.debug("CONTACT: %s" % contact)
+            if contact.subscription in ('from', 'both'):
+                log.debug('FROM OR BOTH')
+                return
+            elif contact.subscription in ('to'):
+                log.debug('TO')
+                self.xmpp.sendPresence(pto=jid, ptype='subscribed')
+                self.xmpp.sendPresence(pto=jid, ptype='')
+                return
             roster.edit_groups_of_contact(contact, [])
             contact.ask = 'asked'
             self.get_tab_by_number(0).state = 'highlight'
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
+        elif presence['type'] == 'unsubscribed':
+            self.information('%s unsubscribed you from his presence'%jid, 'Roster')
+        elif presence['type'] == 'unsubscribe':
+            self.information('%s unsubscribed from your presence'%jid, 'Roster')
+
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
