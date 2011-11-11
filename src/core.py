@@ -26,6 +26,7 @@ import singleton
 import collections
 
 from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp.xmlstream.stanzabase import StanzaBase
 
 log = logging.getLogger(__name__)
 
@@ -133,6 +134,7 @@ class Core(object):
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
+            'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
             }
 
         self.key_func = {
@@ -1161,6 +1163,20 @@ class Core(object):
         self.set_status(show, msg)
         if isinstance(current, tabs.MucTab) and current.joined and show not in ('away', 'xa'):
             current.send_chat_state('active')
+
+    def command_rawxml(self, arg):
+        """"
+        /rawxml <xml stanza>
+        """
+        if not arg:
+            return
+
+        try:
+            StanzaBase(self.xmpp, xml=ET.fromstring(arg)).send()
+        except:
+            import traceback
+            self.information(_('Could not send custom stanza'), 'Error')
+            log.debug(_("Could not send custom stanza:\n") + traceback.format_exc())
 
     def command_presence(self, arg):
         """
