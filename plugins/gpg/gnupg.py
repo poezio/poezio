@@ -204,6 +204,8 @@ class GPG(object):
         lines = []
         while True:
             line = stream.readline()
+            if not isinstance(line, str):
+                line = line.decode('utf-8')
             lines.append(line)
             if self.verbose:
                 print(line)
