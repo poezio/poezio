@@ -246,6 +246,8 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
  to begin with a _/_). Note that you can also send message starting with a _/_
  by starting it with _//_.
 
+*/xhtml <custom xhtml>*:: Send a custom xhtml message to the current tab.
+
 MultiUserChat tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
