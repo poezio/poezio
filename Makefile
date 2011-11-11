@@ -36,7 +36,7 @@ uninstall:
 	rm -rf $(DESTDIR)$(MANDIR)/man1/poezio.1
 
 doc:
-	find doc -name \*.txt -exec asciidoc {} \;
+	find doc -name \*.txt -exec asciidoc -a toc {} \;
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
 
