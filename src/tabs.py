@@ -1590,7 +1590,10 @@ class RosterInfoTab(Tab):
         self.core.xmpp.sendPresence(pto=jid, ptype='unavailable')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        self.core.xmpp.del_roster_item(jid=jid)
+        try:
+            self.core.xmpp.del_roster_item(jid=jid)
+        except:
+            pass
 
     def command_import(self, arg):
         """
