@@ -213,6 +213,8 @@ These commands work in *any* tab.
 
 */presence <jid> [type] [status]*:: Send a directed presence to _jid_ using _type_ and _status_ if provided.
 
+*/rawxml*:: Send a custom XML stanza.
+
 */list [server.tld]*:: Get the list of public chatrooms in the specified server
 .
 
