@@ -258,7 +258,9 @@ def xhtml_to_poezio_colors(text):
             if key == 'background-color':
                 pass#shell += '\x191'
             elif key == 'color':
-                shell += '\x19%d}' % get_color(value)
+                color = get_color(value)
+                if color != -1:
+                    shell += '\x19%d}' % color
             elif key == 'font-style':
                 shell += '\x19i'
             elif key == 'font-weight':
