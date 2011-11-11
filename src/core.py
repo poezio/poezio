@@ -664,8 +664,12 @@ class Core(object):
         resource.presence = status
         resource.priority = priority
         resource.status = status_message
+        tab = self.get_tab_of_conversation_with_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
+        elif self.current_tab() == tab:
+            tab.refresh()
+            self.doupdate()
 
     def on_roster_update(self, iq):
         """
