@@ -211,6 +211,8 @@ These commands work in *any* tab.
 
 */theme*:: Reload the theme defined in the config file.
 
+*/presence <presence xml stanza>*:: Send a directed presence.
+
 */list [server.tld]*:: Get the list of public chatrooms in the specified server
 .
 
