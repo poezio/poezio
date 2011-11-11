@@ -15,6 +15,7 @@ import threading
 import traceback
 
 from datetime import datetime
+from xml.etree import cElementTree as ET
 
 from inspect import getargspec
 
@@ -131,6 +132,7 @@ class Core(object):
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
+            'presence': (self.command_presence, _('Usage: /presence\nPresence: Send a directed presence.'), None),
             }
 
         self.key_func = {
@@ -1155,6 +1157,19 @@ class Core(object):
         self.set_status(show, msg)
         if isinstance(current, tabs.MucTab) and current.joined and show not in ('away', 'xa'):
             current.send_chat_state('active')
+
+    def command_presence(self, arg):
+        """
+        /presence <presence stanza>
+        """
+        if not arg:
+            return
+        try:
+            self.xmpp.Presence(xml=ET.fromstring(arg)).send()
+        except :
+            import traceback
+            self.information(_('Could not send directed presence'), 'Error')
+            log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
