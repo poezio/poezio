@@ -1,7 +1,6 @@
 Plugins
 =======
 
-
 Location
 --------
 
@@ -243,7 +242,7 @@ Examples
 
 [[example-1]]
 .Add a simple command that sends "Hello World!" into the conversation
-=====================================================================
+=================================================================
 [source,python]
 ---------------
 class Plugin(BasePlugin):
@@ -253,7 +252,7 @@ class Plugin(BasePlugin):
     def command_hello(self, arg):
         self.core.send_message('Hello World!')
 ---------------
-=====================================================================
+=================================================================
 
 [[example-2]]
 
