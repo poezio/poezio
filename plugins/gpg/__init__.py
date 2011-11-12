@@ -2,13 +2,34 @@ from gpg import gnupg
 from xml.etree import cElementTree as ET
 import xml.sax.saxutils
 
-from plugin import BasePlugin
-
 import logging
 log = logging.getLogger(__name__)
 
+from plugin import BasePlugin
+
+
 NS_SIGNED = "jabber:x:signed"
 NS_ENCRYPTED = "jabber:x:encrypted"
+
+
+SIGNED_ATTACHED_MESSAGE = """-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+%(clear)s
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG
+
+%(data)s
+-----END PGP SIGNATURE-----
+"""
+
+
+ENCRYPTED_MESSAGE = """-----BEGIN PGP MESSAGE-----
+Version: GnuPG
+
+%(data)s
+-----END PGP MESSAGE-----"""
+
 
 class Plugin(BasePlugin):
     def init(self):
@@ -38,12 +59,13 @@ class Plugin(BasePlugin):
         Sign every normal presence we send
         """
         signed_element = ET.Element('{%s}x' % (NS_SIGNED,))
-        t = self.gpg.sign(presence['status'], keyid=self.keyid, passphrase=self.passphrase)
+        t = self.gpg.sign(presence['status'], keyid=self.keyid, passphrase=self.passphrase, detach=True)
         if not t:
             self.core.information('Could not sign presence. Disabling GPG module', 'Info')
             self.core.plugin_manager.unload('gpg')
             return
-        signed_element.text = xml.sax.saxutils.escape(str(t))
+        text = xml.sax.saxutils.escape(str(t))
+        signed_element.text = self.remove_gpg_headers(text)
         presence.append(signed_element)
 
     def send_unsigned_presence(self):
@@ -64,12 +86,13 @@ class Plugin(BasePlugin):
         bare = presence['from'].bare
         full = presence['from'].full
         if signed is None:
-            log.debug('Not signed')
             if bare in self.contacts.keys():
                 del self.contacts[bare]
             return
         if self.config.has_section('keys') and bare in self.config.options('keys'):
-            verify = self.gpg.verify(signed.text)
+            to_verify = SIGNED_ATTACHED_MESSAGE % {'clear': presence['status'],
+                                                                'data': signed.text}
+            verify = self.gpg.verify(to_verify)
             if verify:
                 self.contacts[full] = 'valid'
             else:
@@ -86,7 +109,6 @@ class Plugin(BasePlugin):
         if not message['body']:
             # there’s nothing to encrypt if this is a chatstate, for example
             return
-        log.debug('\n\n\n on_conversation_say: from: (%s). Contacts: %s' %(to, self.contacts,))
         signed = to.full in self.contacts.keys()
         if signed:
             veryfied = self.contacts[to.full] == 'valid'
@@ -97,7 +119,7 @@ class Plugin(BasePlugin):
             # cannot be encrypted.
             del message['xhtml_im']
             encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
-            encrypted_element.text = xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'))))
+            encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys')))))
             message.append(encrypted_element)
             message['body'] = 'This message has been encrypted.'
 
@@ -107,12 +129,23 @@ class Plugin(BasePlugin):
         """
         encrypted = message.find('{%s}x' % (NS_ENCRYPTED,))
         fro = message['from']
-        log.debug('\n\n\n--------- for message %s. ENCRYPTED: %s' % (message, encrypted,))
         if encrypted is not None:
             if self.config.has_section('keys') and fro.bare in self.config.options('keys'):
                 keyid = self.config.get(fro.bare, '', 'keys')
-                decrypted = self.gpg.decrypt(encrypted.text, passphrase=self.passphrase)
+                decrypted = self.gpg.decrypt(ENCRYPTED_MESSAGE % {'data': str(encrypted.text)}, passphrase=self.passphrase)
                 if not decrypted:
                     self.core.information('Could not decrypt message from %s' % (fro.full),)
                     return
                 message['body'] = str(decrypted)
+
+    def remove_gpg_headers(self, text):
+        lines = text.splitlines()
+        while lines[0].strip() != '':
+            lines.pop(0)
+        while lines[0].strip() == '':
+            lines.pop(0)
+        res = []
+        for line in lines:
+            if not line.startswith('---'):
+                res.append(line)
+        return '\n'.join(res)
