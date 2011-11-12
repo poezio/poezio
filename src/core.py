@@ -658,11 +658,12 @@ class Core(object):
         jid = presence['from']
         contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
-            return
-        resource = contact.get_resource_by_fulljid(jid.full)
+            resource = None
+        else:
+            resource = contact.get_resource_by_fulljid(jid.full)
+        self.events.trigger('normal_presence', presence, resource)
         if not resource:
             return
-        self.events.trigger('normal_presence', presence, resource)
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
