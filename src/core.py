@@ -135,6 +135,7 @@ class Core(object):
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
+            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), None),
             }
 
         self.key_func = {
@@ -1516,6 +1517,30 @@ class Core(object):
         else:
             value = ''
         config.set_and_save(option, value)
+        msg = "%s=%s" % (option, value)
+        self.information(msg, 'Info')
+
+    def command_set_plugin(self, arg):
+        """
+        /set_plugin <plugin> <option> [value]
+        """
+        args = arg.split()
+        if len(args) != 3 and len(args) != 2:
+            self.command_help('set_plugin')
+            return
+        plugin_name = args[0]
+        if not plugin_name in self.plugin_manager.plugins:
+            return
+        plugin = self.plugin_manager.plugins[plugin_name]
+        option = args[1]
+        if len(args) == 3:
+            value = args[2]
+        else:
+            value = ''
+        plugin.config.set_and_save(option, value, plugin_name)
+        if not plugin.config.write():
+            self.core.information('Could not save the plugin config', 'Error')
+            return
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
 
