@@ -1921,6 +1921,7 @@ class ConversationTab(ChatTab):
     The tab containg a normal conversation (not from a MUC)
     """
     plugin_commands = {}
+    additional_informations = {}
     message_type = 'chat'
     def __init__(self, jid):
         ChatTab.__init__(self)
@@ -1940,6 +1941,17 @@ class ConversationTab(ChatTab):
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.resize()
         self.update_commands()
+
+    @staticmethod
+    def add_information_element(plugin_name, callback):
+        """
+        Lets a plugin add its own information to the ConversationInfoWin
+        """
+        ConversationTab.additional_informations[plugin_name] = callback
+
+    @staticmethod
+    def remove_information_element(plugin_name):
+        del ConversationTab.additional_informations[plugin_name]
 
     def completion(self):
         self.complete_commands(self.input)
@@ -2013,13 +2025,13 @@ class ConversationTab(ChatTab):
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh()
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.info_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
     def get_name(self):

@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 from plugin import BasePlugin
 
+from tabs import ConversationTab
 
 NS_SIGNED = "jabber:x:signed"
 NS_ENCRYPTED = "jabber:x:encrypted"
@@ -51,8 +52,11 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
+        ConversationTab.add_information_element('gpg', self.display_encryption_status)
+
     def cleanup(self):
         self.send_unsigned_presence()
+        ConversationTab.remove_information_element('gpg')
 
     def sign_presence(self, presence):
         """
@@ -137,6 +141,15 @@ class Plugin(BasePlugin):
                     self.core.information('Could not decrypt message from %s' % (fro.full),)
                     return
                 message['body'] = str(decrypted)
+
+    def display_encryption_status(self, jid):
+        """
+        Returns the status of encryption for the associated jid. This is to be used
+        in the ConversationTab’s InfoWin.
+        """
+        if jid.full not in self.contacts.keys():
+            return ''
+        return ' GPG Key: %s' % self.contacts[jid.full]
 
     def remove_gpg_headers(self, text):
         lines = text.splitlines()

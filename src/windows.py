@@ -368,19 +368,19 @@ class ConversationInfoWin(InfoWin):
     about the user we are talking to
     """
     color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
-            'none': lambda: get_theme().COLOR_STATUS_ONLINE,
-            '': lambda: get_theme().COLOR_STATUS_ONLINE,
-            'available': lambda: get_theme().COLOR_STATUS_ONLINE,
-            'dnd': lambda: get_theme().COLOR_STATUS_DND,
-            'away': lambda: get_theme().COLOR_STATUS_AWAY,
-            'chat': lambda: get_theme().COLOR_STATUS_CHAT,
-            'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
+                  'none': lambda: get_theme().COLOR_STATUS_ONLINE,
+                  '': lambda: get_theme().COLOR_STATUS_ONLINE,
+                  'available': lambda: get_theme().COLOR_STATUS_ONLINE,
+                  'dnd': lambda: get_theme().COLOR_STATUS_DND,
+                  'away': lambda: get_theme().COLOR_STATUS_AWAY,
+                  'chat': lambda: get_theme().COLOR_STATUS_CHAT,
+                  'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
                   }
 
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, jid, contact, window, chatstate):
+    def refresh(self, jid, contact, window, chatstate, informations):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -405,9 +405,17 @@ class ConversationInfoWin(InfoWin):
             self.write_resource_information(resource)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
+            self.write_additional_informations(informations, jid)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
+    def write_additional_informations(self, informations, jid):
+        """
+        Write all informations added by plugins by getting the
+        value returned by the callbacks.
+        """
+        for key in informations:
+            self.addstr(informations[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
     def write_resource_information(self, resource):
         """
         Write the informations about the resource
