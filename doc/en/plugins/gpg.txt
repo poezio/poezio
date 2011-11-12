@@ -25,8 +25,9 @@ Installation and configuration
 ------------------------------
 
 You should autoload this plugin, as it will send your signed presence directly
-on login, making it easier for your contact’s clients that you are supporting
-GPG encryption. To do that, use the _plugins_autoload_ configuration option.
+on login, making it easier for your contact’s clients to know that you are
+supporting GPG encryption. To do that, use the _plugins_autoload_ configuration
+option.
 
 You need to create a plugin configuration file. Create a file named _gpg.cfg_
 into your plugins configuration directory (_~/.config/poezio/plugins_ by
