@@ -143,13 +143,6 @@ CAUTION: TODO
 Events list
 -----------
 
-SleekXMPP events
-~~~~~~~~~~~~~~~~
-
-For the sleekxmpp events, please refer to the
- https://github.com/fritzy/SleekXMPP/wiki/Event-Index[sleekxmpp event index].
-
-
 Poezio events
 ~~~~~~~~~~~~~
 
@@ -239,6 +232,13 @@ presence, i.e. a presence for your contacts or some direct JIDs, but *not* in a
 MUC. The parameters given to this handler are:
 
 * _presence_: The presence about to be sent.
+
+
+SleekXMPP events
+~~~~~~~~~~~~~~~~
+
+For the sleekxmpp events, please refer to the
+ https://github.com/fritzy/SleekXMPP/wiki/Event-Index[sleekxmpp event index].
 
 
 CAUTION: Plugins are in an experimental state and this API might change
