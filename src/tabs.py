@@ -771,6 +771,7 @@ class MucTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
         self.cancel_paused_delay()
+        self.core.events.trigger('muc_say_after', msg, self)
         msg.send()
         self.chat_state = needed
 
@@ -1268,6 +1269,7 @@ class PrivateTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('private_say_after', msg, self)
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
@@ -1958,6 +1960,7 @@ class ConversationTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('conversation_say_after', msg, self)
         msg.send()
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()

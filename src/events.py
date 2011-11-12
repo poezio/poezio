@@ -22,8 +22,11 @@ class EventHandler(object):
         self.events = {
             'highlight': [],
             'muc_say': [],
+            'muc_say_after': [],
             'conversation_say': [],
+            'conversation_say_after': [],
             'private_say': [],
+            'private_say_after': [],
             'conversation_msg': [],
             'private_msg': [],
             'muc_msg': [],
