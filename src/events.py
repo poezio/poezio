@@ -20,14 +20,22 @@ class EventHandler(object):
     """
     def __init__(self):
         self.events = {
-            # when you are highlighted in a muc tab
             'highlight': [],
             'muc_say': [],
+            'muc_say_after': [],
             'conversation_say': [],
+            'conversation_say_after': [],
             'private_say': [],
+            'private_say_after': [],
             'conversation_msg': [],
             'private_msg': [],
             'muc_msg': [],
+            'normal_chatstate': [],
+            'muc_chatstate': [],
+            'private_chatstate': [],
+            'normal_presence': [],
+            'muc_presence': [],
+            'send_normal_presence': [],
             }
 
     def add_event_handler(self, name, callback, position=0):
@@ -35,7 +43,7 @@ class EventHandler(object):
         Add a callback to a given event.
         Note that if that event name doesn’t exist, it just returns False.
         If it was successfully added, it returns True
-        position: 0 means insert a the beginning, -1 means end
+        position: 0 means insert at the beginning, -1 means end
         """
         if name not in self.events:
             return False
@@ -49,7 +57,7 @@ class EventHandler(object):
 
     def trigger(self, name, *args, **kwargs):
         """
-        Call all the callbacks associated to the given event name
+        Call all the callbacks associated to the given event name.
         """
         callbacks = self.events[name]
         for callback in callbacks:

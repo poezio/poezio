@@ -1,6 +1,7 @@
 import imp
 import os
 import sys
+import tabs
 from config import config
 from gettext import gettext as _
 
@@ -34,9 +35,9 @@ class PluginManager(object):
         self.plugins = {} # module name -> plugin object
         self.commands = {} # module name -> dict of commands loaded for the module
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
-        self.poezio_event_handlers = {}
+        self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
 
-    def load(self, name):
+    def load(self, name, notify=True):
         if name in self.plugins:
             self.unload(name)
 
@@ -60,25 +61,31 @@ class PluginManager(object):
 
         self.modules[name] = module
         self.commands[name] = {}
+        self.tab_commands[name] = {}
         self.event_handlers[name] = []
-        self.poezio_event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
+        if notify:
+            self.core.information('Plugin %s loaded' % name, 'Info')
 
-    def unload(self, name):
+    def unload(self, name, notify=True):
         if name in self.plugins:
             try:
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
+                for tab in list(self.tab_commands[name].keys()):
+                    for command in self.tab_commands[name][tab]:
+                        self.del_tab_command(name, getattr(tabs, tab), command[0])
+                    del self.tab_commands[name][tab]
                 for event_name, handler in self.event_handlers[name]:
-                    self.core.xmpp.del_event_handler(event_name, handler)
-                for handler in self.poezio_event_handlers[name]:
-                    self.core.events.del_event_handler(None, handler)
+                    self.del_event_handler(name, event_name, handler)
 
                 self.plugins[name].unload()
                 del self.plugins[name]
                 del self.commands[name]
+                del self.tab_commands[name]
                 del self.event_handlers[name]
-                del self.poezio_event_handlers[name]
+                if notify:
+                    self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 import traceback
                 self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())
@@ -89,6 +96,29 @@ class PluginManager(object):
             if name in self.core.commands:
                 del self.core.commands[name]
 
+    def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None):
+        commands = self.tab_commands[module_name]
+        t = tab_type.__name__
+        if not t in commands:
+            commands[t] = []
+        commands[t].append((name, handler, help, completion))
+        for tab in self.core.tabs:
+            if isinstance(tab, tab_type):
+                tab.add_plugin_command(name, handler, help, completion)
+
+    def del_tab_command(self, module_name, tab_type, name):
+        commands = self.tab_commands[module_name]
+        t = tab_type.__name__
+        if not t in commands:
+            return
+        for command in commands[t]:
+            if command[0] == name:
+                commands[t].remove(command)
+                del tab_type.plugin_commands[name]
+                for tab in self.core.tabs:
+                    if isinstance(tab, tab_type) and name in tab.commands:
+                        del tab.commands[name]
+
     def add_command(self, module_name, name, handler, help, completion=None):
         if name in self.core.commands:
             raise Exception(_("Command '%s' already exists") % (name,))
@@ -97,25 +127,21 @@ class PluginManager(object):
         commands[name] = (handler, help, completion)
         self.core.commands[name] = (handler, help, completion)
 
-    def add_event_handler(self, module_name, event_name, handler):
+    def add_event_handler(self, module_name, event_name, handler, position=0):
         eh = self.event_handlers[module_name]
         eh.append((event_name, handler))
-        self.core.xmpp.add_event_handler(event_name, handler)
+        if event_name in self.core.events.events:
+            self.core.events.add_event_handler(event_name, handler, position)
+        else:
+            self.core.xmpp.add_event_handler(event_name, handler)
 
     def del_event_handler(self, module_name, event_name, handler):
-        self.core.xmpp.del_event_handler(event_name, handler)
+        if event_name in self.core.events.events:
+            self.core.events.del_event_handler(None, handler)
+        else:
+            self.core.xmpp.del_event_handler(event_name, handler)
         eh = self.event_handlers[module_name]
         eh = list(filter(lambda e : e != (event_name, handler), eh))
-
-    def add_poezio_event_handler(self, module_name, event_name, handler, position):
-        eh = self.poezio_event_handlers[module_name]
-        eh.append(handler)
-        self.core.events.add_event_handler(event_name, handler, position)
-
-    def del_poezio_event_handler(self, module_name, event_name, handler):
-        self.core.events.del_event_handler(None, handler)
-        eh = self.poezio_event_handlers[module_name]
-        eh = list(filter(lambda e : e != handler, eh))
 
     def completion_load(self, the_input):
         """

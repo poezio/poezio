@@ -23,6 +23,7 @@ class DataFormsTab(Tab):
     A tab contaning various window type, displaying
     a form that the user needs to fill.
     """
+    plugin_commands = {}
     def __init__(self, form, on_cancel, on_send, kwargs):
         Tab.__init__(self)
         self._form = form
@@ -41,6 +42,7 @@ class DataFormsTab(Tab):
         self.key_func['^G'] = self.on_cancel
         self.key_func['^Y'] = self.on_send
         self.resize()
+        self.update_commands()
 
     def on_cancel(self):
         self._on_cancel(self._form)

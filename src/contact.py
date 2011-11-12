@@ -26,30 +26,37 @@ class Resource(object):
         self._presence = 'unavailable'
         self._priority = 0
 
-    def get_jid(self):
+    @property
+    def jid(self):
         return self._jid
 
     def __repr__(self):
         return '%s' % self._jid
 
-    def set_priority(self, priority):
-        assert isinstance(priority, int)
-        self._priority = priority
-
-    def get_priority(self):
+    @property
+    def priority(self):
         return self._priority
 
-    def set_presence(self, pres):
-        self._presence = pres
+    @priority.setter
+    def priority(self, value):
+        assert isinstance(value, int)
+        self._priority = value
 
-    def get_presence(self):
+    @property
+    def presence(self):
         return self._presence
 
-    def get_status(self):
+    @presence.setter
+    def presence(self, value):
+        self._presence = value
+
+    @property
+    def status(self):
         return self._status
 
-    def set_status(self, s):
-        self._status = s
+    @status.setter
+    def status(self, value):
+        self._status = value
 
 class Contact(object):
     """
@@ -66,16 +73,14 @@ class Contact(object):
         self._ask = None
         self._groups = []       # a list of groups the contact is in
 
-    def get_groups(self):
-        """
-        Return the groups the contact is in
-        """
+    @property
+    def groups(self):
+        """Groups the contact is in"""
         return self._groups
 
-    def get_bare_jid(self):
-        """
-        Just get the bare_jid or the contact
-        """
+    @property
+    def bare_jid(self):
+        """The bare_jid or the contact"""
         return self._jid
 
     def get_highest_priority_resource(self):
@@ -84,7 +89,7 @@ class Contact(object):
         """
         ret = None
         for resource in self._resources:
-            if not ret or ret.get_priority() < resource.get_priority():
+            if not ret or ret.priority < resource.priority:
                 ret = resource
         return ret
 
@@ -94,7 +99,7 @@ class Contact(object):
         (the first, or any subsequent one)
         """
         def f(o):
-            return o.get_priority()
+            return o.priority
         self._resources.append(resource)
         self._resources = sorted(self._resources, key=f, reverse=True)
 
@@ -109,7 +114,7 @@ class Contact(object):
         Like 'remove_resource' but just by knowing the full jid
         """
         for resource in self._resources:
-            if resource.get_jid().full == fulljid:
+            if resource.jid == fulljid:
                 self._resources.remove(resource)
                 return
         assert False
@@ -119,7 +124,7 @@ class Contact(object):
         Return the resource with the given fulljid
         """
         for resource in self._resources:
-            if resource.get_jid().full == fulljid:
+            if resource.jid.full == fulljid:
                 return resource
         return None
 
@@ -129,23 +134,29 @@ class Contact(object):
         """
         self._folded = not self._folded
 
-    def set_name(self, name):
-        self._display_name = name
-
-    def get_name(self):
+    @property
+    def name(self):
         return self._display_name
 
-    def set_ask(self, ask):
-        self._ask = ask
+    @name.setter
+    def name(self, value):
+        self._display_name = value
 
-    def get_ask(self):
+    @property
+    def ask(self):
         return self._ask
 
-    def set_subscription(self, sub):
-        self._subscription = sub
+    @ask.setter
+    def ask(self, value):
+        self._ask = value
 
-    def get_subscription(self):
+    @property
+    def subscription(self):
         return self._subscription
+
+    @subscription.setter
+    def subscription(self, value):
+        self._subscription = value
 
     def get_nb_resources(self):
         """
@@ -157,7 +168,7 @@ class Contact(object):
         """
         Return all resources, sorted by priority
         """
-        compare_resources = lambda x: x.get_priority()
+        compare_resources = lambda x: x.priority
         return sorted(self._resources, key=compare_resources)
 
     def __repr__(self):

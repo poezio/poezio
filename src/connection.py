@@ -51,7 +51,7 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0085')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
-                    'version':'0.7.2-dev'}
+                    'version':'0.7.5-dev'}
             if config.get('send_os_info', 'true') == 'true':
                 info['os'] = common.get_os_info()
             self.register_plugin('xep_0092', pconfig=info)
@@ -63,9 +63,11 @@ class Connection(sleekxmpp.ClientXMPP):
         # With anon auth.
         # (domain, config.get('port', 5222))
         custom_host = config.get('custom_host', '')
-        custom_port = config.get('custom_port', -1)
-        if custom_host and custom_port != -1:
+        custom_port = config.get('custom_port', 5222)
+        if custom_host:
             res = self.connect((custom_host, custom_port), reattempt=False)
+        elif custom_port != 5222:
+            res = self.connect((self.boundjid.host, custom_port), reattempt=False)
         else:
             res = self.connect(reattempt=False)
         if not res:

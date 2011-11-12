@@ -50,9 +50,7 @@ class SafetyMetaclass(type):
 
 class BasePlugin(object, metaclass=SafetyMetaclass):
     """
-    Class that all plugins derive from.  Any methods beginning with command_
-    are interpreted as a command and beginning with on_ are interpreted as
-    event handlers
+    Class that all plugins derive from.
     """
 
     def __init__(self, plugin_manager, core, plugins_conf_dir):
@@ -65,28 +63,57 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         self.init()
 
     def init(self):
+        """
+        Method called at the creation of the plugin.
+        Do not overwrite __init__ and use this instead.
+        """
         pass
 
     def cleanup(self):
+        """
+        Called when the plugin is unloaded.
+        Overwrite this if you want to erase or save things before the plugin is disabled.
+        """
         pass
 
     def unload(self):
         self.cleanup()
 
     def add_command(self, name, handler, help, completion=None):
+        """
+        Add a global command.
+        You cannot overwrite the existing commands.
+        """
         return self.plugin_manager.add_command(self.__module__, name, handler, help, completion)
 
     def del_command(self, name):
+        """
+        Remove a global command.
+        This only works if the command was added by the plugin
+        """
         return self.plugin_manager.del_command(self.__module__, name)
 
-    def add_event_handler(self, event_name, handler):
-        return self.plugin_manager.add_event_handler(self.__module__, event_name, handler)
+    def add_tab_command(self, tab_type, name, handler, help, completion=None):
+        """
+        Add a command only for a type of tab.
+        """
+        return self.plugin_manager.add_tab_command(self.__module__, tab_type, name, handler, help, completion)
+
+    def del_tab_command(self, tab_type, name):
+        """
+        Delete a command added through add_tab_command.
+        """
+        return self.plugin_manager.del_tab_command(self.__module__, tab_type, name)
+
+    def add_event_handler(self, event_name, handler, position=0):
+        """
+        Add an event handler to the event event_name.
+        An optional position in the event handler list can be provided.
+        """
+        return self.plugin_manager.add_event_handler(self.__module__, event_name, handler, position)
 
     def del_event_handler(self, event_name, handler):
+        """
+        Remove 'handler' from the event list for 'event_name'.
+        """
         return self.plugin_manager.del_event_handler(self.__module__, event_name, handler)
-
-    def add_poezio_event_handler(self, event_name, handler, position=0):
-        return self.plugin_manager.add_poezio_event_handler(self.__module__, event_name, handler, position)
-
-    def del_poezio_event_handler(self, event_name, handler):
-        return self.plugin_manager.del_poezio_event_handler(self.__module__, event_name, handler)

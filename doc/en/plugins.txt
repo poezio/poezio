@@ -1,8 +1,6 @@
 Plugins
 =======
 
-Currently, the plugins are in a plugin branch on the git repo.
-
 Location
 --------
 
@@ -20,13 +18,15 @@ Methods
 
 Overridden methods
 ~~~~~~~~~~~~~~~~~~
-The *Plugin* class has several method that you can override for your own convenience
+The *Plugin* class has several method that you can override for your own
+ convenience
 
 [[init]]
 *init*:: +self+ +
 This method is called when the plugin is loaded, this is where you call
 the other methods, for example <<add-command,add_command>>, and initialize
-everything to make your plugin actually do something. <<example-1,ex 1>>, <<example-2,ex 2>>
+everything to make your plugin actually do something. <<example-1,ex 1>>,
+ <<example-2,ex 2>>
 
 *cleanup*:: +self+ +
 Called when the plugin is unloaded (or when poezio is exited). Clean everything
@@ -44,23 +44,58 @@ This method adds a global command to poezio. For example you can add a /foo
 command that the user could call when the plugin is loaded, by calling this
 method with _foo_ as its _name_ argument. <<example-1,ex 1>>
 
-* _name_: (string) the name of the command (for example, if it is 'plugintest', it can
-add a /plugintest command)
+* _name_: (string) the name of the command (for example, if it is 'plugintest',
+ it can add a /plugintest command)
 * _handler_: (function) the function to be called when the command is executed.
 the handler takes *args* as a parameter, which is a string of what
 is entered after the command. Split *args* (with _common.shell_split_) to use
 that as command arguments.
-* _help_: (string) the help message available for that command through the _/help_
-command.
-* _completion_: (function) the completion for the args of that command. It takes
-an input object as its only argument. This function should call the
-_auto_completion()_ method on the input object, passing a list of possible strings
-for the completion and returning the value of that call directly.
-Everything else is handled by that _auto_completion()_ method (checking what strings
-match, how to cycle between matches, etc). If you don’t want any special completion
-for that command, just pass None (the default value).
+* _help_: (string) the help message available for that command through the
+ _/help_ command.
+* _completion_: (function) the completion for the args of that command. It
+ takes an input object as its only argument. This function should call the
+_auto_completion()_ method on the input object, passing a list of possible
+ strings for the completion and returning the value of that call directly.
+Everything else is handled by that _auto_completion()_ method (checking what
+ strings match, how to cycle between matches, etc). If you don’t want any
+ special completion for that command, just pass None (the default value).
 
-*add_event_handler**: +self+, +event_name+, +handler+ +
+*del_command*:: +self+, +name+ +
+This command removes a tab command added by your plugin.
+
+* _name_: (string) the name of the command you want to remove.
+
+
+*add_tab_command*:: +self+, +tab_type+, +name+, +handler+, +help+, +completion+ +
+This method adds a tab-custom command to poezio. For example you can add /dou
+command that the user could call in a specific tab when the plugin is loaded.
+
+
+* _tab_type_: You have to _import tabs_ in order to get tabs types. The
+ following are possible:
+** _tabs.MucTab_: The MultiUserChat tabs
+** _tabs.PrivateTab_: The Private tabs
+** _tabs.ConversationTab_: The Roster tab
+** _tabs.RosterInfoTab_: The MultiUserChat, Private, and Conversation tabs
+** _tabs.ChatTab_: The MultiUserChat, Private, and Conversation tabs
+** _tabs.MucListTab_: The MultiUserChat list tabs
+* _name_: (string) the name of the command (for example, if it is 'plugintest',
+ it can add a /plugintest command)
+* _handler_: (function) the function to be called when the command is executed.
+the handler takes *args* as a parameter, which is a string of what
+is entered after the command. Split *args* (with _common.shell_split_) to use
+that as command arguments.
+* _help_: (string) the help message available for that command through the
+ _/help_ command.
+* _completion_: (function) the completion for the args of that command. It
+ takes an input object as its only argument. This function should call the
+_auto_completion()_ method on the input object, passing a list of possible
+ strings for the completion and returning the value of that call directly.
+Everything else is handled by that _auto_completion()_ method (checking what
+ strings match, how to cycle between matches, etc). If you don’t want any
+ special completion for that command, just pass None (the default value).
+
+*add_event_handler**: +self+, +event_name+, +handler+ +position+
 This methods adds a callback that will be called whenever the given event
 occurs. <<example-2,ex 2>>
 
@@ -68,7 +103,13 @@ occurs. <<example-2,ex 2>>
 This can be a sleekxmpp event, or a poezio event. See the list of
 <<events-list,all available events>>.
 * _handler_: The method that will be called whenever the event occurs.
-It must accept the arguments specified for that event in the <<events-list,events list>>.
+It must accept the arguments specified for that event in the
+ <<events-list,events list>>.
+* _position_: Optional, this argument will specify the position of the handler
+ in the handler list for this event. It is 0 by default, and will only be used
+ with the internal poezio events described below.
+
+
 
 Attributes
 ----------
@@ -78,14 +119,20 @@ Config
 By default, each plugin has a PluginConfig object accessible with *self.config*.
 
 *PluginConfig.read*:: +self+ + 
-Reads the config file from $XDG_CONFIG_HOME/poezio/plugins/plugin_name.cfg, it is called upon initialization, so you should not need it.
+Reads the config file from $XDG_CONFIG_HOME/poezio/plugins/plugin_name.cfg, it
+ is called upon initialization, so you should not need it.
 
 *PluginConfig.write*:: +self+ +
 Writes the config to the same file mentioned previously.
 
 Core
 ~~~~
-Each plugin has a reference to the Core object accessible with *self.core*, that allows you to do about anything with poezio. Remember to use it only when you need it, and to use the functions described in this documentation only, even if much more is available. If your plugin needs to do something not available with these methods, please do a feature request instead of doing some dirty hacks with some other methods.
+Each plugin has a reference to the Core object accessible with *self.core*,
+ that allows you to do about anything with poezio. Remember to use it only when
+ you need it, and to use the functions described in this documentation only,
+ even if much more is available. If your plugin needs to do something not
+ available with these methods, please do a feature request instead of doing
+ some dirty hacks with some other methods.
 
 Core methods
 ^^^^^^^^^^^^
@@ -95,24 +142,163 @@ CAUTION: TODO
 [[events-list]]
 Events list
 -----------
-CAUTION: TODO
+
+Poezio events
+~~~~~~~~~~~~~
+
+*muc_say*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in a MUC
+ (through the /say command or by direct input). The parameters given to the
+ handlers are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*muc_say_after*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in a MUC
+ (through the /say command or by direct input). The difference with muc_say is
+ just that *muc_say_after* hook is called AFTER the xhtm-im body has been
+ generated. So you *MUST* not insert any color attribute in the body using this
+ hook. The hook is less safe that *muc_say* and most of the time you should not
+ use it at all. The parameters given to the  handlers are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*private_say*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in a private
+ conversaton in a MUC (through the /say command or by direct input). The
+ parameters given to the handlers are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*private_say_after*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in a MUC
+ (through the /say command or by direct input). The difference with private_say
+ is just that *private_say_after* hook is called AFTER the xhtm-im body has
+ been generated and the message has been displayed on the conversation, this
+ means that if you modify the body, the message that will be sent will not be
+ the same that the one displayed in the text buffer. So you *MUST* not insert
+ any color attribute in the body using this hook. The hook is less safe that
+ *private_say* and most of the time you should not use it at all. The
+ parameters given to the handlers are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*conversation_say*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in direct
+ conversation (through the /say command or by direct input). The parameters
+ given to the handler are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*conversation_say_after*:: +message+, +tab+ +
+The handlers for this event are called whenever you say something in a MUC
+ (through the /say command or by direct input). The difference with
+ *conversation_say* is just that *conversation_say_after* hook is called AFTER
+ the xhtm-im body has been generated and the message has been displayed on the
+ conversation, this means that if you modify the body, the message that will be
+ sent will not be the same that the one displayed in the text buffer. So you
+ *MUST* not insert any color attribute in the body using this hook. The hook is
+ less safe that *conversation_say* and most of the time you should not use it at
+ all. The parameters given to the handlers are:
+
+* _message_: Message to be sent.
+* _tab_: Tab in which the message will be sent.
+
+*muc_msg*:: +message+, +tab+ +
+The handlers for this event are called whenever you receive a message in a MUC.
+ The parameters given to the handler are:
+
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
+
+*private_msg*:: +message+, +tab+ +
+The handlers for this event are called whenever you receive a message in a
+ private conversation in a MUC. The parameters given to the handler are:
+
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
+
+*conversation_msg*:: +message+, +tab+ +
+The handlers for this event are called whenever you receive a message in a
+ direct conversation. The parameters given to the handler are:
+
+* _message_: Message received.
+* _tab_: Tab in which the message was received.
+
+*normal_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ direct conversation. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned conversation
+
+*muc_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ MUC. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned MUC.
+
+*private_chatstate*:: +message+, +tab+ +
+The handlers for this events are called whenever you receive a chatstate in a
+ private conversation in a MUC. The parameters given to this handler are:
+
+* _message_: Chatstate received.
+* _tab_: Tab of the concerned conversation.
+
+*normal_presence*:: +presence+, +resource+ +
+The handlers for this events are called whenever you receive a presence from
+ one of your contacts. The parameters given to this handler are:
+
+* _presence_: Presence received.
+* _resource_: The resource that emitted the presence.
+
+*muc_presence*:: +presence+, +tab+ +
+The handlers for this events are called whenever you receive a presence from
+ someone in a MUC. The parameters given to this handler are:
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
+*send_normal_presence*:: +presence+ +
+The handlers for this events are called whenever you send a presence “normal”
+presence, i.e. a presence for your contacts or some direct JIDs, but *not* in a
+MUC. The parameters given to this handler are:
+
+* _presence_: The presence about to be sent.
+
+
+SleekXMPP events
+~~~~~~~~~~~~~~~~
+
+For the sleekxmpp events, please refer to the
+ https://github.com/fritzy/SleekXMPP/wiki/Event-Index[sleekxmpp event index].
+
+
+CAUTION: Plugins are in an experimental state and this API might change
+ slightly in a near future. You have to be aware of that while making a plugin.
 
 Examples
 --------
 
 [[example-1]]
 .Add a simple command that sends "Hello World!" into the conversation
-=====================================================================
+=================================================================
 [source,python]
 ---------------
 class Plugin(BasePlugin):
     def init(self):
     	self.add_command('hello', self.command_hello, "Usage: /hello\nHello: Send 'Hello World!'", None)
 
-    def command_hello(self, args):
+    def command_hello(self, arg):
         self.core.send_message('Hello World!')
 ---------------
-=====================================================================
+=================================================================
 
 [[example-2]]
 
@@ -122,11 +308,11 @@ class Plugin(BasePlugin):
 ---------------
 class Plugin(BasePlugin):
     def init(self):
-    	self.add_event_handler('groupchat_message', self.on_groupchat_message)
+    	self.add_event_handler('muc_msg', self.on_groupchat_message)
 
-    def on_groupchat_message(self, message):
+    def on_groupchat_message(self, message, tab):
         if message['mucnick'] == "Partauche":
-            self.core.send_message('tg', to=message.getMucroom())
+            tab.command_say('tg')
 ---------------
 =====================================================================
 

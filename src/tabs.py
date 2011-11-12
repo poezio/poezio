@@ -46,6 +46,7 @@ from os import getenv, path
 from logger import logger
 
 from datetime import datetime, timedelta
+from xml.etree import cElementTree as ET
 
 SHOW_NAME = {
     'dnd': _('busy'),
@@ -90,6 +91,7 @@ class Tab(object):
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
         self.commands = {}      # and their own commands
+
 
     @property
     def core(self):
@@ -220,6 +222,18 @@ class Tab(object):
     def on_input(self, key):
         pass
 
+    def add_plugin_command(self, name, handler, help, completion=None):
+        if name in self.plugin_commands or name in self.commands:
+            return
+        self.plugin_commands[name] = (handler, help, completion)
+        self.commands[name] = (handler, help, completion)
+        self.update_commands()
+
+    def update_commands(self):
+        for c in self.plugin_commands:
+            if not c in self.commands:
+                self.commands[name] = self.plugin_commands[c]
+
     def on_lose_focus(self):
         """
         called when this tab loses the focus.
@@ -275,6 +289,7 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
+    plugin_commands = {}
     def __init__(self):
         Tab.__init__(self)
         self._text_buffer = TextBuffer()
@@ -294,7 +309,9 @@ class ChatTab(Tab):
         self.commands['say'] =  (self.command_say,
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'."""), None)
+        self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
         self.chat_state = None
+        self.update_commands()
 
     def last_words_completion(self):
         """
@@ -323,6 +340,29 @@ class ChatTab(Tab):
                     txt = txt[1:]
                 self.command_say(xhtml.convert_simple_to_full_colors(txt))
         self.cancel_paused_delay()
+
+    def command_xhtml(self, arg):
+        """"
+        /xhtml <custom xhtml>
+        """
+        if not arg:
+            return
+        try:
+            body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg))
+            ET.fromstring(arg)
+        except:
+            self.core.information('Could not send custom xhtml', 'Error')
+            return
+
+        msg = self.core.xmpp.make_message(self.get_name())
+        msg['body'] = body
+        msg['xhtml_im'] = arg
+        if isinstance(self, MucTab):
+            msg['type'] = 'groupchat'
+        if isinstance(self, ConversationTab):
+            self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
+            self.refresh()
+        msg.send()
 
     def send_chat_state(self, state, always_send=False):
         """
@@ -402,6 +442,7 @@ class MucTab(ChatTab):
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
+    plugin_commands = {}
     def __init__(self, jid, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -445,6 +486,7 @@ class MucTab(ChatTab):
         self.commands['clear'] =  (self.command_clear,
                                  _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.resize()
+        self.update_commands()
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
@@ -722,13 +764,14 @@ class MucTab(ChatTab):
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('muc_say', msg)
+        self.core.events.trigger('muc_say', msg, self)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
         self.cancel_paused_delay()
+        self.core.events.trigger('muc_say_after', msg, self)
         msg.send()
         self.chat_state = needed
 
@@ -1027,7 +1070,6 @@ class MucTab(ChatTab):
             self.core.doupdate()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            log.debug("\n\nALLO: USERCOLOR: %s\n\n" % user.color.__repr__())
             color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
             if not jid.full:
                 leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT}
@@ -1186,6 +1228,7 @@ class PrivateTab(ChatTab):
     The tab containg a private conversation (someone from a MUC)
     """
     message_type = 'chat'
+    plugin_commands = {}
     def __init__(self, name, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -1204,6 +1247,7 @@ class PrivateTab(ChatTab):
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
         self.on = True
+        self.update_commands()
 
     def completion(self):
         self.complete_commands(self.input)
@@ -1217,7 +1261,7 @@ class PrivateTab(ChatTab):
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('private_say', msg)
+        self.core.events.trigger('private_say', msg, self)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1225,6 +1269,7 @@ class PrivateTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('private_say_after', msg, self)
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
@@ -1381,6 +1426,7 @@ class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
     """
+    plugin_commands = {}
     def __init__(self):
         Tab.__init__(self)
         self.name = "Roster"
@@ -1415,6 +1461,7 @@ class RosterInfoTab(Tab):
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
+        self.update_commands()
 
     def resize(self):
         if not self.visible:
@@ -1450,8 +1497,8 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.get_ask() == 'asked':
-                jid = item.get_bare_jid()
+            if isinstance(item, Contact) and item.ask == 'asked':
+                jid = item.bare_jid
             else:
                 self.core.information('No subscription to deny')
                 return
@@ -1471,7 +1518,6 @@ class RosterInfoTab(Tab):
             self.core.information(_('No JID specified'), 'Error')
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
-        self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
 
     def command_name(self, args):
         """
@@ -1488,10 +1534,10 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        groups = set(contact.get_groups())
-        subscription = contact.get_subscription()
+        groups = set(contact.groups)
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
-            contact.set_name(name)
+            contact.name = name
 
     def command_groupadd(self, args):
         """
@@ -1508,7 +1554,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        new_groups = set(contact.get_groups())
+        new_groups = set(contact.groups)
         if group in new_groups:
             self.core.information(_('JID already in group'), 'Error')
             return
@@ -1519,8 +1565,8 @@ class RosterInfoTab(Tab):
         except KeyError:
             pass
 
-        name = contact.get_name()
-        subscription = contact.get_subscription()
+        name = contact.name
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.edit_groups_of_contact(contact, new_groups)
 
@@ -1539,7 +1585,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
-        new_groups = set(contact.get_groups())
+        new_groups = set(contact.groups)
         try:
             new_groups.remove('none')
         except KeyError:
@@ -1549,8 +1595,8 @@ class RosterInfoTab(Tab):
             return
 
         new_groups.remove(group)
-        name = contact.get_name()
-        subscription = contact.get_subscription()
+        name = contact.name
+        subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.edit_groups_of_contact(contact, new_groups)
 
@@ -1564,13 +1610,17 @@ class RosterInfoTab(Tab):
         else:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
-                jid = item.get_bare_jid()
+                jid = item.bare_jid
             else:
                 self.core.information('No roster item to remove')
                 return
+        self.core.xmpp.sendPresence(pto=jid, ptype='unavailable')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        self.core.xmpp.del_roster_item(jid=jid)
+        try:
+            self.core.xmpp.del_roster_item(jid=jid)
+        except:
+            pass
 
     def command_import(self, arg):
         """
@@ -1625,7 +1675,7 @@ class RosterInfoTab(Tab):
         """
         From with any JID presence in the roster
         """
-        jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+        jids = [contact.bare_jid for contact in roster.get_contacts()]
         return the_input.auto_completion(jids, '')
 
     def completion_name(self, the_input):
@@ -1635,7 +1685,7 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         return False
 
@@ -1646,7 +1696,7 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
             groups = [group.name for group in roster.get_groups() if group.name != 'none']
@@ -1661,13 +1711,13 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.get_bare_jid() for contact in roster.get_contacts()]
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
             contact = roster.get_contact_by_jid(args[1])
             if not contact:
                 return False
-            groups = list(contact.get_groups())
+            groups = list(contact.groups)
             try:
                 groups.remove('none')
             except ValueError:
@@ -1680,8 +1730,8 @@ class RosterInfoTab(Tab):
         Complete the first argument from the list of the
         contact with ask=='subscribe'
         """
-        jids = [contact.get_bare_jid() for contact in roster.get_contacts()\
-             if contact.get_ask() == 'asked']
+        jids = [contact.bare_jid for contact in roster.get_contacts()\
+             if contact.ask == 'asked']
         return the_input.auto_completion(jids, '')
 
     def command_accept(self, args):
@@ -1691,14 +1741,20 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.get_ask() == 'asked':
-                jid = item.get_bare_jid()
+            if isinstance(item, Contact) and item.ask == 'asked':
+                jid = item.bare_jid
             else:
                 self.core.information('No subscription to accept')
                 return
         else:
             jid = args[0]
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
+        self.core.xmpp.sendPresence(pto=jid, ptype='')
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            return
+        if contact.subscription in ('to', 'none'):
+            self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
     def refresh(self):
         if self.need_resize:
@@ -1864,6 +1920,8 @@ class ConversationTab(ChatTab):
     """
     The tab containg a normal conversation (not from a MUC)
     """
+    plugin_commands = {}
+    additional_informations = {}
     message_type = 'chat'
     def __init__(self, jid):
         ChatTab.__init__(self)
@@ -1882,6 +1940,18 @@ class ConversationTab(ChatTab):
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.resize()
+        self.update_commands()
+
+    @staticmethod
+    def add_information_element(plugin_name, callback):
+        """
+        Lets a plugin add its own information to the ConversationInfoWin
+        """
+        ConversationTab.additional_informations[plugin_name] = callback
+
+    @staticmethod
+    def remove_information_element(plugin_name):
+        del ConversationTab.additional_informations[plugin_name]
 
     def completion(self):
         self.complete_commands(self.input)
@@ -1894,7 +1964,7 @@ class ConversationTab(ChatTab):
         # and before displaying the message in the window
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
-        self.core.events.trigger('conversation_say', msg)
+        self.core.events.trigger('conversation_say', msg, self)
         self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1902,6 +1972,7 @@ class ConversationTab(ChatTab):
         if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        self.core.events.trigger('conversation_say_after', msg, self)
         msg.send()
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
@@ -1916,7 +1987,7 @@ class ConversationTab(ChatTab):
         else:
             resource = contact.get_highest_priority_resource()
         if resource:
-            self._text_buffer.add_message("\x195}Status: %s\x193}" %resource.get_status(), None, None, None, None, None)
+            self._text_buffer.add_message("\x195}Status: %s\x193}" %resource.status, None, None, None, None, None)
             self.refresh()
             self.core.doupdate()
 
@@ -1954,13 +2025,13 @@ class ConversationTab(ChatTab):
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh()
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.info_win.refresh()
         self.tab_win.refresh()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate)
+        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
     def get_name(self):
@@ -1976,17 +2047,38 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
+        contact = roster.get_contact_by_jid(self.get_name())
+        jid = JID(self.get_name())
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
+        else:
+            resource = None
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
-            self.send_chat_state('inactive')
+        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+            if resource:
+                self.send_chat_state('inactive')
 
     def on_gain_focus(self):
+        contact = roster.get_contact_by_jid(self.get_name())
+        jid = JID(self.get_name())
+        if contact:
+            if jid.resource:
+                resource = contact.get_resource_by_fulljid(jid.full)
+            else:
+                resource = contact.get_highest_priority_resource()
+        else:
+            resource = None
+
         self.state = 'current'
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text() or not self.input.get_text().startswith('//'):
-            self.send_chat_state('active')
+        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+            if resource:
+                self.send_chat_state('active')
 
     def on_scroll_up(self):
         self.text_win.scroll_up(self.text_win.height-1)
@@ -2016,6 +2108,7 @@ class MucListTab(Tab):
     A tab listing rooms from a specific server, displaying various information,
     scrollable, and letting the user join them, etc
     """
+    plugin_commands = {}
     def __init__(self, server):
         Tab.__init__(self)
         self.state = 'normal'
@@ -2046,6 +2139,7 @@ class MucListTab(Tab):
         self.listview.refresh()
         self.tab_win.refresh()
         self.input.refresh()
+        self.update_commands()
 
     def resize(self):
         if not self.visible:
@@ -2220,7 +2314,7 @@ def jid_and_name_match(contact, txt):
     """
     if not txt:
         return True
-    if txt in JID(contact.get_bare_jid()).user:
+    if txt in JID(contact.bare_jid).user:
         return True
     return False
 
@@ -2231,9 +2325,9 @@ def jid_and_name_match_slow(contact, txt):
     """
     if not txt:
         return True             # Everything matches when search is empty
-    user = JID(contact.get_bare_jid()).user
+    user = JID(contact.bare_jid).user
     if diffmatch(txt, user):
         return True
-    if contact.get_name() and diffmatch(txt, contact.get_name()):
+    if contact.name and diffmatch(txt, contact.name):
         return True
     return False

@@ -15,6 +15,7 @@ import threading
 import traceback
 
 from datetime import datetime
+from xml.etree import cElementTree as ET
 
 from inspect import getargspec
 
@@ -25,6 +26,7 @@ import singleton
 import collections
 
 from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp.xmlstream.stanzabase import StanzaBase
 
 log = logging.getLogger(__name__)
 
@@ -131,6 +133,8 @@ class Core(object):
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
+            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
+            'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
             }
 
         self.key_func = {
@@ -176,8 +180,6 @@ class Core(object):
         self.timed_events = set()
 
         self.connected_events = {}
-
-        self.autoload_plugins()
 
     def autoload_plugins(self):
         plugins = config.get('plugins_autoload', '')
@@ -325,6 +327,7 @@ class Core(object):
         tab = self.get_tab_of_conversation_with_jid(message['from'], False)
         if not tab:
             return False
+        self.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.current_tab():
             tab.refresh_info_header()
@@ -335,6 +338,7 @@ class Core(object):
         tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
+        self.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.current_tab():
             tab.refresh_info_header()
@@ -346,6 +350,7 @@ class Core(object):
         room_from = message.getMucroom()
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_user_by_name(nick):
+            self.events.trigger('muc_chatstate', message, tab)
             tab.get_user_by_name(nick).chatstate = state
         if tab == self.current_tab():
             tab.user_win.refresh(tab.users)
@@ -372,13 +377,13 @@ class Core(object):
             return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.get_jid().full))
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.jid.full))
         contact.remove_resource(resource)
         # Display the message in the conversation with the bare JID only if that was
         # the only resource online (i.e. now the contact is completely disconnected)
         if not contact.get_highest_priority_resource(): # No resource left: that was the last one
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
-            self.information('\x193}%s \x195}is \x191}offline' % (resource.get_jid().bare), "Roster")
+            self.information('\x193}%s \x195}is \x191}offline' % (resource.jid.bare), "Roster")
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -392,21 +397,22 @@ class Core(object):
         resource = contact.get_resource_by_fulljid(jid.full)
         assert not resource
         resource = Resource(jid.full)
+        self.events.trigger('normal_presence', presence, resource)
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
-        resource.set_status(status_message)
-        resource.set_presence(status)
-        resource.set_priority(priority)
+        resource.status = status_message
+        resource.presence = status
+        resource.priority = priority
         self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
         if not contact.get_highest_priority_resource():
             # No connected resource yet: the user's just connecting
             if time.time() - self.connection_time > 12:
                 # We do not display messages if we recently logged in
                 if status_message:
-                    self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.get_jid().bare, status_message), "Roster")
+                    self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.jid.bare, status_message), "Roster")
                 else:
-                    self.information("\x193}%s \x195}is \x194}online\x195}" % resource.get_jid().bare, "Roster")
+                    self.information("\x193}%s \x195}is \x194}online\x195}" % resource.jid.bare, "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
         contact.add_resource(resource)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -453,13 +459,16 @@ class Core(object):
         Called when we are connected and authenticated
         """
         self.connection_time = time.time()
+        self.autoload_plugins()
         self.information(_("Authentication success."))
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
         if not self.xmpp.anon:
             # request the roster
             self.xmpp.getRoster()
             # send initial presence
-            self.xmpp.makePresence().send()
+            pres = self.xmpp.make_presence()
+            self.events.trigger('send_normal_presence', pres)
+            pres.send()
         rooms = config.get('rooms', '')
         if rooms == '' or not isinstance(rooms, str):
             return
@@ -487,6 +496,7 @@ class Core(object):
         from_room = presence['from'].bare
         tab = self.get_tab_by_name(from_room, tabs.MucTab)
         if tab:
+            self.events.trigger('muc_presence', presence, tab)
             tab.handle_presence(presence)
 
     def rename_private_tabs(self, room_name, old_nick, new_nick):
@@ -560,13 +570,14 @@ class Core(object):
         jid = message['from']
         nick_from = jid.resource
         room_from = jid.bare
+        body = xhtml.get_body_from_message_stanza(message)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
         if not tab: # It's the first message we receive: create the tab
-            tab = self.open_private_window(room_from, nick_from, False)
+            if body:
+                tab = self.open_private_window(room_from, nick_from, False)
             if not tab:
                 return
-        self.events.trigger('private_msg', message)
-        body = xhtml.get_body_from_message_stanza(message)
+        self.events.trigger('private_msg', message, tab)
         if not body:
             return
         tab.add_message(body, time=None, nickname=nick_from,
@@ -604,8 +615,8 @@ class Core(object):
             conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
             if not conversation:
                 if create:
-                    # We create the conversation with the bare Jid if nothing was found
-                    conversation = self.open_conversation_window(jid.bare, False)
+                    # We create the conversation with the full Jid if nothing was found
+                    conversation = self.open_conversation_window(jid.full, False)
                 else:
                     conversation = None
         return conversation
@@ -615,15 +626,17 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
-        self.events.trigger('conversation_msg', message)
         body = xhtml.get_body_from_message_stanza(message)
+        conversation = self.get_tab_of_conversation_with_jid(jid, create=False)
         if not body:
             if message['type'] == 'error':
                 self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
+        self.events.trigger('conversation_msg', message, conversation)
+        body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
-            remote_nick = roster.get_contact_by_jid(jid.bare).get_name() or jid.user
+            remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
         else:
             remote_nick = jid.user
         conversation._text_buffer.add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
@@ -645,18 +658,24 @@ class Core(object):
         jid = presence['from']
         contact = roster.get_contact_by_jid(jid.bare)
         if not contact:
-            return
-        resource = contact.get_resource_by_fulljid(jid.full)
+            resource = None
+        else:
+            resource = contact.get_resource_by_fulljid(jid.full)
+        self.events.trigger('normal_presence', presence, resource)
         if not resource:
             return
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
-        resource.set_presence(status)
-        resource.set_priority(priority)
-        resource.set_status(status_message)
+        resource.presence = status
+        resource.priority = priority
+        resource.status = status_message
+        tab = self.get_tab_of_conversation_with_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
+        elif self.current_tab() == tab:
+            tab.refresh()
+            self.doupdate()
 
     def on_roster_update(self, iq):
         """
@@ -670,19 +689,19 @@ class Core(object):
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
             if 'ask' in item.attrib:
-                contact.set_ask(item.attrib['ask'])
+                contact.ask = item.attrib['ask']
             else:
-                contact.set_ask(None)
+                contact.ask = None
             if 'name' in item.attrib:
-                contact.set_name(item.attrib['name'])
+                contact.name = item.attrib['name']
             else:
-                contact.set_name(None)
+                contact.name = None
             if item.attrib['subscription']:
-                contact.set_subscription(item.attrib['subscription'])
+                contact.subscription = item.attrib['subscription']
             groups = item.findall('{jabber:iq:roster}group')
             roster.edit_groups_of_contact(contact, [group.text for group in groups])
             if item.attrib['subscription'] == 'remove':
-                roster.remove_contact(contact.get_bare_jid())
+                roster.remove_contact(contact.bare_jid)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -690,16 +709,30 @@ class Core(object):
         """
         Triggered whenever a presence stanza with a type of subscribe, subscribed, unsubscribe, or unsubscribed is received.
         """
+        jid = presence['from'].bare
+        contact = roster.get_contact_by_jid(jid)
         if presence['type'] == 'subscribe':
-            jid = presence['from'].bare
-            contact = roster.get_contact_by_jid(jid)
             if not contact:
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
+            log.debug("CONTACT: %s" % contact)
+            if contact.subscription in ('from', 'both'):
+                log.debug('FROM OR BOTH')
+                return
+            elif contact.subscription in ('to'):
+                log.debug('TO')
+                self.xmpp.sendPresence(pto=jid, ptype='subscribed')
+                self.xmpp.sendPresence(pto=jid, ptype='')
+                return
             roster.edit_groups_of_contact(contact, [])
-            contact.set_ask('asked')
+            contact.ask = 'asked'
             self.get_tab_by_number(0).state = 'highlight'
             self.information('%s wants to subscribe to your presence'%jid, 'Roster')
+        elif presence['type'] == 'unsubscribed':
+            self.information('%s unsubscribed you from his presence'%jid, 'Roster')
+        elif presence['type'] == 'unsubscribe':
+            self.information('%s unsubscribed from your presence'%jid, 'Roster')
+
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -1056,7 +1089,7 @@ class Core(object):
         if tab.get_user_by_name(nick_from) and\
                 tab.get_user_by_name(nick_from) in tab.ignores:
             return
-        self.events.trigger('muc_msg', message)
+        self.events.trigger('muc_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
@@ -1124,6 +1157,7 @@ class Core(object):
         if msg:
             pres['status'] = msg
         pres['type'] = show
+        self.events.trigger('send_normal_presence', pres)
         pres.send()
         current = self.current_tab()
         if isinstance(current, tabs.MucTab) and current.joined and show in ('away', 'xa'):
@@ -1134,6 +1168,44 @@ class Core(object):
         self.set_status(show, msg)
         if isinstance(current, tabs.MucTab) and current.joined and show not in ('away', 'xa'):
             current.send_chat_state('active')
+
+    def command_rawxml(self, arg):
+        """"
+        /rawxml <xml stanza>
+        """
+        if not arg:
+            return
+
+        try:
+            StanzaBase(self.xmpp, xml=ET.fromstring(arg)).send()
+        except:
+            import traceback
+            self.information(_('Could not send custom stanza'), 'Error')
+            log.debug(_("Could not send custom stanza:\n") + traceback.format_exc())
+
+    def command_presence(self, arg):
+        """
+        /presence <JID> [type] [status]
+        """
+        args = common.shell_split(arg)
+        if len(args) == 1:
+            jid, type, status = args[0], None, None
+        elif len(args) == 2:
+            jid, type, status = args[0], args[1], None
+        elif len(args) == 3:
+            jid, type, status = args[0], args[1], args[2]
+        else:
+            return
+        if type == 'available':
+            type = None
+        try:
+            pres = self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
+            self.events.trigger('send_normal_presence', pres)
+            pres.send()
+        except :
+            import traceback
+            self.information(_('Could not send directed presence'), 'Error')
+            log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
 
     def completion_status(self, the_input):
         return the_input.auto_completion([status for status in possible_show], ' ')
@@ -1371,7 +1443,12 @@ class Core(object):
         else:
             tab.own_nick = nick
             tab.users = []
-        self.enable_private_tabs(room)
+        if tab and tab.joined:
+            self.enable_private_tabs(room)
+            tab.state = "normal"
+            if tab == self.current_tab():
+                tab.refresh()
+                self.doupdate()
 
     def get_bookmark_nickname(self, room_name):
         """
@@ -1532,7 +1609,9 @@ class Core(object):
         Displays an informational message in the "Info" buffer
         """
         nb_lines = self.information_buffer.add_message(msg, nickname=typ)
-        if typ != '' and typ.lower() in config.get('information_buffer_popup_on',
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
+        elif typ != '' and typ.lower() in config.get('information_buffer_popup_on',
                                            'error roster warning help info').split():
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
@@ -1585,15 +1664,15 @@ class Core(object):
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            if not self.get_conversation_by_jid(roster_row.get_bare_jid()):
-                self.open_conversation_window(roster_row.get_bare_jid())
+            if not self.get_conversation_by_jid(roster_row.bare_jid):
+                self.open_conversation_window(roster_row.bare_jid)
             else:
-                self.focus_tab_named(roster_row.get_bare_jid())
+                self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.get_jid().full):
-                self.open_conversation_window(roster_row.get_jid().full)
+            if not self.get_conversation_by_jid(roster_row.jid.full):
+                self.open_conversation_window(roster_row.jid.full)
             else:
-                self.focus_tab_named(roster_row.get_jid().full)
+                self.focus_tab_named(roster_row.jid.full)
         self.refresh_window()
 
     def remove_timed_event(self, event):

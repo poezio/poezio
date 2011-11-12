@@ -211,6 +211,10 @@ These commands work in *any* tab.
 
 */theme*:: Reload the theme defined in the config file.
 
+*/presence <jid> [type] [status]*:: Send a directed presence to _jid_ using _type_ and _status_ if provided.
+
+*/rawxml*:: Send a custom XML stanza.
+
 */list [server.tld]*:: Get the list of public chatrooms in the specified server
 .
 
@@ -241,6 +245,8 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
 */say <message>*:: Just send the message (only useful it you want your message
  to begin with a _/_). Note that you can also send message starting with a _/_
  by starting it with _//_.
+
+*/xhtml <custom xhtml>*:: Send a custom xhtml message to the current tab.
 
 MultiUserChat tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
