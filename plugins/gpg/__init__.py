@@ -14,7 +14,7 @@ NS_ENCRYPTED = "jabber:x:encrypted"
 
 
 SIGNED_ATTACHED_MESSAGE = """-----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hash: %(hash)s
 
 %(clear)s
 -----BEGIN PGP SIGNATURE-----
@@ -98,13 +98,15 @@ class Plugin(BasePlugin):
                 del self.contacts[bare]
             return
         if self.config.has_section('keys') and bare in self.config.options('keys'):
-            to_verify = SIGNED_ATTACHED_MESSAGE % {'clear': presence['status'],
-                                                                'data': signed.text}
-            verify = self.gpg.verify(to_verify)
-            if verify:
-                self.contacts[full] = 'valid'
-            else:
-                self.contacts[full] = 'invalid'
+            self.contacts[full] = 'invalid'
+            for hash_ in ('SHA1', 'SHA256'):
+                to_verify = SIGNED_ATTACHED_MESSAGE % {'clear': presence['status'],
+                                                       'data': signed.text,
+                                                       'hash': hash_}
+                verify = self.gpg.verify(to_verify)
+                if verify:
+                    self.contacts[full] = 'valid'
+                    break
         else:
             self.contacts[full] = 'signed'
 
@@ -127,7 +129,7 @@ class Plugin(BasePlugin):
             # cannot be encrypted.
             del message['xhtml_im']
             encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
-            encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys')))))
+            encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'), always_trust=True))))
             message.append(encrypted_element)
             message['body'] = 'This message has been encrypted.'
 
