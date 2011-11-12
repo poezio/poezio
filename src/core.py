@@ -615,8 +615,8 @@ class Core(object):
             conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
             if not conversation:
                 if create:
-                    # We create the conversation with the bare Jid if nothing was found
-                    conversation = self.open_conversation_window(jid.bare, False)
+                    # We create the conversation with the full Jid if nothing was found
+                    conversation = self.open_conversation_window(jid.full, False)
                 else:
                     conversation = None
         return conversation
