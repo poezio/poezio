@@ -27,6 +27,8 @@ class Plugin(BasePlugin):
 
         self.add_event_handler('send_normal_presence', self.sign_presence)
         self.add_event_handler('normal_presence', self.on_normal_presence)
+        self.add_event_handler('conversation_say_after', self.on_conversation_say)
+        self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
     def cleanup(self):
         self.send_unsigned_presence()
@@ -35,7 +37,7 @@ class Plugin(BasePlugin):
         """
         Sign every normal presence we send
         """
-        signed_element = ET.Element('{%s}x' % (NS_SIGNED))
+        signed_element = ET.Element('{%s}x' % (NS_SIGNED,))
         t = self.gpg.sign(presence['status'], keyid=self.keyid, passphrase=self.passphrase)
         if not t:
             self.core.information('Could not sign presence. Disabling GPG module', 'Info')
@@ -47,7 +49,7 @@ class Plugin(BasePlugin):
     def send_unsigned_presence(self):
         """
         Send our current presence, to everyone, but unsigned, to indicate
-        that we cannot/do not want to encrypt/unencrypt messages.
+        that we cannot/do not want to encrypt/decrypt messages.
         """
         current_presence = self.core.get_status()
         self.core.command_status('%s %s' % (current_presence.show or 'available', current_presence.message,))
@@ -74,3 +76,43 @@ class Plugin(BasePlugin):
                 self.contacts[full] = 'invalid'
         else:
             self.contacts[full] = 'signed'
+
+    def on_conversation_say(self, message, tab):
+        """
+        Check if the contact has a signed AND veryfied signature.
+        If yes, encrypt the message with her key.
+        """
+        to = message['to']
+        if not message['body']:
+            # there’s nothing to encrypt if this is a chatstate, for example
+            return
+        log.debug('\n\n\n on_conversation_say: from: (%s). Contacts: %s' %(to, self.contacts,))
+        signed = to.full in self.contacts.keys()
+        if signed:
+            veryfied = self.contacts[to.full] == 'valid'
+        else:
+            veryfied = False
+        if veryfied:
+            # remove the xhtm_im body if present, because that
+            # cannot be encrypted.
+            del message['xhtml_im']
+            encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
+            encrypted_element.text = xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'))))
+            message.append(encrypted_element)
+            message['body'] = 'This message has been encrypted.'
+
+    def on_conversation_msg(self, message, tab):
+        """
+        Check if the message is encrypted, and decrypt it if we can.
+        """
+        encrypted = message.find('{%s}x' % (NS_ENCRYPTED,))
+        fro = message['from']
+        log.debug('\n\n\n--------- for message %s. ENCRYPTED: %s' % (message, encrypted,))
+        if encrypted is not None:
+            if self.config.has_section('keys') and fro.bare in self.config.options('keys'):
+                keyid = self.config.get(fro.bare, '', 'keys')
+                decrypted = self.gpg.decrypt(encrypted.text, passphrase=self.passphrase)
+                if not decrypted:
+                    self.core.information('Could not decrypt message from %s' % (fro.full),)
+                    return
+                message['body'] = str(decrypted)
