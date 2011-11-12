@@ -1669,10 +1669,10 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.get_jid().full):
-                self.open_conversation_window(roster_row.get_jid().full)
+            if not self.get_conversation_by_jid(roster_row.jid.full):
+                self.open_conversation_window(roster_row.jid.full)
             else:
-                self.focus_tab_named(roster_row.get_jid().full)
+                self.focus_tab_named(roster_row.jid.full)
         self.refresh_window()
 
     def remove_timed_event(self, event):
