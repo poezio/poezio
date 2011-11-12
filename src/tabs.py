@@ -222,17 +222,10 @@ class Tab(object):
     def on_input(self, key):
         pass
 
-    def add_plugin_command(self, name, handler, help, completion=None):
-        if name in self.plugin_commands or name in self.commands:
-            return
-        self.plugin_commands[name] = (handler, help, completion)
-        self.commands[name] = (handler, help, completion)
-        self.update_commands()
-
     def update_commands(self):
         for c in self.plugin_commands:
             if not c in self.commands:
-                self.commands[name] = self.plugin_commands[c]
+                self.commands[c] = self.plugin_commands[c]
 
     def on_lose_focus(self):
         """
