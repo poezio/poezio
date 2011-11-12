@@ -233,6 +233,13 @@ The handlers for this events are called whenever you receive a presence from
 * _presence_: Presence received.
 * _tab_: Tab of the concerned MUC.
 
+*send_normal_presence*:: +presence+ +
+The handlers for this events are called whenever you send a presence “normal”
+presence, i.e. a presence for your contacts or some direct JIDs, but *not* in a
+MUC. The parameters given to this handler are:
+
+* _presence_: The presence about to be sent.
+
 
 CAUTION: Plugins are in an experimental state and this API might change
  slightly in a near future. You have to be aware of that while making a plugin.
