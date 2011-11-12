@@ -397,6 +397,7 @@ class Core(object):
         resource = contact.get_resource_by_fulljid(jid.full)
         assert not resource
         resource = Resource(jid.full)
+        self.events.trigger('normal_presence', presence, resource)
         status = presence['type']
         status_message = presence['status']
         priority = presence.getPriority() or 0
@@ -465,7 +466,9 @@ class Core(object):
             # request the roster
             self.xmpp.getRoster()
             # send initial presence
-            self.xmpp.makePresence().send()
+            pres = self.xmpp.make_presence()
+            self.events.trigger('send_normal_presence', pres)
+            pres.send()
         rooms = config.get('rooms', '')
         if rooms == '' or not isinstance(rooms, str):
             return
@@ -1153,6 +1156,7 @@ class Core(object):
         if msg:
             pres['status'] = msg
         pres['type'] = show
+        self.events.trigger('send_normal_presence', pres)
         pres.send()
         current = self.current_tab()
         if isinstance(current, tabs.MucTab) and current.joined and show in ('away', 'xa'):
@@ -1194,7 +1198,9 @@ class Core(object):
         if type == 'available':
             type = None
         try:
-            self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status).send()
+            pres = self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
+            self.events.trigger('send_normal_presence', pres)
+            pres.send()
         except :
             import traceback
             self.information(_('Could not send directed presence'), 'Error')

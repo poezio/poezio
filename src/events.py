@@ -32,6 +32,7 @@ class EventHandler(object):
             'private_chatstate': [],
             'normal_presence': [],
             'muc_presence': [],
+            'send_normal_presence': [],
             }
 
     def add_event_handler(self, name, callback, position=0):
