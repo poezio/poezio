@@ -35,12 +35,14 @@ Version: GnuPG
 class Plugin(BasePlugin):
     def init(self):
         self.contacts = {}
-        # a dict of {full-JID: 'signed'/'valid'/'invalid'}
+        # a dict of {full-JID: 'signed'/'valid'/'invalid'/'disabled'}
         # Whenever we receive a signed presence from a JID, we add it to this
         # dict, this way we know if we can encrypt the messages we will send to
         # this JID.
         # If that resource sends a non-signed presence, then we remove it
         # from that dict and stop encrypting our messages.
+        # 'disabled' means that the user do NOT want to encrypt its messages
+        # even if the key is valid.
         self.gpg = gnupg.GPG()
         self.keyid = self.config.get('keyid', '') or None
         self.passphrase = self.config.get('passphrase', '') or None
@@ -52,11 +54,13 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
+        self.add_tab_command(ConversationTab, 'gpg', self.command_gpg, "Usage: /gpg <force|disable>\nGpg: Force or disable gpg encryption with this fulljid.", lambda the_input: the_input.auto_completion(['force', 'disable']))
         ConversationTab.add_information_element('gpg', self.display_encryption_status)
 
     def cleanup(self):
         self.send_unsigned_presence()
         ConversationTab.remove_information_element('gpg')
+        self.del_tab_command(ConversationTab, 'gpg')
 
     def sign_presence(self, presence):
         """
@@ -150,6 +154,10 @@ class Plugin(BasePlugin):
         if jid.full not in self.contacts.keys():
             return ''
         return ' GPG Key: %s' % self.contacts[jid.full]
+
+    def command_gpg(self, args):
+        # TODO
+        return
 
     def remove_gpg_headers(self, text):
         lines = text.splitlines()
