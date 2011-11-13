@@ -481,7 +481,7 @@ class MucTab(ChatTab):
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_ignore)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
         self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
-        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), None)
+        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_ignore)
@@ -490,6 +490,13 @@ class MucTab(ChatTab):
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.resize()
         self.update_commands()
+
+    def completion_nick(self, the_input):
+        """Completion for /nick"""
+        nicks = [os.environ.get('USER'), config.get('default_nick', ''), self.core.get_bookmark_nickname(self.get_name())]
+        while nicks.count(''):
+            nicks.remove('')
+        return the_input.auto_completion(nicks, '')
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
