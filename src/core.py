@@ -123,7 +123,7 @@ class Core(object):
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
-            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
+            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), None),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), self.completion_version),
@@ -1314,6 +1314,7 @@ class Core(object):
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_theme(self, arg):
+        """/theme <theme name>"""
         args = arg.split()
         if len(args) == 1:
             self.command_set('theme %s' % (args[0],))
@@ -1321,6 +1322,23 @@ class Core(object):
         if warning:
             self.information(warning, 'Warning')
         self.refresh_window()
+
+    def completion_theme(self, the_input):
+        """ Completion for /theme"""
+        themes_dir = config.get('themes_dir', '')
+        themes_dir = themes_dir or\
+        os.path.join(os.environ.get('XDG_DATA_HOME') or\
+                         os.path.join(os.environ.get('HOME'), '.local', 'share'),
+                     'poezio', 'themes')
+        try:
+            names = os.listdir(themes_dir)
+        except OSError as e:
+            log.debug(_('Completion failed: %s') % e)
+            return
+        theme_files = [name[:-3] for name in names if name.endswith('.py')]
+        if not 'default' in theme_files:
+            theme_files.append('default')
+        return the_input.auto_completion(theme_files, '')
 
     def command_win(self, arg):
         """
