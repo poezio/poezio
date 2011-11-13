@@ -204,14 +204,18 @@ These commands work in *any* tab.
  on its own, the room will be bookmarked with the nickname you're currently
  using in this room (instead of default_nick).
 
-*/set <option> [value]*:: Sets the value to the option in your configuration
+*/set <option> [value]*:: Set the value to the option in your configuration
  file. You can, for example, change your default nickname by doing "/set
  default_nick toto" or your resource with "/set resource blabla". You can also
  set an empty value (nothing) by providing no [value] after <option>.
 
+*/set_plugin <plugin> <option> <value>*:: Set the value of the option in a
+ plugin configuration file.
+
 */theme*:: Reload the theme defined in the config file.
 
-*/presence <jid> [type] [status]*:: Send a directed presence to _jid_ using _type_ and _status_ if provided.
+*/presence <jid> [type] [status]*:: Send a directed presence to _jid_ using
+ _type_ and _status_ if provided.
 
 */rawxml*:: Send a custom XML stanza.
 
