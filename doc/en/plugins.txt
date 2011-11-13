@@ -61,10 +61,21 @@ Everything else is handled by that _auto_completion()_ method (checking what
  special completion for that command, just pass None (the default value).
 
 *del_command*:: +self+, +name+ +
-This command removes a tab command added by your plugin.
+This method removes a command added by your plugin.
 
 * _name_: (string) the name of the command you want to remove.
 
+*add_key*:: +self+, +key+, +handler+ +
+This method adds a global keyboard shortcut on _key_ that will call _handler_.
+You can get the keys with _python3 src/keyboard.py_.
+
+* _key_: String representing the key press in curses.
+* _handler_: Method called whenever _key_ is pressed.
+
+*del_key*:: +self+, +key+ +
+This method deletes a keyboard shortcut previously added by your plugin.
+
+* _key_: String representing the key press in curses.
 
 *add_tab_command*:: +self+, +tab_type+, +name+, +handler+, +help+, +completion+ +
 This method adds a tab-custom command to poezio. For example you can add /dou
