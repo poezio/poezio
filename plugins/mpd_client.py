@@ -21,7 +21,7 @@ class Plugin(BasePlugin):
         s = '%(artist)s - %(title)s (%(album)s)' % current
         if 'full' in args:
             pourcentage = int(current_time / float(current['time']) * 10)
-            s += ' \x192[\x191' + '-'*(pourcentage-1) + '\x193+' + '\x191' + '-' * (10-pourcentage-1) + '\x192]\x19o'
+            s += ' \x192}[\x191}' + '-'*(pourcentage-1) + '\x193}+' + '\x191}' + '-' * (10-pourcentage-1) + '\x192}]\x19o'
         if not self.core.send_message('%s' % (s,)):
             self.core.information('Cannot send result (%s), this is not a conversation tab' % result)
 
