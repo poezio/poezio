@@ -36,6 +36,7 @@ class PluginManager(object):
         self.commands = {} # module name -> dict of commands loaded for the module
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
         self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
+        self.keys = {} # module name → dict of keys/handlers loaded for the module
 
     def load(self, name, notify=True):
         if name in self.plugins:
@@ -61,6 +62,7 @@ class PluginManager(object):
 
         self.modules[name] = module
         self.commands[name] = {}
+        self.keys[name] = {}
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
@@ -72,6 +74,8 @@ class PluginManager(object):
             try:
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
+                for key in self.keys[name].keys():
+                    del self.core.key_func[key]
                 for tab in list(self.tab_commands[name].keys()):
                     for command in self.tab_commands[name][tab]:
                         self.del_tab_command(name, getattr(tabs, tab), command[0])
@@ -82,6 +86,7 @@ class PluginManager(object):
                 self.plugins[name].unload()
                 del self.plugins[name]
                 del self.commands[name]
+                del self.keys[name]
                 del self.tab_commands[name]
                 del self.event_handlers[name]
                 if notify:
@@ -121,6 +126,19 @@ class PluginManager(object):
                 for tab in self.core.tabs:
                     if isinstance(tab, tab_type) and name in tab.commands:
                         del tab.commands[name]
+
+    def add_key(self, module_name, key, handler):
+        if key in self.core.key_func:
+            raise Exception(_("Key '%s' already exists") % (key,))
+        keys = self.keys[module_name]
+        keys[key] = handler
+        self.core.key_func[key] = handler
+
+    def del_key(self, module_name, key):
+        if key in self.keys[module_name]:
+            del self.keys[module_name][key]
+            if key in self.core.key_func:
+                del self.core.commands[key]
 
     def add_command(self, module_name, name, handler, help, completion=None):
         if name in self.core.commands:
