@@ -475,7 +475,7 @@ class MucTab(ChatTab):
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_ignore)
-        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
+        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), self.completion_role)
         self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: none, member, admin, owner. You also can give an optional reason."), None)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), None)
@@ -497,6 +497,20 @@ class MucTab(ChatTab):
         userlist.remove(self.own_nick)
         return the_input.auto_completion(userlist, '')
 
+    def completion_role(self, the_input):
+        """Completion for /role"""
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+        if n == 2:
+            userlist = [user.nick for user in self.users]
+            userlist.remove(self.own_nick)
+            return the_input.auto_completion(userlist, '')
+        elif n == 3:
+            possible_roles = ['none', 'visitor', 'participant', 'moderator']
+            return the_input.auto_completion(possible_roles, '')
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
