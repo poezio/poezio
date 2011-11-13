@@ -135,7 +135,7 @@ class Core(object):
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
-            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), None),
+            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             }
 
         self.key_func = {
@@ -1604,6 +1604,25 @@ class Core(object):
             return
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
+
+    def completion_set_plugin(self, the_input):
+        """Completion for /set_plugin"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+
+        if n == 2:
+            return the_input.auto_completion(list(self.plugin_manager.plugins.keys()), '')
+        elif n == 3:
+            if not args[1] in self.plugin_manager.plugins:
+                return
+            return the_input.auto_completion(self.plugin_manager.plugins[args[1]].config.options(args[1]), '')
+        elif n == 4:
+            if not args[1] in self.plugin_manager.plugins:
+                return
+            return the_input.auto_completion([self.plugin_manager.plugins[args[1]].config.get(args[2], '', args[1])], ' ')
 
     def close_tab(self, tab=None):
         """
