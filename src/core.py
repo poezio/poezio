@@ -133,7 +133,7 @@ class Core(object):
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
-            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
+            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
             'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), None),
             }
@@ -1209,7 +1209,24 @@ class Core(object):
             log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
 
     def completion_status(self, the_input):
+        """
+        Completion of /status
+        """
         return the_input.auto_completion([status for status in possible_show], ' ')
+
+    def completion_presence(self, the_input):
+        """
+        Completion of /presence
+        """
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+        elif n == 3:
+            return the_input.auto_completion([status for status in possible_show], '')
 
     def command_load(self, arg):
         """
