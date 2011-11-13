@@ -948,6 +948,9 @@ class Input(Win):
         completion (with no additional space)
         """
         completion_type = config.get('completion', 'normal')
+        for i, word in enumerate(word_list[:]):
+            if ' ' in word:
+                word_list[i] = '"' + word + '"'
         if completion_type == 'shell' and self.text != '':
             self.shell_completion(word_list, add_after)
         else:
@@ -975,9 +978,11 @@ class Input(Win):
                 begin = self.text[space_before_cursor+1:pos]
             else:
                 begin = self.text[:pos]
-            hit_list = []       # list of matching nicks
+            hit_list = []       # list of matching hits
             for word in word_list:
                 if word.lower().startswith(begin.lower()):
+                    hit_list.append(word)
+                elif word.startswith('"') and word.lower()[1:].startswith(begin.lower()):
                     hit_list.append(word)
             if len(hit_list) == 0:
                 return
@@ -990,18 +995,18 @@ class Input(Win):
 
         self.text = self.text[:pos-end] + self.text[pos:]
         pos -= end
-        nick = self.hit_list[0] # take the first hit
-        self.text = self.text[:pos] + nick + after + self.text[pos:]
+        hit = self.hit_list[0] # take the first hit
+        self.text = self.text[:pos] + hit + after + self.text[pos:]
         for i in range(end):
             try:
                 self.key_left(reset=False)
             except:
                 pass
-        for i in range(len(nick + after)):
+        for i in range(len(hit + after)):
             self.key_right(reset=False)
 
         self.rewrite_text()
-        self.last_completion = nick
+        self.last_completion = hit
 
     def shell_completion(self, word_list, after):
         """
