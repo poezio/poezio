@@ -35,7 +35,7 @@ default), and fill it like this:
 
 [source,python]
 ---------------------------------------------------------------------
-[Poezio]
+[gpg]
 keyid = 091F9C78
 passphrase = your OPTIONAL passphrase
 
