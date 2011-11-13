@@ -122,7 +122,7 @@ class Core(object):
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
+            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), None),
@@ -1568,6 +1568,18 @@ class Core(object):
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
+
+    def completion_set(self, the_input):
+        """Completion for /set"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion(config.options('Poezio'), '')
+        elif n == 3:
+            return the_input.auto_completion([config.get(args[1], '')], '')
 
     def command_set_plugin(self, arg):
         """
