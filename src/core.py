@@ -128,7 +128,7 @@ class Core(object):
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), self.completion_version),
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None),
-            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), None),
+            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), self.completion_server_cycle),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: Bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
@@ -1589,6 +1589,22 @@ class Core(object):
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
+
+    def completion_server_cycle(self, the_input):
+        """Completion for /server_cycle"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            serv_list = []
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    serv = JID(tab.get_name()).server
+                    if not serv in serv_list:
+                        serv_list.append(serv)
+            return the_input.auto_completion(serv_list, ' ')
 
     def completion_set(self, the_input):
         """Completion for /set"""
