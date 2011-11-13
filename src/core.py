@@ -121,7 +121,7 @@ class Core(object):
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
+            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
@@ -1392,6 +1392,34 @@ class Core(object):
                         serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
                 the_input.auto_completion(serv_list, '')
         return True
+
+    def completion_bookmark(self, the_input):
+        """Completion for /bookmark"""
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+
+        if len(args) == 1:
+            jid = JID('')
+        else:
+            jid = JID(args[1])
+        if jid.server and (jid.resource or jid.full.endswith('/')):
+            tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
+            nicks = [tab.own_nick] if tab else []
+            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            nick = config.get('default_nick', '')
+            if not nick:
+                if not default in nicks:
+                    nicks.append(default)
+            else:
+                if not nick in nicks:
+                    nicks.append(nick)
+            jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
+            return the_input.auto_completion(jids_list, '')
+        muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        return the_input.auto_completion(muc_list, '')
 
     def completion_version(self, the_input):
         """Completion for /version"""
