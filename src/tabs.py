@@ -472,7 +472,7 @@ class MucTab(ChatTab):
         self.key_func['M-u'] = self.scroll_user_list_down
         self.key_func['M-y'] = self.scroll_user_list_up
         # commands
-        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
+        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
         self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
@@ -490,6 +490,11 @@ class MucTab(ChatTab):
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.resize()
         self.update_commands()
+
+    def completion_ignore(self, the_input):
+        userlist = [user.nick for user in self.users]
+        userlist.remove(self.own_nick)
+        return the_input.auto_completion(userlist, '')
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
