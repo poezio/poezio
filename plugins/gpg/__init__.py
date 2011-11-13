@@ -56,7 +56,7 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_command('gpg', self.command_gpg, "Usage: /gpg <force|disable>\nGpg: Force or disable gpg encryption with this fulljid.", self.gpg_completion)
+        self.add_command('gpg', self.command_gpg, "Usage: /gpg <force|disable|setkey> [JID] [keyid]\nGpg: Force or disable gpg encryption with the fulljid of the current conversation. The setkey argument lets you associate a keyid with the given bare JID.", self.gpg_completion)
         ConversationTab.add_information_element('gpg', self.display_encryption_status)
 
     def cleanup(self):
@@ -159,7 +159,7 @@ class Plugin(BasePlugin):
             return ''
         status = self.contacts[jid.full]
         self.core.information('%s' % (status,))
-        if status in ('valid', 'invalid'):
+        if status in ('valid', 'invalid', 'signed'):
             return ' GPG Key: %s (%s)' % (status, 'encrypted' if status == 'valid' else 'NOT encrypted',)
         else:
             return ' GPG:  Encryption %s' % (status,)
@@ -177,7 +177,7 @@ class Plugin(BasePlugin):
             if isinstance(self.core.current_tab(), ConversationTab):
                 jid = JID(self.core.current_tab().get_name())
         command = args[0]
-        if command == 'force':
+        if command == 'force' or command == 'enable':
             # we can force encryption only with contact having an associated
             # key, otherwise we cannot encrypt at all
             if self.config.has_section('keys') and jid.bare in self.config.options('keys'):
@@ -186,10 +186,17 @@ class Plugin(BasePlugin):
                 self.core.information('Cannot force encryption: no key associated with %s' % (jid.bare), 'Info')
         elif command == 'disable':
             self.contacts[JID(jid).full] = 'disabled'
+        elif command == 'setkey':
+            if len(args) != 3:
+                return self.core.command_help("gpg")
+            if not self.config.has_section('keys'):
+                self.config.add_section('keys')
+            self.config.set(jid.bare, args[2], 'keys')
+            self.config.write()
         self.core.refresh_window()
 
-    def gpg_completion(self, args):
-        pass
+    def gpg_completion(self, the_input):
+        return the_input.auto_completion(['force', 'disable', 'setkey'], ' ')
 
     def remove_gpg_headers(self, text):
         lines = text.splitlines()
