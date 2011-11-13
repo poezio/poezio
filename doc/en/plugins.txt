@@ -77,10 +77,30 @@ This method deletes a keyboard shortcut previously added by your plugin.
 
 * _key_: String representing the key press in curses.
 
-*add_tab_command*:: +self+, +tab_type+, +name+, +handler+, +help+, +completion+ +
-This method adds a tab-custom command to poezio. For example you can add /dou
-command that the user could call in a specific tab when the plugin is loaded.
+*add_tab_key*:: +self+, +tab_type+, +key+, +handler+ +
+This method adds a tab-custom command to poezio. For example you can add _^G_
+keybind that the user could call in a specific tab when the plugin is loaded.
 
+* _tab_type_: You have to _import tabs_ in order to get tabs types. The
+ following are possible:
+** _tabs.MucTab_: The MultiUserChat tabs
+** _tabs.PrivateTab_: The Private tabs
+** _tabs.ConversationTab_: The Roster tab
+** _tabs.RosterInfoTab_: The MultiUserChat, Private, and Conversation tabs
+** _tabs.ChatTab_: The MultiUserChat, Private, and Conversation tabs
+** _tabs.MucListTab_: The MultiUserChat list tabs
+* _key_: (string) the curses representation of the keypress (see  above).
+* _handler_: (function) the handler to be called when the keypress is found.
+
+*del_tab_command*:: +self+, +tab_type+, +key+
+This method removes a tab command added by your plugin.
+
+* _key_: (string) the name of the keybind you want to remove.
+* _tab_type_: the type of tab (see help for _add_key_command_)
+
+*add_tab_command*:: +self+, +tab_type+, +name+, +handler+, +help+, +completion+ +
+This method adds a tab-custom command to poezio. For example you can add a /dou
+command that the user could call in a specific tab when the plugin is loaded.
 
 * _tab_type_: You have to _import tabs_ in order to get tabs types. The
  following are possible:
@@ -110,8 +130,7 @@ Everything else is handled by that _auto_completion()_ method (checking what
 This method removes a tab command added by your plugin.
 
 * _name_: (string) the name of the command you want to remove.
-* _name_: the type of tab (see help for _add_tab_command_)
-
+* _tab_type_: the type of tab (see help for _add_tab_command_)
 
 *add_event_handler**: +self+, +event_name+, +handler+ +position+
 This methods adds a callback that will be called whenever the given event
