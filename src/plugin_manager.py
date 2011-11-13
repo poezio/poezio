@@ -37,6 +37,7 @@ class PluginManager(object):
         self.event_handlers = {} # module name -> list of event_name/handler pairs loaded for the module
         self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
         self.keys = {} # module name → dict of keys/handlers loaded for the module
+        self.tab_keys = {} #module name → dict of tab types; tab type → list of keybinds (tuples)
 
     def load(self, name, notify=True):
         if name in self.plugins:
@@ -63,6 +64,7 @@ class PluginManager(object):
         self.modules[name] = module
         self.commands[name] = {}
         self.keys[name] = {}
+        self.tab_keys[name] = {}
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
         self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
@@ -80,6 +82,10 @@ class PluginManager(object):
                     for command in self.tab_commands[name][tab]:
                         self.del_tab_command(name, getattr(tabs, tab), command[0])
                     del self.tab_commands[name][tab]
+                for tab in list(self.tab_keys[name].keys()):
+                    for key in self.tab_keys[name][tab]:
+                        self.del_tab_key(name, getattr(tabs, tab), key[0])
+                    del self.tab_keys[name][tab]
                 for event_name, handler in self.event_handlers[name]:
                     self.del_event_handler(name, event_name, handler)
 
@@ -126,6 +132,32 @@ class PluginManager(object):
                 for tab in self.core.tabs:
                     if isinstance(tab, tab_type) and name in tab.commands:
                         del tab.commands[name]
+
+    def add_tab_key(self, module_name, tab_type, key, handler):
+        keys = self.tab_keys[module_name]
+        t = tab_type.__name__
+        if key in tab_type.plugin_keys:
+            return
+        if not t in keys:
+            keys[t] = []
+        keys[t].append((key, handler))
+        tab_type.plugin_keys[key] = handler
+        for tab in self.core.tabs:
+            if isinstance(tab, tab_type):
+                tab.update_keys()
+
+    def del_tab_key(self, module_name, tab_type, key):
+        keys = self.tab_keys[module_name]
+        t = tab_type.__name__
+        if not t in keys:
+            return
+        for _key in keys[t]:
+            if _key[0] == key:
+                keys[t].remove(_key)
+                del tab_type.plugin_keys[key]
+                for tab in self.core.tabs:
+                    if isinstance(tab, tab_type) and key in tab.key_func:
+                        del tab.key_func[key]
 
     def add_key(self, module_name, key, handler):
         if key in self.core.key_func:

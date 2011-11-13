@@ -108,6 +108,18 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         return self.plugin_manager.del_key(self.__module__, key)
 
+    def add_tab_key(self, tab_type, key, handler):
+        """
+        Add a keybind only for a type of tab.
+        """
+        return self.plugin_manager.add_tab_key(self.__module__, tab_type, key, handler)
+
+    def del_tab_key(self, tab_type, key):
+        """
+        Remove a keybind added through add_tab_key.
+        """
+        return self.plugin_manager.del_tab_key(self.__module__, tab_type, key)
+
     def add_tab_command(self, tab_type, name, handler, help, completion=None):
         """
         Add a command only for a type of tab.
