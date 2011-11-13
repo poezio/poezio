@@ -106,6 +106,13 @@ Everything else is handled by that _auto_completion()_ method (checking what
  strings match, how to cycle between matches, etc). If you don’t want any
  special completion for that command, just pass None (the default value).
 
+*del_tab_command*:: +self+, +tab_type+, +name+
+This method removes a tab command added by your plugin.
+
+* _name_: (string) the name of the command you want to remove.
+* _name_: the type of tab (see help for _add_tab_command_)
+
+
 *add_event_handler**: +self+, +event_name+, +handler+ +position+
 This methods adds a callback that will be called whenever the given event
 occurs. <<example-2,ex 2>>
