@@ -1,4 +1,6 @@
 from gpg import gnupg
+from sleekxmpp.xmlstream.stanzabase import JID
+
 from xml.etree import cElementTree as ET
 import xml.sax.saxutils
 
@@ -54,7 +56,7 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_tab_command(ConversationTab, 'gpg', self.command_gpg, "Usage: /gpg <force|disable>\nGpg: Force or disable gpg encryption with this fulljid.", lambda the_input: the_input.auto_completion(['force', 'disable']))
+        self.add_command('gpg', self.command_gpg, "Usage: /gpg <force|disable>\nGpg: Force or disable gpg encryption with this fulljid.", self.gpg_completion)
         ConversationTab.add_information_element('gpg', self.display_encryption_status)
 
     def cleanup(self):
@@ -121,7 +123,7 @@ class Plugin(BasePlugin):
             return
         signed = to.full in self.contacts.keys()
         if signed:
-            veryfied = self.contacts[to.full] == 'valid'
+            veryfied = self.contacts[to.full] in ('valid', 'forced')
         else:
             veryfied = False
         if veryfied:
@@ -155,11 +157,39 @@ class Plugin(BasePlugin):
         """
         if jid.full not in self.contacts.keys():
             return ''
-        return ' GPG Key: %s' % self.contacts[jid.full]
+        status = self.contacts[jid.full]
+        self.core.information('%s' % (status,))
+        if status in ('valid', 'invalid'):
+            return ' GPG Key: %s (%s)' % (status, 'encrypted' if status == 'valid' else 'NOT encrypted',)
+        else:
+            return ' GPG:  Encryption %s' % (status,)
 
     def command_gpg(self, args):
-        # TODO
-        return
+        """
+        A command to force or disable the encryption, or to assign a keyid to a JID
+        """
+        args = args.split()
+        if not args:
+            return self.core.command_help("gpg")
+        if len(args) >= 2:
+            jid = JID(args[1])
+        else:
+            if isinstance(self.core.current_tab(), ConversationTab):
+                jid = JID(self.core.current_tab().get_name())
+        command = args[0]
+        if command == 'force':
+            # we can force encryption only with contact having an associated
+            # key, otherwise we cannot encrypt at all
+            if self.config.has_section('keys') and jid.bare in self.config.options('keys'):
+                self.contacts[JID(jid).full] = 'forced'
+            else:
+                self.core.information('Cannot force encryption: no key associated with %s' % (jid.bare), 'Info')
+        elif command == 'disable':
+            self.contacts[JID(jid).full] = 'disabled'
+        self.core.refresh_window()
+
+    def gpg_completion(self, args):
+        pass
 
     def remove_gpg_headers(self, text):
         lines = text.splitlines()
