@@ -99,12 +99,15 @@ class PluginManager(object):
     def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None):
         commands = self.tab_commands[module_name]
         t = tab_type.__name__
+        if name in tab_type.plugin_commands:
+            return
         if not t in commands:
             commands[t] = []
         commands[t].append((name, handler, help, completion))
+        tab_type.plugin_commands[name] = (handler, help, completion)
         for tab in self.core.tabs:
             if isinstance(tab, tab_type):
-                tab.add_plugin_command(name, handler, help, completion)
+                tab.update_commands()
 
     def del_tab_command(self, module_name, tab_type, name):
         commands = self.tab_commands[module_name]

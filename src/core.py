@@ -121,20 +121,21 @@ class Core(object):
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), None),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), None),
-            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), None),
+            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
+            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
+            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
-            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), None),
-            'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), None),
+            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
+            'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), self.completion_version),
             'connect': (self.command_reconnect, _('Usage: /connect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None),
-            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), None),
+            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), self.completion_server_cycle),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: Bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
             'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
-            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), None),
+            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
+            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             }
 
         self.key_func = {
@@ -1208,7 +1209,24 @@ class Core(object):
             log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
 
     def completion_status(self, the_input):
+        """
+        Completion of /status
+        """
         return the_input.auto_completion([status for status in possible_show], ' ')
+
+    def completion_presence(self, the_input):
+        """
+        Completion of /presence
+        """
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+        elif n == 3:
+            return the_input.auto_completion([status for status in possible_show], '')
 
     def command_load(self, arg):
         """
@@ -1296,6 +1314,7 @@ class Core(object):
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
     def command_theme(self, arg):
+        """/theme <theme name>"""
         args = arg.split()
         if len(args) == 1:
             self.command_set('theme %s' % (args[0],))
@@ -1303,6 +1322,23 @@ class Core(object):
         if warning:
             self.information(warning, 'Warning')
         self.refresh_window()
+
+    def completion_theme(self, the_input):
+        """ Completion for /theme"""
+        themes_dir = config.get('themes_dir', '')
+        themes_dir = themes_dir or\
+        os.path.join(os.environ.get('XDG_DATA_HOME') or\
+                         os.path.join(os.environ.get('HOME'), '.local', 'share'),
+                     'poezio', 'themes')
+        try:
+            names = os.listdir(themes_dir)
+        except OSError as e:
+            log.debug(_('Completion failed: %s') % e)
+            return
+        theme_files = [name[:-3] for name in names if name.endswith('.py')]
+        if not 'default' in theme_files:
+            theme_files.append('default')
+        return the_input.auto_completion(theme_files, '')
 
     def command_win(self, arg):
         """
@@ -1374,6 +1410,41 @@ class Core(object):
                         serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
                 the_input.auto_completion(serv_list, '')
         return True
+
+    def completion_bookmark(self, the_input):
+        """Completion for /bookmark"""
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+
+        if len(args) == 1:
+            jid = JID('')
+        else:
+            jid = JID(args[1])
+        if jid.server and (jid.resource or jid.full.endswith('/')):
+            tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
+            nicks = [tab.own_nick] if tab else []
+            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            nick = config.get('default_nick', '')
+            if not nick:
+                if not default in nicks:
+                    nicks.append(default)
+            else:
+                if not nick in nicks:
+                    nicks.append(nick)
+            jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
+            return the_input.auto_completion(jids_list, '')
+        muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        return the_input.auto_completion(muc_list, '')
+
+    def completion_version(self, the_input):
+        """Completion for /version"""
+        n = len(the_input.get_text().split())
+        if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
+            return
+        return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
 
     def completion_list(self, the_input):
         muc_serv_list = []
@@ -1518,6 +1589,77 @@ class Core(object):
         config.set_and_save(option, value)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
+
+    def completion_server_cycle(self, the_input):
+        """Completion for /server_cycle"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            serv_list = []
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    serv = JID(tab.get_name()).server
+                    if not serv in serv_list:
+                        serv_list.append(serv)
+            return the_input.auto_completion(serv_list, ' ')
+
+    def completion_set(self, the_input):
+        """Completion for /set"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion(config.options('Poezio'), '')
+        elif n == 3:
+            return the_input.auto_completion([config.get(args[1], '')], '')
+
+    def command_set_plugin(self, arg):
+        """
+        /set_plugin <plugin> <option> [value]
+        """
+        args = arg.split()
+        if len(args) != 3 and len(args) != 2:
+            self.command_help('set_plugin')
+            return
+        plugin_name = args[0]
+        if not plugin_name in self.plugin_manager.plugins:
+            return
+        plugin = self.plugin_manager.plugins[plugin_name]
+        option = args[1]
+        if len(args) == 3:
+            value = args[2]
+        else:
+            value = ''
+        plugin.config.set_and_save(option, value, plugin_name)
+        if not plugin.config.write():
+            self.core.information('Could not save the plugin config', 'Error')
+            return
+        msg = "%s=%s" % (option, value)
+        self.information(msg, 'Info')
+
+    def completion_set_plugin(self, the_input):
+        """Completion for /set_plugin"""
+        txt = the_input.get_text()
+        args = txt.split()
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+
+        if n == 2:
+            return the_input.auto_completion(list(self.plugin_manager.plugins.keys()), '')
+        elif n == 3:
+            if not args[1] in self.plugin_manager.plugins:
+                return
+            return the_input.auto_completion(self.plugin_manager.plugins[args[1]].config.options(args[1]), '')
+        elif n == 4:
+            if not args[1] in self.plugin_manager.plugins:
+                return
+            return the_input.auto_completion([self.plugin_manager.plugins[args[1]].config.get(args[2], '', args[1])], ' ')
 
     def close_tab(self, tab=None):
         """

@@ -1,24 +1,27 @@
 import os
-from configparser import ConfigParser
+from configparser import RawConfigParser
 import config
 import inspect
 import traceback
 
 class PluginConfig(config.Config):
-    def __init__(self, filename):
-        ConfigParser.__init__(self)
-        self.__config_file__ = filename
+    def __init__(self, filename, module_name):
+        self.file_name = filename
+        self.module_name = module_name
+        RawConfigParser.__init__(self, None)
         self.read()
 
     def read(self):
         """Read the config file"""
-        ConfigParser.read(self, self.__config_file__)
+        RawConfigParser.read(self, self.file_name)
+        if not self.has_section(self.module_name):
+            self.add_section(self.module_name)
 
     def write(self):
         """Write the config to the disk"""
         try:
-            fp = open(self.__config_file__, 'w')
-            ConfigParser.write(self, fp)
+            fp = open(self.file_name, 'w')
+            RawConfigParser.write(self, fp)
             fp.close()
             return True
         except IOError:
@@ -59,7 +62,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         SafetyMetaclass.core = core
         self.plugin_manager = plugin_manager
         conf = os.path.join(plugins_conf_dir, self.__module__+'.cfg')
-        self.config = PluginConfig(conf)
+        self.config = PluginConfig(conf, self.__module__)
         self.init()
 
     def init(self):

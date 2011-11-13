@@ -31,6 +31,7 @@ import singleton
 import xhtml
 import weakref
 import timed_events
+import os
 
 import multiuserchat as muc
 
@@ -222,17 +223,10 @@ class Tab(object):
     def on_input(self, key):
         pass
 
-    def add_plugin_command(self, name, handler, help, completion=None):
-        if name in self.plugin_commands or name in self.commands:
-            return
-        self.plugin_commands[name] = (handler, help, completion)
-        self.commands[name] = (handler, help, completion)
-        self.update_commands()
-
     def update_commands(self):
         for c in self.plugin_commands:
             if not c in self.commands:
-                self.commands[name] = self.plugin_commands[c]
+                self.commands[c] = self.plugin_commands[c]
 
     def on_lose_focus(self):
         """
@@ -310,6 +304,8 @@ class ChatTab(Tab):
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'."""), None)
         self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
+        self.commands['clear'] =  (self.command_clear,
+                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.chat_state = None
         self.update_commands()
 
@@ -363,6 +359,15 @@ class ChatTab(Tab):
             self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
             self.refresh()
         msg.send()
+
+    def command_clear(self, args):
+        """
+        /clear
+        """
+        self._text_buffer.messages = []
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.refresh()
+        self.core.doupdate()
 
     def send_chat_state(self, state, always_send=False):
         """
@@ -467,26 +472,66 @@ class MucTab(ChatTab):
         self.key_func['M-u'] = self.scroll_user_list_down
         self.key_func['M-y'] = self.scroll_user_list_up
         # commands
-        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), None)
+        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
-        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), None)
-        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), None)
-        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: none, member, admin, owner. You also can give an optional reason."), None)
+        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_ignore)
+        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), self.completion_role)
+        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: none, member, admin, owner. You also can give an optional reason."), self.completion_affiliation)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
-        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), None)
+        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_ignore)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
         self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
-        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), None)
+        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_ignore)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), None)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
-        self.commands['clear'] =  (self.command_clear,
-                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.resize()
         self.update_commands()
+
+    def completion_nick(self, the_input):
+        """Completion for /nick"""
+        nicks = [os.environ.get('USER'), config.get('default_nick', ''), self.core.get_bookmark_nickname(self.get_name())]
+        while nicks.count(''):
+            nicks.remove('')
+        return the_input.auto_completion(nicks, '')
+
+    def completion_ignore(self, the_input):
+        """Completion for /ignore"""
+        userlist = [user.nick for user in self.users]
+        userlist.remove(self.own_nick)
+        return the_input.auto_completion(userlist, '')
+
+    def completion_role(self, the_input):
+        """Completion for /role"""
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+        if n == 2:
+            userlist = [user.nick for user in self.users]
+            userlist.remove(self.own_nick)
+            return the_input.auto_completion(userlist, '')
+        elif n == 3:
+            possible_roles = ['none', 'visitor', 'participant', 'moderator']
+            return the_input.auto_completion(possible_roles, '')
+
+    def completion_affiliation(self, the_input):
+        """Completion for /affiliation"""
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+        if n == 2:
+            userlist = [user.nick for user in self.users]
+            return the_input.auto_completion(userlist, '')
+        elif n == 3:
+            possible_affiliations = ['none', 'member', 'admin', 'owner']
+            return the_input.auto_completion(possible_affiliations, '')
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
@@ -532,15 +577,6 @@ class MucTab(ChatTab):
         """
         self.core.xmpp.plugin['xep_0045'].configureRoom(self.get_name(), form)
         self.core.close_tab()
-
-    def command_clear(self, args):
-        """
-        /clear
-        """
-        self._text_buffer.messages = []
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.refresh()
-        self.core.doupdate()
 
     def command_cycle(self, arg):
         if self.joined:
@@ -705,10 +741,9 @@ class MucTab(ChatTab):
         else:
             if len(args) > 1:
                 msg = ' '+args[1]
-                self.core.information("-%s-" % msg)
             else:
                 msg = ''
-            self.command_role(args[0]+ ' none'+msg)
+            self.command_role('"'+args[0]+ '" none'+msg)
 
     def command_role(self, arg):
         """
@@ -1457,8 +1492,8 @@ class RosterInfoTab(Tab):
         self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
         self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
-        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
-        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
+        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
         self.update_commands()
@@ -1480,6 +1515,30 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
+
+    def completion_file(self, the_input):
+        """
+        Completion for /import and /export
+        """
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if n == 1:
+            home = os.getenv('HOME') or '/'
+            return the_input.auto_completion([home, '/tmp'], '')
+        else:
+            the_path = text[text.index(' ')+1:]
+            try:
+                names = os.listdir(the_path)
+            except:
+                names = []
+            end_list = []
+            for name in names:
+                value = os.path.join(the_path, name)
+                if not name.startswith('.'):
+                    end_list.append(value)
+
+            return the_input.auto_completion(end_list, '')
 
     def command_clear_infos(self, arg):
         """
