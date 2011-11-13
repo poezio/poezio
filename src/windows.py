@@ -940,7 +940,7 @@ class Input(Win):
             self.rewrite_text()
         return True
 
-    def auto_completion(self, word_list, add_after):
+    def auto_completion(self, word_list, add_after, quotify=True):
         """
         Complete the input, from a list of words
         if add_after is None, we use the value defined in completion
@@ -948,9 +948,10 @@ class Input(Win):
         completion (with no additional space)
         """
         completion_type = config.get('completion', 'normal')
-        for i, word in enumerate(word_list[:]):
-            if ' ' in word:
-                word_list[i] = '"' + word + '"'
+        if quotify:
+            for i, word in enumerate(word_list[:]):
+                if ' ' in word:
+                    word_list[i] = '"' + word + '"'
         if completion_type == 'shell' and self.text != '':
             self.shell_completion(word_list, add_after)
         else:
