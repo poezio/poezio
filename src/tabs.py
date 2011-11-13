@@ -303,6 +303,8 @@ class ChatTab(Tab):
                                  _("""Usage: /say <message>\nSay: Just send the message.
                                         Useful if you want your message to begin with a '/'."""), None)
         self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
+        self.commands['clear'] =  (self.command_clear,
+                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.chat_state = None
         self.update_commands()
 
@@ -356,6 +358,15 @@ class ChatTab(Tab):
             self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
             self.refresh()
         msg.send()
+
+    def command_clear(self, args):
+        """
+        /clear
+        """
+        self._text_buffer.messages = []
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.refresh()
+        self.core.doupdate()
 
     def send_chat_state(self, state, always_send=False):
         """
@@ -476,8 +487,6 @@ class MucTab(ChatTab):
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), None)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
-        self.commands['clear'] =  (self.command_clear,
-                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.resize()
         self.update_commands()
 
@@ -525,15 +534,6 @@ class MucTab(ChatTab):
         """
         self.core.xmpp.plugin['xep_0045'].configureRoom(self.get_name(), form)
         self.core.close_tab()
-
-    def command_clear(self, args):
-        """
-        /clear
-        """
-        self._text_buffer.messages = []
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.refresh()
-        self.core.doupdate()
 
     def command_cycle(self, arg):
         if self.joined:
