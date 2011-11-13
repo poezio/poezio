@@ -31,6 +31,7 @@ import singleton
 import xhtml
 import weakref
 import timed_events
+import os
 
 import multiuserchat as muc
 
@@ -1450,8 +1451,8 @@ class RosterInfoTab(Tab):
         self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
         self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
-        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
-        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), None)
+        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
+        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
         self.update_commands()
@@ -1473,6 +1474,30 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.CommandInput) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
+
+    def completion_file(self, the_input):
+        """
+        Completion for /import and /export
+        """
+        text = the_input.get_text()
+        args = text.split()
+        n = len(args)
+        if n == 1:
+            home = os.getenv('HOME') or '/'
+            return the_input.auto_completion([home, '/tmp'], '')
+        else:
+            the_path = text[text.index(' ')+1:]
+            try:
+                names = os.listdir(the_path)
+            except:
+                names = []
+            end_list = []
+            for name in names:
+                value = os.path.join(the_path, name)
+                if not name.startswith('.'):
+                    end_list.append(value)
+
+            return the_input.auto_completion(end_list, '')
 
     def command_clear_infos(self, arg):
         """
