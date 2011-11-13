@@ -11,6 +11,11 @@ class PluginConfig(config.Config):
         RawConfigParser.__init__(self, None)
         self.read()
 
+    def get(self, option, default, section=None):
+        if not section:
+            section = self.module_name
+        return config.Config.get(self, option, default, section)
+
     def read(self):
         """Read the config file"""
         RawConfigParser.read(self, self.file_name)
@@ -95,6 +100,30 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         This only works if the command was added by the plugin
         """
         return self.plugin_manager.del_command(self.__module__, name)
+
+    def add_key(self, key, handler):
+        """
+        Add a global keybind
+        """
+        return self.plugin_manager.add_key(self.__module__, key, handler)
+
+    def del_key(self, key):
+        """
+        Remove a global keybind
+        """
+        return self.plugin_manager.del_key(self.__module__, key)
+
+    def add_tab_key(self, tab_type, key, handler):
+        """
+        Add a keybind only for a type of tab.
+        """
+        return self.plugin_manager.add_tab_key(self.__module__, tab_type, key, handler)
+
+    def del_tab_key(self, tab_type, key):
+        """
+        Remove a keybind added through add_tab_key.
+        """
+        return self.plugin_manager.del_tab_key(self.__module__, tab_type, key)
 
     def add_tab_command(self, tab_type, name, handler, help, completion=None):
         """

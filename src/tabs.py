@@ -228,6 +228,11 @@ class Tab(object):
             if not c in self.commands:
                 self.commands[c] = self.plugin_commands[c]
 
+    def update_keys(self):
+        for k in self.plugin_keys:
+            if not k in self.key_func:
+                self.key_func[k] = self.plugin_keys[k]
+
     def on_lose_focus(self):
         """
         called when this tab loses the focus.
@@ -284,6 +289,7 @@ class ChatTab(Tab):
     And also, add the /say command
     """
     plugin_commands = {}
+    plugin_keys = {}
     def __init__(self):
         Tab.__init__(self)
         self._text_buffer = TextBuffer()
@@ -308,6 +314,7 @@ class ChatTab(Tab):
                                  _('Usage: /clear\nClear: Clear the current buffer.'), None)
         self.chat_state = None
         self.update_commands()
+        self.update_keys()
 
     def last_words_completion(self):
         """
@@ -448,6 +455,7 @@ class MucTab(ChatTab):
     """
     message_type = 'groupchat'
     plugin_commands = {}
+    plugin_keys = {}
     def __init__(self, jid, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -490,6 +498,7 @@ class MucTab(ChatTab):
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.resize()
         self.update_commands()
+        self.update_keys()
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
@@ -905,7 +914,7 @@ class MucTab(ChatTab):
             add_after = after
         else:
             add_after = ' '
-        self.input.auto_completion(word_list, add_after)
+        self.input.auto_completion(word_list, add_after, quotify=False)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
@@ -1264,6 +1273,7 @@ class PrivateTab(ChatTab):
     """
     message_type = 'chat'
     plugin_commands = {}
+    plugin_keys = {}
     def __init__(self, name, nick):
         ChatTab.__init__(self)
         self.own_nick = nick
@@ -1283,6 +1293,7 @@ class PrivateTab(ChatTab):
         self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
         self.on = True
         self.update_commands()
+        self.update_keys()
 
     def completion(self):
         self.complete_commands(self.input)
@@ -1462,6 +1473,7 @@ class RosterInfoTab(Tab):
     A tab, splitted in two, containing the roster and infos
     """
     plugin_commands = {}
+    plugin_keys = {}
     def __init__(self):
         Tab.__init__(self)
         self.name = "Roster"
@@ -1497,6 +1509,7 @@ class RosterInfoTab(Tab):
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
         self.resize()
         self.update_commands()
+        self.update_keys()
 
     def resize(self):
         if not self.visible:
@@ -1980,6 +1993,7 @@ class ConversationTab(ChatTab):
     The tab containg a normal conversation (not from a MUC)
     """
     plugin_commands = {}
+    plugin_keys = {}
     additional_informations = {}
     message_type = 'chat'
     def __init__(self, jid):
@@ -2000,6 +2014,7 @@ class ConversationTab(ChatTab):
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.resize()
         self.update_commands()
+        self.update_keys()
 
     @staticmethod
     def add_information_element(plugin_name, callback):
@@ -2168,6 +2183,7 @@ class MucListTab(Tab):
     scrollable, and letting the user join them, etc
     """
     plugin_commands = {}
+    plugin_keys = {}
     def __init__(self, server):
         Tab.__init__(self)
         self.state = 'normal'
@@ -2188,6 +2204,8 @@ class MucListTab(Tab):
         self.key_func['^M'] = self.join_selected
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
         self.resize()
+        self.update_keys()
+        self.update_commands()
 
     def refresh(self):
         if self.need_resize:
