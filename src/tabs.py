@@ -152,10 +152,10 @@ class Tab(object):
             if len(txt.split()) > 1 or\
                     (txt.endswith(' ') and not the_input.last_completion):
                 command_name = txt.split()[0][1:]
-                if command_name in self.core.commands:
-                    command = self.core.commands[command_name]
-                elif command_name in self.commands:
+                if command_name in self.commands:
                     command = self.commands[command_name]
+                elif command_name in self.core.commands:
+                    command = self.core.commands[command_name]
                 else:           # Unknown command, cannot complete
                     return False
                 if command[2] is None:
