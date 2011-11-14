@@ -16,6 +16,11 @@ class PluginConfig(config.Config):
             section = self.module_name
         return config.Config.get(self, option, default, section)
 
+    def set(self, option, default, section=None):
+        if not section:
+            section = self.module_name
+        return config.Config.set(self, option, default, section)
+
     def read(self):
         """Read the config file"""
         RawConfigParser.read(self, self.file_name)
