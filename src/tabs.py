@@ -494,11 +494,19 @@ class MucTab(ChatTab):
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_ignore)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), None)
+        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
         self.resize()
         self.update_commands()
         self.update_keys()
+
+    def completion_version(self, the_input):
+        """Completion for /version"""
+        userlist = [user.nick for user in self.users]
+        userlist.remove(self.own_nick)
+        contact_list = [contact.bare_jid for contact in roster.get_contacts()]
+        userlist.extend(contact_list)
+        return the_input.auto_completion(userlist, '')
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
