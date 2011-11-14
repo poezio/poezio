@@ -29,10 +29,28 @@ class Plugin(BasePlugin):
         args = common.shell_split(arg)
         if len(args) < 2:
             return
+        if args[0].endswith('d'):
+            modifier = 'd'
+        elif args[0].endswith('h'):
+            modifier = 'h'
+        elif args[0].endswith('m'):
+            modifier = 'm'
+        else:
+            modifier = None
         try:
-           time = int(args[0])
+            if modifier:
+                time = int(args[0][:-1])
+            else:
+                time = int(args[0])
         except:
             return
+
+        if modifier == 'd':
+            time = time * 86400
+        elif modifier == 'h':
+            time = time * 3600
+        elif modifier == 'm':
+            time = time * 60
 
         self.tasks[self.count] = (time, args[1])
         timed_event = timed_events.DelayedEvent(time, self.remind, self.count)
@@ -47,7 +65,7 @@ class Plugin(BasePlugin):
         if txt.endswith(' '):
             n += 1
         if n == 2:
-            return the_input.auto_completion(["60", "300", "600", "900", "3600", "36000", "86400"], '')
+            return the_input.auto_completion(["60", "5m", "15m", "30m", "1h", "10h", "1d"], '')
 
     def completion_done(self, the_input):
         return the_input.auto_completion(["%s" % key for key in self.tasks], '')
