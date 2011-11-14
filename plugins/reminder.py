@@ -6,11 +6,24 @@ import timed_events
 class Plugin(BasePlugin):
 
     def init(self):
-        self.add_command('remind', self.command_remind, "Usage: /reminder <time in seconds> <todo>\nReminder: remind you of <todo> every <time> seconds..", None)
-        self.add_command('done', self.command_done, "Usage: /done <id>\nDone: Stop reminding you do the task identified by <id>", None)
+        self.add_command('remind', self.command_remind, "Usage: /reminder <time in seconds> <todo>\nReminder: remind you of <todo> every <time> seconds..", self.completion_remind)
+        self.add_command('done', self.command_done, "Usage: /done <id>\nDone: Stop reminding you do the task identified by <id>", self.completion_done)
         self.add_command('tasks', self.command_tasks, "Usage: /tasks\nTasks: List all the current tasks and their ids.", None)
         self.tasks = {}
         self.count = 0
+
+        for option in self.config.options(self.__module__):
+            id, secs = option.split(',')
+            id = int(id)
+            if id > self.count:
+                self.count = id
+            value = self.config.get(option, '')
+            self.tasks[id] = (int(secs), value)
+            self.config.remove_section(self.__module__)
+            self.config.add_section(self.__module__)
+        if self.tasks:
+            self.count += 1
+            self.command_tasks('', nocommand=True)
 
     def command_remind(self, arg):
         args = common.shell_split(arg)
@@ -24,7 +37,20 @@ class Plugin(BasePlugin):
         self.tasks[self.count] = (time, args[1])
         timed_event = timed_events.DelayedEvent(time, self.remind, self.count)
         self.core.add_timed_event(timed_event)
+        self.core.information('Task %s added: %s every %s seconds.' % (self.count, args[1], time), 'Info')
         self.count += 1
+
+    def completion_remind(self, the_input):
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion(["60", "300", "600", "900", "3600", "36000", "86400"], '')
+
+    def completion_done(self, the_input):
+        return the_input.auto_completion(["%s" % key for key in self.tasks], '')
 
     def command_done(self, arg="0"):
         try:
@@ -34,12 +60,16 @@ class Plugin(BasePlugin):
         if not id in self.tasks:
             return
 
+        self.core.information('Task %s: %s [DONE]' % (id, self.tasks[id][1]), 'Info')
         del self.tasks[id]
 
-    def command_tasks(self, arg):
-        s = ''
+    def command_tasks(self, arg, nocommand=None):
+        if nocommand:
+            s = 'The following tasks were loaded:\n'
+        else:
+            s = 'The following tasks are active:\n'
         for key in self.tasks:
-            s += '%s: %s\n' % key, self.tasks[key][1]
+            s += 'Task %s: %s every %s seconds.\n' % (key, repr(self.tasks[key][1]), self.tasks[key][0])
         if s:
             self.core.information(s, 'Info')
 
@@ -52,5 +82,10 @@ class Plugin(BasePlugin):
         timed_event = timed_events.DelayedEvent(self.tasks[id][0], self.remind, id)
         self.core.add_timed_event(timed_event)
 
-
-
+    def cleanup(self):
+        if self.tasks:
+            self.config.remove_section(self.__module__)
+            self.config.add_section(self.__module__)
+            for task in self.tasks:
+                self.config.set('%s,%s' % (task, self.tasks[task][0]), self.tasks[task][1])
+        self.config.write()
