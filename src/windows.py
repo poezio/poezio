@@ -426,7 +426,7 @@ class ConversationInfoWin(InfoWin):
             presence = resource.presence
         color = RosterWin.color_show[presence]()
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(" ", to_curses_attr(color))
+        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_informations(self, contact):
@@ -1494,7 +1494,7 @@ class RosterWin(Win):
         else:
             display_name = '%s%s' % (contact.bare_jid, nb,)
         self.addstr(y, 0, ' ')
-        self.addstr(" ", to_curses_attr(color))
+        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         if resource:
             self.addstr(' [+]' if contact._folded else ' [-]')
         self.addstr(' ')
@@ -1511,7 +1511,7 @@ class RosterWin(Win):
         Draw a specific resource line
         """
         color = RosterWin.color_show[resource.presence]()
-        self.addstr(y, 4, " ", to_curses_attr(color))
+        self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
             self.addstr(y, 6, resource.jid.full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
