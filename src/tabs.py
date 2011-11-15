@@ -1585,9 +1585,17 @@ class RosterInfoTab(Tab):
                 return
         else:
             jid = JID(args[0]).bare
+            if not jid in [contact.bare_jid for contact in roster.get_contacts()]:
+                self.core.information('No subscription to deny')
+                return
+
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        if self.core.xmpp.update_roster(jid, subscription='remove'):
-            roster.remove_contact(jid)
+        try:
+            if self.core.xmpp.update_roster(jid, subscription='remove'):
+                roster.remove_contact(jid)
+        except Exception as e:
+            import traceback
+            log.debug(_('Traceback when removing %s from the roster:\n')+traceback.format_exc())
 
     def command_add(self, args):
         """
