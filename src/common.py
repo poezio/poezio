@@ -194,7 +194,7 @@ def replace_key_with_bound(key):
         return key
 
 def parse_str_to_secs(duration=''):
-    values = {'m': 60, 'h': 3600, 'd': 86400}
+    values = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
     result = 0
     tmp = '0'
     for char in duration:
@@ -211,7 +211,6 @@ def parse_str_to_secs(duration=''):
     return result
 
 def parse_secs_to_str(duration=0):
-    values = {60: 'm', 3600:'h', 86400:'d'}
     secs, mins, hours, days = 0, 0, 0, 0
     result = ''
     secs = duration % 60
