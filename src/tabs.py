@@ -665,6 +665,7 @@ class MucTab(ChatTab):
         else:
             arg = None
         if self.joined:
+            self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             self.add_message(_("\x195}You left the chatroom\x193}"))
             if self == self.core.current_tab():
