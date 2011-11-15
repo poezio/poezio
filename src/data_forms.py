@@ -157,7 +157,7 @@ class DummyInput(FieldInput, windows.Win):
 class ColoredLabel(windows.Win):
     def __init__(self, text):
         self.text = text
-        self.color = 14
+        self.color = (14, -1)
         windows.Win.__init__(self)
 
     def resize(self, height, width, y, x):
@@ -169,9 +169,9 @@ class ColoredLabel(windows.Win):
 
     def refresh(self):
         with g_lock:
-            self._win.attron(curses.color_pair(self.color))
+            self._win.attron(to_curses_attr(self.color))
             self.addstr(0, 0, self.text)
-            self._win.attroff(curses.color_pair(self.color))
+            self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
 class BooleanWin(FieldInput, windows.Win):
