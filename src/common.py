@@ -206,6 +206,8 @@ def parse_str_to_secs(duration=''):
             tmp = '0'
         else:
             result += int(tmp)
+    if tmp != '0':
+        result += int(tmp)
     return result
 
 def parse_secs_to_str(duration=0):
