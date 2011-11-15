@@ -173,6 +173,7 @@ def datetime_tuple(timestamp):
 
 def shell_split(st):
     sh = shlex.shlex(st, posix=True)
+    sh.commenters = ''
     sh.whitespace_split = True
     sh.quotes = '"'
     ret = list()
