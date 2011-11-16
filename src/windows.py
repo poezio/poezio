@@ -345,9 +345,9 @@ class VerticalGlobalInfoBar(Win):
                     sorted_tabs = sorted_tabs[pos-height//2 : pos+height//2]
             for y, tab in enumerate(sorted_tabs):
                 color = tab.vertical_color
-                self.addstr(y, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
+                self.addstr(y if config.get('vertical_tab_list_sort', 'desc') != 'asc' else height - y - 1, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
                 self.addstr('.')
-                self._win.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
+                self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
             self._refresh()
 
 class InfoWin(Win):

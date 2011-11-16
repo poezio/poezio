@@ -223,7 +223,10 @@ Configuration options
 
 *vertical_tab_list_size*:: 20
 
- Define the width of the vertical tabs. Does nothing if it is not enabled.
+*vertical_tab_list_sort*:: desc
+
+ If set to desc, the tabs will be displayed from top to bottom in the list,
+ if set to asc, they will be displayed from bottom to top.
 
 *send_chat_states*:: true
 
