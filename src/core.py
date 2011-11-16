@@ -221,7 +221,7 @@ class Core(object):
         """
         with g_lock:
             self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
-            if config.get('enable_left_tab_list', 'false') == 'true':
+            if config.get('enable_vertical_tab_list', 'false') == 'true':
                 height, width = self.stdscr.getmaxyx()
                 truncated_win = self.stdscr.subwin(height, config.get('vertical_tab_list_size', 20), 0, 0)
                 self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
@@ -754,7 +754,7 @@ class Core(object):
         # window to each Tab class, so the draw themself in the portion
         # of the screen that the can occupy, and we draw the tab list
         # on the left remaining space
-        if config.get('enable_left_tab_list', 'false') == 'true':
+        if config.get('enable_vertical_tab_list', 'false') == 'true':
             scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
         else:
             scr = self.stdscr
