@@ -193,12 +193,7 @@ class Core(object):
         """
         self.stdscr = curses.initscr()
         self.init_curses(self.stdscr)
-        # Init the tab's size.
-        tabs.Tab.resize(self.stdscr)
-        # resize the information_win to its initial size
-        self.resize_global_information_win()
-        # resize the global_info_bar to its initial size
-        self.resize_global_info_bar()
+        self.call_for_resize()
         default_tab = tabs.RosterInfoTab()
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
@@ -226,6 +221,12 @@ class Core(object):
         """
         with g_lock:
             self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
+            if config.get('enable_vertical_tab_list', 'false') == 'true':
+                height, width = self.stdscr.getmaxyx()
+                truncated_win = self.stdscr.subwin(height, config.get('vertical_tab_list_size', 20), 0, 0)
+                self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
+            else:
+                self.left_tab_win = None
 
     def on_exception(self, typ, value, trace):
         """
@@ -749,16 +750,25 @@ class Core(object):
         """
         Called when we want to resize the screen
         """
-        tabs.Tab.resize(self.stdscr)
-        self.resize_global_information_win()
+        # If we have the tabs list on the left, we just give a truncated
+        # window to each Tab class, so the draw themself in the portion
+        # of the screen that the can occupy, and we draw the tab list
+        # on the left remaining space
+        if config.get('enable_vertical_tab_list', 'false') == 'true':
+            scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
+        else:
+            scr = self.stdscr
+        tabs.Tab.resize(scr)
         self.resize_global_info_bar()
+        self.resize_global_information_win()
         with g_lock:
             for tab in self.tabs:
                 if config.get('lazy_resize', 'true') == 'true':
                     tab.need_resize = True
                 else:
                     tab.resize()
-            self.full_screen_redraw()
+            if self.tabs:
+                self.full_screen_redraw()
 
     def read_keyboard(self):
         """
@@ -878,7 +888,7 @@ class Core(object):
         self.doupdate()
 
     def refresh_tab_win(self):
-        self.current_tab().tab_win.refresh()
+        self.current_tab().refresh_tab_win()
         if self.current_tab().input:
             self.current_tab().input.refresh()
         self.doupdate()

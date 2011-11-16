@@ -69,6 +69,17 @@ STATE_COLORS = {
 #        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
     }
 
+VERTICAL_STATE_COLORS = {
+        'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
+        'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
+        'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
+        'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
+        'normal': lambda: get_theme().COLOR_VERTICAL_TAB_NORMAL,
+        'current': lambda: get_theme().COLOR_VERTICAL_TAB_CURRENT,
+#        'attention': lambda: get_theme().COLOR_VERTICAL_TAB_ATTENTION,
+    }
+
+
 STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
@@ -107,12 +118,23 @@ class Tab(object):
         return Tab.tab_core.tab_win
 
     @property
+    def left_tab_win(self):
+        if not Tab.tab_core:
+            Tab.tab_core = singleton.Singleton(core.Core)
+        return Tab.tab_core.left_tab_win
+
+
+    @property
     def info_win(self):
         return self.core.information_win
 
     @property
     def color(self):
         return STATE_COLORS[self._state]()
+
+    @property
+    def vertical_color(self):
+        return VERTICAL_STATE_COLORS[self._state]()
 
     @property
     def state(self):
@@ -135,6 +157,7 @@ class Tab(object):
             Tab.visible = False
         else:
             Tab.visible = True
+        windows.Win._tab_win = scr
 
     def complete_commands(self, the_input):
         """
@@ -201,6 +224,11 @@ class Tab(object):
             return True
         else:
             return False
+
+    def refresh_tab_win(self):
+        self.tab_win.refresh()
+        if self.left_tab_win:
+            self.left_tab_win.refresh()
 
     def refresh(self):
         """
@@ -665,6 +693,7 @@ class MucTab(ChatTab):
         else:
             arg = None
         if self.joined:
+            self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             self.add_message(_("\x195}You left the chatroom\x193}"))
             if self == self.core.current_tab():
@@ -891,7 +920,7 @@ class MucTab(ChatTab):
         self.v_separator.refresh()
         self.user_win.refresh(self.users)
         self.info_header.refresh(self, self.text_win)
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.info_win.refresh()
         self.input.refresh()
 
@@ -1063,7 +1092,7 @@ class MucTab(ChatTab):
         if from_nick == self.own_nick: # we are banned
             self.disconnect()
             self.core.disable_private_tabs(self.name)
-            self.tab_win.refresh()
+            self.refresh_tab_win()
             self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been banned by \x194}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by}
@@ -1090,7 +1119,7 @@ class MucTab(ChatTab):
         if from_nick == self.own_nick: # we are kicked
             self.disconnect()
             self.core.disable_private_tabs(self.name)
-            self.tab_win.refresh()
+            self.refresh_tab_win()
             self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been kicked by \x193}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by}
@@ -1118,7 +1147,7 @@ class MucTab(ChatTab):
             # We are now out of the room. Happens with some buggy (? not sure) servers
             self.disconnect()
             self.core.disable_private_tabs(from_room)
-            self.tab_win.refresh()
+            self.refresh_tab_win()
             self.core.doupdate()
         hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
@@ -1376,7 +1405,7 @@ class PrivateTab(ChatTab):
         self.text_win.refresh()
         self.info_header.refresh(self.name, self.text_win, self.chatstate)
         self.info_win.refresh()
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.input.refresh()
 
     def refresh_info_header(self):
@@ -1584,9 +1613,17 @@ class RosterInfoTab(Tab):
                 return
         else:
             jid = JID(args[0]).bare
+            if not jid in [contact.bare_jid for contact in roster.get_contacts()]:
+                self.core.information('No subscription to deny')
+                return
+
         self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        if self.core.xmpp.update_roster(jid, subscription='remove'):
-            roster.remove_contact(jid)
+        try:
+            if self.core.xmpp.update_roster(jid, subscription='remove'):
+                roster.remove_contact(jid)
+        except Exception as e:
+            import traceback
+            log.debug(_('Traceback when removing %s from the roster:\n')+traceback.format_exc())
 
     def command_add(self, args):
         """
@@ -1844,7 +1881,7 @@ class RosterInfoTab(Tab):
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
         self.information_win.refresh()
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.input.refresh()
 
     def get_name(self):
@@ -2109,7 +2146,7 @@ class ConversationTab(ChatTab):
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.info_win.refresh()
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.input.refresh()
 
     def refresh_info_header(self):
@@ -2222,7 +2259,7 @@ class MucListTab(Tab):
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.input.refresh()
         self.update_commands()
 
@@ -2370,7 +2407,7 @@ class SimpleTextTab(Tab):
             self.resize()
         log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
         self.text_win.refresh()
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.input.refresh()
 
     def on_lose_focus(self):

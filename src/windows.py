@@ -55,6 +55,7 @@ def truncate_nick(nick, size=25):
 
 class Win(object):
     _win_core = None
+    _tab_win = None
     def __init__(self):
         self._win = None
 
@@ -63,14 +64,12 @@ class Win(object):
             self.height, self.width = height, width
             return
         self.height, self.width, self.x, self.y = height, width, x, y
-        if not self._win:
-            self._win = curses.newwin(height, width, y, x)
-        else:
-            try:
-                self._win.resize(height, width)
-                self._win.mvwin(y, x)
-            except:
-                log.debug('DEBUG: mvwin returned ERR. Please investigate')
+        # try:
+        self._win = Win._tab_win.derwin(height, width, y, x)
+        # except:
+        #     log.debug('DEBUG: mvwin returned ERR. Please investigate')
+
+        # If this ever fail, uncomment that ^
 
     def resize(self, height, width, y, x):
         """
@@ -315,6 +314,42 @@ class GlobalInfoBar(Win):
                          to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             self._refresh()
 
+class VerticalGlobalInfoBar(Win):
+    def __init__(self, scr):
+        Win.__init__(self)
+        self._win = scr
+
+    def refresh(self):
+        def compare_room(a):
+            return a.nb
+        comp = lambda x: x.nb
+        with g_lock:
+            height, width = self._win.getmaxyx()
+            self._win.erase()
+            sorted_tabs = sorted(self.core.tabs, key=comp)
+            if config.get('show_inactive_tabs', 'true') == 'false':
+                sorted_tabs = [tab for tab in sorted_tabs if\
+                                   tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
+            nb_tabs = len(sorted_tabs)
+            if nb_tabs >= height:
+                for y, tab in enumerate(sorted_tabs):
+                    if tab.vertical_color == get_theme().COLOR_VERTICAL_TAB_CURRENT:
+                        pos = y
+                        break
+                # center the current tab as much as possible
+                if pos < height//2:
+                    sorted_tabs = sorted_tabs[:height]
+                elif nb_tabs - pos <= height//2:
+                    sorted_tabs = sorted_tabs[-height:]
+                else:
+                    sorted_tabs = sorted_tabs[pos-height//2 : pos+height//2]
+            for y, tab in enumerate(sorted_tabs):
+                color = tab.vertical_color
+                self.addstr(y, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
+                self.addstr('.')
+                self._win.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
+            self._refresh()
+
 class InfoWin(Win):
     """
     Base class for all the *InfoWin, used in various tabs. For example
@@ -426,7 +461,7 @@ class ConversationInfoWin(InfoWin):
             presence = resource.presence
         color = RosterWin.color_show[presence]()
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(" ", to_curses_attr(color))
+        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_informations(self, contact):
@@ -1494,7 +1529,7 @@ class RosterWin(Win):
         else:
             display_name = '%s%s' % (contact.bare_jid, nb,)
         self.addstr(y, 0, ' ')
-        self.addstr(" ", to_curses_attr(color))
+        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         if resource:
             self.addstr(' [+]' if contact._folded else ' [-]')
         self.addstr(' ')
@@ -1511,7 +1546,7 @@ class RosterWin(Win):
         Draw a specific resource line
         """
         color = RosterWin.color_show[resource.presence]()
-        self.addstr(y, 4, " ", to_curses_attr(color))
+        self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
             self.addstr(y, 6, resource.jid.full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:

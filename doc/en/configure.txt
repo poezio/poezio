@@ -216,6 +216,15 @@ Configuration options
   If the file is not found (or no filename is specified) the default
   theme will be used instead
 
+*enable_vertical_tab_list*:: false
+
+ If true, a vertical list of tabs, with their name, is displayed on the left of
+ the screen.
+
+*vertical_tab_list_size*:: 20
+
+ Define the width of the vertical tabs. Does nothing if it is not enabled.
+
 *send_chat_states*:: true
 
   if true, chat states will be sent to the people you are talking to.

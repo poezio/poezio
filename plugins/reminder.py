@@ -29,33 +29,15 @@ class Plugin(BasePlugin):
         args = common.shell_split(arg)
         if len(args) < 2:
             return
-        if args[0].endswith('d'):
-            modifier = 'd'
-        elif args[0].endswith('h'):
-            modifier = 'h'
-        elif args[0].endswith('m'):
-            modifier = 'm'
-        else:
-            modifier = None
-        try:
-            if modifier:
-                time = int(args[0][:-1])
-            else:
-                time = int(args[0])
-        except:
+        time = common.parse_str_to_secs(args[0])
+        if not time:
             return
-
-        if modifier == 'd':
-            time = time * 86400
-        elif modifier == 'h':
-            time = time * 3600
-        elif modifier == 'm':
-            time = time * 60
 
         self.tasks[self.count] = (time, args[1])
         timed_event = timed_events.DelayedEvent(time, self.remind, self.count)
         self.core.add_timed_event(timed_event)
-        self.core.information('Task %s added: %s every %s seconds.' % (self.count, args[1], time), 'Info')
+        self.core.information('Task %s added: %s every %s.' % (self.count, args[1],
+            common.parse_secs_to_str(time)), 'Info')
         self.count += 1
 
     def completion_remind(self, the_input):
@@ -87,7 +69,8 @@ class Plugin(BasePlugin):
         else:
             s = 'The following tasks are active:\n'
         for key in self.tasks:
-            s += 'Task %s: %s every %s seconds.\n' % (key, repr(self.tasks[key][1]), self.tasks[key][0])
+            s += 'Task %s: %s every %s.\n' % (key, repr(self.tasks[key][1]),
+                    common.parse_secs_to_str(self.tasks[key][0]))
         if s:
             self.core.information(s, 'Info')
 

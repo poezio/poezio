@@ -16,6 +16,7 @@ import mimetypes
 import hashlib
 import subprocess
 import time
+import string
 import shlex
 
 from config import config
@@ -191,3 +192,35 @@ def replace_key_with_bound(key):
         return config.get(key, key, 'bindings')
     else:
         return key
+
+def parse_str_to_secs(duration=''):
+    values = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
+    result = 0
+    tmp = '0'
+    for char in duration:
+        if char in string.digits:
+            tmp += char
+        elif char in values:
+            tmp_i = int(tmp)
+            result += tmp_i * values[char]
+            tmp = '0'
+        else:
+            result += int(tmp)
+    if tmp != '0':
+        result += int(tmp)
+    return result
+
+def parse_secs_to_str(duration=0):
+    secs, mins, hours, days = 0, 0, 0, 0
+    result = ''
+    secs = duration % 60
+    mins = (duration % 3600) // 60
+    hours = (duration % 86400) // 3600
+    days = duration // 86400
+
+    result += '%sd' % days if days else ''
+    result += '%sh' % hours if hours else ''
+    result += '%sm' % mins if mins else ''
+    result += '%ss' % secs if secs else ''
+    return result
+
