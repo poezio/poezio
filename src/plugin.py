@@ -27,6 +27,13 @@ class PluginConfig(config.Config):
         if not self.has_section(self.module_name):
             self.add_section(self.module_name)
 
+    def options(self, section=None):
+        if not section:
+            section = self.module_name
+        if not self.has_section(section):
+            self.add_section(section)
+        return config.Config.options(self, section)
+
     def write(self):
         """Write the config to the disk"""
         try:

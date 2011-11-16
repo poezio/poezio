@@ -16,6 +16,7 @@ import logging
 log = logging.getLogger(__name__)
 
 DATA_HOME = config.get('log_dir', '') or os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio')
+DATA_HOME = os.path.expanduser(DATA_HOME)
 
 class Logger(object):
     """

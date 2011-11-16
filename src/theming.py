@@ -94,6 +94,12 @@ class Theme(object):
     # in the user list
     CHAR_STATUS = '|'
 
+    # The characters used for the chatstates in the user list
+    # in a MUC
+    CHAR_CHATSTATE_ACTIVE = 'A'
+    CHAR_CHATSTATE_COMPOSING = 'X'
+    CHAR_CHATSTATE_PAUSED = 'p'
+
     # Separators
     COLOR_VERTICAL_SEPARATOR = (4, -1)
     COLOR_NEW_TEXT_SEPARATOR = (2, -1)
@@ -246,6 +252,7 @@ def reload_theme():
         os.path.join(os.environ.get('XDG_DATA_HOME') or\
                          os.path.join(os.environ.get('HOME'), '.local', 'share'),
                      'poezio', 'themes')
+    themes_dir = os.path.expanduser(themes_dir)
     try:
         os.makedirs(themes_dir)
     except OSError:
