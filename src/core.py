@@ -213,7 +213,7 @@ class Core(object):
         """
         with g_lock:
             self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                        tabs.Tab.height - 2 - self.information_win_size, 0)
+                                        tabs.Tab.height - 1 - self.information_win_size - tabs.Tab.tab_win_height(), 0)
 
     def resize_global_info_bar(self):
         """

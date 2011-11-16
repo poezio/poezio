@@ -123,6 +123,15 @@ class Tab(object):
             Tab.tab_core = singleton.Singleton(core.Core)
         return Tab.tab_core.left_tab_win
 
+    @staticmethod
+    def tab_win_height():
+        """
+        Returns 1 or 0, depending on if we are using the vertical tab list
+        or not.
+        """
+        if config.get('enable_vertical_tab_list', 'false') == 'true':
+            return 0
+        return 1
 
     @property
     def info_win(self):
@@ -226,9 +235,10 @@ class Tab(object):
             return False
 
     def refresh_tab_win(self):
-        self.tab_win.refresh()
         if self.left_tab_win:
             self.left_tab_win.refresh()
+        else:
+            self.tab_win.refresh()
 
     def refresh(self):
         """
@@ -904,11 +914,11 @@ class MucTab(ChatTab):
         self.need_resize = False
         text_width = (self.width//10)*9
         self.topic_win.resize(1, self.width, 0, 0)
-        self.v_separator.resize(self.height-3, 1, 1, 9*(self.width//10))
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0)
+        self.v_separator.resize(self.height-2 - Tab.tab_win_height(), 1, 1, 9*(self.width//10))
+        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), text_width, 1, 0)
         self.text_win.rebuild_everything(self._text_buffer)
-        self.user_win.resize(self.height-3-self.core.information_win_size-1, self.width-text_width-1, 1, text_width+1)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.user_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width-text_width-1, 1, text_width+1)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -992,9 +1002,9 @@ class MucTab(ChatTab):
         if self.core.information_win_size >= self.height-3:
             return
         text_width = (self.width//10)*9
-        self.text_win.resize(self.height-4-self.core.information_win_size, text_width, 1, 0)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
-        self.user_win.resize(self.height-3-self.core.information_win_size-1, self.width-text_width-1, 1, text_width+1)
+        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), text_width, 1, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.user_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width-text_width-1, 1, text_width+1)
 
     def handle_presence(self, presence):
         from_nick = presence['from'].resource
@@ -1393,9 +1403,9 @@ class PrivateTab(ChatTab):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.need_resize = False
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
+        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
         self.text_win.rebuild_everything(self._text_buffer)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -1452,8 +1462,8 @@ class PrivateTab(ChatTab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size, self.width, 0, 0)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
 
     def get_text_window(self):
         return self.text_win
@@ -1554,10 +1564,10 @@ class RosterInfoTab(Tab):
         self.need_resize = False
         roster_width = self.width//2
         info_width = self.width-roster_width-1
-        self.v_separator.resize(self.height-2, 1, 0, roster_width)
+        self.v_separator.resize(self.height-1 - Tab.tab_win_height(), 1, 0, roster_width)
         self.information_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.information_buffer)
-        self.roster_win.resize(self.height-2, roster_width, 0, 0)
-        self.contact_info_win.resize(4, info_width, self.height-2-4, roster_width+1)
+        self.roster_win.resize(self.height-1 - Tab.tab_win_height(), roster_width, 0, 0)
+        self.contact_info_win.resize(5 - Tab.tab_win_height(), info_width, self.height-2-4, roster_width+1)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def completion(self):
@@ -2132,10 +2142,10 @@ class ConversationTab(ChatTab):
         if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.need_resize = False
-        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
+        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
         self.text_win.rebuild_everything(self._text_buffer)
         self.upper_bar.resize(1, self.width, 0, 0)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -2208,8 +2218,9 @@ class ConversationTab(ChatTab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        self.text_win.resize(self.height-4-self.core.information_win_size, self.width, 1, 0)
-        self.info_header.resize(1, self.width, self.height-3-self.core.information_win_size, 0)
+        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+
 
     def get_text_window(self):
         return self.text_win
