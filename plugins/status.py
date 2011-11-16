@@ -17,5 +17,5 @@ class Plugin(BasePlugin):
                 '/afk [status message]\nAfk: Set your status as afk (away from keyboard).')
         self.add_command('away', lambda line: self.core.command_status('away '+line),
                 '/away [status message]\nAway: Set your status as away.')
-        self.add_command('away', lambda line: self.core.command_status('away '+line),
+        self.add_command('available', lambda line: self.core.command_status('available '+line),
                 '/available [status message]\nAvailable: Set your status as available.')
