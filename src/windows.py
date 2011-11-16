@@ -348,6 +348,9 @@ class VerticalGlobalInfoBar(Win):
                 self.addstr(y if config.get('vertical_tab_list_sort', 'desc') != 'asc' else height - y - 1, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
                 self.addstr('.')
                 self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
+            self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            self._win.vline(0, width-1, curses.ACS_VLINE, height)
+            self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
             self._refresh()
 
 class InfoWin(Win):
