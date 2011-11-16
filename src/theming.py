@@ -246,6 +246,7 @@ def reload_theme():
         os.path.join(os.environ.get('XDG_DATA_HOME') or\
                          os.path.join(os.environ.get('HOME'), '.local', 'share'),
                      'poezio', 'themes')
+    themes_dir = os.path.expanduser(themes_dir)
     try:
         os.makedirs(themes_dir)
     except OSError:

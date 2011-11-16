@@ -10,6 +10,7 @@ plugins_dir = plugins_dir or\
     os.path.join(os.environ.get('XDG_DATA_HOME') or\
                      os.path.join(os.environ.get('HOME'), '.local', 'share'),
                  'poezio', 'plugins')
+plugins_dir = os.path.expanduser(plugins_dir)
 
 config_home = os.environ.get("XDG_CONFIG_HOME")
 if not config_home:
