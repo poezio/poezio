@@ -114,6 +114,13 @@ class Theme(object):
     COLOR_TAB_PRIVATE = (7, 2)
     COLOR_TAB_DISCONNECTED = (7, 8)
 
+    COLOR_VERTICAL_TAB_NORMAL = (4, -1)
+    COLOR_VERTICAL_TAB_CURRENT = (7, 4)
+    COLOR_VERTICAL_TAB_NEW_MESSAGE = (5, -1)
+    COLOR_VERTICAL_TAB_HIGHLIGHT = (1, -1)
+    COLOR_VERTICAL_TAB_PRIVATE = (2, -1)
+    COLOR_VERTICAL_TAB_DISCONNECTED = (8, -1)
+
     # Nickname colors
     # A list of colors randomly attributed to nicks in MUCs
     # Setting more colors makes it harder to have two nicks with the same color,
@@ -150,6 +157,9 @@ class Theme(object):
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
     COLOR_KICK_CHAR = (1, -1)
+
+    # Vertical tab list color
+    COLOR_VERTICAL_TAB_NUMBER = (34, -1)
 
 # This is the default theme object, used if no theme is defined in the conf
 theme = Theme()
