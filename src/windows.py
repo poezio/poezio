@@ -233,11 +233,11 @@ class UserList(Win):
                 else:
                     show_col = self.color_show[user.show]()
                 if user.chatstate == 'composing':
-                    char = 'X'
+                    char = get_theme().CHAR_CHATSTATE_COMPOSING
                 elif user.chatstate == 'active':
-                    char = 'A'
+                    char = get_theme().CHAR_CHATSTATE_ACTIVE
                 elif user.chatstate == 'paused':
-                    char = 'p'
+                    char = get_theme().CHAR_CHATSTATE_PAUSED
                 else:
                     char = get_theme().CHAR_STATUS
                 self.addstr(y, 0, char, to_curses_attr(show_col))
