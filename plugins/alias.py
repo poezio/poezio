@@ -1,4 +1,6 @@
 from plugin import BasePlugin
+import common
+from common import parse_command_args_to_alias as parse
 
 class Plugin(BasePlugin):
     def init(self):
@@ -7,19 +9,20 @@ class Plugin(BasePlugin):
         self.commands = {}
 
     def command_alias(self, line):
-        arg = line.split()
+        arg = common.shell_split(line)
         if len(arg) < 2:
             self.core.information('Alias: Not enough parameters', 'Error')
             return
         alias = arg[0]
-        command = arg[1]
-        post_args = ' '.join(arg[2:])
+        tmp_args = common.shell_split(arg[1])
+        command = tmp_args.pop(0)
+        tmp_args = arg[1][len(command)+1:]
 
         if alias in self.core.commands or alias in self.commands:
             self.core.information('Alias: command already exists', 'Error')
             return
-        self.commands[alias] = lambda args: self.get_command(command)(post_args+args)
-        self.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' % (command, post_args))
+        self.commands[alias] = lambda args: self.get_command(command)(parse(common.shell_split(args), tmp_args))
+        self.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %( command, tmp_args))
         self.core.information('Alias /%s successfuly created' % alias, 'Info')
 
     def command_unalias(self, alias):
