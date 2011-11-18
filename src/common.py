@@ -194,6 +194,11 @@ def replace_key_with_bound(key):
         return key
 
 def parse_str_to_secs(duration=''):
+    """
+    Parse a string of with a number of d, h, m, s
+    >>> parse_str_to_secs("1d3m1h")
+    90180
+    """
     values = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
     result = 0
     tmp = '0'
@@ -211,6 +216,12 @@ def parse_str_to_secs(duration=''):
     return result
 
 def parse_secs_to_str(duration=0):
+    """
+    Parse a number of seconds to a human-readable string.
+    The string has the form XdXhXmXs. 0 units are removed.
+    >>> parse_secs_to_str(3601)
+    1h1s
+    """
     secs, mins, hours, days = 0, 0, 0, 0
     result = ''
     secs = duration % 60
