@@ -941,7 +941,7 @@ class MucTab(ChatTab):
         if not raw and key in self.key_func:
             self.key_func[key]()
             return False
-        self.input.do_command(key)
+        self.input.do_command(key, raw=raw)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
         return False
@@ -1432,7 +1432,7 @@ class PrivateTab(ChatTab):
         if not raw and key in self.key_func:
             self.key_func[key]()
             return False
-        self.input.do_command(key)
+        self.input.do_command(key, raw=raw)
         if not self.on:
             return False
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
@@ -1901,12 +1901,12 @@ class RosterInfoTab(Tab):
         return self.name
 
     def on_input(self, key, raw):
-        if key == '^M':
+        if raw and key == '^M':
             selected_row = self.roster_win.get_selected_row()
-        res = self.input.do_command(key)
+        res = self.input.do_command(key, raw=raw)
         if res:
             return True
-        if key == '^M':
+        if raw and key == '^M':
             self.core.on_roster_enter_key(selected_row)
             return selected_row
         elif not raw and key in self.key_func:
@@ -2173,7 +2173,7 @@ class ConversationTab(ChatTab):
         if not raw and key in self.key_func:
             self.key_func[key]()
             return False
-        self.input.do_command(key)
+        self.input.do_command(key, raw=raw)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
         return False
@@ -2355,7 +2355,7 @@ class MucListTab(Tab):
             self.complete_commands(self.input)
 
     def on_input(self, key, raw):
-        res = self.input.do_command(key)
+        res = self.input.do_command(key, raw=raw)
         if res:
             return True
         if not raw and key in self.key_func:
@@ -2400,7 +2400,7 @@ class SimpleTextTab(Tab):
         self.input.do_command("/") # we add the slash
 
     def on_input(self, key, raw):
-        res = self.input.do_command(key)
+        res = self.input.do_command(key, raw=raw)
         if res:
             return True
         if not raw and key in self.key_func:

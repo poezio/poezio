@@ -756,7 +756,7 @@ class HelpText(Win):
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
-    def do_command(self, key):
+    def do_command(self, key, raw=False):
         return False
 
 class Input(Win):
@@ -796,7 +796,7 @@ class Input(Win):
             "KEY_BACKSPACE": self.key_backspace,
             "M-KEY_BACKSPACE": self.delete_word,
             '^?': self.key_backspace,
-            '^J': self.add_line_break,
+            # '^J': self.add_line_break,
             }
         Win.__init__(self)
         self.text = ''
@@ -1088,22 +1088,23 @@ class Input(Win):
         self.text += nick
         self.key_end(False)
 
-    def do_command(self, key, reset=True):
+    def do_command(self, key, reset=True, raw=False):
         if key in self.key_func:
             res = self.key_func[key]()
-            if self.on_input:
+            if not raw and self.on_input:
                 self.on_input(self.get_text())
             return res
-        if not key or len(key) > 1:
+        if not raw and (not key or len(key) > 1):
             return False   # ignore non-handled keyboard shortcuts
         if reset:
             self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
         (y, x) = self._win.getyx()
-        if x == self.width-1:
-            self.line_pos += 1 # wcwidth.wcswidth(key)
-        else:
-            self.pos += 1 # wcwidth.wcswidth(key)
+        for i in range(len(key)):
+            if x == self.width-1:
+                self.line_pos += 1 # wcwidth.wcswidth(key)
+            else:
+                self.pos += 1 # wcwidth.wcswidth(key)
         if reset:
             self.rewrite_text()
         if self.on_input:
@@ -1269,8 +1270,8 @@ class CommandInput(Input):
         self.key_func["M-B"] = self.key_down
         self.histo_pos = -1
 
-    def do_command(self, key):
-        res = Input.do_command(self, key)
+    def do_command(self, key, refresh=True, raw=False):
+        res = Input.do_command(self, key, refresh, raw)
         if self.on_input:
             self.on_input(self.get_text())
         return res

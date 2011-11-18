@@ -787,7 +787,10 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
-        # curses.ungetch(0)    # FIXME
+        def replace_line_breaks(key):
+            if key == '^J':
+                return '\n'
+            return key
         while self.running:
             char_list = [common.replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
@@ -812,8 +815,7 @@ class Core(object):
                     if res:
                         self.refresh_window()
             else:
-                for char in char_list:
-                    self.do_command(char, True)
+                self.do_command(''.join(list(map(replace_line_breaks, char_list))), True)
                 self.refresh_window()
             self.doupdate()
 
