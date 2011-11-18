@@ -1,0 +1,20 @@
+XEP
+===
+
+.Table of all XEPs implemented in poezio.
+[options="header"]
+|==========================================
+|XEP number|XEP name    |Implementation status
+|0004      |Data Forms  |100%
+|0027      |Current Jabber OpenPGP Usage|100%
+|0030      |Service Discovery|~100%
+|0045      |Multi-User Chat|~80%
+|0059      |Result Set Management|~100%
+|0071      |XHTML-IM|~70%
+|0085      |Chat State Notifications|100%
+|0092      |Software Version|100%
+|0115      |Entity capabilities|~20%
+|0199      |XMPP Ping|40%
+|0224      |Attention|0%
+|0245      |The /me Command|80%
+|==========================================
