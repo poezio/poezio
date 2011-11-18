@@ -258,7 +258,10 @@ class Tab(object):
         """
         return None
 
-    def on_input(self, key):
+    def on_input(self, key, raw):
+        """
+        raw indicates if the key should activate the associated command or not.
+        """
         pass
 
     def update_commands(self):
@@ -934,8 +937,8 @@ class MucTab(ChatTab):
         self.info_win.refresh()
         self.input.refresh()
 
-    def on_input(self, key):
-        if key in self.key_func:
+    def on_input(self, key, raw):
+        if not raw and key in self.key_func:
             self.key_func[key]()
             return False
         self.input.do_command(key)
@@ -1425,8 +1428,8 @@ class PrivateTab(ChatTab):
     def get_name(self):
         return self.name
 
-    def on_input(self, key):
-        if key in self.key_func:
+    def on_input(self, key, raw):
+        if not raw and key in self.key_func:
             self.key_func[key]()
             return False
         self.input.do_command(key)
@@ -1897,7 +1900,7 @@ class RosterInfoTab(Tab):
     def get_name(self):
         return self.name
 
-    def on_input(self, key):
+    def on_input(self, key, raw):
         if key == '^M':
             selected_row = self.roster_win.get_selected_row()
         res = self.input.do_command(key)
@@ -1906,7 +1909,7 @@ class RosterInfoTab(Tab):
         if key == '^M':
             self.core.on_roster_enter_key(selected_row)
             return selected_row
-        elif key in self.key_func:
+        elif not raw and key in self.key_func:
             return self.key_func[key]()
 
     def toggle_offline_show(self):
@@ -2166,8 +2169,8 @@ class ConversationTab(ChatTab):
     def get_name(self):
         return self._name
 
-    def on_input(self, key):
-        if key in self.key_func:
+    def on_input(self, key, raw):
+        if not raw and key in self.key_func:
             self.key_func[key]()
             return False
         self.input.do_command(key)
@@ -2351,11 +2354,11 @@ class MucListTab(Tab):
         if isinstance(self.input, windows.CommandInput):
             self.complete_commands(self.input)
 
-    def on_input(self, key):
+    def on_input(self, key, raw):
         res = self.input.do_command(key)
         if res:
             return True
-        if key in self.key_func:
+        if not raw and key in self.key_func:
             return self.key_func[key]()
 
     def on_lose_focus(self):
@@ -2396,11 +2399,11 @@ class SimpleTextTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0)
         self.input.do_command("/") # we add the slash
 
-    def on_input(self, key):
+    def on_input(self, key, raw):
         res = self.input.do_command(key)
         if res:
             return True
-        if key in self.key_func:
+        if not raw and key in self.key_func:
             return self.key_func[key]()
 
     def close(self):

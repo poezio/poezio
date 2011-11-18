@@ -808,12 +808,12 @@ class Core(object):
                 if char in self.key_func:
                     self.key_func[char]()
                 else:
-                    res = self.do_command(char)
+                    res = self.do_command(char, False)
                     if res:
                         self.refresh_window()
             else:
                 for char in char_list:
-                    self.do_command(char)
+                    self.do_command(char, True)
                 self.refresh_window()
             self.doupdate()
 
@@ -1807,10 +1807,10 @@ class Core(object):
         roster.save_to_config_file()
         config.set_and_save('info_win_height', self.information_win_size, 'var')
 
-    def do_command(self, key):
+    def do_command(self, key, raw):
         if not key:
             return
-        return self.current_tab().on_input(key)
+        return self.current_tab().on_input(key, raw)
 
     def on_roster_enter_key(self, roster_row):
         """
