@@ -235,3 +235,28 @@ def parse_secs_to_str(duration=0):
     result += '%ss' % secs if secs else ''
     return result
 
+def parse_command_args_to_alias(args, strto):
+    """
+    Parse command parameters.
+    Numbers can be from 0 to 9.
+    >>> parse_command_args_to_alias(['sdf', 'koin'], '%0 %1')
+    "sdf koin"
+    """
+    l = len(args)
+    dest = ''
+    var_num = False
+    for i in strto:
+        if i != '%':
+            if not var_num:
+                dest += i
+            elif i in string.digits:
+                if int(i) < l:
+                    dest += args[int(i)]
+                var_num = False
+        elif i == '%':
+            if var_num:
+                dest += '%'
+                var_num = False
+            else:
+                var_num = True
+    return dest
