@@ -811,7 +811,7 @@ class Core(object):
                 if char in self.key_func:
                     self.key_func[char]()
                 else:
-                    res = self.do_command(char, False)
+                    res = self.do_command(replace_line_breaks(char), False)
                     if res:
                         self.refresh_window()
             else:
