@@ -1901,12 +1901,12 @@ class RosterInfoTab(Tab):
         return self.name
 
     def on_input(self, key, raw):
-        if raw and key == '^M':
+        if key == '^M':
             selected_row = self.roster_win.get_selected_row()
         res = self.input.do_command(key, raw=raw)
         if res:
             return True
-        if raw and key == '^M':
+        if key == '^M':
             self.core.on_roster_enter_key(selected_row)
             return selected_row
         elif not raw and key in self.key_func:
