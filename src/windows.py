@@ -64,10 +64,10 @@ class Win(object):
             self.height, self.width = height, width
             return
         self.height, self.width, self.x, self.y = height, width, x, y
-        # try:
-        self._win = Win._tab_win.derwin(height, width, y, x)
-        # except:
-        #     log.debug('DEBUG: mvwin returned ERR. Please investigate')
+        try:
+            self._win = Win._tab_win.derwin(height, width, y, x)
+        except:
+            log.debug('DEBUG: mvwin returned ERR. Please investigate')
 
         # If this ever fail, uncomment that ^
 
