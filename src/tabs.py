@@ -152,10 +152,10 @@ class Tab(object):
     @state.setter
     def state(self, value):
         if not value in STATE_COLORS:
-            log.debug("Invalid value for tab state: %s" % value)
+            log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value != 'current':
-            log.debug("Did not set status because of lower priority, asked: %s, kept: %s" % (value, self.state))
+            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", (value, self.state))
         else:
             self._state = value
 
@@ -320,7 +320,7 @@ class Tab(object):
             self.input.on_delete()
 
     def __del__(self):
-        log.debug('------ Closing tab %s' % self.__class__.__name__)
+        log.debug('------ Closing tab %s', self.__class__.__name__)
 
 class ChatTab(Tab):
     """
@@ -927,7 +927,7 @@ class MucTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.topic_win.refresh(self.get_single_line_topic())
         self.text_win.refresh()
         self.v_separator.refresh()
@@ -1414,7 +1414,7 @@ class PrivateTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
         self.info_header.refresh(self.name, self.text_win, self.chatstate)
         self.info_win.refresh()
@@ -1889,7 +1889,7 @@ class RosterInfoTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())
@@ -2154,7 +2154,7 @@ class ConversationTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
         self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
         self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
@@ -2269,7 +2269,7 @@ class MucListTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.upper_message.refresh()
         self.list_header.refresh()
         self.listview.refresh()
@@ -2419,7 +2419,7 @@ class SimpleTextTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s'%self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
         self.refresh_tab_win()
         self.input.refresh()

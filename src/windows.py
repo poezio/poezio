@@ -216,7 +216,7 @@ class UserList(Win):
         self.addstr(y, self.width-2, '++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
     def refresh(self, users):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             y = 0
@@ -265,7 +265,7 @@ class Topic(Win):
         self._message = ''
 
     def refresh(self, topic=None):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if topic:
@@ -288,7 +288,7 @@ class GlobalInfoBar(Win):
         Win.__init__(self)
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         def compare_room(a):
             return a.nb
         comp = lambda x: x.nb
@@ -380,7 +380,7 @@ class PrivateInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, name, window, chatstate):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(name)
@@ -422,7 +422,7 @@ class ConversationInfoWin(InfoWin):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -497,7 +497,7 @@ class ConversationStatusMessageWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, jid, contact):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         jid = JID(jid)
         if contact:
             if jid.resource:
@@ -525,7 +525,7 @@ class MucInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, room, window=None):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -653,7 +653,7 @@ class TextWin(Win):
             return len(lines)
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         if self.height <= 0:
             return
         if self.pos == 0:
@@ -733,7 +733,7 @@ class TextWin(Win):
             self.built_lines.pop(0)
 
     def __del__(self):
-        log.debug('** TextWin: deleting %s built lines' % (len(self.built_lines)))
+        log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
         del self.built_lines
 
 class HelpText(Win):
@@ -747,7 +747,7 @@ class HelpText(Win):
         self.txt = text
 
     def refresh(self, txt=None):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         if txt:
             self.txt = txt
         with g_lock:
@@ -1144,7 +1144,7 @@ class Input(Win):
             self._refresh()
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         self.rewrite_text()
 
     def clear_text(self):
@@ -1377,7 +1377,7 @@ class VerticalSeparator(Win):
             self._refresh()
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         self.rewrite_line()
 
 class RosterWin(Win):
@@ -1432,7 +1432,7 @@ class RosterWin(Win):
         """
         We get the roster object
         """
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self.roster_len = len(roster)
             while self.roster_len and self.pos >= self.roster_len:
@@ -1597,7 +1597,7 @@ class ContactInfoWin(Win):
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if isinstance(selected_row, RosterGroup):
@@ -1661,7 +1661,7 @@ class ListWin(Win):
         return None
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             lines = self.lines[self._starting_pos:self._starting_pos+self.height]
@@ -1747,7 +1747,7 @@ class ColumnHeaderWin(Win):
         return self._columns
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             x = 0
@@ -1783,7 +1783,7 @@ class SimpleTextWin(Win):
             self.built_lines.append(line)
 
     def refresh(self):
-        log.debug('Refresh: %s'%self.__class__.__name__)
+        log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             for y, line in enumerate(self.built_lines):

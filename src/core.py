@@ -717,7 +717,7 @@ class Core(object):
             if not contact:
                 contact = Contact(jid)
                 roster.add_contact(contact, jid)
-            log.debug("CONTACT: %s" % contact)
+            log.debug("CONTACT: %s", contact)
             if contact.subscription in ('from', 'both'):
                 log.debug('FROM OR BOTH')
                 return
@@ -1346,7 +1346,7 @@ class Core(object):
         try:
             names = os.listdir(themes_dir)
         except OSError as e:
-            log.debug(_('Completion failed: %s') % e)
+            log.debug(_('Completion failed: %s'), e)
             return
         theme_files = [name[:-3] for name in names if name.endswith('.py')]
         if not 'default' in theme_files:
@@ -1687,7 +1687,7 @@ class Core(object):
         self.tabs.remove(tab)
         import gc
         gc.collect()
-        log.debug('___ Referrers of closing tab:\n%s\n______' % gc.get_referrers(tab))
+        log.debug('___ Referrers of closing tab:\n%s\n______', gc.get_referrers(tab))
         del tab
         self.refresh_window()
 
