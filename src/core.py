@@ -149,6 +149,7 @@ class Core(object):
             "KEY_F(6)": self.rotate_rooms_right,
             "^N": self.rotate_rooms_right,
             'kRIT3': self.rotate_rooms_right,
+            "KEY_F(4)": self.toggle_left_pane,
             "KEY_F(7)": self.shrink_information_win,
             "KEY_F(8)": self.grow_information_win,
             "KEY_RESIZE": self.call_for_resize,
@@ -305,6 +306,14 @@ class Core(object):
         self.grow_information_win(size)
         timed_event = timed_events.DelayedEvent(time, self.shrink_information_win, size)
         self.add_timed_event(timed_event)
+
+    def toggle_left_pane(self):
+        """
+        Enable/disable the left panel.
+        """
+        enabled = config.get('enable_vertical_tab_list', 'false')
+        config.set('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true')
+        self.call_for_resize()
 
     def get_status(self):
         """
@@ -834,7 +843,6 @@ class Core(object):
         Completely erase and redraw the screen
         """
         self.stdscr.clear()
-        self.stdscr.refresh()
         self.refresh_window()
 
     def call_for_resize(self):
