@@ -89,9 +89,7 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 	      w++;
 	    }
 	  bpos++;
-	  spos++;
 	  w++;
-	  spos--;
       	}
       else
       if (buffer[bpos] <= 127) /* ASCII char on one byte */
