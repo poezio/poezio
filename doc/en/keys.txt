@@ -60,6 +60,10 @@ from one input to paste it into an other one.
 
 *Ctrl-y*:: Insert the content of the clipboard at the cursor position.
 
+*Ctrl-Enter*:: Insert a line break. Since the input is only one line,
+ the line break is represented by the character _|_ in it but will be
+ sent as the real _\n_ character.
+
 
 Chat tab input keys
 ~~~~~~~~~~~~~~~~~~~~~
