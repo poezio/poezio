@@ -36,8 +36,6 @@ class Plugin(BasePlugin):
     def find_message_with_timestamp(self, timestamp):
         # TODO: handle messages with the same
         # timestamp but not the same day
-        # TODO: complete nicknames we are on the first argument and
-        # it doesn’t start with a digit
         messages = self.core.get_conversation_messages()
         if not messages:
             return None
