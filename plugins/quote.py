@@ -59,6 +59,12 @@ class Plugin(BasePlugin):
         n = len(args)
         if text.endswith(' '):
             n += 1
+        if n == 2:
+            try:
+                if args[1][0] not in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0'):
+                    return False
+            except:
+                pass
         nick = ''
         if n == 3:
             nick = args[1]
