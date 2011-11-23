@@ -5,6 +5,7 @@ import common
 import re
 
 timestamp_re = re.compile(r'^(\d\d\d\d-\d\d-\d\d )?\d\d:\d\d:\d\d$')
+seconds_re = re.compile(r'^:\d\d$')
 
 import logging
 log = logging.getLogger(__name__)
@@ -49,6 +50,8 @@ class Plugin(BasePlugin):
             if not msg.nickname:
                 return nick == ''
             return msg.nickname.lower().startswith(nick.lower())
+        def time_match(msg):
+            return msg.str_time.endswith(time)
         messages = self.core.get_conversation_messages()
         if not messages:
             return
@@ -57,7 +60,12 @@ class Plugin(BasePlugin):
         n = len(args)
         if text.endswith(' '):
             n += 1
-        if n == 2:
+        time = args[-1]
+        if re.match(seconds_re, time) is not None:
+            messages = list(filter(time_match, messages))
+            for i in range(3):
+                the_input.key_backspace(False)
+        elif n == 2:
             try:
                 if args[1][0] not in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0'):
                     return False
