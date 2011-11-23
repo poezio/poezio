@@ -1918,3 +1918,9 @@ class Core(object):
         if not isinstance(self.current_tab(), tabs.ChatTab):
             return None
         return self.current_tab().get_conversation_messages()
+
+    def insert_input_text(self, text):
+        """
+        Insert the given text into the current input
+        """
+        self.do_command(text, True)
