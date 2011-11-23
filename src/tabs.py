@@ -963,7 +963,7 @@ class MucTab(ChatTab):
                      self.input.get_text()[:input_pos] == self.input.last_completion + after):
             add_after = after
         else:
-            add_after = ' '
+            add_after = ''
         self.input.auto_completion(word_list, add_after, quotify=False)
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
