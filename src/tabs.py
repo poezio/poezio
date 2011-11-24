@@ -203,7 +203,11 @@ class Tab(object):
                 # one possibily. The next tab will complete the argument.
                 # Otherwise we would need to add a useless space before being
                 # able to complete the arguments.
-                if len(the_input.hit_list) == 1:
+                hit_copy = the_input.hit_list[:]
+                for w in hit_copy[:]:
+                    while hit_copy.count(w) > 1:
+                        hit_copy.remove(w)
+                if len(hit_copy) in (1, 0):
                     the_input.do_command(' ')
                 return True
         return False
