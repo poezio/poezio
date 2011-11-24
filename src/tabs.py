@@ -543,8 +543,9 @@ class MucTab(ChatTab):
 
     def completion_version(self, the_input):
         """Completion for /version"""
-        userlist = [user.nick for user in self.users]
-        userlist.remove(self.own_nick)
+        compare_users = lambda x: x.last_talked
+        userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
+                         if user.nick != self.own_nick]
         contact_list = [contact.bare_jid for contact in roster.get_contacts()]
         userlist.extend(contact_list)
         return the_input.auto_completion(userlist, '')
