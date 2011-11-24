@@ -137,6 +137,7 @@ class Core(object):
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
             'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
+            'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
             }
 
         self.key_func = {
@@ -359,6 +360,25 @@ class Core(object):
                 if isinstance(tab, tabs.MucTab) and tab.joined:
                     rooms.append(tab.get_name())
             return the_input.auto_completion(rooms, '')
+
+    def command_decline(self, arg):
+        args = common.shell_split(arg)
+        if not len(args):
+            return
+        jid = JID(args[0])
+        if jid.bare not in self.pending_invites:
+            return
+        reason = args[1] if len(args) > 1 else ''
+        self.xmpp.plugin['xep_0045'].decline_invite(jid.bare, self.pending_invites[jid.bare], reason)
+
+    def completion_decline(self, the_input):
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if len(args) == 1:
+            return the_input.auto_completion(list(self.pending_invites.keys()), '')
 
     def on_groupchat_decline(self, decline):
         pass
