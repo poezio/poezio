@@ -96,7 +96,7 @@ class Core(object):
         # information window.
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
-        self.information_win = windows.TextWin(20)
+        self.information_win = windows.TextWin(300)
         self.tab_win = windows.GlobalInfoBar()
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
