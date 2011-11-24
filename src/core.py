@@ -136,6 +136,7 @@ class Core(object):
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
             'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
+            'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             }
 
         self.key_func = {
@@ -313,6 +314,30 @@ class Core(object):
         or to use it when joining a new muc)
         """
         self.status = Status(show=pres, message=msg)
+
+    def command_invite(self, arg):
+        args = common.shell_split(arg)
+        if len(args) < 2:
+            return
+        reason = args[2] if len(args) > 2 else ''
+        to = args[0]
+        room = args[1]
+        self.xmpp.plugin['xep_0045'].invite(room, to, reason)
+
+    def completion_invite(self, the_input):
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if len(args) == 1:
+            return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+        elif len(args) == 2:
+            rooms = []
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab) and tab.joined:
+                    rooms.append(tab.get_name())
+            return the_input.auto_completion(rooms, '')
 
     def on_data_form(self, message):
         """
