@@ -155,6 +155,8 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
+            'M-d': self.scroll_info_up,
+            'M-c': self.scroll_info_down,
             }
 
         # Add handlers
@@ -267,6 +269,24 @@ class Core(object):
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
+
+    def scroll_info_up(self):
+        self.information_win.scroll_up(self.information_win.height)
+        if not isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.information_win.refresh()
+        else:
+            info = self.current_tab().information_win
+            info.scroll_up(info.height)
+            self.refresh_window()
+
+    def scroll_info_down(self):
+        self.information_win.scroll_down(self.information_win.height)
+        if not isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.information_win.refresh()
+        else:
+            info = self.current_tab().information_win
+            info.scroll_down(info.height)
+            self.refresh_window()
 
     def pop_information_win_up(self, size, time):
         """
