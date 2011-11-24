@@ -167,6 +167,8 @@ class Core(object):
         self.xmpp.add_event_handler("session_start", self.on_session_start)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
+        self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invite)
+        self.xmpp.add_event_handler("groupchat_decline", self.on_groupchat_decline)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("got_online" , self.on_got_online)
@@ -184,6 +186,8 @@ class Core(object):
         self.timed_events = set()
 
         self.connected_events = {}
+
+        self.pending_invites = {}
 
     def autoload_plugins(self):
         plugins = config.get('plugins_autoload', '')
@@ -315,6 +319,23 @@ class Core(object):
         """
         self.status = Status(show=pres, message=msg)
 
+    def on_groupchat_invite(self, message):
+        jid = message['from']
+        if jid.bare in self.pending_invites:
+            return
+        # there are 2 'x' tags in the messages, making message['x'] useless
+        invite = StanzaBase(self.xmpp, xml=message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
+        inviter = invite['from']
+        reason = invite['reason']
+        password = invite['password']
+        msg = "You are invited to the room %s by %s" % (jid.full, inviter.full)
+        if reason:
+            msg += "because: %s" % reason
+        if password:
+            msg += ". The password is \"%s\"." % password
+        self.information(msg, 'Info')
+        self.pending_invites[jid.bare] = inviter.full
+
     def command_invite(self, arg):
         args = common.shell_split(arg)
         if len(args) < 2:
@@ -338,6 +359,9 @@ class Core(object):
                 if isinstance(tab, tabs.MucTab) and tab.joined:
                     rooms.append(tab.get_name())
             return the_input.auto_completion(rooms, '')
+
+    def on_groupchat_decline(self, decline):
+        pass
 
     def on_data_form(self, message):
         """
@@ -598,6 +622,8 @@ class Core(object):
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
+        if message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') != None:
+            return
         if message['type'] == 'groupchat':
             return
         # Differentiate both type of messages, and call the appropriate handler.
@@ -1459,6 +1485,7 @@ class Core(object):
                         the_input.key_backspace()
                 else:
                     items = []
+                items.extend(list(self.pending_invites.keys()))
                 the_input.auto_completion(items, '')
             else:
                 # we are writing the server: complete the server
@@ -1466,6 +1493,7 @@ class Core(object):
                 for tab in self.tabs:
                     if isinstance(tab, tabs.MucTab):
                         serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
+                serv_list.extend(list(self.pending_invites.keys()))
                 the_input.auto_completion(serv_list, '')
         return True
 
@@ -1553,6 +1581,8 @@ class Core(object):
                     self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
         room = room.lower()
+        if room in self.pending_invites:
+            del self.pending_invites[room]
         tab = self.get_tab_by_name(room, tabs.MucTab)
         if len(args) == 2:       # a password is provided
             password = args[1]
