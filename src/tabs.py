@@ -28,6 +28,7 @@ import string
 import common
 import core
 import singleton
+import random
 import xhtml
 import weakref
 import timed_events
@@ -535,7 +536,7 @@ class MucTab(ChatTab):
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
         self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
-        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), None)
+        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), self.completion_recolor)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_ignore)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
@@ -560,6 +561,9 @@ class MucTab(ChatTab):
         while nicks.count(''):
             nicks.remove('')
         return the_input.auto_completion(nicks, '')
+
+    def completion_recolor(self, the_input):
+        return the_input.auto_completion(['random'], '')
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
@@ -653,14 +657,20 @@ class MucTab(ChatTab):
         """
         Re-assign color to the participants of the room
         """
+        args = common.shell_split(arg)
         compare_users = lambda x: x.last_talked
         users = list(self.users)
-        # search our own user, to remove it from the room
-        for user in users:
+        sorted_users = sorted(users, key=compare_users, reverse=True)
+        if len(args) >= 1:
+            if args[0] == 'random':
+                random.shuffle(sorted_users)
+        # search our own user, to remove it from the list
+        for user in sorted_users:
             if user.nick == self.own_nick:
-                users.remove(user)
+                sorted_users.remove(user)
+                user.color = get_theme().COLOR_OWN_NICK
         nb_color = len(get_theme().LIST_COLOR_NICKNAMES)
-        for i, user in enumerate(sorted(users, key=compare_users, reverse=True)):
+        for i, user in enumerate(sorted_users):
             user.color = get_theme().LIST_COLOR_NICKNAMES[i % nb_color]
         self.text_win.rebuild_everything(self._text_buffer)
         self.text_win.refresh()
