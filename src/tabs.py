@@ -1319,9 +1319,9 @@ class MucTab(ChatTab):
             highlight = self.do_highlight(txt, time, nickname)
             if highlight:
                 nick_color = highlight
-            if special_message:
-                txt = '\x195}%s' % (txt,)
-                nickname = None
+        if special_message:
+            txt = '\x195}%s' % (txt,)
+            nickname = None
         time = time or datetime.now()
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
 
