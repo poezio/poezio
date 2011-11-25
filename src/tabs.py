@@ -1298,10 +1298,6 @@ class MucTab(ChatTab):
         in the room anymore
         """
         self.log_message(txt, time, nickname)
-        special_message = False
-        if txt.startswith('/me '):
-            txt = "\x192}* \x195}" + nickname + ' ' + txt[4:]
-            special_message = True
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
@@ -1319,9 +1315,6 @@ class MucTab(ChatTab):
             highlight = self.do_highlight(txt, time, nickname)
             if highlight:
                 nick_color = highlight
-        if special_message:
-            txt = '\x195}%s' % (txt,)
-            nickname = None
         time = time or datetime.now()
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
 
