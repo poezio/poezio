@@ -54,7 +54,7 @@ class DataFormsTab(Tab):
         self._on_send(self._form)
         return True
 
-    def on_input(self, key):
+    def on_input(self, key, raw=False):
         if key in self.key_func:
             res = self.key_func[key]()
             if res:
