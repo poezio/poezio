@@ -37,7 +37,14 @@ class TextBuffer(object):
     def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None):
         time = time or datetime.now()
         if txt.startswith('/me '):
-            txt = "\x192}* \x195}" + nickname + ' ' + txt[4:]
+            if nick_color:
+                color = nick_color[0]
+            elif user:
+                color = user.color[0]
+            else:
+                color = None
+            # TODO: display the bg color too.
+            txt = ("\x19%s}* \x195}" % (color,))+ nickname + ' ' + txt[4:]
             nickname = None
         msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
