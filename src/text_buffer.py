@@ -44,7 +44,7 @@ class TextBuffer(object):
             else:
                 color = None
             # TODO: display the bg color too.
-            txt = ("\x19%s}* \x195}" % (color,))+ nickname + ' ' + txt[4:]
+            txt = ("\x19%s}* \x195}" % (color or 5,))+ nickname + ' ' + txt[4:]
             nickname = None
         msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
