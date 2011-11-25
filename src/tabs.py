@@ -1319,7 +1319,7 @@ class MucTab(ChatTab):
             if self.state != 'highlight':
                 self.state = 'message'
         nick_color = nick_color or None
-        if not nickname or time:
+        if (not nickname or time) and not txt.startswith('/me '):
             txt = '\x195}%s' % (txt,)
         else:                   # TODO
             highlight = self.do_highlight(txt, time, nickname)
