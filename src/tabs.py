@@ -1684,7 +1684,7 @@ class RosterInfoTab(Tab):
         """
         Add the specified JID to the specified group
         """
-        args = args.split(None, 1)
+        args = common.shell_split(args)
         if len(args) != 2:
             return
         jid = JID(args[0]).bare
