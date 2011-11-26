@@ -76,6 +76,60 @@ class Bookmark(object):
 
 bookmarks = []
 
+def get_by_jid(value):
+    """
+    Get a bookmark by bare jid
+    """
+    for item in bookmarks:
+        if item.jid == value:
+            return item
+
+def remove(value):
+    """
+    Remove a bookmark
+    """
+    if isinstance(value, str):
+        value = get_by_jid(value)
+    bookmarks.remove(value)
+
+def save_pep(xmpp):
+    xmpp.plugin['xep_0048'].set_bookmarks(stanza_pep())
+
+def save_privatexml(xmpp):
+    xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_privatexml())
+
+def save_remote(xmpp, core=None):
+    method = config.get('use_bookmarks_method', '')
+    if method not in ('pep', 'privatexml'):
+        try:
+            save_pep(xmpp)
+        except:
+            if core:
+                core.information('Could not save bookmarks.', 'Error')
+    else:
+        try:
+            if method == 'pep':
+                save_pep(xmpp)
+            else:
+                save_privatexml(xmpp)
+        except:
+            if core:
+                core.information('Could not save bookmarks.', 'Error')
+
+def save_local():
+    all = ''
+    for bookmark in filter(lambda b: b.method == "local", bookmarks):
+        st = bookmark.jid
+        if bookmark.nick:
+            st += '/' + nick
+        st += ':'
+        all += st
+    config.set_and_save('rooms', all)
+
+def save(xmpp, core=None):
+    save_local()
+    save_remote(xmpp, core)
+
 def get_pep(xmpp):
     try:
         iq = xmpp.plugin['xep_0048'].get_bookmarks()
