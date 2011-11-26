@@ -56,3 +56,20 @@ class Bookmark(object):
             p.text = self.password
             el.append(p)
         return el
+
+    def parse_from_element(el, method=None):
+        """
+        Generate a Bookmark object from a <conference/> element
+        """
+        jid = el.get('jid')
+        name = el.get('name')
+        autojoin = True if el.get('autojoin', False) == 'true' else False
+        nick = None
+        for n in el.iter('nick'):
+            nick = nick.text
+        password = None
+        for p in el.iter('password'):
+            password = p.text
+
+        return Bookmark(jid, name, autojoin, nick, password, method)
+
