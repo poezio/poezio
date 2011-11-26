@@ -6,8 +6,8 @@ from config import config
 
 preferred = config.get('use_bookmarks_method', 'pep').lower()
 if preferred not in ('pep', 'privatexml'):
-    preferred = 'pep'
-not_preferred = 'pep' if preferred is 'privatexml' else 'privatexml'
+    preferred = 'privatexml'
+not_preferred = 'privatexml' if preferred is 'pep' else 'privatexml'
 methods = ('local', preferred, not_preferred)
 
 
@@ -73,7 +73,6 @@ class Bookmark(object):
 
         return Bookmark(jid, name, autojoin, nick, password, method)
 
-
 bookmarks = []
 
 def get_by_jid(value):
@@ -114,7 +113,7 @@ def save_remote(xmpp, core=None):
     method = config.get('use_bookmarks_method', '')
     if method not in ('pep', 'privatexml'):
         try:
-            save_pep(xmpp)
+            save_privatexml(xmpp)
         except:
             if core:
                 core.information('Could not save bookmarks.', 'Error')
@@ -177,6 +176,8 @@ def get_remote(xmpp):
         config.set_and_save('use_bookmarks_method', 'pep')
     elif privatexml and not pep:
         config.set_and_save('use_bookmarks_method', 'privatexml')
+    elif not pep and not privatexml:
+        config.set_and_save('use_bookmarks_method', '')
 
 def get_local():
     rooms = config.get('rooms', '')
