@@ -122,7 +122,8 @@ class Core(object):
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick]\nBookmark: Bookmark the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
+            'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
+            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
             'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
@@ -1635,18 +1636,16 @@ class Core(object):
         Returns the nickname associated with a bookmark
         or the default nickname
         """
-        bookmarks = config.get('rooms', '').split(':')
-        jid = JID(room_name)
-        for bookmark in bookmarks:
-            if JID(bookmark).bare == jid.bare:
-                return JID(bookmark).resource
+        bm = bookmark.get_by_jid(room_name)
+        if bm:
+            return bm.nick
         return self.own_nick
 
-    def command_bookmark(self, arg):
+    def command_bookmark_local(self, arg):
         """
-        /bookmark [room][/nick]
+        /bookmark_local [room][/nick]
         """
-        args = arg.split()
+        args = common.shell_split(arg)
         nick = None
         if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
             return
@@ -1661,26 +1660,65 @@ class Core(object):
                 nick = info.resource
             roomname = info.bare
             if roomname == '':
+                if not isinstance(self.current_tab(), tabs.MucTab):
+                    return
                 roomname = self.current_tab().get_name()
+        bm = bookmark.get_by_jid(roomname)
+        if not bm:
+            bm = bookmark.Bookmark(jid=roomname)
+            bookmark.bookmarks.append(bm)
         if nick:
-            res = roomname+'/'+nick
+            bm.nick = nick
+        bm.autojoin = True
+        bm.method = "local"
+        bookmark.save_local()
+        self.information(_('Your bookmarks are now: %s') % bookmark.bookmarks, 'Info')
+
+    def command_bookmark(self, arg):
+        """
+        /bookmark [room][/nick] [autojoin] [password]
+        """
+        args = common.shell_split(arg)
+        nick = None
+        if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
+            return
+        if len(args) == 0:
+            tab = self.current_tab()
+            roomname = tab.get_name()
+            if tab.joined:
+                nick = tab.own_nick
+            autojoin = True
+            password = None
         else:
-            res = roomname
-        bookmarked = config.get('rooms', '')
-        # check if the room is already bookmarked.
-        # if yes, replace it (i.e., update the associated nick)
-        bookmarked = bookmarked.split(':')
-        for room in bookmarked:
-            if JID(room).bare == roomname:
-                bookmarked.remove(room)
-                break
-        bookmarked = ':'.join(bookmarked)
-        if bookmarked:
-            bookmarks = bookmarked+':'+res
-        else:
-            bookmarks = res
-        config.set_and_save('rooms', bookmarks)
-        self.information(_('Your bookmarks are now: %s') % bookmarks, 'Info')
+            info = JID(args[0])
+            if info.resource != '':
+                nick = info.resource
+            roomname = info.bare
+            if roomname == '':
+                if not isinstance(self.current_tab(), tabs.MucTab):
+                    return
+                roomname = self.current_tab().get_name()
+            if len(args) > 1:
+                autojoin = False if args[1].lower() == 'false' else True
+            else:
+                autojoin = True
+            if len(args) > 2:
+                password = args[2]
+            else:
+                password = None
+        bm = bookmark.get_by_jid(roomname)
+        if not bm:
+            bm = bookmark.Bookmark(roomname)
+            bookmark.bookmarks.append(bm)
+        bm.method = config.get('use_bookmarks_method', 'pep')
+        if nick:
+            bm.nick = nick
+        if password:
+            bm.password = password
+        if autojoin:
+            bm.autojoin = autojoin
+        bookmark.save_remote(self.xmpp, self)
+        self.information('Bookmark added.', 'Info')
 
     def command_set(self, arg):
         """
