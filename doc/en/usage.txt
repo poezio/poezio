@@ -198,11 +198,22 @@ These commands work in *any* tab.
  "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument
  will be your status message.'
 
-*/bookmark [roomname][/nick]*:: Bookmark the specified room (you will then
- auto-join it on each poezio start). This commands uses almost the same syntax
- as /join. Type /help join for syntax examples. Note that when typing /bookmark
- on its own, the room will be bookmarked with the nickname you're currently
- using in this room (instead of default_nick).
+*/bookmark [roomname][/nick] [autojoin] [password]*:: Bookmark the specified
+ room (you will then auto-join it on each poezio start). This command uses
+ almost the same syntax as /join. Type /help join for syntax examples. Note
+ that when typing /bookmark on its own, the room will be bookmarked with the
+ nickname you're currently using in this room (instead of default_nick).
+ You can specify an optional *autojoin* and *password* if you call it with the
+ full line (/bookmark alone will put the room in autojoin without password).
+ The bookmarks stored with this command are stored on your xmpp server.
+
+*/bookmark_local [roomname][/nick] [autojoin] [password]*:: Bookmark the
+ specified room (you will then auto-join it on each poezio start). This
+ commands uses almost the same syntax as /join. Type /help join for syntax
+ examples. Note that when typing /bookmark on its own, the room will be
+ bookmarked with the nickname you're currently using in this room (instead of
+ default_nick). The bookmarks stored with this command will be stored locally.
+ They have priority over the ones stored online.
 
 */set <option> [value]*:: Set the value to the option in your configuration
  file. You can, for example, change your default nickname by doing "/set
