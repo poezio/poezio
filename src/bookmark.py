@@ -92,6 +92,18 @@ def remove(value):
         value = get_by_jid(value)
     bookmarks.remove(value)
 
+def stanza_pep():
+    storage = Storage()
+    for b in filter(lambda b: b.method == 'pep', bookmarks):
+        storage.append(b.stanza())
+    return storage
+
+def stanza_privatexml():
+    storage = Storage()
+    for b in filter(lambda b: b.method == 'privatexml', bookmarks):
+        storage.append(b.stanza())
+    return storage
+
 def save_pep(xmpp):
     xmpp.plugin['xep_0048'].set_bookmarks(stanza_pep())
 
