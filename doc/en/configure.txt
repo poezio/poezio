@@ -75,6 +75,12 @@ Configuration options
   format : room@server.tld/nickname:room2@server.tld/nickname2
   default_nick will be used if "/nickname" is not specified
 
+*use_bookmark_method*:: [empty]
+
+    the method that poezio will use to store your bookmarks online.
+    possible values are: privatexml, pep
+    You should not have to edit this in a normal use case.
+
 *completion*:: normal
 
   the completion type you will use to complete nicknames
