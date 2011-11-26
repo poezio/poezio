@@ -39,6 +39,7 @@ import pubsub
 import windows
 import connection
 import timed_events
+import bookmark
 
 from plugin_manager import PluginManager
 
@@ -569,23 +570,15 @@ class Core(object):
             pres = self.xmpp.make_presence()
             self.events.trigger('send_normal_presence', pres)
             pres.send()
-        rooms = config.get('rooms', '')
-        if rooms == '' or not isinstance(rooms, str):
-            return
-        rooms = rooms.split(':')
-        for room in rooms:
-            jid = JID(room)
-            if jid.bare == '':
-                return
-            if jid.resource != '':
-                nick = jid.resource
-            else:
-                default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-                nick = config.get('default_nick', '') or default
-            tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
+        bookmark.get_local()
+        if not self.xmpp.anon:
+            bookmark.get_remote(self.xmpp)
+        for bm in [item for item in bookmark.bookmarks if item.autojoin]:
+            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
             if not tab:
-                self.open_new_room(jid.bare, nick, False)
-            muc.join_groupchat(self.xmpp, jid.bare, nick)
+                self.open_new_room(bm.jid, bm.nick, False)
+            nick = bm.nick if bm.nick else self.own_nick
+            muc.join_groupchat(self.xmpp, bm.jid, nick)
 
     def on_groupchat_presence(self, presence):
         """
