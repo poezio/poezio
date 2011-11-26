@@ -73,3 +73,58 @@ class Bookmark(object):
 
         return Bookmark(jid, name, autojoin, nick, password, method)
 
+
+bookmarks = []
+
+def get_pep(xmpp):
+    try:
+        iq = xmpp.plugin['xep_0048'].get_bookmarks()
+    except:
+        return False
+    for conf in iq.xml.iter('{storage:bookmarks}conference'):
+        b = Bookmark.parse_from_element(conf, method='pep')
+        if not get_by_jid(b.jid):
+            bookmarks.append(b)
+    return True
+
+def get_privatexml(xmpp):
+    try:
+        iq = xmpp.plugin['xep_0048'].get_bookmarks_old()
+    except:
+        return False
+    for conf in iq.xml.iter('{storage:bookmarks}conference'):
+        b = Bookmark.parse_from_element(conf, method='privatexml')
+        if not get_by_jid(b.jid):
+            bookmarks.append(b)
+    return True
+
+def get_remote(xmpp):
+    if xmpp.anon:
+        return
+    pep, privatexml = True, True
+    for method in methods[1:]:
+        if method == 'pep':
+            pep = get_pep(xmpp)
+        else:
+            privatexml = get_privatexml(xmpp)
+    if pep and not privatexml:
+        config.set_and_save('use_bookmarks_method', 'pep')
+    elif privatexml and not pep:
+        config.set_and_save('use_bookmarks_method', 'privatexml')
+
+def get_local():
+    rooms = config.get('rooms', '')
+    if not rooms:
+        return
+    rooms = rooms.split(':')
+    for room in rooms:
+        jid = JID(room)
+        if jid.bare == '':
+            continue
+        if jid.resource != '':
+            nick = jid.resource
+        else:
+            nick = None
+        b = Bookmark(jid.bare, autojoin=True, nick=nick, method='local')
+        if not get_by_jid(b.jid):
+            bookmarks.append(b)
