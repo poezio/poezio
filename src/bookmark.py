@@ -1,11 +1,27 @@
+import os
+
 from sleekxmpp.plugins.xep_0048 import *
+from core import JID
+from config import config
+
+preferred = config.get('use_bookmarks_method', 'pep').lower()
+if preferred not in ('pep', 'privatexml'):
+    preferred = 'pep'
+not_preferred = 'pep' if preferred is 'privatexml' else 'privatexml'
+methods = ('local', preferred, not_preferred)
+
 
 class Bookmark(object):
-    possible_methods = ('pep', 'privatexml', 'local')
+
+    possible_methods = methods
+
     def __init__(self, jid, name=None, autojoin=False, nick=None, password=None, method=None):
         self.jid = jid
         self.name = name or jid
         self.autojoin = autojoin
+        if not nick:
+            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            nick = config.get('default_nick', '') or default
         self.nick = nick
         self.password = password
         self._method = method
@@ -19,6 +35,9 @@ class Bookmark(object):
         if value not in self.possible_methods:
             return
         self._method = value
+
+    def __repr__(self):
+        return '<%s>' % self.jid
 
     def stanza(self):
         """
