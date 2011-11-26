@@ -1519,6 +1519,36 @@ class Core(object):
                 the_input.auto_completion(serv_list, '')
         return True
 
+    def completion_bookmark_local(self, the_input):
+        """Completion for /bookmark_local"""
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+
+        if len(args) == 1:
+            jid = JID('')
+        else:
+            jid = JID(args[1])
+        if len(args) > 2:
+            return
+        if jid.server and (jid.resource or jid.full.endswith('/')):
+            tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
+            nicks = [tab.own_nick] if tab else []
+            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            nick = config.get('default_nick', '')
+            if not nick:
+                if not default in nicks:
+                    nicks.append(default)
+            else:
+                if not nick in nicks:
+                    nicks.append(nick)
+            jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
+            return the_input.auto_completion(jids_list, '')
+        muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        return the_input.auto_completion(muc_list, '')
+
     def completion_bookmark(self, the_input):
         """Completion for /bookmark"""
         txt = the_input.get_text()
@@ -1531,6 +1561,12 @@ class Core(object):
             jid = JID('')
         else:
             jid = JID(args[1])
+
+        if len(args) == 2:
+            return the_input.auto_completion(['true', 'false'], '')
+        if len(args) == 3:
+            return
+
         if jid.server and (jid.resource or jid.full.endswith('/')):
             tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
