@@ -57,6 +57,14 @@ class Bookmark(object):
             el.append(p)
         return el
 
+    def local(self):
+        """Generate a str for local storage"""
+        local = self.jid
+        if self.nick:
+            local += '/%s' % self.nick
+        local += ':'
+        return local
+
     def parse_from_element(el, method=None):
         """
         Generate a Bookmark object from a <conference/> element
@@ -132,11 +140,7 @@ def save_remote(xmpp, core=None):
 def save_local():
     all = ''
     for bookmark in filter(lambda b: b.method == "local", bookmarks):
-        st = bookmark.jid
-        if bookmark.nick:
-            st += '/' + bookmark.nick
-        st += ':'
-        all += st
+        all += bookmark.local()
     config.set_and_save('rooms', all)
 
 def save(xmpp, core=None):
