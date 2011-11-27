@@ -93,61 +93,59 @@ def get_by_jid(value):
 
 def remove(value):
     """
-    Remove a bookmark
+    Remove a bookmark (with its jid or directly the Bookmark object).
     """
     if isinstance(value, str):
         value = get_by_jid(value)
     bookmarks.remove(value)
 
-def stanza_pep():
+def stanza_storage(method):
+    """Generate a <storage/> stanza with the conference elements."""
     storage = Storage()
-    for b in filter(lambda b: b.method == 'pep', bookmarks):
-        storage.append(b.stanza())
-    return storage
-
-def stanza_privatexml():
-    storage = Storage()
-    for b in filter(lambda b: b.method == 'privatexml', bookmarks):
+    for b in filter(lambda b: b.method == method, bookmarks):
         storage.append(b.stanza())
     return storage
 
 def save_pep(xmpp):
-    xmpp.plugin['xep_0048'].set_bookmarks(stanza_pep())
+    """Save the remote bookmarks via PEP."""
+    xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'))
 
 def save_privatexml(xmpp):
-    xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_privatexml())
+    """"Save the remote bookmarks with privatexml."""
+    xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_storage('privatexml'))
 
-def save_remote(xmpp, core=None):
-    if config.get('use_remote_bookmarks', 'true').lower() == 'false':
-        return
-    method = config.get('use_bookmarks_method', '')
-    if method not in ('pep', 'privatexml'):
-        try:
-            save_privatexml(xmpp)
-        except:
-            if core:
-                core.information('Could not save bookmarks.', 'Error')
-    else:
-        try:
-            if method == 'pep':
-                save_pep(xmpp)
-            else:
-                save_privatexml(xmpp)
-        except:
-            if core:
-                core.information('Could not save bookmarks.', 'Error')
+def save_remote(xmpp, method="privatexml"):
+    """Save the remote bookmarks."""
+    method = "privatexml" if method != 'pep'  else 'pep'
+
+    try:
+        if method is 'privatexml':
+            xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_storage('privatexml'))
+        else:
+            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'))
+    except:
+        return False
+    return True
 
 def save_local():
-    all = ''
-    for bookmark in filter(lambda b: b.method == "local", bookmarks):
-        all += bookmark.local()
+    """Save the local bookmarks."""
+    all = ''.join([bookmark.local() for bookmark in bookmarks if bookmark.method is 'local'])
     config.set_and_save('rooms', all)
 
 def save(xmpp, core=None):
+    """Save all the bookmarks."""
     save_local()
-    save_remote(xmpp, core)
+    if config.get('use_remote_bookmarks', 'true').lower() != 'false':
+        preferred = config.get('use_bookmarks_method', 'privatexml')
+        if not save_remote(xmpp, method=preferred) and core:
+            core.information('Could not save bookmarks.', 'Error')
+        elif core:
+            core.information('Could not save bookmarks.', 'Error')
+        return False
+    return True
 
 def get_pep(xmpp):
+    """Add the remotely stored bookmarks via pep to the list."""
     try:
         iq = xmpp.plugin['xep_0048'].get_bookmarks()
     except:
@@ -159,6 +157,7 @@ def get_pep(xmpp):
     return True
 
 def get_privatexml(xmpp):
+    """Add the remotely stored bookmarks via privatexml to the list."""
     try:
         iq = xmpp.plugin['xep_0048'].get_bookmarks_old()
     except:
@@ -170,6 +169,7 @@ def get_privatexml(xmpp):
     return True
 
 def get_remote(xmpp):
+    """Add the remotely stored bookmarks to the list."""
     if xmpp.anon:
         return
     pep, privatexml = True, True
@@ -186,6 +186,7 @@ def get_remote(xmpp):
         config.set_and_save('use_bookmarks_method', '')
 
 def get_local():
+    """Add the locally stored bookmarks to the list."""
     rooms = config.get('rooms', '')
     if not rooms:
         return

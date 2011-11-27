@@ -1756,8 +1756,8 @@ class Core(object):
             bm.password = password
         if autojoin:
             bm.autojoin = autojoin
-        bookmark.save_remote(self.xmpp, self)
-        self.information('Bookmark added.', 'Info')
+        if bookmark.save_remote(self.xmpp, self):
+            self.information('Bookmark added.', 'Info')
 
     def command_set(self, arg):
         """
