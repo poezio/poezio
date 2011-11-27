@@ -81,6 +81,11 @@ Configuration options
     possible values are: privatexml, pep
     You should not have to edit this in a normal use case.
 
+*use_remote_bookmarks*:: true
+
+    use this option to force the use of local bookmarks if needed.
+    Anything but "false" will be counted as true.
+
 *completion*:: normal
 
   the completion type you will use to complete nicknames
