@@ -572,7 +572,7 @@ class Core(object):
             self.events.trigger('send_normal_presence', pres)
             pres.send()
         bookmark.get_local()
-        if not self.xmpp.anon:
+        if not self.xmpp.anon and not config.get('use_remote_bookmarks', 'true').lower() == 'false':
             bookmark.get_remote(self.xmpp)
         for bm in [item for item in bookmark.bookmarks if item.autojoin]:
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
@@ -1714,6 +1714,9 @@ class Core(object):
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
+        if config.get('use_remote_bookmarks', 'true').lower() == 'false':
+            self.command_bookmark_local(arg)
+            return
         args = common.shell_split(arg)
         nick = None
         if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
