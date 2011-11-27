@@ -132,7 +132,7 @@ def save_local():
     for bookmark in filter(lambda b: b.method == "local", bookmarks):
         st = bookmark.jid
         if bookmark.nick:
-            st += '/' + nick
+            st += '/' + bookmark.nick
         st += ':'
         all += st
     config.set_and_save('rooms', all)
