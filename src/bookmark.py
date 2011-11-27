@@ -110,6 +110,8 @@ def save_privatexml(xmpp):
     xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_privatexml())
 
 def save_remote(xmpp, core=None):
+    if config.get('use_remote_bookmarks', 'true').lower() == 'false':
+        return
     method = config.get('use_bookmarks_method', '')
     if method not in ('pep', 'privatexml'):
         try:
