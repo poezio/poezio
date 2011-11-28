@@ -27,6 +27,7 @@ import collections
 
 from sleekxmpp.xmlstream.stanzabase import JID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
+from sleekxmpp.xmlstream.handler import Callback
 
 log = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ class Core(object):
         self.running = True
         self.events = events.EventHandler()
         self.xmpp = singleton.Singleton(connection.Connection)
+        self.xmpp.core = self
         self.remote_fifo = None
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
@@ -98,6 +100,7 @@ class Core(object):
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
         self.information_win = windows.TextWin(300)
+        self.xml_buffer = TextBuffer()
         self.tab_win = windows.GlobalInfoBar()
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
@@ -142,6 +145,7 @@ class Core(object):
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
+            'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
             }
 
         self.key_func = {
@@ -188,6 +192,7 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
+        self.xmpp.register_handler(Callback('ALL THE STANZAS', connection.MatchAll(None), self.incoming_stanza))
 
         self.timed_events = set()
 
@@ -227,6 +232,23 @@ class Core(object):
         with g_lock:
             self.information_win.resize(self.information_win_size, tabs.Tab.width,
                                         tabs.Tab.height - 1 - self.information_win_size - tabs.Tab.tab_win_height(), 0)
+
+    def outgoing_stanza(self, stanza):
+        self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
+        if isinstance(self.current_tab(), tabs.XMLTab):
+            self.current_tab().refresh()
+            self.doupdate()
+
+    def incoming_stanza(self, stanza):
+        self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
+        if isinstance(self.current_tab(), tabs.XMLTab):
+            self.current_tab().refresh()
+            self.doupdate()
+
+    def command_xml_tab(self, arg):
+        """/xml_tab"""
+        tab = tabs.XMLTab()
+        self.add_tab(tab, True)
 
     def resize_global_info_bar(self):
         """
