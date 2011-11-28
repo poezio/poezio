@@ -2399,6 +2399,88 @@ class MucListTab(Tab):
     def on_scroll_down(self):
         self.listview.scroll_down()
 
+class XMLTab(Tab):
+
+    def __init__(self):
+        Tab.__init__(self)
+        self.state = 'normal'
+        self.text_win = windows.TextWin()
+        self.core.xml_buffer.add_window(self.text_win)
+        self.default_help_message = windows.HelpText("/ to enter a command")
+        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
+        self.input = self.default_help_message
+        self.key_func['^T'] = self.close
+        self.key_func['^I'] = self.completion
+        self.key_func["KEY_DOWN"] = self.on_scroll_down
+        self.key_func["KEY_UP"] = self.on_scroll_up
+        self.key_func["/"] = self.on_slash
+        self.resize()
+
+    def on_slash(self):
+        """
+        '/' is pressed, activate the input
+        """
+        curses.curs_set(1)
+        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
+        self.input.resize(1, self.width, self.height-1, 0)
+        self.input.do_command("/") # we add the slash
+
+    def reset_help_message(self, _=None):
+        if self.core.current_tab() is self:
+            curses.curs_set(0)
+        self.input = self.default_help_message
+        self.input.refresh()
+        self.core.doupdate()
+        return True
+
+    def on_scroll_up(self):
+        self.text_win.scroll_up(self.text_win.height-1)
+
+    def on_scroll_down(self):
+        self.text_win.scroll_down(self.text_win.height-1)
+
+    def execute_slash_command(self, txt):
+        if txt.startswith('/'):
+            self.input.key_enter()
+            self.execute_command(txt)
+        return self.reset_help_message()
+
+    def completion(self):
+        if isinstance(self.input, windows.CommandInput):
+            self.complete_commands(self.input)
+
+    def on_input(self, key, raw):
+        res = self.input.do_command(key, raw=raw)
+        if res:
+            return True
+        if not raw and key in self.key_func:
+            return self.key_func[key]()
+
+    def close(self, arg=None):
+        self.core.close_tab()
+
+    def resize(self):
+        if not self.visible:
+            return
+        self.need_resize = False
+        self.text_win.resize(self.height-2, self.width, 0, 0)
+        self.input.resize(1, self.width, self.height-1, 0)
+
+    def refresh(self):
+        if self.need_resize:
+            self.resize()
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        self.text_win.refresh()
+        self.refresh_tab_win()
+        self.input.refresh()
+
+    def on_lose_focus(self):
+        self.state = 'normal'
+
+    def on_gain_focus(self):
+        self.state = 'current'
+        curses.curs_set(0)
+
 class SimpleTextTab(Tab):
     """
     A very simple tab, with just a text displaying some

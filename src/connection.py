@@ -41,6 +41,7 @@ class Connection(sleekxmpp.ClientXMPP):
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
+        self.core = None
         self.auto_reconnect = False
         self.auto_authorize = None
         self.register_plugin('xep_0030')
@@ -74,4 +75,16 @@ class Connection(sleekxmpp.ClientXMPP):
         if not res:
             return False
         self.process(threaded=True)
+        return True
+
+    def send_raw(self, data, now=False, reconnect=None):
+        """
+        Overrides XMLStream.send_raw, with an event added
+        """
+        if self.core:
+            self.core.outgoing_stanza(data)
+        sleekxmpp.ClientXMPP.send_raw(self, data, now, reconnect)
+
+class MatchAll(sleekxmpp.xmlstream.matcher.base.MatcherBase):
+    def match(self, xml):
         return True
