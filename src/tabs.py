@@ -440,7 +440,8 @@ class ChatTab(Tab):
         Send the "active" or "composing" chatstate, depending
         on the the current status of the input
         """
-        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates:
+        name = self.general_jid
+        if config.get_by_tabname('send_chat_states', 'true', name, True) == 'true' and self.remote_wants_chatstates:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             self.cancel_paused_delay()
             if not empty_after:
@@ -455,7 +456,7 @@ class ChatTab(Tab):
         we create a timed event that will put us to paused
         in a few seconds
         """
-        if config.get('send_chat_states', 'true') != 'true':
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) != 'true':
             return
         if self.timed_event_paused:
             # check the weakref
@@ -545,6 +546,10 @@ class MucTab(ChatTab):
         self.resize()
         self.update_commands()
         self.update_keys()
+
+    @property
+    def general_jid(self):
+        return self.get_name()
 
     def completion_version(self, the_input):
         """Completion for /version"""
@@ -880,7 +885,7 @@ class MucTab(ChatTab):
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
         self.cancel_paused_delay()
         self.core.events.trigger('muc_say_after', msg, self)
@@ -1002,7 +1007,7 @@ class MucTab(ChatTab):
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
@@ -1010,7 +1015,7 @@ class MucTab(ChatTab):
         if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
             self.text_win.remove_line_separator()
         curses.curs_set(1)
-        if self.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if self.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
@@ -1089,9 +1094,9 @@ class MucTab(ChatTab):
         user = User(from_nick, affiliation,
                     show, status, role, jid)
         self.users.append(user)
-        hide_exit_join = config.get('hide_exit_join', -1)
+        hide_exit_join = config.get_by_tabname('hide_exit_join', -1, self.general_jid, True)
         if hide_exit_join != 0:
-            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if not jid.full:
                 self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x195} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN})
             else:
@@ -1107,7 +1112,7 @@ class MucTab(ChatTab):
                 if isinstance(_tab, PrivateTab) and JID(_tab.get_name()).bare == self.name:
                     _tab.own_nick = new_nick
         user.change_nick(new_nick)
-        color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+        color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
         self.add_message('\x19%(color)d}%(old)s\x195} is now known as \x19%(color)d}%(new)s' % {'old':from_nick, 'new':new_nick, 'color':color})
         # rename the private tabs if needed
         self.core.rename_private_tabs(self.name, from_nick, new_nick)
@@ -1130,7 +1135,7 @@ class MucTab(ChatTab):
             else:
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been banned.') % {'spec':get_theme().CHAR_KICK}
         else:
-            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
                 kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been banned by \x194}%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by}
             else:
@@ -1157,10 +1162,10 @@ class MucTab(ChatTab):
             else:
                 kick_msg = _('\x191}%(spec)s \x193}You\x195} have been kicked.') % {'spec':get_theme().CHAR_KICK}
             # try to auto-rejoin
-            if config.get('autorejoin', 'false') == 'true':
+            if config.get_by_tabname('autorejoin', 'false', self.general_jid, True) == 'true':
                 muc.join_groupchat(self.core.xmpp, self.name, self.own_nick)
         else:
-            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
                 kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has been kicked by \x193}%(by)s') % {'spec':get_theme().CHAR_KICK.replace('"', '\\"'), 'nick':from_nick.replace('"', '\\"'), 'color':color, 'by':by.replace('"', '\\"')}
             else:
@@ -1180,9 +1185,9 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(from_room)
             self.refresh_tab_win()
             self.core.doupdate()
-        hide_exit_join = config.get('hide_exit_join', -1) if config.get('hide_exit_join', -1) >= -1 else -1
+        hide_exit_join = config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) if config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if not jid.full:
                 leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x195} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT}
             else:
@@ -1200,7 +1205,7 @@ class MucTab(ChatTab):
         # build the message
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
-        color = user.color[0] if config.get('display_user_color_in_join_part', '') == 'true' else 3
+        color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
         if from_nick == self.own_nick:
             msg = _('\x193}You\x195} changed: ')
         else:
@@ -1228,7 +1233,7 @@ class MucTab(ChatTab):
         if not display_message:
             return
         msg = msg[:-2] # remove the last ", "
-        hide_status_change = config.get('hide_status_change', -1)
+        hide_status_change = config.get_by_tabname('hide_status_change', -1, self.general_jid, True)
         if hide_status_change < -1:
             hide_status_change = -1
         if (hide_status_change == -1 or \
@@ -1279,7 +1284,7 @@ class MucTab(ChatTab):
                     self.state = 'highlight'
                 color = get_theme().COLOR_HIGHLIGHT_NICK
             else:
-                highlight_words = config.get('highlight_on', '').split(':')
+                highlight_words = config.get_by_tabname('highlight_on', '', self.general_jid, True).split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
                         if self.state != 'current':
@@ -1289,7 +1294,8 @@ class MucTab(ChatTab):
         if color:
             beep_on = config.get('beep_on', 'highlight private').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
-                curses.beep()
+                if config.get_by_tabname('disable_beep', 'false', self.name, False).lower() != 'true':
+                    curses.beep()
         return color
 
     def get_user_by_name(self, nick):
@@ -1356,6 +1362,10 @@ class PrivateTab(ChatTab):
         self.update_commands()
         self.update_keys()
 
+    @property
+    def general_jid(self):
+        return self.get_name()
+
     def completion(self):
         self.complete_commands(self.input)
 
@@ -1373,7 +1383,7 @@ class PrivateTab(ChatTab):
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         self.core.events.trigger('private_say_after', msg, self)
@@ -1457,14 +1467,14 @@ class PrivateTab(ChatTab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab.joined and config.get('send_chat_states', 'true') == 'true' and not self.input.get_text():
+        if tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
@@ -1511,7 +1521,7 @@ class PrivateTab(ChatTab):
         self.activate()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
         color = 3
-        if tab and config.get('display_user_color_in_join_part', ''):
+        if tab and config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True):
             user = tab.get_user_by_name(nick)
             if user:
                 color = user.color[0]
@@ -2085,6 +2095,10 @@ class ConversationTab(ChatTab):
         self.update_commands()
         self.update_keys()
 
+    @property
+    def general_jid(self):
+        return JID(self.get_name()).bare
+
     @staticmethod
     def add_information_element(plugin_name, callback):
         """
@@ -2112,7 +2126,7 @@ class ConversationTab(ChatTab):
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if config.get('send_chat_states', 'true') == 'true' and self.remote_wants_chatstates is not False:
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
         self.core.events.trigger('conversation_say_after', msg, self)
@@ -2202,7 +2216,7 @@ class ConversationTab(ChatTab):
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
-        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('inactive')
 
@@ -2219,7 +2233,7 @@ class ConversationTab(ChatTab):
 
         self.state = 'current'
         curses.curs_set(1)
-        if config.get('send_chat_states', 'true') == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('active')
 
@@ -2241,7 +2255,7 @@ class ConversationTab(ChatTab):
 
     def on_close(self):
         Tab.on_close(self)
-        if config.get('send_chat_states', 'true') == 'true':
+        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true':
             self.send_chat_state('gone')
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None):

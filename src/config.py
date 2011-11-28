@@ -46,9 +46,25 @@ class Config(RawConfigParser):
                 res = self.getboolean(option, section)
             else:
                 res = self.getstr(option, section)
-        except( NoOptionError, NoSectionError):
+        except (NoOptionError, NoSectionError):
             return default
         return res
+
+    def get_by_tabname(self, option, default, tabname, fallback=True):
+        """
+        Try to get the value for the option. First we look in
+        a section named `tabname`, if the option is not present
+        in the section, we search for the global option if fallback is
+        True. And we return `default` as a fallback as a last resort.
+        """
+        if tabname in self.sections():
+            if option in self.options(tabname):
+                # We go the tab-specific option
+                return self.get(option, default, tabname)
+        if fallback:
+            # We fallback to the global option
+            return self.get(option, default)
+        return default
 
     def __get(self, option, section=DEFSECTION):
         """
