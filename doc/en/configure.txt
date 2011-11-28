@@ -11,8 +11,9 @@ in the _keys_ documentation file.
 That file is read at each startup and the configuration is saved when poezio
 is closed.
 
-This configuration file *requires* all the options to be in a section
-named [Poezio].
+This configuration file *requires* all global options to be in a section
+named [Poezio]. Some other options can be in optional sections and will
+apply only to tabs having the option’s name.
 
 An option is formatted with the form
 ======================
@@ -28,6 +29,13 @@ and their default value.
 
 Configuration options
 ---------------------
+
+Global section options
+~~~~~~~~~~~~~~~~~~~~~~
+
+These option have a sense when they are in the global section. Some of
+them can also be in an optional configuration section, see the next
+section of this documentation.
 
 [horizontal]
 *server*:: anon.louiz.org
@@ -66,8 +74,6 @@ Configuration options
 
   A password is needed only if you specified a jid. It will be ignored otherwise
   If you leave this empty, the password will be asked at each startup
-
-
 
 *rooms*:: poezio@muc.poezio.eu
 
@@ -137,6 +143,10 @@ Configuration options
   Default setting means:
    - all quit and join notices will be displayed
 
+*display_user_color_in_join_part*:: false
+
+  If set to true, the color of the nick will be used in MUCs information
+  messages, instead of the default color from the theme.
 
 *information_buffer_popup_on*:: error roster warning help info
 
@@ -309,3 +319,41 @@ Configuration options
   You can specify another directory to use. It will be created if it does not
   exist.
 
+Optional section options
+~~~~~~~~~~~~~~~~~~~~~~~~
+These option can appear in optional sections. These section are named
+after a JID. These option will apply only for the given JID. For example
+if an option appears in a section named [user@example.com], it will
+apply only for the conversations with user@example.com.
+
+Note that some of these options can also appear in the global section,
+they will be used as a fallback value when no JID-specific option is
+found.
+
+.foo is _true_ for *user@example.com* but is _false_ for everyone else
+============================================
+[source,conf]
+-------------
+[Poezio]
+foo = false
+[user@example.com]
+foo = true
+-------------
+============================================
+
+*disable_beep*:: false
+
+  Disable the beeps triggered by this conversation. Works in MucTab,
+  PrivateTab and ConversationTab.
+
+*send_chat_states*:: true
+
+  Lets you disable/enable chatstates per-JID. Works in MucTab, PrivateTab and ConversationTab.
+
+*display_user_color_in_join_part*:: false
+
+*hide_exit_join*:: -1
+
+*hide_status_change*:: 120
+
+*highlight_on*:: [empty]
