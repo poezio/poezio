@@ -141,6 +141,7 @@ class Core(object):
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
+            'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             }
 
         self.key_func = {
@@ -1772,6 +1773,31 @@ class Core(object):
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
         self.information(_('Your local bookmarks are: %s') %
                 [b for b in bookmark.bookmarks if b.method is 'local'], 'Info')
+
+    def command_remove_bookmark(self, arg):
+        """/remove_bookmark [jid]"""
+        args = common.shell_split(arg)
+        if not args:
+            tab = self.current_tab()
+            if isinstance(tab, tabs.MucTab) and bookmark.get_by_jid(tab.get_name()):
+                bookmark.remove(tab.get_name())
+                bookmark.save(self.xmpp)
+                if bookmark.save(self.xmpp):
+                    self.core.information('Bookmark deleted', 'Info')
+            else:
+                self.information('No bookmark to remove', 'Info')
+        else:
+            if bookmark.get_by_jid(args[0]):
+                bookmark.remove(args[0])
+                if bookmark.save(self.xmpp):
+                    self.core.information('Bookmark deleted', 'Info')
+
+            else:
+                self.information('No bookmark to remove', 'Info')
+
+    def completion_remove_bookmark(self,the_input):
+        """Completion for /remove_bookmark"""
+        return the_input.auto_completion([bm.jid for bm in bookmark.bookmarks], '')
 
     def command_set(self, arg):
         """

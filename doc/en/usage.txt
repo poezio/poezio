@@ -215,6 +215,9 @@ These commands work in *any* tab.
  with this command will be stored locally. They have priority over the ones
  stored online.
 
+*/remove_bookmark [room_jid]*:: Remove the bookmark on _room_jid_ or the one on
+ the current tab, if any.
+
 */bookmarks*:: Show the current bookmarks.
 
 */set <option> [value]*:: Set the value to the option in your configuration
