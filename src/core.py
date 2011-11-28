@@ -1703,12 +1703,16 @@ class Core(object):
         if not bm:
             bm = bookmark.Bookmark(jid=roomname)
             bookmark.bookmarks.append(bm)
+            self.information('Bookmark added.', 'Info')
+        else:
+            self.information('Bookmark updated.', 'Info')
         if nick:
             bm.nick = nick
         bm.autojoin = True
         bm.method = "local"
         bookmark.save_local()
-        self.information(_('Your bookmarks are now: %s') % bookmark.bookmarks, 'Info')
+        self.information(_('Your local bookmarks are now: %s') %
+                [b for b in bookmark.bookmarks if b.method == 'local'], 'Info')
 
     def command_bookmark(self, arg):
         """
@@ -1758,6 +1762,8 @@ class Core(object):
             bm.autojoin = autojoin
         if bookmark.save_remote(self.xmpp, self):
             self.information('Bookmark added.', 'Info')
+        self.information(_('Your remote bookmarks are now: %s') %
+                [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
 
     def command_set(self, arg):
         """
