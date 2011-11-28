@@ -1,8 +1,15 @@
 import os
+from sys import version_info
 
 from sleekxmpp.plugins.xep_0048 import *
 from core import JID
 from config import config
+
+def iter(xml, tag=''):
+    if version_info[1] >= 2:
+        return xml.iter(tag)
+    else:
+        return xml.getiterator(tag)
 
 preferred = config.get('use_bookmarks_method', 'pep').lower()
 if preferred not in ('pep', 'privatexml'):
@@ -73,10 +80,10 @@ class Bookmark(object):
         name = el.get('name')
         autojoin = True if el.get('autojoin', False) == 'true' else False
         nick = None
-        for n in el.iter('nick'):
+        for n in iter(el, 'nick'):
             nick = nick.text
         password = None
-        for p in el.iter('password'):
+        for p in iter(el, 'password'):
             password = p.text
 
         return Bookmark(jid, name, autojoin, nick, password, method)
@@ -150,7 +157,7 @@ def get_pep(xmpp):
         iq = xmpp.plugin['xep_0048'].get_bookmarks()
     except:
         return False
-    for conf in iq.xml.iter('{storage:bookmarks}conference'):
+    for conf in iter(iq.xml, '{storage:bookmarks}conference'):
         b = Bookmark.parse_from_element(conf, method='pep')
         if not get_by_jid(b.jid):
             bookmarks.append(b)
@@ -162,7 +169,7 @@ def get_privatexml(xmpp):
         iq = xmpp.plugin['xep_0048'].get_bookmarks_old()
     except:
         return False
-    for conf in iq.xml.iter('{storage:bookmarks}conference'):
+    for conf in iter(iq.xml, '{storage:bookmarks}conference'):
         b = Bookmark.parse_from_element(conf, method='privatexml')
         if not get_by_jid(b.jid):
             bookmarks.append(b)
