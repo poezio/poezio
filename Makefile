@@ -2,6 +2,7 @@ prefix=/usr/local
 LIBDIR=$(prefix)/lib
 BINDIR=$(prefix)/bin
 DATADIR=$(prefix)/share
+DOCDIR=$(DATADIR)/doc
 LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
 
@@ -16,10 +17,13 @@ clean:
 
 install: all
 	mkdir -p $(DESTDIR)$(prefix)
-	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1
+	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(DOCDIR)/poezio
 
 	cp -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
 	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
+
+	cp -R doc/* $(DESTDIR)$(DOCDIR)/poezio/
+	cp README CHANGELOG COPYING $(DESTDIR)$(DOCDIR)/poezio/
 
 	install -m644 data/poezio.1 $(DESTDIR)$(MANDIR)/man1/
 	for sourcefile in `ls -1 src/*.py src/*.so` ; do \
