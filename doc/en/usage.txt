@@ -199,21 +199,21 @@ These commands work in *any* tab.
  will be your status message.'
 
 */bookmark [roomname][/nick] [autojoin] [password]*:: Bookmark the specified
- room (you will then auto-join it on each poezio start). This command uses
- almost the same syntax as /join. Type /help join for syntax examples. Note
- that when typing /bookmark on its own, the room will be bookmarked with the
- nickname you're currently using in this room (instead of default_nick).
- You can specify an optional *autojoin* and *password* if you call it with the
- full line (/bookmark alone will put the room in autojoin without password).
- The bookmarks stored with this command are stored on your xmpp server.
-
-*/bookmark_local [roomname][/nick] [autojoin] [password]*:: Bookmark the
- specified room (you will then auto-join it on each poezio start). This
- commands uses almost the same syntax as /join. Type /help join for syntax
- examples. Note that when typing /bookmark on its own, the room will be
+ room. This command uses  almost the same syntax as /join. Type /help join for
+ syntax examples. Note that when typing /bookmark on its own, the room will be
  bookmarked with the nickname you're currently using in this room (instead of
- default_nick). The bookmarks stored with this command will be stored locally.
- They have priority over the ones stored online.
+ default_nick). You can specify an optional *autojoin* and *password* if you
+ call it with the full line (/bookmark alone will put the room in autojoin
+ without password). The bookmarks stored with this command are stored on your
+ xmpp server.
+
+*/bookmark_local [roomname][/nick]*:: Bookmark the  specified room (you will
+ then auto-join it on each poezio start). This commands uses almost the same
+ syntax as /join. Type /help join for syntax examples. Note that when typing
+ /bookmark on its own, the room will be bookmarked with the nickname you're
+ currently using in this room (instead of default_nick). The bookmarks stored
+ with this command will be stored locally. They have priority over the ones
+ stored online.
 
 */set <option> [value]*:: Set the value to the option in your configuration
  file. You can, for example, change your default nickname by doing "/set
@@ -223,12 +223,14 @@ These commands work in *any* tab.
 */set_plugin <plugin> <option> <value>*:: Set the value of the option in a
  plugin configuration file.
 
-*/theme*:: Reload the theme defined in the config file.
+*/theme [theme_name]*:: Reload the theme defined in the config file. If
+ _theme_name_ is given, this command will act like /set theme theme_name then
+ /theme.
 
 */presence <jid> [type] [status]*:: Send a directed presence to _jid_ using
  _type_ and _status_ if provided.
 
-*/rawxml*:: Send a custom XML stanza.
+*/rawxml <stanza>*:: Send a custom XML stanza.
 
 */list [server.tld]*:: Get the list of public chatrooms in the specified server
 .
@@ -263,6 +265,8 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
 
 */xhtml <custom xhtml>*:: Send a custom xhtml message to the current tab.
 
+*/clear*:: Clear the current buffer.
+
 MultiUserChat tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -288,9 +292,10 @@ MultiUserChat tab commands
 
 */nick <nickname>*:: Change your nickname in the current room.
 
-*/recolor*:: Re-assign a color to all the participants in the current room,
- based on the last time they talked. Use this if the participants currently
- talking have too many identical colors.
+*/recolor [random]*:: Re-assign a color to all the participants in the current
+ room, based on the last time they talked. Use this if the participants
+ currently talking have too many identical colors. If a random argument is
+ given, the participants will be shuffled before they are assigned a color.
 
 */cycle [message]*:: Leave the current room an rejoint it immediatly. You can
  specify an optional quit message.
@@ -305,8 +310,6 @@ MultiUserChat tab commands
 
 */names*:: Get the list of the users in the room, their number, and the list
  of the people assuming different roles.
-
-*/clear*:: Clear the current buffer.
 
 Private tab commands
 ~~~~~~~~~~~~~~~~~~~~
