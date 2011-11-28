@@ -140,6 +140,7 @@ class Core(object):
             'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
+            'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             }
 
         self.key_func = {
@@ -1764,6 +1765,13 @@ class Core(object):
             self.information('Bookmark added.', 'Info')
         self.information(_('Your remote bookmarks are now: %s') %
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
+
+    def command_bookmarks(self, arg):
+        """/bookmarks"""
+        self.information(_('Your remote bookmarks are: %s') %
+                [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
+        self.information(_('Your local bookmarks are: %s') %
+                [b for b in bookmark.bookmarks if b.method is 'local'], 'Info')
 
     def command_set(self, arg):
         """

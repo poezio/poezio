@@ -215,6 +215,8 @@ These commands work in *any* tab.
  with this command will be stored locally. They have priority over the ones
  stored online.
 
+*/bookmarks*:: Show the current bookmarks.
+
 */set <option> [value]*:: Set the value to the option in your configuration
  file. You can, for example, change your default nickname by doing "/set
  default_nick toto" or your resource with "/set resource blabla". You can also
