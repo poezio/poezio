@@ -660,8 +660,8 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
-        self._win.move(0, 0)
         with g_lock:
+            self._win.move(0, 0)
             self._win.erase()
             for y, line in enumerate(lines):
                 if line:
