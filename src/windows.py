@@ -852,9 +852,9 @@ class Input(Win):
         if not len(self.text) or self.pos == 0:
             return
         separators = string.punctuation+' '
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
+        while self.pos <= len(self.text) and self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
             self.key_backspace()
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
+        while self.pos <= len(self.text) and self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
             self.key_backspace()
 
         return True
