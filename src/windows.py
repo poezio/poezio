@@ -303,6 +303,8 @@ class GlobalInfoBar(Win):
                     continue
                 try:
                     self.addstr("%s" % str(tab.nb), to_curses_attr(color))
+                    if config.get('show_tab_names', 'false') == 'true':
+                        self.addstr(" %s" % str(tab.get_name()), to_curses_attr(color))
                     self.addstr("|", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                 except:             # end of line
                     break
