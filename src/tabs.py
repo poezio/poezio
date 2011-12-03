@@ -2349,7 +2349,7 @@ class MucListTab(Tab):
         if iq['type'] == 'error':
             self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
             return
-        items = [{'node-part':JID(item[0]).user,
+        items = [{'node-part': JID(item[0]).user if JID(item[0]).server == self.name else JID(item[0]).bare,
                   'jid': item[0],
                   'name': item[2]} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
