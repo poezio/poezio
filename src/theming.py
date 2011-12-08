@@ -154,12 +154,15 @@ class Theme(object):
     COLOR_CONVERSATION_NAME = (2, 4)
     COLOR_GROUPCHAT_NAME = (7, 4)
     COLOR_COLUMN_HEADER = (36, 4)
+    COLOR_COLUMN_HEADER_SEL = (4, 36)
 
     # Strings for special messages (like join, quit, nick change, etc)
     # Special messages
     CHAR_JOIN = '--->'
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
+    CHAR_COLUMN_ASC = ' ▲' 
+    CHAR_COLUMN_DESC =' ▼' 
 
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
