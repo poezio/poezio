@@ -1642,6 +1642,12 @@ class ListWin(Win):
         """
         Sort the list by the given column, ascendant or descendant
         """
+        if asc:
+          self.lines.sort(key=lambda x: x[col_name])
+        else:
+          self.lines.sort(key=lambda x: x[col_name],reverse=True)
+        self.refresh()
+        curses.doupdate()
         pass                    # TODO
 
     def add_lines(self, lines):
@@ -1741,6 +1747,9 @@ class ColumnHeaderWin(Win):
         Win.__init__(self)
         self._columns = columns
         self._columns_sizes = {}
+        self._column_sel = ''
+        self._column_order = ''
+        self._column_order_asc = False
 
     def resize_columns(self, dic):
         self._columns_sizes = dic
@@ -1755,11 +1764,64 @@ class ColumnHeaderWin(Win):
             x = 0
             for col in self._columns:
                 txt = col
+                if col in self._column_order:
+                  if self._column_order_asc:
+                    txt += get_theme().CHAR_COLUMN_ASC 
+                  else:
+                    txt += get_theme().CHAR_COLUMN_DESC
+                #⇓⇑↑↓⇧⇩▲▼
                 size = self._columns_sizes[col]
                 txt += ' ' * (size-len(txt))
-                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
+                if col in self._column_sel:
+                  self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
+                else:
+                  self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
                 x += size
             self._refresh()
+
+    def sel_column(self,dic):
+        self._column_sel = dic 
+
+    def get_sel_column(self):
+        return self._column_sel
+
+    def set_order(self,order):
+        self._column_order = self._column_sel
+        self._column_order_asc = order
+
+    def get_order(self):
+        if self._column_sel == self._column_order:
+          return self._column_order_asc
+        else:
+          return False
+
+    def sel_column_left(self):
+        if self._column_sel in self._columns:
+          index = self._columns.index(self._column_sel)
+          if index > 1:
+            index = index -1
+          else:
+            index = 0
+        else:
+          index = 0
+        self._column_sel = self._columns[index]
+        self.refresh()
+        return
+
+    def sel_column_right(self):
+        if self._column_sel in self._columns:
+          index = self._columns.index(self._column_sel)
+          if index < len(self._columns)-2:
+            index = index +1
+          else:
+            index = len(self._columns) -1
+        else:
+          index = len(self._columns) - 1 
+        self._column_sel = self._columns[index]
+        self.refresh()
+        return
+
+
 
 class SimpleTextWin(Win):
     def __init__(self, text):

@@ -2286,6 +2286,9 @@ class MucListTab(Tab):
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
         self.key_func['^M'] = self.join_selected
+        self.key_func['KEY_LEFT'] = self.list_header.sel_column_left
+        self.key_func['KEY_RIGHT'] = self.list_header.sel_column_right
+        self.key_func[' '] = self.sort_by
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
         self.resize()
         self.update_keys()
@@ -2307,9 +2310,9 @@ class MucListTab(Tab):
             return
         self.need_resize = False
         self.upper_message.resize(1, self.width, 0, 0)
-        column_size = {'node-part': (self.width-5)//4,
-                       'name': (self.width-5)//4*3,
-                       'users': 5}
+        column_size = {'node-part': int(self.width*2/8) ,
+                       'name': int(self.width*5/8),
+                       'users': self.width-int(self.width*2/8)-int(self.width*5/8)}
         self.list_header.resize_columns(column_size)
         self.list_header.resize(1, self.width, 1, 0)
         self.listview.resize_columns(column_size)
@@ -2351,10 +2354,21 @@ class MucListTab(Tab):
             return
         items = [{'node-part': JID(item[0]).user if JID(item[0]).server == self.name else JID(item[0]).bare,
                   'jid': item[0],
-                  'name': item[2]} for item in iq['disco_items'].get_items()]
+                  'name': item[2],'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
         self.upper_message.set_message('Chatroom list on server %s' % self.name)
         self.upper_message.refresh()
+        curses.doupdate()
+
+    def sort_by(self):
+        if self.list_header.get_order():
+          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
+          self.list_header.set_order(False)
+          self.list_header.refresh()
+        else:    
+          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
+          self.list_header.set_order(True)
+          self.list_header.refresh()
         curses.doupdate()
 
     def join_selected(self):
