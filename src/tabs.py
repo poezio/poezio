@@ -666,17 +666,17 @@ class MucTab(ChatTab):
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
-        if len(args) >= 1:
-            if args[0] == 'random':
-                random.shuffle(sorted_users)
         # search our own user, to remove it from the list
         for user in sorted_users:
             if user.nick == self.own_nick:
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
-        nb_color = len(get_theme().LIST_COLOR_NICKNAMES)
+        colors = list(get_theme().LIST_COLOR_NICKNAMES)
+        if len(args) >= 1:
+            if args[0] == 'random':
+                random.shuffle(colors)
         for i, user in enumerate(sorted_users):
-            user.color = get_theme().LIST_COLOR_NICKNAMES[i % nb_color]
+            user.color = colors[i % len(colors)]
         self.text_win.rebuild_everything(self._text_buffer)
         self.text_win.refresh()
         self.input.refresh()
