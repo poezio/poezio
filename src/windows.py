@@ -1648,7 +1648,6 @@ class ListWin(Win):
           self.lines.sort(key=lambda x: x[col_name],reverse=True)
         self.refresh()
         curses.doupdate()
-        pass                    # TODO
 
     def add_lines(self, lines):
         """

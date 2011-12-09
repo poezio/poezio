@@ -2354,7 +2354,7 @@ class MucListTab(Tab):
             return
         items = [{'node-part': JID(item[0]).user if JID(item[0]).server == self.name else JID(item[0]).bare,
                   'jid': item[0],
-                  'name': item[2],'users': ''} for item in iq['disco_items'].get_items()]
+                  'name': item[2] or '' ,'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
         self.upper_message.set_message('Chatroom list on server %s' % self.name)
         self.upper_message.refresh()
