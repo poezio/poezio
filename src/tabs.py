@@ -2365,7 +2365,7 @@ class MucListTab(Tab):
           self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
           self.list_header.set_order(False)
           self.list_header.refresh()
-        else:    
+        else:
           self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
           self.list_header.set_order(True)
           self.list_header.refresh()
