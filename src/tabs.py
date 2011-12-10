@@ -781,7 +781,12 @@ class MucTab(ChatTab):
         """
         if not self.joined:
             return
-        users, visitors, moderators, participants, others = [], [], [], [], []
+        color_visitor = get_theme().COLOR_USER_VISITOR[0]
+        color_other = get_theme().COLOR_USER_NONE[0]
+        color_moderator = get_theme().COLOR_USER_MODERATOR[0]
+        color_participant = get_theme().COLOR_USER_PARTICIPANT[0]
+        color_information = get_theme().COLOR_INFORMATION_TEXT[0]
+        visitors, moderators, participants, others = [], [], [], []
         for user in self.users:
             if user.role == 'visitor':
                 visitors.append(user.nick)
@@ -791,20 +796,18 @@ class MucTab(ChatTab):
                 moderators.append(user.nick)
             else:
                 others.append(user.nick)
-            users.append(user.nick)
 
-        message = ''
-        roles = (('Users', users), ('Visitors', visitors), ('Participants', participants), ('Moderators', moderators), ('Others', others))
-        for role in roles:
-            if role[1]:
-                role[1].sort()
-                message += '%s: %i\n    ' % (role[0], len(role[1]))
-                last = role[1].pop()
-                for item in role[1]:
-                    message += '%s, ' % item
-                message += '%s\n' % last
+        message = 'Users: %s \n' % len(self.users)
+        for moderator in moderators:
+            message += ' \x19%s}%s\x19o -' % (color_moderator, moderator)
+        for participant in participants:
+            message += ' \x19%s}%s\x19o -' % (color_participant, participant)
+        for visitor in visitors:
+            message += ' \x19%s}%s\x19o -' % (color_visitor, visitor)
+        for other in others:
+            message += ' \x19%s}%s\x19o -' % (color_other, other)
+        message = message[:-2]
 
-        # self.core.add_message_to_text_buffer(room, message)
         self._text_buffer.add_message(message)
         self.text_win.refresh()
         self.input.refresh()
