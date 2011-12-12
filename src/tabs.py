@@ -1239,14 +1239,17 @@ class MucTab(ChatTab):
         hide_status_change = config.get_by_tabname('hide_status_change', -1, self.general_jid, True)
         if hide_status_change < -1:
             hide_status_change = -1
-        if (hide_status_change == -1 or \
+        if ((hide_status_change == -1 or \
                 user.has_talked_since(hide_status_change) or\
                 user.nick == self.own_nick)\
                 and\
                 (affiliation != user.affiliation or\
                     role != user.role or\
                     show != user.show or\
-                    status != user.status):
+                    status != user.status))\
+                      or\
+                        (affiliation != user.affiliation or\
+                          role != user.role):
             # display the message in the room
             self._text_buffer.add_message(msg)
         self.core.on_user_changed_status_in_private('%s/%s' % (from_room, from_nick), msg)
