@@ -1470,14 +1470,14 @@ class PrivateTab(ChatTab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
+        if tab and tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
+        if tab and tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_scroll_up(self):
