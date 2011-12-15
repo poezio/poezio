@@ -23,6 +23,10 @@ import sys
 import threading
 import subprocess
 
+import logging
+
+log = logging.getLogger(__name__)
+
 class Executor(threading.Thread):
     """
     Just a class to execute commands in a thread.
@@ -35,7 +39,7 @@ class Executor(threading.Thread):
         self.command = command
 
     def run(self):
-        print('executing %s' % (self.command.strip(),))
+        log.info('executing %s' % (self.command.strip(),))
         subprocess.call(self.command.split())
 
 def main():

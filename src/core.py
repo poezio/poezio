@@ -54,6 +54,7 @@ from keyboard import read_char
 from theming import get_theme
 from fifo import Fifo
 from windows import g_lock
+from daemon import Executor
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -2143,7 +2144,8 @@ class Core(object):
                 self.information('Could not execute [%s]: %s' % (command.strip(), e,), 'Error')
                 self.remote_fifo = None
         else:
-            pass
+            e = Executor(command.strip())
+            e.start()
 
     def get_conversation_messages(self):
         """
