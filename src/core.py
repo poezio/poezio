@@ -387,14 +387,15 @@ class Core(object):
         self.xmpp.plugin['xep_0045'].invite(room, to, reason)
 
     def completion_invite(self, the_input):
+        """Completion for /invite"""
         txt = the_input.get_text()
         args = common.shell_split(txt)
         n = len(args)
         if txt.endswith(' '):
             n += 1
-        if len(args) == 1:
+        if n == 2:
             return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
-        elif len(args) == 2:
+        elif n == 3:
             rooms = []
             for tab in self.tabs:
                 if isinstance(tab, tabs.MucTab) and tab.joined:
@@ -410,7 +411,18 @@ class Core(object):
         if jid.bare not in self.pending_invites:
             return
         reason = args[1] if len(args) > 1 else ''
+        del self.pending_invites[jid.bare]
         self.xmpp.plugin['xep_0045'].decline_invite(jid.bare, self.pending_invites[jid.bare], reason)
+
+    def completion_decline(self, the_input):
+        """Completion for /decline"""
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion(list(self.pending_invites.keys()), '')
 
     def command_invitations(self, arg):
         """/invitations"""
@@ -422,15 +434,6 @@ class Core(object):
         else:
             build = "You are do not have any pending invitation."
         self.information(build, 'Info')
-
-    def completion_decline(self, the_input):
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if len(args) == 1:
-            return the_input.auto_completion(list(self.pending_invites.keys()), '')
 
     def on_groupchat_decline(self, decline):
         pass
