@@ -371,6 +371,8 @@ class Core(object):
         if password:
             msg += ". The password is \"%s\"." % password
         self.information(msg, 'Info')
+        if 'invite' in config.get('beep_on', 'invite').split():
+            curses.beep()
         self.pending_invites[jid.bare] = inviter.full
 
     def command_invite(self, arg):
