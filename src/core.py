@@ -144,6 +144,7 @@ class Core(object):
             'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
+            'invitations': (self.command_invitations, _("Usage: /invites\nInvites: Show the pending invitations."), None),
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
@@ -376,6 +377,7 @@ class Core(object):
         self.pending_invites[jid.bare] = inviter.full
 
     def command_invite(self, arg):
+        """/invite <to> <room> [reason]"""
         args = common.shell_split(arg)
         if len(args) < 2:
             return
@@ -400,6 +402,7 @@ class Core(object):
             return the_input.auto_completion(rooms, '')
 
     def command_decline(self, arg):
+        """/decline <room@server.tld> [reason]"""
         args = common.shell_split(arg)
         if not len(args):
             return
@@ -408,6 +411,17 @@ class Core(object):
             return
         reason = args[1] if len(args) > 1 else ''
         self.xmpp.plugin['xep_0045'].decline_invite(jid.bare, self.pending_invites[jid.bare], reason)
+
+    def command_invitations(self, arg):
+        """/invitations"""
+        build = ""
+        for invite in self.pending_invites:
+            build += "%s by %s" % (invite, JID(self.pending_invites[invite]).bare)
+        if self.pending_invites:
+            build = "You are invited to the following rooms:\n" + build
+        else:
+            build = "You are do not have any pending invitation."
+        self.information(build, 'Info')
 
     def completion_decline(self, the_input):
         txt = the_input.get_text()
