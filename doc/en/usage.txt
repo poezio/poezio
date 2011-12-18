@@ -247,6 +247,13 @@ These commands work in *any* tab.
 */version <jid>*:: Get the software version of the given JID (usually its XMPP
  client and Operating System).
 
+*/invite <jid> <room> [reason]*:: Invite _jid_ to _room_ wit _reason_ (if
+  provided).
+
+*/decline <room> [reason]*:: Decline invitation to _room_ with _reason_.
+
+*/invitations*:: Show the pending invitations.
+
 */server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the
  rooms of server.tld.
 
