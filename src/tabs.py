@@ -758,7 +758,7 @@ class MucTab(ChatTab):
             if user.nick == nick:
                 r = self.core.open_private_window(self.name, user.nick)
         if r and len(args) > 1:
-            msg = arg[len(nick)+1:]
+            msg = args[1]
             self.core.current_tab().command_say(xhtml.convert_simple_to_full_colors(msg))
         if not r:
             self.core.information(_("Cannot find user: %s" % nick), 'Error')
