@@ -22,5 +22,5 @@ special keywords _%(from)s_ and _%(body)s_ that will be replaced
 directly in the command line by the author of the message, and the body.
 
 The example shown above will display something like this:
-image::../../images/simple_notify_example.png["Simple notify example",
+image:../../images/simple_notify_example.png["Simple notify example",
 title="Simple notify example"]
