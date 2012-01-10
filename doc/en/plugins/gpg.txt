@@ -33,7 +33,7 @@ You need to create a plugin configuration file. Create a file named _gpg.cfg_
 into your plugins configuration directory (_~/.config/poezio/plugins_ by
 default), and fill it like this:
 
-[source,python]
+[source,conf]
 ---------------------------------------------------------------------
 [gpg]
 keyid = 091F9C78

@@ -22,7 +22,7 @@ command on your local machine.
 import sys
 import threading
 import subprocess
-
+import shlex
 import logging
 
 log = logging.getLogger(__name__)
@@ -40,7 +40,8 @@ class Executor(threading.Thread):
 
     def run(self):
         log.info('executing %s' % (self.command.strip(),))
-        subprocess.call(self.command.split())
+        command = shlex.split(self.command)
+        subprocess.call(command)
 
 def main():
     while True:
