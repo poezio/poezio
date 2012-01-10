@@ -14,7 +14,7 @@ On all tabs, you get a line showing the the list of all opened tabs. Each tab
 has a number, each time you open a new tab, it gets the next available number.
 
 
-image::../images/tab_bar.png[title="Example of 5 opened tabs"]
+image:../images/tab_bar.png[title="Example of 5 opened tabs"]
 
 The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any
 type.
@@ -51,7 +51,7 @@ a conversation with one of them.
 Use the _arrows_ to browse the list, the _space_ key to fold or unfold a group
 or a contact.
 
-image::../images/roster.png["The roster tab", title="The roster tab"]
+image:../images/roster.png["The roster tab", title="The roster tab"]
 
 * _1_: The area where information messages are displayed.
 * _2_: The actual list of contacts. The first level is group, the second is the
@@ -63,7 +63,7 @@ MultiUserChat tab
 
 This tab contains a multi-users conversation.
 
-image::../images/muc.png["The MUC tab", title="The MUC tab"]
+image:../images/muc.png["The MUC tab", title="The MUC tab"]
 
 * _1_: The conversation window, this is where all the messages and events
   related to the muc will be displayed. It can be scrolled up and down with
@@ -95,7 +95,7 @@ Private tab
 This is the tab opened with the _/query_ command, letting you talk in private
 with a participant of a multi-users chat.
 
-image::../images/private.png["The private tab", title="The private tab"]
+image:../images/private.png["The private tab", title="The private tab"]
 
 This is just a simple one to one conversation, with a line showing the status,
 name and chatstate of the participant.
@@ -104,7 +104,7 @@ Conversation tab
 ~~~~~~~~~~~~~~~~
 A tab opened from the roster, to talk in private with one of your contacts.
 
-image::../images/conversation.png["The conversation tab", title="The conversation tab"]
+image:../images/conversation.png["The conversation tab", title="The conversation tab"]
 
 This is also just a simple one to one conversation, with a line showing the status,
 name and chatstate of the participant, as well as a line at the top showing the
@@ -117,7 +117,7 @@ This tab lets you view a form receive from a remote entity, edit the values and
 send everything back. It is mostly used to configure MUCs with the _/configure_
 command but can actually be used for almost anything.
 
-image::../images/data_forms.png["The dataform tab", title="The dataform tab"]
+image:../images/data_forms.png["The dataform tab", title="The dataform tab"]
 
 Use the _up_ and _down_ keys to go from one field to the other, and edit the
 value using the _space_, _left_ or _right_ keys, or by entering text.
@@ -131,7 +131,7 @@ This tab lists all public rooms on a MUC service. It is currently very limited
 but will be improved in the future. There currently is no way to search a room
 or even to sort them.
 
-image::../images/list.png["The list tab", title="The list tab"]
+image:../images/list.png["The list tab", title="The list tab"]
 
 Use the _up_ and _down_ or _PageUp_ and _PageDown_ keys to browse the list, and
 use _Enter_ or _j_ to join the selected room.
