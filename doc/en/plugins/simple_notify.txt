@@ -1,0 +1,26 @@
+Simple Notify
+=============
+
+This plugin lets you execute a command, to notify you from new important
+messages.
+
+Installation and configuration
+------------------------------
+
+You need to create a plugin configuration file. Create a file named _simple_notify.cfg_
+into your plugins configuration directory (_~/.config/poezio/plugins_ by
+default), and fill it like this:
+
+[source,conf]
+---------------------------------------------------------------------
+[simple_notify]
+command = notify-send -i /path/to/poezio/data/poezio_80.png "New message from %(from)s" "%(body)s"
+---------------------------------------------------------------------
+
+You can put any command, instead of this one. You can also use the
+special keywords _%(from)s_ and _%(body)s_ that will be replaced
+directly in the command line by the author of the message, and the body.
+
+The example shown above will display something like this:
+image::../../images/simple_notify_example.png["Simple notify example",
+title="Simple notify example"]
