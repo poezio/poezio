@@ -2164,7 +2164,10 @@ class Core(object):
                 self.remote_fifo = None
         else:
             e = Executor(command.strip())
-            e.start()
+            try:
+                e.start()
+            except ValueError as e: # whenever shlex fails
+                self.information('%s' % (e,), 'Error')
 
     def get_conversation_messages(self):
         """

@@ -1318,6 +1318,7 @@ class MucTab(ChatTab):
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
         in the room anymore
+        Return True if the message highlighted us. False otherwise.
         """
         self.log_message(txt, time, nickname)
         user = self.get_user_by_name(nickname) if nickname is not None else None
@@ -1331,6 +1332,7 @@ class MucTab(ChatTab):
             if self.state != 'highlight':
                 self.state = 'message'
         nick_color = nick_color or None
+        highlight = False
         if (not nickname or time) and not txt.startswith('/me '):
             txt = '\x195}%s' % (txt,)
         else:                   # TODO
@@ -1339,6 +1341,7 @@ class MucTab(ChatTab):
                 nick_color = highlight
         time = time or datetime.now()
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
+        return highlight
 
 class PrivateTab(ChatTab):
     """
