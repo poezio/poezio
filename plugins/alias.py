@@ -21,7 +21,7 @@ class Plugin(BasePlugin):
         if alias in self.core.commands or alias in self.commands:
             self.core.information('Alias: command already exists', 'Error')
             return
-        self.commands[alias] = lambda args: self.get_command(command)(parse(common.shell_split(args), tmp_args))
+        self.commands[alias] = lambda arg: self.get_command(command)(parse(arg, tmp_args))
         self.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %( command, tmp_args))
         self.core.information('Alias /%s successfuly created' % alias, 'Info')
 
