@@ -814,7 +814,7 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         current_topic = self.topic
-        return the_input.auto_completion([current_topic], '')
+        return the_input.auto_completion([current_topic], '', quotify=False)
 
     def command_kick(self, arg):
         """
