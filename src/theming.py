@@ -79,7 +79,7 @@ class Theme(object):
     """
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
-    COLOR_INFORMATION_TEXT = (137, -1) # TODO
+    COLOR_INFORMATION_TEXT = (5, -1) # TODO
     COLOR_HIGHLIGHT_NICK = (3, 5, 'b')
 
     # User list color
