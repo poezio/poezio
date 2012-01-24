@@ -196,6 +196,10 @@ class UserList(Win):
                 'none': lambda: get_theme().COLOR_USER_NONE,
                 '': lambda: get_theme().COLOR_USER_NONE
                }
+        self.symbol_affiliation = {'owner': '~',
+                                    'admin': '&',
+                                    'member': '+',
+                                    'none': '-'}
         self.color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
                 'none': lambda: get_theme().COLOR_STATUS_NONE,
                 '': lambda: get_theme().COLOR_STATUS_NONE,
@@ -203,7 +207,6 @@ class UserList(Win):
                 'away': lambda: get_theme().COLOR_STATUS_AWAY,
                 'chat': lambda: get_theme().COLOR_STATUS_CHAT
                }
-
     def scroll_up(self):
         self.pos += self.height-1
 
@@ -224,24 +227,9 @@ class UserList(Win):
             if self.pos >= len(users) and self.pos != 0:
                 self.pos = len(users)-1
             for user in users[self.pos:]:
-                if not user.role in self.color_role:
-                    role_col = get_theme().COLOR_USER_NONE
-                else:
-                    role_col = self.color_role[user.role]()
-                if not user.show in self.color_show:
-                    show_col = get_theme().COLOR_STATUS_NONE
-                else:
-                    show_col = self.color_show[user.show]()
-                if user.chatstate == 'composing':
-                    char = get_theme().CHAR_CHATSTATE_COMPOSING
-                elif user.chatstate == 'active':
-                    char = get_theme().CHAR_CHATSTATE_ACTIVE
-                elif user.chatstate == 'paused':
-                    char = get_theme().CHAR_CHATSTATE_PAUSED
-                else:
-                    char = get_theme().CHAR_STATUS
-                self.addstr(y, 0, char, to_curses_attr(show_col))
-                self.addstr(y, 1, user.nick[:self.width-2], to_curses_attr(role_col))
+                self.draw_role_affiliation(y, user)
+                self.draw_status_chatstate(y, user)
+                self.addstr(y, 2, user.nick[:self.width-2], to_curses_attr(user.color))
                 y += 1
                 if y == self.height:
                     break
@@ -251,6 +239,29 @@ class UserList(Win):
             if self.pos + self.height < len(users):
                 self.draw_plus(self.height-1)
             self._refresh()
+
+    def draw_role_affiliation(self, y, user):
+        if not user.role in self.color_role:
+            color = get_theme().COLOR_USER_NONE
+        else:
+            color = self.color_role[user.role]()
+        symbol = self.symbol_affiliation.get(user.affiliation) or '-'
+        self.addstr(y, 1, symbol, to_curses_attr(color))
+
+    def draw_status_chatstate(self, y, user):
+        if not user.show in self.color_show:
+            show_col = get_theme().COLOR_STATUS_NONE
+        else:
+            show_col = self.color_show[user.show]()
+        if user.chatstate == 'composing':
+            char = get_theme().CHAR_CHATSTATE_COMPOSING
+        elif user.chatstate == 'active':
+            char = get_theme().CHAR_CHATSTATE_ACTIVE
+        elif user.chatstate == 'paused':
+            char = get_theme().CHAR_CHATSTATE_PAUSED
+        else:
+            char = get_theme().CHAR_STATUS
+        self.addstr(y, 0, char, to_curses_attr(show_col))
 
     def resize(self, height, width, y, x):
         with g_lock:
