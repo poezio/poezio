@@ -814,7 +814,7 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         current_topic = self.topic
-        return the_input.auto_completion([current_topic], '')
+        return the_input.auto_completion([current_topic], '', quotify=False)
 
     def command_kick(self, arg):
         """
@@ -1419,6 +1419,8 @@ class PrivateTab(ChatTab):
                                                              res.get('version') or _('unknown'),
                                                              res.get('os') or _('on an unknown platform'))
             self.core.information(version, 'Info')
+        if arg:
+            return self.core.command_version(arg)
         jid = self.name
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
@@ -2172,6 +2174,8 @@ class ConversationTab(ChatTab):
                                                              res.get('version') or _('unknown'),
                                                              res.get('os') or _('on an unknown platform'))
             self.core.information(version, 'Info')
+        if arg:
+            return self.core.command_version(arg)
         jid = self._name
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
