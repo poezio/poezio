@@ -678,6 +678,7 @@ class MucTab(ChatTab):
         for i, user in enumerate(sorted_users):
             user.color = colors[i % len(colors)]
         self.text_win.rebuild_everything(self._text_buffer)
+        self.user_win.refresh(self.users)
         self.text_win.refresh()
         self.input.refresh()
 
