@@ -11,16 +11,17 @@ used when drawing the interface.
 
 Colors are numbers from -1 to 7 (if only 8 colors are supported) or -1 to 255
 if 256 colors are available.
-We check the number of available colors at startup, and we load a theme accordingly.
-A 8 color theme should NEVER use colors not in the -1 -> 7 range. We won't check that
-at run time. If the case occurs, the THEME should be fixed.
+If only 8 colors are available, all colors > 8 are converted using the
+table_256_to_16 dict.
+
 XHTML-IM colors are converted to -1 -> 255 colors if available, or directly to
 -1 -> 8 if we are in 8-color-mode.
 
 A pair_color is a background-foreground pair. All possible pairs are not created
 at startup, because that would create 256*256 pairs, and almost all of them
 would never be used.
-So, a theme should define color tuples, like (200, -1), and when they are to
+
+A theme should define color tuples, like (200, -1), and when they are to
 be used by poezio's interface, they will be created once, and kept in a list for
 later usage.
 A color tuple is of the form (foreground, background, optional)
