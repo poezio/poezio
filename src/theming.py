@@ -271,8 +271,8 @@ def reload_theme():
         file_path  = os.path.join(themes_dir, theme_name)+'.py'
         log.debug('Theme file to load: %s' %(file_path,))
         new_theme = imp.load_source('theme', os.path.join(themes_dir, theme_name)+'.py')
-    except:
-        return 'Theme not found'
+    except Exception as e:
+        return 'Failed to load theme: %s' % (e,)
     theme = new_theme.theme
 
 if __name__ == '__main__':
