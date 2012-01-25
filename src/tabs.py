@@ -2371,7 +2371,12 @@ class MucListTab(Tab):
                   'name': item[2] or '' ,'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
         self.upper_message.set_message('Chatroom list on server %s' % self.name)
-        self.upper_message.refresh()
+        if self.core.current_tab() is self:
+            self.listview.refresh()
+            self.upper_message.refresh()
+        else:
+            self.state = 'highlight'
+            self.refresh_tab_win()
         curses.doupdate()
 
     def sort_by(self):

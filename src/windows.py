@@ -1667,8 +1667,6 @@ class ListWin(Win):
         if not lines:
             return
         self.lines += lines
-        self.refresh()
-        curses.doupdate()
 
     def get_selected_row(self):
         """
