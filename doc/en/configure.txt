@@ -55,6 +55,11 @@ section of this documentation.
   It is not recommended to use a resource that is easy to guess, because it can lead
   to presence leak.
 
+*auto_reconnect*:: false
+
+  Auto-reconnects you when you get disconnected. Should not be necessary, so
+  the default is false.
+
 
 *default_nick*:: [empty]
 
