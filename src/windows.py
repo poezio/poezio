@@ -196,10 +196,10 @@ class UserList(Win):
                 'none': lambda: get_theme().COLOR_USER_NONE,
                 '': lambda: get_theme().COLOR_USER_NONE
                }
-        self.symbol_affiliation = {'owner': '~',
-                                    'admin': '&',
-                                    'member': '+',
-                                    'none': '-'}
+        self.symbol_affiliation = {'owner': lambda: get_theme().CHAR_AFFILIATION_OWNER,
+                'admin': lambda: get_theme().CHAR_AFFILIATION_ADMIN,
+                'member': lambda: get_theme().CHAR_AFFILIATION_MEMBER,
+                'none': lambda: get_theme().CHAR_AFFILIATION_NONE, }
         self.color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
                 'none': lambda: get_theme().COLOR_STATUS_NONE,
                 '': lambda: get_theme().COLOR_STATUS_NONE,
@@ -245,7 +245,7 @@ class UserList(Win):
             color = get_theme().COLOR_USER_NONE
         else:
             color = self.color_role[user.role]()
-        symbol = self.symbol_affiliation.get(user.affiliation) or '-'
+        symbol = self.symbol_affiliation.get(user.affiliation, lambda: '-')()
         self.addstr(y, 1, symbol, to_curses_attr(color))
 
     def draw_status_chatstate(self, y, user):
@@ -1667,8 +1667,6 @@ class ListWin(Win):
         if not lines:
             return
         self.lines += lines
-        self.refresh()
-        curses.doupdate()
 
     def get_selected_row(self):
         """

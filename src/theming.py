@@ -101,6 +101,13 @@ class Theme(object):
     CHAR_CHATSTATE_COMPOSING = 'X'
     CHAR_CHATSTATE_PAUSED = 'p'
 
+    # These characters are used for the affiliation in the user list
+    # in a MUC
+    CHAR_AFFILIATION_OWNER = '~'
+    CHAR_AFFILIATION_ADMIN = '&'
+    CHAR_AFFILIATION_MEMBER = '+'
+    CHAR_AFFILIATION_NONE = '-'
+
     # Separators
     COLOR_VERTICAL_SEPARATOR = (4, -1)
     COLOR_NEW_TEXT_SEPARATOR = (2, -1)
@@ -162,8 +169,8 @@ class Theme(object):
     CHAR_JOIN = '--->'
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
-    CHAR_COLUMN_ASC = ' ▲' 
-    CHAR_COLUMN_DESC =' ▼' 
+    CHAR_COLUMN_ASC = ' ▲'
+    CHAR_COLUMN_DESC =' ▼'
 
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
