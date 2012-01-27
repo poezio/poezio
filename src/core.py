@@ -60,7 +60,7 @@ from daemon import Executor
 ERROR_AND_STATUS_CODES = {
     '401': _('A password is required'),
     '403': _('Permission denied'),
-    '404': _('The room does\'nt exist'),
+    '404': _('The room doesn’t exist'),
     '405': _('Your are not allowed to create a new room'),
     '406': _('A reserved nick must be used'),
     '407': _('You are not in the member list'),
