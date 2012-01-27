@@ -194,6 +194,7 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
+        self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.register_handler(Callback('ALL THE STANZAS', connection.MatchAll(None), self.incoming_stanza))
 
         self.timed_events = set()
@@ -502,6 +503,21 @@ class Core(object):
             tab.user_win.refresh(tab.users)
             tab.input.refresh()
             self.doupdate()
+
+    def on_attention(self, message):
+        jid_from = message['from']
+        self.information('%s requests your attention!' % jid_from, 'Info')
+        for tab in self.tabs:
+            if tab.get_name() == jid_from:
+                tab.state = 'attention'
+                self.refresh_tab_win()
+                return
+        for tab in self.tabs:
+            if tab.get_name() == jid_from.bare:
+                tab.state = 'attention'
+                self.refresh_tab_win()
+                return
+        self.information('%s tab not found.' % jid_from, 'Error')
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
@@ -1075,6 +1091,10 @@ class Core(object):
         - A Muc with an highlight
         - A Muc with any new message
         """
+        for tab in self.tabs:
+           if tab.state == 'attention':
+               self.command_win('%s' % tab.nb)
+               return
         for tab in self.tabs:
             if tab.state == 'private':
                 self.command_win('%s' % tab.nb)

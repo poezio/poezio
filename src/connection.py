@@ -59,6 +59,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self.register_plugin('xep_0092', pconfig=info)
         if config.get('send_time', 'true') == 'true':
             self.register_plugin('xep_0202')
+        self.register_plugin('xep_0224')
 
     def start(self):
         # TODO, try multiple servers

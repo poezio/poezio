@@ -67,7 +67,7 @@ STATE_COLORS = {
         'private': lambda: get_theme().COLOR_TAB_PRIVATE,
         'normal': lambda: get_theme().COLOR_TAB_NORMAL,
         'current': lambda: get_theme().COLOR_TAB_CURRENT,
-#        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
+        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
     }
 
 VERTICAL_STATE_COLORS = {
@@ -77,7 +77,7 @@ VERTICAL_STATE_COLORS = {
         'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
         'normal': lambda: get_theme().COLOR_VERTICAL_TAB_NORMAL,
         'current': lambda: get_theme().COLOR_VERTICAL_TAB_CURRENT,
-#        'attention': lambda: get_theme().COLOR_VERTICAL_TAB_ATTENTION,
+        'attention': lambda: get_theme().COLOR_VERTICAL_TAB_ATTENTION,
     }
 
 
@@ -88,7 +88,7 @@ STATE_PRIORITY = {
         'message': 1,
         'highlight': 2,
         'private': 2,
-#        'attention': 3
+        'attention': 3
     }
 
 class Tab(object):
@@ -156,7 +156,7 @@ class Tab(object):
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value != 'current':
-            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", (value, self.state))
+            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", (value, self._state))
         else:
             self._state = value
 
@@ -349,6 +349,7 @@ class ChatTab(Tab):
         # if that’s None, then no paused chatstate was sent recently
         # if that’s a weakref returning None, then a paused chatstate was sent
         # since the last input
+        self.remote_supports_attention = False
         self.key_func['M-v'] = self.move_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
@@ -494,6 +495,7 @@ class ChatTab(Tab):
 
     def command_say(self, line):
         raise NotImplementedError
+
 
 class MucTab(ChatTab):
     """
@@ -1359,6 +1361,7 @@ class PrivateTab(ChatTab):
         self._text_buffer.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
+        self.check_attention()
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -1379,7 +1382,7 @@ class PrivateTab(ChatTab):
     def completion(self):
         self.complete_commands(self.input)
 
-    def command_say(self, line):
+    def command_say(self, line, attention=False):
         if not self.on:
             return
         msg = self.core.xmpp.make_message(self.get_name())
@@ -1396,11 +1399,34 @@ class PrivateTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        if attention and self.remote_supports_attention:
+            msg['attention'] = True
         self.core.events.trigger('private_say_after', msg, self)
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
+
+    def command_attention(self, message=''):
+        if message is not '':
+            self.command_say(message, attention=True)
+        else:
+            msg = self.core.xmpp.make_message(self.get_name())
+            msg['type'] = 'chat'
+            msg['attention'] = True
+            msg.send()
+
+    def check_attention(self):
+        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_name(), block=False, timeout=5, callback=self.on_attention_checked)
+
+    def on_attention_checked(self, iq):
+        if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
+            self.core.information('Attention is supported!', 'Info')
+            self.remote_supports_attention = True
+            self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
+        else:
+            self.core.information('Attention is not supported. :(', 'Info')
+            self.remote_supports_attention = False
 
     def command_unquery(self, arg):
         """
@@ -2096,6 +2122,7 @@ class ConversationTab(ChatTab):
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.info_header = windows.ConversationInfoWin()
         self.input = windows.MessageInput()
+        self.check_attention()
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -2125,7 +2152,7 @@ class ConversationTab(ChatTab):
     def completion(self):
         self.complete_commands(self.input)
 
-    def command_say(self, line):
+    def command_say(self, line, attention=False):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
@@ -2141,6 +2168,8 @@ class ConversationTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
             msg['chat_state'] = needed
+        if attention and self.remote_supports_attention:
+            msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
         msg.send()
         logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
@@ -2159,6 +2188,27 @@ class ConversationTab(ChatTab):
             self._text_buffer.add_message("\x19%(info_col)s}Status: %(status)s\x193}" % {'status': resource.status, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}, None, None, None, None, None)
             self.refresh()
             self.core.doupdate()
+
+    def command_attention(self, message=''):
+        if message is not '':
+            self.command_say(message, attention=True)
+        else:
+            msg = self.core.xmpp.make_message(self.get_name())
+            msg['type'] = 'chat'
+            msg['attention'] = True
+            msg.send()
+
+    def check_attention(self):
+        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_name(), block=False, timeout=5, callback=self.on_attention_checked)
+
+    def on_attention_checked(self, iq):
+        if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
+            self.core.information('Attention is supported!', 'Info')
+            self.remote_supports_attention = True
+            self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
+        else:
+            self.core.information('Attention is not supported. :(', 'Info')
+            self.remote_supports_attention = False
 
     def command_unquery(self, arg):
         self.core.close_tab()
