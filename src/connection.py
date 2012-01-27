@@ -42,7 +42,7 @@ class Connection(sleekxmpp.ClientXMPP):
             password = None
         sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
         self.core = None
-        self.auto_reconnect = False
+        self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.auto_authorize = None
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0004')

@@ -768,20 +768,25 @@ class Core(object):
         """
         jid = message['from']
         body = xhtml.get_body_from_message_stanza(message)
-        conversation = self.get_tab_of_conversation_with_jid(jid, create=False)
         if not body:
             if message['type'] == 'error':
                 self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
-        body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
             remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
         else:
             remote_nick = jid.user
-        conversation._text_buffer.add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
-        if conversation.remote_wants_chatstates is None:
+        delay_tag = message.find('{urn:xmpp:delay}delay')
+        if delay_tag is not None:
+            delayed = True
+            date = common.datetime_tuple(delay_tag.attrib['stamp'])
+        else:
+            delayed = False
+            date = None
+        conversation._text_buffer.add_message(body, date, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER, history=delayed)
+        if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
             else:
