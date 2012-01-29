@@ -176,6 +176,8 @@ class Plugin(BasePlugin):
         else:
             if isinstance(self.core.current_tab(), ConversationTab):
                 jid = JID(self.core.current_tab().get_name())
+            else:
+                return
         command = args[0]
         if command == 'force' or command == 'enable':
             # we can force encryption only with contact having an associated
