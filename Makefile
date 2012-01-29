@@ -17,10 +17,12 @@ clean:
 
 install: all
 	mkdir -p $(DESTDIR)$(prefix)
-	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(DOCDIR)/poezio
+	install -d $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/poezio $(DESTDIR)$(DATADIR)/poezio/data $(DESTDIR)$(DATADIR)/poezio/src/ $(DESTDIR)$(DATADIR)/poezio/src $(DESTDIR)$(DATADIR)/poezio/data/themes $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(DOCDIR)/poezio $(DESTDIR)$(DATADIR)/poezio/plugins
 
 	cp -R data/* $(DESTDIR)$(DATADIR)/poezio/data/
 	rm $(DESTDIR)$(DATADIR)/poezio/data/poezio.1
+
+	cp -R plugins/* $(DESTDIR)$(DATADIR)/poezio/plugins
 
 	cp -R doc/* $(DESTDIR)$(DOCDIR)/poezio/
 	cp README CHANGELOG COPYING $(DESTDIR)$(DOCDIR)/poezio/
