@@ -1388,6 +1388,7 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
+        logger.log_message(self.get_name().replace('/', '\\'), self.own_nick, line)
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
