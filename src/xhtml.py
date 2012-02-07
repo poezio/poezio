@@ -194,7 +194,9 @@ def get_body_from_message_stanza(message):
     if config.get('enable_xhtml_im', 'true') == 'true':
         xhtml_body = message['xhtml_im']
         if xhtml_body:
-            return xhtml_to_poezio_colors(xhtml_body)
+            content = xhtml_to_poezio_colors(xhtml_body)
+            content = content if content else message['body']
+            return content or " "
     return message['body']
 
 def ncurses_color_to_html(color):
