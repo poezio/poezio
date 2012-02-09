@@ -128,7 +128,7 @@ class Core(object):
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
+            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`"), None),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
@@ -141,7 +141,6 @@ class Core(object):
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
-            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
             'invitations': (self.command_invitations, _("Usage: /invites\nInvites: Show the pending invitations."), None),
@@ -1871,18 +1870,32 @@ class Core(object):
 
     def command_set(self, arg):
         """
-        /set <option> [value]
+        /set [module|][section] <option> <value>
         """
-        args = arg.split()
-        if len(args) != 2 and len(args) != 1:
+        args = common.shell_split(arg)
+        if len(args) != 2 and len(args) != 3:
             self.command_help('set')
             return
-        option = args[0]
         if len(args) == 2:
+            option = args[0]
             value = args[1]
-        else:
-            value = ''
-        config.set_and_save(option, value)
+            config.set_and_save(option, value)
+        elif len(args) == 3:
+            if '|' in args[0]:
+                plugin_name, section = args[0].split('|')
+                if not section:
+                    section = plugin_name
+                option = args[1]
+                value = args[2]
+                if not plugin_name in self.plugin_manager.plugins:
+                    return
+                plugin = self.plugin_manager.plugins[plugin_name]
+                plugin.config.set_and_save(option, value, section)
+            else:
+                section = args[0]
+                option = args[1]
+                value = args[2]
+                config.set_and_save(option, value, section)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
 
@@ -1901,61 +1914,6 @@ class Core(object):
                     if not serv in serv_list:
                         serv_list.append(serv)
             return the_input.auto_completion(serv_list, ' ')
-
-    def completion_set(self, the_input):
-        """Completion for /set"""
-        txt = the_input.get_text()
-        args = txt.split()
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion(config.options('Poezio'), '')
-        elif n == 3:
-            return the_input.auto_completion([config.get(args[1], '')], '')
-
-    def command_set_plugin(self, arg):
-        """
-        /set_plugin <plugin> <option> [value]
-        """
-        args = arg.split()
-        if len(args) != 3 and len(args) != 2:
-            self.command_help('set_plugin')
-            return
-        plugin_name = args[0]
-        if not plugin_name in self.plugin_manager.plugins:
-            return
-        plugin = self.plugin_manager.plugins[plugin_name]
-        option = args[1]
-        if len(args) == 3:
-            value = args[2]
-        else:
-            value = ''
-        plugin.config.set_and_save(option, value, plugin_name)
-        if not plugin.config.write():
-            self.core.information('Could not save the plugin config', 'Error')
-            return
-        msg = "%s=%s" % (option, value)
-        self.information(msg, 'Info')
-
-    def completion_set_plugin(self, the_input):
-        """Completion for /set_plugin"""
-        txt = the_input.get_text()
-        args = txt.split()
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-
-        if n == 2:
-            return the_input.auto_completion(list(self.plugin_manager.plugins.keys()), '')
-        elif n == 3:
-            if not args[1] in self.plugin_manager.plugins:
-                return
-            return the_input.auto_completion(self.plugin_manager.plugins[args[1]].config.options(args[1]), '')
-        elif n == 4:
-            if not args[1] in self.plugin_manager.plugins:
-                return
-            return the_input.auto_completion([self.plugin_manager.plugins[args[1]].config.get(args[2], '', args[1])], ' ')
 
     def close_tab(self, tab=None):
         """
