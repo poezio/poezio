@@ -158,7 +158,6 @@ class Plugin(BasePlugin):
         if jid.full not in self.contacts.keys():
             return ''
         status = self.contacts[jid.full]
-        self.core.information('%s' % (status,))
         if status in ('valid', 'invalid', 'signed'):
             return ' GPG Key: %s (%s)' % (status, 'encrypted' if status == 'valid' else 'NOT encrypted',)
         else:

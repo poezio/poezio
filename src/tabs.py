@@ -1422,11 +1422,10 @@ class PrivateTab(ChatTab):
 
     def on_attention_checked(self, iq):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
-            self.core.information('Attention is supported!', 'Info')
+            self.core.information('Attention is supported', 'Info')
             self.remote_supports_attention = True
             self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
         else:
-            self.core.information('Attention is not supported. :(', 'Info')
             self.remote_supports_attention = False
 
     def command_unquery(self, arg):
@@ -2204,11 +2203,10 @@ class ConversationTab(ChatTab):
 
     def on_attention_checked(self, iq):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
-            self.core.information('Attention is supported!', 'Info')
+            self.core.information('Attention is supported', 'Info')
             self.remote_supports_attention = True
             self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
         else:
-            self.core.information('Attention is not supported. :(', 'Info')
             self.remote_supports_attention = False
 
     def command_unquery(self, arg):
