@@ -304,6 +304,8 @@ MultiUserChat tab commands
  close the tab. You can specify an optional message if you are still connected.
 
 */nick <nickname>*:: Change your nickname in the current room.
+ *Except for gmail users* because gmail.com sucks and will do weird things
+ if you change your nickname in a MUC.
 
 */recolor [random]*:: Re-assign a color to all the participants in the current
  room, based on the last time they talked. Use this if the participants

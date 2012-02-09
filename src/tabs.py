@@ -545,6 +545,10 @@ class MucTab(ChatTab):
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
+
+        if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
+            del self.commands["nick"]
+
         self.resize()
         self.update_commands()
         self.update_keys()
