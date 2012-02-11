@@ -533,7 +533,7 @@ class MucTab(ChatTab):
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
         self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_ignore)
         self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), self.completion_role)
-        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick> <affiliation> [reason]\nAffiliation: Set the affiliation of an user. Affiliations can be: none, member, admin, owner. You also can give an optional reason."), self.completion_affiliation)
+        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick or jid> <affiliation>\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner."), self.completion_affiliation)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
         self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_ignore)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
@@ -606,6 +606,10 @@ class MucTab(ChatTab):
             n += 1
         if n == 2:
             userlist = [user.nick for user in self.users]
+            userlist.remove(self.own_nick)
+            jidlist = [user.jid.bare for user in self.users]
+            jidlist.remove(self.core.xmpp.boundjid.bare)
+            userlist.extend(jidlist)
             return the_input.auto_completion(userlist, '')
         elif n == 3:
             possible_affiliations = ['none', 'member', 'admin', 'owner']
@@ -861,7 +865,7 @@ class MucTab(ChatTab):
 
     def command_affiliation(self, arg):
         """
-        /affiliation <nick> <role> [reason]
+        /affiliation <nick> <role>
         Changes the affiliation of an user
         roles can be: none, visitor, participant, moderator
         """
@@ -874,14 +878,14 @@ class MucTab(ChatTab):
             reason = ' '.join(args[2:])
         else:
             reason = ''
-        if not self.joined or \
-                not affiliation in ('none', 'member', 'admin', 'owner'):
-#                replace this ↑ with this ↓ when the ban list support is done
-#                not affiliation in ('outcast', 'none', 'member', 'admin', 'owner'):
+        if not self.joined:
             return
-        res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), nick, reason, affiliation)
-        if res['type'] == 'error':
-            self.core.room_error(res, self.get_name())
+        if nick in [user.nick for user in self.users]:
+            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, nick=nick)
+        else:
+            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, jid=nick)
+        if not res:
+            self.core.information('Could not set affiliation', 'Error')
 
     def command_say(self, line):
         needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'

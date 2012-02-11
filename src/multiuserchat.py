@@ -88,21 +88,11 @@ def set_user_role(xmpp, jid, nick, reason, role):
     except Exception as e:
         return e.iq
 
-def set_user_affiliation(xmpp, jid, nick, reason, affiliation):
+def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason=None):
     """
     (try to) Set the affiliation of a MUC user
     """
-    iq = xmpp.makeIqSet()
-    query = ET.Element('{%s}query' % NS_MUC_ADMIN)
-    item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'affiliation':affiliation})
-    if reason:
-        reason_el = ET.Element('{%s}reason' % NS_MUC_ADMIN)
-        reason_el.text = reason
-        item.append(reason_el)
-    query.append(item)
-    iq.append(query)
-    iq['to'] = jid
     try:
-        return iq.send()
-    except Exception as e:
-        return e.iq
+        return xmpp.plugin['xep_0045'].set_affiliation(muc_jid, jid, nick, affiliation)
+    except:
+        return False
