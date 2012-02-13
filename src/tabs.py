@@ -156,7 +156,7 @@ class Tab(object):
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value != 'current':
-            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", (value, self._state))
+            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", value, self._state)
         else:
             self._state = value
 
@@ -1703,7 +1703,7 @@ class RosterInfoTab(Tab):
                 roster.remove_contact(jid)
         except Exception as e:
             import traceback
-            log.debug(_('Traceback when removing %s from the roster:\n')+traceback.format_exc())
+            log.debug(_('Traceback when removing %s from the roster:\n' % jid)+traceback.format_exc())
 
     def command_add(self, args):
         """
