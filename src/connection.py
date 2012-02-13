@@ -40,7 +40,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self.anon = True
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
-        sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
+        sleekxmpp.ClientXMPP.__init__(self, jid, password)
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.auto_authorize = None
