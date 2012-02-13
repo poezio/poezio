@@ -310,7 +310,7 @@ class GlobalInfoBar(Win):
             for tab in sorted_tabs:
                 color = tab.color
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
-                        color == get_theme().COLOR_TAB_NORMAL:
+                        color is get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
                     self.addstr("%s" % str(tab.nb), to_curses_attr(color))
@@ -342,7 +342,7 @@ class VerticalGlobalInfoBar(Win):
             sorted_tabs = sorted(self.core.tabs, key=comp)
             if config.get('show_inactive_tabs', 'true') == 'false':
                 sorted_tabs = [tab for tab in sorted_tabs if\
-                                   tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
+                                   tab.vertical_color is not get_theme().COLOR_VERTICAL_TAB_NORMAL]
             nb_tabs = len(sorted_tabs)
             if nb_tabs >= height:
                 for y, tab in enumerate(sorted_tabs):

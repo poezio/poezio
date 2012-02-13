@@ -62,6 +62,7 @@ NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
 STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
+        'joined': lambda: get_theme().COLOR_TAB_JOINED,
         'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
         'private': lambda: get_theme().COLOR_TAB_PRIVATE,
@@ -72,6 +73,7 @@ STATE_COLORS = {
 
 VERTICAL_STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
+        'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
         'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
         'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
@@ -84,10 +86,11 @@ VERTICAL_STATE_COLORS = {
 STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
-        'disconnected': 0,
         'message': 1,
+        'joined': 1,
         'highlight': 2,
         'private': 2,
+        'disconnected': 3,
         'attention': 3
     }
 
@@ -155,7 +158,7 @@ class Tab(object):
         if not value in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
-                value != 'current':
+                value != 'current' and value != 'joined':
             log.debug("Did not set status because of lower priority, asked: %s, kept: %s", value, self._state)
         else:
             self._state = value
@@ -1066,6 +1069,8 @@ class MucTab(ChatTab):
                 self.users.append(new_user)
                 if from_nick == self.own_nick:
                     self.joined = True
+                    if self != self.core.current_tab():
+                        self.state = 'joined'
                     if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
@@ -1099,6 +1104,9 @@ class MucTab(ChatTab):
             self.user_win.refresh(self.users)
             self.info_header.refresh(self, self.text_win)
             self.input.refresh()
+            self.core.doupdate()
+        else:
+            self.core.current_tab().refresh_tab_win()
             self.core.doupdate()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):

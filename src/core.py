@@ -1085,35 +1085,16 @@ class Core(object):
 
     def go_to_important_room(self):
         """
-        Go to the next room with activity, in this order:
-        - A personal conversation with a new message
-        - A Muc with an highlight
-        - A Muc with any new message
+        Go to the next room with activity, in the order defined in the
+        dict tabs.STATE_PRIORITY
         """
-        for tab in self.tabs:
-           if tab.state == 'attention':
-               self.command_win('%s' % tab.nb)
-               return
-        for tab in self.tabs:
-            if tab.state == 'private':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'highlight':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'message':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'disconnected':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if isinstance(tab, tabs.ChatTab) and not tab.input.is_empty():
-                self.command_win('%s' % tab.nb)
-                return
+        priority = tabs.STATE_PRIORITY
+        sorted_tabs = sorted(self.tabs, key=lambda tab: priority[tab.state],
+                reverse=True)
+        tab = sorted_tabs.pop(0) if sorted_tabs else None
+        if priority[tab.state] < 0 or not tab:
+            return
+        self.command_win('%s' % tab.nb)
 
     def rotate_rooms_right(self, args=None):
         """
