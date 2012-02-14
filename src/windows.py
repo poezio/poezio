@@ -222,15 +222,24 @@ class UserList(Win):
         log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
-            y = 0
-            users = sorted(users)
+            if config.get('user_list_sort', 'desc').lower() == 'asc':
+                y, x = self._win.getmaxyx()
+                y -= 1
+                users = sorted(users, reverse=True)
+            else:
+                y = 0
+                users = sorted(users)
+
             if self.pos >= len(users) and self.pos != 0:
                 self.pos = len(users)-1
             for user in users[self.pos:]:
                 self.draw_role_affiliation(y, user)
                 self.draw_status_chatstate(y, user)
                 self.addstr(y, 2, user.nick[:self.width-2], to_curses_attr(user.color))
-                y += 1
+                if config.get('user_list_sort', 'desc').lower() == 'asc':
+                    y -= 1
+                else:
+                    y += 1
                 if y == self.height:
                     break
             # draw indicators of position in the list
