@@ -18,7 +18,7 @@ class Plugin(BasePlugin):
             return
         jid = JID(arg)
         try:
-            delay = self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid)
+            delay = self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid, block=False)
         except:
             delay = None
         if delay is not None:
