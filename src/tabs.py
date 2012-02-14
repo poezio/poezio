@@ -801,25 +801,36 @@ class MucTab(ChatTab):
         color_participant = get_theme().COLOR_USER_PARTICIPANT[0]
         color_information = get_theme().COLOR_INFORMATION_TEXT[0]
         visitors, moderators, participants, others = [], [], [], []
+        aff = {
+                'owner': lambda: get_theme().CHAR_AFFILIATION_OWNER,
+                'admin': lambda: get_theme().CHAR_AFFILIATION_ADMIN,
+                'member': lambda: get_theme().CHAR_AFFILIATION_MEMBER,
+                'none': lambda: get_theme().CHAR_AFFILIATION_NONE,
+                }
+
         for user in self.users:
             if user.role == 'visitor':
-                visitors.append(user.nick)
+                visitors.append((user.nick, aff[user.affiliation]()))
             elif user.role == 'participant':
-                participants.append(user.nick)
+                participants.append((user.nick, aff[user.affiliation]()))
             elif user.role == 'moderator':
-                moderators.append(user.nick)
+                moderators.append((user.nick, aff[user.affiliation]()))
             else:
-                others.append(user.nick)
+                others.append((user.nick, aff[user.affiliation]()))
 
         message = 'Users: %s \n' % len(self.users)
         for moderator in moderators:
-            message += ' \x19%s}%s\x19o -' % (color_moderator, moderator)
+            message += ' [%s] \x19%s}%s\x19o -' % (moderator[1],
+                    color_moderator, moderator[0])
         for participant in participants:
-            message += ' \x19%s}%s\x19o -' % (color_participant, participant)
+            message += ' [%s] \x19%s}%s\x19o -' % (participant[1],
+                    color_participant, participant[0])
         for visitor in visitors:
-            message += ' \x19%s}%s\x19o -' % (color_visitor, visitor)
+            message += ' [%s] \x19%s}%s\x19o -' % (visitor[1],
+                    color_visitor, visitor[0])
         for other in others:
-            message += ' \x19%s}%s\x19o -' % (color_other, other)
+            message += ' [%s] \x19%s}%s\x19o -' % (other[1],
+                    color_other, other[0])
         message = message[:-2]
 
         self._text_buffer.add_message(message)
