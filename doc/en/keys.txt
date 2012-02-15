@@ -86,6 +86,10 @@ height of the conversation window - 1.
 
 *Ctrl-f*:: Go one line down in the buffer.
 
+*Ctrl-u*:: Go half a screen up in the buffer.
+
+*Ctrl-d*:: Go half a screen down in the buffer.
+
 *Alt-/*:: Complete what you’re typing using the "recent" words from the
  current conversation, if any.
 

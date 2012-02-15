@@ -324,6 +324,18 @@ class Tab(object):
         """
         pass
 
+    def on_half_scroll_down(self):
+        """
+        Defines what happens when we scroll half a screen down
+        """
+        pass
+
+    def on_half_scroll_up(self):
+        """
+        Defines what happens when we scroll half a screen up
+        """
+        pass
+
     def on_info_win_size_changed(self):
         """
         Called when the window with the informations is resized
@@ -528,6 +540,12 @@ class ChatTab(Tab):
 
     def on_scroll_down(self):
         self.text_win.scroll_down(self.text_win.height-1)
+
+    def on_half_scroll_up(self):
+        self.text_win.scroll_up((self.text_win.height-1) // 2)
+
+    def on_half_scroll_down(self):
+        self.text_win.scroll_down((self.text_win.height-1) // 2)
 
 
 class MucTab(ChatTab):
