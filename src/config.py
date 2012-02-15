@@ -113,16 +113,31 @@ class Config(RawConfigParser):
         df.close()
         result_lines = []
         we_are_in_the_right_section = False
+        written = False
+        section_found = False
         for line in lines_before:
             if line.startswith('['): # check the section
+                if we_are_in_the_right_section and not written:
+                    result_lines.append('%s= %s' % (option, value))
                 if line == '[%s]' % section:
                     we_are_in_the_right_section = True
+                    section_found = True
                 else:
                     we_are_in_the_right_section = False
             if (line.startswith('%s ' % (option,)) or
-                line.startswith('%s=' % (option,))) and we_are_in_the_right_section:
-                line = '%s = %s' % (option, value)
+                line.startswith('%s=' % (option,)) or
+                line.startswith('%s = ' % (option,))) and we_are_in_the_right_section:
+                line = '%s= %s' % (option, value)
+                written = True
             result_lines.append(line)
+
+        if not section_found:
+            result_lines.append('[%s]' % section)
+            result_lines.append('%s= %s' % (option, value))
+        elif not written:
+            result_lines.append('%s= %s' % (option, value))
+
+
         df = open(self.file_name, 'w')
         for line in result_lines:
             df.write('%s\n' % line)
@@ -133,11 +148,11 @@ class Config(RawConfigParser):
         set the value in the configuration then save it
         to the file
         """
-        try:
+        if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
-        except NoSectionError:
-            # TODO, add this section if it didn't exist
-            return
+        else:
+            self.add_section(section)
+            RawConfigParser.set(self, section, option, value)
         self.write_in_file(section, option, value)
 
     def set(self, option, value, section=DEFSECTION):

@@ -60,7 +60,7 @@ from daemon import Executor
 ERROR_AND_STATUS_CODES = {
     '401': _('A password is required'),
     '403': _('Permission denied'),
-    '404': _('The room does\'nt exist'),
+    '404': _('The room doesn’t exist'),
     '405': _('Your are not allowed to create a new room'),
     '406': _('A reserved nick must be used'),
     '407': _('You are not in the member list'),
@@ -128,7 +128,7 @@ class Core(object):
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set <option> [value]\nSet: Set the value of the option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set an empty value (nothing) by providing no [value] after <option>."), self.completion_set),
+            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`"), None),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
@@ -141,9 +141,9 @@ class Core(object):
             'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
             'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
             'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
-            'set_plugin': (self.command_set_plugin, _("Usage: /set_plugin <plugin> <option> [value]\nSet Plugin: Set the value of the option in a plugin configuration file."), self.completion_set_plugin),
             'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
             'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
+            'invitations': (self.command_invitations, _("Usage: /invites\nInvites: Show the pending invitations."), None),
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
@@ -193,6 +193,7 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
+        self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.register_handler(Callback('ALL THE STANZAS', connection.MatchAll(None), self.incoming_stanza))
 
         self.timed_events = set()
@@ -371,9 +372,12 @@ class Core(object):
         if password:
             msg += ". The password is \"%s\"." % password
         self.information(msg, 'Info')
+        if 'invite' in config.get('beep_on', 'invite').split():
+            curses.beep()
         self.pending_invites[jid.bare] = inviter.full
 
     def command_invite(self, arg):
+        """/invite <to> <room> [reason]"""
         args = common.shell_split(arg)
         if len(args) < 2:
             return
@@ -383,14 +387,15 @@ class Core(object):
         self.xmpp.plugin['xep_0045'].invite(room, to, reason)
 
     def completion_invite(self, the_input):
+        """Completion for /invite"""
         txt = the_input.get_text()
         args = common.shell_split(txt)
         n = len(args)
         if txt.endswith(' '):
             n += 1
-        if len(args) == 1:
+        if n == 2:
             return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
-        elif len(args) == 2:
+        elif n == 3:
             rooms = []
             for tab in self.tabs:
                 if isinstance(tab, tabs.MucTab) and tab.joined:
@@ -398,6 +403,7 @@ class Core(object):
             return the_input.auto_completion(rooms, '')
 
     def command_decline(self, arg):
+        """/decline <room@server.tld> [reason]"""
         args = common.shell_split(arg)
         if not len(args):
             return
@@ -405,16 +411,29 @@ class Core(object):
         if jid.bare not in self.pending_invites:
             return
         reason = args[1] if len(args) > 1 else ''
+        del self.pending_invites[jid.bare]
         self.xmpp.plugin['xep_0045'].decline_invite(jid.bare, self.pending_invites[jid.bare], reason)
 
     def completion_decline(self, the_input):
+        """Completion for /decline"""
         txt = the_input.get_text()
         args = common.shell_split(txt)
         n = len(args)
         if txt.endswith(' '):
             n += 1
-        if len(args) == 1:
+        if n == 2:
             return the_input.auto_completion(list(self.pending_invites.keys()), '')
+
+    def command_invitations(self, arg):
+        """/invitations"""
+        build = ""
+        for invite in self.pending_invites:
+            build += "%s by %s" % (invite, JID(self.pending_invites[invite]).bare)
+        if self.pending_invites:
+            build = "You are invited to the following rooms:\n" + build
+        else:
+            build = "You are do not have any pending invitation."
+        self.information(build, 'Info')
 
     def on_groupchat_decline(self, decline):
         pass
@@ -483,6 +502,21 @@ class Core(object):
             tab.user_win.refresh(tab.users)
             tab.input.refresh()
             self.doupdate()
+
+    def on_attention(self, message):
+        jid_from = message['from']
+        self.information('%s requests your attention!' % jid_from, 'Info')
+        for tab in self.tabs:
+            if tab.get_name() == jid_from:
+                tab.state = 'attention'
+                self.refresh_tab_win()
+                return
+        for tab in self.tabs:
+            if tab.get_name() == jid_from.bare:
+                tab.state = 'attention'
+                self.refresh_tab_win()
+                return
+        self.information('%s tab not found.' % jid_from, 'Error')
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """
@@ -749,20 +783,25 @@ class Core(object):
         """
         jid = message['from']
         body = xhtml.get_body_from_message_stanza(message)
-        conversation = self.get_tab_of_conversation_with_jid(jid, create=False)
         if not body:
             if message['type'] == 'error':
                 self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
-        body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
             remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
         else:
             remote_nick = jid.user
-        conversation._text_buffer.add_message(body, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER)
-        if conversation.remote_wants_chatstates is None:
+        delay_tag = message.find('{urn:xmpp:delay}delay')
+        if delay_tag is not None:
+            delayed = True
+            date = common.datetime_tuple(delay_tag.attrib['stamp'])
+        else:
+            delayed = False
+            date = None
+        conversation._text_buffer.add_message(body, date, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER, history=delayed)
+        if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
             else:
@@ -1046,31 +1085,16 @@ class Core(object):
 
     def go_to_important_room(self):
         """
-        Go to the next room with activity, in this order:
-        - A personal conversation with a new message
-        - A Muc with an highlight
-        - A Muc with any new message
+        Go to the next room with activity, in the order defined in the
+        dict tabs.STATE_PRIORITY
         """
-        for tab in self.tabs:
-            if tab.state == 'private':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'highlight':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'message':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if tab.state == 'disconnected':
-                self.command_win('%s' % tab.nb)
-                return
-        for tab in self.tabs:
-            if isinstance(tab, tabs.ChatTab) and not tab.input.is_empty():
-                self.command_win('%s' % tab.nb)
-                return
+        priority = tabs.STATE_PRIORITY
+        sorted_tabs = sorted(self.tabs, key=lambda tab: priority[tab.state],
+                reverse=True)
+        tab = sorted_tabs.pop(0) if sorted_tabs else None
+        if priority[tab.state] < 0 or not tab:
+            return
+        self.command_win('%s' % tab.nb)
 
     def rotate_rooms_right(self, args=None):
         """
@@ -1827,18 +1851,32 @@ class Core(object):
 
     def command_set(self, arg):
         """
-        /set <option> [value]
+        /set [module|][section] <option> <value>
         """
-        args = arg.split()
-        if len(args) != 2 and len(args) != 1:
+        args = common.shell_split(arg)
+        if len(args) != 2 and len(args) != 3:
             self.command_help('set')
             return
-        option = args[0]
         if len(args) == 2:
+            option = args[0]
             value = args[1]
-        else:
-            value = ''
-        config.set_and_save(option, value)
+            config.set_and_save(option, value)
+        elif len(args) == 3:
+            if '|' in args[0]:
+                plugin_name, section = args[0].split('|')
+                if not section:
+                    section = plugin_name
+                option = args[1]
+                value = args[2]
+                if not plugin_name in self.plugin_manager.plugins:
+                    return
+                plugin = self.plugin_manager.plugins[plugin_name]
+                plugin.config.set_and_save(option, value, section)
+            else:
+                section = args[0]
+                option = args[1]
+                value = args[2]
+                config.set_and_save(option, value, section)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
 
@@ -1857,61 +1895,6 @@ class Core(object):
                     if not serv in serv_list:
                         serv_list.append(serv)
             return the_input.auto_completion(serv_list, ' ')
-
-    def completion_set(self, the_input):
-        """Completion for /set"""
-        txt = the_input.get_text()
-        args = txt.split()
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion(config.options('Poezio'), '')
-        elif n == 3:
-            return the_input.auto_completion([config.get(args[1], '')], '')
-
-    def command_set_plugin(self, arg):
-        """
-        /set_plugin <plugin> <option> [value]
-        """
-        args = arg.split()
-        if len(args) != 3 and len(args) != 2:
-            self.command_help('set_plugin')
-            return
-        plugin_name = args[0]
-        if not plugin_name in self.plugin_manager.plugins:
-            return
-        plugin = self.plugin_manager.plugins[plugin_name]
-        option = args[1]
-        if len(args) == 3:
-            value = args[2]
-        else:
-            value = ''
-        plugin.config.set_and_save(option, value, plugin_name)
-        if not plugin.config.write():
-            self.core.information('Could not save the plugin config', 'Error')
-            return
-        msg = "%s=%s" % (option, value)
-        self.information(msg, 'Info')
-
-    def completion_set_plugin(self, the_input):
-        """Completion for /set_plugin"""
-        txt = the_input.get_text()
-        args = txt.split()
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-
-        if n == 2:
-            return the_input.auto_completion(list(self.plugin_manager.plugins.keys()), '')
-        elif n == 3:
-            if not args[1] in self.plugin_manager.plugins:
-                return
-            return the_input.auto_completion(self.plugin_manager.plugins[args[1]].config.options(args[1]), '')
-        elif n == 4:
-            if not args[1] in self.plugin_manager.plugins:
-                return
-            return the_input.auto_completion([self.plugin_manager.plugins[args[1]].config.get(args[2], '', args[1])], ' ')
 
     def close_tab(self, tab=None):
         """
@@ -2145,7 +2128,10 @@ class Core(object):
                 self.remote_fifo = None
         else:
             e = Executor(command.strip())
-            e.start()
+            try:
+                e.start()
+            except ValueError as e: # whenever shlex fails
+                self.information('%s' % (e,), 'Error')
 
     def get_conversation_messages(self):
         """

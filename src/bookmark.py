@@ -78,7 +78,7 @@ class Bookmark(object):
         """
         jid = el.get('jid')
         name = el.get('name')
-        autojoin = True if el.get('autojoin', False) == 'true' else False
+        autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
         nick = None
         for n in iter(el, 'nick'):
             nick = nick.text

@@ -40,9 +40,9 @@ class Connection(sleekxmpp.ClientXMPP):
             self.anon = True
             jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
             password = None
-        sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl=True)
+        sleekxmpp.ClientXMPP.__init__(self, jid, password)
         self.core = None
-        self.auto_reconnect = False
+        self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.auto_authorize = None
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0004')
@@ -59,6 +59,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self.register_plugin('xep_0092', pconfig=info)
         if config.get('send_time', 'true') == 'true':
             self.register_plugin('xep_0202')
+        self.register_plugin('xep_0224')
 
     def start(self):
         # TODO, try multiple servers

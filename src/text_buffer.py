@@ -16,6 +16,7 @@ import collections
 
 from datetime import datetime
 from config import config
+from theming import get_theme
 
 Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user')
 
@@ -44,7 +45,7 @@ class TextBuffer(object):
             else:
                 color = None
             # TODO: display the bg color too.
-            txt = ("\x19%s}* \x195}" % (color or 5,))+ nickname + ' ' + txt[4:]
+            txt = ("\x19%(info_col)s}* \x19%(col)s}" % {'col':color or 5, 'info_col':get_theme().COLOR_INFORMATION_TEXT[0]})+ nickname + ' \x19%(info_col)s}' % {'info_col':get_theme().COLOR_INFORMATION_TEXT[0]} + txt[4:]
             nickname = None
         msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\

@@ -67,15 +67,16 @@ class DataFormsTab(Tab):
     def resize(self):
         self.need_resize = False
         self.topic_win.resize(1, self.width, 0, 0)
-        self.tab_win.resize(1, self.width, self.height-2, 0)
-        self.form_win.resize(self.height-4, self.width, 1, 0)
+        self.form_win.resize(self.height-3 - Tab.tab_win_height(), self.width, 1, 0)
         self.help_win.resize(1, self.width, self.height-1, 0)
-        self.help_win_dyn.resize(1, self.width, self.height-3, 0)
+        self.help_win_dyn.resize(1, self.width, self.height-2 - Tab.tab_win_height(), 0)
         self.lines = []
 
     def refresh(self):
+        if self.need_resize:
+            self.resize()
         self.topic_win.refresh(self._form['title'])
-        self.tab_win.refresh()
+        self.refresh_tab_win()
         self.help_win.refresh()
         self.help_win_dyn.refresh(self.form_win.get_help_message())
         self.form_win.refresh()
@@ -88,7 +89,7 @@ class FieldInput(object):
     """
     def __init__(self, field):
         self._field = field
-        self.color = (14, -1)
+        self.color = get_theme().COLOR_NORMAL_TEXT
 
     def set_color(self, color):
         self.color = color
@@ -131,6 +132,7 @@ class ColoredLabel(windows.Win):
 
     def refresh(self):
         with g_lock:
+            self._win.erase()
             self._win.attron(to_curses_attr(self.color))
             self.addstr(0, 0, self.text)
             self._win.attroff(to_curses_attr(self.color))
@@ -157,7 +159,7 @@ class DummyInput(FieldInput, windows.Win):
 class ColoredLabel(windows.Win):
     def __init__(self, text):
         self.text = text
-        self.color = (14, -1)
+        self.color = get_theme().COLOR_NORMAL_TEXT
         windows.Win.__init__(self)
 
     def resize(self, height, width, y, x):
@@ -169,6 +171,7 @@ class ColoredLabel(windows.Win):
 
     def refresh(self):
         with g_lock:
+            self._win.erase()
             self._win.attron(to_curses_attr(self.color))
             self.addstr(0, 0, self.text)
             self._win.attroff(to_curses_attr(self.color))
@@ -189,6 +192,7 @@ class BooleanWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
+            self._win.erase()
             self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*(8), self.width)
             self.addstr(0, 2, "%s"%self.value)
@@ -253,6 +257,7 @@ class TextMultiWin(FieldInput, windows.Win):
     def refresh(self):
         if not self.edition_input:
             with g_lock:
+                self._win.erase()
                 self._win.attron(to_curses_attr(self.color))
                 self.addnstr(0, 0, ' '*self.width, self.width)
                 option = self.options[self.val_pos]
@@ -305,6 +310,7 @@ class ListMultiWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
+            self._win.erase()
             self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*self.width, self.width)
             if self.val_pos > 0:
@@ -351,6 +357,7 @@ class ListSingleWin(FieldInput, windows.Win):
 
     def refresh(self):
         with g_lock:
+            self._win.erase()
             self._win.attron(to_curses_attr(self.color))
             self.addnstr(0, 0, ' '*self.width, self.width)
             if self.val_pos > 0:
@@ -377,7 +384,7 @@ class TextSingleWin(FieldInput, windows.Input):
         self.text = field.getValue() if isinstance(field.getValue(), str)\
             else ""
         self.pos = len(self.text)
-        self.color = (14, -1)
+        self.color = get_theme().COLOR_NORMAL_TEXT
 
     def reply(self):
         self._field['label'] = ''
@@ -427,7 +434,7 @@ class FormWin(object):
                      }
     def __init__(self, form, height, width, y, x):
         self._form = form
-        self._win = curses.newwin(height, width, y, x)
+        self._win = windows.Win._tab_win.derwin(height, width, y, x)
         self.current_input = 0
         self.inputs = []        # dict list
         for (name, field) in self._form.getFields().items():
@@ -447,7 +454,6 @@ class FormWin(object):
                                 'input':inp})
 
     def resize(self, height, width, y, x):
-        self._win.resize(height, width)
         self.height = height
         self.width = width
         if self.current_input >= self.height-2:

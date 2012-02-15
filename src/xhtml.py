@@ -194,7 +194,9 @@ def get_body_from_message_stanza(message):
     if config.get('enable_xhtml_im', 'true') == 'true':
         xhtml_body = message['xhtml_im']
         if xhtml_body:
-            return xhtml_to_poezio_colors(xhtml_body)
+            content = xhtml_to_poezio_colors(xhtml_body)
+            content = content if content else message['body']
+            return content or " "
     return message['body']
 
 def ncurses_color_to_html(color):
@@ -288,9 +290,9 @@ def xhtml_to_poezio_colors(text):
     for elem in elems:
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
             if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
-                message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text))
+                message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text if elem.text else ""))
             else:
-                message += '\x19u' + elem.text + '\x19o'
+                message += '\x19u' + (elem.text if elem.text else "") + '\x19o'
         elif elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
             message += '“'
         elif elem.tag == '{http://www.w3.org/1999/xhtml}body':
