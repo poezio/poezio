@@ -163,7 +163,9 @@ class Tab(object):
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value not in ('current', 'disconnected'):
-            log.debug("Did not set status because of lower priority, asked: %s, kept: %s", value, self._state)
+            log.debug("Did not set state because of lower priority, asked: %s, kept: %s", value, self._state)
+        elif self._state == 'disconnected' and value not in ('joined', 'current'):
+            log.debug('Did not set state because disconnected tabs remain visible')
         else:
             self._state = value
 
@@ -1036,7 +1038,10 @@ class MucTab(ChatTab):
         return self.text_win
 
     def on_lose_focus(self):
-        self.state = 'normal'
+        if self.joined:
+            self.state = 'normal'
+        else:
+            self.state = 'disconnected'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
@@ -1299,7 +1304,8 @@ class MucTab(ChatTab):
         we can know if we can join it, send messages to it, etc
         """
         self.users = []
-        self.state = 'disconnected'
+        if self is not self.core.current_tab():
+            self.state = 'disconnected'
         self.joined = False
 
     def get_single_line_topic(self):
