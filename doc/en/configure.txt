@@ -148,6 +148,12 @@ section of this documentation.
   Default setting means:
    - all quit and join notices will be displayed
 
+*send_initial_presence*:: true
+
+ Send initial presence (normal behaviour). If false, you will not send nor
+ receive any presence that is not directed (through /presence) or sent by a
+ MUC.
+
 *display_user_color_in_join_part*:: false
 
   If set to true, the color of the nick will be used in MUCs information

@@ -149,6 +149,10 @@ class Core(object):
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
             }
 
+        if config.get('send_initial_presence', 'true').lower() == 'false':
+            del self.commands['status']
+            del self.commands['show']
+
         self.key_func = {
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
@@ -629,9 +633,10 @@ class Core(object):
             # request the roster
             self.xmpp.getRoster()
             # send initial presence
-            pres = self.xmpp.make_presence()
-            self.events.trigger('send_normal_presence', pres)
-            pres.send()
+            if config.get('send_initial_presence', 'true').lower() == 'true':
+                pres = self.xmpp.make_presence()
+                self.events.trigger('send_normal_presence', pres)
+                pres.send()
         bookmark.get_local()
         if not self.xmpp.anon and not config.get('use_remote_bookmarks', 'true').lower() == 'false':
             bookmark.get_remote(self.xmpp)
