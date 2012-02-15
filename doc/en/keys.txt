@@ -82,6 +82,10 @@ height of the conversation window - 1.
 
 *Page Down*:: Like Page Up, but down.
 
+*Ctrl-b*:: Go one line up in the buffer.
+
+*Ctrl-f*:: Go one line down in the buffer.
+
 *Alt-/*:: Complete what you’re typing using the "recent" words from the
  current conversation, if any.
 

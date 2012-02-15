@@ -302,13 +302,25 @@ class Tab(object):
 
     def on_scroll_down(self):
         """
-        Defines what happens when we scrol down
+        Defines what happens when we scroll down
         """
         pass
 
     def on_scroll_up(self):
         """
-        Defines what happens when we scrol down
+        Defines what happens when we scroll up
+        """
+        pass
+
+    def on_line_up(self):
+        """
+        Defines what happens when we scroll one line up
+        """
+        pass
+
+    def on_line_down(self):
+        """
+        Defines what happens when we scroll one line up
         """
         pass
 
@@ -504,6 +516,18 @@ class ChatTab(Tab):
 
     def command_say(self, line):
         raise NotImplementedError
+
+    def on_line_up(self):
+        self.text_win.scroll_up(1)
+
+    def on_line_down(self):
+        self.text_win.scroll_down(1)
+
+    def on_scroll_up(self):
+        self.text_win.scroll_up(self.text_win.height-1)
+
+    def on_scroll_down(self):
+        self.text_win.scroll_down(self.text_win.height-1)
 
 
 class MucTab(ChatTab):
@@ -1055,12 +1079,6 @@ class MucTab(ChatTab):
         if self.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('active')
 
-    def on_scroll_up(self):
-        self.text_win.scroll_up(self.text_win.height-1)
-
-    def on_scroll_down(self):
-        self.text_win.scroll_down(self.text_win.height-1)
-
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
@@ -1554,12 +1572,6 @@ class PrivateTab(ChatTab):
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('active')
-
-    def on_scroll_up(self):
-        self.text_win.scroll_up(self.text_win.height-1)
-
-    def on_scroll_down(self):
-        self.text_win.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
@@ -2339,12 +2351,6 @@ class ConversationTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('active')
-
-    def on_scroll_up(self):
-        self.text_win.scroll_up(self.text_win.height-1)
-
-    def on_scroll_down(self):
-        self.text_win.scroll_down(self.text_win.height-1)
 
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:

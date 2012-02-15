@@ -156,6 +156,8 @@ class Core(object):
         self.key_func = {
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
+            "^B": self.scroll_line_up,
+            "^F": self.scroll_line_down,
             "KEY_F(5)": self.rotate_rooms_left,
             "^P": self.rotate_rooms_left,
             'kLFT3': self.rotate_rooms_left,
@@ -1128,6 +1130,14 @@ class Core(object):
 
     def scroll_page_up(self, args=None):
         self.current_tab().on_scroll_up()
+        self.refresh_window()
+
+    def scroll_line_up(self, args=None):
+        self.current_tab().on_line_up()
+        self.refresh_window()
+
+    def scroll_line_down(self, args=None):
+        self.current_tab().on_line_down()
         self.refresh_window()
 
     def get_error_message_from_error_stanza(self, stanza):
