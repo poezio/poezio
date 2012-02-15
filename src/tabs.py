@@ -86,11 +86,11 @@ VERTICAL_STATE_COLORS = {
 STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
+        'disconnected': 0,
         'message': 1,
         'joined': 1,
         'highlight': 2,
         'private': 2,
-        'disconnected': 3,
         'attention': 3
     }
 
@@ -99,7 +99,11 @@ class Tab(object):
     tab_core = None
     def __init__(self):
         self.input = None
-        self._state = 'normal'
+        if isinstance(self, MucTab) and not self.joined:
+            self._state = 'disconnected'
+        else:
+            self._state = 'normal'
+
         self.need_resize = False
         self.nb = Tab.number
         Tab.number += 1
@@ -158,7 +162,7 @@ class Tab(object):
         if not value in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
-                value != 'current' and value != 'joined':
+                value not in ('current', 'disconnected'):
             log.debug("Did not set status because of lower priority, asked: %s, kept: %s", value, self._state)
         else:
             self._state = value
@@ -509,10 +513,10 @@ class MucTab(ChatTab):
     plugin_commands = {}
     plugin_keys = {}
     def __init__(self, jid, nick):
+        self.joined = False
         ChatTab.__init__(self)
         self.own_nick = nick
         self.name = jid
-        self.joined = False
         self.users = []
         self.topic = ''
         self.remote_wants_chatstates = True
@@ -1080,8 +1084,11 @@ class MucTab(ChatTab):
                 self.users.append(new_user)
                 if from_nick == self.own_nick:
                     self.joined = True
-                    if self != self.core.current_tab():
-                        self.state = 'joined'
+                    if self.get_name() in self.core.initial_joins:
+                        self.core.initial_joins.remove(self.get_name())
+                        self._state = 'normal'
+                    elif self != self.core.current_tab():
+                        self._state = 'joined'
                     if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK

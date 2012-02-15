@@ -196,6 +196,8 @@ class Core(object):
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.register_handler(Callback('ALL THE STANZAS', connection.MatchAll(None), self.incoming_stanza))
 
+        self.initial_joins = []
+
         self.timed_events = set()
 
         self.connected_events = {}
@@ -638,6 +640,7 @@ class Core(object):
             if not tab:
                 self.open_new_room(bm.jid, bm.nick, False)
             nick = bm.nick if bm.nick else self.own_nick
+            self.initial_joins.append(bm.jid)
             muc.join_groupchat(self.xmpp, bm.jid, nick)
 
     def on_groupchat_presence(self, presence):
