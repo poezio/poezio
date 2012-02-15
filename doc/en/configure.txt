@@ -254,6 +254,11 @@ section of this documentation.
  If set to desc, the tabs will be displayed from top to bottom in the list,
  if set to asc, they will be displayed from bottom to top.
 
+*user_list_sort*:: desc
+
+ If set to desc, the MUC users will be displayed from top to bottom in the list,
+ if set to asc, they will be displayed from bottom to top.
+
 *send_chat_states*:: true
 
   if true, chat states will be sent to the people you are talking to.
