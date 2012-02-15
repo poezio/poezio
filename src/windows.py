@@ -47,7 +47,10 @@ g_lock = RLock()
 
 LINES_NB_LIMIT = 4096
 
-def truncate_nick(nick, size=25):
+def truncate_nick(nick, size=None):
+    size = size or config.get('max_nick_length', 25)
+    if size < 1:
+        size = 1
     if nick and len(nick) >= size:
         return nick[:size]+'…'
     return nick
