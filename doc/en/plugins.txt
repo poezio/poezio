@@ -310,6 +310,33 @@ MUC. The parameters given to this handler are:
 * _presence_: The presence about to be sent.
 
 
+The following can be deduced from the muc_presence event, but are more
+ specialized.
+
+*muc_join*:: +presence+, +tab+ +
+The handlers for this event are called when someone joins a MUC (can be you).
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
+*muc_nickchange*:: +presence+, +tab+ +
+The handlers for this event are called when someone changes his nick in a MUC.
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
+*muc_ban*:: +presence+, +tab+ +
+The handlers for this event are called when someone gets banned in a MUC.
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
+*muc_kick*:: +presence+, +tab+ +
+The handlers for this event are called when someone gets kicked in a MUC.
+
+* _presence_: Presence received.
+* _tab_: Tab of the concerned MUC.
+
 SleekXMPP events
 ~~~~~~~~~~~~~~~~
 

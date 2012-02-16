@@ -1123,6 +1123,7 @@ class MucTab(ChatTab):
             if from_nick not in [user.nick for user in self.users] and typ != "unavailable":
                 new_user = User(from_nick, affiliation, show, status, role, jid)
                 self.users.append(new_user)
+                self.core.events.trigger('muc_join', presence, self)
                 if from_nick == self.own_nick:
                     self.joined = True
                     if self.get_name() in self.core.initial_joins:
@@ -1143,14 +1144,18 @@ class MucTab(ChatTab):
             user = self.get_user_by_name(from_nick)
             # New user
             if not user:
+                self.core.events.trigger('muc_join', presence, self)
                 self.on_user_join(from_nick, affiliation, show, status, role, jid)
             # nick change
             elif change_nick:
+                self.core.events.trigger('muc_nickchange', presence, self)
                 self.on_user_nick_change(presence, user, from_nick, from_room)
             elif ban:
+                self.core.events.trigger('muc_ban', presence, self)
                 self.on_user_banned(presence, user, from_nick)
             # kick
             elif kick:
+                self.core.events.trigger('muc_kick', presence, self)
                 self.on_user_kicked(presence, user, from_nick)
             # user quit
             elif typ == 'unavailable':

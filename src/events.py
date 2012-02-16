@@ -35,6 +35,10 @@ class EventHandler(object):
             'private_chatstate': [],
             'normal_presence': [],
             'muc_presence': [],
+            'muc_join': [],
+            'muc_kick': [],
+            'muc_nickchange': [],
+            'muc_ban': [],
             'send_normal_presence': [],
             }
 
