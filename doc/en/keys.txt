@@ -86,7 +86,7 @@ height of the conversation window - 1.
 
 *Ctrl-f*:: Go one line down in the buffer.
 
-*Ctrl-u*:: Go half a screen up in the buffer.
+*Ctrl-s*:: Go half a screen up in the buffer.
 
 *Ctrl-d*:: Go half a screen down in the buffer.
 

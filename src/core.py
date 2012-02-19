@@ -159,7 +159,7 @@ class Core(object):
             "^B": self.scroll_line_up,
             "^F": self.scroll_line_down,
             "^D": self.scroll_half_down,
-            "^U": self.scroll_half_up,
+            "^S": self.scroll_half_up,
             "KEY_F(5)": self.rotate_rooms_left,
             "^P": self.rotate_rooms_left,
             'kLFT3': self.rotate_rooms_left,
