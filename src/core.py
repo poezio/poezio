@@ -801,6 +801,7 @@ class Core(object):
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
+        body = xhtml.get_body_from_message_stanza(message)
         if roster.get_contact_by_jid(jid.bare):
             remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
         else:
