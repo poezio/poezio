@@ -1383,6 +1383,8 @@ class Core(object):
             jid, type, status = args[0], args[1], args[2]
         else:
             return
+        if jid == '.' and isinstance(self.current_tab(), tabs.ChatTab):
+            jid = self.current_tab().get_name()
         if type == 'available':
             type = None
         try:
