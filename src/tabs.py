@@ -701,6 +701,7 @@ class MucTab(ChatTab):
     def command_configure(self, arg):
         form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
         if not form:
+            self.core.information('Could not retrieve the configuration form', 'Error')
             return
         self.core.open_new_form(form, self.cancel_config, self.send_config)
 
