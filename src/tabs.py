@@ -461,7 +461,7 @@ class ChatTab(Tab):
         Send an empty chatstate message
         """
         if not isinstance(self, MucTab) or self.joined:
-            if state in ('active', 'inactive', 'gone') and self.core.status.show in ('xa', 'away') and not always_send:
+            if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
             msg = self.core.xmpp.make_message(self.get_name())
             msg['type'] = self.message_type
@@ -476,7 +476,7 @@ class ChatTab(Tab):
         """
         name = self.general_jid
         if config.get_by_tabname('send_chat_states', 'true', name, True) == 'true' and self.remote_wants_chatstates:
-            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            needed = 'inactive' if self.inactive else 'active'
             self.cancel_paused_delay()
             if not empty_after:
                 if self.chat_state != "composing":
@@ -516,6 +516,12 @@ class ChatTab(Tab):
                 self.core.remove_timed_event(event)
                 del event
         self.timed_event_paused = None
+
+    @property
+    def inactive(self):
+        """Whether we should send inactive or active as a chatstate"""
+        return self.core.status.show in ('xa', 'away') or\
+                (hasattr(self, 'directed_presence') and not self.directed_presence)
 
     def move_separator(self):
         self.text_win.remove_line_separator()
@@ -562,6 +568,7 @@ class MucTab(ChatTab):
         self.own_nick = nick
         self.name = jid
         self.users = []
+        self.privates = [] # private conversations
         self.topic = ''
         self.remote_wants_chatstates = True
         # We send active, composing and paused states to the MUC because
@@ -950,7 +957,7 @@ class MucTab(ChatTab):
             self.core.information('Could not set affiliation', 'Error')
 
     def command_say(self, line):
-        needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+        needed = 'inactive' if self.inactive else 'active'
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'
         msg['body'] = line
@@ -1460,6 +1467,9 @@ class PrivateTab(ChatTab):
     def general_jid(self):
         return self.get_name()
 
+    def on_close(self):
+        self.parent_muc.privates.remove(self)
+
     def completion(self):
         self.complete_commands(self.input)
 
@@ -1479,7 +1489,7 @@ class PrivateTab(ChatTab):
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
-            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
             msg['attention'] = True
@@ -2241,7 +2251,7 @@ class ConversationTab(ChatTab):
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
-            needed = 'inactive' if self.core.status.show in ('xa', 'away') else 'active'
+            needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
             msg['attention'] = True

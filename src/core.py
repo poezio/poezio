@@ -1219,11 +1219,14 @@ class Core(object):
         if not tab:
             return None
         new_tab = tabs.PrivateTab(complete_jid, tab.own_nick)
+        if hasattr(tab, 'directed_presence'):
+            new_tab.directed_presence = tab.directed_presence
         if not focus:
             new_tab.state = "private"
         # insert it in the tabs
         self.add_tab(new_tab, focus)
         self.refresh_window()
+        tab.privates.append(new_tab)
         return new_tab
 
     def on_groupchat_subject(self, message):
@@ -1352,6 +1355,8 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.joined:
                 muc.change_show(self.xmpp, tab.name, tab.own_nick, show, msg)
+            if hasattr(tab, 'directed_presence'):
+                del tab.directed_presence
         self.set_status(show, msg)
         if isinstance(current, tabs.MucTab) and current.joined and show not in ('away', 'xa'):
             current.send_chat_state('active')
@@ -1395,6 +1400,21 @@ class Core(object):
             import traceback
             self.information(_('Could not send directed presence'), 'Error')
             log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
+        tab = self.get_tab_by_name(jid)
+        if tab:
+            if type in ('xa', 'away'):
+                tab.directed_presence = False
+                chatstate = 'inactive'
+            else:
+                tab.directed_presence = True
+                chatstate = 'active'
+            if tab == self.current_tab():
+                tab.send_chat_state(chatstate, True)
+            if isinstance(tab, tabs.MucTab):
+                for private in tab.privates:
+                    private.directed_presence = tab.directed_presence
+                if self.current_tab() in tab.privates:
+                    self.current_tab().send_chat_state(chatstate, True)
 
     def completion_status(self, the_input):
         """
