@@ -2589,8 +2589,13 @@ class XMLTab(Tab):
         self.key_func['^I'] = self.completion
         self.key_func["KEY_DOWN"] = self.on_scroll_down
         self.key_func["KEY_UP"] = self.on_scroll_up
+        self.key_func["^K"] = self.on_freeze
         self.key_func["/"] = self.on_slash
         self.resize()
+
+    def on_freeze(self):
+        self.text_win.toggle_lock()
+        self.refresh()
 
     def on_slash(self):
         """

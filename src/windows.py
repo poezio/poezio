@@ -607,6 +607,22 @@ class TextWin(Win):
         self.pos = 0
         self.built_lines = []   # Each new message is built and kept here.
         # on resize, we rebuild all the messages
+        self.lock = False
+        self.lock_buffer = []
+
+    def toggle_lock(self):
+        if self.lock:
+            self.release_lock()
+        else:
+            self.acquire_lock()
+
+    def acquire_lock(self):
+        self.lock = True
+
+    def release_lock(self):
+        for line in self.lock_buffer:
+            self.built_lines.append(line)
+        self.lock = False
 
     def scroll_up(self, dist=14):
         self.pos += dist
@@ -668,10 +684,16 @@ class TextWin(Win):
         if get_theme().CHAR_TIME_RIGHT:
             offset += 1
         lines = cut_text(txt, self.width-offset)
-        for line in lines:
-            self.built_lines.append(Line(msg=message,
-                                         start_pos=line[0],
-                                         end_pos=line[1]))
+        if self.lock:
+            for line in lines:
+                self.lock_buffer.append(Line(msg=message,
+                                             start_pos=line[0],
+                                             end_pos=line[1]))
+        else:
+            for line in lines:
+                self.built_lines.append(Line(msg=message,
+                                             start_pos=line[0],
+                                             end_pos=line[1]))
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
                 self.built_lines.pop(0)
