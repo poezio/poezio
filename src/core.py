@@ -202,7 +202,8 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
         self.xmpp.add_event_handler("attention", self.on_attention)
-        self.xmpp.register_handler(Callback('ALL THE STANZAS', connection.MatchAll(None), self.incoming_stanza))
+        self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
+        self.xmpp.register_handler(self.all_stanzas)
 
         self.initial_joins = []
 

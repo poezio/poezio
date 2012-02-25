@@ -39,6 +39,8 @@ import multiuserchat as muc
 from theming import get_theme
 
 from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp.xmlstream import matcher
+from sleekxmpp.xmlstream.handler import Callback
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact
@@ -2584,6 +2586,10 @@ class XMLTab(Tab):
         self.default_help_message = windows.HelpText("/ to enter a command")
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
         self.commands['clear'] = (self.command_clear, _("Usage: /clear\nClear: Clear the content of the current buffer."), None)
+        self.commands['reset'] = (self.command_reset, _("Usage: /reset\nReset: Reset the stanza filter."), None)
+        self.commands['filter_id'] = (self.command_filter_id, _("Usage: /filter_id <id>\nFilterId: Show only the stanzas with the id <id>."), None)
+        self.commands['filter_xpath'] = (self.command_filter_xpath, _("Usage: /filter_xpath <xpath>\nFilterXPath: Show only the stanzas matching the xpath <xpath>."), None)
+        self.commands['filter_xmlmask'] = (self.command_filter_xmlmask, _("Usage: /filter_xmlmask <xml mask>\nFilterXMLMask: Show only the stanzas matching the given xml mask."), None)
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
@@ -2596,6 +2602,41 @@ class XMLTab(Tab):
     def on_freeze(self):
         self.text_win.toggle_lock()
         self.refresh()
+
+    def command_filter_xmlmask(self, arg):
+        """/filter_xmlmask <xml mask>"""
+        try:
+            handler = Callback('custom matcher', matcher.MatchXMLMask(arg),
+                    self.core.incoming_stanza)
+            self.core.xmpp.remove_handler('custom matcher')
+            self.core.xmpp.register_handler(handler)
+        except:
+            self.core.information('Invalid XML Mask', 'Error')
+            self.command_reset('')
+
+    def command_filter_id(self, arg):
+        """/filter_id <id>"""
+        self.core.xmpp.remove_handler('custom matcher')
+        handler = Callback('custom matcher', matcher.MatcherId(arg),
+                self.core.incoming_stanza)
+        self.core.xmpp.register_handler(handler)
+
+    def command_filter_xpath(self, arg):
+        """/filter_xpath <xpath>"""
+        try:
+            handler = Callback('custom matcher', matcher.MatchXPath(
+                arg.replace('%n', self.core.xmpp.default_ns)),
+                    self.core.incoming_stanza)
+            self.core.xmpp.remove_handler('custom matcher')
+            self.core.xmpp.register_handler(handler)
+        except:
+            self.core.information('Invalid XML Path', 'Error')
+            self.command_reset('')
+
+    def command_reset(self, arg):
+        """/reset"""
+        self.core.xmpp.remove_handler('custom matcher')
+        self.core.xmpp.register_handler(self.core.all_stanzas)
 
     def on_slash(self):
         """
