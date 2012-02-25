@@ -2583,6 +2583,7 @@ class XMLTab(Tab):
         self.core.xml_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
         self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
+        self.commands['clear'] = (self.command_clear, _("Usage: /clear\nClear: Clear the content of the current buffer."), None)
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
@@ -2613,6 +2614,15 @@ class XMLTab(Tab):
 
     def on_scroll_down(self):
         self.text_win.scroll_down(self.text_win.height-1)
+
+    def command_clear(self, args):
+        """
+        /clear
+        """
+        self.core.xml_buffer.messages = []
+        self.text_win.rebuild_everything(self.core.xml_buffer)
+        self.refresh()
+        self.core.doupdate()
 
     def execute_slash_command(self, txt):
         if txt.startswith('/'):
