@@ -380,3 +380,7 @@ NOTE: The following commands do not comply with any XEP or whatever, but they
 */import [/path/to/file]*:: Import your contacts from /path/to/file if
  specified, or $HOME/poezio_contacts if not.
 
+XML tab commands
+~~~~~~~~~~~~~~~~
+
+*/clear*:: Clear the current buffer.

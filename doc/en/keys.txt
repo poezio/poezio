@@ -205,6 +205,16 @@ These keys work only in the MultiUserChat List tab (obtained with /list
 *Ctrl-M*:: Join the MultiUserChat currently selected (same as _j_).
 
 
+XML tab input keys
+~~~~~~~~~~~~~~~~~~
+
+These keys only work in the XML tab (obtained with /xml_tab)
+
+*Ctrl+k*:: Freeze or un-freeze the display in order to have a clear view of
+ the stanzas.
+
+
+
 Key configuration
 -----------------
 Bindings are keyboard shortcut aliases. You can use them
