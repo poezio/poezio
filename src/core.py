@@ -1755,8 +1755,9 @@ class Core(object):
             room = room[1:]
         current_status = self.get_status()
         if tab and not tab.joined:
+            seconds = (int(time.time()) - tab.last_connection) if tab.last_connection != 0 else 0
             muc.join_groupchat(self.xmpp, room, nick, password,
-                               histo_length, current_status.message, current_status.show)
+                               histo_length, current_status.message, current_status.show, seconds=seconds)
         if not tab:
             self.open_new_room(room, nick)
             muc.join_groupchat(self.xmpp, room, nick, password,

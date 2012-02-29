@@ -56,8 +56,24 @@ def change_nick(xmpp, jid, nick, status=None, show=None):
     """
     xmpp.make_presence(pshow=show, pstatus=status, pto='%s/%s' % (jid, nick)).send()
 
-def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, show=None):
-    xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd, pstatus=status, pshow=show)
+def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=0):
+    if not seconds:
+        xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd, pstatus=status, pshow=show)
+    else:
+        # hackish but modifying the plugin is not worth it (since it is bound to be rewritten)
+        stanza = xmpp.makePresence(pto="%s/%s" % (jid, nick), pstatus=status, pshow=show)
+        x = ET.Element('{http://jabber.org/protocol/muc}x')
+        if passwd:
+            passelement = ET.Element('password')
+            passelement.text = passwd
+            x.append(passelement)
+        history = ET.Element('history')
+        history.attrib['seconds'] = str(seconds)
+        x.append(history)
+        stanza.append(x)
+        stanza.send()
+        xmpp.plugin['xep_0045'].rooms[jid] = {}
+        xmpp.plugin['xep_0045'].our_nicks[jid] = nick
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """

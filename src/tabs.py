@@ -33,6 +33,7 @@ import xhtml
 import weakref
 import timed_events
 import os
+import time
 
 import multiuserchat as muc
 
@@ -584,6 +585,7 @@ class MucTab(ChatTab):
         self.info_header = windows.MucInfoWin()
         self.input = windows.MessageInput()
         self.ignores = []       # set of Users
+        self.last_connection = 0
         # keys
         self.key_func['^I'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
@@ -1354,6 +1356,7 @@ class MucTab(ChatTab):
         Set the state of the room as not joined, so
         we can know if we can join it, send messages to it, etc
         """
+        self.last_connection = int(time.time())
         self.users = []
         if self is not self.core.current_tab():
             self.state = 'disconnected'
