@@ -668,9 +668,11 @@ class MucTab(ChatTab):
             n += 1
         if n == 2:
             userlist = [user.nick for user in self.users]
-            userlist.remove(self.own_nick)
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
             jidlist = [user.jid.bare for user in self.users]
-            jidlist.remove(self.core.xmpp.boundjid.bare)
+            if self.core.xmpp.boundjid.bare in jidlist:
+                jidlist.remove(self.core.xmpp.boundjid.bare)
             userlist.extend(jidlist)
             return the_input.auto_completion(userlist, '')
         elif n == 3:
