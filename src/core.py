@@ -1753,7 +1753,8 @@ class Core(object):
             if tab.own_nick == nick:
                 self.information('/join: Nothing to do.', 'Info')
             else:
-                tab.command_nick(nick)
+                tab.own_nick = nick
+                tab.command_cycle('')
             return
 
         if room.startswith('@'):
