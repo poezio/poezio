@@ -1750,7 +1750,12 @@ class Core(object):
             password = args[1]
         if tab and tab.joined:       # if we are already in the room
             self.focus_tab_named(tab.name)
+            if tab.own_nick == nick:
+                self.information('/join: Nothing to do.', 'Info')
+            else:
+                tab.command_nick(nick)
             return
+
         if room.startswith('@'):
             room = room[1:]
         current_status = self.get_status()
