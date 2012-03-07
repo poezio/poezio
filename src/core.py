@@ -1989,7 +1989,7 @@ class Core(object):
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
                 tab.joined = False
-                self.command_join(tab.get_name())
+                self.command_join('%s/%s' %(tab.get_name(), tab.own_nick))
 
     def command_bind(self, arg):
         """

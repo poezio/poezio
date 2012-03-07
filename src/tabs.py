@@ -730,7 +730,7 @@ class MucTab(ChatTab):
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.own_nick, arg)
         self.disconnect()
         self.core.disable_private_tabs(self.name)
-        self.core.command_join('"/%s"' % self.core.get_bookmark_nickname(self.name), '0')
+        self.core.command_join('"/%s"' % self.own_nick)
         self.user_win.pos = 0
 
     def command_recolor(self, arg):
