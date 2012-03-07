@@ -26,14 +26,14 @@ MUCs, especially XEP 0045.
 =======================
 You need python 3.0 (and the associated devel package, to build C modules)
 or higher, and the SleekXMPP python library.
-In the developpement version, you’ll need this fork of SleekXMPP
+In the developement version, you’ll need this fork of SleekXMPP
 http://github.com/louiz/SleekXMPP.
 Additionally, you’ll need asciidoc and source-highlight to build the html
 documentation pages.  To read the documentation without these dependance,
 just read the .txt files, or read it on the webpage.
 
 The simplest way to have up-to-date dependencies and to be able to test
-this developpement version is to use the update.sh script that downloads
+this developement version is to use the update.sh script that downloads
 and places them in the right directory.
 
 You also need to compile some external C modules, to do this, just enter
@@ -69,8 +69,8 @@ feature you want.
 =======================
 	Authors
 =======================
-Florent Le Coz (louiz’) <louiz@louiz.org> (developper)
-Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developper)
+Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
+Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
 
 
 =======================
@@ -111,7 +111,7 @@ the unstable version, which can be broken, but we should try to keep it usable
 and crash-free as much as possible (so, never push to it if you are adding a
 *known* crash).
 
-New big features that take time to be complete should be developped in feature
+New big features that take time to be complete should be developed in feature
 branches (for example the “plugins” or the “opt” branches).
 If it’s a really long feature, merge the “master” branch in that feature branch
 from time to time, to avoid huge merges (and merge issues) when you’ll have to
@@ -120,10 +120,10 @@ Merge your work in master once it works and is usable, not necessarily when
 it’s 100% finished.  Polishing and last bug fixes can take place in “master”.
 
 Conflicts should be solved with *rebase* and not with merge.  This means
-that if two developpers commited one thing at the same time in their own
+that if two developers commited one thing at the same time in their own
 repository, the first pushes on the public public repos, and the other
 has to pull before being able to push too.  In that case, the second
-developper should use the rebase command instead of merge.  This avoids
+developer should use the rebase command instead of merge.  This avoids
 creating unnecessary “branches” and visible merges.
 On the contrary, when merging feature branches back to “master”, we should
 use merge with the --no-ff tag (this makes sure the branch will always
