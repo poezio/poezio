@@ -119,6 +119,7 @@ class Config(RawConfigParser):
             if line.startswith('['): # check the section
                 if we_are_in_the_right_section and not written:
                     result_lines.append('%s= %s' % (option, value))
+                    written = True
                 if line == '[%s]' % section:
                     we_are_in_the_right_section = True
                     section_found = True
