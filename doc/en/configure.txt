@@ -59,6 +59,14 @@ section of this documentation.
   anonymous mode and changing servers often. Dangerous in other cases, from a
   security perspective.
 
+*ca_cert_path*:: [empty]
+
+  Path to the certificate of the Certification Authority.
+  As some services may keep different certificates, it is an alternative to
+  the Trust On First Use model provided by _certificate_. This option is not
+  affected by _ignore_certificate_ and boths checks may be active at the same
+  time.
+
 *resource*:: [empty]
 
   the resource you will use
