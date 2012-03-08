@@ -806,6 +806,48 @@ class HelpText(Win):
     def do_command(self, key, raw=False):
         return False
 
+class YesNoInput(Win):
+    """
+    A Window just displaying a Yes/No input
+    Used to ask a confirmation
+    """
+    def __init__(self, text=''):
+        Win.__init__(self)
+        self.key_func = {
+                'y' : self.on_yes,
+                'n' : self.on_no,
+        }
+        self.txt = text
+        self.value = None
+
+    def on_yes(self):
+        self.value = True
+
+    def on_no(self):
+        self.value = False
+
+    def refresh(self, txt=None):
+        log.debug('Refresh: %s',self.__class__.__name__)
+        if txt:
+            self.txt = txt
+        with g_lock:
+            self._win.erase()
+            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+            self._refresh()
+
+    def do_command(self, key, raw=False):
+        if key.lower() in self.key_func:
+            self.key_func[key]()
+
+    def prompt(self):
+        """Monopolizes the input while waiting for a recognized keypress"""
+        cl = []
+        while self.value is None:
+            if len(cl) == 1 and cl[0] in self.key_func:
+                self.key_func[cl[0]]()
+            cl = self.core.read_keyboard()
+
 class Input(Win):
     """
     The simplest Input possible, provides just a way to edit a single line

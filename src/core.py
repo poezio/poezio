@@ -11,13 +11,11 @@ import os
 import sys
 import time
 import curses
-import threading
-import traceback
+import ssl
 
+from hashlib import sha1
 from datetime import datetime
 from xml.etree import cElementTree as ET
-
-from inspect import getargspec
 
 import common
 import theming
@@ -94,6 +92,7 @@ class Core(object):
         self.events = events.EventHandler()
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
+        self.paused = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an
@@ -202,6 +201,7 @@ class Core(object):
         self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
         self.xmpp.add_event_handler("attention", self.on_attention)
+        self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
         self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
         self.xmpp.register_handler(self.all_stanzas)
 
@@ -217,6 +217,44 @@ class Core(object):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
             self.plugin_manager.load(plugin)
+
+    def validate_ssl(self, pem):
+        """
+        Check the server certificate using the sleekxmpp ssl_cert event
+        """
+        if config.get('ignore_certificate', 'false').lower() == 'true':
+            return
+        cert = config.get('certificate', '')
+        der = ssl.PEM_cert_to_DER_cert(pem)
+        found_cert = sha1(der).hexdigest()
+        if cert:
+            if found_cert == cert:
+                log.debug('Cert %s OK', found_cert)
+                return
+            else:
+                saved_input = self.current_tab().input
+                log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, found_cert)
+                input = windows.YesNoInput(text="WARNING! Certificate hash changed to %s. Accept? (y/n)" % found_cert)
+                self.current_tab().input = input
+                input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
+                input.refresh()
+                self.doupdate()
+                self.paused = True
+                while input.value is None:
+                    pass
+                self.current_tab().input = saved_input
+                self.paused = False
+                if input.value:
+                    self.information('Setting new certificate: old: %s, new: %s' % (cert, found_cert), 'Info')
+                    log.debug('Setting certificate to %s', found_cert)
+                    config.set_and_save('certificate', found_cert)
+                else:
+                    self.information('You refused to validate the certificate. You are now disconnected', 'Info')
+                    self.xmpp.disconnect()
+        else:
+            log.debug('First time. Setting certificate to %s', found_cert)
+            config.set_and_save('certificate', found_cert)
+
 
     def start(self):
         """
@@ -965,8 +1003,13 @@ class Core(object):
                 return '\n'
             return key
         while self.running:
+            if self.paused: continue
             char_list = [common.replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
+            if self.paused:
+                self.current_tab().input.do_command(char_list[0])
+                self.current_tab().input.prompt()
+                continue
             # Special case for M-x where x is a number
             if len(char_list) == 1:
                 char = char_list[0]
