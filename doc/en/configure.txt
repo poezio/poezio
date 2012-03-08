@@ -48,6 +48,17 @@ section of this documentation.
 
  The port you’ll use to connect.
 
+*certificate*:: [empty]
+
+  The fingerprint of the SSL certificate as a hexadecimal string, you should
+  not touch it, except if know what you are doing.
+
+*ignore_certificate*:: false
+
+  Skip certificate validation on connection when _true_. Useful when you are in
+  anonymous mode and changing servers often. Dangerous in other cases, from a
+  security perspective.
+
 *resource*:: [empty]
 
   the resource you will use
