@@ -127,7 +127,7 @@ class Core(object):
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`"), None),
+            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`"), self.completion_set),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
@@ -1965,7 +1965,7 @@ class Core(object):
             config.set_and_save(option, value)
         elif len(args) == 3:
             if '|' in args[0]:
-                plugin_name, section = args[0].split('|')
+                plugin_name, section = args[0].split('|')[:2]
                 if not section:
                     section = plugin_name
                 option = args[1]
@@ -1981,6 +1981,53 @@ class Core(object):
                 config.set_and_save(option, value, section)
         msg = "%s=%s" % (option, value)
         self.information(msg, 'Info')
+
+    def completion_set(self, the_input):
+        """Completion for /set"""
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        empty = False
+        if text.endswith(' '):
+            n += 1
+            empty = True
+        if n == 2:
+            if not empty and '|' in args[1]:
+                plugin_name, section = args[1].split('|')[:2]
+                if not plugin_name in self.plugin_manager.plugins:
+                        return the_input.auto_completion([],'')
+                plugin = self.plugin_manager.plugins[plugin_name]
+                end_list = ['%s|%s' % (plugin_name, section) for section in plugin.config.sections()]
+            else:
+                end_list = config.options('Poezio')
+        elif n == 3:
+            if '|' in args[1]:
+                plugin_name, section = args[1].split('|')[:2]
+                if not plugin_name in self.plugin_manager.plugins:
+                        return the_input.auto_completion([''],'')
+                plugin = self.plugin_manager.plugins[plugin_name]
+                end_list = plugin.config.options(section or plugin_name)
+            elif not config.has_option('Poezio', args[1]):
+                if config.has_section(args[1]):
+                    end_list = config.options(args[1])
+                    end_list.append('')
+                else:
+                    end_list = []
+            else:
+                end_list = [config.get(args[1], ''), '']
+        elif n == 4:
+            if '|' in args[1]:
+                plugin_name, section = args[1].split('|')[:2]
+                if not plugin_name in self.plugin_manager.plugins:
+                        return the_input.auto_completion([],'')
+                plugin = self.plugin_manager.plugins[plugin_name]
+                end_list = [plugin.config.get(args[2], '', section or plugin_name), '']
+            else:
+                if not config.has_section(args[1]):
+                    end_list = ['']
+                else:
+                    end_list = [config.get(args[2], '', args[1]), '']
+        return the_input.auto_completion(end_list, '')
 
     def completion_server_cycle(self, the_input):
         """Completion for /server_cycle"""
