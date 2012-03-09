@@ -105,7 +105,7 @@ class Plugin(BasePlugin):
         self.add_tab_command(tabs.MucTab, 'stop', self.command_stop, '/stop\nStop: Stop parsing the messages', None)
         self.add_tab_command(tabs.MucTab, 'flush', self.command_flush, '/flush\nFlush: Flush the database', None)
         self.add_tab_command(tabs.MucTab, 'save', self.command_save, '/save <filepath>\nSave: Save the database to a file', None)
-        self.add_tab_command(tabs.MucTab, 'load', self.command_load, '/load <filepath>\nLoad: Load the database from a file', None)
+        self.add_tab_command(tabs.MucTab, 'load_db', self.command_load_db, '/load_db <filepath>\nLoad: Load the database from a file', None)
         self.tabs = {}
         self.analyzer = Analyzer()
 
@@ -144,7 +144,7 @@ class Plugin(BasePlugin):
         else:
             self.core.information('Nothing to flush', 'Info')
 
-    def command_load(self, arg):
+    def command_load_db(self, arg):
         name = self.core.current_tab().get_name()
         try:
             file = open(arg, 'rb')
