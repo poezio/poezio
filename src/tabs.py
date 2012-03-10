@@ -946,18 +946,17 @@ class MucTab(ChatTab):
         """
         /affiliation <nick> <role>
         Changes the affiliation of an user
-        roles can be: none, visitor, participant, moderator
+        affiliations can be: outcast, none, member, admin, owner
         """
         args = common.shell_split(arg)
         if len(args) < 2:
-            self.core.command_help('role')
+            self.core.command_help('affiliation')
             return
-        nick, affiliation = args[0],args[1]
-        if len(args) > 2:
-            reason = ' '.join(args[2:])
-        else:
-            reason = ''
+        nick, affiliation = args[0], args[1].lower()
         if not self.joined:
+            return
+        if affiliation not in ('outcast', 'none', 'member', 'admin', 'owner'):
+            self.core.command_help('affiliation')
             return
         if nick in [user.nick for user in self.users]:
             res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, nick=nick)
