@@ -67,6 +67,12 @@ section of this documentation.
   affected by _ignore_certificate_ and boths checks may be active at the same
   time.
 
+*whitespace_interval*:: 300
+
+  Interval of the whitespace keepalive sending to the server.
+  300 should be fine, but change it if some services have a stricter policy
+  on client inactivity.
+
 *resource*:: [empty]
 
   the resource you will use

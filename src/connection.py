@@ -45,6 +45,11 @@ class Connection(sleekxmpp.ClientXMPP):
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.auto_authorize = None
         self.ca_certs = config.get('ca_cert_path', '') or None
+        interval = config.get('whitespace_interval', '300')
+        if interval.isnumeric():
+            self.whitespace_keepalive_interval = int(interval)
+        else:
+            self.whitespace_keepalive_interval = 300
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0045')
