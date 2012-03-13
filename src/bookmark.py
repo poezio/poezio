@@ -1,9 +1,12 @@
 import os
+import logging
 from sys import version_info
 
 from sleekxmpp.plugins.xep_0048 import *
 from core import JID
 from config import config
+
+log = logging.getLogger(__name__)
 
 def iter(xml, tag=''):
     if version_info[1] >= 2:
@@ -14,15 +17,14 @@ def iter(xml, tag=''):
 preferred = config.get('use_bookmarks_method', 'pep').lower()
 if preferred not in ('pep', 'privatexml'):
     preferred = 'privatexml'
-not_preferred = 'privatexml' if preferred is 'pep' else 'privatexml'
+not_preferred = 'privatexml' if preferred == 'pep' else 'privatexml'
 methods = ('local', preferred, not_preferred)
 
 
 class Bookmark(object):
-
     possible_methods = methods
 
-    def __init__(self, jid, name=None, autojoin=False, nick=None, password=None, method=None):
+    def __init__(self, jid, name=None, autojoin=False, nick=None, password=None, method='privatexml'):
         self.jid = jid
         self.name = name or jid
         self.autojoin = autojoin
@@ -40,6 +42,7 @@ class Bookmark(object):
     @method.setter
     def method(self, value):
         if value not in self.possible_methods:
+            log.debug('Could not set bookmark storing method: %s', value)
             return
         self._method = value
 
@@ -131,6 +134,8 @@ def save_remote(xmpp, method="privatexml"):
         else:
             xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'))
     except:
+        import traceback
+        log.debug("Could not save the bookmarks:\n%s" % traceback.format_exc())
         return False
     return True
 
@@ -146,9 +151,9 @@ def save(xmpp, core=None):
         preferred = config.get('use_bookmarks_method', 'privatexml')
         if not save_remote(xmpp, method=preferred) and core:
             core.information('Could not save bookmarks.', 'Error')
+            return False
         elif core:
-            core.information('Could not save bookmarks.', 'Error')
-        return False
+            core.information('Bookmarks saved', 'Info')
     return True
 
 def get_pep(xmpp):

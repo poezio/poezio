@@ -1935,14 +1935,14 @@ class Core(object):
                 bookmark.remove(tab.get_name())
                 bookmark.save(self.xmpp)
                 if bookmark.save(self.xmpp):
-                    self.core.information('Bookmark deleted', 'Info')
+                    self.information('Bookmark deleted', 'Info')
             else:
                 self.information('No bookmark to remove', 'Info')
         else:
             if bookmark.get_by_jid(args[0]):
                 bookmark.remove(args[0])
                 if bookmark.save(self.xmpp):
-                    self.core.information('Bookmark deleted', 'Info')
+                    self.information('Bookmark deleted', 'Info')
 
             else:
                 self.information('No bookmark to remove', 'Info')
