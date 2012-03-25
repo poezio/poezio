@@ -104,6 +104,7 @@ class Core(object):
         self.tab_win = windows.GlobalInfoBar()
         self.information_buffer.add_window(self.information_win)
         self.tabs = []
+        self.xml_tabs = 0
         self.previous_tab_nb = 0
         self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
         # global commands, available from all tabs
@@ -285,19 +286,22 @@ class Core(object):
                                         tabs.Tab.height - 1 - self.information_win_size - tabs.Tab.tab_win_height(), 0)
 
     def outgoing_stanza(self, stanza):
-        self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
+        if self.xml_tabs:
+            self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
         if isinstance(self.current_tab(), tabs.XMLTab):
             self.current_tab().refresh()
             self.doupdate()
 
     def incoming_stanza(self, stanza):
-        self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
+        if self.xml_tabs:
+            self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
         if isinstance(self.current_tab(), tabs.XMLTab):
             self.current_tab().refresh()
             self.doupdate()
 
     def command_xml_tab(self, arg):
         """/xml_tab"""
+        self.xml_tabs += 1
         tab = tabs.XMLTab()
         self.add_tab(tab, True)
 

@@ -2719,6 +2719,9 @@ class XMLTab(Tab):
         self.state = 'current'
         curses.curs_set(0)
 
+    def on_close(self):
+        self.core.xml_tabs -= 1
+
 class SimpleTextTab(Tab):
     """
     A very simple tab, with just a text displaying some
