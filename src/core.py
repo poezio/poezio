@@ -1320,6 +1320,7 @@ class Core(object):
         if message['type'] == 'error': # Check if it's an error
             return self.room_error(message, room_from)
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        old_state = tab.state
         if not tab:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
@@ -1334,7 +1335,8 @@ class Core(object):
             if tab is self.current_tab():
                 tab.text_win.refresh()
                 tab.info_header.refresh(tab, tab.text_win)
-            self.refresh_tab_win()
+            elif tab.state != old_state:
+                self.refresh_tab_win()
             if 'message' in config.get('beep_on', 'highlight private').split():
                 if config.get_by_tabname('disable_beep', 'false', jid.bare, False).lower() != 'true':
                     curses.beep()
@@ -2060,11 +2062,12 @@ class Core(object):
         del tab.commands      # and make the object collectable
         tab.on_close()
         self.tabs.remove(tab)
+        self.tabs[0].on_gain_focus()
+        self.refresh_window()
         import gc
         gc.collect()
         log.debug('___ Referrers of closing tab:\n%s\n______', gc.get_referrers(tab))
         del tab
-        self.refresh_window()
 
     def command_server_cycle(self, arg):
         """

@@ -1153,6 +1153,10 @@ class MucTab(ChatTab):
                     self.add_message(_("\x19%(info_col)s}Your nickname is \x193}%(nick)s") % {'nick': from_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
                     if '170' in status_codes:
                         self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    if self.core.current_tab() is not self:
+                        self.refresh_tab_win()
+                        self.core.current_tab().input.refresh()
+                        self.core.doupdate()
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -1184,9 +1188,6 @@ class MucTab(ChatTab):
             self.user_win.refresh(self.users)
             self.info_header.refresh(self, self.text_win)
             self.input.refresh()
-            self.core.doupdate()
-        else:
-            self.core.current_tab().refresh_tab_win()
             self.core.doupdate()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):
@@ -1231,6 +1232,7 @@ class MucTab(ChatTab):
             self.disconnect()
             self.core.disable_private_tabs(self.name)
             self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
             self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned by \x194}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
@@ -1258,6 +1260,7 @@ class MucTab(ChatTab):
             self.disconnect()
             self.core.disable_private_tabs(self.name)
             self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
             self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked by \x193}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
@@ -1286,6 +1289,7 @@ class MucTab(ChatTab):
             self.disconnect()
             self.core.disable_private_tabs(from_room)
             self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
             self.core.doupdate()
         hide_exit_join = config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) if config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
@@ -1297,7 +1301,6 @@ class MucTab(ChatTab):
             if status:
                 leave_msg += ' (%s)' % status
             self.add_message(leave_msg)
-            self.core.refresh_window()
         self.core.on_user_left_private_conversation(from_room, from_nick, status)
 
     def on_user_change_status(self, user, from_nick, from_room, affiliation, role, show, status):
@@ -2058,8 +2061,10 @@ class RosterInfoTab(Tab):
         if key == '^M':
             selected_row = self.roster_win.get_selected_row()
         res = self.input.do_command(key, raw=raw)
-        if res:
+        if res and not isinstance(self.input, windows.CommandInput):
             return True
+        elif res:
+            return False
         if key == '^M':
             self.core.on_roster_enter_key(selected_row)
             return selected_row
@@ -2113,20 +2118,20 @@ class RosterInfoTab(Tab):
     def move_cursor_down(self):
         if isinstance(self.input, windows.CommandInput):
             return
-        self.roster_win.move_cursor_down()
-        self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
+        if self.roster_win.move_cursor_down():
+            self.roster_win.refresh(roster)
+            self.contact_info_win.refresh(self.roster_win.get_selected_row())
+            self.input.refresh()
+            self.core.doupdate()
 
     def move_cursor_up(self):
         if isinstance(self.input, windows.CommandInput):
             return
-        self.roster_win.move_cursor_up()
-        self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
+        if self.roster_win.move_cursor_up():
+            self.roster_win.refresh(roster)
+            self.contact_info_win.refresh(self.roster_win.get_selected_row())
+            self.input.refresh()
+            self.core.doupdate()
 
     def move_cursor_to_prev_group(self):
         self.roster_win.move_cursor_up()
