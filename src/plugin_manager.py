@@ -2,8 +2,11 @@ import imp
 import os
 import sys
 import tabs
+import logging
 from config import config
 from gettext import gettext as _
+
+log = logging.getLogger(__name__)
 
 plugins_dir = config.get('plugins_dir', '')
 plugins_dir = plugins_dir or\
@@ -56,7 +59,8 @@ class PluginManager(object):
                 imp.release_lock()
         except Exception as e:
             import traceback
-            self.core.information(_("Could not load plugin: ") + traceback.format_exc(), 'Error')
+            log.debug("Could not load plugin: \n%s", traceback.format_exc())
+            self.core.information("Could not load plugin: %s" % e, 'Error')
             return
         finally:
             if imp.lock_held():
