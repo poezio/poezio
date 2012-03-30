@@ -1335,10 +1335,14 @@ class Core(object):
             if tab is self.current_tab():
                 tab.text_win.refresh()
                 tab.info_header.refresh(tab, tab.text_win)
+                tab.input.refresh()
+                self.doupdate()
             elif tab.state != old_state:
                 self.refresh_tab_win()
+                self.current_tab().input.refresh()
+                self.doupdate()
             if 'message' in config.get('beep_on', 'highlight private').split():
-                if config.get_by_tabname('disable_beep', 'false', jid.bare, False).lower() != 'true':
+                if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
                     curses.beep()
 
     def add_message_to_text_buffer(self, buff, txt, time=None, nickname=None, history=None):

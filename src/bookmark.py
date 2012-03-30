@@ -141,7 +141,7 @@ def save_remote(xmpp, method="privatexml"):
 
 def save_local():
     """Save the local bookmarks."""
-    all = ''.join([bookmark.local() for bookmark in bookmarks if bookmark.method is 'local'])
+    all = ''.join(bookmark.local() for bookmark in bookmarks if bookmark.method is 'local')
     config.set_and_save('rooms', all)
 
 def save(xmpp, core=None):

@@ -109,7 +109,7 @@ class Config(RawConfigParser):
         exist
         """
         df = open(self.file_name, 'r')
-        lines_before = [line.strip() for line in df.readlines()]
+        lines_before = (line.strip() for line in df.readlines())
         df.close()
         result_lines = []
         we_are_in_the_right_section = False
