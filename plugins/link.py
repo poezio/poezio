@@ -1,7 +1,6 @@
 # A plugin that adds the /link command, letting you open links that are pasted
 # in the conversation, without having to click them.
 
-import os
 import re
 
 from plugin import BasePlugin, PluginConfig
@@ -39,7 +38,9 @@ class Plugin(BasePlugin):
             nb = 1
         link = self.find_link(nb)
         if link:
-            self.core.exec_command('%s %s' % (self.config.get('browser', 'firefox'), link))
+            link = re.sub("'", "\\'", link)
+            link = re.sub('"', '\\"', link)
+            self.core.exec_command("%s %s" % (self.config.get('browser', 'firefox'), link))
         else:
             self.core.information('No URL found.', 'Warning')
 
