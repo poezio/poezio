@@ -104,7 +104,8 @@ class PluginManager(object):
                     self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 import traceback
-                self.core.information(_("Could not unload plugin (may not be safe to try again): ") + traceback.format_exc())
+                log.debug("Could not unload plugin: \n%s", traceback.format_exc())
+                self.core.information("Could not unload plugin: %s" % e, 'Error')
 
     def del_command(self, module_name, name):
         if name in self.commands[module_name]:
