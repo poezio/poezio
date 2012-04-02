@@ -2066,6 +2066,10 @@ class Core(object):
         del tab.commands      # and make the object collectable
         tab.on_close()
         self.tabs.remove(tab)
+        if tab.get_name() in logger.fds:
+            logger.fds[tab.get_name()].close()
+            log.debug("Log file for %s closed.", tab.get_name())
+            del logger.fds[tab.get_name()]
         self.tabs[0].on_gain_focus()
         self.refresh_window()
         import gc

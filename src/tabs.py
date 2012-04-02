@@ -2216,7 +2216,7 @@ class ConversationTab(ChatTab):
     def __init__(self, jid):
         ChatTab.__init__(self)
         self.state = 'normal'
-        self._name = jid        # a conversation tab is linked to one specific full jid OR bare jid
+        self.name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
@@ -2326,7 +2326,7 @@ class ConversationTab(ChatTab):
             self.core.information(version, 'Info')
         if arg:
             return self.core.command_version(arg)
-        jid = self._name
+        jid = self.name
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def resize(self):
@@ -2355,7 +2355,7 @@ class ConversationTab(ChatTab):
         self.input.refresh()
 
     def get_name(self):
-        return self._name
+        return self.name
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
