@@ -214,6 +214,21 @@ class Core(object):
 
         self.pending_invites = {}
 
+    def sighup_handler(self, num, stack):
+        log.debug("SIGHUP caught, reloading the files…")
+        # reload all log files
+        log.debug("Reloading the log files…")
+        logger.reload_all()
+        log.debug("Log files reloaded.")
+        # reload the theme
+        log.debug("Reloading the theme…")
+        self.command_theme("")
+        log.debug("Theme reloaded.")
+        # reload the config from the disk
+        log.debug("Reloading the config…")
+        config.__init__(config.file_name)
+        log.debug("Config reloaded.")
+
     def autoload_plugins(self):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():

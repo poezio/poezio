@@ -31,7 +31,18 @@ class Logger(object):
 
     def __del__(self):
         for opened_file in self.fds.values():
-            opened_file.close()
+            if opened_file:
+                opened_file.close()
+
+    def reload_all(self):
+        """Close and reload all the file handles (on SIGHUP)"""
+        for opened_file in self.fds.values():
+            if opened_file:
+                opened_file.close()
+        log.debug('All log file handles closed')
+        for room in self.fds:
+            self.fds[room] = self.check_and_create_log_dir(room)
+            log.debug('Log handle for %s re-created', room)
 
     def check_and_create_log_dir(self, room):
         """

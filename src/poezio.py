@@ -15,6 +15,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import signal
 import logging
+from logger import logger
 
 from config import options
 import singleton
@@ -30,6 +31,7 @@ def main():
     else:
         logging.basicConfig(level=logging.CRITICAL)
     cocore = singleton.Singleton(core.Core)
+    signal.signal(signal.SIGHUP, cocore.sighup_handler) # ignore ctrl-c
     cocore.start()
     if not cocore.xmpp.start():  # Connect to remote server
         cocore.on_failed_connection()
