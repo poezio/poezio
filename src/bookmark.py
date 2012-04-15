@@ -124,7 +124,7 @@ def save_privatexml(xmpp):
     """"Save the remote bookmarks with privatexml."""
     xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_storage('privatexml'))
 
-def save_remote(xmpp, method="privatexml"):
+def save_remote(xmpp, method=preferred):
     """Save the remote bookmarks."""
     method = "privatexml" if method != 'pep'  else 'pep'
 

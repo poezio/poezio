@@ -1719,6 +1719,7 @@ class Core(object):
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.auto_completion(jids_list, '')
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list.append('*')
         return the_input.auto_completion(muc_list, '')
 
     def completion_bookmark(self, the_input):
@@ -1753,6 +1754,7 @@ class Core(object):
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.auto_completion(jids_list, '')
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list.append('*')
         return the_input.auto_completion(muc_list, '')
 
     def completion_version(self, the_input):
@@ -1869,15 +1871,28 @@ class Core(object):
             roomname = tab.get_name()
             if tab.joined:
                 nick = tab.own_nick
+        elif args[0] == '*':
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    b = bookmark.get_by_jid(tab.get_name())
+                    if not b:
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=True, method="local")
+                        bookmark.bookmarks.append(b)
+                    else:
+                        b.method = "local"
+            bookmark.save_local()
+            self.information('Bookmarks added and saved.', 'Info')
+            return
         else:
             info = JID(args[0])
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
-            if roomname == '':
+            if not roomname:
                 if not isinstance(self.current_tab(), tabs.MucTab):
                     return
                 roomname = self.current_tab().get_name()
+
         bm = bookmark.get_by_jid(roomname)
         if not bm:
             bm = bookmark.Bookmark(jid=roomname)
@@ -1897,6 +1912,7 @@ class Core(object):
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
+
         if config.get('use_remote_bookmarks', 'true').lower() == 'false':
             self.command_bookmark_local(arg)
             return
@@ -1911,6 +1927,24 @@ class Core(object):
                 nick = tab.own_nick
             autojoin = True
             password = None
+        elif args[0] == '*':
+            if len(args) > 1:
+                autojoin = False if args[1].lower() == 'false' else True
+            else:
+                autojoin = True
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    b = bookmark.get_by_jid(tab.get_name())
+                    if not b:
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin)
+                        bookmark.bookmarks.append(b)
+                    else:
+                        b.method = "local"
+            if bookmark.save_remote(self.xmpp, self):
+                self.information("Bookmarks added.", "Info")
+            else:
+                self.information("Could not add the bookmarks.", "Info")
+            return
         else:
             info = JID(args[0])
             if info.resource != '':
@@ -1939,7 +1973,7 @@ class Core(object):
             bm.password = password
         if autojoin:
             bm.autojoin = autojoin
-        if bookmark.save_remote(self.xmpp, self):
+        if bookmark.save_remote(self.xmpp):
             self.information('Bookmark added.', 'Info')
         self.information(_('Your remote bookmarks are now: %s') %
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
