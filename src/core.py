@@ -1537,14 +1537,14 @@ class Core(object):
         """
         /message <jid> [message]
         """
-        args = arg.split()
+        args = common.shell_split(arg)
         if len(args) < 1:
             self.command_help('message')
             return
         jid = args[0]
         tab = self.open_conversation_window(jid, focus=True)
         if len(args) > 1:
-            tab.command_say(arg.strip()[len(jid)+1:])
+            tab.command_say(args[1])
 
     def command_version(self, arg):
         """
