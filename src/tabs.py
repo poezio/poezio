@@ -984,11 +984,10 @@ class MucTab(ChatTab):
         """
         /ignore <nick>
         """
-        args = common.shell_split(arg)
-        if len(args) != 1:
+        if not arg:
             self.core.command_help('ignore')
             return
-        nick = args[0]
+        nick = arg
         user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
