@@ -2015,12 +2015,11 @@ class RosterInfoTab(Tab):
              if contact.ask == 'asked']
         return the_input.auto_completion(jids, '')
 
-    def command_accept(self, args):
+    def command_accept(self, arg):
         """
         Accept a JID from in roster. Authorize it AND subscribe to it
         """
-        args = args.split()
-        if not args:
+        if not arg:
             item = self.roster_win.selected_row
             if isinstance(item, Contact) and item.ask == 'asked':
                 jid = item.bare_jid
@@ -2028,7 +2027,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to accept')
                 return
         else:
-            jid = args[0]
+            jid = JID(arg).bare
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
         self.core.xmpp.sendPresence(pto=jid, ptype='')
         contact = roster.get_contact_by_jid(jid)
