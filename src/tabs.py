@@ -800,11 +800,7 @@ class MucTab(ChatTab):
         """
         /part [msg]
         """
-        args = arg.split()
-        if len(args):
-            arg = ' '.join(args)
-        else:
-            arg = None
+        arg = arg.strip()
         if self.joined:
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
@@ -823,7 +819,6 @@ class MucTab(ChatTab):
         """
         self.command_part(arg)
         self.core.close_tab()
-
 
     def command_query(self, arg):
         """
