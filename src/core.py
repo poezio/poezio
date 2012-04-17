@@ -1621,14 +1621,14 @@ class Core(object):
         """
         /win <number>
         """
-        args = arg.split()
-        if len(args) != 1:
+        arg = arg.strip()
+        if not arg:
             self.command_help('win')
             return
         try:
-            nb = int(args[0])
+            nb = int(arg.split()[0])
         except ValueError:
-            nb = arg.strip()
+            nb = arg
         if self.current_tab().nb == nb:
             return
         self.previous_tab_nb = self.current_tab().nb
