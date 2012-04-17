@@ -1592,7 +1592,7 @@ class Core(object):
     def command_theme(self, arg):
         """/theme <theme name>"""
         args = arg.split()
-        if len(args) == 1:
+        if args:
             self.command_set('theme %s' % (args[0],))
         warning = theming.reload_theme()
         if warning:
