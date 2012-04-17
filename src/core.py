@@ -1576,16 +1576,15 @@ class Core(object):
         /list <server>
         Opens a MucListTab containing the list of the room in the specified server
         """
-        args = arg.split()
-        if len(args) > 1:
-            self.command_help('list')
-            return
-        elif len(args) == 0:
+        arg = arg.split()
+        if len(arg) > 1:
+            return self.command_help('list')
+        elif arg:
+            server = JID(arg[0]).server
+        else:
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return self.information('Please provide a server', 'Error')
             server = JID(self.current_tab().get_name()).server
-        else:
-            server = arg.strip()
         list_tab = tabs.MucListTab(server)
         self.add_tab(list_tab, True)
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
