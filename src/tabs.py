@@ -907,7 +907,7 @@ class MucTab(ChatTab):
         /kick <nick> [reason]
         """
         args = common.shell_split(arg)
-        if not len(args):
+        if not args:
             self.core.command_help('kick')
         else:
             if len(args) > 1:
