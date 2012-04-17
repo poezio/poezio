@@ -1961,7 +1961,7 @@ class RosterInfoTab(Tab):
 
     def completion_name(self, the_input):
         text = the_input.get_text()
-        n = len(text.split())
+        n = len(common.shell_split(text))
         if text.endswith(' '):
             n += 1
 
@@ -1972,7 +1972,7 @@ class RosterInfoTab(Tab):
 
     def completion_groupadd(self, the_input):
         text = the_input.get_text()
-        n = len(text.split())
+        n = len(common.shell_split(text))
         if text.endswith(' '):
             n += 1
 
@@ -1986,7 +1986,7 @@ class RosterInfoTab(Tab):
 
     def completion_groupremove(self, the_input):
         text = the_input.get_text()
-        args = text.split()
+        args = common.shell_split(text)
         n = len(args)
         if text.endswith(' '):
             n += 1
