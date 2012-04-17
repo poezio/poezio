@@ -770,18 +770,18 @@ class MucTab(ChatTab):
             if not res:
                 return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
             version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or _('an unknown software'),
-                                                             res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
+                         res.get('name') or _('an unknown software'),
+                         res.get('version') or _('unknown'),
+                         res.get('os') or _('on an unknown platform'))
             self.core.information(version, 'Info')
 
-        args = common.shell_split(arg)
-        if len(args) < 1:
-            return
-        if args[0] in [user.nick for user in self.users]:
-            jid = self.name + '/' + args[0]
+        if not arg:
+            return self.command_help('version')
+        if arg in [user.nick for user in self.users]:
+            jid = JID(self.name)
+            jid.resource = arg
         else:
-            jid = args[0]
+            jid = JID(arg)
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_nick(self, arg):
