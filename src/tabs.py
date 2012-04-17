@@ -1800,13 +1800,13 @@ class RosterInfoTab(Tab):
             return
         self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
 
-    def command_name(self, args):
+    def command_name(self, arg):
         """
         Set a name for the specified JID in your roster
         """
-        args = args.split(None, 1)
-        if len(args) < 1:
-            return
+        args = common.shell_split(arg)
+        if not args:
+            return self.command_help('name')
         jid = JID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
