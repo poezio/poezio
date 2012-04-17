@@ -788,12 +788,11 @@ class MucTab(ChatTab):
         """
         /nick <nickname>
         """
-        args = common.shell_split(arg)
-        if len(args) != 1:
-            return
-        nick = args[0]
+        if not arg:
+            return self.command_help('nick')
+        nick = arg
         if not self.joined:
-            return
+            return self.core.information('/nick only works in joined rooms', 'Info')
         current_status = self.core.get_status()
         muc.change_nick(self.core.xmpp, self.name, nick, current_status.message, current_status.show)
 
