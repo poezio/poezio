@@ -1393,7 +1393,7 @@ class Core(object):
 
     def completion_help(self, the_input):
         commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
-        return the_input.auto_completion(commands, ' ')
+        return the_input.auto_completion(commands, ' ', quotify=False)
 
     def command_status(self, arg):
         """
@@ -1615,7 +1615,7 @@ class Core(object):
         theme_files = [name[:-3] for name in names if name.endswith('.py')]
         if not 'default' in theme_files:
             theme_files.append('default')
-        return the_input.auto_completion(theme_files, '')
+        return the_input.auto_completion(theme_files, '', quotify=False)
 
     def command_win(self, arg):
         """
@@ -1651,7 +1651,7 @@ class Core(object):
     def completion_win(self, the_input):
         l = [JID(tab.get_name()).user for tab in self.tabs]
         l.remove('')
-        return the_input.auto_completion(l, ' ')
+        return the_input.auto_completion(l, ' ', quotify=False)
 
     def completion_join(self, the_input):
         """
@@ -1761,7 +1761,7 @@ class Core(object):
         n = len(the_input.get_text().split())
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
-        return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+        return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '', quotify=False)
 
     def completion_list(self, the_input):
         muc_serv_list = []
@@ -1770,7 +1770,7 @@ class Core(object):
                     tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(JID(tab.get_name()).server)
         if muc_serv_list:
-            return the_input.auto_completion(muc_serv_list, ' ')
+            return the_input.auto_completion(muc_serv_list, ' ', quotify=False)
 
     def command_join(self, arg, histo_length=None):
         """

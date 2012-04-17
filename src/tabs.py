@@ -415,7 +415,7 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        self.input.auto_completion(words, ' ')
+        self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
         txt = self.input.key_enter()
@@ -629,23 +629,23 @@ class MucTab(ChatTab):
                          if user.nick != self.own_nick]
         contact_list = [contact.bare_jid for contact in roster.get_contacts()]
         userlist.extend(contact_list)
-        return the_input.auto_completion(userlist, '')
+        return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
         nicks = [os.environ.get('USER'), config.get('default_nick', ''), self.core.get_bookmark_nickname(self.get_name())]
         while nicks.count(''):
             nicks.remove('')
-        return the_input.auto_completion(nicks, '')
+        return the_input.auto_completion(nicks, '', quotify=False)
 
     def completion_recolor(self, the_input):
-        return the_input.auto_completion(['random'], '')
+        return the_input.auto_completion(['random'], '', quotify=False)
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
         userlist = [user.nick for user in self.users]
         userlist.remove(self.own_nick)
-        return the_input.auto_completion(userlist, '')
+        return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_role(self, the_input):
         """Completion for /role"""
@@ -1015,7 +1015,7 @@ class MucTab(ChatTab):
             self.core.information(_('%s is now unignored') % nick)
 
     def completion_unignore(self, the_input):
-        return the_input.auto_completion([user.nick for user in self.ignores], ' ')
+        return the_input.auto_completion([user.nick for user in self.ignores], ' ', quotify=False)
 
     def resize(self):
         """
@@ -2013,7 +2013,7 @@ class RosterInfoTab(Tab):
         """
         jids = [contact.bare_jid for contact in roster.get_contacts()\
              if contact.ask == 'asked']
-        return the_input.auto_completion(jids, '')
+        return the_input.auto_completion(jids, '', quotify=False)
 
     def command_accept(self, arg):
         """
