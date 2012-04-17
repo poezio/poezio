@@ -1763,12 +1763,12 @@ class RosterInfoTab(Tab):
         self.core.information_win.rebuild_everything(self.core.information_buffer)
         self.refresh()
 
-    def command_deny(self, args):
+    def command_deny(self, arg):
         """
+        /deny [jid]
         Denies a JID from our roster
         """
-        args = args.split()
-        if not args:
+        if not arg:
             item = self.roster_win.selected_row
             if isinstance(item, Contact) and item.ask == 'asked':
                 jid = item.bare_jid
@@ -1776,7 +1776,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            jid = JID(args[0]).bare
+            jid = JID(arg).bare
             if not jid in [contact.bare_jid for contact in roster.get_contacts()]:
                 self.core.information('No subscription to deny')
                 return
