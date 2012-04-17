@@ -151,6 +151,14 @@ The commands described in this page are shown like this:
 
 You can get the same help as below with the _/help_ command.
 
+NOTE: Use command parameters like this:
+
+* Do not use quotes if they are unnecessary (words without special chars)
+* If the command takes several agrguments, you need to put quotes around
+ arguments containing special chars such as backslashes or quotes
+* If the command always takes only one argument, then do not use quotes even
+ for words containing special chars
+
 
 Global commands
 ~~~~~~~~~~~~~~~
