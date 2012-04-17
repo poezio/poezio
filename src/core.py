@@ -1375,14 +1375,14 @@ class Core(object):
         /help <command_name>
         """
         args = arg.split()
-        if len(args) == 0:
+        if not args:
             msg = _('Available commands are: ')
             for command in self.commands:
                 msg += "%s " % command
             for command in self.current_tab().commands:
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
-        if len(args) >= 1:
+        if args:
             if args[0] in self.commands:
                 msg = self.commands[args[0]][1]
             elif args[0] in self.current_tab().commands:
