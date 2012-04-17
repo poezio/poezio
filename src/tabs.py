@@ -211,7 +211,7 @@ class Tab(object):
                 # complete the command's name
                 words = ['/%s'% (name) for name in self.core.commands] +\
                     ['/%s' % (name) for name in self.commands]
-                the_input.auto_completion(words, '')
+                the_input.auto_completion(words, '', quotify=False)
                 # Do not try to cycle command completion if there was only
                 # one possibily. The next tab will complete the argument.
                 # Otherwise we would need to add a useless space before being

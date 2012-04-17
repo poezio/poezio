@@ -1077,8 +1077,7 @@ class Input(Win):
         completion_type = config.get('completion', 'normal')
         if quotify:
             for i, word in enumerate(word_list[:]):
-                if ' ' in word:
-                    word_list[i] = '"' + word + '"'
+                word_list[i] = '"' + word + '"'
         if completion_type == 'shell' and self.text != '':
             self.shell_completion(word_list, add_after)
         else:
