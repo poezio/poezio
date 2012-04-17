@@ -740,9 +740,10 @@ class MucTab(ChatTab):
 
     def command_recolor(self, arg):
         """
+        /recolor [random]
         Re-assign color to the participants of the room
         """
-        args = common.shell_split(arg)
+        arg = arg.strip()
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
@@ -752,9 +753,8 @@ class MucTab(ChatTab):
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
         colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if len(args) >= 1:
-            if args[0] == 'random':
-                random.shuffle(colors)
+        if arg and arg == 'random':
+            random.shuffle(colors)
         for i, user in enumerate(sorted_users):
             user.color = colors[i % len(colors)]
         self.text_win.rebuild_everything(self._text_buffer)
