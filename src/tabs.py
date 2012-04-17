@@ -693,18 +693,20 @@ class MucTab(ChatTab):
         self.input.refresh()
 
     def command_info(self, arg):
-        args = common.shell_split(arg)
-        if len(args) != 1:
-            return self.core.information("Info command takes only 1 argument")
-        user = self.get_user_by_name(args[0])
+        """
+        /info <nick>
+        """
+        if not arg:
+            return self.command_help('info')
+        user = self.get_user_by_name(arg)
         if not user:
-            return self.core.information("Unknown user: %s" % args[0])
-        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (args[0],
-                                                                ' (%s)' % user.jid if user.jid else '',
-                                                                user.show or 'Available',
-                                                                user.role or 'None',
-                                                                user.affiliation or 'None',
-                                                                '\n%s' % user.status if user.status else '')
+            return self.core.information("Unknown user: %s" % arg)
+        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (arg,
+                        ' (%s)' % user.jid if user.jid else '',
+                        user.show or 'Available',
+                        user.role or 'None',
+                        user.affiliation or 'None',
+                        '\n%s' % user.status if user.status else '')
         self.core.information(info, 'Info')
 
     def command_configure(self, arg):
