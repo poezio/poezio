@@ -44,7 +44,7 @@ from sleekxmpp.xmlstream import matcher
 from sleekxmpp.xmlstream.handler import Callback
 from config import config
 from roster import RosterGroup, roster
-from contact import Contact
+from contact import Contact, Resource
 from text_buffer import TextBuffer
 from user import User
 from os import getenv, path
@@ -1710,6 +1710,7 @@ class RosterInfoTab(Tab):
         self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
+        self.key_func["v"] = self.get_contact_version
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
@@ -2246,6 +2247,16 @@ class RosterInfoTab(Tab):
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
             return True
+
+    def get_contact_version(self):
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            for resource in selected_row.resources:
+                self.core.command_version(str(resource.jid))
+        elif isinstance(selected_row, Resource):
+            self.core.command_version(str(selected_row.jid))
+        else:
+            self.core.information('Nothing to get versions from', 'Info')
 
     def start_search(self):
         """
