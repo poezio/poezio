@@ -1717,6 +1717,7 @@ class RosterInfoTab(Tab):
         self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence."), None)
         self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name."), self.completion_name)
         self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
+        self.commands['groupmove'] = (self.command_groupmove, _("Usage: /groupchange <jid> <old group> <new group>\nMoves the given JID from the old group to the new group."), self.completion_groupmove)
         self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
@@ -1865,9 +1866,55 @@ class RosterInfoTab(Tab):
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.edit_groups_of_contact(contact, new_groups)
 
+    def command_groupmove(self, arg):
+        """
+        Remove the specified JID from the first specified group and add it to the second one
+        """
+        args = common.shell_split(arg)
+        if len(args) != 3:
+            return self.core.command_help('groupmove')
+        jid = JID(args[0]).bare
+        group_from = args[1]
+        group_to = args[2]
+
+        contact = roster.get_contact_by_jid(jid)
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.groups)
+        if 'none' in new_groups:
+            new_groups.remove('none')
+
+        if group_to == 'none' or group_from == 'none':
+            self.core.information(_('"none" is not a group.'), 'Error')
+            return
+
+        if group_from not in new_groups:
+            self.core.information(_('JID not in first group'), 'Error')
+            return
+
+        if group_to in new_groups:
+            self.core.information(_('JID already in second group'), 'Error')
+            return
+
+        if group_to == group_from:
+            self.core.information(_('The groups are the same.'), 'Error')
+            return
+
+        new_groups.add(group_to)
+        if 'none' in new_groups:
+            new_groups.remove('none')
+
+        new_groups.remove(group_from)
+        name = contact.name
+        subscription = contact.subscription
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
+
     def command_groupremove(self, args):
         """
-        Remove the specified JID to the specified group
+        Remove the specified JID from the specified group
         """
         args = common.shell_split(args)
         if len(args) != 2:
@@ -1994,6 +2041,29 @@ class RosterInfoTab(Tab):
             jids = [contact.bare_jid for contact in roster.get_contacts()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
+            groups = [group.name for group in roster.get_groups() if group.name != 'none']
+            return the_input.auto_completion(groups, '')
+        return False
+
+    def completion_groupmove(self, the_input):
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [contact.bare_jid for contact in roster.get_contacts()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            contact = roster.get_contact_by_jid(args[1])
+            if not contact:
+                return False
+            groups = list(contact.groups)
+            if 'none' in groups:
+                groups.remove('none')
+            return the_input.auto_completion(groups, '')
+        elif n == 4:
             groups = [group.name for group in roster.get_groups() if group.name != 'none']
             return the_input.auto_completion(groups, '')
         return False
