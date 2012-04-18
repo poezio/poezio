@@ -1711,6 +1711,7 @@ class RosterInfoTab(Tab):
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["v"] = self.get_contact_version
+        self.key_func["i"] = self.show_contact_info
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
@@ -2257,6 +2258,33 @@ class RosterInfoTab(Tab):
             self.core.command_version(str(selected_row.jid))
         else:
             self.core.information('Nothing to get versions from', 'Info')
+
+    def show_contact_info(self):
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            cont = selected_row
+            res = selected_row.get_highest_priority_resource()
+            msg = 'Contact: %s (%s)\n%s connected resources\nCurrent status: %s' % (
+                    cont.bare_jid,
+                    res.presence if res else 'unavailable',
+                    cont.get_nb_resources(),
+                    res.status if res else '',)
+        elif isinstance(selected_row, Resource):
+            res = selected_row
+            msg = 'Resource: %s (%s)\nCurrent status: %s' % (
+                    res.jid,
+                    res.presence,
+                    res.status,)
+        elif isinstance(selected_row, RosterGroup):
+            rg = selected_row
+            msg = 'Group: %s [%s/%s] contacts online' % (
+                    rg.name,
+                    rg.get_nb_connected_contacts(),
+                    len(rg),)
+        else:
+            msg = None
+        if msg:
+            self.core.information(msg, 'Info')
 
     def start_search(self):
         """
