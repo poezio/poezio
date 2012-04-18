@@ -269,6 +269,12 @@ class Tab(object):
         """
         return self.__class__.__name__
 
+    def get_nick(self):
+        """
+        Get the nick of the tab (defaults to its name)
+        """
+        return self.get_name()
+
     def get_text_window(self):
         """
         Returns the principal TextWin window, if there's one
@@ -1086,6 +1092,11 @@ class MucTab(ChatTab):
     def get_name(self):
         return self.name
 
+    def get_nick(self):
+        if config.getl('show_muc_jid', 'true') == 'false':
+            return JID(self.name).user
+        return self.name
+
     def get_text_window(self):
         return self.text_win
 
@@ -1584,6 +1595,9 @@ class PrivateTab(ChatTab):
 
     def get_name(self):
         return self.name
+
+    def get_nick(self):
+        return JID(self.name).resource
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -2349,6 +2363,10 @@ class ConversationTab(ChatTab):
 
     def get_name(self):
         return self.name
+
+    def get_nick(self):
+        jid = JID(self.name)
+        return roster.get_contact_by_jid(jid.bare).name or jid.user
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
