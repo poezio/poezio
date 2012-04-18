@@ -703,7 +703,7 @@ class MucTab(ChatTab):
         /info <nick>
         """
         if not arg:
-            return self.command_help('info')
+            return self.core.command_help('info')
         user = self.get_user_by_name(arg)
         if not user:
             return self.core.information("Unknown user: %s" % arg)
@@ -782,7 +782,7 @@ class MucTab(ChatTab):
             self.core.information(version, 'Info')
 
         if not arg:
-            return self.command_help('version')
+            return self.core.command_help('version')
         if arg in [user.nick for user in self.users]:
             jid = JID(self.name)
             jid.resource = arg
@@ -795,7 +795,7 @@ class MucTab(ChatTab):
         /nick <nickname>
         """
         if not arg:
-            return self.command_help('nick')
+            return self.core.command_help('nick')
         nick = arg
         if not self.joined:
             return self.core.information('/nick only works in joined rooms', 'Info')
@@ -1820,7 +1820,7 @@ class RosterInfoTab(Tab):
         """
         args = common.shell_split(arg)
         if not args:
-            return self.command_help('name')
+            return self.core.command_help('name')
         jid = JID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
