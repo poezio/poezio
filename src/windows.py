@@ -1688,6 +1688,8 @@ class ContactInfoWin(Win):
             else:
                 self.addstr('Ask: %s' % (contact.ask,))
         self.finish_line()
+        if resource:
+            self.addstr(2, 0, 'Status: %s' % (resource.status))
 
 
     def draw_group_info(self, group):
