@@ -319,15 +319,24 @@ class GlobalInfoBar(Win):
             self._win.erase()
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             sorted_tabs = sorted(self.core.tabs, key=comp)
+            show_names = config.getl('show_tab_names', 'false') == 'true'
+            show_nums = config.getl('show_tab_numbers', 'true') != 'false'
+            use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
             for tab in sorted_tabs:
                 color = tab.color
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
                         color is get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
-                    self.addstr("%s" % str(tab.nb), to_curses_attr(color))
-                    if config.get('show_tab_names', 'false') == 'true':
-                        self.addstr(" %s" % str(tab.get_name()), to_curses_attr(color))
+                    if show_nums or not show_names:
+                        self.addstr("%s" % str(tab.nb), to_curses_attr(color))
+                        if show_names:
+                            self.addstr(' ', to_curses_attr(color))
+                    if show_names:
+                        if use_nicks:
+                            self.addstr("%s" % str(tab.get_nick()), to_curses_attr(color))
+                        else:
+                            self.addstr("%s" % str(tab.get_name()), to_curses_attr(color))
                     self.addstr("|", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                 except:             # end of line
                     break
@@ -356,6 +365,7 @@ class VerticalGlobalInfoBar(Win):
                 sorted_tabs = [tab for tab in sorted_tabs if\
                                    tab.vertical_color is not get_theme().COLOR_VERTICAL_TAB_NORMAL]
             nb_tabs = len(sorted_tabs)
+            use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
             if nb_tabs >= height:
                 for y, tab in enumerate(sorted_tabs):
                     if tab.vertical_color == get_theme().COLOR_VERTICAL_TAB_CURRENT:
@@ -372,7 +382,10 @@ class VerticalGlobalInfoBar(Win):
                 color = tab.vertical_color
                 self.addstr(y if config.get('vertical_tab_list_sort', 'desc') != 'asc' else height - y - 1, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
                 self.addstr('.')
-                self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
+                if use_nicks:
+                    self.addnstr("%s" % tab.get_nick(), width - 4, to_curses_attr(color))
+                else:
+                    self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
             self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
             self._win.vline(0, width-1, curses.ACS_VLINE, height)
             self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
