@@ -1628,7 +1628,9 @@ class RosterWin(Win):
             presence = resource.presence
             nb = ' (%s)' % (contact.get_nb_resources(),)
         color = RosterWin.color_show[presence]()
-        if contact.name:
+        if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
+            display_name = '%s %s' % (contact.name, nb[1:])
+        elif contact.name:
             display_name = '%s (%s)%s' % (contact.name,
                                         contact.bare_jid, nb,)
         else:

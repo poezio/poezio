@@ -269,6 +269,11 @@ section of this documentation.
   jid. E.g. if you have poezio@muc.poezio.eu, it will be displayed as
   `poezio`. This will be used only if use_tab_nicks is set to true.
 
+*show_roster_jids*:: true
+
+  Set this to false if you want to hide the JIDs in the roster (and keep only
+  the contact names). If there is no contact name, the JID will still be
+  displayed.
 
 *beep_on*:: highlight private
 
