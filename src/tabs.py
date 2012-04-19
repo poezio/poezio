@@ -1712,6 +1712,7 @@ class RosterInfoTab(Tab):
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["v"] = self.get_contact_version
         self.key_func["i"] = self.show_contact_info
+        self.key_func["n"] = self.change_contact_name
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
@@ -2250,6 +2251,9 @@ class RosterInfoTab(Tab):
             return True
 
     def get_contact_version(self):
+        """
+        Show the versions of the resource(s) currently selected
+        """
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, Contact):
             for resource in selected_row.resources:
@@ -2260,6 +2264,10 @@ class RosterInfoTab(Tab):
             self.core.information('Nothing to get versions from', 'Info')
 
     def show_contact_info(self):
+        """
+        Show the contact info (resource number, status, presence, etc)
+        when 'i' is pressed.
+        """
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, Contact):
             cont = selected_row
@@ -2286,6 +2294,22 @@ class RosterInfoTab(Tab):
             msg = None
         if msg:
             self.core.information(msg, 'Info')
+
+    def change_contact_name(self):
+        """
+        Auto-fill a /name command when 'n' is pressed
+        """
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            jid = selected_row.bare_jid
+        elif isinstance(selected_row, Resource):
+            jid = JID(selected_row.jid).bare
+        else:
+            return
+        self.on_slash()
+        self.input.text = '/name "%s" ' % jid
+        self.input.key_end()
+        self.input.refresh()
 
     def start_search(self):
         """
