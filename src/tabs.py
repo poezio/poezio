@@ -2500,7 +2500,11 @@ class ConversationTab(ChatTab):
 
     def get_nick(self):
         jid = JID(self.name)
-        return roster.get_contact_by_jid(jid.bare).name or jid.user
+        contact = roster.get_contact_by_jid(jid.bare)
+        if contact:
+            return contact.name
+        else:
+            return jid.user
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
