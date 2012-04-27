@@ -850,8 +850,8 @@ class Core(object):
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
-        if roster.get_contact_by_jid(jid.bare):
-            remote_nick = roster.get_contact_by_jid(jid.bare).name or jid.user
+        if jid.bare in roster:
+            remote_nick = roster[jid.bare].name or jid.user
         else:
             remote_nick = jid.user
         delay_tag = message.find('{urn:xmpp:delay}delay')
@@ -892,60 +892,64 @@ class Core(object):
 
     def on_roster_update(self, iq):
         """
-        A subscription changed, or we received a roster item
-        after a roster request, etc
+        The roster was received.
         """
-        for item in iq.findall('{jabber:iq:roster}query/{jabber:iq:roster}item'):
-            jid = item.attrib['jid']
-            contact = roster.get_contact_by_jid(jid)
-            if not contact:
-                contact = Contact(jid)
-                roster.add_contact(contact, jid)
-            if 'ask' in item.attrib:
-                contact.ask = item.attrib['ask']
+        for item in iq['roster']:
+            jid = item['jid']
+            if item['subscription'] == 'remove':
+                del roster[jid]
             else:
-                contact.ask = None
-            if 'name' in item.attrib:
-                contact.name = item.attrib['name']
-            else:
-                contact.name = None
-            if item.attrib['subscription']:
-                contact.subscription = item.attrib['subscription']
-            groups = item.findall('{jabber:iq:roster}group')
-            roster.edit_groups_of_contact(contact, [group.text for group in groups])
-            if item.attrib['subscription'] == 'remove':
-                roster.remove_contact(contact.bare_jid)
+                roster.update_contact_groups(jid)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
-    def on_changed_subscription(self, presence):
-        """
-        Triggered whenever a presence stanza with a type of subscribe, subscribed, unsubscribe, or unsubscribed is received.
-        """
+    def on_subscription_request(self, presence):
+        """subscribe received"""
         jid = presence['from'].bare
-        contact = roster.get_contact_by_jid(jid)
-        if presence['type'] == 'subscribe':
-            if not contact:
-                contact = Contact(jid)
-                roster.add_contact(contact, jid)
-            log.debug("CONTACT: %s", contact)
-            if contact.subscription in ('from', 'both'):
-                log.debug('FROM OR BOTH')
-                return
-            elif contact.subscription in ('to'):
-                log.debug('TO')
-                self.xmpp.sendPresence(pto=jid, ptype='subscribed')
-                self.xmpp.sendPresence(pto=jid, ptype='')
-                return
-            roster.edit_groups_of_contact(contact, [])
-            contact.ask = 'asked'
+        contact = roster[jid]
+        if contact.subscription in ('from', 'both'):
+            return
+        elif contact.subscription == 'to':
+            self.xmpp.sendPresence(pto=jid, ptype='subscribed')
+            self.xmpp.sendPresence(pto=jid)
+        else:
+            roster.update_contact_groups(contact)
+            contact.pending_in = True
+            self.information('%s wants to subscribe to your presence' % jid, 'Roster')
             self.get_tab_by_number(0).state = 'highlight'
-            self.information('%s wants to subscribe to your presence'%jid, 'Roster')
-        elif presence['type'] == 'unsubscribed':
-            self.information('%s unsubscribed you from his presence'%jid, 'Roster')
-        elif presence['type'] == 'unsubscribe':
-            self.information('%s unsubscribed from your presence'%jid, 'Roster')
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
 
+    def on_subscription_authorized(self, presence):
+        """subscribed received"""
+        jid = presence['from'].bare
+        contact = roster[jid]
+        if contact.pending_out:
+            contact.pending_out = False
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
+
+    def on_subscription_remove(self, presence):
+        """unsubscribe received"""
+        jid = presence['from'].bare
+        contact = roster[jid]
+        if contact.subscription in ('to', 'both'):
+            self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
+            self.get_tab_by_number(0).state = 'highlight'
+        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+            self.refresh_window()
+
+    def on_subscription_removed(self, presence):
+        """unsubscribed received"""
+        jid = presence['from'].bare
+        contact = roster[jid]
+        if contact.subscription in ('both', 'from'):
+            self.information('%s does not want you to receive his status anymore.'%jid, 'Roster')
+            self.get_tab_by_number(0).state = 'highlight'
+        elif contact.pending_out:
+            self.information('%s rejected your contact proposal.' % jid, 'Roster')
+            self.get_tab_by_number(0).state = 'highlight'
+            contact.pending_out = False
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -2165,7 +2169,6 @@ class Core(object):
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab) and tab.joined:
                 tab.command_part(msg)
-        roster.empty()
         self.save_config()
         # Ugly fix thanks to gmail servers
         self.xmpp.disconnect(reconnect)
