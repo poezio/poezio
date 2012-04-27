@@ -77,7 +77,6 @@ class Contact(object):
 
     @property
     def pending_in(self):
-        log.debug('IN %s %s' % (self.bare_jid, self.__item['pending_in']))
         return self.__item['pending_in']
 
     @pending_in.setter
@@ -86,7 +85,6 @@ class Contact(object):
 
     @property
     def pending_out(self):
-        log.debug('OUT %s %s' % (self.bare_jid, self.__item['pending_out']))
         return self.__item['pending_out']
 
     @pending_out.setter

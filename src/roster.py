@@ -55,7 +55,6 @@ class Roster(object):
         key = JID(key).bare
         if key in self.contacts and self.contacts[key] is not None:
             return self.contacts[key]
-        log.debug('JIDS: %s' % self.jids())
         if key in self.jids():
             contact = Contact(self.__node[key])
             self.contacts[key] = contact
@@ -68,9 +67,9 @@ class Roster(object):
     def __delitem__(self, jid):
         """Remove a contact from the roster"""
         jid = JID(jid).bare
-        if jid not in self.contacts:
-            return log.debug('not in self.contacts')
         contact = self[jid]
+        if not contact:
+            return
         for group in list(self.groups.values()):
             group.remove(contact)
             if not group:
@@ -104,7 +103,6 @@ class Roster(object):
 
     def jids(self):
         """List of the contact JIDS"""
-        log.debug('%s' % self.__node.keys())
         return [key for key in self.__node.keys() if key not in self.__mucs and key != self.jid]
 
     def get_contacts(self):
