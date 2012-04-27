@@ -2502,7 +2502,7 @@ class ConversationTab(ChatTab):
         jid = JID(self.name)
         contact = roster.get_contact_by_jid(jid.bare)
         if contact:
-            return contact.name
+            return contact.name or jid.user
         else:
             return jid.user
 
