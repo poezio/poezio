@@ -151,6 +151,14 @@ The commands described in this page are shown like this:
 
 You can get the same help as below with the _/help_ command.
 
+NOTE: Use command parameters like this:
+
+* Do not use quotes if they are unnecessary (words without special chars)
+* If the command takes several agrguments, you need to put quotes around
+ arguments containing special chars such as backslashes or quotes
+* If the command always takes only one argument, then do not use quotes even
+ for words containing special chars
+
 
 Global commands
 ~~~~~~~~~~~~~~~
@@ -363,6 +371,10 @@ Roster tab commands
 
 */groupadd <jid> <group>*:: Add the given JID to the given group (if the group
  does not exist, it will be created).
+
+*/groupmove <jid> <old_group> <new_group>*:: Move the given JID from one group
+ to another (the JID has to be in the first group, and the new group  may not
+ exist).
 
 */groupremove <jid> <group>*:: Remove the given JID from the given group (if
  the group is empty after that, it will get deleted).

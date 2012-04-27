@@ -1359,14 +1359,14 @@ class Core(object):
         /help <command_name>
         """
         args = arg.split()
-        if len(args) == 0:
+        if not args:
             msg = _('Available commands are: ')
             for command in self.commands:
                 msg += "%s " % command
             for command in self.current_tab().commands:
                 msg += "%s " % command
             msg += _("\nType /help <command_name> to know what each command does")
-        if len(args) >= 1:
+        if args:
             if args[0] in self.commands:
                 msg = self.commands[args[0]][1]
             elif args[0] in self.current_tab().commands:
@@ -1377,7 +1377,7 @@ class Core(object):
 
     def completion_help(self, the_input):
         commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
-        return the_input.auto_completion(commands, ' ')
+        return the_input.auto_completion(commands, ' ', quotify=False)
 
     def command_status(self, arg):
         """
@@ -1521,14 +1521,14 @@ class Core(object):
         """
         /message <jid> [message]
         """
-        args = arg.split()
+        args = common.shell_split(arg)
         if len(args) < 1:
             self.command_help('message')
             return
         jid = args[0]
         tab = self.open_conversation_window(jid, focus=True)
         if len(args) > 1:
-            tab.command_say(arg.strip()[len(jid)+1:])
+            tab.command_say(args[1])
 
     def command_version(self, arg):
         """
@@ -1560,16 +1560,15 @@ class Core(object):
         /list <server>
         Opens a MucListTab containing the list of the room in the specified server
         """
-        args = arg.split()
-        if len(args) > 1:
-            self.command_help('list')
-            return
-        elif len(args) == 0:
+        arg = arg.split()
+        if len(arg) > 1:
+            return self.command_help('list')
+        elif arg:
+            server = JID(arg[0]).server
+        else:
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return self.information('Please provide a server', 'Error')
             server = JID(self.current_tab().get_name()).server
-        else:
-            server = arg.strip()
         list_tab = tabs.MucListTab(server)
         self.add_tab(list_tab, True)
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
@@ -1577,7 +1576,7 @@ class Core(object):
     def command_theme(self, arg):
         """/theme <theme name>"""
         args = arg.split()
-        if len(args) == 1:
+        if args:
             self.command_set('theme %s' % (args[0],))
         warning = theming.reload_theme()
         if warning:
@@ -1600,20 +1599,20 @@ class Core(object):
         theme_files = [name[:-3] for name in names if name.endswith('.py')]
         if not 'default' in theme_files:
             theme_files.append('default')
-        return the_input.auto_completion(theme_files, '')
+        return the_input.auto_completion(theme_files, '', quotify=False)
 
     def command_win(self, arg):
         """
         /win <number>
         """
-        args = arg.split()
-        if len(args) != 1:
+        arg = arg.strip()
+        if not arg:
             self.command_help('win')
             return
         try:
-            nb = int(args[0])
+            nb = int(arg.split()[0])
         except ValueError:
-            nb = arg.strip()
+            nb = arg
         if self.current_tab().nb == nb:
             return
         self.previous_tab_nb = self.current_tab().nb
@@ -1636,7 +1635,7 @@ class Core(object):
     def completion_win(self, the_input):
         l = [JID(tab.get_name()).user for tab in self.tabs]
         l.remove('')
-        return the_input.auto_completion(l, ' ')
+        return the_input.auto_completion(l, ' ', quotify=False)
 
     def completion_join(self, the_input):
         """
@@ -1703,6 +1702,7 @@ class Core(object):
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.auto_completion(jids_list, '')
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list.append('*')
         return the_input.auto_completion(muc_list, '')
 
     def completion_bookmark(self, the_input):
@@ -1737,6 +1737,7 @@ class Core(object):
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.auto_completion(jids_list, '')
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list.append('*')
         return the_input.auto_completion(muc_list, '')
 
     def completion_version(self, the_input):
@@ -1744,7 +1745,7 @@ class Core(object):
         n = len(the_input.get_text().split())
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
-        return the_input.auto_completion([jid for jid in roster.jids()], '')
+        return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
 
     def completion_list(self, the_input):
         muc_serv_list = []
@@ -1753,7 +1754,7 @@ class Core(object):
                     tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(JID(tab.get_name()).server)
         if muc_serv_list:
-            return the_input.auto_completion(muc_serv_list, ' ')
+            return the_input.auto_completion(muc_serv_list, ' ', quotify=False)
 
     def command_join(self, arg, histo_length=None):
         """
@@ -1853,15 +1854,28 @@ class Core(object):
             roomname = tab.get_name()
             if tab.joined:
                 nick = tab.own_nick
+        elif args[0] == '*':
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    b = bookmark.get_by_jid(tab.get_name())
+                    if not b:
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=True, method="local")
+                        bookmark.bookmarks.append(b)
+                    else:
+                        b.method = "local"
+            bookmark.save_local()
+            self.information('Bookmarks added and saved.', 'Info')
+            return
         else:
             info = JID(args[0])
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
-            if roomname == '':
+            if not roomname:
                 if not isinstance(self.current_tab(), tabs.MucTab):
                     return
                 roomname = self.current_tab().get_name()
+
         bm = bookmark.get_by_jid(roomname)
         if not bm:
             bm = bookmark.Bookmark(jid=roomname)
@@ -1881,6 +1895,7 @@ class Core(object):
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
+
         if config.get('use_remote_bookmarks', 'true').lower() == 'false':
             self.command_bookmark_local(arg)
             return
@@ -1895,6 +1910,24 @@ class Core(object):
                 nick = tab.own_nick
             autojoin = True
             password = None
+        elif args[0] == '*':
+            if len(args) > 1:
+                autojoin = False if args[1].lower() == 'false' else True
+            else:
+                autojoin = True
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab):
+                    b = bookmark.get_by_jid(tab.get_name())
+                    if not b:
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin)
+                        bookmark.bookmarks.append(b)
+                    else:
+                        b.method = "local"
+            if bookmark.save_remote(self.xmpp, self):
+                self.information("Bookmarks added.", "Info")
+            else:
+                self.information("Could not add the bookmarks.", "Info")
+            return
         else:
             info = JID(args[0])
             if info.resource != '':
@@ -1923,7 +1956,7 @@ class Core(object):
             bm.password = password
         if autojoin:
             bm.autojoin = autojoin
-        if bookmark.save_remote(self.xmpp, self):
+        if bookmark.save_remote(self.xmpp):
             self.information('Bookmark added.', 'Info')
         self.information(_('Your remote bookmarks are now: %s') %
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')

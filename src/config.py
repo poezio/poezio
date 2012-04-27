@@ -50,6 +50,12 @@ class Config(RawConfigParser):
             return default
         return res
 
+    def getl(self, option, default, section=DEFSECTION):
+        """
+        get a value and return it lowercase
+        """
+        return self.get(option, default, section).lower()
+
     def get_by_tabname(self, option, default, tabname, fallback=True):
         """
         Try to get the value for the option. First we look in

@@ -62,6 +62,11 @@ class Contact(object):
         return self.__item['groups'] or ['none']
 
     @property
+    def resources(self):
+        """Resources of the contact"""
+        return self._resources
+
+    @property
     def bare_jid(self):
         """The bare_jid or the contact"""
         return self.__item.jid

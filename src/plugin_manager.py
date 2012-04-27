@@ -213,10 +213,10 @@ class PluginManager(object):
             self.core.information(_('Completion failed: %s' % e), 'Error')
             return
         plugins_files = [name[:-3] for name in names if name.endswith('.py')]
-        return the_input.auto_completion(plugins_files, '')
+        return the_input.auto_completion(plugins_files, '', quotify=False)
 
     def completion_unload(self, the_input):
         """
         completion function that completes the name of the plugins that are loaded
         """
-        return the_input.auto_completion(list(self.plugins.keys()), '')
+        return the_input.auto_completion(list(self.plugins.keys()), '', quotify=False)

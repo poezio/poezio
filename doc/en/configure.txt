@@ -247,6 +247,33 @@ section of this documentation.
   If you want to show all the tabs in the Tab bar, even those
   with no activity, set to true. Else, set to false
 
+*show_tab_names*:: false
+
+  If you want to show the tab name in the bottom Tab bar, set this to true.
+
+*show_tab_numbers*:: true
+
+  If you want to disable the numbers in the bottom Tab bar, set this to false.
+  Note that if both show_tab_names and show_tab_numbers are set to false, the
+  numbers will still be displayed.
+
+*use_tab_nicks*:: true
+
+  The tabs have a name, and a nick, which is, for a contact, its name in the
+  roster, or for a private conversation, the nickname in the MUC. Set this to
+  true if you want to have them shown instead of the jid of the contact.
+
+*show_muc_jid*:: true
+
+  Set this to false if you want to display only the *user* part of the MUC
+  jid. E.g. if you have poezio@muc.poezio.eu, it will be displayed as
+  `poezio`. This will be used only if use_tab_nicks is set to true.
+
+*show_roster_jids*:: true
+
+  Set this to false if you want to hide the JIDs in the roster (and keep only
+  the contact names). If there is no contact name, the JID will still be
+  displayed.
 
 *beep_on*:: highlight private
 

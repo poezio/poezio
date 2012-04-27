@@ -44,7 +44,7 @@ from sleekxmpp.xmlstream import matcher
 from sleekxmpp.xmlstream.handler import Callback
 from config import config
 from roster import RosterGroup, roster
-from contact import Contact
+from contact import Contact, Resource
 from text_buffer import TextBuffer
 from user import User
 from os import getenv, path
@@ -211,7 +211,7 @@ class Tab(object):
                 # complete the command's name
                 words = ['/%s'% (name) for name in self.core.commands] +\
                     ['/%s' % (name) for name in self.commands]
-                the_input.auto_completion(words, '')
+                the_input.auto_completion(words, '', quotify=False)
                 # Do not try to cycle command completion if there was only
                 # one possibily. The next tab will complete the argument.
                 # Otherwise we would need to add a useless space before being
@@ -268,6 +268,12 @@ class Tab(object):
         get the name of the tab
         """
         return self.__class__.__name__
+
+    def get_nick(self):
+        """
+        Get the nick of the tab (defaults to its name)
+        """
+        return self.get_name()
 
     def get_text_window(self):
         """
@@ -415,7 +421,7 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        self.input.auto_completion(words, ' ')
+        self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
         txt = self.input.key_enter()
@@ -629,23 +635,23 @@ class MucTab(ChatTab):
                          if user.nick != self.own_nick]
         contact_list = [jid for jid in roster.jids()]
         userlist.extend(contact_list)
-        return the_input.auto_completion(userlist, '')
+        return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
         nicks = [os.environ.get('USER'), config.get('default_nick', ''), self.core.get_bookmark_nickname(self.get_name())]
         while nicks.count(''):
             nicks.remove('')
-        return the_input.auto_completion(nicks, '')
+        return the_input.auto_completion(nicks, '', quotify=False)
 
     def completion_recolor(self, the_input):
-        return the_input.auto_completion(['random'], '')
+        return the_input.auto_completion(['random'], '', quotify=False)
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
         userlist = [user.nick for user in self.users]
         userlist.remove(self.own_nick)
-        return the_input.auto_completion(userlist, '')
+        return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_role(self, the_input):
         """Completion for /role"""
@@ -693,18 +699,20 @@ class MucTab(ChatTab):
         self.input.refresh()
 
     def command_info(self, arg):
-        args = common.shell_split(arg)
-        if len(args) != 1:
-            return self.core.information("Info command takes only 1 argument")
-        user = self.get_user_by_name(args[0])
+        """
+        /info <nick>
+        """
+        if not arg:
+            return self.core.command_help('info')
+        user = self.get_user_by_name(arg)
         if not user:
-            return self.core.information("Unknown user: %s" % args[0])
-        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (args[0],
-                                                                ' (%s)' % user.jid if user.jid else '',
-                                                                user.show or 'Available',
-                                                                user.role or 'None',
-                                                                user.affiliation or 'None',
-                                                                '\n%s' % user.status if user.status else '')
+            return self.core.information("Unknown user: %s" % arg)
+        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (arg,
+                        ' (%s)' % user.jid if user.jid else '',
+                        user.show or 'Available',
+                        user.role or 'None',
+                        user.affiliation or 'None',
+                        '\n%s' % user.status if user.status else '')
         self.core.information(info, 'Info')
 
     def command_configure(self, arg):
@@ -738,9 +746,10 @@ class MucTab(ChatTab):
 
     def command_recolor(self, arg):
         """
+        /recolor [random]
         Re-assign color to the participants of the room
         """
-        args = common.shell_split(arg)
+        arg = arg.strip()
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
@@ -750,9 +759,8 @@ class MucTab(ChatTab):
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
         colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if len(args) >= 1:
-            if args[0] == 'random':
-                random.shuffle(colors)
+        if arg and arg == 'random':
+            random.shuffle(colors)
         for i, user in enumerate(sorted_users):
             user.color = colors[i % len(colors)]
         self.text_win.rebuild_everything(self._text_buffer)
@@ -768,30 +776,29 @@ class MucTab(ChatTab):
             if not res:
                 return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
             version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or _('an unknown software'),
-                                                             res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
+                         res.get('name') or _('an unknown software'),
+                         res.get('version') or _('unknown'),
+                         res.get('os') or _('on an unknown platform'))
             self.core.information(version, 'Info')
 
-        args = common.shell_split(arg)
-        if len(args) < 1:
-            return
-        if args[0] in [user.nick for user in self.users]:
-            jid = self.name + '/' + args[0]
+        if not arg:
+            return self.core.command_help('version')
+        if arg in [user.nick for user in self.users]:
+            jid = JID(self.name)
+            jid.resource = arg
         else:
-            jid = args[0]
+            jid = JID(arg)
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_nick(self, arg):
         """
         /nick <nickname>
         """
-        args = common.shell_split(arg)
-        if len(args) != 1:
-            return
-        nick = args[0]
+        if not arg:
+            return self.core.command_help('nick')
+        nick = arg
         if not self.joined:
-            return
+            return self.core.information('/nick only works in joined rooms', 'Info')
         current_status = self.core.get_status()
         muc.change_nick(self.core.xmpp, self.name, nick, current_status.message, current_status.show)
 
@@ -799,11 +806,7 @@ class MucTab(ChatTab):
         """
         /part [msg]
         """
-        args = arg.split()
-        if len(args):
-            arg = ' '.join(args)
-        else:
-            arg = None
+        arg = arg.strip()
         if self.joined:
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
@@ -822,7 +825,6 @@ class MucTab(ChatTab):
         """
         self.command_part(arg)
         self.core.close_tab()
-
 
     def command_query(self, arg):
         """
@@ -911,7 +913,7 @@ class MucTab(ChatTab):
         /kick <nick> [reason]
         """
         args = common.shell_split(arg)
-        if not len(args):
+        if not args:
             self.core.command_help('kick')
         else:
             if len(args) > 1:
@@ -988,11 +990,10 @@ class MucTab(ChatTab):
         """
         /ignore <nick>
         """
-        args = common.shell_split(arg)
-        if len(args) != 1:
+        if not arg:
             self.core.command_help('ignore')
             return
-        nick = args[0]
+        nick = arg
         user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
@@ -1006,11 +1007,10 @@ class MucTab(ChatTab):
         """
         /unignore <nick>
         """
-        args = common.shell_split(arg)
-        if len(args) != 1:
+        if not arg:
             self.core.command_help('unignore')
             return
-        nick = args[0]
+        nick = arg
         user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
@@ -1021,7 +1021,7 @@ class MucTab(ChatTab):
             self.core.information(_('%s is now unignored') % nick)
 
     def completion_unignore(self, the_input):
-        return the_input.auto_completion([user.nick for user in self.ignores], ' ')
+        return the_input.auto_completion([user.nick for user in self.ignores], ' ', quotify=False)
 
     def resize(self):
         """
@@ -1090,6 +1090,11 @@ class MucTab(ChatTab):
         self.set_color_state(color)
 
     def get_name(self):
+        return self.name
+
+    def get_nick(self):
+        if config.getl('show_muc_jid', 'true') == 'false':
+            return JID(self.name).user
         return self.name
 
     def get_text_window(self):
@@ -1591,6 +1596,9 @@ class PrivateTab(ChatTab):
     def get_name(self):
         return self.name
 
+    def get_nick(self):
+        return JID(self.name).resource
+
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
             self.key_func[key]()
@@ -1702,6 +1710,9 @@ class RosterInfoTab(Tab):
         self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
+        self.key_func["v"] = self.get_contact_version
+        self.key_func["i"] = self.show_contact_info
+        self.key_func["n"] = self.change_contact_name
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
         self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
@@ -1709,6 +1720,7 @@ class RosterInfoTab(Tab):
         self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence."), None)
         self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name."), self.completion_name)
         self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
+        self.commands['groupmove'] = (self.command_groupmove, _("Usage: /groupchange <jid> <old group> <new group>\nMoves the given JID from the old group to the new group."), self.completion_groupmove)
         self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
@@ -1769,12 +1781,12 @@ class RosterInfoTab(Tab):
         self.core.information_win.rebuild_everything(self.core.information_buffer)
         self.refresh()
 
-    def command_deny(self, args):
+    def command_deny(self, arg):
         """
+        /deny [jid]
         Denies a JID from our roster
         """
-        args = args.split()
-        if not args:
+        if not arg:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
                 jid = item.bare_jid
@@ -1782,7 +1794,10 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            jid = JID(args[0]).bare
+            jid = JID(arg).bare
+            if not jid in [jid for jid in roster.jids()]:
+                self.core.information('No subscription to deny')
+                return
 
         contact = roster[jid]
         if contact:
@@ -1801,13 +1816,13 @@ class RosterInfoTab(Tab):
             return self.core.information('Already subscribed.', 'Roster')
         roster.add(jid)
 
-    def command_name(self, args):
+    def command_name(self, arg):
         """
         Set a name for the specified JID in your roster
         """
-        args = args.split(None, 1)
-        if len(args) < 1:
-            return
+        args = common.shell_split(arg)
+        if not args:
+            return self.core.command_help('name')
         jid = JID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
@@ -1852,11 +1867,57 @@ class RosterInfoTab(Tab):
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
             roster.update_contact_groups(jid)
 
+    def command_groupmove(self, arg):
+        """
+        Remove the specified JID from the first specified group and add it to the second one
+        """
+        args = common.shell_split(arg)
+        if len(args) != 3:
+            return self.core.command_help('groupmove')
+        jid = JID(args[0]).bare
+        group_from = args[1]
+        group_to = args[2]
+
+        contact = roster[jid.bare]
+        if not contact:
+            self.core.information(_('No such JID in roster'), 'Error')
+            return
+
+        new_groups = set(contact.groups)
+        if 'none' in new_groups:
+            new_groups.remove('none')
+
+        if group_to == 'none' or group_from == 'none':
+            self.core.information(_('"none" is not a group.'), 'Error')
+            return
+
+        if group_from not in new_groups:
+            self.core.information(_('JID not in first group'), 'Error')
+            return
+
+        if group_to in new_groups:
+            self.core.information(_('JID already in second group'), 'Error')
+            return
+
+        if group_to == group_from:
+            self.core.information(_('The groups are the same.'), 'Error')
+            return
+
+        new_groups.add(group_to)
+        if 'none' in new_groups:
+            new_groups.remove('none')
+
+        new_groups.remove(group_from)
+        name = contact.name
+        subscription = contact.subscription
+        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
+            roster.edit_groups_of_contact(contact, new_groups)
+
     def command_groupremove(self, args):
         """
-        Remove the specified JID to the specified group
+        Remove the specified JID from the specified group
         """
-        args = args.split(None, 1)
+        args = common.shell_split(args)
         if len(args) != 2:
             return
         jid = JID(args[0]).bare
@@ -1956,7 +2017,7 @@ class RosterInfoTab(Tab):
 
     def completion_name(self, the_input):
         text = the_input.get_text()
-        n = len(text.split())
+        n = len(common.shell_split(text))
         if text.endswith(' '):
             n += 1
 
@@ -1967,7 +2028,7 @@ class RosterInfoTab(Tab):
 
     def completion_groupadd(self, the_input):
         text = the_input.get_text()
-        n = len(text.split())
+        n = len(common.shell_split(text))
         if text.endswith(' '):
             n += 1
 
@@ -1979,9 +2040,32 @@ class RosterInfoTab(Tab):
             return the_input.auto_completion(groups, '')
         return False
 
+    def completion_groupmove(self, the_input):
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = len(args)
+        if text.endswith(' '):
+            n += 1
+
+        if n == 2:
+            jids = [jid for jid in roster.jids()]
+            return the_input.auto_completion(jids, '')
+        elif n == 3:
+            contact = roster[args[1]]
+            if not contact:
+                return False
+            groups = list(contact.groups)
+            if 'none' in groups:
+                groups.remove('none')
+            return the_input.auto_completion(groups, '')
+        elif n == 4:
+            groups = [group for group in roster.groups]
+            return the_input.auto_completion(groups, '')
+        return False
+
     def completion_groupremove(self, the_input):
         text = the_input.get_text()
-        args = text.split()
+        args = common.shell_split(text)
         n = len(args)
         if text.endswith(' '):
             n += 1
@@ -2008,14 +2092,13 @@ class RosterInfoTab(Tab):
         """
         jids = [str(contact.bare_jid) for contact in roster.contacts.values()\
              if contact.pending_in]
-        return the_input.auto_completion(jids, '')
+        return the_input.auto_completion(jids, '', quotify=False)
 
-    def command_accept(self, args):
+    def command_accept(self, arg):
         """
         Accept a JID from in roster. Authorize it AND subscribe to it
         """
-        args = args.split()
-        if not args:
+        if not arg:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
                 jid = item.bare_jid
@@ -2023,7 +2106,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to accept')
                 return
         else:
-            jid = JID(args[0]).bare
+            jid = JID(arg).bare
         contact = roster[jid]
         if contact is None:
             return
@@ -2158,6 +2241,67 @@ class RosterInfoTab(Tab):
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
             return True
+
+    def get_contact_version(self):
+        """
+        Show the versions of the resource(s) currently selected
+        """
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            for resource in selected_row.resources:
+                self.core.command_version(str(resource.jid))
+        elif isinstance(selected_row, Resource):
+            self.core.command_version(str(selected_row.jid))
+        else:
+            self.core.information('Nothing to get versions from', 'Info')
+
+    def show_contact_info(self):
+        """
+        Show the contact info (resource number, status, presence, etc)
+        when 'i' is pressed.
+        """
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            cont = selected_row
+            res = selected_row.get_highest_priority_resource()
+            msg = 'Contact: %s (%s)\n%s connected resource%s\nCurrent status: %s' % (
+                    cont.bare_jid,
+                    res.presence if res else 'unavailable',
+                    len(cont),
+                    '' if len(cont) == 1 else 's',
+                    res.status if res else '',)
+        elif isinstance(selected_row, Resource):
+            res = selected_row
+            msg = 'Resource: %s (%s)\nCurrent status: %s' % (
+                    res.jid,
+                    res.presence,
+                    res.status,)
+        elif isinstance(selected_row, RosterGroup):
+            rg = selected_row
+            msg = 'Group: %s [%s/%s] contacts online' % (
+                    rg.name,
+                    rg.get_nb_connected_contacts(),
+                    len(rg),)
+        else:
+            msg = None
+        if msg:
+            self.core.information(msg, 'Info')
+
+    def change_contact_name(self):
+        """
+        Auto-fill a /name command when 'n' is pressed
+        """
+        selected_row = self.roster_win.get_selected_row()
+        if isinstance(selected_row, Contact):
+            jid = selected_row.bare_jid
+        elif isinstance(selected_row, Resource):
+            jid = JID(selected_row.jid).bare
+        else:
+            return
+        self.on_slash()
+        self.input.text = '/name "%s" ' % jid
+        self.input.key_end()
+        self.input.refresh()
 
     def start_search(self):
         """
@@ -2346,6 +2490,14 @@ class ConversationTab(ChatTab):
 
     def get_name(self):
         return self.name
+
+    def get_nick(self):
+        jid = JID(self.name)
+        contact = roster[jid.bare]
+        if contact:
+            return contact.name or jid.user
+        else:
+            return jid.user
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
