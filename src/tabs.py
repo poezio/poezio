@@ -2187,18 +2187,18 @@ class RosterInfoTab(Tab):
         return True
 
     def set_roster_filter_slow(self, txt):
-        roster._contact_filter = (jid_and_name_match_slow, txt)
+        roster.jids_filter = (jid_and_name_match_slow, txt)
         self.roster_win.refresh(roster)
         return False
 
     def set_roster_filter(self, txt):
-        roster._contact_filter = (jid_and_name_match, txt)
+        roster.contact_filter = (jid_and_name_match, txt)
         self.roster_win.refresh(roster)
         return False
 
     def on_search_terminate(self, txt):
         curses.curs_set(0)
-        roster._contact_filter = None
+        roster.contact_filter = None
         self.reset_help_message()
         return False
 
@@ -2804,6 +2804,8 @@ def jid_and_name_match(contact, txt):
     if not txt:
         return True
     if txt in JID(contact.bare_jid).user:
+        return True
+    if txt in contact.name:
         return True
     return False
 
