@@ -468,7 +468,7 @@ class Core(object):
         if txt.endswith(' '):
             n += 1
         if n == 2:
-            return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+            return the_input.auto_completion([jid for jid in roster.jids()], '')
         elif n == 3:
             rooms = []
             for tab in self.tabs:
@@ -683,7 +683,7 @@ class Core(object):
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
         if not self.xmpp.anon:
             # request the roster
-            self.xmpp.getRoster()
+            self.xmpp.get_roster()
             # send initial presence
             if config.get('send_initial_presence', 'true').lower() == 'true':
                 pres = self.xmpp.make_presence()
@@ -1485,7 +1485,7 @@ class Core(object):
         if text.endswith(' '):
             n += 1
         if n == 2:
-            return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+            return the_input.auto_completion([jid for jid in roster.jids()], '')
         elif n == 3:
             return the_input.auto_completion([status for status in possible_show], '')
 
@@ -1744,7 +1744,7 @@ class Core(object):
         n = len(the_input.get_text().split())
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
-        return the_input.auto_completion([contact.bare_jid for contact in roster.get_contacts()], '')
+        return the_input.auto_completion([jid for jid in roster.jids()], '')
 
     def completion_list(self, the_input):
         muc_serv_list = []

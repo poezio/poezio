@@ -627,7 +627,7 @@ class MucTab(ChatTab):
         compare_users = lambda x: x.last_talked
         userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
-        contact_list = [contact.bare_jid for contact in roster.get_contacts()]
+        contact_list = [jid for jid in roster.jids()]
         userlist.extend(contact_list)
         return the_input.auto_completion(userlist, '')
 
@@ -1962,7 +1962,7 @@ class RosterInfoTab(Tab):
         """
         From with any JID presence in the roster
         """
-        jids = [contact.bare_jid for contact in roster.get_contacts()]
+        jids = [jid for jid in roster.jids()]
         return the_input.auto_completion(jids, '')
 
     def completion_name(self, the_input):
@@ -1972,7 +1972,7 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.bare_jid for contact in roster.get_contacts()]
+            jids = [jid for jid in roster.jids()]
             return the_input.auto_completion(jids, '')
         return False
 
@@ -1983,10 +1983,10 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.bare_jid for contact in roster.get_contacts()]
+            jids = [jid for jid in roster.jids()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
-            groups = [group.name for group in roster.get_groups() if group.name != 'none']
+            groups = [group for group in roster.groups if group != 'none']
             return the_input.auto_completion(groups, '')
         return False
 
@@ -1998,11 +1998,11 @@ class RosterInfoTab(Tab):
             n += 1
 
         if n == 2:
-            jids = [contact.bare_jid for contact in roster.get_contacts()]
+            jids = [jid for jid in roster.jids()]
             return the_input.auto_completion(jids, '')
         elif n == 3:
-            contact = roster.get_contact_by_jid(args[1])
-            if not contact:
+            contact = roster[args[1]]
+            if contact is None:
                 return False
             groups = list(contact.groups)
             try:
@@ -2017,8 +2017,8 @@ class RosterInfoTab(Tab):
         Complete the first argument from the list of the
         contact with ask=='subscribe'
         """
-        jids = [contact.bare_jid for contact in roster.get_contacts()\
-             if contact.ask == 'asked']
+        jids = [str(contact.bare_jid) for contact in roster.contacts.values()\
+             if contact.pending_in]
         return the_input.auto_completion(jids, '')
 
     def command_accept(self, args):
