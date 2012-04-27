@@ -880,9 +880,9 @@ class Core(object):
     def on_presence(self, presence):
         jid = presence['from']
         contact = roster[jid.bare]
-        self.events.trigger('normal_presence', presence, contact[jid.full])
         if contact is None:
             return
+        self.events.trigger('normal_presence', presence, contact[jid.full])
         tab = self.get_tab_of_conversation_with_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
