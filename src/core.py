@@ -92,6 +92,9 @@ class Core(object):
         self.events = events.EventHandler()
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
+        roster.set_node(self.xmpp.client_roster)
+        roster.set_mucs(self.xmpp.plugin['xep_0045'].rooms)
+        roster.set_self_jid(self.xmpp.boundjid.bare)
         self.paused = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
@@ -194,7 +197,10 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
-        self.xmpp.add_event_handler("changed_subscription", self.on_changed_subscription)
+        self.xmpp.add_event_handler("roster_subscription_request", self.on_subscription_request)
+        self.xmpp.add_event_handler("roster_subscription_authorized", self.on_subscription_authorized)
+        self.xmpp.add_event_handler("roster_subscription_remove", self.on_subscription_remove)
+        self.xmpp.add_event_handler("roster_subscription_removed", self.on_subscription_removed)
         self.xmpp.add_event_handler("message_xform", self.on_data_form)
         self.xmpp.add_event_handler("chatstate_active", self.on_chatstate_active)
         self.xmpp.add_event_handler("chatstate_composing", self.on_chatstate_composing)
