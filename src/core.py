@@ -603,53 +603,37 @@ class Core(object):
 
     def on_got_offline(self, presence):
         jid = presence['from']
-        contact = roster.get_contact_by_jid(jid.bare)
         logger.log_roster_change(jid.bare, 'got offline')
-        if not contact:
-            return
-        resource = contact.get_resource_by_fulljid(jid.full)
-        if not resource:
-            return
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
-        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (resource.jid.full))
-        contact.remove_resource(resource)
-        # Display the message in the conversation with the bare JID only if that was
-        # the only resource online (i.e. now the contact is completely disconnected)
-        if not contact.get_highest_priority_resource(): # No resource left: that was the last one
-            self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
-            self.information('\x193}%s \x195}is \x191}offline' % (resource.jid.bare), "Roster")
+        if jid.resource:
+            self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
+        self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
+        self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def on_got_online(self, presence):
         jid = presence['from']
-        contact = roster.get_contact_by_jid(jid.bare)
-        if not contact:
-            # Todo, handle presence comming from contacts not in roster
+        contact = roster[jid.bare]
+        if contact is None:
+            # Todo, handle presence coming from contacts not in roster
             return
         logger.log_roster_change(jid.bare, 'got online')
-        resource = contact.get_resource_by_fulljid(jid.full)
-        assert not resource
-        resource = Resource(jid.full)
+        resource = Resource(jid.full, {
+            'priority': presence.get_priority() or 0,
+            'status': presence['status'],
+            'show': presence['show'],
+            })
         self.events.trigger('normal_presence', presence, resource)
-        status = presence['type']
-        status_message = presence['status']
-        priority = presence.getPriority() or 0
-        resource.status = status_message
-        resource.presence = status
-        resource.priority = priority
         self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
-        if not contact.get_highest_priority_resource():
-            # No connected resource yet: the user's just connecting
-            if time.time() - self.connection_time > 12:
-                # We do not display messages if we recently logged in
-                if status_message:
-                    self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.jid.bare, status_message), "Roster")
-                else:
-                    self.information("\x193}%s \x195}is \x194}online\x195}" % resource.jid.bare, "Roster")
+        if time.time() - self.connection_time > 20:
+            # We do not display messages if we recently logged in
+            if presence['status']:
+                self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.jid.bare, presence['status']), "Roster")
+            else:
+                self.information("\x193}%s \x195}is \x194}online\x195}" % resource.jid.bare, "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
-        contact.add_resource(resource)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -895,20 +879,10 @@ class Core(object):
 
     def on_presence(self, presence):
         jid = presence['from']
-        contact = roster.get_contact_by_jid(jid.bare)
-        if not contact:
-            resource = None
-        else:
-            resource = contact.get_resource_by_fulljid(jid.full)
-        self.events.trigger('normal_presence', presence, resource)
-        if not resource:
+        contact = roster[jid.bare]
+        self.events.trigger('normal_presence', presence, contact[jid.full])
+        if contact is None:
             return
-        status = presence['type']
-        status_message = presence['status']
-        priority = presence.getPriority() or 0
-        resource.presence = status
-        resource.priority = priority
-        resource.status = status_message
         tab = self.get_tab_of_conversation_with_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
