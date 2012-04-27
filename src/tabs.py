@@ -2267,10 +2267,10 @@ class ConversationTab(ChatTab):
         self.input.refresh()
 
     def command_info(self, arg):
-        contact = roster.get_contact_by_jid(self.get_name())
+        contact = roster[self.get_name()]
         jid = JID(self.get_name())
         if jid.resource:
-            resource = contact.get_resource_by_fulljid(jid.full)
+            resource = contact[jid.full]
         else:
             resource = contact.get_highest_priority_resource()
         if resource:
@@ -2333,14 +2333,15 @@ class ConversationTab(ChatTab):
             self.resize()
         log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
-        self.upper_bar.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()))
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
+        self.info_header.refresh(self.get_name(), roster[self.get_name()], self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.info_win.refresh()
         self.refresh_tab_win()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster.get_contact_by_jid(self.get_name()), self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.info_header.refresh(self.get_name(), roster[self.get_name()] or JID(self.get_name()).user,
+                self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
     def get_name(self):
@@ -2356,11 +2357,11 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        contact = roster.get_contact_by_jid(self.get_name())
+        contact = roster[self.get_name()]
         jid = JID(self.get_name())
         if contact:
             if jid.resource:
-                resource = contact.get_resource_by_fulljid(jid.full)
+                resource = contact[jid.full]
             else:
                 resource = contact.get_highest_priority_resource()
         else:
@@ -2373,11 +2374,11 @@ class ConversationTab(ChatTab):
                 self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        contact = roster.get_contact_by_jid(self.get_name())
+        contact = roster[self.get_name()]
         jid = JID(self.get_name())
         if contact:
             if jid.resource:
-                resource = contact.get_resource_by_fulljid(jid.full)
+                resource = contact[jid.full]
             else:
                 resource = contact.get_highest_priority_resource()
         else:
