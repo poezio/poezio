@@ -1811,15 +1811,15 @@ class RosterInfoTab(Tab):
         jid = JID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
-        contact = roster.get_contact_by_jid(jid)
-        if not contact:
+        contact = roster[jid]
+        if contact is None:
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
         groups = set(contact.groups)
         subscription = contact.subscription
-        if self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
-            contact.name = name
+        if not self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
+            self.core.information('The name could not be set.', 'Error')
 
     def command_groupadd(self, args):
         """
@@ -1831,8 +1831,8 @@ class RosterInfoTab(Tab):
         jid = JID(args[0]).bare
         group = args[1]
 
-        contact = roster.get_contact_by_jid(jid)
-        if not contact:
+        contact = roster[jid]
+        if contact is None:
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
@@ -1850,7 +1850,7 @@ class RosterInfoTab(Tab):
         name = contact.name
         subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.edit_groups_of_contact(contact, new_groups)
+            roster.update_contact_groups(jid)
 
     def command_groupremove(self, args):
         """
@@ -1862,8 +1862,8 @@ class RosterInfoTab(Tab):
         jid = JID(args[0]).bare
         group = args[1]
 
-        contact = roster.get_contact_by_jid(jid)
-        if not contact:
+        contact = roster[jid]
+        if contact is None:
             self.core.information(_('No such JID in roster'), 'Error')
             return
 
@@ -1880,7 +1880,7 @@ class RosterInfoTab(Tab):
         name = contact.name
         subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.edit_groups_of_contact(contact, new_groups)
+            roster.update_contact_groups(jid)
 
     def command_remove(self, args):
         """
