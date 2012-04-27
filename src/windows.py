@@ -451,7 +451,7 @@ class ConversationInfoWin(InfoWin):
         jid = JID(jid)
         if contact:
             if jid.resource:
-                resource = contact.get_resource_by_fulljid(jid.full)
+                resource = contact[jid.full]
             else:
                 resource = contact.get_highest_priority_resource()
         else:
@@ -526,7 +526,7 @@ class ConversationStatusMessageWin(InfoWin):
         jid = JID(jid)
         if contact:
             if jid.resource:
-                resource = contact.get_resource_by_fulljid(jid.full)
+                resource = contact[jid.full]
             else:
                 resource = contact.get_highest_priority_resource()
         else:
@@ -1532,7 +1532,8 @@ class RosterWin(Win):
             y = 1
             show_offline = config.get('roster_show_offline', 'false') == 'true'
             for group in roster.get_groups():
-                if not show_offline and group.get_nb_connected_contacts() == 0:
+                contacts_filtered = group.get_contacts(roster.contact_filter)
+                if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
                     continue    # Ignore empty groups
                 # This loop is really REALLY ugly :^)
                 if y-1 == self.pos:
@@ -1542,8 +1543,8 @@ class RosterWin(Win):
                 y += 1
                 if group.folded:
                     continue
-                for contact in group.get_contacts(roster._contact_filter):
-                    if not show_offline and contact.get_nb_resources() == 0:
+                for contact in group.get_contacts(roster.contact_filter):
+                    if not show_offline and len(contact) == 0:
                         continue
                     if y-1 == self.pos:
                         self.selected_row = contact
@@ -1552,7 +1553,7 @@ class RosterWin(Win):
                     if y >= self.start_pos:
                         self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
                     y += 1
-                    if not contact._folded:
+                    if not contact.folded:
                         for resource in contact.get_resources():
                             if y-1 == self.pos:
                                 self.selected_row = resource
@@ -1580,8 +1581,10 @@ class RosterWin(Win):
         """
         The header at the top
         """
-        self.addstr('Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(), roster.get_contact_len())\
-                , to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr('Roster: %s/%s contacts' % (
+            roster.get_nb_connected_contacts(),
+            len(roster.contacts))
+            ,to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
@@ -1614,7 +1617,7 @@ class RosterWin(Win):
             nb = ''
         else:
             presence = resource.presence
-            nb = ' (%s)' % (contact.get_nb_resources(),)
+            nb = ' (%s)' % len(contact)
         color = RosterWin.color_show[presence]()
         if contact.name:
             display_name = '%s (%s)%s' % (contact.name,
@@ -1624,7 +1627,7 @@ class RosterWin(Win):
         self.addstr(y, 0, ' ')
         self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         if resource:
-            self.addstr(' [+]' if contact._folded else ' [-]')
+            self.addstr(' [+]' if contact.folded else ' [-]')
         self.addstr(' ')
         if colored:
             self.addstr(display_name, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
@@ -1641,9 +1644,9 @@ class RosterWin(Win):
         color = RosterWin.color_show[resource.presence]()
         self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
-            self.addstr(y, 6, resource.jid.full, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self.addstr(y, 6, str(resource.jid), to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
-            self.addstr(y, 6, resource.jid.full)
+            self.addstr(y, 6, str(resource.jid))
         self.finish_line()
 
     def get_selected_row(self):
@@ -1660,8 +1663,10 @@ class ContactInfoWin(Win):
         resource = contact.get_highest_priority_resource()
         if contact:
             jid = contact.bare_jid
+        elif resource:
+            jid = resource.jid
         else:
-            jid = jid or resource.jid.full
+            jid = 'example@example.com' # should never happen
         if resource:
             presence = resource.presence
         else:
