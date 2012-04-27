@@ -242,7 +242,7 @@ class RosterGroup(object):
                 return 5
             return PRESENCE_PRIORITY[show]
         contact_list = self.contacts if not contact_filter\
-            else (contact for contact in self.contacts if contact_filter[0](contact, contact_filter[1]))
+            else [contact for contact in self.contacts.copy() if contact_filter[0](contact, contact_filter[1])]
         return sorted(contact_list, key=compare_contact, reverse=True)
 
     def toggle_folded(self):
@@ -250,7 +250,7 @@ class RosterGroup(object):
 
     def get_nb_connected_contacts(self):
         l = 0
-        for contact in self.contacts:
+        for contact in self.contacts.copy():
             if contact.resources:
                 l += 1
         return l
