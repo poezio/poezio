@@ -1776,35 +1776,30 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.ask == 'asked':
+            if isinstance(item, Contact):
                 jid = item.bare_jid
             else:
                 self.core.information('No subscription to deny')
                 return
         else:
             jid = JID(args[0]).bare
-            if not jid in [contact.bare_jid for contact in roster.get_contacts()]:
-                self.core.information('No subscription to deny')
-                return
 
-        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        try:
-            if self.core.xmpp.update_roster(jid, subscription='remove'):
-                roster.remove_contact(jid)
-        except Exception as e:
-            import traceback
-            log.debug(_('Traceback when removing %s from the roster:\n' % jid)+traceback.format_exc())
+        contact = roster[jid]
+        if contact:
+            contact.unauthorize()
 
     def command_add(self, args):
         """
         Add the specified JID to the roster, and set automatically
         accept the reverse subscription
         """
-        jid = JID(args.strip()).bare
+        jid = JID(JID(args.strip()).bare)
         if not jid:
             self.core.information(_('No JID specified'), 'Error')
             return
-        self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+        if jid in roster and roster[jid].subscription in ('to', 'both'):
+            return self.core.information('Already subscribed.', 'Roster')
+        roster.add(jid)
 
     def command_name(self, args):
         """
@@ -1901,13 +1896,7 @@ class RosterInfoTab(Tab):
             else:
                 self.core.information('No roster item to remove')
                 return
-        self.core.xmpp.sendPresence(pto=jid, ptype='unavailable')
-        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribe')
-        self.core.xmpp.sendPresence(pto=jid, ptype='unsubscribed')
-        try:
-            self.core.xmpp.del_roster_item(jid=jid)
-        except:
-            pass
+        del roster[jid]
 
     def command_import(self, arg):
         """
@@ -2028,20 +2017,20 @@ class RosterInfoTab(Tab):
         args = args.split()
         if not args:
             item = self.roster_win.selected_row
-            if isinstance(item, Contact) and item.ask == 'asked':
+            if isinstance(item, Contact):
                 jid = item.bare_jid
             else:
                 self.core.information('No subscription to accept')
                 return
         else:
-            jid = args[0]
-        self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
-        self.core.xmpp.sendPresence(pto=jid, ptype='')
-        contact = roster.get_contact_by_jid(jid)
-        if not contact:
+            jid = JID(args[0]).bare
+        contact = roster[jid]
+        if contact is None:
             return
-        if contact.subscription in ('to', 'none'):
-            self.core.xmpp.sendPresence(pto=jid, ptype='subscribe')
+        self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
+        self.core.xmpp.client_roster.send_last_presence()
+        if contact.subscription in ('from', 'none') and not contact.pending_out:
+            self.core.xmpp.send_presence(pto=jid, ptype='subscribe')
 
     def refresh(self):
         if self.need_resize:
