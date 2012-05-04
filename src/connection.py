@@ -62,8 +62,10 @@ class Connection(sleekxmpp.ClientXMPP):
                     'version':'0.7.5-dev'}
             if config.get('send_os_info', 'true') == 'true':
                 info['os'] = common.get_os_info()
+            self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'Poezio')]))
         else:
             info = {'name': '', 'version': ''}
+            self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'')]))
         self.register_plugin('xep_0092', pconfig=info)
         if config.get('send_time', 'true') == 'true':
             self.register_plugin('xep_0202')
