@@ -2013,7 +2013,7 @@ class RosterInfoTab(Tab):
         From with any JID presence in the roster
         """
         jids = [jid for jid in roster.jids()]
-        return the_input.auto_completion(jids, '')
+        return the_input.auto_completion(jids, '', quotify=False)
 
     def completion_name(self, the_input):
         text = the_input.get_text()
