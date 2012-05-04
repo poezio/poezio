@@ -1878,7 +1878,7 @@ class RosterInfoTab(Tab):
         group_from = args[1]
         group_to = args[2]
 
-        contact = roster[jid.bare]
+        contact = roster[jid]
         if not contact:
             self.core.information(_('No such JID in roster'), 'Error')
             return
@@ -1911,7 +1911,7 @@ class RosterInfoTab(Tab):
         name = contact.name
         subscription = contact.subscription
         if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.edit_groups_of_contact(contact, new_groups)
+            roster.update_contact_groups(contact)
 
     def command_groupremove(self, args):
         """
