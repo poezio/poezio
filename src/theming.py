@@ -83,7 +83,7 @@ class Theme(object):
     COLOR_HIGHLIGHT_NICK = (3, 5, 'b')
 
     # User list color
-    COLOR_USER_VISITOR = (0, -1)
+    COLOR_USER_VISITOR = (239, -1)
     COLOR_USER_PARTICIPANT = (4, -1)
     COLOR_USER_NONE = (0, -1)
     COLOR_USER_MODERATOR = (1, -1)
