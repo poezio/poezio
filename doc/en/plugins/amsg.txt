@@ -1,0 +1,24 @@
+Amsg
+====
+
+This plugin broadcasts a message to all your joined rooms.
+
+Installation
+------------
+You only have to load the plugin.
+
+================
+
+ /load amsg
+
+================
+
+
+Command
+-------
+
+===============
+
+ /amsg message
+
+==============

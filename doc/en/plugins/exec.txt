@@ -1,0 +1,38 @@
+Exec
+====
+
+This plugin lets you execute a system command through poezio.
+
+Installation
+------------
+
+You only have to load the plugin.
+
+================
+
+ /load exec
+
+================
+
+Command
+-------
+
+CAUTION: Running commands that start a daemon or an interface is not a good
+idea.
+
+===============
+
+ /exec command
+
+Will give you the result in the information buffer.
+
+ /exec -o command
+
+Will send the result of the command into the current tab, if possible.
+
+ /exec -O command
+
+Will send the result of the command and the command summary into the current
+tab, if possible.
+
+==============

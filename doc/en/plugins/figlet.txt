@@ -1,0 +1,24 @@
+Figlet
+======
+
+This plugin uses figlet to transform every message into a big ascii-art
+message.
+
+Installation
+------------
+You only have to load the plugin (and have _figlet_ installed, of course).
+
+================
+
+ /load figlet
+
+================
+
+
+Usage
+-----
+
+Say something.
+
+NOTE: Can create fun things when used with link:rainbow.html[the rainbow
+plugin].

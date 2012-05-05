@@ -1,0 +1,77 @@
+Aliases
+=======
+
+Installation
+------------
+You only have to load the plugin:
+
+==============
+
+ /load alias
+
+==============
+
+Usage
+-----
+
+This plugin defines two new global commands: _/alias_ and _/unalias_.
+
+alias
+~~~~~~
+This command is used like this:
+
+===============
+
+ /alias my_alias an_existing_command fixed_arg
+
+================
+This will create a _/my_alias_ command, that when called, will run
+_/an_existing_command fixed_arg_. If you give other parameters to the alias,
+they will be passed to the existing command as well.
+
+
+You can omit the _fixed_arg_ part if you don’t want to, of course.
+
+
+There is also the possibility to change the order of parameters:
+
+================
+With
+
+ /alias myalias command "%1 %0"
+
+The command:
+
+ /myalias foo bar
+
+Will then run
+
+ /command bar foo
+
+because the %1 parameter is placed before the %0.
+
+================
+
+The numbers can be from 0 to 9.
+
+.Possible examples
+===================
+
+ /alias truc say "%1 is AFTER %0 usually"
+
+ /alias q quit
+
+ /alias partauche ban "Partauche \"tg %0\""
+
+===================
+
+unalias
+~~~~~~~~
+
+This command removes a defined alias.
+
+==================
+
+ /unalias defined_alias
+
+=================
