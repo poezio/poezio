@@ -602,17 +602,18 @@ class MucTab(ChatTab):
         # commands
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
-        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_ignore)
+        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_quoted)
+        self.commands['ban'] =  (self.command_ban, _("Usage: /ban <nick> [reason]\nBan: ban the user with the specified nickname. You also can give an optional reason."), self.completion_quoted)
         self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), self.completion_role)
         self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick or jid> <affiliation>\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner."), self.completion_affiliation)
         self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
-        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_ignore)
+        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_quoted)
         self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
         self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), self.completion_recolor)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_ignore)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
@@ -908,6 +909,12 @@ class MucTab(ChatTab):
         current_topic = self.topic
         return the_input.auto_completion([current_topic], '', quotify=False)
 
+    def completion_quoted(self, the_input):
+        compare_users = lambda x: x.last_talked
+        word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
+                         if user.nick != self.own_nick]
+        return the_input.auto_completion(word_list, '', quotify=True)
+
     def command_kick(self, arg):
         """
         /kick <nick> [reason]
@@ -917,10 +924,25 @@ class MucTab(ChatTab):
             self.core.command_help('kick')
         else:
             if len(args) > 1:
-                msg = ' '+args[1]
+                msg = ' "%s"' % args[1]
             else:
                 msg = ''
             self.command_role('"'+args[0]+ '" none'+msg)
+
+    def command_ban(self, arg):
+        """
+        /ban <nick> [reason]
+        """
+        args = common.shell_split(arg)
+        if not args:
+            self.core.command_help('ban')
+        else:
+            if len(args) > 1:
+                msg = ' "%s"' %args[1]
+            else:
+                msg = ''
+            self.command_affiliation('"'+args[0]+ '" outcast'+msg)
+
 
     def command_role(self, arg):
         """
