@@ -9,8 +9,8 @@ up to _256_ colors if your terminal supports it. Most of the time,
 if it doesn’t work, that’s because the _$TERM_ environnment variable is
 wrong. For example with tmux or screen, set it to _screen-256color_, in
 _xterm_, set it to _xterm-256color_, etc. If your terminal doesn’t have 256,
-only 8 color will be available, and poezio will replace the colors by one
-of the 8 values available. Thus, some theme file may not work properly
+only 8 colors will be available, and poezio will replace the colors by one
+of the 8 values available. Thus, some theme files may not work properly
 if you only have 8 colors for example light gray on dark gray may
 be converted to black on black if only 8 colors are available, making
 the text impossible to read). The default theme should work properly in any
@@ -78,6 +78,13 @@ link:configure.html[configuration file] to the name of the theme you want
 to use. If that theme is not found, the default theme will be used instead.
 Note that the default theme is defined directly into poezio’s source code,
 and note in a theme file.
+
+Change the theme directory
+--------------------------
+To change the default theme directory (_~/.local/share/poezio/themes/_ by
+default), you have to change the _themes_dir_ option in the
+link:configure.html[configuration file] to the directory that contains your
+theme files.
 
 [[available-options]]
 Available options
