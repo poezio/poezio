@@ -118,6 +118,10 @@ Plugins index
 
     Changes your status to _away_ if the screen poezio is in is detached.
 
+*Simple notify*:: link:simple_notify.html[Simple notification plugin]
+
+    Sends a notification with a command of your choice on (non-MUC) messages.
+
 *Status*:: Status aliases
 
     Adds convenient aliases to /status (/away, etc).
