@@ -32,6 +32,9 @@ class Plugin(BasePlugin):
         self.add_tab_command(MucTab, 'op', self.role('moderator'),
                     '/op <nick>\nOp: set the role of a nick to moderator.',
                     self.complete_nick)
+        self.add_tab_command(MucTab, 'mute', self.role('visitor'),
+                    '/mute <nick>\nMute: set the role of a nick to visitor.',
+                    self.complete_nick)
 
     def role(self, role):
         return lambda args: self.core.current_tab().command_role(args+' '+role)
