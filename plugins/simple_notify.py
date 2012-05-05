@@ -1,14 +1,5 @@
-# A plugin that adds the /link command, letting you open links that are pasted
-# in the conversation, without having to click them.
-
-import os
-import re
-
-from plugin import BasePlugin, PluginConfig
+from plugin import BasePlugin
 from xhtml import clean_text, get_body_from_message_stanza
-import common
-
-url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 
 class Plugin(BasePlugin):
     def init(self):
