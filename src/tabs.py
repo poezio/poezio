@@ -1524,7 +1524,7 @@ class PrivateTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
-        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick or self.own_nick)
+        self.add_message(msg['body'], nickname=self.core.own_nick or self.own_nick, nick_color=get_theme().COLOR_OWN_NICK)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -1702,8 +1702,12 @@ class PrivateTab(ChatTab):
     def deactivate(self):
         self.on = False
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None):
-        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
+        self._text_buffer.add_message(txt, time=time,
+                nickname=nickname,
+                nick_color=nick_color,
+                history=None,
+                user=forced_user)
 
 class RosterInfoTab(Tab):
     """
@@ -2416,7 +2420,8 @@ class ConversationTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
-        self.core.add_message_to_text_buffer(self._text_buffer, msg['body'], None, self.core.own_nick)
+        self.add_message(msg['body'], nickname=self.core.own_nick,
+                nick_color=get_theme().COLOR_OWN_NICK)
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -2579,8 +2584,13 @@ class ConversationTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true':
             self.send_chat_state('gone')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None):
-        self._text_buffer.add_message(txt, time, nickname, None, None, forced_user)
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
+        self._text_buffer.add_message(txt, time=time,
+                nickname=nickname,
+                nick_color=nick_color,
+                history=None,
+                user=forced_user)
+
 
 class MucListTab(Tab):
     """
