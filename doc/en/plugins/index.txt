@@ -50,25 +50,29 @@ Plugins index
 -------------
 
 [horizontal]
-*Admin*:: Room administration plugin
+*Admin*:: link:admin.html[Room administration plugin]
 
     Creates convenient aliases for MUC administration.
 
-*Amsg*:: Message broadcast plugin
+*Alias*:: link:alias.html[Custom aliases plugin]
+
+    Allows you to create your own aliases.
+
+*Amsg*:: link:amsg.html[Message broadcast plugin]
 
     Allows a message to be broadcasted on all the rooms your arein.
     Caution: do not overuse.
 
-*Day Change*:: Day change plugin
+*Day Change*:: link:day_change.html[Day change plugin]
 
     Logs the day change inside the buffers, to keep track of the days when
     backlogging.
 
-*Exec*:: System command plugin
+*Exec*:: link:exec.html[System command plugin]
 
     Runs a system command an optionally sends the output as a message.
 
-*Figlet*:: Figlet plugin
+*Figlet*:: link:figlet.html[Figlet plugin]
 
     Ascii-art writing (requires the _figlet_ package on your system).
 
@@ -84,7 +88,7 @@ Plugins index
 
     Opens links in a web browser, locally or remotely using a FIFO and SSH.
 
-*MPD Client*:: MPD client plugin
+*MPD Client*:: link:mpd_client.html[MPD client plugin]
 
     Sends the current song (and optionally the progress inside the song) to
     the current (chat) tab.
@@ -106,7 +110,7 @@ Plugins index
     Adds a /quote command to quote a message at HH:MM:SS and put it in the
     input (to prevent painful copy/pastes).
 
-*Rainbow*:: Rainbow plugin
+*Rainbow*:: link:rainbow.html[Rainbow plugin]
 
     Sends your messages in rainbow colors using XHTML-IM.
 
