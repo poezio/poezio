@@ -1080,7 +1080,7 @@ class Input(Win):
             self.rewrite_text()
         return True
 
-    def auto_completion(self, word_list, add_after, quotify=True):
+    def auto_completion(self, word_list, add_after='', quotify=True):
         """
         Complete the input, from a list of words
         if add_after is None, we use the value defined in completion
