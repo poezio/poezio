@@ -2,11 +2,14 @@
 
 from plugin import BasePlugin
 from common import shell_split
+import tabs
 import mpd
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
+        self.add_tab_command(tabs.ConversationTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
+        self.add_tab_command(tabs.MucTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
+        self.add_tab_command(tabs.PrivateTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
 
     def command_mpd(self, args):
         args = shell_split(args)
@@ -23,7 +26,7 @@ class Plugin(BasePlugin):
             pourcentage = int(current_time / float(current['time']) * 10)
             s += ' \x192}[\x191}' + '-'*(pourcentage-1) + '\x193}+' + '\x191}' + '-' * (10-pourcentage-1) + '\x192}]\x19o'
         if not self.core.send_message('%s' % (s,)):
-            self.core.information('Cannot send result (%s), this is not a conversation tab' % result)
+            self.core.information('Cannot send result (%s)' % s, 'Error')
 
     def completion_mpd(self, the_input):
         return the_input.auto_completion(['full'])
