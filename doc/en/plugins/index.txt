@@ -1,0 +1,138 @@
+Poezio plugins
+==============
+
+Starting from the 0.7.5 version, poezio supports plugins.
+Here is a quick howto and a plugin index.
+
+
+Setting up plugins
+------------------
+Poezio seeks the plugins in the _~/.local/share/poezio/plugins/_ dir (more
+generally, the _$XDG_DATA_HOME/poezio/plugins/_ dir), but that can be changed
+by setting the _plugins_dir_ option in the
+link:../configure.html[configuration file] to the directory where you want to
+put your plugins.
+
+
+Plugins autostart
+-----------------
+Use the _plugins_autoload_ option (from the
+link:../configure.html[configuration file]) to select which plugins should be
+loaded on startup. The value is a list of plugin names separated by spaces,
+e.g.
+
+.plugins_autoload example
+---------
+plugins_autoload = "gpg tell exec"
+---------
+
+Plugins configuration
+---------------------
+Most plugins will manage their configuration internally, and you do not (and
+should not) have to edit it, but some (e.g. mpd_client or gpg) require manual
+editing (the _/set_ command can be used, but it is not pleasant to set
+multiple values with it).
+
+The plugin configuration directory is located in _~/.config/poezio/plugins/_
+(or _$XDG_CONFIG_HOME/poezio/plugins/_) and the file related to a specific
+plugin is named _plugin_name.cfg_. The configuration options should usually be
+inside a section named after the plugin (sections are delimited with _[]_).
+
+.section example
+--------------
+[plugin_name]
+key = value
+other_key = other_value
+--------------
+
+
+Plugins index
+-------------
+
+[horizontal]
+*Admin*:: Room administration plugin
+
+    Creates convenient aliases for MUC administration.
+
+*Amsg*:: Message broadcast plugin
+
+    Allows a message to be broadcasted on all the rooms your arein.
+    Caution: do not overuse.
+
+*Day Change*:: Day change plugin
+
+    Logs the day change inside the buffers, to keep track of the days when
+    backlogging.
+
+*Exec*:: System command plugin
+
+    Runs a system command an optionally sends the output as a message.
+
+*Figlet*:: Figlet plugin
+
+    Ascii-art writing (requires the _figlet_ package on your system).
+
+*GPG*:: link:gpg.html[GnuPG plugin]
+
+    Allows encrypted exchanges and presence signing using GnuPG.
+
+*IQ Show*:: IQ showing plugin
+
+    Shows the received IQs, for debugging purposes.
+
+*Link*:: Link opener plugin
+
+    Opens links in a web browser, locally or remotely using a FIFO and SSH.
+
+*MPD Client*:: MPD client plugin
+
+    Sends the current song (and optionally the progress inside the song) to
+    the current (chat) tab.
+
+*OTR*:: link:otr.html[Off-The-Record plugin]
+
+    Allows encrypted and deniable exchanges using OTR.
+
+*PacoKick*:: Random kick plugin
+
+    Kicks a random user in the room.
+
+*Ping*:: XMPP Ping
+
+    Sends a ping probe to an entity (XEP-0199)
+
+*Quote*:: Quoting plugin
+
+    Adds a /quote command to quote a message at HH:MM:SS and put it in the
+    input (to prevent painful copy/pastes).
+
+*Rainbow*:: Rainbow plugin
+
+    Sends your messages in rainbow colors using XHTML-IM.
+
+*Reminder*:: Reminder plugin
+
+    Reminds you to do something every now and then.
+
+*Screen Detach*:: Screen status plugin
+
+    Changes your status to _away_ if the screen poezio is in is detached.
+
+*Status*:: Status aliases
+
+    Adds convenient aliases to /status (/away, etc).
+
+*Tell*:: Automatic delayed messages
+
+    Tells a message to a nick when he connects to a MUC.
+
+*Translate*:: Translation plugin
+
+    Translates everything that is said in the poezio room into english (useful
+    for non-french speakers). Can of course be tweaked to apply to other rooms.
+
+*Uptime*:: Uptime plugin
+
+    Gets the uptime of a XMPP server or a component.
+
+
