@@ -6,7 +6,7 @@ import timed_events
 class Plugin(BasePlugin):
 
     def init(self):
-        self.add_command('remind', self.command_remind, "Usage: /reminder <time in seconds> <todo>\nReminder: remind you of <todo> every <time> seconds..", self.completion_remind)
+        self.add_command('remind', self.command_remind, "Usage: /remind <time in seconds> <todo>\nReminder: remind you of <todo> every <time> seconds..", self.completion_remind)
         self.add_command('done', self.command_done, "Usage: /done <id>\nDone: Stop reminding you do the task identified by <id>", self.completion_done)
         self.add_command('tasks', self.command_tasks, "Usage: /tasks\nTasks: List all the current tasks and their ids.", None)
         self.tasks = {}
