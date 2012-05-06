@@ -84,7 +84,7 @@ Plugins index
 
     Shows the received IQs, for debugging purposes.
 
-*Link*:: Link opener plugin
+*Link*:: link:link.html[Link opener plugin]
 
     Opens links in a web browser, locally or remotely using a FIFO and SSH.
 
