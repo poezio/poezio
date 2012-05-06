@@ -1,0 +1,25 @@
+Status aliases
+==============
+
+This plugin adds several aliases, to shorten status changes.
+
+Installation
+------------
+You only have to load the plugin.
+
+================
+
+ /load status
+
+================
+
+Aliases
+------
+
+- _/afk_ (same as _/away_)
+- _/available_
+- _/away_
+- _/dnd_
+- _/busy_
+- _/chat_
+- _/xa_

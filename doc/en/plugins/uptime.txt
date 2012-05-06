@@ -1,0 +1,35 @@
+Uptime
+======
+
+This plugin retrieves the uptime of a server.
+
+Installation
+------------
+You only have to load the plugin.
+
+================
+
+ /load uptime
+
+================
+
+
+Command
+-------
+
+===============
+
+ /uptime <jid>
+
+==============
+
+Will retrieve the uptime of the server of _<jid>_.
+
+.Example usage
+==============
+
+ /uptime example.com
+
+21:54:45 Info> Server example.com online since 1d6h31m42s
+
+=============

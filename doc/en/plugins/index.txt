@@ -97,15 +97,15 @@ Plugins index
 
     Allows encrypted and deniable exchanges using OTR.
 
-*PacoKick*:: Random kick plugin
+*PacoKick*:: link:pacokick.html[Random kick plugin]
 
     Kicks a random user in the room.
 
-*Ping*:: XMPP Ping
+*Ping*:: link:ping.html[XMPP Ping plugin]
 
     Sends a ping probe to an entity (XEP-0199)
 
-*Quote*:: Quoting plugin
+*Quote*:: link:quote.html[Quoting plugin]
 
     Adds a /quote command to quote a message at HH:MM:SS and put it in the
     input (to prevent painful copy/pastes).
@@ -114,11 +114,11 @@ Plugins index
 
     Sends your messages in rainbow colors using XHTML-IM.
 
-*Reminder*:: Reminder plugin
+*Reminder*:: link:reminder.html[Reminder plugin]
 
     Reminds you to do something every now and then.
 
-*Screen Detach*:: Screen status plugin
+*Screen Detach*:: link:screen_detach.html[Screen status plugin]
 
     Changes your status to _away_ if the screen poezio is in is detached.
 
@@ -126,11 +126,11 @@ Plugins index
 
     Sends a notification with a command of your choice on (non-MUC) messages.
 
-*Status*:: Status aliases
+*Status*:: link:status.html[Status aliases plugin]
 
     Adds convenient aliases to /status (/away, etc).
 
-*Tell*:: Automatic delayed messages
+*Tell*:: link:tell.html[Automated delayed messages plugin]
 
     Tells a message to a nick when he connects to a MUC.
 
@@ -139,7 +139,7 @@ Plugins index
     Translates everything that is said in the poezio room into english (useful
     for non-french speakers). Can of course be tweaked to apply to other rooms.
 
-*Uptime*:: Uptime plugin
+*Uptime*:: link:uptime.html[Uptime plugin]
 
     Gets the uptime of a XMPP server or a component.
 

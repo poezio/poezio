@@ -1,0 +1,15 @@
+Screen detach
+=============
+
+This plugin will set your status to _away_ if you detach your screen.
+
+Installation
+------------
+You only have to load the plugin.
+
+================
+
+ /load screen_detach
+
+================
+

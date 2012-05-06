@@ -1,0 +1,76 @@
+Reminder
+========
+
+Installation
+------------
+You only have to load the plugin:
+
+==============
+
+ /load reminder
+
+==============
+
+Usage
+-----
+This plugin defines three new global commands: _/remind_, _/done_, and
+_/tasks_.
+
+remind
+~~~~~~
+================
+
+ /remind <time> <todo>
+
+================
+
+Will remind you to do _<todo>_ every _<time>_.
+
+
+.Time in seconds
+================
+
+ /remind 600 Work!
+
+Will remind you to work every 10 minutes
+
+================
+
+Defining the time in seconds is not really usable, so you can describe it
+with days, hours, and minutes, e.g:
+
+.Time in a string
+=======================
+
+ /remind 1h23m "Get up"
+
+Will remind you to get up every 1 hour 23 minutes
+
+=======================
+
+
+done
+~~~~
+
+Removes a reminder.
+
+============
+
+ /done <id>
+
+===========
+
+The _id_ is found using _/tasks_.
+
+tasks
+~~~~~
+
+===============
+
+ /tasks
+
+================
+
+Will print a list of the tasks, their ids, and their frequency, into the
+information buffer.
+

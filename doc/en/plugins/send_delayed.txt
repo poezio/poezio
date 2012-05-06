@@ -1,0 +1,34 @@
+Send delayed
+============
+
+This plugin sends a message after a given time.
+
+Installation
+------------
+You only have to load the plugin:
+
+==============
+
+ /load send_delayed
+
+==============
+
+Usage
+-----
+This plugin defines one new command for chat tabs: _/send_delayed_.
+
+================
+
+ /send_delayed <delay> <message>
+
+================
+
+_delay_ can be seconds, or a time-string (as in the
+link:reminder.html[reminder plugin]).
+
+.Time in a string
+=======================
+
+ /send_delayed 5h "Hey, did you know that it’s 6AM and I’m sleeping?"
+
+=======================
