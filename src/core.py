@@ -66,6 +66,27 @@ ERROR_AND_STATUS_CODES = {
     '503': _('The maximum number of users has been reached'),
     }
 
+# http://xmpp.org/extensions/xep-0086.html
+DEPRECATED_ERRORS = {
+    '302': _('Redirect'),
+    '400': _('Bad request'),
+    '401': _('Not authorized'),
+    '402': _('Payment required'),
+    '403': _('Forbidden'),
+    '404': _('Not found'),
+    '405': _('Not allowed'),
+    '406': _('Not acceptable'),
+    '407': _('Registration required'),
+    '408': _('Request timeout'),
+    '409': _('Conflict'),
+    '500': _('Internal server error'),
+    '501': _('Feature not implemented'),
+    '502': _('Remote server error'),
+    '503': _('Service unavailable'),
+    '504': _('Remote server timeout'),
+    '510': _('Disconnected'),
+}
+
 possible_show = {'available':None,
                  'chat':'chat',
                  'away':'away',
@@ -843,9 +864,9 @@ class Core(object):
         """
         jid = message['from']
         body = xhtml.get_body_from_message_stanza(message)
+        if message['type'] == 'error':
+            return self.information(self.get_error_message_from_error_stanza(message, deprecated=True), 'Error')
         if not body:
-            if message['type'] == 'error':
-                self.information(self.get_error_message_from_error_stanza(message), 'Error')
             return
         conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
@@ -1198,7 +1219,7 @@ class Core(object):
         self.current_tab().on_half_scroll_down()
         self.refresh_window()
 
-    def get_error_message_from_error_stanza(self, stanza):
+    def get_error_message_from_error_stanza(self, stanza, deprecated=False):
         """
         Takes a stanza of the form <message type='error'><error/></message>
         and return a well formed string containing the error informations
@@ -1209,10 +1230,16 @@ class Core(object):
         code = stanza['error']['code']
         body = stanza['error']['text']
         if not body:
-            if code in ERROR_AND_STATUS_CODES:
-                body = ERROR_AND_STATUS_CODES[code]
+            if deprecated:
+                if code in DEPRECATED_ERRORS:
+                    body = DEPRECATED_ERRORS[code]
+                else:
+                    body = condition or _('Unknown error')
             else:
-                body = condition or _('Unknown error')
+                if code in ERROR_AND_STATUS_CODES:
+                    body = ERROR_AND_STATUS_CODES[code]
+                else:
+                    body = condition or _('Unknown error')
         if code:
             message = _('%(from)s: %(code)s - %(msg)s: %(body)s') % {'from':sender, 'msg':msg, 'body':body, 'code':code}
         else:
