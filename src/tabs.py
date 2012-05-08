@@ -2880,7 +2880,8 @@ class XMLTab(Tab):
         if not self.visible:
             return
         self.need_resize = False
-        self.text_win.resize(self.height-2, self.width, 0, 0)
+        min = 1 if self.left_tab_win else 2
+        self.text_win.resize(self.height-min, self.width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
