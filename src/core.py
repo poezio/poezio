@@ -201,6 +201,27 @@ class Core(object):
             'M-j': self.go_to_room_number,
             'M-d': self.scroll_info_up,
             'M-c': self.scroll_info_down,
+        ######## actions mappings ##########
+            '_close_tab': self.close_tab,
+            '_disconnect': self.disconnect,
+            '_quit': self.command_quit,
+            '_reconnect': self.command_reconnect,
+            '_redraw_screen': self.full_screen_redraw,
+            '_reload_theme': self.command_theme,
+            '_room_left': self.rotate_rooms_left,
+            '_room_right': self.rotate_rooms_right,
+            '_show_roster': self.go_to_roster,
+            '_scroll_down': self.scroll_page_down,
+            '_scroll_up': self.scroll_page_up,
+            '_scroll_info_up': self.scroll_info_up,
+            '_scroll_info_down': self.scroll_info_down,
+            '_server_cycle': self.command_server_cycle,
+            '_show_bookmarks': self.command_bookmarks,
+            '_show_important_room': self.go_to_important_room,
+            '_show_invitations': self.command_invitations,
+            '_show_plugins': self.command_plugins,
+            '_show_xmltab': self.command_xml_tab,
+            '_toggle_pane': self.toggle_left_pane,
             }
 
         # Add handlers
@@ -341,7 +362,7 @@ class Core(object):
             self.current_tab().refresh()
             self.doupdate()
 
-    def command_xml_tab(self, arg):
+    def command_xml_tab(self, arg=''):
         """/xml_tab"""
         self.xml_tabs += 1
         tab = tabs.XMLTab()
@@ -519,7 +540,7 @@ class Core(object):
         if n == 2:
             return the_input.auto_completion(list(self.pending_invites.keys()), '')
 
-    def command_invitations(self, arg):
+    def command_invitations(self, arg=''):
         """/invitations"""
         build = ""
         for invite in self.pending_invites:
@@ -1538,7 +1559,7 @@ class Core(object):
         filename = args[0]
         self.plugin_manager.unload(filename)
 
-    def command_plugins(self, arg):
+    def command_plugins(self, arg=''):
         """
         /plugins
         """
@@ -1576,7 +1597,7 @@ class Core(object):
         jid = args[0]
         self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
-    def command_reconnect(self, args):
+    def command_reconnect(self, args=None):
         """
         /reconnect
         """
@@ -1600,7 +1621,7 @@ class Core(object):
         self.add_tab(list_tab, True)
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
 
-    def command_theme(self, arg):
+    def command_theme(self, arg=''):
         """/theme <theme name>"""
         args = arg.split()
         if args:
@@ -1988,7 +2009,7 @@ class Core(object):
         self.information(_('Your remote bookmarks are now: %s') %
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
 
-    def command_bookmarks(self, arg):
+    def command_bookmarks(self, arg=''):
         """/bookmarks"""
         self.information(_('Your remote bookmarks are: %s') %
                 [b for b in bookmark.bookmarks if b.method in ('pep', 'privatexml')], 'Info')
@@ -2136,14 +2157,13 @@ class Core(object):
         log.debug('___ Referrers of closing tab:\n%s\n______', gc.get_referrers(tab))
         del tab
 
-    def command_server_cycle(self, arg):
+    def command_server_cycle(self, arg=''):
         """
         Do a /cycle on each room of the given server. If none, do it on the current tab
         """
         args = common.shell_split(arg)
         tab = self.current_tab()
         message = ""
-
         if len(args):
             domain = args[0]
             if len(args) > 1:
@@ -2233,7 +2253,7 @@ class Core(object):
         # Ugly fix thanks to gmail servers
         self.xmpp.disconnect(reconnect)
 
-    def command_quit(self, arg):
+    def command_quit(self, arg=''):
         """
         /quit
         """
