@@ -232,3 +232,120 @@ And enter any key.
 ==================
 M-i = ^I
 ==================
+
+Actions
+-------
+
+Mapping actions on keys
+~~~~~~~~~~~~~~~~~~~~~~~
+
+One may want to add keyboard shortcuts on actions that were not mapped already
+in poezio. To this effect, you can map the keys on actions using the _Key
+configuration_ seen in the previous section.
+
+
+The actions are pseudo-keystrokes, and have to be treated the same way.
+They all begin with an underscore to prevent any possible collision with things
+ already defined.
+
+Actions list
+~~~~~~~~~~~
+
+NOTE: Even if some of these actions are labelled as similar to other
+keystrokes, remapping the keystrokes will not remap the actions defined here.
+
+[horizontal]
+*_close_tab*:: Closes the current tab.
+
+    This is the same as /close. The first tab (the roster) can not be closed.
+
+*_disconnect*:: Disconnects poezio from the server.
+
+*_quit*:: Exits poezio.
+
+    Similar to /quit.
+
+*_reconnect*:: Disconnects then reconnects poezio, if possible.
+
+    This is similar to /connect.
+
+*_redraw_screen*:: Redraws the screen.
+
+    This isn’t normally useful, similar to Ctrl-l.
+
+*_reload_theme*:: Reloads the theme.
+
+    Similar to /theme.
+
+*_room_left*:: Goes to the room on the left.
+
+    Similar to Ctrl-p.
+
+*_room_right*:: Goes to the room on the right.
+
+    Similar to Ctrl-n.
+
+*_show_roster*:: Goes to the roster.
+
+    Similar to Alt-r.
+
+*_scroll_down*:: Scrolls down in the current buffer.
+
+    Similar to PAGEDOWN.
+
+*_scroll_up*:: Scrolls up in the current buffer.
+
+    Similar to PAGEUP.
+
+*_scroll_info_down*:: Scrolls down in the info buffer.
+
+    Similar to Alt-c.
+
+*_scroll_info_up*:: Scrolls up in the info buffer.
+
+    Similar to Alt-d.
+
+*_server_cycle*:: Cycles in the current MUC server.
+
+    Similar to /server_cycle in a MUC. If you are not in a MUC, you will get
+    an error.
+
+*_show_bookmarks*:: Shows the current bookmarks.
+
+    Similar to /bookmarks.
+
+*_show_important_room*:: Goes to the most important room.
+
+    Similar to Alt-e.
+
+*_show_invitations*:: Shows all the pending MUC invitations.
+
+    Similar to /invitations.
+
+*_show_plugins*:: Shows the currently loaded plugins.
+
+    Similar to /plugins.
+
+*_show_xmltab*:: Opens an XML tab.
+
+    Similar to /xml_tab.
+
+*_toggle_pane*:: Toggles the left pane.
+
+    Similar to F4.
+
+
+Example
+~~~~~~~
+
+.Config with user-defined actions
+=================================
+[source,conf]
+-------------
+[bindings]
+^W = _close_tab
+M-x = _show_xmltab
+M-i = _show_important_room
+M-p = _toggle_pane
+-------------
+=================================
