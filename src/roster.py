@@ -30,10 +30,10 @@ class Roster(object):
         self.contact_filter = None # A tuple(function, *args)
                                     # function to filter contacts,
                                     # on search, for example
-        self.folded_groups = config.get(
+        self.folded_groups = set(config.get(
                 'folded_roster_groups',
                 '',
-                section='var').split(':')
+                section='var').split(':'))
         self.groups = {}
         self.contacts = {}
 
@@ -155,7 +155,7 @@ class Roster(object):
         for group in self.groups.values():
             if not show_offline and group.get_nb_connected_contacts() == 0:
                 continue
-            if not group in self.folded_groups:
+            if not group.name in self.folded_groups:
                 for contact in group.get_contacts(self.contact_filter):
                     # We do not count the offline contacts (depending on config)
                     if not show_offline and\
@@ -247,6 +247,12 @@ class RosterGroup(object):
 
     def toggle_folded(self):
         self.folded = not self.folded
+        if self.folded:
+            if self.name not in roster.folded_groups:
+                roster.folded_groups.add(self.name)
+        else:
+            if self.name in roster.folded_groups:
+                roster.folded_groups.remove(self.name)
 
     def get_nb_connected_contacts(self):
         l = 0
