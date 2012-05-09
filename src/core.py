@@ -177,7 +177,8 @@ class Core(object):
             del self.commands['status']
             del self.commands['show']
 
-        self.key_func = {
+        self.key_func = KeyDict()
+        key_func = {
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
             "^B": self.scroll_line_up,
@@ -231,7 +232,10 @@ class Core(object):
             '_chat': lambda: self.command_status('chat'),
             '_dnd': lambda: self.command_status('dnd'),
             '_xa': lambda: self.command_status('xa'),
+        ##### Custom actions ########
+            '_exc_': lambda arg: self.try_execute(arg),
         }
+        self.key_func.update(key_func)
 
         # Add handlers
         self.xmpp.add_event_handler('connected', self.on_connected)
@@ -1078,8 +1082,9 @@ class Core(object):
                         else:
                             self.command_win('%d' % nb)
                     # search for keyboard shortcut
-                if char in self.key_func:
-                    self.key_func[char]()
+                func = self.key_func.get(char, None)
+                if func:
+                    func()
                 else:
                     res = self.do_command(replace_line_breaks(char), False)
                     if res:
@@ -2401,3 +2406,26 @@ class Core(object):
         Insert the given text into the current input
         """
         self.do_command(text, True)
+
+    def try_execute(self, line):
+        """
+        Try to execute a command in the current tab
+        """
+        line = '/' + line
+        try:
+            self.current_tab().execute_command(line)
+        except:
+            import traceback
+            log.debug('Execute failed:\n%s', traceback.format_exc())
+
+class KeyDict(dict):
+    """
+    A dict, with a wrapper for get() that will return a custom value
+    if the key starts with _exc_
+    """
+    def get(self, k, d=None):
+        if isinstance(k, str) and k.startswith('_exc_') and len(k) > 5:
+            return lambda: dict.get(self, '_exc_')(k[5:])
+        return dict.get(self, k, d)
+
+

@@ -370,8 +370,27 @@ Status actions
 
     Similar to /status xa.
 
-Example
-~~~~~~~
+Command execution
+~~~~~~~~~~~~~~~~~
+
+With that kind of actions, you can also execute arbitrary commands, with the
+ __exc__ keyword.
+
+
+You only have to prefix your command line with *\_exc\_*, and without the _/_.
+
+./kick Partauche added on Ctrl-w
+========================
+
+ ^W = _exc_kick Partauche
+
+========================
+
+That key binding will only work in the tabs defining the command (here, the
+MUC tab), and will show an error message in the others.
+
+Examples
+~~~~~~~~
 
 .Config with user-defined actions
 =================================
@@ -382,5 +401,19 @@ Example
 M-x = _show_xmltab
 M-i = _show_important_room
 M-p = _toggle_pane
+-------------
+=================================
+
+.Config with commands mapped
+=================================
+[source,conf]
+-------------
+[bindings]
+M-c = _exc_configure
+^Q = _exc_part RAGE QUIT
+^J = _exc_join
+^F = _exc_load figlet
+^R = _exc_load rainbow
+^S = _exc_say llollllllllllll
 -------------
 =================================
