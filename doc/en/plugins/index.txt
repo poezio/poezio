@@ -134,11 +134,6 @@ Plugins index
 
     Tells a message to a nick when he connects to a MUC.
 
-*Translate*:: Translation plugin
-
-    Translates everything that is said in the poezio room into english (useful
-    for non-french speakers). Can of course be tweaked to apply to other rooms.
-
 *Uptime*:: link:uptime.html[Uptime plugin]
 
     Gets the uptime of a XMPP server or a component.
