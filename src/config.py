@@ -114,9 +114,12 @@ class Config(RawConfigParser):
         TODO: make it write also new values in the file, not just what did already
         exist
         """
-        df = open(self.file_name, 'r')
-        lines_before = (line.strip() for line in df.readlines())
-        df.close()
+        if path.exists(self.file_name):
+            df = open(self.file_name, 'r')
+            lines_before = (line.strip() for line in df.readlines())
+            df.close()
+        else:
+            lines_before = []
         result_lines = []
         we_are_in_the_right_section = False
         written = False
