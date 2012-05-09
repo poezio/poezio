@@ -202,12 +202,15 @@ class Core(object):
             'M-d': self.scroll_info_up,
             'M-c': self.scroll_info_down,
         ######## actions mappings ##########
+            '_bookmark': self.command_bookmark,
+            '_bookmark_local': self.command_bookmark_local,
             '_close_tab': self.close_tab,
             '_disconnect': self.disconnect,
             '_quit': self.command_quit,
             '_reconnect': self.command_reconnect,
             '_redraw_screen': self.full_screen_redraw,
             '_reload_theme': self.command_theme,
+            '_remove_bookmark': self.command_remove_bookmark,
             '_room_left': self.rotate_rooms_left,
             '_room_right': self.rotate_rooms_right,
             '_show_roster': self.go_to_roster,
@@ -222,7 +225,13 @@ class Core(object):
             '_show_plugins': self.command_plugins,
             '_show_xmltab': self.command_xml_tab,
             '_toggle_pane': self.toggle_left_pane,
-            }
+        ###### status actions ######
+            '_available': lambda: self.command_status('available'),
+            '_away': lambda: self.command_status('away'),
+            '_chat': lambda: self.command_status('chat'),
+            '_dnd': lambda: self.command_status('dnd'),
+            '_xa': lambda: self.command_status('xa'),
+        }
 
         # Add handlers
         self.xmpp.add_event_handler('connected', self.on_connected)
@@ -1889,7 +1898,7 @@ class Core(object):
             return bm.nick
         return self.own_nick
 
-    def command_bookmark_local(self, arg):
+    def command_bookmark_local(self, arg=''):
         """
         /bookmark_local [room][/nick]
         """
@@ -1939,7 +1948,7 @@ class Core(object):
         self.information(_('Your local bookmarks are now: %s') %
                 [b for b in bookmark.bookmarks if b.method == 'local'], 'Info')
 
-    def command_bookmark(self, arg):
+    def command_bookmark(self, arg=''):
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
@@ -2016,7 +2025,7 @@ class Core(object):
         self.information(_('Your local bookmarks are: %s') %
                 [b for b in bookmark.bookmarks if b.method is 'local'], 'Info')
 
-    def command_remove_bookmark(self, arg):
+    def command_remove_bookmark(self, arg=''):
         """/remove_bookmark [jid]"""
         args = common.shell_split(arg)
         if not args:

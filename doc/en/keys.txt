@@ -255,6 +255,14 @@ NOTE: Even if some of these actions are labelled as similar to other
 keystrokes, remapping the keystrokes will not remap the actions defined here.
 
 [horizontal]
+*_bookmark*:: Bookmarks the current room.
+
+    Similar to /bookmark.
+
+*_bookmark_local*:: Bookmarks the current room, locally.
+
+    Similar to /bookmark_local
+
 *_close_tab*:: Closes the current tab.
 
     This is the same as /close. The first tab (the roster) can not be closed.
@@ -276,6 +284,10 @@ keystrokes, remapping the keystrokes will not remap the actions defined here.
 *_reload_theme*:: Reloads the theme.
 
     Similar to /theme.
+
+*_remove_bookmark*:: Removes the bookmark on the current room.
+
+    Similar to /remove_bookmark.
 
 *_room_left*:: Goes to the room on the left.
 
@@ -334,6 +346,29 @@ keystrokes, remapping the keystrokes will not remap the actions defined here.
 
     Similar to F4.
 
+Status actions
+~~~~~~~~~~~~~~
+
+[horizontal]
+*_available*:: Sets the status to _available_.
+
+    Similar to /status available.
+
+*_away*:: Sets the status to _away_.
+
+    Similar to /status away.
+
+*_chat*:: Sets the status to _chat_.
+
+    Similar to /status chat.
+
+*_dnd*:: Sets the status to _dnd_.
+
+    Similar to /status dnd.
+
+*_xa*:: Sets the status to _xa_.
+
+    Similar to /status xa.
 
 Example
 ~~~~~~~
