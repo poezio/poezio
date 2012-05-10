@@ -819,6 +819,8 @@ class MucTab(ChatTab):
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
+        else:
+            msg =_("\x195}You left the chatroom\x193}")
         self.core.disable_private_tabs(self.name, reason=msg)
 
     def command_close(self, arg):
