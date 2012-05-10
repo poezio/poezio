@@ -1714,7 +1714,10 @@ class Core(object):
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
                 if not the_input.last_completion:
-                    response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
+                    try:
+                        response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
+                    except:
+                        response = None
                     if response:
                         items = response['disco_items'].get_items()
                     else:
