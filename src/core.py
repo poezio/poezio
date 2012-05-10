@@ -793,21 +793,21 @@ class Core(object):
         if tab:
             tab.user_rejoined(nick)
 
-    def disable_private_tabs(self, room_name):
+    def disable_private_tabs(self, room_name, reason='\x195}You left the chatroom\x193}'):
         """
         Disable private tabs when leaving a room
         """
         for tab in self.tabs:
             if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
-                tab.deactivate()
+                tab.deactivate(reason=reason)
 
-    def enable_private_tabs(self,room_name):
+    def enable_private_tabs(self, room_name, reason='\x195}You joined the chatroom\x193}'):
         """
         Enable private tabs when joining a room
         """
         for tab in self.tabs:
             if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
-                tab.activate()
+                tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)

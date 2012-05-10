@@ -812,13 +812,14 @@ class MucTab(ChatTab):
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             if arg:
-                self.add_message(_("\x195}You left the chatroom (\x19o%s\x195})\x193}" % arg))
+                msg = _("\x195}You left the chatroom (\x19o%s\x195})\x193}" % arg)
             else:
-                self.add_message(_("\x195}You left the chatroom\x193}"))
+                msg =_("\x195}You left the chatroom\x193}")
+            self.add_message(msg)
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
-        self.core.disable_private_tabs(self.name)
+        self.core.disable_private_tabs(self.name, reason=msg)
 
     def command_close(self, arg):
         """
@@ -1184,6 +1185,7 @@ class MucTab(ChatTab):
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
                         self.core.doupdate()
+                    self.core.enable_private_tabs(self.get_name())
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -1199,10 +1201,12 @@ class MucTab(ChatTab):
                 self.on_user_nick_change(presence, user, from_nick, from_room)
             elif ban:
                 self.core.events.trigger('muc_ban', presence, self)
+                self.core.on_user_left_private_conversation(from_room, from_nick, status)
                 self.on_user_banned(presence, user, from_nick)
             # kick
             elif kick:
                 self.core.events.trigger('muc_kick', presence, self)
+                self.core.on_user_left_private_conversation(from_room, from_nick, status)
                 self.on_user_kicked(presence, user, from_nick)
             # user quit
             elif typ == 'unavailable':
@@ -1228,9 +1232,10 @@ class MucTab(ChatTab):
         if hide_exit_join != 0:
             color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if not jid.full:
-                self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                msg = '\x194}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
             else:
-                self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s \x19%(info_col)s}(\x194}%(jid)s\x19%(info_col)s}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                msg = '\x194}%(spec)s \x19%(color)d}%(nick)s \x19%(info_col)s}(\x194}%(jid)s\x19%(info_col)s}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            self.add_message(msg)
         self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
@@ -1256,15 +1261,15 @@ class MucTab(ChatTab):
         reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
         if from_nick == self.own_nick: # we are banned
-            self.disconnect()
-            self.core.disable_private_tabs(self.name)
-            self.refresh_tab_win()
-            self.core.current_tab().input.refresh()
-            self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned by \x194}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
             else:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned.') % {'spec':get_theme().CHAR_KICK, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            self.core.disable_private_tabs(self.name, reason=kick_msg)
+            self.disconnect()
+            self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
+            self.core.doupdate()
         else:
             color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
@@ -1284,15 +1289,15 @@ class MucTab(ChatTab):
         reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
         if from_nick == self.own_nick: # we are kicked
-            self.disconnect()
-            self.core.disable_private_tabs(self.name)
-            self.refresh_tab_win()
-            self.core.current_tab().input.refresh()
-            self.core.doupdate()
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked by \x193}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
             else:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked.') % {'spec':get_theme().CHAR_KICK, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            self.core.disable_private_tabs(self.name, reason=kick_msg)
+            self.disconnect()
+            self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
+            self.core.doupdate()
             # try to auto-rejoin
             if config.get_by_tabname('autorejoin', 'false', self.general_jid, True) == 'true':
                 muc.join_groupchat(self.core.xmpp, self.name, self.own_nick)
@@ -1639,14 +1644,18 @@ class PrivateTab(ChatTab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator()
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
+        if tab and tab.joined and config.get_by_tabname(
+                'send_chat_states', 'true', self.general_jid, True) == 'true'\
+                    and not self.input.get_text() and self.on:
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
+        if tab and tab.joined and config.get_by_tabname(
+                'send_chat_states', 'true', self.general_jid, True) == 'true'\
+                    and not self.input.get_text() and self.on:
             self.send_chat_state('active')
 
     def on_info_win_size_changed(self):
@@ -1696,11 +1705,15 @@ class PrivateTab(ChatTab):
             self.refresh()
             self.core.doupdate()
 
-    def activate(self):
+    def activate(self, reason=None):
         self.on = True
+        if reason:
+            self.add_message(txt=reason)
 
-    def deactivate(self):
+    def deactivate(self, reason=None):
         self.on = False
+        if reason:
+            self.add_message(txt=reason)
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
         self._text_buffer.add_message(txt, time=time,
