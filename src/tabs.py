@@ -808,6 +808,7 @@ class MucTab(ChatTab):
         /part [msg]
         """
         arg = arg.strip()
+        msg = None
         if self.joined:
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
