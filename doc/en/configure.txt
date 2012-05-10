@@ -275,6 +275,10 @@ section of this documentation.
   the contact names). If there is no contact name, the JID will still be
   displayed.
 
+*roster_show_offline*:: false
+
+  Set this to true if you want to display the offline contacts too.
+
 *beep_on*:: highlight private
 
   The terminal can beep on various event. Put the event you want in a list
@@ -386,6 +390,17 @@ section of this documentation.
   If plugins_dir is not set, plugins will be loaded from $XDG_DATA_HOME/poezio/plugins
   You can specify another directory to use. It will be created if it does not
   exist.
+
+*exec_remote*:: false
+
+  If this is set to true, poezio will try to send the commands to a FIFO
+  instead of executing them locally. This is to be used in conjunction with
+  ssh and the daemon.py file. See the /link documentation for details.
+
+*remote_fifo_path*:: ./poezio.fifo
+
+  The path of the FIFO used to send the commands (see the exec_remote option).
+
 
 Optional section options
 ~~~~~~~~~~~~~~~~~~~~~~~~
