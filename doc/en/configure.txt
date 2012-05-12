@@ -435,8 +435,40 @@ foo = true
 
 *display_user_color_in_join_part*:: false
 
+  If set to true, the color of the nick will be used in MUCs information
+  messages, instead of the default color from the theme.
+
 *hide_exit_join*:: -1
+
+  Exact same thing than hide_status_change, except that it concerns
+  the quit message, and that it will be hidden only if the value is 0.
+  Default setting means:
+   - all quit and join notices will be displayed
 
 *hide_status_change*:: 120
 
+  Set a number for this setting.
+  The join OR status-change notices will be
+  displayed according to this number.
+  -1: the notices will ALWAYS be displayed
+   0: the notices will NEVER be displayed
+   n: On any other number, the notices will only be displayed
+      if the user involved has talked since the last n seconds
+  if the value is incorrect, -1 is assumed
+  Default setting means :
+   - status changes won't be displayed unless
+     the user talked in the last 2 minutes
+
 *highlight_on*:: [empty]
+
+  a list of words (separated by a colon (:)) that will be
+  highlighted if said by someone on a room
+
+*ignore_private*:: false
+
+    Ignore private messages sent from this room.
+
+*private_auto_response*:: "Not in private, please."
+
+    The message you want to be sent when someone tries to message you.
+

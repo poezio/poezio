@@ -842,13 +842,19 @@ class Core(object):
         room_from = jid.bare
         body = xhtml.get_body_from_message_stanza(message)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
+        ignore = config.get_by_tabname('ignore_private', 'false',
+                room_from).lower() == 'true'
         if not tab: # It's the first message we receive: create the tab
-            if body:
+            if body and not ignore:
                 tab = self.open_private_window(room_from, nick_from, False)
-            if not tab:
-                return
+        if ignore:
+            self.events.trigger('ignored_private', message, tab)
+            msg = config.get_by_tabname('private_auto_response', None, room_from)
+            if msg and body:
+                self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
+            return
         self.events.trigger('private_msg', message, tab)
-        if not body:
+        if not body or not tab:
             return
         tab.add_message(body, time=None, nickname=nick_from,
                         forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
