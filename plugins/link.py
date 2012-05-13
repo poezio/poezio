@@ -3,15 +3,18 @@
 
 import re
 
-from plugin import BasePlugin, PluginConfig
+from plugin import BasePlugin
 from xhtml import clean_text
 import common
+import tabs
 
 url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
+        self.add_tab_command(tabs.MucTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
+        self.add_tab_command(tabs.PrivateTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
+        self.add_tab_command(tabs.ConversationTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
 
     def find_link(self, nb):
         messages = self.core.get_conversation_messages()
