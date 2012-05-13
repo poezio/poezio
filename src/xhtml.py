@@ -206,7 +206,10 @@ def ncurses_color_to_html(color):
     html color.
     """
     if color <= 15:
-        (r, g, b) = curses.color_content(color)
+        try:
+            (r, g, b) = curses.color_content(color)
+        except: # fallback in faulty terminals (e.g. xterm)
+            (r, g, b) = curses.color_content(color%8)
         r = r / 1000 * 6 - 0.01
         g = g / 1000 * 6 - 0.01
         b = b / 1000 * 6 - 0.01
