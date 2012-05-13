@@ -1935,6 +1935,7 @@ class Core(object):
                     else:
                         b.method = "local"
             bookmark.save_local()
+            bookmark.save_remote(self.xmpp)
             self.information('Bookmarks added and saved.', 'Info')
             return
         else:
@@ -1990,11 +1991,13 @@ class Core(object):
                 if isinstance(tab, tabs.MucTab):
                     b = bookmark.get_by_jid(tab.get_name())
                     if not b:
-                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin)
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
+                                method=bookmark.preferred)
                         bookmark.bookmarks.append(b)
                     else:
-                        b.method = "local"
+                        b.method = bookmark.preferred
             if bookmark.save_remote(self.xmpp, self):
+                bookmark.save_local()
                 self.information("Bookmarks added.", "Info")
             else:
                 self.information("Could not add the bookmarks.", "Info")
