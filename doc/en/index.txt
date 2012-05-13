@@ -1,0 +1,17 @@
+Poezio Documentation
+====================
+
+Welcome to the english documentation, here is a list of the availalble pages.
+
+Available pages
+---------------
+
+
+* link:install.html[Installation]
+* link:configure.html[Configuration]
+* link:usage.html[Usage]
+* link:themes.html[Theming]
+* link:keys.html[Keys]
+* link:plugins/index.html[Available Plugins]
+* link:plugins.html[Developing plugins]
+* link:xep.html[Current XEP support]
