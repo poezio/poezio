@@ -24,3 +24,7 @@ directly in the command line by the author of the message, and the body.
 The example shown above will display something like this:
 image:../../images/simple_notify_example.png["Simple notify example",
 title="Simple notify example"]
+
+NOTE: If you set the _exec_remote_ option to _true_ into the
+link:../configure.html[main configuration file], the command will be executed
+remotely (as explained in the link:link.html[/link help]).
