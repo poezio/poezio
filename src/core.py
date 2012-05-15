@@ -246,6 +246,7 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invite)
         self.xmpp.add_event_handler("groupchat_decline", self.on_groupchat_decline)
+        self.xmpp.add_event_handler("groupchat_config_status", self.on_status_codes)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("got_online" , self.on_got_online)
@@ -1411,6 +1412,48 @@ class Core(object):
             if 'message' in config.get('beep_on', 'highlight private').split():
                 if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
                     curses.beep()
+
+    def on_status_codes(self, message):
+        """
+        Handle groupchat messages with status codes.
+        Those are received when a room configuration change occurs.
+        """
+        room_from = message['from']
+        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        status_codes = set([s.attrib['code'] for s in message.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))])
+        if '101' in status_codes:
+            self.information('Your affiliation in the room %s changed' % room_from, 'Info')
+        elif tab and status_codes:
+            show_unavailable = '102' in status_codes
+            hide_unavailable = '103' in status_codes
+            non_priv = '104' in status_codes
+            logging_on = '170' in status_codes
+            logging_off= '171' in status_codes
+            non_anon = '172' in status_codes
+            semi_anon = '173' in status_codes
+            full_anon = '174' in status_codes
+            modif = False
+            if show_unavailable or hide_unavailable or non_priv or logging_off\
+                    or non_anon or semi_anon or full_anon:
+                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                modif = True
+            if show_unavailable:
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif hide_unavailable:
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if non_anon:
+                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif semi_anon:
+                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif full_anon:
+                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if logging_on:
+                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif logging_off:
+                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if modif:
+                self.refresh_window()
+
 
     def add_message_to_text_buffer(self, buff, txt, time=None, nickname=None, history=None):
         """

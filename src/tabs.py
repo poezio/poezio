@@ -1180,8 +1180,12 @@ class MucTab(ChatTab):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
                     self.add_message(_("\x19%(info_col)s}Your nickname is \x193}%(nick)s") % {'nick': from_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    if '201' in status_codes:
+                        self.add_message('\x19%(info_col)s}Info: The room has been created' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
                     if '170' in status_codes:
                         self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    if '100' in status_codes:
+                        self.add_message('\x191}Warning: \x19%(info_col)s}This room is not anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
                     if self.core.current_tab() is not self:
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
@@ -1191,6 +1195,8 @@ class MucTab(ChatTab):
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
             ban = '301' in status_codes and typ == 'unavailable'
+            shutdown = '332' in status_codes and typ == 'unavailable'
+            non_member = '322' in status_codes and typ == 'unavailable'
             user = self.get_user_by_name(from_nick)
             # New user
             if not user:
@@ -1209,6 +1215,12 @@ class MucTab(ChatTab):
                 self.core.events.trigger('muc_kick', presence, self)
                 self.core.on_user_left_private_conversation(from_room, from_nick, status)
                 self.on_user_kicked(presence, user, from_nick)
+            elif shutdown:
+                self.core.events.trigger('muc_shutdown', presence, self)
+                self.on_muc_shutdown()
+            elif non_member:
+                self.core.events.trigger('muc_shutdown', presence, self)
+                self.on_non_member_kick()
             # user quit
             elif typ == 'unavailable':
                 self.on_user_leave_groupchat(user, jid, status, from_nick, from_room)
@@ -1221,6 +1233,16 @@ class MucTab(ChatTab):
             self.info_header.refresh(self, self.text_win)
             self.input.refresh()
             self.core.doupdate()
+
+    def on_non_member_kicked(self):
+        """We have been kicked because the MUC is members-only"""
+        self.add_message('\x19%(info_col)s}%You have been kicked because you are not a member and the room is now members-only.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.disconnect()
+
+    def on_muc_shutdown(self):
+        """We have been kicked because the MUC service is shutting down"""
+        self.add_message('\x19%(info_col)s}%You have been kicked because the MUC service is shutting down.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.disconnect()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):
         """
