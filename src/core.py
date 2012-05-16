@@ -1361,9 +1361,14 @@ class Core(object):
         if not subject or not tab:
             return
         if nick_from:
-            self.add_message_to_text_buffer(tab._text_buffer, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+            self.add_message_to_text_buffer(tab._text_buffer,
+                    _("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+                    {'info_col': get_theme().COLOR_INFORMATION_TEXT[0], 'nick':nick_from, 'subject':subject},
+                    time=None)
         else:
-            self.add_message_to_text_buffer(tab._text_buffer, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
+            self.add_message_to_text_buffer(tab._text_buffer, _("\x19%(info_col)s}The subject is: %(subject)s") %
+                    {'subject':subject, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]},
+                    time=None)
         tab.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
             self.refresh_window()

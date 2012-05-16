@@ -853,7 +853,8 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not arg.strip():
-            self._text_buffer.add_message(_("The subject of the room is: %s") % self.topic)
+            self._text_buffer.add_message(_("\x19%s}The subject of the room is: %s") %
+                    (get_theme().COLOR_INFORMATION_TEXT[0], self.topic))
             self.text_win.refresh()
             self.input.refresh()
             return
