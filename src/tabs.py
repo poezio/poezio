@@ -217,6 +217,10 @@ class Tab(object):
                 # Otherwise we would need to add a useless space before being
                 # able to complete the arguments.
                 hit_copy = set(the_input.hit_list)
+                while not hit_copy:
+                    the_input.key_backspace()
+                    the_input.auto_completion(words, '', quotify=False)
+                    hit_copy = set(the_input.hit_list)
                 if len(hit_copy) == 1:
                     the_input.do_command(' ')
                 return True
