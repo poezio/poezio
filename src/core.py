@@ -658,12 +658,17 @@ class Core(object):
         self.add_tab(form_tab, True)
 
     def on_got_offline(self, presence):
+        """
+        A JID got offline
+        """
         jid = presence['from']
         logger.log_roster_change(jid.bare, 'got offline')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         if jid.resource:
             self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
+        if jid.server in roster.blacklist:
+            return
         self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
         self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):

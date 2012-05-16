@@ -1171,6 +1171,7 @@ class MucTab(ChatTab):
                 self.core.events.trigger('muc_join', presence, self)
                 if from_nick == self.own_nick:
                     self.joined = True
+                    roster.blacklist.add(JID(from_room).server)
                     if self.get_name() in self.core.initial_joins:
                         self.core.initial_joins.remove(self.get_name())
                         self._state = 'normal'
