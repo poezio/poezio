@@ -35,7 +35,7 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None):
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False):
         time = time or datetime.now()
         if txt.startswith('/me '):
             if nick_color:
@@ -57,7 +57,7 @@ class TextBuffer(object):
         ret_val = None
         for window in self.windows: # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(msg, history=history)
+            nb = window.build_new_message(msg, history=history, highlight=highlight)
             if ret_val is None:
                 ret_val = nb
             if window.pos != 0:

@@ -600,6 +600,8 @@ class MucTab(ChatTab):
         self.key_func['^I'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
         self.key_func['M-y'] = self.scroll_user_list_up
+        self.key_func['M-n'] = self.go_to_next_hl
+        self.key_func['M-p'] = self.go_to_prev_hl
         # commands
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
@@ -629,6 +631,22 @@ class MucTab(ChatTab):
     @property
     def general_jid(self):
         return self.get_name()
+
+    def go_to_next_hl(self):
+        """
+        Go to the next HL in the room, or the last
+        """
+        self.text_win.next_highlight()
+        self.refresh()
+        self.core.doupdate()
+
+    def go_to_prev_hl(self):
+        """
+        Go to the previous HL in the room, or the first
+        """
+        self.text_win.previous_highlight()
+        self.refresh()
+        self.core.doupdate()
 
     def completion_version(self, the_input):
         """Completion for /version"""
@@ -1502,7 +1520,7 @@ class MucTab(ChatTab):
             if highlight:
                 nick_color = highlight
         time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
+        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight)
         return highlight
 
 class PrivateTab(ChatTab):

@@ -622,6 +622,8 @@ class TextWin(Win):
         # on resize, we rebuild all the messages
         self.lock = False
         self.lock_buffer = []
+        self.highlights = []
+        self.hl_pos = -1
 
     def toggle_lock(self):
         if self.lock:
@@ -636,6 +638,74 @@ class TextWin(Win):
         for line in self.lock_buffer:
             self.built_lines.append(line)
         self.lock = False
+
+    def next_highlight(self):
+        """
+        Go to the next highlight in the buffer.
+        (depending on which highlight was selected before)
+        if the buffer is already positionned on the last, of if there are no
+        highlights, scroll to the end of the buffer.
+        """
+        log.debug('Going to the next highlight…')
+        if not self.highlights or self.hl_pos == -1 or \
+                self.hl_pos == len(self.highlights)-1:
+            self.hl_pos = -1
+            self.pos = 0
+            return
+        hl_size = len(self.highlights) - 1
+        if self.hl_pos < hl_size:
+            self.hl_pos += 1
+        else:
+            self.hl_pos = hl_size
+
+        hl = self.highlights[self.hl_pos]
+        pos = None
+        while not pos:
+            try:
+                pos = self.built_lines.index(hl)
+            except ValueError:
+                self.highlights = self.highlights[self.hl_pos+1:]
+                if not self.highlights:
+                    self.hl_pos = -1
+                    self.pos = 0
+                    return
+                hl = self.highlights[0]
+        self.pos =  len(self.built_lines) - pos - self.height
+        if self.pos < 0 or self.pos >= len(self.built_lines):
+            self.pos = 0
+
+    def previous_highlight(self):
+        """
+        Go to the previous highlight in the buffer.
+        (depending on which highlight was selected before)
+        if the buffer is already positionned on the first, or if there are no
+        highlights, scroll to the end of the buffer.
+        """
+        log.debug('Going to the previous highlight…')
+        if not self.highlights or self.hl_pos == 0:
+            self.hl_pos = -1
+            self.pos =  0
+            return
+        if self.hl_pos < 0:
+            self.hl_pos = len(self.highlights) - 1
+        elif self.hl_pos > 0:
+            self.hl_pos -= 1
+
+        hl = self.highlights[self.hl_pos]
+        pos = None
+        while not pos:
+            try:
+                pos = self.built_lines.index(hl)
+            except ValueError:
+                self.highlights = self.highlights[self.hl_pos+1:]
+                if not self.highlights:
+                    self.hl_pos = -1
+                    self.pos = 0
+                    return
+                hl = self.highlights[0]
+        self.pos = len(self.built_lines) - pos - self.height
+        if self.pos < 0 or self.pos >= len(self.built_lines):
+            self.pos = 0
 
     def scroll_up(self, dist=14):
         self.pos += dist
@@ -676,7 +746,7 @@ class TextWin(Win):
         if None not in self.built_lines:
             self.built_lines.append(None)
 
-    def build_new_message(self, message, history=None, clean=True):
+    def build_new_message(self, message, history=None, clean=True, highlight=False):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
@@ -703,10 +773,13 @@ class TextWin(Win):
                                              start_pos=line[0],
                                              end_pos=line[1]))
         else:
+
             for line in lines:
-                self.built_lines.append(Line(msg=message,
-                                             start_pos=line[0],
-                                             end_pos=line[1]))
+                saved_line = Line(msg=message,start_pos=line[0],end_pos=line[1])
+                self.built_lines.append(saved_line)
+                if highlight:
+                    highlight = False
+                    self.highlights.append(saved_line)
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
                 self.built_lines.pop(0)

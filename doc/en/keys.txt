@@ -105,6 +105,10 @@ These keys work only in the MultiUserChat tab.
 
 *Alt-y*:: Scroll the user list up.
 
+*Alt-p*:: Scroll to the previous highlight.
+
+*Alt-n*:: Scroll to the next highlight.
+
 *tabulation*:: Complete a nick.
 
 *Ctrl-c*:: Insert xhtml formatting. You have to press Ctrl-c then a character
