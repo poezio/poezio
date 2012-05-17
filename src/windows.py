@@ -754,7 +754,7 @@ class TextWin(Win):
         """
         if None not in self.built_lines:
             self.built_lines.append(None)
-            if room:
+            if room and room.messages:
                 self.separator_after = room.messages[-1]
 
     def build_new_message(self, message, history=None, clean=True, highlight=False):
