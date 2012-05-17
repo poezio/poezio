@@ -731,11 +731,11 @@ class TextWin(Win):
         present, scroll at the top of the window
         """
         if None in self.built_lines:
-            self.pos = self.built_lines.index(None)
+            self.pos = len(self.built_lines) - self.built_lines.index(None) - self.height + 1
+            if self.pos < 0:
+                self.pos = 0
             # Chose a proper position (not too high)
             self.scroll_up(0)
-        else:                   # Go at the top of the win
-            self.pos = len(self.built_lines) - self.height
 
     def remove_line_separator(self):
         """

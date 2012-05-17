@@ -394,6 +394,7 @@ class ChatTab(Tab):
         # since the last input
         self.remote_supports_attention = False
         self.key_func['M-v'] = self.move_separator
+        self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
@@ -565,6 +566,11 @@ class ChatTab(Tab):
 
     def on_half_scroll_down(self):
         self.text_win.scroll_down((self.text_win.height-1) // 2)
+
+    def scroll_separator(self):
+        self.text_win.scroll_to_separator()
+        self.refresh()
+        self.core.doupdate()
 
 
 class MucTab(ChatTab):
