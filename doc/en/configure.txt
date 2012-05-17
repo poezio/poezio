@@ -438,6 +438,10 @@ foo = true
   If set to true, the color of the nick will be used in MUCs information
   messages, instead of the default color from the theme.
 
+*show_useless_separator*:: false
+
+  If true, show the separator in a chat room, even if no one spoke.
+
 *hide_exit_join*:: -1
 
   Exact same thing than hide_status_change, except that it concerns

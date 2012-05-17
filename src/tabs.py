@@ -1156,7 +1156,7 @@ class MucTab(ChatTab):
 
     def on_gain_focus(self):
         self.state = 'current'
-        if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
+        if self.text_win.built_lines and self.text_win.built_lines[-1] is None and config.getl('show_useless_separator', 'false') != 'true':
             self.text_win.remove_line_separator()
         curses.curs_set(1)
         if self.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
