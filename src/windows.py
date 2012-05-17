@@ -51,7 +51,7 @@ def truncate_nick(nick, size=None):
     size = size or config.get('max_nick_length', 25)
     if size < 1:
         size = 1
-    if nick and len(nick) >= size:
+    if nick and len(nick) > size:
         return nick[:size]+'…'
     return nick
 
