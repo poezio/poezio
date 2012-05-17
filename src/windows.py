@@ -620,10 +620,16 @@ class TextWin(Win):
         self.pos = 0
         self.built_lines = []   # Each new message is built and kept here.
         # on resize, we rebuild all the messages
+
         self.lock = False
         self.lock_buffer = []
+
+        # the Lines of the highlights in that buffer
         self.highlights = []
+        # the current HL position in that list
         self.hl_pos = -1
+
+        self.separator_after = None
 
     def toggle_lock(self):
         if self.lock:
@@ -738,13 +744,18 @@ class TextWin(Win):
         log.debug('remove_line_separator')
         if None in self.built_lines:
             self.built_lines.remove(None)
+            self.separator_after = None
 
-    def add_line_separator(self):
+    def add_line_separator(self, room=None):
         """
         add a line separator at the end of messages list
+        room is a textbuffer that is needed to get the previous message
+        (in case of resize)
         """
         if None not in self.built_lines:
             self.built_lines.append(None)
+            if room:
+                self.separator_after = room.messages[-1]
 
     def build_new_message(self, message, history=None, clean=True, highlight=False):
         """
@@ -862,6 +873,8 @@ class TextWin(Win):
         self.built_lines = []
         for message in room.messages:
             self.build_new_message(message, clean=False)
+            if self.separator_after is message:
+                self.build_new_message(None)
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
 

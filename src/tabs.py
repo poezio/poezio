@@ -535,7 +535,7 @@ class ChatTab(Tab):
 
     def move_separator(self):
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         self.text_win.refresh()
         self.input.refresh()
 
@@ -1150,7 +1150,7 @@ class MucTab(ChatTab):
         else:
             self.state = 'disconnected'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
@@ -1686,7 +1686,7 @@ class PrivateTab(ChatTab):
     def on_lose_focus(self):
         self.state = 'normal'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', 'true', self.general_jid, True) == 'true'\
@@ -2604,7 +2604,7 @@ class ConversationTab(ChatTab):
             resource = None
         self.state = 'normal'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('inactive')
