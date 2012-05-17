@@ -991,6 +991,8 @@ class Core(object):
         """subscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
+        if contact.subscription not in ('both', 'from'):
+            self.information('%s accepted your contact proposal' % jid, 'Roster')
         if contact.pending_out:
             contact.pending_out = False
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -1000,9 +1002,10 @@ class Core(object):
         """unsubscribe received"""
         jid = presence['from'].bare
         contact = roster[jid]
-        if contact.subscription in ('to', 'both'):
-            self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
+        if not contact:
+            return
+        self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
+        self.get_tab_by_number(0).state = 'highlight'
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -1010,13 +1013,14 @@ class Core(object):
         """unsubscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
-        if contact.subscription in ('both', 'from'):
-            self.information('%s does not want you to receive his status anymore.'%jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
-        elif contact.pending_out:
-            self.information('%s rejected your contact proposal.' % jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
+        if not contact:
+            return
+        if contact.pending_out:
+            self.information('%s rejected your contact proposal' % jid, 'Roster')
             contact.pending_out = False
+        else:
+            self.information('%s does not want you to receive his/her/its status anymore.'%jid, 'Roster')
+        self.get_tab_by_number(0).state = 'highlight'
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
