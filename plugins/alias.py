@@ -1,3 +1,9 @@
+"""
+Alias plugin.
+
+Allows the creation and the removal of personal aliases.
+"""
+
 from plugin import BasePlugin
 import common
 from common import parse_command_args_to_alias as parse
@@ -9,14 +15,16 @@ class Plugin(BasePlugin):
         self.commands = {}
 
     def command_alias(self, line):
+        """
+        /alias <alias> <command> [args]
+        """
         arg = common.shell_split(line)
         if len(arg) < 2:
             self.core.information('Alias: Not enough parameters', 'Error')
             return
         alias = arg[0]
-        tmp_args = common.shell_split(arg[1])
-        command = tmp_args.pop(0)
-        tmp_args = arg[1][len(command)+1:]
+        command = arg[1]
+        tmp_args = arg[2] if len(arg) > 2 else ''
 
         if alias in self.core.commands or alias in self.commands:
             self.core.information('Alias: command already exists', 'Error')
@@ -26,6 +34,9 @@ class Plugin(BasePlugin):
         self.core.information('Alias /%s successfuly created' % alias, 'Info')
 
     def command_unalias(self, alias):
+        """
+        /unalias <existing alias>
+        """
         if alias in self.commands:
             del self.commands[alias]
             self.del_command(alias)
