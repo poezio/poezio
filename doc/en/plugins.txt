@@ -337,6 +337,12 @@ The handlers for this event are called when someone gets kicked in a MUC.
 * _presence_: Presence received.
 * _tab_: Tab of the concerned MUC.
 
+*ignored_private*:: +message+ +tab+ +
+The handlers for this event are called when a private message gets ignored.
+
+* _message_: Message received.
+* _tab_: Tab of the concerned message.
+
 SleekXMPP events
 ~~~~~~~~~~~~~~~~
 

@@ -35,7 +35,7 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None):
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False):
         time = time or datetime.now()
         if txt.startswith('/me '):
             if nick_color:
@@ -45,7 +45,7 @@ class TextBuffer(object):
             else:
                 color = None
             # TODO: display the bg color too.
-            txt = ("\x19%(info_col)s}* \x19%(col)s}" % {'col':color or 5, 'info_col':get_theme().COLOR_INFORMATION_TEXT[0]})+ nickname + ' \x19%(info_col)s}' % {'info_col':get_theme().COLOR_INFORMATION_TEXT[0]} + txt[4:]
+            txt = '\x19%(info_col)s}* \x19%(col)s}%(nick)s \x19%(info_col)s}%(msg)s' % {'info_col':get_theme().COLOR_ME_MESSAGE[0], 'col': color or 5, 'nick': nickname, 'msg': txt[4:]}
             nickname = None
         msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
                       time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
@@ -57,7 +57,7 @@ class TextBuffer(object):
         ret_val = None
         for window in self.windows: # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(msg, history=history)
+            nb = window.build_new_message(msg, history=history, highlight=highlight)
             if ret_val is None:
                 ret_val = nb
             if window.pos != 0:

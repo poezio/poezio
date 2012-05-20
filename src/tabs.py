@@ -8,9 +8,9 @@
 """
 a Tab object is a way to organize various Windows (see windows.py)
 around the screen at once.
-A tab is then composed of multiple Buffer.
+A tab is then composed of multiple Buffers.
 Each Tab object has different refresh() and resize() methods, defining how its
-Windows are displayed, resized, etc
+Windows are displayed, resized, etc.
 """
 
 MIN_WIDTH = 42
@@ -216,11 +216,12 @@ class Tab(object):
                 # one possibily. The next tab will complete the argument.
                 # Otherwise we would need to add a useless space before being
                 # able to complete the arguments.
-                hit_copy = the_input.hit_list[:]
-                for w in hit_copy[:]:
-                    while hit_copy.count(w) > 1:
-                        hit_copy.remove(w)
-                if len(hit_copy) in (1, 0):
+                hit_copy = set(the_input.hit_list)
+                while not hit_copy:
+                    the_input.key_backspace()
+                    the_input.auto_completion(words, '', quotify=False)
+                    hit_copy = set(the_input.hit_list)
+                if len(hit_copy) == 1:
                     the_input.do_command(' ')
                 return True
         return False
@@ -393,6 +394,7 @@ class ChatTab(Tab):
         # since the last input
         self.remote_supports_attention = False
         self.key_func['M-v'] = self.move_separator
+        self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.commands['say'] =  (self.command_say,
@@ -534,7 +536,7 @@ class ChatTab(Tab):
 
     def move_separator(self):
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         self.text_win.refresh()
         self.input.refresh()
 
@@ -564,6 +566,11 @@ class ChatTab(Tab):
 
     def on_half_scroll_down(self):
         self.text_win.scroll_down((self.text_win.height-1) // 2)
+
+    def scroll_separator(self):
+        self.text_win.scroll_to_separator()
+        self.refresh()
+        self.core.doupdate()
 
 
 class MucTab(ChatTab):
@@ -599,6 +606,8 @@ class MucTab(ChatTab):
         self.key_func['^I'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
         self.key_func['M-y'] = self.scroll_user_list_up
+        self.key_func['M-n'] = self.go_to_next_hl
+        self.key_func['M-p'] = self.go_to_prev_hl
         # commands
         self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
         self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
@@ -628,6 +637,22 @@ class MucTab(ChatTab):
     @property
     def general_jid(self):
         return self.get_name()
+
+    def go_to_next_hl(self):
+        """
+        Go to the next HL in the room, or the last
+        """
+        self.text_win.next_highlight()
+        self.refresh()
+        self.core.doupdate()
+
+    def go_to_prev_hl(self):
+        """
+        Go to the previous HL in the room, or the first
+        """
+        self.text_win.previous_highlight()
+        self.refresh()
+        self.core.doupdate()
 
     def completion_version(self, the_input):
         """Completion for /version"""
@@ -808,6 +833,7 @@ class MucTab(ChatTab):
         /part [msg]
         """
         arg = arg.strip()
+        msg = None
         if self.joined:
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
@@ -853,7 +879,8 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not arg.strip():
-            self._text_buffer.add_message(_("The subject of the room is: %s") % self.topic)
+            self._text_buffer.add_message(_("\x19%s}The subject of the room is: %s") %
+                    (get_theme().COLOR_INFORMATION_TEXT[0], self.topic))
             self.text_win.refresh()
             self.input.refresh()
             return
@@ -1131,13 +1158,13 @@ class MucTab(ChatTab):
         else:
             self.state = 'disconnected'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
 
     def on_gain_focus(self):
         self.state = 'current'
-        if self.text_win.built_lines and self.text_win.built_lines[-1] is None:
+        if self.text_win.built_lines and self.text_win.built_lines[-1] is None and config.getl('show_useless_separator', 'false') != 'true':
             self.text_win.remove_line_separator()
         curses.curs_set(1)
         if self.joined and config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
@@ -1172,6 +1199,7 @@ class MucTab(ChatTab):
                 self.core.events.trigger('muc_join', presence, self)
                 if from_nick == self.own_nick:
                     self.joined = True
+                    roster.blacklist.add(JID(from_room).server)
                     if self.get_name() in self.core.initial_joins:
                         self.core.initial_joins.remove(self.get_name())
                         self._state = 'normal'
@@ -1181,8 +1209,12 @@ class MucTab(ChatTab):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
                     self.add_message(_("\x19%(info_col)s}Your nickname is \x193}%(nick)s") % {'nick': from_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    if '201' in status_codes:
+                        self.add_message('\x19%(info_col)s}Info: The room has been created' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
                     if '170' in status_codes:
                         self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    if '100' in status_codes:
+                        self.add_message('\x191}Warning: \x19%(info_col)s}This room is not anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
                     if self.core.current_tab() is not self:
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
@@ -1192,6 +1224,8 @@ class MucTab(ChatTab):
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
             ban = '301' in status_codes and typ == 'unavailable'
+            shutdown = '332' in status_codes and typ == 'unavailable'
+            non_member = '322' in status_codes and typ == 'unavailable'
             user = self.get_user_by_name(from_nick)
             # New user
             if not user:
@@ -1210,6 +1244,12 @@ class MucTab(ChatTab):
                 self.core.events.trigger('muc_kick', presence, self)
                 self.core.on_user_left_private_conversation(from_room, from_nick, status)
                 self.on_user_kicked(presence, user, from_nick)
+            elif shutdown:
+                self.core.events.trigger('muc_shutdown', presence, self)
+                self.on_muc_shutdown()
+            elif non_member:
+                self.core.events.trigger('muc_shutdown', presence, self)
+                self.on_non_member_kick()
             # user quit
             elif typ == 'unavailable':
                 self.on_user_leave_groupchat(user, jid, status, from_nick, from_room)
@@ -1222,6 +1262,16 @@ class MucTab(ChatTab):
             self.info_header.refresh(self, self.text_win)
             self.input.refresh()
             self.core.doupdate()
+
+    def on_non_member_kicked(self):
+        """We have been kicked because the MUC is members-only"""
+        self.add_message('\x19%(info_col)s}%You have been kicked because you are not a member and the room is now members-only.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.disconnect()
+
+    def on_muc_shutdown(self):
+        """We have been kicked because the MUC service is shutting down"""
+        self.add_message('\x19%(info_col)s}%You have been kicked because the MUC service is shutting down.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.disconnect()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):
         """
@@ -1478,7 +1528,7 @@ class MucTab(ChatTab):
             if highlight:
                 nick_color = highlight
         time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user)
+        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight)
         return highlight
 
 class PrivateTab(ChatTab):
@@ -1518,7 +1568,26 @@ class PrivateTab(ChatTab):
         self.parent_muc.privates.remove(self)
 
     def completion(self):
-        self.complete_commands(self.input)
+        """
+        Called when Tab is pressed, complete the nickname in the input
+        """
+        if self.complete_commands(self.input):
+            return
+
+        # If we are not completing a command or a command's argument, complete a nick
+        compare_users = lambda x: x.last_talked
+        word_list = [user.nick for user in sorted(self.parent_muc.users, key=compare_users, reverse=True)\
+                         if user.nick != self.own_nick]
+        after = config.get('after_completion', ',')+" "
+        input_pos = self.input.pos + self.input.line_pos
+        if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
+                     self.input.get_text()[:input_pos] == self.input.last_completion + after):
+            add_after = after
+        else:
+            add_after = ''
+        self.input.auto_completion(word_list, add_after, quotify=False)
+        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        self.send_composing_chat_state(empty_after)
 
     def command_say(self, line, attention=False):
         if not self.on:
@@ -1644,7 +1713,7 @@ class PrivateTab(ChatTab):
     def on_lose_focus(self):
         self.state = 'normal'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', 'true', self.general_jid, True) == 'true'\
@@ -2562,7 +2631,7 @@ class ConversationTab(ChatTab):
             resource = None
         self.state = 'normal'
         self.text_win.remove_line_separator()
-        self.text_win.add_line_separator()
+        self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('inactive')

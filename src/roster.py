@@ -19,6 +19,10 @@ from sleekxmpp.xmlstream.stanzabase import JID
 from sleekxmpp.exceptions import IqError
 
 class Roster(object):
+
+    # MUC domains to blacklist from the contacts roster
+    blacklist = set()
+
     def __init__(self):
         """
         node: the RosterSingle from SleekXMPP
@@ -103,7 +107,7 @@ class Roster(object):
 
     def jids(self):
         """List of the contact JIDS"""
-        return [key for key in self.__node.keys() if key not in self.__mucs and key != self.jid]
+        return [key for key in self.__node.keys() if JID(key).server not in self.blacklist and key != self.jid]
 
     def get_contacts(self):
         """

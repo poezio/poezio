@@ -95,6 +95,7 @@ height of the conversation window - 1.
 
 *Alt-v*:: Move the separator at the bottom of the tab.
 
+*Alt-h*:: Scroll to the separator, if there is one.
 
 MultiUserChat tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,6 +105,10 @@ These keys work only in the MultiUserChat tab.
 *Alt-u*:: Scroll the user list down.
 
 *Alt-y*:: Scroll the user list up.
+
+*Alt-p*:: Scroll to the previous highlight.
+
+*Alt-n*:: Scroll to the next highlight.
 
 *tabulation*:: Complete a nick.
 

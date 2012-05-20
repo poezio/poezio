@@ -37,41 +37,45 @@ If not, then you will have to install it by hand.
 First, clone the repo and go inside the created directory:
 
 ==============================================
+[source,bash]
+-------------
+git clone https://github.com/teisenbe/libopenotr.git
 
- git clone https://git.teisen.be/repo/libopenotr.git
-
- cd libopenotr
-
+cd libopenotr
+-------------
 ==============================================
 
 then run autogen.sh and configure
 
 ============
+[source,bash]
+-------------
+sh autogen.sh
 
- sh autogen.sh
-
- ./configure --enable-gaping-security-hole
-
+./configure --enable-gaping-security-hole
+-------------
 ============
 
 Then compile & install the lib:
 
 ============
+[source,bash]
+-------------
+make
 
- make
-
- sudo make install
-
+sudo make install
+-------------
 ============
 
 Finally, install the python module:
 
 =============================
+[source,bash]
+-------------
+python3 setup.py build
 
- python3 setup.py build
-
- sudo python3 setup.py install
-
+sudo python3 setup.py install
+-------------
 =============================
 
 

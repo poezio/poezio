@@ -246,6 +246,7 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invite)
         self.xmpp.add_event_handler("groupchat_decline", self.on_groupchat_decline)
+        self.xmpp.add_event_handler("groupchat_config_status", self.on_status_codes)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("got_online" , self.on_got_online)
@@ -657,12 +658,17 @@ class Core(object):
         self.add_tab(form_tab, True)
 
     def on_got_offline(self, presence):
+        """
+        A JID got offline
+        """
         jid = presence['from']
         logger.log_roster_change(jid.bare, 'got offline')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         if jid.resource:
             self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
+        if jid.server in roster.blacklist:
+            return
         self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
         self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -842,13 +848,19 @@ class Core(object):
         room_from = jid.bare
         body = xhtml.get_body_from_message_stanza(message)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
+        ignore = config.get_by_tabname('ignore_private', 'false',
+                room_from).lower() == 'true'
         if not tab: # It's the first message we receive: create the tab
-            if body:
+            if body and not ignore:
                 tab = self.open_private_window(room_from, nick_from, False)
-            if not tab:
-                return
+        if ignore:
+            self.events.trigger('ignored_private', message, tab)
+            msg = config.get_by_tabname('private_auto_response', None, room_from)
+            if msg and body:
+                self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
+            return
         self.events.trigger('private_msg', message, tab)
-        if not body:
+        if not body or not tab:
             return
         tab.add_message(body, time=None, nickname=nick_from,
                         forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
@@ -979,6 +991,8 @@ class Core(object):
         """subscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
+        if contact.subscription not in ('both', 'from'):
+            self.information('%s accepted your contact proposal' % jid, 'Roster')
         if contact.pending_out:
             contact.pending_out = False
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -988,9 +1002,10 @@ class Core(object):
         """unsubscribe received"""
         jid = presence['from'].bare
         contact = roster[jid]
-        if contact.subscription in ('to', 'both'):
-            self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
+        if not contact:
+            return
+        self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
+        self.get_tab_by_number(0).state = 'highlight'
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -998,13 +1013,14 @@ class Core(object):
         """unsubscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
-        if contact.subscription in ('both', 'from'):
-            self.information('%s does not want you to receive his status anymore.'%jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
-        elif contact.pending_out:
-            self.information('%s rejected your contact proposal.' % jid, 'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
+        if not contact:
+            return
+        if contact.pending_out:
+            self.information('%s rejected your contact proposal' % jid, 'Roster')
             contact.pending_out = False
+        else:
+            self.information('%s does not want you to receive his/her/its status anymore.'%jid, 'Roster')
+        self.get_tab_by_number(0).state = 'highlight'
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -1349,9 +1365,14 @@ class Core(object):
         if not subject or not tab:
             return
         if nick_from:
-            self.add_message_to_text_buffer(tab._text_buffer, _("%(nick)s set the subject to: %(subject)s") % {'nick':nick_from, 'subject':subject}, time=None)
+            self.add_message_to_text_buffer(tab._text_buffer,
+                    _("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+                    {'info_col': get_theme().COLOR_INFORMATION_TEXT[0], 'nick':nick_from, 'subject':subject},
+                    time=None)
         else:
-            self.add_message_to_text_buffer(tab._text_buffer, _("The subject is: %(subject)s") % {'subject':subject}, time=None)
+            self.add_message_to_text_buffer(tab._text_buffer, _("\x19%(info_col)s}The subject is: %(subject)s") %
+                    {'subject':subject, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]},
+                    time=None)
         tab.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
             self.refresh_window()
@@ -1405,6 +1426,48 @@ class Core(object):
             if 'message' in config.get('beep_on', 'highlight private').split():
                 if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
                     curses.beep()
+
+    def on_status_codes(self, message):
+        """
+        Handle groupchat messages with status codes.
+        Those are received when a room configuration change occurs.
+        """
+        room_from = message['from']
+        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        status_codes = set([s.attrib['code'] for s in message.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))])
+        if '101' in status_codes:
+            self.information('Your affiliation in the room %s changed' % room_from, 'Info')
+        elif tab and status_codes:
+            show_unavailable = '102' in status_codes
+            hide_unavailable = '103' in status_codes
+            non_priv = '104' in status_codes
+            logging_on = '170' in status_codes
+            logging_off= '171' in status_codes
+            non_anon = '172' in status_codes
+            semi_anon = '173' in status_codes
+            full_anon = '174' in status_codes
+            modif = False
+            if show_unavailable or hide_unavailable or non_priv or logging_off\
+                    or non_anon or semi_anon or full_anon:
+                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                modif = True
+            if show_unavailable:
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif hide_unavailable:
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if non_anon:
+                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif semi_anon:
+                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif full_anon:
+                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if logging_on:
+                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            elif logging_off:
+                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            if modif:
+                self.refresh_window()
+
 
     def add_message_to_text_buffer(self, buff, txt, time=None, nickname=None, history=None):
         """
@@ -1714,7 +1777,10 @@ class Core(object):
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
                 if not the_input.last_completion:
-                    response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
+                    try:
+                        response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
+                    except:
+                        response = None
                     if response:
                         items = response['disco_items'].get_items()
                     else:
@@ -1926,6 +1992,7 @@ class Core(object):
                     else:
                         b.method = "local"
             bookmark.save_local()
+            bookmark.save_remote(self.xmpp)
             self.information('Bookmarks added and saved.', 'Info')
             return
         else:
@@ -1981,11 +2048,13 @@ class Core(object):
                 if isinstance(tab, tabs.MucTab):
                     b = bookmark.get_by_jid(tab.get_name())
                     if not b:
-                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin)
+                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
+                                method=bookmark.preferred)
                         bookmark.bookmarks.append(b)
                     else:
-                        b.method = "local"
+                        b.method = bookmark.preferred
             if bookmark.save_remote(self.xmpp, self):
+                bookmark.save_local()
                 self.information("Bookmarks added.", "Info")
             else:
                 self.information("Could not add the bookmarks.", "Info")

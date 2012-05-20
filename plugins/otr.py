@@ -16,7 +16,7 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_command('otr', self.command_otr, "Usage: /otr <start|end>\notr: Start or stop OTR for the current conversation", self.otr_completion)
+        self.add_tab_command(ConversationTab, 'otr', self.command_otr, "Usage: /otr <start|end>\notr: Start or stop OTR for the current conversation", self.otr_completion)
         ConversationTab.add_information_element('otr', self.display_encryption_status)
 
     def cleanup(self):

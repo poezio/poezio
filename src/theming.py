@@ -108,6 +108,9 @@ class Theme(object):
     CHAR_AFFILIATION_MEMBER = '+'
     CHAR_AFFILIATION_NONE = '-'
 
+    # Color for the /me message
+    COLOR_ME_MESSAGE = (6, -1)
+
     # Separators
     COLOR_VERTICAL_SEPARATOR = (4, -1)
     COLOR_NEW_TEXT_SEPARATOR = (2, -1)

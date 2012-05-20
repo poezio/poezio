@@ -1,7 +1,7 @@
-from plugin import BasePlugin, PluginConfig
+from plugin import BasePlugin
 from xhtml import clean_text
 import common
-
+import tabs
 import re
 
 timestamp_re = re.compile(r'^(\d\d\d\d-\d\d-\d\d )?\d\d:\d\d:\d\d$')
@@ -12,7 +12,9 @@ log = logging.getLogger(__name__)
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('quote', self.command_quote, "Usage: /quote <timestamp>\nQuote: takes the message received at <timestamp> and insert it in the input, to quote it.", self.completion_quote)
+        self.add_tab_command(tabs.MucTab, 'quote', self.command_quote, "Usage: /quote <timestamp>\nQuote: takes the message received at <timestamp> and insert it in the input, to quote it.", self.completion_quote)
+        self.add_tab_command(tabs.ConversationTab, 'quote', self.command_quote, "Usage: /quote <timestamp>\nQuote: takes the message received at <timestamp> and insert it in the input, to quote it.", self.completion_quote)
+        self.add_tab_command(tabs.PrivateTab, 'quote', self.command_quote, "Usage: /quote <timestamp>\nQuote: takes the message received at <timestamp> and insert it in the input, to quote it.", self.completion_quote)
 
     def command_quote(self, args):
         args = common.shell_split(args)

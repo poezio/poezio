@@ -40,6 +40,7 @@ class EventHandler(object):
             'muc_nickchange': [],
             'muc_ban': [],
             'send_normal_presence': [],
+            'ignored_private': [],
             }
 
     def add_event_handler(self, name, callback, position=0):
@@ -63,7 +64,10 @@ class EventHandler(object):
         """
         Call all the callbacks associated to the given event name.
         """
-        callbacks = self.events[name]
+        callbacks = self.events.get(name, None)
+        if callbacks is None:
+            log.debug('%s: No such event.', name)
+            return
         for callback in callbacks:
             callback(*args, **kwargs)
 
