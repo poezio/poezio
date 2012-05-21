@@ -1101,6 +1101,10 @@ class Core(object):
             if key == '^J':
                 return '\n'
             return key
+        def replace_tabulation(key):
+            if key == '^I':
+                return '    '
+            return key
         while self.running:
             if self.paused: continue
             char_list = [common.replace_key_with_bound(key)\
@@ -1131,7 +1135,7 @@ class Core(object):
                     if res:
                         self.refresh_window()
             else:
-                self.do_command(''.join(list(map(replace_line_breaks, char_list))), True)
+                self.do_command(''.join(list(map(replace_line_breaks, list(map(replace_tabulation, char_list))))), True)
                 self.refresh_window()
             self.doupdate()
 
