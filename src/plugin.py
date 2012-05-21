@@ -1,3 +1,8 @@
+"""
+Define the PluginConfig and Plugin classes, plus the SafetyMetaclass.
+These are used in the plugin system added in poezio 0.7.5
+(see plugin_manager.py)
+"""
 import os
 from configparser import RawConfigParser
 import config
@@ -5,6 +10,11 @@ import inspect
 import traceback
 
 class PluginConfig(config.Config):
+    """
+    Plugin configuration object.
+    They are accessible inside the plugin with self.config
+    and behave like the core Config object.
+    """
     def __init__(self, filename, module_name):
         self.file_name = filename
         self.module_name = module_name
@@ -28,6 +38,10 @@ class PluginConfig(config.Config):
             self.add_section(self.module_name)
 
     def options(self, section=None):
+        """
+            Return the options of the section
+            If no section is given, it defaults to the plugin name.
+        """
         if not section:
             section = self.module_name
         if not self.has_section(section):

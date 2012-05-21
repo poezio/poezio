@@ -43,7 +43,7 @@ import bookmark
 from plugin_manager import PluginManager
 
 from data_forms import DataFormsTab
-from config import config, options
+from config import config
 from logger import logger
 from roster import roster
 from contact import Contact, Resource
@@ -100,22 +100,19 @@ Status = collections.namedtuple('Status', 'show message')
 
 class Core(object):
     """
-    User interface using ncurses
+    “Main” class of poezion
     """
 
     def __init__(self):
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
+        sys.excepthook = self.on_exception
         self.connection_time = time.time()
         self.status = Status(show=None, message='')
-        sys.excepthook = self.on_exception
         self.running = True
-        self.events = events.EventHandler()
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
         roster.set_node(self.xmpp.client_roster)
-        roster.set_mucs(self.xmpp.plugin['xep_0045'].rooms)
-        roster.set_self_jid(self.xmpp.boundjid.bare)
         self.paused = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
@@ -124,13 +121,21 @@ class Core(object):
         self.information_buffer = TextBuffer()
         self.information_win_size = config.get('info_win_height', 2, 'var')
         self.information_win = windows.TextWin(300)
-        self.xml_buffer = TextBuffer()
-        self.tab_win = windows.GlobalInfoBar()
         self.information_buffer.add_window(self.information_win)
-        self.tabs = []
+
+        self.tab_win = windows.GlobalInfoBar()
+        # Number of xml tabs opened, used to avoid useless memory consumption
         self.xml_tabs = 0
+        self.xml_buffer = TextBuffer()
+
+        self.tabs = []
         self.previous_tab_nb = 0
+
         self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
+
+        self.plugin_manager = PluginManager(self)
+        self.events = events.EventHandler()
+
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
@@ -138,7 +143,6 @@ class Core(object):
         #  a completion function, taking a Input as argument. Can be None)
         #  The completion function should return True if a completion was
         #  made ; False otherwise
-        self.plugin_manager = PluginManager(self)
         self.commands = {
             'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
             'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
@@ -171,13 +175,16 @@ class Core(object):
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
-            }
+        }
 
+        # We are invisible
         if config.get('send_initial_presence', 'true').lower() == 'false':
             del self.commands['status']
             del self.commands['show']
 
         self.key_func = KeyDict()
+        # Key bindings associated with handlers
+        # and pseudo-keys used to map actions below.
         key_func = {
             "KEY_PPAGE": self.scroll_page_up,
             "KEY_NPAGE": self.scroll_page_down,
@@ -292,6 +299,9 @@ class Core(object):
         log.debug("Config reloaded.")
 
     def autoload_plugins(self):
+        """
+        Load the plugins on startup.
+        """
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
             self.plugin_manager.load(plugin)
@@ -363,18 +373,24 @@ class Core(object):
                                         tabs.Tab.height - 1 - self.information_win_size - tabs.Tab.tab_win_height(), 0)
 
     def outgoing_stanza(self, stanza):
+        """
+        We are sending a new stanza, write it in the xml buffer if needed.
+        """
         if self.xml_tabs:
             self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
-        if isinstance(self.current_tab(), tabs.XMLTab):
-            self.current_tab().refresh()
-            self.doupdate()
+            if isinstance(self.current_tab(), tabs.XMLTab):
+                self.current_tab().refresh()
+                self.doupdate()
 
     def incoming_stanza(self, stanza):
+        """
+        We are receiving a new stanza, write it in the xml buffer if needed.
+        """
         if self.xml_tabs:
             self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
-        if isinstance(self.current_tab(), tabs.XMLTab):
-            self.current_tab().refresh()
-            self.doupdate()
+            if isinstance(self.current_tab(), tabs.XMLTab):
+                self.current_tab().refresh()
+                self.doupdate()
 
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
@@ -611,6 +627,9 @@ class Core(object):
         return True
 
     def on_chatstate_private_conversation(self, message, state):
+        """
+        Chatstate received in a private conversation from a MUC
+        """
         tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
@@ -622,6 +641,9 @@ class Core(object):
         return True
 
     def on_chatstate_groupchat_conversation(self, message, state):
+        """
+        Chatstate received in a MUC
+        """
         nick = message['mucnick']
         room_from = message.getMucroom()
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
@@ -634,6 +656,9 @@ class Core(object):
             self.doupdate()
 
     def on_attention(self, message):
+        """
+        Attention probe received.
+        """
         jid_from = message['from']
         self.information('%s requests your attention!' % jid_from, 'Info')
         for tab in self.tabs:
@@ -1319,7 +1344,7 @@ class Core(object):
 
     def open_conversation_window(self, jid, focus=True):
         """
-        open a new conversation tab and focus it if needed
+        Open a new conversation tab and focus it if needed
         """
         for tab in self.tabs: # if the room exists, focus it and return
             if isinstance(tab, tabs.ConversationTab):
@@ -1335,6 +1360,9 @@ class Core(object):
         return new_tab
 
     def open_private_window(self, room_name, user_nick, focus=True):
+        """
+        Open a Private conversation in a MUC and focus if needed.
+        """
         complete_jid = room_name+'/'+user_nick
         for tab in self.tabs: # if the room exists, focus it and return
             if isinstance(tab, tabs.PrivateTab):
@@ -1358,7 +1386,7 @@ class Core(object):
 
     def on_groupchat_subject(self, message):
         """
-        triggered when the topic is changed
+        Triggered when the topic is changed.
         """
         nick_from = message['mucnick']
         room_from = message.getMucroom()
@@ -1503,6 +1531,7 @@ class Core(object):
         self.information(msg, 'Help')
 
     def completion_help(self, the_input):
+        """Completion for /help."""
         commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
         return the_input.auto_completion(commands, ' ', quotify=False)
 
@@ -1760,6 +1789,7 @@ class Core(object):
         self.refresh_window()
 
     def completion_win(self, the_input):
+        """Completion for /win"""
         l = [JID(tab.get_name()).user for tab in self.tabs]
         l.remove('')
         return the_input.auto_completion(l, ' ', quotify=False)
@@ -1878,6 +1908,7 @@ class Core(object):
         return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
 
     def completion_list(self, the_input):
+        """Completion for /list"""
         muc_serv_list = []
         for tab in self.tabs:   # TODO, also from an history
             if isinstance(tab, tabs.MucTab) and\
@@ -2380,13 +2411,16 @@ class Core(object):
         self.refresh_window()
 
     def remove_timed_event(self, event):
+        """Remove an existing timed event"""
         if event and event in self.timed_events:
             self.timed_events.remove(event)
 
     def add_timed_event(self, event):
+        """Add a new timed event"""
         self.timed_events.add(event)
 
     def check_timed_events(self):
+        """Check for the execution of timed events"""
         now = datetime.now()
         for event in self.timed_events:
             if event.has_timed_out(now):

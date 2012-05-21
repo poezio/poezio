@@ -5,7 +5,9 @@
 # it under the terms of the zlib license. See the COPYING file.
 
 """
-Defines the EventHandler class
+Defines the EventHandler class.
+The list of available events is here:
+http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
 
 import logging
@@ -16,7 +18,7 @@ class EventHandler(object):
     A class keeping a list of possible events that are triggered
     by poezio. You (a plugin for example) can add an event handler
     associated with an event name, and whenever that event is triggered,
-    the callback is called
+    the callback is called.
     """
     def __init__(self):
         self.events = {

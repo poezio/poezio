@@ -19,6 +19,11 @@ from sleekxmpp.xmlstream.stanzabase import JID
 from sleekxmpp.exceptions import IqError
 
 class Roster(object):
+    """
+    The proxy class to get the roster from SleekXMPP.
+    Adds a blacklist for the MUC domains (or else they would show here),
+    and caches Contact and RosterGroup objects.
+    """
 
     # MUC domains to blacklist from the contacts roster
     blacklist = set()
@@ -26,11 +31,8 @@ class Roster(object):
     def __init__(self):
         """
         node: the RosterSingle from SleekXMPP
-        mucs: the dict from the SleekXMPP MUC plugin containing the joined mucs
         """
         self.__node = None
-        self.__mucs = None
-        self.jid = None
         self.contact_filter = None # A tuple(function, *args)
                                     # function to filter contacts,
                                     # on search, for example
@@ -40,19 +42,6 @@ class Roster(object):
                 section='var').split(':'))
         self.groups = {}
         self.contacts = {}
-
-    def set_node(self, value):
-        self.__node = value
-
-    def set_mucs(self, value):
-        self.__mucs = value
-
-    def set_self_jid(self, value):
-        self.jid = value
-
-    def get_groups(self):
-        """Return a list of the RosterGroups"""
-        return [group for group in self.groups.values() if group]
 
     def __getitem__(self, key):
         """Get a Contact from his bare JID"""
@@ -95,6 +84,19 @@ class Roster(object):
         """True if the bare jid is in the roster, false otherwise"""
         return JID(key).bare in self.jids()
 
+    @property
+    def jid(self):
+        """Our JID"""
+        return self.__node.jid
+
+    def set_node(self, value):
+        """Set the SleekXMPP RosterSingle for our roster"""
+        self.__node = value
+
+    def get_groups(self):
+        """Return a list of the RosterGroups"""
+        return [group for group in self.groups.values() if group]
+
     def get_group(self, name):
         """Return a group or create it if not present"""
         if name in self.groups:
@@ -126,6 +128,9 @@ class Roster(object):
         config.set_and_save('folded_roster_groups', folded_groups, 'var')
 
     def get_nb_connected_contacts(self):
+        """
+        Get the number of connected contacts
+        """
         n = 0
         for contact in self:
             if contact.resources:
@@ -206,7 +211,9 @@ class RosterGroup(object):
     It can be Friends/Family etc, but also can be
     Online/Offline or whatever
     """
-    def __init__(self, name, contacts=[], folded=False):
+    def __init__(self, name, contacts=None, folded=False):
+        if not contacts:
+            contacts = []
         self.contacts = set(contacts)
         self.name = name
         self.folded = folded    # if the group content is to be shown
@@ -219,6 +226,7 @@ class RosterGroup(object):
         return '<Roster_group: %s; %s>' % (self.name, self.contacts)
 
     def __len__(self):
+        """Number of contacts in the group"""
         return len(self.contacts)
 
     def __contains__(self, contact):
@@ -250,6 +258,7 @@ class RosterGroup(object):
         return sorted(contact_list, key=compare_contact, reverse=True)
 
     def toggle_folded(self):
+        """Fold/unfold the group in the roster"""
         self.folded = not self.folded
         if self.folded:
             if self.name not in roster.folded_groups:
@@ -259,10 +268,8 @@ class RosterGroup(object):
                 roster.folded_groups.remove(self.name)
 
     def get_nb_connected_contacts(self):
-        l = 0
-        for contact in self.contacts.copy():
-            if contact.resources:
-                l += 1
-        return l
+        """Return the number of connected contacts"""
+        return len([1 for contact in self.contacts if contact.resources])
 
+# Shared roster object
 roster = Roster()

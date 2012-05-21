@@ -97,5 +97,8 @@ class Connection(sleekxmpp.ClientXMPP):
         sleekxmpp.ClientXMPP.send_raw(self, data, now, reconnect)
 
 class MatchAll(sleekxmpp.xmlstream.matcher.base.MatcherBase):
+    """
+    Callback to retrieve all the stanzas for the XML tab
+    """
     def match(self, xml):
         return True

@@ -13,13 +13,10 @@ poezio colors to xhtml code
 """
 
 import re
-import subprocess
 import curses
 from sleekxmpp.xmlstream import ET
 
 import xml.sax.saxutils
-
-from xml.etree.ElementTree import ElementTree
 
 from sys import version_info
 
@@ -27,6 +24,8 @@ from config import config
 import logging
 
 digits = '0123456789' # never trust the modules
+
+# HTML named colors
 colors = {
     'aliceblue': 231,
     'antiquewhite': 231,

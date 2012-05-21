@@ -763,6 +763,7 @@ class MucTab(ChatTab):
         self.core.close_tab()
 
     def command_cycle(self, arg):
+        """/cycle [reason]"""
         if self.joined:
             muc.leave_groupchat(self.core.xmpp, self.get_name(), self.own_nick, arg)
         self.disconnect()
@@ -897,7 +898,6 @@ class MucTab(ChatTab):
         color_other = get_theme().COLOR_USER_NONE[0]
         color_moderator = get_theme().COLOR_USER_MODERATOR[0]
         color_participant = get_theme().COLOR_USER_PARTICIPANT[0]
-        color_information = get_theme().COLOR_INFORMATION_TEXT[0]
         visitors, moderators, participants, others = [], [], [], []
         aff = {
                 'owner': lambda: get_theme().CHAR_AFFILIATION_OWNER,
@@ -940,6 +940,7 @@ class MucTab(ChatTab):
         return the_input.auto_completion([current_topic], '', quotify=False)
 
     def completion_quoted(self, the_input):
+        """Nick completion, but with quotes"""
         compare_users = lambda x: x.last_talked
         word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
@@ -1020,6 +1021,10 @@ class MucTab(ChatTab):
             self.core.information('Could not set affiliation', 'Error')
 
     def command_say(self, line):
+        """
+        /say <message>
+        Or normal input + enter
+        """
         needed = 'inactive' if self.inactive else 'active'
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'groupchat'

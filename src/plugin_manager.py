@@ -1,10 +1,18 @@
+"""
+Plugin manager module.
+Define the PluginManager class, the one that glues all the plugins and
+the API together. Defines also a bunch of variables related to the
+plugin env.
+"""
+
 import imp
 import os
 import sys
-import tabs
 import logging
-from config import config
 from gettext import gettext as _
+
+import tabs
+from config import config
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +41,11 @@ except OSError:
 sys.path.append(plugins_dir)
 
 class PluginManager(object):
+    """
+    Plugin Manager
+    Contains all the references to the plugins
+    And keeps track of everything the plugin has done through the API.
+    """
     def __init__(self, core):
         self.core = core
         self.modules = {} # module name -> module object
@@ -44,6 +57,9 @@ class PluginManager(object):
         self.tab_keys = {} #module name → dict of tab types; tab type → list of keybinds (tuples)
 
     def load(self, name, notify=True):
+        """
+        Load a plugin.
+        """
         if name in self.plugins:
             self.unload(name)
 
@@ -107,13 +123,30 @@ class PluginManager(object):
                 log.debug("Could not unload plugin: \n%s", traceback.format_exc())
                 self.core.information("Could not unload plugin: %s" % e, 'Error')
 
+    def add_command(self, module_name, name, handler, help, completion=None):
+        """
+        Add a global command.
+        """
+        if name in self.core.commands:
+            raise Exception(_("Command '%s' already exists") % (name,))
+
+        commands = self.commands[module_name]
+        commands[name] = (handler, help, completion)
+        self.core.commands[name] = (handler, help, completion)
+
     def del_command(self, module_name, name):
+        """
+        Remove a global command added through add_command.
+        """
         if name in self.commands[module_name]:
             del self.commands[module_name][name]
             if name in self.core.commands:
                 del self.core.commands[name]
 
     def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None):
+        """
+        Add a command only for a type of Tab.
+        """
         commands = self.tab_commands[module_name]
         t = tab_type.__name__
         if name in tab_type.plugin_commands:
@@ -127,6 +160,9 @@ class PluginManager(object):
                 tab.update_commands()
 
     def del_tab_command(self, module_name, tab_type, name):
+        """
+        Remove a command added through add_tab_command.
+        """
         commands = self.tab_commands[module_name]
         t = tab_type.__name__
         if not t in commands:
@@ -140,6 +176,9 @@ class PluginManager(object):
                         del tab.commands[name]
 
     def add_tab_key(self, module_name, tab_type, key, handler):
+        """
+        Associate a key binding to a handler only for a type of Tab.
+        """
         keys = self.tab_keys[module_name]
         t = tab_type.__name__
         if key in tab_type.plugin_keys:
@@ -153,6 +192,9 @@ class PluginManager(object):
                 tab.update_keys()
 
     def del_tab_key(self, module_name, tab_type, key):
+        """
+        Remove a key binding added through add_tab_key.
+        """
         keys = self.tab_keys[module_name]
         t = tab_type.__name__
         if not t in keys:
@@ -166,6 +208,10 @@ class PluginManager(object):
                         del tab.key_func[key]
 
     def add_key(self, module_name, key, handler):
+        """
+        Associate a global key binding to a handler, except if it
+        already exists.
+        """
         if key in self.core.key_func:
             raise Exception(_("Key '%s' already exists") % (key,))
         keys = self.keys[module_name]
@@ -173,20 +219,19 @@ class PluginManager(object):
         self.core.key_func[key] = handler
 
     def del_key(self, module_name, key):
+        """
+        Remove a global key binding added by a plugin.
+        """
         if key in self.keys[module_name]:
             del self.keys[module_name][key]
             if key in self.core.key_func:
                 del self.core.commands[key]
 
-    def add_command(self, module_name, name, handler, help, completion=None):
-        if name in self.core.commands:
-            raise Exception(_("Command '%s' already exists") % (name,))
-
-        commands = self.commands[module_name]
-        commands[name] = (handler, help, completion)
-        self.core.commands[name] = (handler, help, completion)
-
     def add_event_handler(self, module_name, event_name, handler, position=0):
+        """
+        Add an event handler. If event_name isn’t in the event list, assume
+        it is a sleekxmpp event.
+        """
         eh = self.event_handlers[module_name]
         eh.append((event_name, handler))
         if event_name in self.core.events.events:
@@ -195,6 +240,9 @@ class PluginManager(object):
             self.core.xmpp.add_event_handler(event_name, handler)
 
     def del_event_handler(self, module_name, event_name, handler):
+        """
+        Remove an event handler if it exists.
+        """
         if event_name in self.core.events.events:
             self.core.events.del_event_handler(None, handler)
         else:

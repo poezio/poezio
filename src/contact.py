@@ -7,13 +7,13 @@
 
 """
 Defines the Resource and Contact classes, which are used in
-the roster
+the roster.
 """
 
 import logging
 log = logging.getLogger(__name__)
 
-from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp.xmlstream import JID
 
 class Resource(object):
     """
@@ -21,6 +21,9 @@ class Resource(object):
     It's a precise resource.
     """
     def __init__(self, jid, data):
+        """
+        data: the dict to use as a source
+        """
         self._jid = JID(jid)         # Full jid
         self._data = data
 
@@ -63,11 +66,12 @@ class Contact(object):
 
     @property
     def bare_jid(self):
-        """The bare_jid or the contact"""
+        """The bare jid of the contact"""
         return self.__item.jid
 
     @property
     def name(self):
+        """The name of the contact or an empty string."""
         return self.__item['name'] or ''
 
     @property
@@ -77,6 +81,7 @@ class Contact(object):
 
     @property
     def pending_in(self):
+        """We received a subscribe stanza from this contact."""
         return self.__item['pending_in']
 
     @pending_in.setter
@@ -85,6 +90,7 @@ class Contact(object):
 
     @property
     def pending_out(self):
+        """We sent a subscribe stanza to this contact."""
         return self.__item['pending_out']
 
     @pending_out.setter
