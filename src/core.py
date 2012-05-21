@@ -1097,11 +1097,9 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
-        def replace_special_keys(key):
+        def replace_line_breaks(key):
             if key == '^J':
                 return '\n'
-            elif key == '^I':
-                return '     '
             return key
         while self.running:
             if self.paused: continue
@@ -1129,11 +1127,11 @@ class Core(object):
                 if func:
                     func()
                 else:
-                    res = self.do_command(replace_special_keys(char), False)
+                    res = self.do_command(replace_line_breaks(char), False)
                     if res:
                         self.refresh_window()
             else:
-                self.do_command(''.join(list(map(replace_special_keys char_list))), True)
+                self.do_command(''.join(list(map(replace_line_breaks, char_list))), True)
                 self.refresh_window()
             self.doupdate()
 
