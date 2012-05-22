@@ -44,10 +44,6 @@ section of this documentation.
   Make sure it accepts anonymous authentification
   Note that this option doesn’t do anything at all if you’re using your own JID.
 
-*port*:: 5222
-
- The port you’ll use to connect.
-
 *certificate*:: [empty]
 
   The fingerprint of the SSL certificate as a hexadecimal string, you should

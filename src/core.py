@@ -1573,7 +1573,7 @@ class Core(object):
             current.send_chat_state('active')
 
     def command_rawxml(self, arg):
-        """"
+        """
         /rawxml <xml stanza>
         """
         if not arg:
