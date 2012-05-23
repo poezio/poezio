@@ -132,6 +132,13 @@ section of this documentation.
   what will be put after the name, when using autocompletion
   a SPACE will always be added after that
 
+*words*:: [empty]
+
+  Personal dictionary of the words you use often, that you want to complete
+  through tab completion. They must be separated bu a colon (:). That
+  completion will work in chatrooms, private conversations, and direct
+  conversations.
+
 *highlight_on*:: [empty]
 
   a list of words (separated by a colon (:)) that will be
