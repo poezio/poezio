@@ -135,7 +135,7 @@ section of this documentation.
 *words*:: [empty]
 
   Personal dictionary of the words you use often, that you want to complete
-  through tab completion. They must be separated bu a colon (:). That
+  through recent words completion. They must be separated bu a colon (:). That
   completion will work in chatrooms, private conversations, and direct
   conversations.
 
