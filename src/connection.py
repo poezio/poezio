@@ -59,7 +59,7 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0085')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
-                    'version':'0.7.5'}
+                    'version':'0.8-dev'}
             if config.get('send_os_info', 'true') == 'true':
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'Poezio')]))
