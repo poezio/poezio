@@ -1696,10 +1696,15 @@ class RosterWin(Win):
         else:
             self.addstr(y, 0, '[-] ')
         contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
-        self.addstr(y, 4, group.name + contacts)
+        self.addstr(y, 4, self.truncate_name(group.name, len(contacts)+4) + contacts)
         if colored:
             self._win.attroff(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         self.finish_line()
+
+    def truncate_name(self, name, added):
+        if len(name) + added <= self.width:
+            return name
+        return name[:self.width - added - 1] + '…'
 
     def draw_contact_line(self, y, contact, colored):
         """
@@ -1708,6 +1713,7 @@ class RosterWin(Win):
         Use 'color' to draw the jid/display_name to show what is
         the currently selected contact in the list
         """
+
         resource = contact.get_highest_priority_resource()
         if not resource:
             # There's no online resource
@@ -1717,23 +1723,31 @@ class RosterWin(Win):
             presence = resource.presence
             nb = ' (%s)' % len(contact)
         color = RosterWin.color_show[presence]()
-        if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
-            display_name = '%s %s' % (contact.name, nb[1:])
-        elif contact.name:
-            display_name = '%s (%s)%s' % (contact.name,
-                                        contact.bare_jid, nb,)
-        else:
-            display_name = '%s%s' % (contact.bare_jid, nb,)
+        added =  2 + len(get_theme().CHAR_STATUS) + len(nb)
+
         self.addstr(y, 0, ' ')
         self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
-        if resource:
-            self.addstr(' [+]' if contact.folded else ' [-]')
+
         self.addstr(' ')
+        if resource:
+            self.addstr('[+] ' if contact.folded else '[-] ')
+            added += 4
+        if contact.ask:
+            added += 1
+
+        if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
+            display_name = '%s' % contact.name
+        elif contact.name and contact.name != contact.bare_jid:
+            display_name = '%s (%s)' % (contact.name, contact.bare_jid)
+        else:
+            display_name = '%s' % (contact.bare_jid,)
+        display_name = self.truncate_name(display_name, added) + nb
+
         if colored:
             self.addstr(display_name, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
-        if contact.ask == 'asked':
+        if contact.ask:
             self.addstr('?', to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
         self.finish_line()
 
@@ -1744,9 +1758,9 @@ class RosterWin(Win):
         color = RosterWin.color_show[resource.presence]()
         self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
-            self.addstr(y, 6, str(resource.jid), to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self.addstr(y, 6, self.truncate_name(str(resource.jid), 6), to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
-            self.addstr(y, 6, str(resource.jid))
+            self.addstr(y, 6, self.truncate_name(str(resource.jid), 6))
         self.finish_line()
 
     def get_selected_row(self):
