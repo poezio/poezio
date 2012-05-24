@@ -10,12 +10,47 @@ to the global commands and key shortcuts.
 
 Tabs
 ----
-On all tabs, you get a line showing the the list of all opened tabs. Each tab
-has a number, each time you open a new tab, it gets the next available number.
 
+The Tab list
+~~~~~~~~~~~~
+
+Since Poezio 0.7.5, there are now two ways to show the available tabs:
+
+*The old way: horizontal list*
+
+On all tabs, you get a line showing the the list of all opened tabs. Each tab
+ has a number, each time you open a new tab, it gets the next available number.
 
 image:../images/tab_bar.png[title="Example of 5 opened tabs"]
 
+*The new way: vertical list*
+
+On all tabs, you get a pane on the left side of the screen that shows a list
+of the opened tabs. As stated above, each tab has a number, and each time you
+open a new tab, it gets the next available tab.
+
+image:../images/vert_tabs.png[title="Example of the vertical tab bar"]
+
+
+This mode is enabled by putting the
+link:configure.html[enable_vertical_tab_list] option to _true_ in the
+configuration file.
+
+*Options for the tab list*
+
+See the link:configure.html[Configuration page] for the description of the
+options.
+
+- _enable_vertical_tab_list_
+- _vertical_tab_list_size_
+- _vertical_tab_list_sort_
+- _show_tab_names_
+- _show_tab_numbers_
+- _show_inactive_tabs_
+- _use_tab_nicks_
+
+Generalities
+~~~~~~~~~~~~
 The tab numbered _0_ is always the _roster_ tab, the other tabs can be of any
 type.
 
@@ -70,18 +105,28 @@ image:../images/muc.png["The MUC tab", title="The MUC tab"]
   PageUp and PageDown.
 * _2_: The participant list. Participants are listed by their role first, and
   then alphabetically.
-  In the default theme, The nick colors mean:
-  - Red: moderator
-  - Blue: participant
-  - gray: visitor + 
-  + 
   The status of each participant is symbolized using the _color_ of the
   character on the left of its nick.
   That character also shows the chatstate of each participant:
   - _|_: inactive
   - _X_: composing
   - _A_: active
-  - _p_: paused
+  - _p_: paused +
+  +
+  The roles and affiliations of the participants are symbolized by the char
+  before the nick and its color.
+  The characters define the affiliations, and they mean:
+  - _~_: Owner
+  - _&_: Admin
+  - _+_: Member
+  - _-_: None +
+  +
+  And their color define their roles, and they mean:
+  - [red]#Red# : moderator
+  - [blue]#Blue#: participant
+  - [gray]#Grey#: visitor +
+  +
+  The nicks have a random color given by poezio.
 * _3_: Your information in that MUC (the name of the room, your nick, your role
   and affiliation).
 * _4_: The topic of the room.
@@ -136,6 +181,9 @@ image:../images/list.png["The list tab", title="The list tab"]
 Use the _up_ and _down_ or _PageUp_ and _PageDown_ keys to browse the list, and
 use _Enter_ or _j_ to join the selected room.
 
+You can sort the rooms by moving the direction arrows (_←_ or _→_)and pressing
+_space_ when you are on the appropriate column.
+
 Commands
 --------
 
@@ -153,12 +201,12 @@ You can get the same help as below with the _/help_ command.
 
 NOTE: Use command parameters like this:
 
-* Do not use quotes if they are unnecessary (words without special chars)
+* Do not use quotes if they are unnecessary (words without special chars or
+ spaces)
 * If the command takes several agrguments, you need to put quotes around
  arguments containing special chars such as backslashes or quotes
 * If the command always takes only one argument, then do not use quotes even
  for words containing special chars
-
 
 Global commands
 ~~~~~~~~~~~~~~~
