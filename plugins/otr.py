@@ -133,4 +133,4 @@ class Plugin(BasePlugin):
         self.core.refresh_window()
 
     def otr_completion(self, the_input):
-        return the_input.auto_completion(['start', 'end'], ' ')
+        return the_input.auto_completion(['start', 'fpr', 'end'], '', quotify=False)
