@@ -77,6 +77,8 @@ class Connection(sleekxmpp.ClientXMPP):
         # (domain, config.get('port', 5222))
         custom_host = config.get('custom_host', '')
         custom_port = config.get('custom_port', 5222)
+        if custom_port == -1:
+            custom_port = 5222
         if custom_host:
             res = self.connect((custom_host, custom_port), reattempt=False)
         elif custom_port != 5222 and custom_port != -1:
