@@ -1445,7 +1445,8 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
-            tab.add_message(body, date, nick_from, history=True if date else False)
+            if tab.add_message(body, date, nick_from, history=True if date else False):
+                self.events.trigger('highlight', message, tab)
             if tab is self.current_tab():
                 tab.text_win.refresh()
                 tab.info_header.refresh(tab, tab.text_win)

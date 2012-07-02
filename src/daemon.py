@@ -40,7 +40,7 @@ class Executor(threading.Thread):
 
     def run(self):
         log.info('executing %s' % (self.command.strip(),))
-        command = shlex.split(self.command)
+        command = shlex.split('sh -c "%s"' % self.command)
         subprocess.call(command)
 
 def main():
