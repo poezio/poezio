@@ -1,7 +1,7 @@
 Poezio Documentation
 ====================
 
-Welcome to the english documentation, here is a list of the availalble pages.
+Welcome to the english documentation, here is a list of the available pages.
 
 Available pages
 ---------------
