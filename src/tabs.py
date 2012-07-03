@@ -2788,24 +2788,13 @@ class MucListTab(Tab):
 
     def sort_by(self):
         if self.list_header.get_order():
-          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
-          self.list_header.set_order(False)
-          self.list_header.refresh()
+            self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
+            self.list_header.set_order(False)
+            self.list_header.refresh()
         else:
-          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
-          self.list_header.set_order(True)
-          self.list_header.refresh()
-        curses.doupdate()
-
-    def sort_by(self):
-        if self.list_header.get_order():
-          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
-          self.list_header.set_order(False)
-          self.list_header.refresh()
-        else:
-          self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
-          self.list_header.set_order(True)
-          self.list_header.refresh()
+            self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
+            self.list_header.set_order(True)
+            self.list_header.refresh()
         curses.doupdate()
 
     def join_selected(self):
