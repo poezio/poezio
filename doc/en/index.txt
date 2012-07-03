@@ -9,6 +9,7 @@ Available pages
 
 * link:install.html[Installation]
 * link:configure.html[Configuration]
+* link:ssl.html[SSL Management]
 * link:usage.html[Usage]
 * link:themes.html[Theming]
 * link:keys.html[Keys]
