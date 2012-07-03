@@ -133,6 +133,7 @@ class Core(object):
 
         self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
 
+        self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
 
@@ -305,6 +306,7 @@ class Core(object):
         plugins = config.get('plugins_autoload', '')
         for plugin in plugins.split():
             self.plugin_manager.load(plugin)
+        self.plugins_autoloaded = True
 
     def validate_ssl(self, pem):
         """
@@ -764,7 +766,8 @@ class Core(object):
         Called when we are connected and authenticated
         """
         self.connection_time = time.time()
-        self.autoload_plugins()
+        if not self.plugins_autoloaded: # Do not reload plugins on reconnection
+            self.autoload_plugins()
         self.information(_("Authentication success."))
         self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
         if not self.xmpp.anon:
