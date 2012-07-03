@@ -161,6 +161,7 @@ class Theme(object):
     COLOR_STATUS_ONLINE = (16, 4)
 
     # Bars
+    COLOR_WARNING_PROMPT = (16, 1, 'b')
     COLOR_INFORMATION_BAR = (7, 4)
     COLOR_TOPIC_BAR = (7, 4)
     COLOR_SCROLLABLE_NUMBER = (220, 4, 'b')

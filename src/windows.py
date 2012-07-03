@@ -931,8 +931,8 @@ class YesNoInput(Win):
             self.txt = txt
         with g_lock:
             self._win.erase()
-            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_WARNING_PROMPT))
+            self.finish_line(get_theme().COLOR_WARNING_PROMPT)
             self._refresh()
 
     def do_command(self, key, raw=False):
