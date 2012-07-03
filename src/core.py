@@ -248,7 +248,7 @@ class Core(object):
         # Add handlers
         self.xmpp.add_event_handler('connected', self.on_connected)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
-        self.xmpp.add_event_handler('failed_auth', self.on_failed_auth)
+        self.xmpp.add_event_handler('no_auth', self.on_failed_auth)
         self.xmpp.add_event_handler("session_start", self.on_session_start)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
