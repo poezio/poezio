@@ -1551,8 +1551,6 @@ class Core(object):
         show = possible_show[args[0]]
         if len(args) == 2:
             msg = args[1]
-        elif len(args) > 2:
-            msg = arg[len(args[0])+1:]
         else:
             msg = None
         pres = self.xmpp.make_presence()
