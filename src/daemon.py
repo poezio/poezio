@@ -29,19 +29,19 @@ log = logging.getLogger(__name__)
 
 class Executor(threading.Thread):
     """
-    Just a class to execute commands in a thread.
-    This way, the execution can totally fail, we don’t care,
-    and we can start commands without having to wait for them
-    to return
+    Just a class to execute commands in a thread.  This way, the execution
+    can totally fail, we don’t care, and we can start commands without
+    having to wait for them to return.
+    WARNING: Be careful to properly escape what is untrusted by using
+    pipes.quote (or shlex.quote with python 3.3) for example.
     """
     def __init__(self, command):
         threading.Thread.__init__(self)
         self.command = command
 
     def run(self):
-        log.info('executing %s' % (self.command.strip(),))
-        command = shlex.split('sh -c "%s"' % self.command)
-        subprocess.call(command)
+        log.info('executing %s' % (self.command,))
+        subprocess.call(['sh', '-c', self.command])
 
 def main():
     while True:

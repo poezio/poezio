@@ -1,6 +1,7 @@
 from plugin import BasePlugin
 from xhtml import clean_text, get_body_from_message_stanza
 from timed_events import DelayedEvent
+import pipes
 
 class Plugin(BasePlugin):
     def init(self):
@@ -28,9 +29,10 @@ class Plugin(BasePlugin):
         if not command:
             self.core.information('No notification command was provided in the configuration file', 'Warning')
             return
-        self.core.exec_command(command % {'body':body, 'from':fro})
+        self.core.exec_command(command % {'body':pipes.quote(body), 'from':pipes.quote(fro)})
         after_command = self.config.get('after_command', '').strip()
         if not after_command:
             return
-        delayed_event = DelayedEvent(self.config.get('delay', 1), self.core.exec_command, after_command % {'body':body, 'from':fro})
+        delayed_event = DelayedEvent(self.config.get('delay', 1), self.core.exec_command, after_command % {'body':pipes.quote(body), 'from':pipes.quote(fro)})
         self.core.add_timed_event(delayed_event)
+4

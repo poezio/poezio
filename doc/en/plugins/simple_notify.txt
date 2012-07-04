@@ -20,9 +20,9 @@ command = notify-send -i /path/to/poezio/data/poezio_80.png "New message from %(
 [source,conf]
 ---------------------------------------------------------------------
 [simple_notify]
-command = echo %{from}s\> %{body}s >> some.fifo
+command = echo \\<%{from}s\\> %{body}s >> some.fifo
 delay = 3
-after_command echo = >> some.fifo
+after_command = echo >> some.fifo
 ---------------------------------------------------------------------
 
 You can put any command, instead of these ones. You can also use the
