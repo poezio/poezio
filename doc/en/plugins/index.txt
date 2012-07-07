@@ -138,4 +138,6 @@ Plugins index
 
     Gets the uptime of a XMPP server or a component.
 
+*Replace*:: link:replace.html[Replace plugin]
 
+    Replace some patterns in your messages.
