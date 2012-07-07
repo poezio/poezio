@@ -57,7 +57,7 @@ def replace_random_user(message, tab):
         return random.choice(tab.users).nick
     elif isinstance(tab, tabs.PrivateTab):
         return random.choice([JID(tab.name).resource, tab.own_nick])
-    else isinstance(tab, tabs.ConversationTab):
+    else:
         # that doesn’t make any sense. By why use this pattern in a
         # ConversationTab anyway?
         return str(tab.name)
