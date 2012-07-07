@@ -2,6 +2,7 @@
 
 from plugin import BasePlugin
 from common import shell_split
+from os.path import basename as base
 import tabs
 import mpd
 
@@ -19,14 +20,19 @@ class Plugin(BasePlugin):
         if password:
             c.password(password)
         current = c.currentsong()
-        current_time = float(c.status()['elapsed'])
+        artist = current.get('artist', 'Unknown artist')
+        album = current.get('album', 'Unknown album')
+        title = current.get('title', base(current.get('file', 'Unknown title')))
 
-        s = '%(artist)s - %(title)s (%(album)s)' % current
+
+        s = '%s - %s (%s)' % (artist, title, album)
         if 'full' in args:
-            pourcentage = int(current_time / float(current['time']) * 10)
-            s += ' \x192}[\x191}' + '-'*(pourcentage-1) + '\x193}+' + '\x191}' + '-' * (10-pourcentage-1) + '\x192}]\x19o'
+            if 'elapsed' in current and 'time' in current:
+                current_time = float(c.status()['elapsed'])
+                pourcentage = int(current_time / float(current['time']) * 10)
+                s += ' \x192}[\x191}' + '-'*(pourcentage-1) + '\x193}+' + '\x191}' + '-' * (10-pourcentage-1) + '\x192}]\x19o'
         if not self.core.send_message('%s' % (s,)):
             self.core.information('Cannot send result (%s)' % s, 'Error')
 
     def completion_mpd(self, the_input):
-        return the_input.auto_completion(['full'])
+        return the_input.auto_completion(['full'], quotify=False)
