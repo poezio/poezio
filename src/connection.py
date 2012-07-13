@@ -43,6 +43,7 @@ class Connection(sleekxmpp.ClientXMPP):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
+        self.reconnect_max_attempts = 0
         self.auto_authorize = None
         self.ca_certs = config.get('ca_cert_path', '') or None
         interval = config.get('whitespace_interval', '300')
@@ -80,11 +81,11 @@ class Connection(sleekxmpp.ClientXMPP):
         if custom_port == -1:
             custom_port = 5222
         if custom_host:
-            res = self.connect((custom_host, custom_port), reattempt=False)
+            res = self.connect((custom_host, custom_port), reattempt=True)
         elif custom_port != 5222 and custom_port != -1:
-            res = self.connect((self.boundjid.host, custom_port), reattempt=False)
+            res = self.connect((self.boundjid.host, custom_port), reattempt=True)
         else:
-            res = self.connect(reattempt=False)
+            res = self.connect(reattempt=True)
         if not res:
             return False
         self.process(threaded=True)
