@@ -2577,6 +2577,11 @@ class ConversationTab(ChatTab):
         if arg:
             return self.core.command_version(arg)
         jid = self.name
+        jid = JID(jid)
+        if not jid.resource:
+            if jid in roster:
+                resource = roster[jid].get_highest_priority_resource()
+                jid = resource.jid if resource else jid
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def resize(self):

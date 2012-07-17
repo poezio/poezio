@@ -13,6 +13,7 @@ import time
 import curses
 import ssl
 
+from functools import reduce
 from hashlib import sha1
 from datetime import datetime
 from xml.etree import cElementTree as ET
@@ -1706,8 +1707,14 @@ class Core(object):
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
-        jid = args[0]
-        self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+        jid = JID(args[0])
+        if jid.resource or jid not in roster:
+            self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+        elif jid in roster:
+            for resource in roster[jid].resources:
+                self.xmpp.plugin['xep_0092'].get_version(resource.jid, callback=callback)
+            else:
+                self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_reconnect(self, args=None):
         """
@@ -1909,7 +1916,9 @@ class Core(object):
         n = len(the_input.get_text().split())
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
-        return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
+        comp = reduce(lambda x, y: x+y, (jid.resources for jid in roster if len(jid)), [])
+        comp = (str(res.jid) for res in comp)
+        return the_input.auto_completion(sorted(comp), '', quotify=False)
 
     def completion_list(self, the_input):
         """Completion for /list"""
