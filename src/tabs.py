@@ -1821,8 +1821,10 @@ class RosterInfoTab(Tab):
         self.key_func["/"] = self.on_slash
         self.key_func["KEY_UP"] = self.move_cursor_up
         self.key_func["KEY_DOWN"] = self.move_cursor_down
-        self.key_func["M-u"] = self.move_cursor_to_next_group
-        self.key_func["M-y"] = self.move_cursor_to_prev_group
+        self.key_func["M-u"] = self.move_cursor_to_next_contact
+        self.key_func["M-y"] = self.move_cursor_to_prev_contact
+        self.key_func["M-U"] = self.move_cursor_to_next_group
+        self.key_func["M-Y"] = self.move_cursor_to_prev_group
         self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
         self.key_func["o"] = self.toggle_offline_show
@@ -2320,6 +2322,29 @@ class RosterInfoTab(Tab):
             self.contact_info_win.refresh(self.roster_win.get_selected_row())
             self.input.refresh()
             self.core.doupdate()
+
+    def move_cursor_to_prev_contact(self):
+        self.roster_win.move_cursor_up()
+        self.roster_win.refresh(roster)
+        while not isinstance(self.roster_win.get_selected_row(), Contact):
+            if not self.roster_win.move_cursor_up():
+                break
+            self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
+        self.input.refresh()
+        self.core.doupdate()
+
+    def move_cursor_to_next_contact(self):
+        self.roster_win.move_cursor_down()
+        self.roster_win.refresh(roster)
+        while not isinstance(self.roster_win.get_selected_row(), Contact):
+            if not self.roster_win.move_cursor_down():
+                break
+            self.roster_win.refresh(roster)
+        self.contact_info_win.refresh(self.roster_win.get_selected_row())
+        self.input.refresh()
+        self.core.doupdate()
+
 
     def move_cursor_to_prev_group(self):
         self.roster_win.move_cursor_up()
