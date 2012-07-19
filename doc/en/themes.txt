@@ -17,7 +17,7 @@ the text impossible to read). The default theme should work properly in any
 case. If not, that’s a bug.
 
 A theme file is a python file (with the .py extension) containing a
-class, inheriting the *themimg.Theme* class defined into the *theming*
+class, inheriting the *theming.Theme* class defined into the *theming*
 poezio module.
 
 Create a theme
@@ -77,7 +77,7 @@ To use a theme, just define the _theme_ option into the
 link:configure.html[configuration file] to the name of the theme you want
 to use. If that theme is not found, the default theme will be used instead.
 Note that the default theme is defined directly into poezio’s source code,
-and note in a theme file.
+and not in a theme file.
 
 Change the theme directory
 --------------------------
