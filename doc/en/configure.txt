@@ -118,15 +118,6 @@ section of this documentation.
     use this option to force the use of local bookmarks if needed.
     Anything but "false" will be counted as true.
 
-*completion*:: normal
-
-  the completion type you will use to complete nicknames
-  if "normal", complete the entire name to the first available completion
-  and then cycle through the possible completion with the next TABs
-  if "shell", if there's more than one nick for this completion, complete
-  only the part that all then nicks have in common (like in a shell)
-
-
 *after_completion*:: ,
 
   what will be put after the name, when using autocompletion

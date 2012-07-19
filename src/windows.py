@@ -1173,14 +1173,10 @@ class Input(Win):
         plus a space, after the completion. If it's a string, we use it after the
         completion (with no additional space)
         """
-        completion_type = config.get('completion', 'normal')
         if quotify:
             for i, word in enumerate(word_list[:]):
                 word_list[i] = '"' + word + '"'
-        if completion_type == 'shell' and self.text != '':
-            self.shell_completion(word_list, add_after)
-        else:
-            self.normal_completion(word_list, add_after)
+        self.normal_completion(word_list, add_after)
         return True
 
     def reset_completion(self):
@@ -1233,47 +1229,6 @@ class Input(Win):
 
         self.rewrite_text()
         self.last_completion = hit
-
-    def shell_completion(self, word_list, after):
-        """
-        Shell-like completion
-        """
-        (y, x) = self._win.getyx()
-        if self.text != '':
-            begin = self.text.split()[-1].lower()
-        else:
-            begin = ''
-        hit_list = []       # list of matching nicks
-        for user in word_list:
-            if user.lower().startswith(begin):
-                hit_list.append(user)
-        if len(hit_list) == 0:
-            return
-        end = False
-        nick = ''
-        last_completion = self.last_completion
-        self.last_completion = True
-        if len(hit_list) == 1:
-            nick = hit_list[0] + after
-            self.last_completion = False
-        elif last_completion:
-            for n in hit_list:
-                if begin.lower() == n.lower():
-                    nick = n+after # user DO want this completion (tabbed twice on it)
-                    self.last_completion = False
-        if nick == '':
-            while not end and len(nick) < len(hit_list[0]):
-                nick = hit_list[0][:len(nick)+1]
-                for hit in hit_list:
-                    if not hit.lower().startswith(nick.lower()):
-                        end = True
-                        break
-            if end:
-                nick = nick[:-1]
-        x -= len(begin)
-        self.text = self.text[:-len(begin)]
-        self.text += nick
-        self.key_end(False)
 
     def do_command(self, key, reset=True, raw=False):
         if key in self.key_func:
