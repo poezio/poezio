@@ -737,8 +737,8 @@ class MucTab(ChatTab):
         info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (arg,
                         ' (%s)' % user.jid if user.jid else '',
                         user.show or 'Available',
-                        user.role or 'None',
                         user.affiliation or 'None',
+                        user.role or 'None',
                         '\n%s' % user.status if user.status else '')
         self.core.information(info, 'Info')
 
