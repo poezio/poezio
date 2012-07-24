@@ -32,17 +32,14 @@ In order for poezio to correctly work, you need the libs SleekXMPP and
  dnspython. You can install them by downloading it from the
  https://github.com/fritzy/SleekXMPP/[SleekXMPP] page and the
  http://www.dnspython.org/[dnspython] page , but you'll need the development
- versions. Alternatively, you can download poezio's sources including SleekXMPP
- and dnspython, that's the easier way.
-
-As for dnspython, you will have to use our python3 fork, or poke them to accept
- patches.
+ version of SleekXMPP. Alternatively, you can download poezio's sources
+ including SleekXMPP and dnspython, that's the easier way.
 
 === Dependencies ===
 
 
-If you want to install SleekXMPP and dnspython yourself, follow these
- instructions. Else, go to the next section.
+If you want to install SleekXMPP and dnspython by yourself, follow these
+ instructions. Else, go to the next section (recommended).
 
 
 Download SleekXMPP
@@ -64,12 +61,13 @@ python3 setup.py build
 su -c "python3 setup.py install"
 ============================
 
-Clone the repository at http://hg.louiz.org/dnspython (this is a fork, because
- upstream is unresponsive and didn’t fix an important bug).
+Install the dnspython3 package on your distribution or install it manually:
 ============================
-hg clone http://hg.louiz.org/dnspython
+wget -O dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz
 
-cd dnspython
+tar xvf dnspython.tgz
+
+cd dnspython3-1.10.0
 ============================
 
 And do the same again:
@@ -88,11 +86,12 @@ If you skipped the installation of the dependencies and you only want to test
 sh update.sh
 ============================
 
-If you have git and hg installed, it will download and update locally the
+If you have git installed, it will download and update locally the
  libraries for you.
 
 
-If you don't want to install poezio but just test it, do:
+If you don't want to install poezio but just test it (or keep a development
+ version), do:
 ============================
  ./launch.sh
 ============================

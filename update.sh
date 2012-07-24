@@ -28,15 +28,22 @@ else
     echo "Downloading SleekXMPP"
     git clone git://github.com/louiz/SleekXMPP.git
 fi
-if [ -e "dnspython" ]
+if [ -e ".dnspython.tgz" ]
 then
-    echo "Updating dnspython"
-    cd dnspython
-    hg pull -u
-    cd ..
+    if [ -e "dnspython" ]
+    then
+        echo "dnspython up to date"
+    else
+        echo "Restoring dnspython"
+        tar xf .dnspython.tgz
+        mv dnspython3-1.10.0 dnspython
+    fi
 else
     echo "Downloading dnspython"
-    hg clone http://hg.louiz.org/dnspython
+    wget -c -q -O .dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz
+    rm -fr dnspython
+    tar xf .dnspython.tgz
+    mv dnspython3-1.10.0 dnspython
 fi
 
 cd src
