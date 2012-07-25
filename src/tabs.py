@@ -352,14 +352,6 @@ class Tab(object):
         """
         pass
 
-    def just_before_refresh(self):
-        """
-        Method called just before the screen refresh.
-        Particularly useful to move the cursor at the
-        correct position.
-        """
-        pass
-
     def on_close(self):
         """
         Called when the tab is to be closed

@@ -127,7 +127,7 @@ class Config(RawConfigParser):
         for line in lines_before:
             if line.startswith('['): # check the section
                 if we_are_in_the_right_section and not written:
-                    result_lines.append('%s= %s' % (option, value))
+                    result_lines.append('%s = %s' % (option, value))
                     written = True
                 if line == '[%s]' % section:
                     we_are_in_the_right_section = True
@@ -137,15 +137,15 @@ class Config(RawConfigParser):
             if (line.startswith('%s ' % (option,)) or
                 line.startswith('%s=' % (option,)) or
                 line.startswith('%s = ' % (option,))) and we_are_in_the_right_section:
-                line = '%s= %s' % (option, value)
+                line = '%s = %s' % (option, value)
                 written = True
             result_lines.append(line)
 
         if not section_found:
             result_lines.append('[%s]' % section)
-            result_lines.append('%s= %s' % (option, value))
+            result_lines.append('%s = %s' % (option, value))
         elif not written:
-            result_lines.append('%s= %s' % (option, value))
+            result_lines.append('%s = %s' % (option, value))
 
 
         df = open(self.file_name, 'w')

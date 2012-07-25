@@ -286,6 +286,10 @@ class Core(object):
         self.pending_invites = {}
 
     def sighup_handler(self, num, stack):
+        """
+        Handle SIGHUP (1)
+        When caught, reload all the possible files.
+        """
         log.debug("SIGHUP caught, reloading the files…")
         # reload all log files
         log.debug("Reloading the log files…")
@@ -1139,7 +1143,10 @@ class Core(object):
                     if res:
                         self.refresh_window()
             else:
-                self.do_command(''.join(list(map(replace_line_breaks, list(map(replace_tabulation, char_list))))), True)
+                self.do_command(''.join(map(
+                        lambda x: replace_line_breaks(replace_tabulation(x)),
+                        char_list)
+                    ), True)
                 self.refresh_window()
             self.doupdate()
 
@@ -1303,7 +1310,7 @@ class Core(object):
         self.current_tab().on_half_scroll_down()
         self.refresh_window()
 
-    def get_error_message_from_error_stanza(self, stanza, deprecated=False):
+    def get_error_message(self, stanza, deprecated=False):
         """
         Takes a stanza of the form <message type='error'><error/></message>
         and return a well formed string containing the error informations
@@ -1335,7 +1342,7 @@ class Core(object):
         Display the error in the tab
         """
         tab = self.get_tab_by_name(room_name)
-        error_message = self.get_error_message_from_error_stanza(error)
+        error_message = self.get_error_message(error)
         self.add_message_to_text_buffer(tab._text_buffer, error_message)
         code = error['error']['code']
         if code == '401':
@@ -1829,7 +1836,7 @@ class Core(object):
                     else:
                         return True
                     items = ['%s/%s' % (tup[0], jid.resource) for tup in items]
-                    for i in range(len(jid.server) + 2 + len(jid.resource)):
+                    for _ in range(len(jid.server) + 2 + len(jid.resource)):
                         the_input.key_backspace()
                 else:
                     items = []
@@ -2166,7 +2173,7 @@ class Core(object):
             else:
                 self.information('No bookmark to remove', 'Info')
 
-    def completion_remove_bookmark(self,the_input):
+    def completion_remove_bookmark(self, the_input):
         """Completion for /remove_bookmark"""
         return the_input.auto_completion([bm.jid for bm in bookmark.bookmarks], '')
 
