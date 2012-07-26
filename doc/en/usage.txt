@@ -318,8 +318,10 @@ These commands work in *any* tab.
  "/bind ^H KEY_UP" makes Control + h behave the same way as the Up key. See the
  link:keys.html[key bindings documentation page] for more details.
 
- */runkey <key>*:: Execute the action defined for _key_. For example,
+*/runkey <key>*:: Execute the action defined for _key_. For example,
  "/runkey KEY_PPAGE" will scroll up, or "/runkey ^N" will go to the next tab.
+
+*/self*:: Reminds you of who you are and what your status is.
 
 NOTE: The following command will work everywhere, except in the Roster tab.
 

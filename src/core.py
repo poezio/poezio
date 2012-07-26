@@ -178,6 +178,7 @@ class Core(object):
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
             'runkey': (self.command_runkey, _("Usage: /runkey <key>\nRunkey: Execute the action defined for <key>."), self.completion_runkey),
+            'self': (self.command_self, _("Usage: /self\nSelf: Remind you of who you are."), None),
         }
 
         # We are invisible
@@ -2031,6 +2032,20 @@ class Core(object):
         tab = tabs.XMLTab()
         self.add_tab(tab, True)
 
+    def command_self(self, arg=None):
+        """
+        /self
+        """
+        status = self.get_status()
+        show, message = status.show, status.message
+        nick = self.own_nick
+        jid = self.xmpp.boundjid.full
+        info = 'Your JID is %s\nYour current status is "%s" (%s)\nYour default nickname is %s' % (
+                jid,
+                message,
+                show if show else 'available',
+                nick)
+        self.information(info, 'Info')
 
 
 ####################### XMPP Event Handlers  ##################################
