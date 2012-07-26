@@ -1,0 +1,106 @@
+Overview
+========
+
+NOTE: This is not an introduction to XMPP, but to poezio
+
+
+Global overview
+---------------
+
+Poezio is an application that has three main layers, mostly separated in three
+different python modules: _core_, _tabs_, and _windows_. An UML diagram of
+Poezio would be inneficient, cluttered, or incomplete, so there is none, if
+that bugs you.
+
+image::../../images/layers.png["The application layers", title="Layers"]
+
+_Core_ is mostly a “global” object containing the state of the application at
+any time, it contains the global commands, the xmpp event handlers, the list
+of open tabs, etc. Most objects in poezio have a self.core attribute
+referencing the _Core_ (it’s a singleton, so there is never more than one
+instance). _Core_ also contains the main loop of the application, which then
+dispatchs the I/O events (keypress) to the appropriate methods.
+
+
+But the main loop is not the most important thing in poezio; because it is an
+IM client, it is essentially event-driven. The event part is handled by
+SleekXMPP, which is the library we chose after moving away from xmpppy.
+
+
+_Tabs_ are the second layer of poezio, but the first dealing with the UI: each
+_Tab_ is a layout of several _windows_, it contains tab-specific commands,
+tab-specific keybinds, and it has methods in order for core to
+interact with it, and some methods are only proxies for the methods of a
+_window_
+
+Example scenario: If someone presses the key PageUp, then Core will call the
+appropriate method on the current _Tab_, which will in turn, if it implements the
+method (inherited empty from the Tab class), call a scrolling method from the
+appropriate _window_.
+
+All tabs types inherit from the class _Tab_, and the _Tabs_ featuring
+chat functionnality will inherit fro _ChatTab_ (which inherits from _Tab_).
+
+Examples of _Tabs_: MUCTab, XMLTab, RosterTab, MUCListTab, etc…
+
+Event handlers
+--------------
+
+The events handlers are registered right at the start of poezio, and then
+when a matching stanza is received, the handler is called in a separate thread
+from the main loop. The handlers are in _Core_, and then they call the
+appropriate methods in the corresponding _tabs_.
+
+Example scenario: if a message is received from a MUC, then the _Core_ handler
+will identify the _Tab_, and call the relevant handler from this _Tab_, this tab
+will in turn, add the message to the buffer, which will then add it to the
+relevant _windows_.
+
+NOTE: All the _windows_ that deal with received or generated text are linked
+to a _text_buffer_, in order to rebuild all the display lines from an the
+sources if necessary. This also enables us to have several _windows_
+presenting the same text, even if they are not of the same size and layout.
+
+
+Commands and completion
+-----------------------
+
+Commands are quite straightforward: those are methods that take a string as a
+parameter, and they do stuff.
+
+From an user point of view, the methods are entered like that:
+
+==================================
+
+  /command arg1 arg2
+
+or
+
+  /command "arg1 with spaces" arg2
+
+==================================
+
+However, when creating a command, you wil deal with _one_ str, no matter what.
+There are utilities to deal with it (common.shell_split), but it is not always
+necessary. Commands are registered in the _commands_ dictionnary of a tab
+structured as key (command name) -> tuple(command function, help string, completion).
+
+
+Completions are a bit tricky, but it’s easy once you get used to it:
+
+They take an _Input_ (a _windows_ class) as a parameter, named the_input
+everywhere in the sources. To effectively have a completion, you have to call
+_the_input.auto_completion()_ at the end of the function.
+
+*the_input.auto_completion(completion_list, after='', quote=True)*:
+Set the input to iterate over _completion_list_ when the user hits tab, insert
+_after_ after the completed item, and surround the item with double quotes or
+not.
+
+There is no method to find the current argument in the input (although the
+feature is planned), so you have to assume the current argument is the last,
+and guess it by splitting the string an checking for end-space.
+
+You can look for examples in the sources, all the possible cases are
+covered (single-argument, complex arguments with spaces, several arguments,
+etc…)
