@@ -934,34 +934,67 @@ class Core(object):
         self.doupdate()
 
     def refresh_tab_win(self):
+        """
+        Refresh the window containing the tab list
+        """
         self.current_tab().refresh_tab_win()
         if self.current_tab().input:
             self.current_tab().input.refresh()
         self.doupdate()
 
     def scroll_page_down(self, args=None):
-        self.current_tab().on_scroll_down()
-        self.refresh_window()
+        """
+        Scroll a page down, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_scroll_down():
+            self.refresh_window()
+            return True
 
     def scroll_page_up(self, args=None):
-        self.current_tab().on_scroll_up()
-        self.refresh_window()
+        """
+        Scroll a page up, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_scroll_up():
+            self.refresh_window()
+            return True
 
     def scroll_line_up(self, args=None):
-        self.current_tab().on_line_up()
-        self.refresh_window()
+        """
+        Scroll a line up, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_line_up():
+            self.refresh_window()
+            return True
 
     def scroll_line_down(self, args=None):
-        self.current_tab().on_line_down()
-        self.refresh_window()
+        """
+        Scroll a line down, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_line_down():
+            self.refresh_window()
+            return True
 
     def scroll_half_up(self, args=None):
-        self.current_tab().on_half_scroll_up()
-        self.refresh_window()
+        """
+        Scroll half a screen down, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_half_scroll_up():
+            self.refresh_window()
+            return True
 
     def scroll_half_down(self, args=None):
-        self.current_tab().on_half_scroll_down()
-        self.refresh_window()
+        """
+        Scroll half a screen down, if possible.
+        Returns True on success, None on failure.
+        """
+        if self.current_tab().on_half_scroll_down():
+            self.refresh_window()
+            return True
 
     def grow_information_win(self, nb=1):
         if self.information_win_size >= self.current_tab().height -5 or \

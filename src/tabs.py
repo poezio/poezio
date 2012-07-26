@@ -543,22 +543,22 @@ class ChatTab(Tab):
         raise NotImplementedError
 
     def on_line_up(self):
-        self.text_win.scroll_up(1)
+        return self.text_win.scroll_up(1)
 
     def on_line_down(self):
-        self.text_win.scroll_down(1)
+        return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        self.text_win.scroll_up(self.text_win.height-1)
+        return self.text_win.scroll_up(self.text_win.height-1)
 
     def on_scroll_down(self):
-        self.text_win.scroll_down(self.text_win.height-1)
+        return self.text_win.scroll_down(self.text_win.height-1)
 
     def on_half_scroll_up(self):
-        self.text_win.scroll_up((self.text_win.height-1) // 2)
+        return self.text_win.scroll_up((self.text_win.height-1) // 2)
 
     def on_half_scroll_down(self):
-        self.text_win.scroll_down((self.text_win.height-1) // 2)
+        return self.text_win.scroll_down((self.text_win.height-1) // 2)
 
     def scroll_separator(self):
         self.text_win.scroll_to_separator()
@@ -2359,14 +2359,10 @@ class RosterInfoTab(Tab):
         self.core.doupdate()
 
     def on_scroll_down(self):
-        for i in range(self.height-1):
-            self.roster_win.move_cursor_down()
-        return True
+        return self.roster_win.move_cursor_down(self.height // 2)
 
     def on_scroll_up(self):
-        for i in range(self.height-1):
-            self.roster_win.move_cursor_up()
-        return True
+        return self.roster_win.move_cursor_up(self.height // 2)
 
     def on_space(self):
         selected_row = self.roster_win.get_selected_row()
@@ -2858,10 +2854,10 @@ class MucListTab(Tab):
         curses.curs_set(0)
 
     def on_scroll_up(self):
-        self.listview.scroll_up()
+        return self.listview.scroll_up()
 
     def on_scroll_down(self):
-        self.listview.scroll_down()
+        return self.listview.scroll_down()
 
 class XMLTab(Tab):
 
@@ -2943,10 +2939,10 @@ class XMLTab(Tab):
         return True
 
     def on_scroll_up(self):
-        self.text_win.scroll_up(self.text_win.height-1)
+        return self.text_win.scroll_up(self.text_win.height-1)
 
     def on_scroll_down(self):
-        self.text_win.scroll_down(self.text_win.height-1)
+        return self.text_win.scroll_down(self.text_win.height-1)
 
     def command_clear(self, args):
         """

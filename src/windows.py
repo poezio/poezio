@@ -212,11 +212,14 @@ class UserList(Win):
                }
     def scroll_up(self):
         self.pos += self.height-1
+        return True
 
     def scroll_down(self):
+        pos = self.pos
         self.pos -= self.height-1
         if self.pos < 0:
             self.pos = 0
+        return self.pos != pos
 
     def draw_plus(self, y):
         self.addstr(y, self.width-2, '++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
@@ -714,16 +717,20 @@ class TextWin(Win):
             self.pos = 0
 
     def scroll_up(self, dist=14):
+        pos = self.pos
         self.pos += dist
         if self.pos + self.height > len(self.built_lines):
             self.pos = len(self.built_lines) - self.height
             if self.pos < 0:
                 self.pos = 0
+        return self.pos != pos
 
     def scroll_down(self, dist=14):
+        pos = self.pos
         self.pos -= dist
         if self.pos <= 0:
             self.pos = 0
+        return self.pos != pos
 
     def scroll_to_separator(self):
         """
@@ -1540,35 +1547,53 @@ class RosterWin(Win):
         self.roster_len = 0
         self.selected_row = None
 
-    def move_cursor_down(self):
+    def move_cursor_down(self, number=1):
         """
         Return True if we scrolled, False otherwise
         """
-        if self.pos < self.roster_len-1:
-            self.pos += 1
+        pos = self.pos
+        if self.pos < self.roster_len-number:
+            self.pos += number
         else:
-            return False
-        if self.pos == self.start_pos-1 + self.height-1:
-            self.scroll_down()
-        return True
+            self.pos = self.roster_len - 1
+        if self.pos >= self.start_pos-1 + self.height-1:
+            if number == 1:
+                self.scroll_down(8)
+            else:
+                self.scroll_down(self.pos-self.start_pos - self.height // 2)
+        return pos != self.pos
 
-    def move_cursor_up(self):
+    def move_cursor_up(self, number=1):
         """
         Return True if we scrolled, False otherwise
         """
-        if self.pos > 0:
-            self.pos -= 1
+        pos = self.pos
+        if self.pos-number >= 0:
+            self.pos -= number
         else:
-            return False
-        if self.pos == self.start_pos-2:
-            self.scroll_up()
-        return True
+            self.pos = 0
+        if self.pos <= self.start_pos:
+            if number == 1:
+                self.scroll_up(8)
+            else:
+                self.scroll_up(self.start_pos-self.pos + self.height // 2)
+        return pos != self.pos
 
-    def scroll_down(self):
-        self.start_pos += 8
+    def scroll_down(self, number=8):
+        pos = self.start_pos
+        if self.start_pos + number <= self.roster_len-1:
+            self.start_pos += number
+        else:
+            self.start_pos = self.roster_len-1
+        return self.start_pos != pos
 
-    def scroll_up(self):
-        self.start_pos -= 8
+    def scroll_up(self, number=8):
+        pos = self.start_pos
+        if self.start_pos - number > 0:
+            self.start_pos -= number
+        else:
+            self.start_pos = 1
+        return self.start_pos != pos
 
     def refresh(self, roster):
         """
