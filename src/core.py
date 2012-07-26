@@ -405,12 +405,12 @@ class Core(object):
         when enter is pressed on the roster window
         """
         if isinstance(roster_row, Contact):
-            if not self.get_conversation_by_jid(roster_row.bare_jid):
+            if not self.get_conversation_by_jid(roster_row.bare_jid, False):
                 self.open_conversation_window(roster_row.bare_jid)
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.jid.full):
+            if not self.get_conversation_by_jid(roster_row.jid.full, False):
                 self.open_conversation_window(roster_row.jid.full)
             else:
                 self.focus_tab_named(roster_row.jid.full)
@@ -615,7 +615,7 @@ class Core(object):
         """
         return self.tabs[0]
 
-    def get_tab_of_conversation_with_jid(self, jid, create=True):
+    def get_conversation_by_jid(self, jid, create=True):
         """
         From a JID, get the tab containing the conversation with it.
         If none already exist, and create is "True", we create it
@@ -633,16 +633,6 @@ class Core(object):
                 else:
                     conversation = None
         return conversation
-
-    def get_conversation_by_jid(self, jid):
-        """
-        Return the room of the ConversationTab with the given jid
-        """
-        for tab in self.tabs:
-            if isinstance(tab, tabs.ConversationTab):
-                if tab.get_name() == jid:
-                    return tab
-        return None
 
     def get_tab_by_name(self, name, typ=None):
         """
@@ -2040,7 +2030,7 @@ class Core(object):
             return self.information(self.get_error_message(message, deprecated=True), 'Error')
         if not body:
             return
-        conversation = self.get_tab_of_conversation_with_jid(jid, create=True)
+        conversation = self.get_conversation_by_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
         if jid.bare in roster:
@@ -2190,7 +2180,7 @@ class Core(object):
             self.on_chatstate_groupchat_conversation(message, state)
 
     def on_chatstate_normal_conversation(self, message, state):
-        tab = self.get_tab_of_conversation_with_jid(message['from'], False)
+        tab = self.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
         self.events.trigger('normal_chatstate', message, tab)
@@ -2306,7 +2296,7 @@ class Core(object):
         if contact is None:
             return
         self.events.trigger('normal_presence', presence, contact[jid.full])
-        tab = self.get_tab_of_conversation_with_jid(jid, create=False)
+        tab = self.get_conversation_by_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
         elif self.current_tab() == tab:
