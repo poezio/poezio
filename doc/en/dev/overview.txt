@@ -57,7 +57,7 @@ will in turn, add the message to the buffer, which will then add it to the
 relevant _windows_.
 
 NOTE: All the _windows_ that deal with received or generated text are linked
-to a _text_buffer_, in order to rebuild all the display lines from an the
+to a _text_buffer_, in order to rebuild all the display lines from the
 sources if necessary. This also enables us to have several _windows_
 presenting the same text, even if they are not of the same size and layout.
 
