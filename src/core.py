@@ -177,6 +177,7 @@ class Core(object):
             'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
             'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
+            'runkey': (self.command_runkey, _("Usage: /runkey <key>\nRunkey: Execute the action defined for <key>."), self.completion_runkey),
         }
 
         # We are invisible
@@ -1161,6 +1162,32 @@ class Core(object):
         """Completion for /help."""
         commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
         return the_input.auto_completion(commands, ' ', quotify=False)
+
+    def command_runkey(self, arg):
+        """
+        /runkey <key>
+        """
+        def replace_line_breaks(key):
+            if key == '^J':
+                return '\n'
+            return key
+        char = arg.strip()
+        func = self.key_func.get(char, None)
+        if func:
+            func()
+        else:
+            res = self.do_command(replace_line_breaks(char), False)
+            if res:
+                self.refresh_window()
+
+    def completion_runkey(self, the_input):
+        """
+        Completion for /runkey
+        """
+        list_ = []
+        list_.extend(self.key_func.keys())
+        list_.extend(self.current_tab().key_func.keys())
+        return the_input.auto_completion(list_, '', quotify=False)
 
     def command_status(self, arg):
         """
