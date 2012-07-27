@@ -623,6 +623,7 @@ class Core(object):
         If none already exist, and create is "True", we create it
         and return it. Otherwise, we return None
         """
+        jid = JID(jid)
         # We first check if we have a conversation opened with this precise resource
         conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
         if not conversation:
