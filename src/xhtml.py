@@ -399,7 +399,12 @@ def poezio_colors_to_html(string):
     Convert poezio colors to html makups
     (e.g. \x191: <span style='color: red'>)
     """
-    # TODO underlined
+    # XXX: You cannot underline AND use color on the same portion of your
+    # message (because both these things use a <span/> element, and the
+    # current way it is done, when you open a <span/> element, you close the
+    # previous one). Dectecting if a span is already opened, close it and
+    # reopen it with the same style PLUS the new style seems complicated.
+    # I'll keep it that way unless someone fixes that properly.
 
     # a list of all opened elements, e.g. ['strong', 'span']
     # So that we know what we need to close
@@ -418,6 +423,15 @@ def poezio_colors_to_html(string):
             if 'strong' not in opened_elements:
                 opened_elements.append('strong')
                 res += '<strong>'
+        elif attr_char == 'u':
+            if 'strong' in opened_elements:
+                res += '</strong>'
+                opened_elements.remove('strong')
+            if 'span' in opened_elements:
+                res += '</span>'
+            else:
+                opened_elements.append('span')
+            res += "<span style='text-decoration:underline'>"
         if attr_char in digits:
             number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
             number = int(number_str)
