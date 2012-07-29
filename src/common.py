@@ -188,10 +188,10 @@ def shell_split(st):
         return st.split(" ")
 
 def replace_key_with_bound(key):
-    if config.has_option('bindings', key):
-        return config.get(key, key, 'bindings')
-    else:
-        return key
+    bind = config.get(key, key, 'bindings')
+    if not bind:
+        bind = key
+    return bind
 
 def parse_str_to_secs(duration=''):
     """

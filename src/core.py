@@ -1945,10 +1945,15 @@ class Core(object):
         Bind a key.
         """
         args = common.shell_split(arg)
-        if len(args) != 2:
+        if len(args) < 1:
             return self.command_help('bind')
+        elif len(args) < 2:
+            args.append("")
         config.set_and_save(args[0], args[1], section='bindings')
-        self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
+        if args[1]:
+            self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
+        else:
+            self.information('%s is now unbound' % args[0], 'Info')
 
     def command_pubsub(self, args):
         """
