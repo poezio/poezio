@@ -15,4 +15,5 @@ Available pages
 * link:keys.html[Keys]
 * link:plugins/index.html[Available Plugins]
 * link:plugins.html[Developing plugins]
+* link:dev/index.html[Developing Poezio]
 * link:xep.html[Current XEP support]
