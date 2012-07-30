@@ -210,7 +210,7 @@ def parse_str_to_secs(duration=''):
             result += tmp_i * values[char]
             tmp = '0'
         else:
-            result += int(tmp)
+            return 0
     if tmp != '0':
         result += int(tmp)
     return result

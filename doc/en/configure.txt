@@ -198,7 +198,13 @@ section of this documentation.
 *autorejoin*:: false
 
   set to 'true' if you want to automatically rejoin the
-  room when you're kicked
+  room when you're kicked.
+
+*autorejoin_delay*:: 5
+
+  Set to the number of seconds before reconnecting after getting kicked.
+  0, a negative value, or no value means you instant reconnection.
+  This option only works if autorejoin is enabled.
 
 *alternative_nickname*:: [empty]
 
@@ -464,9 +470,20 @@ foo = true
 
 *ignore_private*:: false
 
-    Ignore private messages sent from this room.
+  Ignore private messages sent from this room.
 
 *private_auto_response*:: "Not in private, please."
 
-    The message you want to be sent when someone tries to message you.
+  The message you want to be sent when someone tries to message you.
+
+*autorejoin*:: false
+
+  set to 'true' if you want to automatically rejoin the
+  room when you're kicked.
+
+*autorejoin_delay*:: 5
+
+  Set to the number of seconds before reconnecting after getting kicked.
+  0, a negative value, or no value means you instant reconnection.
+  This option only works if autorejoin is enabled.
 

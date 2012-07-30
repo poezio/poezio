@@ -1350,7 +1350,17 @@ class MucTab(ChatTab):
             self.core.doupdate()
             # try to auto-rejoin
             if config.get_by_tabname('autorejoin', 'false', self.general_jid, True) == 'true':
-                muc.join_groupchat(self.core.xmpp, self.name, self.own_nick)
+                delay = config.get_by_tabname('autorejoin_delay', "5", self.general_jid, True)
+                delay = common.parse_str_to_secs(delay)
+                if delay <= 0:
+                    muc.join_groupchat(self.core.xmpp, self.name, self.own_nick)
+                else:
+                    self.core.add_timed_event(timed_events.DelayedEvent(
+                        delay,
+                        muc.join_groupchat,
+                        self.core.xmpp,
+                        self.name,
+                        self.own_nick))
         else:
             color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
