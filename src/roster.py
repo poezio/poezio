@@ -247,9 +247,10 @@ class RosterGroup(object):
     def get_contacts(self, contact_filter):
         """Return the group contacts, filtered and sorted"""
         def compare_contact(a):
-            if not a.get_highest_priority_resource():
+            res = a.get_highest_priority_resource()
+            if not res:
                 return 0
-            show = a.get_highest_priority_resource()
+            show = res.presence
             if show not in PRESENCE_PRIORITY:
                 return 5
             return PRESENCE_PRIORITY[show]

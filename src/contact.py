@@ -33,15 +33,15 @@ class Resource(object):
 
     @property
     def priority(self):
-        return self._data['priority']
+        return self._data.get('priority') or 0
 
     @property
     def presence(self):
-        return self._data['show']
+        return self._data.get('show') or ''
 
     @property
     def status(self):
-        return self._data['status']
+        return self._data.get('status') or ''
 
     def __repr__(self):
         return '<%s>' % self._jid
