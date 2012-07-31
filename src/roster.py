@@ -18,6 +18,30 @@ from contact import Contact
 from sleekxmpp.xmlstream.stanzabase import JID
 from sleekxmpp.exceptions import IqError
 
+
+def sort_group_name(group):
+    return group.name.lower()
+
+def sort_group_folded(group):
+    return group.folded
+
+def sort_group_connected(group):
+    return - group.get_nb_connected_contacts()
+
+def sort_group_size(group):
+    return - len(group)
+
+def sort_group_none(group):
+    return 0 if group.name != 'none' else 1
+
+GROUP_SORTING_METHODS = {
+        'name': sort_group_name,
+        'fold': sort_group_folded,
+        'connected': sort_group_connected,
+        'size': sort_group_size,
+        'none': sort_group_none,
+}
+
 class Roster(object):
     """
     The proxy class to get the roster from SleekXMPP.
@@ -93,9 +117,17 @@ class Roster(object):
         """Set the SleekXMPP RosterSingle for our roster"""
         self.__node = value
 
-    def get_groups(self):
+    def get_groups(self, sort=''):
         """Return a list of the RosterGroups"""
-        return [group for group in self.groups.values() if group]
+        group_list = sorted(filter(lambda x: bool(x), self.groups.values()), key=lambda x: x.name.lower())
+
+        for sorting in sort.split('_'):
+            if sorting == 'reverse':
+                group_list = list(reversed(group_list))
+            else:
+                method = GROUP_SORTING_METHODS.get(sorting, lambda x: 0)
+                group_list = sorted(group_list, key=method)
+        return group_list
 
     def get_group(self, name):
         """Return a group or create it if not present"""
@@ -273,15 +305,15 @@ class RosterGroup(object):
         """Return the group contacts, filtered and sorted"""
         contact_list = self.contacts.copy() if not contact_filter\
             else [contact for contact in self.contacts.copy() if contact_filter[0](contact, contact_filter[1])]
+        contact_list = sorted(contact_list, key=SORTING_METHODS['name'])
 
         for sorting in sort.split('_'):
-            method = SORTING_METHODS.get(sorting, lambda x: 0)
             if sorting == 'reverse':
                 contact_list = list(reversed(contact_list))
             else:
+                method = SORTING_METHODS.get(sorting, lambda x: 0)
                 contact_list = sorted(contact_list, key=method)
         return contact_list
-
 
     def toggle_folded(self):
         """Fold/unfold the group in the roster"""
@@ -295,7 +327,7 @@ class RosterGroup(object):
 
     def get_nb_connected_contacts(self):
         """Return the number of connected contacts"""
-        return len([1 for contact in self.contacts if contact.resources])
+        return len([1 for contact in self.contacts if len(contact)])
 
 
 # Shared roster object

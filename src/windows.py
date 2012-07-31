@@ -1610,7 +1610,8 @@ class RosterWin(Win):
             y = 1
             show_offline = config.get('roster_show_offline', 'false') == 'true'
             sort = config.get('roster_sort', 'jid_show') or 'jid_show'
-            for group in roster.get_groups()[:]:
+            group_sort = config.get('roster_group_sort', 'name') or 'name'
+            for group in roster.get_groups(group_sort):
                 contacts_filtered = group.get_contacts(roster.contact_filter)
                 if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
                     continue    # Ignore empty groups
