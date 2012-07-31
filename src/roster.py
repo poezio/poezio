@@ -255,11 +255,16 @@ def sort_resource_nb(contact):
 def sort_name(contact):
     return contact.name.lower() or contact.bare_jid
 
+def sort_online(contact):
+    result = sort_show(contact)
+    return 0 if result < 5 else 1
+
 SORTING_METHODS = {
     'jid': sort_jid,
     'show': sort_show,
     'resource': sort_resource_nb,
     'name': sort_name,
+    'online': sort_online,
 }
 
 class RosterGroup(object):
