@@ -279,6 +279,23 @@ section of this documentation.
 
   Set this to true if you want to display the offline contacts too.
 
+*roster_sort*:: jid_show
+
+  How you want the contacts to be sorted inside the roster groups. The given
+  methods are used sequentially (from left to right), so the last one is the
+  one on the far right.
+
+  Available methods are :
+    * reverse: reverse the current sorting
+    * jid: sort by JID (alphabetical order)
+    * show: sort by show (available/away/xa/…)
+    * name: Sort by roster name (if no name, then the bare jid is used)
+    * resource: Sort by resource number
+
+  Those methods can be arranged however you like, and they have to be
+  separated by underscores ("_"). If there are more than 3 or 4 chained
+  sorting methods, your sorting is most likely inefficient.
+
 *beep_on*:: highlight private
 
   The terminal can beep on various event. Put the event you want in a list

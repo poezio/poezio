@@ -1609,6 +1609,7 @@ class RosterWin(Win):
             self.draw_roster_information(roster)
             y = 1
             show_offline = config.get('roster_show_offline', 'false') == 'true'
+            sort = config.get('roster_sort', 'jid_show') or 'jid_show'
             for group in roster.get_groups()[:]:
                 contacts_filtered = group.get_contacts(roster.contact_filter)
                 if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
@@ -1621,7 +1622,7 @@ class RosterWin(Win):
                 y += 1
                 if group.folded:
                     continue
-                for contact in group.get_contacts(roster.contact_filter)[:]:
+                for contact in group.get_contacts(roster.contact_filter, sort):
                     if not show_offline and len(contact) == 0:
                         continue
                     if y-1 == self.pos:

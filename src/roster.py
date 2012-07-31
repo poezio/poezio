@@ -198,12 +198,37 @@ class Roster(object):
         except IOError:
             return
 
-PRESENCE_PRIORITY = {'unavailable': 0,
-                     'xa': 1,
-                     'away': 2,
-                     'dnd': 3,
-                     '': 4,
-                     'available': 4}
+PRESENCE_PRIORITY = {'unavailable': 5,
+                     'xa': 4,
+                     'away': 3,
+                     'dnd': 2,
+                     '': 1,
+                     'available': 1}
+
+def sort_jid(contact):
+    return contact.bare_jid
+
+def sort_show(contact):
+    res = contact.get_highest_priority_resource()
+    if not res:
+        return 0
+    show = res.presence
+    if show not in PRESENCE_PRIORITY:
+        return 0
+    return PRESENCE_PRIORITY[show]
+
+def sort_resource_nb(contact):
+    return - len(contact)
+
+def sort_name(contact):
+    return contact.name.lower() or contact.bare_jid
+
+SORTING_METHODS = {
+    'jid': sort_jid,
+    'show': sort_show,
+    'resource': sort_resource_nb,
+    'name': sort_name,
+}
 
 class RosterGroup(object):
     """
@@ -244,20 +269,19 @@ class RosterGroup(object):
         if contact in self.contacts:
             self.contacts.remove(contact)
 
-    def get_contacts(self, contact_filter):
+    def get_contacts(self, contact_filter=None, sort=''):
         """Return the group contacts, filtered and sorted"""
-        def compare_contact(a):
-            res = a.get_highest_priority_resource()
-            if not res:
-                return 0
-            show = res.presence
-            if show not in PRESENCE_PRIORITY:
-                return 5
-            return PRESENCE_PRIORITY[show]
-        contact_list = self.contacts if not contact_filter\
+        contact_list = self.contacts.copy() if not contact_filter\
             else [contact for contact in self.contacts.copy() if contact_filter[0](contact, contact_filter[1])]
-        contact_list = sorted(contact_list, key=lambda x: x.bare_jid)
-        return sorted(contact_list, key=compare_contact, reverse=True)
+
+        for sorting in sort.split('_'):
+            method = SORTING_METHODS.get(sorting, lambda x: 0)
+            if sorting == 'reverse':
+                contact_list = list(reversed(contact_list))
+            else:
+                contact_list = sorted(contact_list, key=method)
+        return contact_list
+
 
     def toggle_folded(self):
         """Fold/unfold the group in the roster"""
@@ -272,6 +296,7 @@ class RosterGroup(object):
     def get_nb_connected_contacts(self):
         """Return the number of connected contacts"""
         return len([1 for contact in self.contacts if contact.resources])
+
 
 # Shared roster object
 roster = Roster()
