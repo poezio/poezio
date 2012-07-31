@@ -243,7 +243,7 @@ def sort_jid(contact):
 def sort_show(contact):
     res = contact.get_highest_priority_resource()
     if not res:
-        return 0
+        return 5
     show = res.presence
     if show not in PRESENCE_PRIORITY:
         return 0
