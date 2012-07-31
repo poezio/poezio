@@ -478,12 +478,12 @@ foo = true
 
 *autorejoin*:: false
 
-  set to 'true' if you want to automatically rejoin the
-  room when you're kicked.
+  Set to 'true' if you want to automatically rejoin the
+  room when you're kicked or banned.
 
 *autorejoin_delay*:: 5
 
-  Set to the number of seconds before reconnecting after getting kicked.
-  0, a negative value, or no value means you instant reconnection.
+  Set to the number of seconds before reconnecting after getting kicked or
+  banned. 0, a negative value, or no value means instant reconnection.
   This option only works if autorejoin is enabled.
 
