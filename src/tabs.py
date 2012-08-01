@@ -2424,10 +2424,11 @@ class RosterInfoTab(Tab):
                     res.status if res else '',)
         elif isinstance(selected_row, Resource):
             res = selected_row
-            msg = 'Resource: %s (%s)\nCurrent status: %s' % (
+            msg = 'Resource: %s (%s)\nCurrent status: %s\nPriority: %s' % (
                     res.jid,
                     res.presence,
-                    res.status,)
+                    res.status,
+                    res.priority)
         elif isinstance(selected_row, RosterGroup):
             rg = selected_row
             msg = 'Group: %s [%s/%s] contacts online' % (

@@ -148,7 +148,7 @@ class Contact(object):
     def get_resources(self):
         """Return all resources, sorted by priority """
         compare_resources = lambda x: x.priority
-        return sorted(self.resources, key=compare_resources)
+        return sorted(self.resources, key=compare_resources, reverse=True)
 
     def get_highest_priority_resource(self):
         """Return the resource with the highest priority"""
