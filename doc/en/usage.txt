@@ -436,6 +436,17 @@ Roster tab commands
  unsubscribe you from its presence, cancel its subscription to yours, and
  remove the item from your roster.
 
+NOTE: The following commands only exist if your server supports them. If it
+does not, you will be notified when you start poezio.
+
+*/block [jid]*:: Block the following JID using simple blocking. You will not
+ receive any of his messages and won’t be able to send some to him either.
+
+*/unblock [jid]*:: Unblock a previously blocked JID using simple blocking. You
+ will be able to send and receive messages from him again.
+
+*/list_blocks*:: List the blocked JIDs.
+
 NOTE: The following commands do not comply with any XEP or whatever, but they
  can still prove useful when you are migrating to an other JID.
 
