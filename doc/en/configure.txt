@@ -279,7 +279,7 @@ section of this documentation.
 
   Set this to true if you want to display the offline contacts too.
 
-*roster_sort*:: jid_show
+*roster_sort*:: jid:show
 
   How you want the contacts to be sorted inside the roster groups. The given
   methods are used sequentially (from left to right), so the last one is the
@@ -294,7 +294,7 @@ section of this documentation.
     * online: sort by online presence (online or not)
 
   Those methods can be arranged however you like, and they have to be
-  separated by underscores ("_"). If there are more than 3 or 4 chained
+  separated by colons (":"). If there are more than 3 or 4 chained
   sorting methods, your sorting is most likely inefficient.
 
 *roster_group_sort*:: name

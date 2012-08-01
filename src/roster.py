@@ -13,34 +13,13 @@ import logging
 log = logging.getLogger(__name__)
 
 from config import config
-from os import path as p
 from contact import Contact
+from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
+
+from os import path as p
 from sleekxmpp.xmlstream.stanzabase import JID
 from sleekxmpp.exceptions import IqError
 
-
-def sort_group_name(group):
-    return group.name.lower()
-
-def sort_group_folded(group):
-    return group.folded
-
-def sort_group_connected(group):
-    return - group.get_nb_connected_contacts()
-
-def sort_group_size(group):
-    return - len(group)
-
-def sort_group_none(group):
-    return 0 if group.name != 'none' else 1
-
-GROUP_SORTING_METHODS = {
-        'name': sort_group_name,
-        'fold': sort_group_folded,
-        'connected': sort_group_connected,
-        'size': sort_group_size,
-        'none': sort_group_none,
-}
 
 class Roster(object):
     """
@@ -121,7 +100,7 @@ class Roster(object):
         """Return a list of the RosterGroups"""
         group_list = sorted(filter(lambda x: bool(x), self.groups.values()), key=lambda x: x.name.lower())
 
-        for sorting in sort.split('_'):
+        for sorting in sort.split(':'):
             if sorting == 'reverse':
                 group_list = list(reversed(group_list))
             else:
@@ -230,43 +209,6 @@ class Roster(object):
         except IOError:
             return
 
-PRESENCE_PRIORITY = {'unavailable': 5,
-                     'xa': 4,
-                     'away': 3,
-                     'dnd': 2,
-                     '': 1,
-                     'available': 1}
-
-def sort_jid(contact):
-    return contact.bare_jid
-
-def sort_show(contact):
-    res = contact.get_highest_priority_resource()
-    if not res:
-        return 5
-    show = res.presence
-    if show not in PRESENCE_PRIORITY:
-        return 0
-    return PRESENCE_PRIORITY[show]
-
-def sort_resource_nb(contact):
-    return - len(contact)
-
-def sort_name(contact):
-    return contact.name.lower() or contact.bare_jid
-
-def sort_online(contact):
-    result = sort_show(contact)
-    return 0 if result < 5 else 1
-
-SORTING_METHODS = {
-    'jid': sort_jid,
-    'show': sort_show,
-    'resource': sort_resource_nb,
-    'name': sort_name,
-    'online': sort_online,
-}
-
 class RosterGroup(object):
     """
     A RosterGroup is a group containing contacts
@@ -312,7 +254,7 @@ class RosterGroup(object):
             else [contact for contact in self.contacts.copy() if contact_filter[0](contact, contact_filter[1])]
         contact_list = sorted(contact_list, key=SORTING_METHODS['name'])
 
-        for sorting in sort.split('_'):
+        for sorting in sort.split(':'):
             if sorting == 'reverse':
                 contact_list = list(reversed(contact_list))
             else:
