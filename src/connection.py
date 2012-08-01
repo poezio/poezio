@@ -34,7 +34,9 @@ class Connection(sleekxmpp.ClientXMPP):
             self.anon = False # Field used to know if we are anonymous or not.
             # many features will be handled diferently
             # depending on this setting
-            jid = '%s/%s' % (config.get('jid', ''), resource)
+            jid = '%s' % config.get('jid', '')
+            if resource:
+                jid = '%s/%s' (jid, resource)
             password = config.get('password', '') or getpass.getpass()
         else: # anonymous auth
             self.anon = True

@@ -100,8 +100,10 @@ class Contact(object):
     @property
     def resources(self):
         """List of the available resources as Resource objects"""
-        return [Resource('%s/%s' % (self.bare_jid, key), self.__item.resources[key])
-                for key in self.__item.resources]
+        return [Resource(
+            '%s%s' % (self.bare_jid, ('/' + key) if key else ''),
+            self.__item.resources[key]
+            ) for key in self.__item.resources.keys()]
 
     @property
     def subscription(self):
