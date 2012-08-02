@@ -36,7 +36,7 @@ class Connection(sleekxmpp.ClientXMPP):
             # depending on this setting
             jid = '%s' % config.get('jid', '')
             if resource:
-                jid = '%s/%s' (jid, resource)
+                jid = '%s/%s'% (jid, resource)
             password = config.get('password', '') or getpass.getpass()
         else: # anonymous auth
             self.anon = True
