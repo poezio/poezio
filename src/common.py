@@ -233,6 +233,8 @@ def parse_secs_to_str(duration=0):
     result += '%sh' % hours if hours else ''
     result += '%sm' % mins if mins else ''
     result += '%ss' % secs if secs else ''
+    if not result:
+        result = '0s'
     return result
 
 def parse_command_args_to_alias(arg, strto):

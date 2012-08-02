@@ -24,7 +24,7 @@ import logging
 import singleton
 import collections
 
-from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp import JID, InvalidJID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 from sleekxmpp.xmlstream.handler import Callback
 
@@ -179,6 +179,7 @@ class Core(object):
             'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
             'runkey': (self.command_runkey, _("Usage: /runkey <key>\nRunkey: Execute the action defined for <key>."), self.completion_runkey),
             'self': (self.command_self, _("Usage: /self\nSelf: Remind you of who you are."), None),
+            'activity': (self.command_activity, _("Usage: /activity <jid>\nActivity: Informs you of the last activity of a JID."), self.completion_activity),
         }
 
         # We are invisible
@@ -1866,6 +1867,40 @@ class Core(object):
                         serv_list.append(serv)
             return the_input.auto_completion(serv_list, ' ')
 
+    def command_activity(self, arg):
+        """
+        /activity <jid>
+        """
+        def callback(iq):
+            if iq['type'] != 'result':
+                if iq['error']['type'] == 'auth':
+                    self.information('You are not allowed to see the activity of this contact.', 'Error')
+                else:
+                    self.information('Error retrieving the activity', 'Error')
+                return
+            seconds = iq['last_activity']['seconds']
+            status = iq['last_activity']['status']
+            from_ = iq['from']
+            if not JID(from_).user:
+                msg = 'The uptime of %s is %s.' % (
+                        from_,
+                        common.parse_secs_to_str(seconds))
+            else:
+                msg = 'The last activity of %s was %s ago%s' % (
+                    from_,
+                    common.parse_secs_to_str(seconds),
+                    (' and his/her last status was %s' % status) if status else '',)
+            self.information(msg, 'Info')
+        try:
+            jid = JID(arg)
+        except InvalidJID:
+            self.information('No valid JID given', 'Error')
+            return
+        self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
+
+    def completion_activity(self, the_input):
+            return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
+
     def command_invite(self, arg):
         """/invite <to> <room> [reason]"""
         args = common.shell_split(arg)
@@ -2607,6 +2642,7 @@ class Core(object):
         """
         We are sending a new stanza, write it in the xml buffer if needed.
         """
+        self.xmpp.plugin['xep_0012'].set_last_activity()
         if self.xml_tabs:
             self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
             if isinstance(self.current_tab(), tabs.XMLTab):

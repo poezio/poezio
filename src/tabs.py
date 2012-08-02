@@ -1842,6 +1842,7 @@ class RosterInfoTab(Tab):
         self.key_func["M-Y"] = self.move_cursor_to_prev_group
         self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
+        self.key_func["l"] = self.command_activity
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["v"] = self.get_contact_version
         self.key_func["i"] = self.show_contact_info
@@ -1859,6 +1860,7 @@ class RosterInfoTab(Tab):
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
+        self.commands['activity'] = (self.command_activity, _("Usage: /activity <jid>\nActivity: Informs you of the last activity of a JID."), self.core.completion_activity)
         self.core.xmpp.add_event_handler('session_start',
                 lambda event: self.core.xmpp.plugin['xep_0030'].get_info(
                     jid=self.core.xmpp.boundjid.domain,
@@ -1968,7 +1970,6 @@ class RosterInfoTab(Tab):
             if iq['type'] == 'error':
                 return self.core.information('Could not retrieve the blocklist.', 'Error')
             s = 'List of blocked JIDs:\n'
-            log.debug('COCUCOCOCOCOCOCOC\n%s\n\n', iq['blocklist']['items'])
             items = (str(item) for item in iq['blocklist']['items'])
             jids = '\n'.join(items)
             if jids:
@@ -1978,6 +1979,23 @@ class RosterInfoTab(Tab):
             self.core.information(s, 'Info')
 
         self.core.xmpp.plugin['xep_0191'].get_blocked(block=False, callback=callback)
+
+    def command_activity(self, arg=None):
+        """
+        /activity [jid]
+        """
+
+        item = self.roster_win.selected_row
+        if arg:
+            jid = arg
+        elif isinstance(item, Contact):
+            jid = item.bare_jid
+        elif isinstance(item, Resource):
+            jid = item.jid.bare
+        else:
+            self.core.information('No JID selected.', 'Error')
+            return
+        self.core.command_activity(jid)
 
     def resize(self):
         if not self.visible:
@@ -2632,6 +2650,7 @@ class ConversationTab(ChatTab):
         self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: Close the tab."), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
+        self.commands['activity'] = (self.command_activity, _('Usage: /activity [jid]\nActivity: Get the last activity of the given or the current contact.'), self.core.completion_activity)
         self.resize()
         self.update_commands()
         self.update_keys()
@@ -2679,6 +2698,40 @@ class ConversationTab(ChatTab):
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
+
+    def command_activity(self, arg):
+        """
+        /activity [jid]
+        """
+        if arg.strip():
+            return self.core.command_activity(arg)
+
+        def callback(iq):
+            if iq['type'] != 'result':
+                if iq['error']['type'] == 'auth':
+                    self.information('You are not allowed to see the activity of this contact.', 'Error')
+                else:
+                    self.information('Error retrieving the activity', 'Error')
+                return
+            seconds = iq['last_activity']['seconds']
+            status = iq['last_activity']['status']
+            from_ = iq['from']
+            msg = '\x19%s}The last activity of %s was %s ago%s'
+            if not JID(from_).user:
+                msg = '\x19%s}The uptime of %s is %s.' % (
+                        get_theme().COLOR_INFORMATION_TEXT[0],
+                        from_,
+                        common.parse_secs_to_str(seconds))
+            else:
+                msg = '\x19%s}The last activity of %s was %s ago%s' % (
+                    get_theme().COLOR_INFORMATION_TEXT[0],
+                    from_,
+                    common.parse_secs_to_str(seconds),
+                    (' and his/her last status was %s' % status) if status else '',)
+            self.add_message(msg)
+            self.core.refresh_window()
+
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, block=False, callback=callback)
 
     def command_info(self, arg):
         contact = roster[self.get_name()]
