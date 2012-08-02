@@ -311,6 +311,9 @@ These commands work in *any* tab.
 
 */invitations*:: Show the pending invitations.
 
+*/activity <jid>*:: Show the last activity of a contact or a server (its
+ uptime, in that case).
+
 */server_cycle [server.tld] [message]*:: Disconnect and reconnect in all the
  rooms of server.tld.
 

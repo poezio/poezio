@@ -6,7 +6,7 @@ XEP
 |==========================================
 |XEP number|XEP name    |Implementation status
 |0004      |Data Forms  |100%
-|0012      |Last Activity| 25%
+|0012      |Last Activity| 100%
 |0027      |Current Jabber OpenPGP Usage|100%
 |0030      |Service Discovery|~100%
 |0045      |Multi-User Chat|~90%
