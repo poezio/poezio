@@ -2642,7 +2642,6 @@ class Core(object):
         """
         We are sending a new stanza, write it in the xml buffer if needed.
         """
-        self.xmpp.plugin['xep_0012'].set_last_activity()
         if self.xml_tabs:
             self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
             if isinstance(self.current_tab(), tabs.XMLTab):
