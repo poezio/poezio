@@ -15,7 +15,7 @@ DEFSECTION = "Poezio"
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 class Config(RawConfigParser):
     """
@@ -192,12 +192,12 @@ if not path.isfile(path.join(CONFIG_PATH, 'poezio.cfg')):
     copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), path.join(CONFIG_PATH, 'poezio.cfg'))
     firstrun = True
 
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="filename", default=path.join(CONFIG_PATH, 'poezio.cfg'),
-                  help="The config file you want to use", metavar="CONFIG_FILE")
-parser.add_option("-d", "--debug", dest="debug",
-                  help="The file where debug will be written", metavar="DEBUG_FILE")
-(options, args) = parser.parse_args()
+parser = ArgumentParser()
+parser.add_argument("-f", "--file", dest="filename", default=path.join(CONFIG_PATH, 'poezio.cfg'),
+                    help="The config file you want to use", metavar="CONFIG_FILE")
+parser.add_argument("-d", "--debug", dest="debug",
+                    help="The file where debug will be written", metavar="DEBUG_FILE")
+options = parser.parse_args()
 config = Config(options.filename)
 if firstrun:
     config.set('firstrun', True)
