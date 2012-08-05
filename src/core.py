@@ -1365,7 +1365,10 @@ class Core(object):
         if len(arg) > 1:
             return self.command_help('list')
         elif arg:
-            server = JID(arg[0]).server
+            try:
+                server = JID(arg[0]).server
+            except InvalidJID:
+                server = JID('')
         else:
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return self.information('Please provide a server', 'Error')
@@ -1400,7 +1403,10 @@ class Core(object):
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
-        jid = JID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            jid = JID('')
         if jid.resource or jid not in roster:
             self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
         elif jid in roster:
@@ -1431,7 +1437,10 @@ class Core(object):
             room = JID(tab.get_name()).bare
             nick = tab.own_nick
         else:
-            info = JID(args[0])
+            try:
+                info = JID(args[0])
+            except InvalidJID:
+                info = JID('')
             if info.resource == '':
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
@@ -1503,7 +1512,10 @@ class Core(object):
         if len(txt.split()) != 2:
             # we are not on the 1st argument of the command line
             return False
-        jid = JID(txt.split()[1])
+        try:
+            jid = JID(txt.split()[1])
+        except InvalidJID:
+            jid = JID('')
         if jid.server:
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
@@ -1560,7 +1572,10 @@ class Core(object):
             self.information('Bookmarks added and saved.', 'Info')
             return
         else:
-            info = JID(args[0])
+            try:
+                info = JID(args[0])
+            except InvalidJID:
+                return self.information('Invalid JID.', 'Error')
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
@@ -1595,7 +1610,10 @@ class Core(object):
         if len(args) == 1:
             jid = JID('')
         else:
-            jid = JID(args[1])
+            try:
+                jid = JID(args[1])
+            except InvalidJID:
+                jid = JID('')
         if len(args) > 2:
             return
         if jid.server and (jid.resource or jid.full.endswith('/')):
@@ -1655,7 +1673,10 @@ class Core(object):
                 self.information("Could not add the bookmarks.", "Info")
             return
         else:
-            info = JID(args[0])
+            try:
+                info = JID(args[0])
+            except InvalidJID:
+                return self.information('Invalid JID.', 'Error')
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
@@ -1698,7 +1719,10 @@ class Core(object):
         if len(args) == 1:
             jid = JID('')
         else:
-            jid = JID(args[1])
+            try:
+                jid = JID(args[1])
+            except InvalidJID:
+                jid = JID('')
 
         if len(args) == 2:
             return the_input.auto_completion(['true', 'false'], '')
@@ -1937,7 +1961,10 @@ class Core(object):
         args = common.shell_split(arg)
         if not len(args):
             return
-        jid = JID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            jid = JID('')
         if jid.bare not in self.pending_invites:
             return
         reason = args[1] if len(args) > 1 else ''

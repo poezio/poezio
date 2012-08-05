@@ -807,7 +807,10 @@ class MucTab(ChatTab):
             jid = JID(self.name)
             jid.resource = arg
         else:
-            jid = JID(arg)
+            try:
+                jid = JID(arg)
+            except InvalidJID:
+                jid = JID('')
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_nick(self, arg):
@@ -1910,8 +1913,7 @@ class RosterInfoTab(Tab):
             try:
                 jid = JID(arg)
             except InvalidJID:
-                self.core.information('JID not well-formed', 'Error')
-                return
+                jid = JID('')
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -1940,8 +1942,7 @@ class RosterInfoTab(Tab):
             try:
                 jid = JID(arg)
             except InvalidJID:
-                self.core.information('JID not well-formed', 'Error')
-                return
+                jid = JID('')
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -2061,7 +2062,10 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            jid = JID(arg).bare
+            try:
+                jid = JID(arg).bare
+            except InvalidJID:
+                jid = JID('')
             if not jid in [jid for jid in roster.jids()]:
                 self.core.information('No subscription to deny')
                 return
@@ -2075,7 +2079,10 @@ class RosterInfoTab(Tab):
         Add the specified JID to the roster, and set automatically
         accept the reverse subscription
         """
-        jid = JID(JID(args.strip()).bare)
+        try:
+            jid = JID(JID(args.strip()).bare)
+        except InvalidJID:
+            return self.core.information('Invalid JID.', 'Error')
         if not jid:
             self.core.information(_('No JID specified'), 'Error')
             return
@@ -2090,7 +2097,10 @@ class RosterInfoTab(Tab):
         args = common.shell_split(arg)
         if not args:
             return self.core.command_help('name')
-        jid = JID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            jid = JID('')
         name = args[1] if len(args) == 2 else ''
 
         contact = roster[jid]
@@ -2110,7 +2120,10 @@ class RosterInfoTab(Tab):
         args = common.shell_split(args)
         if len(args) != 2:
             return
-        jid = JID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            jid = JID('')
         group = args[1]
 
         contact = roster[jid]
@@ -2141,7 +2154,10 @@ class RosterInfoTab(Tab):
         args = common.shell_split(arg)
         if len(args) != 3:
             return self.core.command_help('groupmove')
-        jid = JID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            jid = JID('')
         group_from = args[1]
         group_to = args[2]
 
@@ -2187,7 +2203,10 @@ class RosterInfoTab(Tab):
         args = common.shell_split(args)
         if len(args) != 2:
             return
-        jid = JID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            jid = JID('')
         group = args[1]
 
         contact = roster[jid]
@@ -2216,7 +2235,10 @@ class RosterInfoTab(Tab):
         from its presence, and cancel its subscription to our.
         """
         if args.strip():
-            jid = JID(args.strip()).bare
+            try:
+                jid = JID(args.strip()).bare
+            except InvalidJID:
+                jid = JID('')
         else:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
@@ -2373,7 +2395,10 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to accept')
                 return
         else:
-            jid = JID(arg).bare
+            try:
+                jid = JID(arg).bare
+            except InvalidJID:
+                jid = JID('')
         contact = roster[jid]
         if contact is None:
             return

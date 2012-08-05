@@ -28,7 +28,7 @@ from contact import Contact
 from roster import RosterGroup
 from poopt import cut_text
 
-from sleekxmpp.xmlstream.stanzabase import JID
+from sleekxmpp import JID
 
 import core
 import wcwidth
