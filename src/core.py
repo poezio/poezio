@@ -884,6 +884,11 @@ class Core(object):
         """
         Displays an informational message in the "Info" buffer
         """
+        filter_messages = config.get('filter_info_messages', '').split(':')
+        for words in filter_messages:
+            if words and words in msg:
+                log.debug('Did not show the message:\n\t%s> %s', typ, msg)
+                return False
         nb_lines = self.information_buffer.add_message(msg, nickname=typ)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -895,7 +900,7 @@ class Core(object):
             if self.information_win_size != 0:
                 self.information_win.refresh()
                 self.current_tab().input.refresh()
-
+        return True
 
     def init_curses(self, stdscr):
         """

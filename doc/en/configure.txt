@@ -195,6 +195,12 @@ section of this documentation.
   If the message takes more than one line, the popup will stay visible
   two more second per additional lines
 
+*filter_info_messages*:: [empty]
+
+  A list of words or sentences separated by colons (":"). All the
+  informational mesages (described above) containing at least one of those
+  values will not be shown.
+
 *autorejoin*:: false
 
   set to 'true' if you want to automatically rejoin the
