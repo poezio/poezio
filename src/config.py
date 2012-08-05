@@ -15,7 +15,7 @@ DEFSECTION = "Poezio"
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 
 class Config(RawConfigParser):
     """
@@ -197,6 +197,8 @@ parser.add_argument("-f", "--file", dest="filename", default=path.join(CONFIG_PA
                     help="The config file you want to use", metavar="CONFIG_FILE")
 parser.add_argument("-d", "--debug", dest="debug",
                     help="The file where debug will be written", metavar="DEBUG_FILE")
+parser.add_argument("-v", "--version", dest="version",
+                    help=SUPPRESS, metavar="VERSION", default="0.8-dev")
 options = parser.parse_args()
 config = Config(options.filename)
 if firstrun:

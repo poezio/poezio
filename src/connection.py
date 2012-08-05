@@ -18,7 +18,7 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
 import getpass
 import sleekxmpp
 
-from config import config
+from config import config, options
 from logger import logger
 import common
 
@@ -64,7 +64,7 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0191')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
-                    'version':'0.8-dev'}
+                    'version': options.version}
             if config.get('send_os_info', 'true') == 'true':
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'Poezio')]))
