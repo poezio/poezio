@@ -13,14 +13,14 @@ def parse_args(CONFIG_PATH=''):
         from argparse import ArgumentParser, SUPPRESS
     except ImportError:
         from optparse import OptionParser
-        from optparse import SUPPRESS_USAGE as SUPPRESS
+        from optparse import SUPPRESS_HELP as SUPPRESS
         parser = OptionParser()
         parser.add_option("-f", "--file", dest="filename", default=path.join(CONFIG_PATH, 'poezio.cfg'),
-                            usage="The config file you want to use", metavar="CONFIG_FILE")
+                            help="The config file you want to use", metavar="CONFIG_FILE")
         parser.add_option("-d", "--debug", dest="debug",
-                            usage="The file where debug will be written", metavar="DEBUG_FILE")
+                            help="The file where debug will be written", metavar="DEBUG_FILE")
         parser.add_option("-v", "--version", dest="version",
-                            usage=SUPPRESS, metavar="VERSION", default="0.8-dev")
+                            help=SUPPRESS, metavar="VERSION", default="0.8-dev")
         (options, args) = parser.parse_args()
     else:
         parser = ArgumentParser()
