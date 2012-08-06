@@ -3,7 +3,7 @@ import logging
 from sys import version_info
 
 from sleekxmpp.plugins.xep_0048 import *
-from core import JID
+from common import safeJID
 from config import config
 
 log = logging.getLogger(__name__)
@@ -204,7 +204,7 @@ def get_local():
         return
     rooms = rooms.split(':')
     for room in rooms:
-        jid = JID(room)
+        jid = safeJID(room)
         if jid.bare == '':
             continue
         if jid.resource != '':

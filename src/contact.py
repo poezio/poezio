@@ -13,7 +13,8 @@ the roster.
 import logging
 log = logging.getLogger(__name__)
 
-from sleekxmpp.xmlstream import JID
+from sleekxmpp import JID
+from common import safeJID
 
 class Resource(object):
     """
@@ -24,7 +25,7 @@ class Resource(object):
         """
         data: the dict to use as a source
         """
-        self._jid = JID(jid)         # Full jid
+        self._jid = safeJID(jid)         # Full jid
         self._data = data
 
     @property
@@ -110,7 +111,7 @@ class Contact(object):
         return self.__item['subscription']
 
     def __contains__(self, value):
-        return value in self.__item.resources or JID(value).resource in self.__item.resources
+        return value in self.__item.resources or safeJID(value).resource in self.__item.resources
 
     def __len__(self):
         """Number of resources"""
@@ -122,7 +123,7 @@ class Contact(object):
 
     def __getitem__(self, key):
         """Return the corresponding Resource object, or None"""
-        res = JID(key).resource
+        res = safeJID(key).resource
         resources = self.__item.resources
         item = resources.get(res, None) or resources.get(key, None)
         return Resource(key, item) if item else None

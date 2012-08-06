@@ -10,6 +10,7 @@ various useful functions
 """
 
 from datetime import datetime, timedelta
+from sleekxmpp import JID, InvalidJID
 import base64
 import os
 import mimetypes
@@ -265,3 +266,9 @@ def parse_command_args_to_alias(arg, strto):
             else:
                 var_num = True
     return dest
+
+def safeJID(*args, **kwargs):
+    try:
+        return JID(*args, **kwargs)
+    except InvalidJID:
+        return JID('')

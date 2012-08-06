@@ -39,6 +39,7 @@ import multiuserchat as muc
 
 from theming import get_theme
 
+from common import safeJID
 from sleekxmpp import JID, InvalidJID
 from sleekxmpp.xmlstream import matcher
 from sleekxmpp.xmlstream.handler import Callback
@@ -804,13 +805,10 @@ class MucTab(ChatTab):
         if not arg:
             return self.core.command_help('version')
         if arg in [user.nick for user in self.users]:
-            jid = JID(self.name)
+            jid = safeJID(self.name)
             jid.resource = arg
         else:
-            try:
-                jid = JID(arg)
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(arg)
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_nick(self, arg):
@@ -1147,7 +1145,7 @@ class MucTab(ChatTab):
 
     def get_nick(self):
         if config.getl('show_muc_jid', 'true') == 'false':
-            return JID(self.name).user
+            return safeJID(self.name).user
         return self.name
 
     def get_text_window(self):
@@ -1200,7 +1198,7 @@ class MucTab(ChatTab):
                 self.core.events.trigger('muc_join', presence, self)
                 if from_nick == self.own_nick:
                     self.joined = True
-                    roster.blacklist.add(JID(from_room).server)
+                    roster.blacklist.add(safeJID(from_room).server)
                     if self.get_name() in self.core.initial_joins:
                         self.core.initial_joins.remove(self.get_name())
                         self._state = 'normal'
@@ -1297,7 +1295,7 @@ class MucTab(ChatTab):
             self.own_nick = new_nick
             # also change our nick in all private discussion of this room
             for _tab in self.core.tabs:
-                if isinstance(_tab, PrivateTab) and JID(_tab.get_name()).bare == self.name:
+                if isinstance(_tab, PrivateTab) and safeJID(_tab.get_name()).bare == self.name:
                     _tab.own_nick = new_nick
         user.change_nick(new_nick)
         color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
@@ -1579,7 +1577,7 @@ class PrivateTab(ChatTab):
         self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: Close the tab."), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.resize()
-        self.parent_muc = self.core.get_tab_by_name(JID(name).bare, MucTab)
+        self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
         self.on = True
         self.update_commands()
         self.update_keys()
@@ -1689,7 +1687,7 @@ class PrivateTab(ChatTab):
         if arg:
             self.parent_muc.command_info(arg)
         else:
-            user = JID(self.name).resource
+            user = safeJID(self.name).resource
             self.parent_muc.command_info(user)
 
     def resize(self):
@@ -1719,7 +1717,7 @@ class PrivateTab(ChatTab):
         return self.name
 
     def get_nick(self):
-        return JID(self.name).resource
+        return safeJID(self.name).resource
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -1729,7 +1727,7 @@ class PrivateTab(ChatTab):
         if not self.on:
             return False
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
-        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         if tab and tab.joined:
             self.send_composing_chat_state(empty_after)
         return False
@@ -1738,7 +1736,7 @@ class PrivateTab(ChatTab):
         self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', 'true', self.general_jid, True) == 'true'\
                     and not self.input.get_text() and self.on:
@@ -1747,7 +1745,7 @@ class PrivateTab(ChatTab):
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
-        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', 'true', self.general_jid, True) == 'true'\
                     and not self.input.get_text() and self.on:
@@ -1768,7 +1766,7 @@ class PrivateTab(ChatTab):
         display a message.
         """
         self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
-        new_jid = JID(self.name).bare+'/'+new_nick
+        new_jid = safeJID(self.name).bare+'/'+new_nick
         self.name = new_jid
 
     def user_left(self, status_message, from_nick):
@@ -1789,7 +1787,7 @@ class PrivateTab(ChatTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
-        tab = self.core.get_tab_by_name(JID(self.name).bare, MucTab)
+        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         color = 3
         if tab and config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True):
             user = tab.get_user_by_name(nick)
@@ -1910,10 +1908,7 @@ class RosterInfoTab(Tab):
 
         item = self.roster_win.selected_row
         if arg:
-            try:
-                jid = JID(arg)
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(arg)
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -1939,10 +1934,7 @@ class RosterInfoTab(Tab):
 
         item = self.roster_win.selected_row
         if arg:
-            try:
-                jid = JID(arg)
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(arg)
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -2062,10 +2054,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            try:
-                jid = JID(arg).bare
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(arg).bare
             if not jid in [jid for jid in roster.jids()]:
                 self.core.information('No subscription to deny')
                 return
@@ -2079,10 +2068,7 @@ class RosterInfoTab(Tab):
         Add the specified JID to the roster, and set automatically
         accept the reverse subscription
         """
-        try:
-            jid = JID(JID(args.strip()).bare)
-        except InvalidJID:
-            return self.core.information('Invalid JID.', 'Error')
+        jid = safeJID(safeJID(args.strip()).bare)
         if not jid:
             self.core.information(_('No JID specified'), 'Error')
             return
@@ -2097,10 +2083,7 @@ class RosterInfoTab(Tab):
         args = common.shell_split(arg)
         if not args:
             return self.core.command_help('name')
-        try:
-            jid = JID(args[0]).bare
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
         contact = roster[jid]
@@ -2120,10 +2103,7 @@ class RosterInfoTab(Tab):
         args = common.shell_split(args)
         if len(args) != 2:
             return
-        try:
-            jid = JID(args[0]).bare
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0]).bare
         group = args[1]
 
         contact = roster[jid]
@@ -2154,10 +2134,7 @@ class RosterInfoTab(Tab):
         args = common.shell_split(arg)
         if len(args) != 3:
             return self.core.command_help('groupmove')
-        try:
-            jid = JID(args[0]).bare
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0]).bare
         group_from = args[1]
         group_to = args[2]
 
@@ -2203,10 +2180,7 @@ class RosterInfoTab(Tab):
         args = common.shell_split(args)
         if len(args) != 2:
             return
-        try:
-            jid = JID(args[0]).bare
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0]).bare
         group = args[1]
 
         contact = roster[jid]
@@ -2235,10 +2209,7 @@ class RosterInfoTab(Tab):
         from its presence, and cancel its subscription to our.
         """
         if args.strip():
-            try:
-                jid = JID(args.strip()).bare
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(args.strip()).bare
         else:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
@@ -2299,7 +2270,7 @@ class RosterInfoTab(Tab):
 
     def completion_remove(self, the_input):
         """
-        From with any JID presence in the roster
+        Completion for /remove
         """
         jids = [jid for jid in roster.jids()]
         return the_input.auto_completion(jids, '', quotify=False)
@@ -2395,10 +2366,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to accept')
                 return
         else:
-            try:
-                jid = JID(arg).bare
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(arg).bare
         contact = roster[jid]
         if contact is None:
             return
@@ -2607,7 +2575,7 @@ class RosterInfoTab(Tab):
         if isinstance(selected_row, Contact):
             jid = selected_row.bare_jid
         elif isinstance(selected_row, Resource):
-            jid = JID(selected_row.jid).bare
+            jid = safeJID(selected_row.jid).bare
         else:
             return
         self.on_slash()
@@ -2682,7 +2650,7 @@ class ConversationTab(ChatTab):
 
     @property
     def general_jid(self):
-        return JID(self.get_name()).bare
+        return safeJID(self.get_name()).bare
 
     @staticmethod
     def add_information_element(plugin_name, callback):
@@ -2719,7 +2687,7 @@ class ConversationTab(ChatTab):
             msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
         msg.send()
-        logger.log_message(JID(self.get_name()).bare, self.core.own_nick, line)
+        logger.log_message(safeJID(self.get_name()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -2742,7 +2710,7 @@ class ConversationTab(ChatTab):
             status = iq['last_activity']['status']
             from_ = iq['from']
             msg = '\x19%s}The last activity of %s was %s ago%s'
-            if not JID(from_).user:
+            if not safeJID(from_).user:
                 msg = '\x19%s}The uptime of %s is %s.' % (
                         get_theme().COLOR_INFORMATION_TEXT[0],
                         from_,
@@ -2760,7 +2728,7 @@ class ConversationTab(ChatTab):
 
     def command_info(self, arg):
         contact = roster[self.get_name()]
-        jid = JID(self.get_name())
+        jid = safeJID(self.get_name())
         if jid.resource:
             resource = contact[jid.full]
         else:
@@ -2808,7 +2776,7 @@ class ConversationTab(ChatTab):
         if arg:
             return self.core.command_version(arg)
         jid = self.name
-        jid = JID(jid)
+        jid = safeJID(jid)
         if not jid.resource:
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
@@ -2837,7 +2805,7 @@ class ConversationTab(ChatTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster[self.get_name()] or JID(self.get_name()).user,
+        self.info_header.refresh(self.get_name(), roster[self.get_name()] or safeJID(self.get_name()).user,
                 self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
@@ -2845,7 +2813,7 @@ class ConversationTab(ChatTab):
         return self.name
 
     def get_nick(self):
-        jid = JID(self.name)
+        jid = safeJID(self.name)
         contact = roster[jid.bare]
         if contact:
             return contact.name or jid.user
@@ -2863,7 +2831,7 @@ class ConversationTab(ChatTab):
 
     def on_lose_focus(self):
         contact = roster[self.get_name()]
-        jid = JID(self.get_name())
+        jid = safeJID(self.get_name())
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -2880,7 +2848,7 @@ class ConversationTab(ChatTab):
 
     def on_gain_focus(self):
         contact = roster[self.get_name()]
-        jid = JID(self.get_name())
+        jid = safeJID(self.get_name())
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -3009,7 +2977,7 @@ class MucListTab(Tab):
         if iq['type'] == 'error':
             self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
             return
-        items = [{'node-part': JID(item[0]).user if JID(item[0]).server == self.name else JID(item[0]).bare,
+        items = [{'node-part': safeJID(item[0]).user if safeJID(item[0]).server == self.name else safeJID(item[0]).bare,
                   'jid': item[0],
                   'name': item[2] or '' ,'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
@@ -3293,7 +3261,7 @@ def jid_and_name_match(contact, txt):
     """
     if not txt:
         return True
-    if txt in JID(contact.bare_jid).user:
+    if txt in safeJID(contact.bare_jid).user:
         return True
     if txt in contact.name:
         return True
@@ -3306,7 +3274,7 @@ def jid_and_name_match_slow(contact, txt):
     """
     if not txt:
         return True             # Everything matches when search is empty
-    user = JID(contact.bare_jid).user
+    user = safeJID(contact.bare_jid).user
     if diffmatch(txt, user):
         return True
     if contact.name and diffmatch(txt, contact.name):

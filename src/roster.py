@@ -17,7 +17,8 @@ from contact import Contact
 from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 
 from os import path as p
-from sleekxmpp.xmlstream.stanzabase import JID
+from common import safeJID
+from sleekxmpp import JID
 from sleekxmpp.exceptions import IqError
 
 
@@ -48,7 +49,7 @@ class Roster(object):
 
     def __getitem__(self, key):
         """Get a Contact from his bare JID"""
-        key = JID(key).bare
+        key = safeJID(key).bare
         if key in self.contacts and self.contacts[key] is not None:
             return self.contacts[key]
         if key in self.jids():
@@ -62,7 +63,7 @@ class Roster(object):
 
     def __delitem__(self, jid):
         """Remove a contact from the roster"""
-        jid = JID(jid).bare
+        jid = safeJID(jid).bare
         contact = self[jid]
         if not contact:
             return
@@ -85,7 +86,7 @@ class Roster(object):
 
     def __contains__(self, key):
         """True if the bare jid is in the roster, false otherwise"""
-        return JID(key).bare in self.jids()
+        return safeJID(key).bare in self.jids()
 
     @property
     def jid(self):
@@ -120,7 +121,7 @@ class Roster(object):
 
     def jids(self):
         """List of the contact JIDS"""
-        return [key for key in self.__node.keys() if JID(key).server not in self.blacklist and key != self.jid]
+        return [key for key in self.__node.keys() if safeJID(key).server not in self.blacklist and key != self.jid]
 
     def get_contacts(self):
         """

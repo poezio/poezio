@@ -29,6 +29,7 @@ from roster import RosterGroup
 from poopt import cut_text
 
 from sleekxmpp import JID
+from common import safeJID
 
 import core
 import wcwidth
@@ -431,7 +432,7 @@ class PrivateInfoWin(InfoWin):
             self._refresh()
 
     def write_room_name(self, name):
-        jid = JID(name)
+        jid = safeJID(name)
         room_name, nick = jid.bare, jid.resource
         self.addstr(nick, to_curses_attr(get_theme().COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
@@ -464,7 +465,7 @@ class ConversationInfoWin(InfoWin):
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
         log.debug('Refresh: %s',self.__class__.__name__)
-        jid = JID(jid)
+        jid = safeJID(jid)
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -539,7 +540,7 @@ class ConversationStatusMessageWin(InfoWin):
 
     def refresh(self, jid, contact):
         log.debug('Refresh: %s',self.__class__.__name__)
-        jid = JID(jid)
+        jid = safeJID(jid)
         if contact:
             if jid.resource:
                 resource = contact[jid.full]

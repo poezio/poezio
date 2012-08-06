@@ -25,6 +25,7 @@ import singleton
 import collections
 
 from sleekxmpp import JID, InvalidJID
+from common import safeJID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 from sleekxmpp.xmlstream.handler import Callback
 
@@ -624,7 +625,7 @@ class Core(object):
         If none already exist, and create is "True", we create it
         and return it. Otherwise, we return None
         """
-        jid = JID(jid)
+        jid = safeJID(jid)
         # We first check if we have a conversation opened with this precise resource
         conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
         if not conversation:
@@ -1343,7 +1344,7 @@ class Core(object):
                 if self.current_tab() == start:
                     break
         else:
-            while nb not in JID(self.current_tab().get_name()).user:
+            while nb not in safeJID(self.current_tab().get_name()).user:
                 self.tabs.append(self.tabs.pop(0))
                 if self.current_tab() is start:
                     break
@@ -1352,7 +1353,7 @@ class Core(object):
 
     def completion_win(self, the_input):
         """Completion for /win"""
-        l = [JID(tab.get_name()).user for tab in self.tabs]
+        l =  [safeJID(tab.get_name()).user for tab in self.tabs]
         l.remove('')
         return the_input.auto_completion(l, ' ', quotify=False)
 
@@ -1365,14 +1366,11 @@ class Core(object):
         if len(arg) > 1:
             return self.command_help('list')
         elif arg:
-            try:
-                server = JID(arg[0]).server
-            except InvalidJID:
-                server = JID('')
+            server = safeJID(arg[0]).server
         else:
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return self.information('Please provide a server', 'Error')
-            server = JID(self.current_tab().get_name()).server
+            server = safeJID(self.current_tab().get_name()).server
         list_tab = tabs.MucListTab(server)
         self.add_tab(list_tab, True)
         self.xmpp.plugin['xep_0030'].get_items(jid=server, block=False, callback=list_tab.on_muc_list_item_received)
@@ -1383,7 +1381,7 @@ class Core(object):
         for tab in self.tabs:   # TODO, also from an history
             if isinstance(tab, tabs.MucTab) and\
                     tab.get_name() not in muc_serv_list:
-                muc_serv_list.append(JID(tab.get_name()).server)
+                muc_serv_list.append(safeJID(tab.get_name()).server)
         if muc_serv_list:
             return the_input.auto_completion(muc_serv_list, ' ', quotify=False)
 
@@ -1403,10 +1401,7 @@ class Core(object):
         args = common.shell_split(arg)
         if len(args) < 1:
             return self.command_help('version')
-        try:
-            jid = JID(args[0])
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0])
         if jid.resource or jid not in roster:
             self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
         elif jid in roster:
@@ -1434,13 +1429,10 @@ class Core(object):
             tab = self.current_tab()
             if not isinstance(tab, tabs.MucTab) and not isinstance(tab, tabs.PrivateTab):
                 return
-            room = JID(tab.get_name()).bare
+            room = safeJID(tab.get_name()).bare
             nick = tab.own_nick
         else:
-            try:
-                info = JID(args[0])
-            except InvalidJID:
-                info = JID('')
+            info = safeJID(args[0])
             if info.resource == '':
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
@@ -1462,7 +1454,7 @@ class Core(object):
                 # check if the current room's name has a server
                 if isinstance(self.current_tab(), tabs.MucTab) and\
                         self.current_tab().get_name().find('@') != -1:
-                    room += '@%s' % JID(self.current_tab().get_name()).domain
+                    room += '@%s' % safeJID(self.current_tab().get_name()).domain
                 else:           # no server could be found, print a message and return
                     self.information(_("You didn't specify a server for the room you want to join"), 'Error')
                     return
@@ -1512,10 +1504,7 @@ class Core(object):
         if len(txt.split()) != 2:
             # we are not on the 1st argument of the command line
             return False
-        try:
-            jid = JID(txt.split()[1])
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(txt.split()[1])
         if jid.server:
             if jid.resource or jid.full.endswith('/'):
                 # we are writing the resource: complete the node
@@ -1540,7 +1529,7 @@ class Core(object):
                 serv_list = []
                 for tab in self.tabs:
                     if isinstance(tab, tabs.MucTab):
-                        serv_list.append('%s@%s'% (jid.user, JID(tab.get_name()).host))
+                        serv_list.append('%s@%s'% (jid.user, safeJID(tab.get_name()).host))
                 serv_list.extend(list(self.pending_invites.keys()))
                 the_input.auto_completion(serv_list, '')
         return True
@@ -1572,10 +1561,7 @@ class Core(object):
             self.information('Bookmarks added and saved.', 'Info')
             return
         else:
-            try:
-                info = JID(args[0])
-            except InvalidJID:
-                return self.information('Invalid JID.', 'Error')
+            info = safeJID(args[0])
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
@@ -1608,12 +1594,9 @@ class Core(object):
             n += 1
 
         if len(args) == 1:
-            jid = JID('')
+            jid = safeJID('')
         else:
-            try:
-                jid = JID(args[1])
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(args[1])
         if len(args) > 2:
             return
         if jid.server and (jid.resource or jid.full.endswith('/')):
@@ -1673,10 +1656,7 @@ class Core(object):
                 self.information("Could not add the bookmarks.", "Info")
             return
         else:
-            try:
-                info = JID(args[0])
-            except InvalidJID:
-                return self.information('Invalid JID.', 'Error')
+            info = safeJID(args[0])
             if info.resource != '':
                 nick = info.resource
             roomname = info.bare
@@ -1717,12 +1697,9 @@ class Core(object):
             n += 1
 
         if len(args) == 1:
-            jid = JID('')
+            jid = safeJID('')
         else:
-            try:
-                jid = JID(args[1])
-            except InvalidJID:
-                jid = JID('')
+            jid = safeJID(args[1])
 
         if len(args) == 2:
             return the_input.auto_completion(['true', 'false'], '')
@@ -1869,12 +1846,12 @@ class Core(object):
                 message = args[1]
         else:
             if isinstance(tab, tabs.MucTab):
-                domain = JID(tab.get_name()).domain
+                domain = safeJID(tab.get_name()).domain
             else:
                 self.information(_("No server specified"), "Error")
                 return
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and JID(tab.get_name()).domain == domain:
+            if isinstance(tab, tabs.MucTab) and safeJID(tab.get_name()).domain == domain:
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
                 tab.joined = False
@@ -1891,7 +1868,7 @@ class Core(object):
             serv_list = []
             for tab in self.tabs:
                 if isinstance(tab, tabs.MucTab):
-                    serv = JID(tab.get_name()).server
+                    serv = safeJID(tab.get_name()).server
                     if not serv in serv_list:
                         serv_list.append(serv)
             return the_input.auto_completion(serv_list, ' ')
@@ -1910,7 +1887,7 @@ class Core(object):
             seconds = iq['last_activity']['seconds']
             status = iq['last_activity']['status']
             from_ = iq['from']
-            if not JID(from_).user:
+            if not safeJID(from_).user:
                 msg = 'The uptime of %s is %s.' % (
                         from_,
                         common.parse_secs_to_str(seconds))
@@ -1920,11 +1897,7 @@ class Core(object):
                     common.parse_secs_to_str(seconds),
                     (' and his/her last status was %s' % status) if status else '',)
             self.information(msg, 'Info')
-        try:
-            jid = JID(arg)
-        except InvalidJID:
-            self.information('No valid JID given', 'Error')
-            return
+        jid = safeJID(arg)
         self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
 
     def completion_activity(self, the_input):
@@ -1961,10 +1934,7 @@ class Core(object):
         args = common.shell_split(arg)
         if not len(args):
             return
-        try:
-            jid = JID(args[0])
-        except InvalidJID:
-            jid = JID('')
+        jid = safeJID(args[0])
         if jid.bare not in self.pending_invites:
             return
         reason = args[1] if len(args) > 1 else ''
@@ -1987,7 +1957,7 @@ class Core(object):
         """/invitations"""
         build = ""
         for invite in self.pending_invites:
-            build += "%s by %s" % (invite, JID(self.pending_invites[invite]).bare)
+            build += "%s by %s" % (invite, safeJID(self.pending_invites[invite]).bare)
         if self.pending_invites:
             build = "You are invited to the following rooms:\n" + build
         else:
