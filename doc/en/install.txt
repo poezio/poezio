@@ -37,6 +37,9 @@ In order for poezio to correctly work, you need the libs SleekXMPP and
 
 === Dependencies ===
 
+NOTE: If your python3 version is too old because of debian (e.g. < 3.2), you
+should install the python3-argparse package if it exists, or use
+pip3/virtualenvs to install it.
 
 If you want to install SleekXMPP and dnspython by yourself, follow these
  instructions. Else, go to the next section (recommended).
