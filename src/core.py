@@ -2409,6 +2409,8 @@ class Core(object):
     ### Presence-related handlers ###
 
     def on_presence(self, presence):
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'): 
+            return
         jid = presence['from']
         contact = roster[jid.bare]
         if contact is None:
@@ -2425,20 +2427,25 @@ class Core(object):
         """
         A JID got offline
         """
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+            return
         jid = presence['from']
         logger.log_roster_change(jid.bare, 'got offline')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         if jid.resource:
             self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
-        if jid.server in roster.blacklist:
-            return
         self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
         self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
     def on_got_online(self, presence):
+        """
+        A JID got online
+        """
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+            return
         jid = presence['from']
         contact = roster[jid.bare]
         if contact is None:
@@ -2696,7 +2703,6 @@ class Core(object):
         else:
             log.debug('First time. Setting certificate to %s', found_cert)
             config.set_and_save('certificate', found_cert)
-
 
 
 

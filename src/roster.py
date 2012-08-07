@@ -25,12 +25,8 @@ from sleekxmpp.exceptions import IqError
 class Roster(object):
     """
     The proxy class to get the roster from SleekXMPP.
-    Adds a blacklist for the MUC domains (or else they would show here),
-    and caches Contact and RosterGroup objects.
+    Caches Contact and RosterGroup objects.
     """
-
-    # MUC domains to blacklist from the contacts roster
-    blacklist = set()
 
     def __init__(self):
         """
@@ -121,7 +117,7 @@ class Roster(object):
 
     def jids(self):
         """List of the contact JIDS"""
-        return [key for key in self.__node.keys() if safeJID(key).server not in self.blacklist and key != self.jid]
+        return [key for key in self.__node.keys() if key != self.jid]
 
     def get_contacts(self):
         """
