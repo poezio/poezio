@@ -21,6 +21,7 @@ import sleekxmpp
 from config import config, options
 from logger import logger
 import common
+from common import safeJID
 
 class Connection(sleekxmpp.ClientXMPP):
     """
@@ -40,8 +41,11 @@ class Connection(sleekxmpp.ClientXMPP):
             password = config.get('password', '') or getpass.getpass()
         else: # anonymous auth
             self.anon = True
-            jid = '%s/%s' % (config.get('server', 'anon.louiz.org'), resource)
+            jid = config.get('server', 'anon.louiz.org')
+            if resource:
+                jid = '%s/%s' % (jid, resource)
             password = None
+        jid = safeJID(jid)
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False

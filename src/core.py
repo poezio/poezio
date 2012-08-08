@@ -826,7 +826,7 @@ class Core(object):
         Disable private tabs when leaving a room
         """
         for tab in self.tabs:
-            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+            if isinstance(tab, tabs.PrivateTab) and tab.get_name().startswith(room_name):
                 tab.deactivate(reason=reason)
 
     def enable_private_tabs(self, room_name, reason='\x195}You joined the chatroom\x193}'):
@@ -1909,8 +1909,8 @@ class Core(object):
         if len(args) < 2:
             return
         reason = args[2] if len(args) > 2 else ''
-        to = args[0]
-        room = args[1]
+        to = safeJID(args[0])
+        room = safeJID(args[1])
         self.xmpp.plugin['xep_0045'].invite(room, to, reason)
 
     def completion_invite(self, the_input):
@@ -2058,8 +2058,10 @@ class Core(object):
         if len(args) < 1:
             self.command_help('message')
             return
-        jid = args[0]
-        tab = self.open_conversation_window(jid, focus=True)
+        jid = safeJID(args[0])
+        if not jid.user and not jid.domain and not jid.resource:
+            return self.information('Invalid JID.', 'Error')
+        tab = self.open_conversation_window(jid.full, focus=True)
         if len(args) > 1:
             tab.command_say(args[1])
 

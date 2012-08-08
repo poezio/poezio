@@ -13,6 +13,7 @@ sleek plugin
 
 from xml.etree import cElementTree as ET
 
+from common import safeJID
 import logging
 log = logging.getLogger(__name__)
 
@@ -22,18 +23,21 @@ def send_private_message(xmpp, jid, line):
     """
     Send a private message
     """
+    jid = safeJID(jid)
     xmpp.send_message(mto=jid, mbody=line, mtype='chat')
 
 def send_groupchat_message(xmpp, jid, line):
     """
     Send a message to the groupchat
     """
+    jid = safeJID(jid)
     xmpp.send_message(mto=jid, mbody=line, mtype='groupchat')
 
 def change_show(xmpp, jid, own_nick, show, status):
     """
     Change our 'Show'
     """
+    jid = safeJID(jid)
     pres = xmpp.make_presence(pto='%s/%s' % (jid, own_nick))
     if show: # if show is None, don't put a <show /> tag. It means "available"
         pres['type'] = show
@@ -45,6 +49,7 @@ def change_subject(xmpp, jid, subject):
     """
     Change the room subject
     """
+    jid = safeJID(jid)
     msg = xmpp.make_message(jid)
     msg['type'] = 'groupchat'
     msg['subject'] = subject
@@ -54,9 +59,10 @@ def change_nick(xmpp, jid, nick, status=None, show=None):
     """
     Change our own nick in a room
     """
-    xmpp.make_presence(pshow=show, pstatus=status, pto='%s/%s' % (jid, nick)).send()
+    xmpp.make_presence(pshow=show, pstatus=status, pto=safeJID('%s/%s' % (jid, nick))).send()
 
 def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=0):
+    jid = safeJID(jid)
     if not seconds:
         xmpp.plugin['xep_0045'].joinMUC(jid, nick, maxhistory=maxhistory, password=passwd, pstatus=status, pshow=show)
     else:
@@ -79,6 +85,7 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
     """
     Leave the groupchat
     """
+    jid = safeJID(jid)
     try:
         xmpp.plugin['xep_0045'].leaveMUC(jid, own_nick, msg)
     except KeyError:
@@ -89,6 +96,7 @@ def set_user_role(xmpp, jid, nick, reason, role):
     (try to) Set the role of a MUC user
     (role = 'none': eject user)
     """
+    jid = safeJID(jid)
     iq = xmpp.makeIqSet()
     query = ET.Element('{%s}query' % NS_MUC_ADMIN)
     item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'role':role})
@@ -108,6 +116,8 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
     """
     (try to) Set the affiliation of a MUC user
     """
+    jid = safeJID(jid)
+    muc_jid = safeJID(muc_jid)
     try:
         return xmpp.plugin['xep_0045'].set_affiliation(muc_jid, jid, nick, affiliation)
     except:

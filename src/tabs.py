@@ -805,8 +805,8 @@ class MucTab(ChatTab):
         if not arg:
             return self.core.command_help('version')
         if arg in [user.nick for user in self.users]:
-            jid = safeJID(self.name)
-            jid.resource = arg
+            jid = safeJID(self.name).bare
+            jid = safeJID(jid + '/' + arg)
         else:
             jid = safeJID(arg)
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
@@ -821,6 +821,8 @@ class MucTab(ChatTab):
         if not self.joined:
             return self.core.information('/nick only works in joined rooms', 'Info')
         current_status = self.core.get_status()
+        if not safeJID(self.get_name() + '/' + nick):
+            return self.core.information('Invalid nick', 'Info')
         muc.change_nick(self.core.xmpp, self.name, nick, current_status.message, current_status.show)
 
     def command_part(self, arg):
@@ -968,7 +970,6 @@ class MucTab(ChatTab):
                 msg = ''
             self.command_affiliation('"'+args[0]+ '" outcast'+msg)
 
-
     def command_role(self, arg):
         """
         /role <nick> <role> [reason]
@@ -987,6 +988,8 @@ class MucTab(ChatTab):
         if not self.joined or \
                 not role in ('none', 'visitor', 'participant', 'moderator'):
             return
+        if not safeJID(self.get_name() + '/' + nick):
+            return self.core('Invalid nick', 'Info')
         res = muc.set_user_role(self.core.xmpp, self.get_name(), nick, reason, role)
         if res['type'] == 'error':
             self.core.room_error(res, self.get_name())
@@ -1010,7 +1013,7 @@ class MucTab(ChatTab):
         if nick in [user.nick for user in self.users]:
             res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, nick=nick)
         else:
-            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, jid=nick)
+            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), affiliation, jid=safeJID(nick))
         if not res:
             self.core.information('Could not set affiliation', 'Error')
 
@@ -1676,7 +1679,7 @@ class PrivateTab(ChatTab):
             self.core.information(version, 'Info')
         if arg:
             return self.core.command_version(arg)
-        jid = self.name
+        jid = safeJID(self.name)
         self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
 
     def command_info(self, arg):
@@ -2774,8 +2777,7 @@ class ConversationTab(ChatTab):
             self.core.information(version, 'Info')
         if arg:
             return self.core.command_version(arg)
-        jid = self.name
-        jid = safeJID(jid)
+        jid = safeJID(self.name)
         if not jid.resource:
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
