@@ -2,8 +2,24 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://dev.louiz.org/project/poezio/roadmap
 
-* Poezio 0.7.5 - dev
+* Poezio 0.8 - dev
+
+* Poezio 0.7.5.1 & 2 - Summer 2012
+- Fix tracebacks caused by a change in Sleekxmpp
+
+* Poezio 0.7.5 - 25 May 2012
 - Plugin system
+- Server-side bookmarks
+- New keyboard shortcuts tuning options
+- New keyboard shortcuts
+- Attention support
+- Invitation support
+- Improved contact management
+- New tab list
+- Certificate check (TOFU model)
+- New commands for sending stanzas manually
+- bugfixes
+
 
 * Poezio 0.7.2 - 08 Nov 2011
 - Huge speed improvements in both memory usage, text
