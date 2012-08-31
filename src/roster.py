@@ -224,7 +224,7 @@ class RosterGroup(object):
         if not contacts:
             contacts = []
         self.contacts = set(contacts)
-        self.name = name
+        self.name = name if name is not None else ''
         self.folded = folded    # if the group content is to be shown
 
     def __iter__(self):
