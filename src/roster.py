@@ -95,7 +95,15 @@ class Roster(object):
 
     def get_groups(self, sort=''):
         """Return a list of the RosterGroups"""
-        group_list = sorted(filter(lambda x: bool(x), self.groups.values()), key=lambda x: x.name.lower())
+        group_list = sorted(
+                filter(
+                    lambda x: bool(x),
+                    self.groups.values()
+                ),
+                key=lambda x: x.name.lower() if x.name else ''
+            )
+
+        log.debug("Current groups: %s", group_list)
 
         for sorting in sort.split(':'):
             if sorting == 'reverse':

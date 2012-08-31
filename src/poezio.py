@@ -33,9 +33,16 @@ def main():
     cocore = singleton.Singleton(core.Core)
     signal.signal(signal.SIGHUP, cocore.sighup_handler) # ignore ctrl-c
     cocore.start()
-    if not cocore.xmpp.start():  # Connect to remote server
-        cocore.on_failed_connection()
-    cocore.main_loop()    # Refresh the screen, wait for user events etc
+    try:
+        if not cocore.xmpp.start():  # Connect to remote server
+            cocore.on_failed_connection()
+    except:
+        cocore.running = False
+        cocore.reset_curses()
+        print("Poezio could not start, maybe you tried aborting it while it was starting?\n"
+                "If you think it is abnormal, please run it with the -d option and report the bug.")
+    else:
+        cocore.main_loop()    # Refresh the screen, wait for user events etc
 
 if __name__ == '__main__':
     main()
