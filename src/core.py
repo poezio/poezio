@@ -1480,7 +1480,7 @@ class Core(object):
             histo_length= config.get('muc_history_length', 20)
             if histo_length == -1:
                 histo_length= None
-        if histo_length:
+        if histo_length is not None:
             histo_length= str(histo_length)
         if tab and not tab.joined:
             seconds = (int(time.time()) - tab.last_connection) if tab.last_connection != 0 else 0
@@ -2548,7 +2548,7 @@ class Core(object):
             histo_length= config.get('muc_history_length', 20)
             if histo_length == -1:
                 histo_length= None
-            if histo_length:
+            if histo_length is not None:
                 histo_length= str(histo_length)
             muc.join_groupchat(self.xmpp, bm.jid, nick, None, histo_length)
 
