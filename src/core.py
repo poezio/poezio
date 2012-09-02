@@ -1066,7 +1066,7 @@ class Core(object):
         Enable/disable the left panel.
         """
         enabled = config.get('enable_vertical_tab_list', 'false')
-        config.set('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true')
+        config.set_and_save('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true')
         self.call_for_resize()
 
     def resize_global_information_win(self):
