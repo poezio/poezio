@@ -207,7 +207,7 @@ class Roster(object):
         if p.isfile(path):
             return
         try:
-            f = open(path, 'w+')
+            f = open(path, 'w+', encoding='utf-8')
             f.writelines([i + "\n" for i in self.contacts])
             f.close()
             return True

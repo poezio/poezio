@@ -123,7 +123,7 @@ def get_os_info():
                     # yes, then run it and get the first line of output.
                     text = get_output_of_command(path_to_file)[0]
                 else:
-                    fdes = open(path_to_file)
+                    fdes = open(path_to_file, encoding='utf-8')
                     text = fdes.readline().strip() # get only first line
                     fdes.close()
                     if path_to_file.endswith('version'):

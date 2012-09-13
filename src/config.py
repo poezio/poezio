@@ -24,7 +24,7 @@ class Config(RawConfigParser):
     def __init__(self, file_name):
         self.file_name = file_name
         RawConfigParser.__init__(self, None)
-        RawConfigParser.read(self, file_name)
+        RawConfigParser.read(self, file_name, encoding='utf-8')
         # Check config integrity and fix it if it’s wrong
         for section in ('bindings', 'var'):
             if not self.has_section(section):
@@ -115,7 +115,7 @@ class Config(RawConfigParser):
         exist
         """
         if path.exists(self.file_name):
-            df = open(self.file_name, 'r')
+            df = open(self.file_name, 'r', encoding='utf-8')
             lines_before = (line.strip() for line in df.readlines())
             df.close()
         else:
@@ -148,7 +148,7 @@ class Config(RawConfigParser):
             result_lines.append('%s = %s' % (option, value))
 
 
-        df = open(self.file_name, 'w')
+        df = open(self.file_name, 'w', encoding='utf-8')
         for line in result_lines:
             df.write('%s\n' % line)
         df.close()

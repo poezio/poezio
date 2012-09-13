@@ -32,7 +32,7 @@ class OpenTrick(threading.Thread):
         self.path = path
 
     def run(self):
-        open(self.path, 'r').close()
+        open(self.path, 'r', encoding='utf-8').close()
 
 
 class Fifo(object):
@@ -49,7 +49,7 @@ class Fifo(object):
             self.trick = OpenTrick(path)
             # that thread will wait until we open it for writing
             self.trick.start()
-        self.fd = open(path, mode)
+        self.fd = open(path, mode, encoding='utf-8')
 
     def write(self, data):
         """

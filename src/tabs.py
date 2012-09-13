@@ -2239,7 +2239,7 @@ class RosterInfoTab(Tab):
             self.core.information('The file %s does not exist' % filepath, 'Error')
             return
         try:
-            handle = open(filepath, 'r')
+            handle = open(filepath, 'r', encoding='utf-8')
             lines = handle.readlines()
             handle.close()
         except IOError:
