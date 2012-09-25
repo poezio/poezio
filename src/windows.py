@@ -316,24 +316,25 @@ class GlobalInfoBar(Win):
 
     def refresh(self):
         log.debug('Refresh: %s',self.__class__.__name__)
-        def compare_room(a):
-            return a.nb
-        comp = lambda x: x.nb
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            sorted_tabs = sorted(self.core.tabs, key=comp)
+
+            create_gaps = config.getl('create_gaps', 'false') == 'true'
             show_names = config.getl('show_tab_names', 'false') == 'true'
             show_nums = config.getl('show_tab_numbers', 'true') != 'false'
             use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
-            for tab in sorted_tabs:
+            # ignore any remaining gap tabs if the feature is not enabled
+            sorted_tabs = [tab for tab in self.core.tabs if tab] if not create_gaps else self.core.tabs[:]
+            for nb, tab in enumerate(sorted_tabs):
+                if not tab: continue
                 color = tab.color
                 if config.get('show_inactive_tabs', 'true') == 'false' and\
                         color is get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
                     if show_nums or not show_names:
-                        self.addstr("%s" % str(tab.nb), to_curses_attr(color))
+                        self.addstr("%s" % str(nb), to_curses_attr(color))
                         if show_names:
                             self.addstr(' ', to_curses_attr(color))
                     if show_names:
@@ -358,16 +359,13 @@ class VerticalGlobalInfoBar(Win):
         self._win = scr
 
     def refresh(self):
-        def compare_room(a):
-            return a.nb
-        comp = lambda x: x.nb
         with g_lock:
             height, width = self._win.getmaxyx()
             self._win.erase()
-            sorted_tabs = sorted(self.core.tabs, key=comp)
+            sorted_tabs = [tab for tab in self.core.tabs if tab]
             if config.get('show_inactive_tabs', 'true') == 'false':
                 sorted_tabs = [tab for tab in sorted_tabs if\
-                                   tab.vertical_color is not get_theme().COLOR_VERTICAL_TAB_NORMAL]
+                                   tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
             nb_tabs = len(sorted_tabs)
             use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
             if nb_tabs >= height:

@@ -99,7 +99,6 @@ STATE_PRIORITY = {
     }
 
 class Tab(object):
-    number = 0
     tab_core = None
     def __init__(self):
         self.input = None
@@ -109,8 +108,6 @@ class Tab(object):
             self._state = 'normal'
 
         self.need_resize = False
-        self.nb = Tab.number
-        Tab.number += 1
         self.need_resize = False
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
@@ -122,6 +119,15 @@ class Tab(object):
         if not Tab.tab_core:
             Tab.tab_core = singleton.Singleton(core.Core)
         return Tab.tab_core
+
+    @property
+    def nb(self):
+        log.debug("COUCOU TABS")
+        for index, tab in enumerate(self.core.tabs):
+            log.debug("%s", tab.__class__)
+            if tab == self:
+                return index
+        return len(self.core.tabs)
 
     @property
     def tab_win(self):
@@ -362,6 +368,17 @@ class Tab(object):
 
     def __del__(self):
         log.debug('------ Closing tab %s', self.__class__.__name__)
+
+class GapTab(Tab):
+
+    def __bool__(self):
+        return False
+
+    def __len__(self):
+        return 0
+
+    def get_name(self):
+        return ''
 
 class ChatTab(Tab):
     """

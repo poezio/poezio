@@ -131,6 +131,7 @@ class Core(object):
         self.xml_buffer = TextBuffer()
 
         self.tabs = []
+        self._current_tab_nb = 0
         self.previous_tab_nb = 0
 
         self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
@@ -617,7 +618,8 @@ class Core(object):
         """
         returns the current room, the one we are viewing
         """
-        return self.tabs[0]
+        self.current_tab_nb = self.current_tab_nb
+        return self.tabs[self.current_tab_nb]
 
     def get_conversation_by_jid(self, jid, create=True):
         """
@@ -652,9 +654,8 @@ class Core(object):
         return None
 
     def get_tab_by_number(self, number):
-        for tab in self.tabs:
-            if tab.nb == number:
-                return tab
+        if 0 <= number < len(self.tabs):
+            return self.tabs[number]
         return None
 
     def add_tab(self, new_tab, focus=False):
@@ -662,13 +663,7 @@ class Core(object):
         Appends the new_tab in the tab list and
         focus it if focus==True
         """
-        if self.current_tab().nb == 0:
-            self.tabs.append(new_tab)
-        else:
-            for ta in self.tabs:
-                if ta.nb == 0:
-                    self.tabs.insert(self.tabs.index(ta), new_tab)
-                    break
+        self.tabs.append(new_tab)
         if focus:
             self.command_win("%s" % new_tab.nb)
 
@@ -679,7 +674,9 @@ class Core(object):
         rotate the rooms list to the right
         """
         self.current_tab().on_lose_focus()
-        self.tabs.append(self.tabs.pop(0))
+        self.current_tab_nb += 1
+        while not self.tabs[self.current_tab_nb]:
+            self.current_tab_nb += 1
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
@@ -688,7 +685,9 @@ class Core(object):
         rotate the rooms list to the right
         """
         self.current_tab().on_lose_focus()
-        self.tabs.insert(0, self.tabs.pop())
+        self.current_tab_nb -= 1
+        while not self.tabs[self.current_tab_nb]:
+            self.current_tab_nb -= 1
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
@@ -732,6 +731,19 @@ class Core(object):
         for tab in self.tabs:
             if tab.get_name() == tab_name:
                 self.command_win('%s' % (tab.nb,))
+
+    @property
+    def current_tab_nb(self):
+        return self._current_tab_nb
+
+    @current_tab_nb.setter
+    def current_tab_nb(self, value):
+        if value >= len(self.tabs):
+            self._current_tab_nb = 0
+        elif value < 0:
+            self._current_tab_nb = len(self.tabs) - 1
+        else:
+            self._current_tab_nb = value
 
     ### Opening actions ###
 
@@ -852,12 +864,22 @@ class Core(object):
         del tab.key_func      # Remove self references
         del tab.commands      # and make the object collectable
         tab.on_close()
-        self.tabs.remove(tab)
-        if tab.get_name() in logger.fds:
+        nb = tab.nb
+        if config.get('create_gaps', 'false').lower() == 'true':
+            if nb >= len(self.tabs) - 1:
+                self.tabs.remove(tab)
+            else:
+                self.tabs[nb] = tabs.GapTab()
+        else:
+            self.tabs.remove(tab)
+        if tab and tab.get_name() in logger.fds:
             logger.fds[tab.get_name()].close()
             log.debug("Log file for %s closed.", tab.get_name())
             del logger.fds[tab.get_name()]
-        self.tabs[0].on_gain_focus()
+        if self.current_tab_nb >= len(self.tabs):
+            self.current_tab_nb = len(self.tabs) - 1
+        while not self.tabs[self.current_tab_nb]:
+            self.current_tab_nb -= 1
         self.refresh_window()
         import gc
         gc.collect()
@@ -1332,22 +1354,17 @@ class Core(object):
             nb = int(arg.split()[0])
         except ValueError:
             nb = arg
-        if self.current_tab().nb == nb:
+        if self.current_tab_nb == nb:
             return
-        self.previous_tab_nb = self.current_tab().nb
+        self.previous_tab_nb = self.current_tab_nb
         self.current_tab().on_lose_focus()
-        start = self.current_tab()
-        self.tabs.append(self.tabs.pop(0))
         if isinstance(nb, int):
-            while self.current_tab().nb != nb:
-                self.tabs.append(self.tabs.pop(0))
-                if self.current_tab() == start:
-                    break
+            if 0 <= nb < len(self.tabs):
+                self.current_tab_nb = nb
         else:
-            while nb not in safeJID(self.current_tab().get_name()).user:
-                self.tabs.append(self.tabs.pop(0))
-                if self.current_tab() is start:
-                    break
+            for tab in self.tabs:
+                if nb in safeJID(tab.get_name()).user:
+                    self.current_tab_nb = tab.nb
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
@@ -1790,6 +1807,9 @@ class Core(object):
                 value = args[2]
                 config.set_and_save(option, value, section)
         msg = "%s=%s" % (option, value)
+        # Remove all gaptabs if switching from gaps to nogaps
+        if option == 'create_gaps' and value.lower() == 'false':
+            self.tabs = list(filter(lambda x: bool(x), self.tabs))
         self.information(msg, 'Info')
 
     def completion_set(self, the_input):
