@@ -285,6 +285,12 @@ These commands work in *any* tab.
  the *|*, it is mandatory to write in a plugin), or even to another section
  in a plugin configuration "/set plugin|other_section option value".
 
+*/move_tab <source> <destination>*:: Move tab <source> to <destination>. If
+the create_gaps option is true, then it will leave a gap at the <source>
+position, leading to usual behaviour. If create_gaps is not enabled, then the
+tabs will number from 0 to your actual tab number, without gaps (which means
+their number will change if you close a tab on the left of the list).
+
 */theme [theme_name]*:: Reload the theme defined in the config file. If
  _theme_name_ is given, this command will act like /set theme theme_name then
  /theme.
