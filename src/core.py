@@ -156,6 +156,7 @@ class Core(object):
             'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
             'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
             'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
+            'move_tab': (self.command_move_tab, _("Usage: /move_tab <source> <destination>\nMove Tab: Insert the <source> tab at the position of <destination>. This will make the following tabs shift in some cases (refer to the documentation). A tab can be designated by its number or by the beginning of its address."), self.completion_move_tab),
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
@@ -666,6 +667,81 @@ class Core(object):
         self.tabs.append(new_tab)
         if focus:
             self.command_win("%s" % new_tab.nb)
+
+    def insert_tab_nogaps(self, old_pos, new_pos):
+        """
+        Move tabs without creating gaps
+        old_pos: old position of the tab
+        new_pos: desired position of the tab
+        """
+        tab = self.tabs[old_pos]
+        if new_pos < old_pos:
+            self.tabs.pop(old_pos)
+            self.tabs.insert(new_pos, tab)
+        elif new_pos > old_pos:
+            self.tabs.insert(new_pos, tab)
+            self.tabs.remove(tab)
+        else:
+            return False
+        return True
+
+    def insert_tab_gaps(self, old_pos, new_pos):
+        """
+        Move tabs and create gaps in the eventual remaining space
+        old_pos: old position of the tab
+        new_pos: desired position of the tab
+        """
+        tab = self.tabs[old_pos]
+        target = None if new_pos >= len(self.tabs) else self.tabs[new_pos]
+        if not target:
+            if new_pos < len(self.tabs):
+                self.tabs[new_pos], self.tabs[old_pos] = self.tabs[old_pos], tabs.GapTab()
+            else:
+                self.tabs.append(self.tabs[old_pos])
+                self.tabs[old_pos] = tabs.GapTab()
+        else:
+            if new_pos > old_pos:
+                self.tabs.insert(new_pos, tab)
+                self.tabs[old_pos] = tabs.GapTab()
+                i = self.tabs.index(tab)
+            elif new_pos < old_pos:
+                self.tabs[old_pos] = tabs.GapTab()
+                self.tabs.insert(new_pos, tab)
+            else:
+                return False
+            done = False
+            # Remove the first Gap on the right in the list
+            # in order to prevent global shifts when there is empty space
+            while not done:
+                i += 1
+                if i >= len(self.tabs):
+                    done = True
+                elif not self.tabs[i]:
+                    self.tabs.pop(i)
+                    done = True
+        # Remove the trailing gaps
+        i = len(self.tabs) - 1
+        while isinstance(self.tabs[i], tabs.GapTab):
+            self.tabs.pop()
+            i -= 1
+        return True
+
+    def insert_tab(self, old_pos, new_pos=99999):
+        """
+        Insert a tab at a position, changing the number of the following tabs
+        returns False if it could not move the tab, True otherwise
+        """
+        if old_pos <= 0 or old_pos >= len(self.tabs):
+            return False
+        elif new_pos <= 0:
+            return False
+        elif new_pos ==old_pos:
+            return False
+        elif not self.tabs[old_pos]:
+            return False
+        if config.get('create_gaps', 'false').lower() == 'true':
+            return self.insert_tab_gaps(old_pos, new_pos)
+        return self.insert_tab_nogaps(old_pos, new_pos)
 
     ### Move actions (e.g. go to next room) ###
 
@@ -1373,6 +1449,44 @@ class Core(object):
         l =  [safeJID(tab.get_name()).user for tab in self.tabs]
         l.remove('')
         return the_input.auto_completion(l, ' ', quotify=False)
+
+    def command_move_tab(self, arg):
+        """
+        /move_tab old_pos new_pos
+        """
+        args = common.shell_split(arg)
+        current_tab = self.current_tab()
+        if len(args) != 2:
+            return self.command_help('move_tab')
+        def get_nb_from_value(value):
+            ref = None
+            try:
+                ref = int(value)
+            except ValueError:
+                old_tab = None
+                for tab in self.tabs:
+                    if not old_tab and value in safeJID(tab.get_name()).user:
+                        old_tab = tab
+                if not old_tab:
+                    self.information("Tab %s does not exist" % args[0], "Error")
+                    return None
+                ref = old_tab.nb
+            return ref
+        old = get_nb_from_value(args[0])
+        new = get_nb_from_value(args[1])
+        if new is None or old is None:
+            return self.information('Unable to move the tab.', 'Info')
+        result = self.insert_tab(old, new)
+        if not result:
+            self.information('Unable to move the tab.', 'Info')
+        else:
+            self.current_tab_nb = self.tabs.index(current_tab)
+        self.refresh_window()
+
+    def completion_move_tab(self, the_input):
+        """Completion for /move_tab"""
+        nodes = [safeJID(tab.get_name()).user for tab in self.tabs]
+        return the_input.auto_completion(nodes, ' ', quotify=True)
 
     def command_list(self, arg):
         """
