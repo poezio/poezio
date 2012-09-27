@@ -795,13 +795,28 @@ class Core(object):
         Go to the next room with activity, in the order defined in the
         dict tabs.STATE_PRIORITY
         """
+        # shortcut
         priority = tabs.STATE_PRIORITY
-        sorted_tabs = sorted(self.tabs, key=lambda tab: priority[tab.state],
-                reverse=True)
-        tab = sorted_tabs.pop(0) if sorted_tabs else None
-        if priority[tab.state] < 0 or not tab:
-            return
-        self.command_win('%s' % tab.nb)
+        tab_refs = {}
+        # put all the active tabs in a dict of lists by state
+        for tab in self.tabs:
+            if not tab:
+                continue
+            if tab.state not in tab_refs:
+                tab_refs[tab.state] = [tab]
+            else:
+                tab_refs[tab.state].append(tab)
+        # sort the state by priority and remove those with negative priority
+        states = sorted(tab_refs.keys(), key=(lambda x: priority.get(x, 0)), reverse=True)
+        states = [state for state in states if priority.get(state, -1) >= 0]
+
+        for state in states:
+            for tab in tab_refs[state]:
+                if tab.nb < self.current_tab_nb and tab_refs[state][-1].nb > self.current_tab_nb:
+                    continue
+                self.command_win('%s' % tab.nb)
+                return
+        return
 
     def focus_tab_named(self, tab_name):
         for tab in self.tabs:
