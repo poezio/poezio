@@ -354,14 +354,19 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
+        def sanitize_input(key):
+            if key == '^J':
+                return '\n'
+            elif key == '^I':
+                return '    '
+            elif len(key) > 1:
+                return ''
+            return key
         def replace_line_breaks(key):
             if key == '^J':
                 return '\n'
             return key
-        def replace_tabulation(key):
-            if key == '^I':
-                return '    '
-            return key
+
         while self.running:
             if self.paused: continue
             char_list = [common.replace_key_with_bound(key)\
@@ -393,7 +398,7 @@ class Core(object):
                         self.refresh_window()
             else:
                 self.do_command(''.join(map(
-                        lambda x: replace_line_breaks(replace_tabulation(x)),
+                        lambda x: sanitize_input(x),
                         char_list)
                     ), True)
                 self.refresh_window()
