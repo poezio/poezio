@@ -505,6 +505,13 @@ foo = true
   a list of words (separated by a colon (:)) that will be
   highlighted if said by someone on a room
 
+*ignore_changes*:: false
+
+  True if you want this tab to stay in the “normal” state at all times (no
+  changes in the tab list), e.g. when people in a room talk a lot, and you
+  don’t want to be notified. (remember to use it with disable_beep if you
+  don’t want to be notified at all)
+
 *ignore_private*:: false
 
   Ignore private messages sent from this room.

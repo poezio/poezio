@@ -169,6 +169,12 @@ class Tab(object):
 
     @state.setter
     def state(self, value):
+        if config.get_by_tabname('ignore_changes', 'false', self.get_name(), fallback=False).lower() == 'true':
+            if value == 'current':
+                self._state = 'current'
+            else:
+                self._state = 'normal'
+            return
         if not value in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
