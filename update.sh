@@ -35,14 +35,14 @@ then
         echo "dnspython up to date"
     else
         echo "Restoring dnspython"
-        tar xf .dnspython.tgz
+        tar xzf .dnspython.tgz
         mv dnspython3-1.10.0 dnspython
     fi
 else
     echo "Downloading dnspython"
     wget -c -q -O .dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz
     rm -fr dnspython
-    tar xf .dnspython.tgz
+    tar xzf .dnspython.tgz
     mv dnspython3-1.10.0 dnspython
 fi
 
