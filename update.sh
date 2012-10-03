@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Use this script to Download or Update all dependances to their last
 # developpement version.
 # The dependances will be placed in the sources directory, so you do not
