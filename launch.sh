@@ -1,4 +1,4 @@
-#!/usr/sh
+#!/bin/sh
 
 if [ -d "$PWD/.git" ]
 then
