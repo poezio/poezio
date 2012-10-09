@@ -1380,7 +1380,12 @@ class MessageInput(Input):
         Refresh the line onscreen, from the pos and pos_line, with colors
         """
         with g_lock:
-            text = self.text.replace('\n', '|')
+            # Replace \t with ' ' just to make the input easily editable.
+            # That's not perfect, because we cannot differenciate a tab and
+            # a space. But at least it makes it possible to paste text
+            # containing a tab by sending a real tab, not just four spaces
+            # while still being able to edit the input in that case.
+            text = self.text.replace('\n', '|').replace('\t', ' ')
             self._win.erase()
             if self.color:
                 self._win.attron(to_curses_attr(self.color))

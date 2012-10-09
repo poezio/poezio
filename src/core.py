@@ -354,10 +354,6 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
-        def sanitize_input(key):
-            if key == '^I':
-                return '    '
-            return key
         def replace_line_breaks(key):
             if key == '^J':
                 return '\n'
@@ -383,9 +379,16 @@ class Core(object):
                 if len(char) == 1:
                     current.append(char)
                 else:
-                    res.append(current)
+                    # special case for the ^I key, it’s considered as \t
+                    # only when pasting some text, otherwise that’s the ^I
+                    # (or M-i) key, which stands for completion by default.
+                    if char == '^I' and len(char_list) != 1:
+                        current.append('\t')
+                        continue
+                    if current:
+                        res.append(current)
+                        current = []
                     res.append([char])
-                    current = []
             if current:
                 res.append(current)
             return res
@@ -393,8 +396,6 @@ class Core(object):
             if self.paused: continue
             big_char_list = [common.replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
-            log.debug(big_char_list)
-            log.debug(separate_chars_from_bindings(big_char_list))
             # whether to refresh after ALL keys have been handled
             for char_list in separate_chars_from_bindings(big_char_list):
                 if self.paused:
@@ -421,10 +422,7 @@ class Core(object):
                     else:
                         res = self.do_command(replace_line_breaks(char), False)
                 else:
-                    self.do_command(''.join(map(
-                            lambda x: sanitize_input(x),
-                            char_list)
-                        ), True)
+                    self.do_command(''.join(char_list), True)
             self.doupdate()
 
     def save_config(self):
