@@ -359,48 +359,79 @@ class Core(object):
                 return '\n'
             elif key == '^I':
                 return '    '
-            elif len(key) > 1:
-                return ''
             return key
         def replace_line_breaks(key):
             if key == '^J':
                 return '\n'
             return key
+        def separate_chars_from_bindings(char_list):
+            """
+            returns a list of lists. For example if you give
+            ['a', 'b', 'KEY_BACKSPACE', 'n', 'u'], this function returns
+            [['a', 'b'], ['KEY_BACKSPACE'], ['n', 'u']]
 
+            This way, in case of lag (for example), we handle the typed text
+            by “batch” as much as possible (instead of one char at a time,
+            which implies a refresh after each char, which is very slow),
+            but we still handle the special chars (backspaces, arrows,
+            ctrl+x ou alt+x, etc) one by one, which avoids the issue of
+            printing them OR ignoring them in that case.  This should
+            resolve the “my ^W are ignored when I lag ;(”.
+            """
+            res = []
+            current = []
+            for char in char_list:
+                assert(len(char) > 0)
+                if len(char) == 1:
+                    current.append(char)
+                else:
+                    res.append(current)
+                    res.append([char])
+                    current = []
+            if current:
+                res.append(current)
+            return res
         while self.running:
             if self.paused: continue
-            char_list = [common.replace_key_with_bound(key)\
+            big_char_list = [common.replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
-            if self.paused:
-                self.current_tab().input.do_command(char_list[0])
-                self.current_tab().input.prompt()
-                continue
-            # Special case for M-x where x is a number
-            if len(char_list) == 1:
-                char = char_list[0]
-                if char.startswith('M-') and len(char) == 3:
-                    try:
-                        nb = int(char[2])
-                    except ValueError:
-                        pass
-                    else:
-                        if self.current_tab().nb == nb:
-                            self.go_to_previous_tab()
+            log.debug(big_char_list)
+            log.debug(separate_chars_from_bindings(big_char_list))
+            # whether to refresh after ALL keys have been handled
+            do_refresh = True
+            for char_list in separate_chars_from_bindings(big_char_list):
+                if self.paused:
+                    self.current_tab().input.do_command(char_list[0])
+                    self.current_tab().input.prompt()
+                    continue
+                # Special case for M-x where x is a number
+                if len(char_list) == 1:
+                    char = char_list[0]
+                    if char.startswith('M-') and len(char) == 3:
+                        try:
+                            nb = int(char[2])
+                        except ValueError:
+                            pass
                         else:
-                            self.command_win('%d' % nb)
-                    # search for keyboard shortcut
-                func = self.key_func.get(char, None)
-                if func:
-                    func()
+                            if self.current_tab().nb == nb:
+                                self.go_to_previous_tab()
+                            else:
+                                self.command_win('%d' % nb)
+                        # search for keyboard shortcut
+                    func = self.key_func.get(char, None)
+                    if func:
+                        func()
+                    else:
+                        res = self.do_command(replace_line_breaks(char), False)
+                        if res:
+                            do_refresh = True
                 else:
-                    res = self.do_command(replace_line_breaks(char), False)
-                    if res:
-                        self.refresh_window()
-            else:
-                self.do_command(''.join(map(
-                        lambda x: sanitize_input(x),
-                        char_list)
-                    ), True)
+                    self.do_command(''.join(map(
+                            lambda x: sanitize_input(x),
+                            char_list)
+                        ), True)
+                    refresh = True
+            if refresh == True:
                 self.refresh_window()
             self.doupdate()
 
