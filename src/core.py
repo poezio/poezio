@@ -355,9 +355,7 @@ class Core(object):
         main loop waiting for the user to press a key
         """
         def sanitize_input(key):
-            if key == '^J':
-                return '\n'
-            elif key == '^I':
+            if key == '^I':
                 return '    '
             return key
         def replace_line_breaks(key):
@@ -398,7 +396,6 @@ class Core(object):
             log.debug(big_char_list)
             log.debug(separate_chars_from_bindings(big_char_list))
             # whether to refresh after ALL keys have been handled
-            do_refresh = True
             for char_list in separate_chars_from_bindings(big_char_list):
                 if self.paused:
                     self.current_tab().input.do_command(char_list[0])
@@ -423,16 +420,11 @@ class Core(object):
                         func()
                     else:
                         res = self.do_command(replace_line_breaks(char), False)
-                        if res:
-                            do_refresh = True
                 else:
                     self.do_command(''.join(map(
                             lambda x: sanitize_input(x),
                             char_list)
                         ), True)
-                    refresh = True
-            if refresh == True:
-                self.refresh_window()
             self.doupdate()
 
     def save_config(self):
