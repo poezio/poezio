@@ -376,6 +376,9 @@ class Core(object):
             current = []
             for char in char_list:
                 assert(len(char) > 0)
+                # Transform that stupid char into what we actually meant
+                if char == '\x1f':
+                    char = '^/'
                 if len(char) == 1:
                     current.append(char)
                 else:
