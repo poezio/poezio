@@ -2348,7 +2348,11 @@ class Core(object):
         else:
             delayed = False
             date = None
-        conversation._text_buffer.add_message(body, date, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER, history=delayed)
+        replaced_id = message['replace']['id']
+        if replaced_id is not '':
+            conversation.modify_message(body, replaced_id, message['id'])
+        else:
+            conversation._text_buffer.add_message(body, date, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER, history=delayed)
         if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
@@ -2400,7 +2404,10 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
-            if tab.add_message(body, date, nick_from, history=True if date else False):
+            replaced_id = message['replace']['id']
+            if replaced_id is not '':
+                tab.modify_message(body, replaced_id, message['id'])
+            elif tab.add_message(body, date, nick_from, history=True if date else False, identifier=message['id']):
                 self.events.trigger('highlight', message, tab)
             if tab is self.current_tab():
                 tab.text_win.refresh()
@@ -2438,8 +2445,12 @@ class Core(object):
         self.events.trigger('private_msg', message, tab)
         if not body or not tab:
             return
-        tab.add_message(body, time=None, nickname=nick_from,
-                        forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
+        replaced_id = message['replace']['id']
+        if replaced_id is not '':
+            tab.modify_message(body, replaced_id, message['id'])
+        else:
+            tab.add_message(body, time=None, nickname=nick_from,
+                            forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:

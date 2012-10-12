@@ -1564,7 +1564,11 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None):
+    def modify_message(self, txt, old_id, new_id):
+        self._text_buffer.modify_message(txt, old_id, new_id)
+        self.core.refresh_window()
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None, identifier=None):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -1591,7 +1595,7 @@ class MucTab(ChatTab):
             if highlight:
                 nick_color = highlight
         time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight)
+        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
         return highlight
 
 class PrivateTab(ChatTab):
@@ -1869,12 +1873,17 @@ class PrivateTab(ChatTab):
         if reason:
             self.add_message(txt=reason)
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
+    def modify_message(self, txt, old_id, new_id):
+        self._text_buffer.modify_message(txt, old_id, new_id)
+        self.core.refresh_window()
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
                 nickname=nickname,
                 nick_color=nick_color,
                 history=None,
-                user=forced_user)
+                user=forced_user,
+                identifier=identifier)
 
 class RosterInfoTab(Tab):
     """
@@ -2958,12 +2967,17 @@ class ConversationTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true':
             self.send_chat_state('gone')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None):
+    def modify_message(self, txt, old_id, new_id):
+        self._text_buffer.modify_message(txt, old_id, new_id)
+        self.core.refresh_window()
+
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
                 nickname=nickname,
                 nick_color=nick_color,
                 history=None,
-                user=forced_user)
+                user=forced_user,
+                identifier=identifier)
 
 
 class MucListTab(Tab):
