@@ -403,6 +403,8 @@ class ChatTab(Tab):
         # if that’s a weakref returning None, then a paused chatstate was sent
         # since the last input
         self.remote_supports_attention = False
+        # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
+        self.last_sent_message = None
         self.key_func['M-v'] = self.move_separator
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
@@ -413,6 +415,8 @@ class ChatTab(Tab):
         self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
         self.commands['clear'] =  (self.command_clear,
                                  _('Usage: /clear\nClear: Clear the current buffer.'), None)
+        self.commands['correct'] = (self.command_correct, _('Usage: /correct\nCorrect: Fix the last message with whatever you want.'), self.completion_correct)
+
         self.chat_state = None
         self.update_commands()
         self.update_keys()
@@ -541,6 +545,26 @@ class ChatTab(Tab):
                 del event
         self.timed_event_paused = None
 
+    def command_correct(self, line):
+        """
+        /correct <fixed message>
+        """
+        if not line:
+            self.core.command_help('correct')
+            return
+        if not self.last_sent_message:
+            self.core.information(_('There is no message to correct.'))
+            return
+        self.command_say(line, correct=True)
+
+    def completion_correct(self, the_input):
+        return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
+
+    def modify_message(self, txt, old_id, new_id):
+        self._text_buffer.modify_message(txt, old_id, new_id)
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.core.refresh_window()
+
     @property
     def inactive(self):
         """Whether we should send inactive or active as a chatstate"""
@@ -585,7 +609,6 @@ class ChatTab(Tab):
         self.refresh()
         self.core.doupdate()
 
-
 class MucTab(ChatTab):
     """
     The tab containing a multi-user-chat room.
@@ -615,7 +638,6 @@ class MucTab(ChatTab):
         self.input = windows.MessageInput()
         self.ignores = []       # set of Users
         self.last_connection = 0
-        self.last_sent_message = None
         # keys
         self.key_func['^I'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
@@ -640,7 +662,6 @@ class MucTab(ChatTab):
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
-        self.commands['correct'] = (self.command_correct, _('Usage: /correct\nCorrect: Fix the last message with whatever you want.'), self.completion_correct)
 
         if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
             del self.commands["nick"]
@@ -1101,21 +1122,6 @@ class MucTab(ChatTab):
     def completion_unignore(self, the_input):
         return the_input.auto_completion([user.nick for user in self.ignores], ' ', quotify=False)
 
-    def command_correct(self, line):
-        """
-        /correct <fixed message>
-        """
-        if not line:
-            self.core.command_help('correct')
-            return
-        if not self.last_sent_message:
-            self.core.information(_('There is no message to correct.'))
-            return
-        self.command_say(line, correct=True)
-
-    def completion_correct(self, the_input):
-        return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
-
     def resize(self):
         """
         Resize the whole window. i.e. all its sub-windows
@@ -1564,10 +1570,6 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def modify_message(self, txt, old_id, new_id):
-        self._text_buffer.modify_message(txt, old_id, new_id)
-        self.core.refresh_window()
-
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None, identifier=None):
         """
         Note that user can be None even if nickname is not None. It happens
@@ -1614,7 +1616,6 @@ class PrivateTab(ChatTab):
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
         self.check_attention()
-        self.last_sent_message = None
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -1622,7 +1623,6 @@ class PrivateTab(ChatTab):
         self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: Close the tab."), None)
         self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: Close the tab."), None)
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
-        self.commands['correct'] = (self.command_correct, _('Usage: /correct\nCorrect: Fix the last message with whatever you want.'), self.completion_correct)
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
         self.on = True
@@ -1706,21 +1706,6 @@ class PrivateTab(ChatTab):
             self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
         else:
             self.remote_supports_attention = False
-
-    def command_correct(self, line):
-        """
-        /correct <fixed message>
-        """
-        if not line:
-            self.core.command_help('correct')
-            return
-        if not self.last_sent_message:
-            self.core.information(_('There is no message to correct.'))
-            return
-        self.command_say(line, correct=True)
-
-    def completion_correct(self, the_input):
-        return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
 
     def command_unquery(self, arg):
         """
@@ -2706,7 +2691,6 @@ class ConversationTab(ChatTab):
         self.info_header = windows.ConversationInfoWin()
         self.input = windows.MessageInput()
         self.check_attention()
-        self.last_sent_message = None
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -2715,7 +2699,6 @@ class ConversationTab(ChatTab):
         self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
         self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
         self.commands['activity'] = (self.command_activity, _('Usage: /activity [jid]\nActivity: Get the last activity of the given or the current contact.'), self.core.completion_activity)
-        self.commands['correct'] = (self.command_correct, _('Usage: /correct\nCorrect: Fix the last message with whatever you want.'), self.completion_correct)
         self.resize()
         self.update_commands()
         self.update_keys()
@@ -2832,21 +2815,6 @@ class ConversationTab(ChatTab):
             self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
         else:
             self.remote_supports_attention = False
-
-    def command_correct(self, line):
-        """
-        /correct <fixed message>
-        """
-        if not line:
-            self.core.command_help('correct')
-            return
-        if not self.last_sent_message:
-            self.core.information(_('There is no message to correct.'))
-            return
-        self.command_say(line, correct=True)
-
-    def completion_correct(self, the_input):
-        return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
 
     def command_unquery(self, arg):
         self.core.close_tab()
