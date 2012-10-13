@@ -2095,7 +2095,7 @@ class Core(object):
         reason = args[2] if len(args) > 2 else ''
         to = safeJID(args[0])
         room = safeJID(args[1])
-        self.xmpp.plugin['xep_0045'].invite(room, to, reason)
+        self.xmpp.plugin['xep_0045'].invite(room, str(to), reason)
 
     def completion_invite(self, the_input):
         """Completion for /invite"""
