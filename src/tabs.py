@@ -3244,7 +3244,7 @@ class XMLTab(Tab):
         curses.curs_set(0)
 
     def on_close(self):
-        self.core.xml_tabs -= 1
+        self.core.xml_tab = False
 
 class SimpleTextTab(Tab):
     """

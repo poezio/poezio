@@ -128,7 +128,7 @@ class Core(object):
 
         self.tab_win = windows.GlobalInfoBar()
         # Number of xml tabs opened, used to avoid useless memory consumption
-        self.xml_tabs = 0
+        self.xml_tab = False
         self.xml_buffer = TextBuffer()
 
         self.tabs = []
@@ -848,10 +848,14 @@ class Core(object):
                 return
         return
 
-    def focus_tab_named(self, tab_name):
+    def focus_tab_named(self, tab_name, type_=None):
+        """Returns True if it found a tab to focus on"""
         for tab in self.tabs:
             if tab.get_name() == tab_name:
-                self.command_win('%s' % (tab.nb,))
+                if (type_ and (isinstance(tab, type_))) or not type_:
+                    self.command_win('%s' % (tab.nb,))
+                return True
+        return False
 
     @property
     def current_tab_nb(self):
@@ -2258,9 +2262,11 @@ class Core(object):
 
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
-        self.xml_tabs += 1
-        tab = tabs.XMLTab()
-        self.add_tab(tab, True)
+        self.xml_tab = True
+        xml_tab = self.focus_tab_named('XMLTab', tabs.XMLTab)
+        if not xml_tab:
+            tab = tabs.XMLTab()
+            self.add_tab(tab, True)
 
     def command_self(self, arg=None):
         """
@@ -2854,7 +2860,7 @@ class Core(object):
         """
         We are sending a new stanza, write it in the xml buffer if needed.
         """
-        if self.xml_tabs:
+        if self.xml_tab:
             self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
             if isinstance(self.current_tab(), tabs.XMLTab):
                 self.current_tab().refresh()
@@ -2864,7 +2870,7 @@ class Core(object):
         """
         We are receiving a new stanza, write it in the xml buffer if needed.
         """
-        if self.xml_tabs:
+        if self.xml_tab:
             self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
             if isinstance(self.current_tab(), tabs.XMLTab):
                 self.current_tab().refresh()
