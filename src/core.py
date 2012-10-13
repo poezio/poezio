@@ -116,6 +116,7 @@ class Core(object):
         self.xmpp.core = self
         roster.set_node(self.xmpp.client_roster)
         self.paused = False
+        self.debug = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
         # that are displayed in almost all tabs, in an

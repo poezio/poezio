@@ -122,7 +122,6 @@ class Tab(object):
 
     @property
     def nb(self):
-        log.debug("COUCOU TABS")
         for index, tab in enumerate(self.core.tabs):
             log.debug("%s", tab.__class__)
             if tab == self:

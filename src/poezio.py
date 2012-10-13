@@ -32,6 +32,8 @@ def main():
         logging.basicConfig(level=logging.CRITICAL)
     cocore = singleton.Singleton(core.Core)
     signal.signal(signal.SIGHUP, cocore.sighup_handler) # ignore ctrl-c
+    if options.debug:
+        cocore.debug = True
     cocore.start()
     try:
         if not cocore.xmpp.start():  # Connect to remote server
