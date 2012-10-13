@@ -2965,8 +2965,8 @@ class MucListTab(Tab):
         self.listview = windows.ListWin(columns)
         self.default_help_message = windows.HelpText("“j”: join room.")
         self.input = self.default_help_message
-        self.key_func["KEY_DOWN"] = self.listview.move_cursor_down
-        self.key_func["KEY_UP"] = self.listview.move_cursor_up
+        self.key_func["KEY_DOWN"] = self.move_cursor_down
+        self.key_func["KEY_UP"] = self.move_cursor_up
         self.key_func['^I'] = self.completion
         self.key_func["/"] = self.on_slash
         self.key_func['j'] = self.join_selected
@@ -3105,6 +3105,16 @@ class MucListTab(Tab):
 
     def on_scroll_down(self):
         return self.listview.scroll_down()
+
+    def move_cursor_up(self):
+        self.listview.move_cursor_up()
+        self.listview.refresh()
+        self.core.doupdate()
+
+    def move_cursor_down(self):
+        self.listview.move_cursor_down()
+        self.listview.refresh()
+        self.core.doupdate()
 
 class XMLTab(Tab):
 
