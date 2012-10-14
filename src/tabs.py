@@ -40,6 +40,7 @@ import multiuserchat as muc
 from theming import get_theme
 
 from common import safeJID
+from decorators import refresh_wrapper
 from sleekxmpp import JID, InvalidJID
 from sleekxmpp.xmlstream import matcher
 from sleekxmpp.xmlstream.handler import Callback
@@ -474,14 +475,13 @@ class ChatTab(Tab):
             self.refresh()
         msg.send()
 
+    @refresh_wrapper.always
     def command_clear(self, args):
         """
         /clear
         """
         self._text_buffer.messages = []
         self.text_win.rebuild_everything(self._text_buffer)
-        self.refresh()
-        self.core.doupdate()
 
     def send_chat_state(self, state, always_send=False):
         """
@@ -603,10 +603,9 @@ class ChatTab(Tab):
     def on_half_scroll_down(self):
         return self.text_win.scroll_down((self.text_win.height-1) // 2)
 
+    @refresh_wrapper.always
     def scroll_separator(self):
         self.text_win.scroll_to_separator()
-        self.refresh()
-        self.core.doupdate()
 
 class MucTab(ChatTab):
     """
@@ -673,21 +672,19 @@ class MucTab(ChatTab):
     def general_jid(self):
         return self.get_name()
 
+    @refresh_wrapper.always
     def go_to_next_hl(self):
         """
         Go to the next HL in the room, or the last
         """
         self.text_win.next_highlight()
-        self.refresh()
-        self.core.doupdate()
 
+    @refresh_wrapper.always
     def go_to_prev_hl(self):
         """
         Go to the previous HL in the room, or the first
         """
         self.text_win.previous_highlight()
-        self.refresh()
-        self.core.doupdate()
 
     def completion_version(self, the_input):
         """Completion for /version"""
@@ -1818,6 +1815,7 @@ class PrivateTab(ChatTab):
         new_jid = safeJID(self.name).bare+'/'+new_nick
         self.name = new_jid
 
+    @refresh_wrapper.conditional
     def user_left(self, status_message, from_nick):
         """
         The user left the associated MUC
@@ -1827,10 +1825,9 @@ class PrivateTab(ChatTab):
             self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
         else:
             self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
-        if self.core.current_tab() is self:
-            self.refresh()
-            self.core.doupdate()
+        return self.core.current_tab() is self
 
+    @refresh_wrapper.conditional
     def user_rejoined(self, nick):
         """
         The user (or at least someone with the same nick) came back in the MUC
@@ -1843,9 +1840,7 @@ class PrivateTab(ChatTab):
             if user:
                 color = user.color[0]
         self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
-        if self.core.current_tab() is self:
-            self.refresh()
-            self.core.doupdate()
+        return self.core.current_tab() is self
 
     def activate(self, reason=None):
         self.on = True
@@ -2457,6 +2452,7 @@ class RosterInfoTab(Tab):
         elif not raw and key in self.key_func:
             return self.key_func[key]()
 
+    @refresh_wrapper.conditional
     def toggle_offline_show(self):
         """
         Show or hide offline contacts
@@ -2501,34 +2497,23 @@ class RosterInfoTab(Tab):
         else:
             curses.curs_set(1)
 
+    @refresh_wrapper.conditional
     def move_cursor_down(self):
         if isinstance(self.input, windows.CommandInput):
             return
-        if self.roster_win.move_cursor_down():
-            self.roster_win.refresh(roster)
-            self.contact_info_win.refresh(self.roster_win.get_selected_row())
-            self.input.refresh()
-            self.core.doupdate()
+        return self.roster_win.move_cursor_down()
 
+    @refresh_wrapper.conditional
     def move_cursor_up(self):
         if isinstance(self.input, windows.CommandInput):
             return
-        if self.roster_win.move_cursor_up():
-            self.roster_win.refresh(roster)
-            self.contact_info_win.refresh(self.roster_win.get_selected_row())
-            self.input.refresh()
-            self.core.doupdate()
+        return self.roster_win.move_cursor_up()
 
     def move_cursor_to_prev_contact(self):
         self.roster_win.move_cursor_up()
-        self.roster_win.refresh(roster)
         while not isinstance(self.roster_win.get_selected_row(), Contact):
             if not self.roster_win.move_cursor_up():
                 break
-            self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
 
     def move_cursor_to_next_contact(self):
         self.roster_win.move_cursor_down()
@@ -2536,31 +2521,18 @@ class RosterInfoTab(Tab):
         while not isinstance(self.roster_win.get_selected_row(), Contact):
             if not self.roster_win.move_cursor_down():
                 break
-            self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
-
 
     def move_cursor_to_prev_group(self):
         self.roster_win.move_cursor_up()
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_up():
                 break
-        self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
 
     def move_cursor_to_next_group(self):
         self.roster_win.move_cursor_down()
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_down():
                 break
-        self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.input.refresh()
-        self.core.doupdate()
 
     def on_scroll_down(self):
         return self.roster_win.move_cursor_down(self.height // 2)
@@ -2568,14 +2540,14 @@ class RosterInfoTab(Tab):
     def on_scroll_up(self):
         return self.roster_win.move_cursor_up(self.height // 2)
 
+    @refresh_wrapper.conditional
     def on_space(self):
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, RosterGroup) or\
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
-            self.refresh()
-            self.core.doupdate()
             return True
+        return False
 
     def get_contact_version(self):
         """
@@ -2785,6 +2757,7 @@ class ConversationTab(ChatTab):
 
         self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, block=False, callback=callback)
 
+    @refresh_wrapper.conditional
     def command_info(self, arg):
         contact = roster[self.get_name()]
         jid = safeJID(self.get_name())
@@ -2794,8 +2767,7 @@ class ConversationTab(ChatTab):
             resource = contact.get_highest_priority_resource()
         if resource:
             self._text_buffer.add_message("\x19%(info_col)s}Status: %(status)s\x193}" % {'status': resource.status, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}, None, None, None, None, None)
-            self.refresh()
-            self.core.doupdate()
+            return True
 
     def command_attention(self, message=''):
         if message is not '':

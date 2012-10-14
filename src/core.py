@@ -34,6 +34,7 @@ log = logging.getLogger(__name__)
 import multiuserchat as muc
 import tabs
 
+import decorators
 import xhtml
 import events
 import pubsub
@@ -115,6 +116,7 @@ class Core(object):
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
         roster.set_node(self.xmpp.client_roster)
+        decorators.refresh_wrapper.core = self
         self.paused = False
         self.debug = False
         self.remote_fifo = None
