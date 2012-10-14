@@ -445,6 +445,9 @@ Roster tab commands
  unsubscribe you from its presence, cancel its subscription to yours, and
  remove the item from your roster.
 
+*/reconnect*:: Disconnect from the remote server (if connected) and then
+ connect to it again.
+
 NOTE: The following commands only exist if your server supports them. If it
 does not, you will be notified when you start poezio.
 

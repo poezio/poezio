@@ -1907,6 +1907,7 @@ class RosterInfoTab(Tab):
         self.commands['groupmove'] = (self.command_groupmove, _("Usage: /groupchange <jid> <old group> <new group>\nMoves the given JID from the old group to the new group."), self.completion_groupmove)
         self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
         self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
+        self.commands['reconnect'] = (self.command_reconnect, _('Usage: /reconnect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None)
         self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
         self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
@@ -2021,6 +2022,12 @@ class RosterInfoTab(Tab):
             self.core.information(s, 'Info')
 
         self.core.xmpp.plugin['xep_0191'].get_blocked(block=False, callback=callback)
+
+    def command_reconnect(self, args=None):
+        """
+        /reconnect
+        """
+        self.core.disconnect(reconnect=True)
 
     def command_activity(self, arg=None):
         """

@@ -169,7 +169,6 @@ class Core(object):
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
             'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), self.completion_version),
-            'connect': (self.command_reconnect, _('Usage: /connect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None),
             'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), self.completion_server_cycle),
             'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: Bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
             'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
@@ -226,7 +225,6 @@ class Core(object):
             '_close_tab': self.close_tab,
             '_disconnect': self.disconnect,
             '_quit': self.command_quit,
-            '_reconnect': self.command_reconnect,
             '_redraw_screen': self.full_screen_redraw,
             '_reload_theme': self.command_theme,
             '_remove_bookmark': self.command_remove_bookmark,
@@ -2255,12 +2253,6 @@ class Core(object):
         tab = self.open_conversation_window(jid.full, focus=True)
         if len(args) > 1:
             tab.command_say(args[1])
-
-    def command_reconnect(self, args=None):
-        """
-        /reconnect
-        """
-        self.disconnect(reconnect=True)
 
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
