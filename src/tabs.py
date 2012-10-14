@@ -2573,6 +2573,8 @@ class RosterInfoTab(Tab):
         if isinstance(selected_row, RosterGroup) or\
                 isinstance(selected_row, Contact):
             selected_row.toggle_folded()
+            self.refresh()
+            self.core.doupdate()
             return True
 
     def get_contact_version(self):
