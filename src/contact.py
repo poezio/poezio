@@ -25,7 +25,7 @@ class Resource(object):
         """
         data: the dict to use as a source
         """
-        self._jid = safeJID(jid)         # Full jid
+        self._jid = jid         # Full jid
         self._data = data
 
     @property
@@ -101,10 +101,10 @@ class Contact(object):
     @property
     def resources(self):
         """List of the available resources as Resource objects"""
-        return [Resource(
+        return (Resource(
             '%s%s' % (self.bare_jid, ('/' + key) if key else ''),
             self.__item.resources[key]
-            ) for key in self.__item.resources.keys()]
+            ) for key in self.__item.resources.keys())
 
     @property
     def subscription(self):
