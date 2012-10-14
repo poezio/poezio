@@ -2280,7 +2280,7 @@ class Core(object):
         jid = self.xmpp.boundjid.full
         info = 'Your JID is %s\nYour current status is "%s" (%s)\nYour default nickname is %s' % (
                 jid,
-                message,
+                message if message else '',
                 show if show else 'available',
                 nick)
         self.information(info, 'Info')
