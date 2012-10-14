@@ -403,12 +403,12 @@ class InfoWin(Win):
 
     def print_scroll_position(self, window):
         """
-        Print, link in Weechat, a -PLUS(n)- where n
+        Print, link in Weechat, a -MORE(n)- where n
         is the number of available lines to scroll
         down
         """
         if window.pos > 0:
-            plus = ' -PLUS(%s)-' % window.pos
+            plus = ' -MORE(%s)-' % window.pos
             self.addstr(plus, to_curses_attr(get_theme().COLOR_SCROLLABLE_NUMBER))
 
 class PrivateInfoWin(InfoWin):
