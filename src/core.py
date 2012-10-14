@@ -1382,7 +1382,7 @@ class Core(object):
         """
         Completion of /status
         """
-        return the_input.auto_completion([status for status in possible_show], ' ')
+        return the_input.auto_completion([status for status in possible_show], ' ', quotify=False)
 
     def command_presence(self, arg):
         """
