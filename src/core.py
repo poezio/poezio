@@ -1595,7 +1595,7 @@ class Core(object):
         n = len(the_input.get_text().split())
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
-        comp = reduce(lambda x, y: x+y, (jid.resources for jid in roster if len(jid)), [])
+        comp = reduce(lambda x, y: x + [i for i in y], (jid.resources for jid in roster if len(jid)), [])
         comp = (str(res.jid) for res in comp)
         return the_input.auto_completion(sorted(comp), '', quotify=False)
 
