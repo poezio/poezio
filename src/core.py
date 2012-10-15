@@ -2657,12 +2657,12 @@ class Core(object):
             })
         self.events.trigger('normal_presence', presence, resource)
         self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
-        if time.time() - self.connection_time > 20:
+        if time.time() - self.connection_time > 10:
             # We do not display messages if we recently logged in
             if presence['status']:
-                self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (resource.jid.bare, presence['status']), "Roster")
+                self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (safeJID(resource.jid).bare, presence['status']), "Roster")
             else:
-                self.information("\x193}%s \x195}is \x194}online\x195}" % resource.jid.bare, "Roster")
+                self.information("\x193}%s \x195}is \x194}online\x195}" % safeJID(resource.jid).bare, "Roster")
             self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
