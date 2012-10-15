@@ -934,36 +934,37 @@ class MucTab(ChatTab):
         color_participant = get_theme().COLOR_USER_PARTICIPANT[0]
         visitors, moderators, participants, others = [], [], [], []
         aff = {
-                'owner': lambda: get_theme().CHAR_AFFILIATION_OWNER,
-                'admin': lambda: get_theme().CHAR_AFFILIATION_ADMIN,
-                'member': lambda: get_theme().CHAR_AFFILIATION_MEMBER,
-                'none': lambda: get_theme().CHAR_AFFILIATION_NONE,
+                'owner': get_theme().CHAR_AFFILIATION_OWNER,
+                'admin': get_theme().CHAR_AFFILIATION_ADMIN,
+                'member': get_theme().CHAR_AFFILIATION_MEMBER,
+                'none': get_theme().CHAR_AFFILIATION_NONE,
                 }
 
         for user in self.users:
             if user.role == 'visitor':
-                visitors.append((user.nick, aff[user.affiliation]()))
+                visitors.append((user, aff[user.affiliation]))
             elif user.role == 'participant':
-                participants.append((user.nick, aff[user.affiliation]()))
+                participants.append((user, aff[user.affiliation]))
             elif user.role == 'moderator':
-                moderators.append((user.nick, aff[user.affiliation]()))
+                moderators.append((user, aff[user.affiliation]))
             else:
-                others.append((user.nick, aff[user.affiliation]()))
+                others.append((user, aff[user.affiliation]))
 
-        message = 'Users: %s \n' % len(self.users)
+        buff = ['Users: %s \n' % len(self.users)]
         for moderator in moderators:
-            message += ' [%s] \x19%s}%s\x19o -' % (moderator[1],
-                    color_moderator, moderator[0])
+            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_moderator,
+                    moderator[1],  moderator[0].color[0], moderator[0].nick))
         for participant in participants:
-            message += ' [%s] \x19%s}%s\x19o -' % (participant[1],
-                    color_participant, participant[0])
+            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_participant,
+                    participant[1],  participant[0].color[0], participant[0].nick))
         for visitor in visitors:
-            message += ' [%s] \x19%s}%s\x19o -' % (visitor[1],
-                    color_visitor, visitor[0])
+            buf.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_visitor,
+                    visitor[1],  visitor[0].color[0], visitor[0].nick))
         for other in others:
-            message += ' [%s] \x19%s}%s\x19o -' % (other[1],
-                    color_other, other[0])
-        message = message[:-2]
+            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_other,
+                    other[1],  other[0].color[0], other[0].nick))
+        buff.append('\n')
+        message = ' '.join(buff)
 
         self._text_buffer.add_message(message)
         self.text_win.refresh()
