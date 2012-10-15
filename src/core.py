@@ -1613,7 +1613,9 @@ class Core(object):
             nick = tab.own_nick
         else:
             info = safeJID(args[0])
-            if info.resource == '':
+            if info == '' and len(args[0]) > 1 and args[0][0] == '/':
+                nick = args[0][1:]
+            elif info.resource == '':
                 default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
                 nick = config.get('default_nick', '')
                 if nick == '':
