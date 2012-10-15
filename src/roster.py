@@ -149,7 +149,7 @@ class Roster(object):
         """
         n = 0
         for contact in self:
-            if contact.resources:
+            if len(contact):
                 n += 1
         return n
 
