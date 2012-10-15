@@ -15,7 +15,6 @@ class RefreshWrapper(object):
             ret = func(*args, **kwargs)
             if self.core and ret:
                 self.core.refresh_window()
-                self.core.doupdate()
             return ret
         return wrap
 
@@ -27,7 +26,6 @@ class RefreshWrapper(object):
             ret = func(*args, **kwargs)
             if self.core:
                 self.core.refresh_window()
-                self.core.doupdate()
             return ret
         return wrap
 
