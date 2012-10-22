@@ -38,17 +38,34 @@ class Executor(threading.Thread):
     def __init__(self, command):
         threading.Thread.__init__(self)
         self.command = command
+        # check for > or >> special case
+        self.filename = None
+        self.redirection_mode = 'w'
+        if len(command) >= 3:
+            if command[-2] in ('>', '>>'):
+                self.filename = command.pop(-1)
+                if command[-1] == '>>':
+                    self.redirection_mode = 'a'
+                command.pop(-1)
 
     def run(self):
         log.info('executing %s' % (self.command,))
-        subprocess.call(['sh', '-c', self.command])
+        stdout = None
+        if self.filename:
+            try:
+                stdout = open(self.filename, self.redirection_mode)
+            except (OSError, IOError) as e:
+                log.error('Could not open redirection file: %s (%s)' % (self.filename, e,))
+                return
+        subprocess.call(self.command, stdout=stdout)
 
 def main():
     while True:
         line = sys.stdin.readline()
         if line == '':
             break
-        e = Executor(line)
+        command = shlex.split(line)
+        e = Executor(command)
         e.start()
 
 if __name__ == '__main__':

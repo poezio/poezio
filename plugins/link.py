@@ -7,7 +7,6 @@ from plugin import BasePlugin
 from xhtml import clean_text
 import common
 import tabs
-import pipes
 
 url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 
@@ -42,8 +41,7 @@ class Plugin(BasePlugin):
             nb = 1
         link = self.find_link(nb)
         if link:
-            link = pipes.quote(link)
-            self.core.exec_command("%s %s" % (self.config.get('browser', 'firefox'), link))
+            self.core.exec_command([self.config.get('browser', 'firefox'), link])
         else:
             self.core.information('No URL found.', 'Warning')
 

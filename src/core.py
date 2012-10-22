@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import curses
+import pipes
 import ssl
 
 from functools import reduce
@@ -492,17 +493,32 @@ class Core(object):
 
     def exec_command(self, command):
         """
-        Execute an external command on the local or a remote
-        machine, depending on the conf. For example, to open a link in a
-        browser, do exec_command("firefox http://poezio.eu"),
-        and this will call the command on the correct computer.
-        The remote execution is done by writing the command on a fifo.
-        That fifo has to be on the machine where poezio is running, and
-        accessible (through sshfs for example) from the local machine (where
-        poezio is not running). A very simple daemon reads on that fifo,
-        and executes any command that is read in it.
+        Execute an external command on the local or a remote machine,
+        depending on the conf. For example, to open a link in a browser, do
+        exec_command(["firefox", "http://poezio.eu"]), and this will call
+        the command on the correct computer.
+
+        The command argument is a list of strings, not quoted or escaped in
+        any way. The escaping is done here if needed.
+
+        The remote execution is done
+        by writing the command on a fifo.  That fifo has to be on the
+        machine where poezio is running, and accessible (through sshfs for
+        example) from the local machine (where poezio is not running). A
+        very simple daemon (daemon.py) reads on that fifo, and executes any
+        command that is read in it. Since we can only write strings to that
+        fifo, each argument has to be pipes.quote()d. That way the
+        shlex.split on the reading-side of the daemon will be safe.
+
+        You cannot use a real command line with pipes, redirections etc, but
+        this function supports a simple case redirection to file: if the
+        before-last argument of the command is ">" or ">>", then the last
+        argument is considered to be a filename where the command stdout
+        will be written. For example you can do exec_command(["echo",
+        "coucou les amis coucou coucou", ">", "output.txt"]) and this will
+        work. If you try to do anything else, your |, [, <<, etc will be
+        interpreted as normal command arguments, not shell special tokens.
         """
-        command = '%s\n' % (command,)
         if config.get('exec_remote', 'false') == 'true':
             # We just write the command in the fifo
             if not self.remote_fifo:
@@ -511,16 +527,17 @@ class Core(object):
                 except (OSError, IOError) as e:
                     self.information('Could not open fifo file for writing: %s' % (e,), 'Error')
                     return
+            command_str = ' '.join([pipes.quote(arg.replace('\n', ' ')) for arg in command]) + '\n'
             try:
-                self.remote_fifo.write(command)
+                self.remote_fifo.write(command_str)
             except (IOError) as e:
-                self.information('Could not execute [%s]: %s' % (command.strip(), e,), 'Error')
+                self.information('Could not execute %s: %s' % (command, e,), 'Error')
                 self.remote_fifo = None
         else:
-            e = Executor(command.strip())
+            e = Executor(command)
             try:
                 e.start()
-            except ValueError as e: # whenever shlex fails
+            except ValueError as e:
                 self.information('%s' % (e,), 'Error')
 
 
