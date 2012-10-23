@@ -13,6 +13,8 @@ by setting the _plugins_dir_ option in the
 link:../configure.html[configuration file] to the directory where you want to
 put your plugins.
 
+This means that if you want to use a plugin, you have to copy it (the .py file or the directory) into _plugins_dir_.
+
 
 Plugins autostart
 -----------------
