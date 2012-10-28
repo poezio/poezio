@@ -140,11 +140,7 @@ section of this documentation.
   XHTML-IM is an XMPP extension letting users send messages
   containing XHTML and CSS formating. We can use this to make
   colored text for example.
-  It is disabled by default because this is only in an experimental
-  state: you could miss some part of a message (mainly the URL)
-  but you can still send colored messages. You just won’t be able te see
-  the colors, though
-  Set to true if you want to see colored messages
+  Set to true if you want to see colored (and otherwise formatted) messages.
 
 *hide_status_change*:: 120
 
