@@ -447,10 +447,10 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.jid.full, False):
-                self.open_conversation_window(roster_row.jid.full)
+            if not self.get_conversation_by_jid(roster_row.jid, False):
+                self.open_conversation_window(roster_row.jid)
             else:
-                self.focus_tab_named(roster_row.jid.full)
+                self.focus_tab_named(roster_row.jid)
         self.refresh_window()
 
     def get_conversation_messages(self):
