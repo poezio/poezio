@@ -19,7 +19,7 @@ from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 from os import path as p
 from common import safeJID
 from sleekxmpp import JID
-from sleekxmpp.exceptions import IqError
+from sleekxmpp.exceptions import IqError, IqTimeout
 
 
 class Roster(object):
@@ -72,7 +72,7 @@ class Roster(object):
             try:
                 self.__node[jid].send_presence(ptype='unavailable')
                 self.__node.remove(jid)
-            except IqError:
+            except (IqError, IqTimeout):
                 import traceback
                 log.debug('IqError when removing %s:\n%s', jid, traceback.format_exc())
 
