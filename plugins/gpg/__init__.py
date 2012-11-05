@@ -131,9 +131,15 @@ class Plugin(BasePlugin):
             # cannot be encrypted.
             del message['xhtml_im']
             encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
-            encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'), always_trust=True))))
+            text = self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'), always_trust=True)
+            if not text:
+                self.core.information('Could not encrypt message to %s' % (to.full),)
+                # If we could not encrypt the message, don't send anything
+                message['body'] = ''
+                return
+            encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(text)))
             message.append(encrypted_element)
-            message['body'] = 'This message has been encrypted.'
+            message['body'] = 'This message has been encrypted using the GPG key with id: %s' % self.keyid
 
     def on_conversation_msg(self, message, tab):
         """
