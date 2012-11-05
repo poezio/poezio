@@ -656,7 +656,7 @@ class MucTab(ChatTab):
         self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
         self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), self.completion_recolor)
         self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
+        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_info)
         self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
         self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
         self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
@@ -693,6 +693,12 @@ class MucTab(ChatTab):
                          if user.nick != self.own_nick]
         contact_list = [jid for jid in roster.jids()]
         userlist.extend(contact_list)
+        return the_input.auto_completion(userlist, '', quotify=False)
+
+    def completion_info(self, the_input):
+        """Completion for /info"""
+        compare_users = lambda x: x.last_talked
+        userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)]
         return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_nick(self, the_input):
