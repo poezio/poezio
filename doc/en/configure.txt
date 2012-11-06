@@ -120,8 +120,13 @@ section of this documentation.
 
 *after_completion*:: ,
 
-  what will be put after the name, when using autocompletion
-  a SPACE will always be added after that
+  What will be put after the name, when using autocompletion at the
+  beginning of the input. A space will always be added after that
+
+*add_space_after_completion*:: true
+
+  Whether or not to add a space after a completion in the middle of the
+  input (not at the start of it)
 
 *words*:: [empty]
 
