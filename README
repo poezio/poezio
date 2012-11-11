@@ -8,7 +8,7 @@
 	|_|
 
 Homepage:	http://poezio.eu
-Forge Page:	http://dev.louiz.org/projet/poezio
+Forge Page:	http://dev.poezio.eu
 
 Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
 connections to simply let the user join MultiUserChats.  This way, the user
@@ -24,7 +24,7 @@ MUCs, especially XEP 0045.
 =======================
 	Install
 =======================
-You need python 3.0 (and the associated devel package, to build C modules)
+You need python 3 (and the associated devel package, to build C modules)
 or higher, and the SleekXMPP python library.
 In the developement version, you’ll need this fork of SleekXMPP
 http://github.com/louiz/SleekXMPP.
@@ -58,7 +58,7 @@ also read the “configure” documentation page.
 
 Please, see the online documentation for more information on installing,
 configuring or using poezio:
-http://dev.louiz.org/project/poezio/doc
+http://poezio.eu/doc/en/
 
 If you still have questions, or if you're lost, don't hesitate to come
 talk to us directly on our Jabber chat room (see Contact section).
@@ -77,9 +77,7 @@ Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
     Contact/support
 =======================
 Jabber ChatRoom:   poezio@muc.poezio.eu
-Forum:             http://dev.louiz.org/project/poezio/forum
-Report a bug:      http://dev.louiz.org/project/poezio/bugs/add
-
+Report a bug:      http://dev.louiz.org/projects/poezio/issues/new
 
 =======================
 	License
