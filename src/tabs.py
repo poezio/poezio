@@ -389,8 +389,9 @@ class ChatTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
-    def __init__(self):
+    def __init__(self, jid=''):
         Tab.__init__(self)
+        self.name = jid
         self._text_buffer = TextBuffer()
         self.remote_wants_chatstates = None # change this to True or False when
         # we know that the remote user wants chatstates, or not.
@@ -420,6 +421,24 @@ class ChatTab(Tab):
         self.chat_state = None
         self.update_commands()
         self.update_keys()
+
+        # Get the logs
+        log_nb = config.get('load_log', 200)
+
+        if isinstance(self, PrivateTab):
+            logs = logger.get_logs(safeJID(self.get_name()).full.replace('/', '\\'), log_nb)
+        else:
+            logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
+        if logs:
+            for log_line in logs:
+                log_line = '\x19%s}%s' % (get_theme().COLOR_INFORMATION_TEXT[0], log_line)
+                self._text_buffer.add_message(
+                        txt=log_line.strip(),
+                        time='',
+                        nickname='',
+                        user='',
+                        str_time=''
+                        )
 
     def last_words_completion(self):
         """
@@ -617,7 +636,7 @@ class MucTab(ChatTab):
     plugin_keys = {}
     def __init__(self, jid, nick):
         self.joined = False
-        ChatTab.__init__(self)
+        ChatTab.__init__(self, jid)
         self.own_nick = nick
         self.name = jid
         self.users = []
@@ -1611,7 +1630,7 @@ class PrivateTab(ChatTab):
     plugin_commands = {}
     plugin_keys = {}
     def __init__(self, name, nick):
-        ChatTab.__init__(self)
+        ChatTab.__init__(self, name)
         self.own_nick = nick
         self.name = name
         self.text_win = windows.TextWin()
@@ -2669,7 +2688,7 @@ class ConversationTab(ChatTab):
     additional_informations = {}
     message_type = 'chat'
     def __init__(self, jid):
-        ChatTab.__init__(self)
+        ChatTab.__init__(self, jid)
         self.state = 'normal'
         self.name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()

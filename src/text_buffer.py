@@ -35,7 +35,7 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
-    def make_message(self, txt, time, nickname, nick_color, history, user, identifier):
+    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None):
         time = time or datetime.now()
         if txt.startswith('/me '):
             if nick_color:
@@ -47,15 +47,17 @@ class TextBuffer(object):
             # TODO: display the bg color too.
             txt = '\x19%(info_col)s}* \x19%(col)s}%(nick)s \x19%(info_col)s}%(msg)s' % {'info_col':get_theme().COLOR_ME_MESSAGE[0], 'col': color or 5, 'nick': nickname, 'msg': txt[4:]}
             nickname = None
-        msg = Message(txt='%s\x19o'%(txt.replace('\t', '    '),), nick_color=nick_color,
-                      time=time, str_time=time.strftime("%Y-%m-%d %H:%M:%S")\
-                                          if history else time.strftime("%H:%M:%S"),\
+        msg = Message(
+                txt='%s\x19o'%(txt.replace('\t', '    '),),
+                nick_color=nick_color,
+                time=time,
+                str_time=(time.strftime("%Y-%m-%d %H:%M:%S") if history else time.strftime("%H:%M:%S")) if str_time is None else '',
                       nickname=nickname, user=user, identifier=identifier)
         log.debug('Set message %s with %s.' % (identifier, msg))
         return msg
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None):
-        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier)
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None, str_time=None):
+        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier, str_time)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)

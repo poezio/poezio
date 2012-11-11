@@ -242,6 +242,10 @@ section of this documentation.
   set to 'false' if you don’t want to save logs of all the messages
   in files.
 
+*load_log*:: 200
+
+  The number of line to preload in a chat buffer when it opens. The lines are
+  loaded from the log files. 0 or a negative value here disable that option.
 
 *log_dir*:: [empty]
 

@@ -776,12 +776,14 @@ class TextWin(Win):
         if not txt:
             return 0
         nick = truncate_nick(message.nickname)
-        offset = 1 + len(message.str_time)
+        offset = 0
+        if message.str_time:
+            offset += 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
-        if get_theme().CHAR_TIME_LEFT:
+        if get_theme().CHAR_TIME_LEFT and message.str_time:
             offset += 1
-        if get_theme().CHAR_TIME_RIGHT:
+        if get_theme().CHAR_TIME_RIGHT and message.str_time:
             offset += 1
         lines = cut_text(txt, self.width-offset)
         if self.lock:
@@ -832,7 +834,9 @@ class TextWin(Win):
                 if not line:
                     self.write_line_separator(y)
                 else:
-                    self.write_text(y, (3 if line.msg.nickname else 1) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''), line.msg.txt[line.start_pos:line.end_pos])
+                    self.write_text(y,
+                            (3 if line.msg.nickname else (1 if line.msg.str_time else 0)) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''),
+                            line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
