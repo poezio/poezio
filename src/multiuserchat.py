@@ -73,7 +73,7 @@ def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, sho
             passelement = ET.Element('password')
             passelement.text = passwd
             x.append(passelement)
-        history = ET.Element('history')
+        history = ET.Element('{http://jabber.org/protocol/muc}history')
         history.attrib['seconds'] = str(seconds)
         x.append(history)
         stanza.append(x)

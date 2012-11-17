@@ -654,7 +654,6 @@ class MucTab(ChatTab):
         self.info_header = windows.MucInfoWin()
         self.input = windows.MessageInput()
         self.ignores = []       # set of Users
-        self.last_connection = 0
         # keys
         self.key_func['^I'] = self.completion
         self.key_func['M-u'] = self.scroll_user_list_down
@@ -690,6 +689,13 @@ class MucTab(ChatTab):
     @property
     def general_jid(self):
         return self.get_name()
+
+    @property
+    def last_connection(self):
+        last_message = self._text_buffer.last_message
+        if last_message:
+            return last_message.time
+        return None
 
     @refresh_wrapper.always
     def go_to_next_hl(self):
@@ -1538,7 +1544,6 @@ class MucTab(ChatTab):
         Set the state of the room as not joined, so
         we can know if we can join it, send messages to it, etc
         """
-        self.last_connection = int(time.time())
         self.users = []
         if self is not self.core.current_tab():
             self.state = 'disconnected'

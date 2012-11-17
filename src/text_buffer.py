@@ -35,6 +35,11 @@ class TextBuffer(object):
     def add_window(self, win):
         self.windows.append(win)
 
+    @property
+    def last_message(self):
+        return self.messages[-1] if self.messages else None
+
+
     def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None):
         time = time or datetime.now()
         if txt.startswith('/me '):
