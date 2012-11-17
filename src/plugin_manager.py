@@ -5,7 +5,7 @@ the API together. Defines also a bunch of variables related to the
 plugin env.
 """
 
-import imp
+import importlib
 import os
 import sys
 import logging
@@ -39,6 +39,7 @@ except OSError:
     pass
 
 sys.path.append(plugins_dir)
+finder = importlib.machinery.PathFinder()
 
 class PluginManager(object):
     """
@@ -64,23 +65,16 @@ class PluginManager(object):
             self.unload(name)
 
         try:
-            if name in self.modules:
-                imp.acquire_lock()
-                module = imp.reload(self.modules[name])
-                imp.release_lock()
-            else:
-                file, filename, info = imp.find_module(name, [plugins_dir])
-                imp.acquire_lock()
-                module = imp.load_module(name, file, filename, info)
-                imp.release_lock()
+            loader = finder.find_module(name)
+            if not loader:
+                self.core.information('Could not find plugin: %s' % name, 'Error')
+                return
+            module = loader.load_module()
         except Exception as e:
             import traceback
             log.debug("Could not load plugin: \n%s", traceback.format_exc())
             self.core.information("Could not load plugin: %s" % e, 'Error')
             return
-        finally:
-            if imp.lock_held():
-                imp.release_lock()
 
         self.modules[name] = module
         self.commands[name] = {}
