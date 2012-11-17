@@ -262,3 +262,10 @@ class PluginManager(object):
         completion function that completes the name of the plugins that are loaded
         """
         return the_input.auto_completion(list(self.plugins.keys()), '', quotify=False)
+
+    def on_plugins_dir_change(self, new_value):
+        global plugins_dir
+        if plugins_dir in sys.path:
+            sys.path.remove(plugins_dir)
+        sys.path.append(new_value)
+        plugins_dir = new_value

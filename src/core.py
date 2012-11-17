@@ -1993,6 +1993,9 @@ class Core(object):
         # Remove all gaptabs if switching from gaps to nogaps
         if option == 'create_gaps' and value.lower() == 'false':
             self.tabs = list(filter(lambda x: bool(x), self.tabs))
+        elif option == 'plugins_dir':
+            path = os.path.expanduser(value)
+            self.plugin_manager.on_plugins_dir_change(path)
         self.information(msg, 'Info')
 
     def completion_set(self, the_input):
