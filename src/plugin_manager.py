@@ -7,6 +7,7 @@ plugin env.
 
 from importlib import machinery
 import os
+from os import path
 import sys
 import logging
 from gettext import gettext as _
@@ -37,7 +38,9 @@ try:
     os.makedirs(plugins_conf_dir)
 except OSError:
     pass
+default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 
+sys.path.append(default_plugin_path)
 sys.path.append(plugins_dir)
 finder = machinery.PathFinder()
 
