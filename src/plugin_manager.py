@@ -5,7 +5,7 @@ the API together. Defines also a bunch of variables related to the
 plugin env.
 """
 
-import importlib
+from importlib import machinery
 import os
 import sys
 import logging
@@ -39,7 +39,7 @@ except OSError:
     pass
 
 sys.path.append(plugins_dir)
-finder = importlib.machinery.PathFinder()
+finder = machinery.PathFinder()
 
 class PluginManager(object):
     """
