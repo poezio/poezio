@@ -2091,7 +2091,7 @@ class RosterInfoTab(Tab):
 
     def completion(self):
         # Check if we are entering a command (with the '/' key)
-        if isinstance(self.input, windows.CommandInput) and\
+        if isinstance(self.input, windows.Input) and\
                 not self.input.help_message:
             self.complete_commands(self.input)
 
@@ -2480,7 +2480,7 @@ class RosterInfoTab(Tab):
         if key == '^M':
             selected_row = self.roster_win.get_selected_row()
         res = self.input.do_command(key, raw=raw)
-        if res and not isinstance(self.input, windows.CommandInput):
+        if res and not isinstance(self.input, windows.Input):
             return True
         elif res:
             return False
@@ -2537,13 +2537,13 @@ class RosterInfoTab(Tab):
 
     @refresh_wrapper.conditional
     def move_cursor_down(self):
-        if isinstance(self.input, windows.CommandInput):
+        if isinstance(self.input, windows.Input) and not self.input.history_disabled:
             return
         return self.roster_win.move_cursor_down()
 
     @refresh_wrapper.conditional
     def move_cursor_up(self):
-        if isinstance(self.input, windows.CommandInput):
+        if isinstance(self.input, windows.Input) and not self.input.history_disabled:
             return
         return self.roster_win.move_cursor_up()
 
@@ -2580,6 +2580,8 @@ class RosterInfoTab(Tab):
 
     @refresh_wrapper.conditional
     def on_space(self):
+        if isinstance(self.input, windows.Input):
+            return
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, RosterGroup) or\
                 isinstance(selected_row, Contact):
@@ -2649,6 +2651,7 @@ class RosterInfoTab(Tab):
         self.input.key_end()
         self.input.refresh()
 
+    @refresh_wrapper.always
     def start_search(self):
         """
         Start the search. The input should appear with a short instruction
@@ -2657,22 +2660,25 @@ class RosterInfoTab(Tab):
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
         self.input.resize(1, self.width, self.height-1, 0)
+        self.input.disable_history()
         return True
 
+    @refresh_wrapper.always
     def start_search_slow(self):
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter_slow)
         self.input.resize(1, self.width, self.height-1, 0)
+        self.input.disable_history()
         return True
 
     def set_roster_filter_slow(self, txt):
         roster.jids_filter = (jid_and_name_match_slow, txt)
-        self.roster_win.refresh(roster)
+        self.refresh()
         return False
 
     def set_roster_filter(self, txt):
         roster.contact_filter = (jid_and_name_match, txt)
-        self.roster_win.refresh(roster)
+        self.refresh()
         return False
 
     def on_search_terminate(self, txt):
@@ -3095,7 +3101,7 @@ class MucListTab(Tab):
         return self.name
 
     def completion(self):
-        if isinstance(self.input, windows.CommandInput):
+        if isinstance(self.input, windows.Input):
             self.complete_commands(self.input)
 
     def on_input(self, key, raw):
@@ -3229,7 +3235,7 @@ class XMLTab(Tab):
         return self.reset_help_message()
 
     def completion(self):
-        if isinstance(self.input, windows.CommandInput):
+        if isinstance(self.input, windows.Input):
             self.complete_commands(self.input)
 
     def on_input(self, key, raw):

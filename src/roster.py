@@ -180,6 +180,7 @@ class Roster(object):
         for group in self.groups.values():
             if not show_offline and group.get_nb_connected_contacts() == 0:
                 continue
+            before = length
             if not group.name in self.folded_groups:
                 for contact in group.get_contacts(self.contact_filter):
                     # We do not count the offline contacts (depending on config)
@@ -190,7 +191,8 @@ class Roster(object):
                     if not contact.folded:
                         # One for each resource, if the contact is unfolded
                         length += len(contact)
-            length += 1              # One for the group's line itself
+            if not self.contact_filter or before != length:
+                length += 1              # One for the group's line itself if needed
         return length
 
     def __repr__(self):

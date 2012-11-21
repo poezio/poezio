@@ -1433,6 +1433,19 @@ class CommandInput(Input):
             self.on_input(self.get_text())
         return res
 
+    def disable_history(self):
+        """
+        Disable the history (up/down) keys
+        """
+        if 'KEY_UP' in self.key_func:
+            del self.key_func['KEY_UP']
+        if 'KEY_DOWN' in self.key_func:
+            del self.key_func['KEY_DOWN']
+
+    @property
+    def history_disabled(self):
+        return ('KEY_UP' not in self.key_func and 'KEY_DOWN' not in self.key_func)
+
     def success(self):
         """
         call the success callback, passing the text as argument
@@ -1617,7 +1630,7 @@ class RosterWin(Win):
             self.draw_roster_information(roster)
             y = 1
             show_offline = config.get('roster_show_offline', 'false') == 'true'
-            sort = config.get('roster_sort', 'jid_show') or 'jid_show'
+            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
             group_sort = config.get('roster_group_sort', 'name') or 'name'
             for group in roster.get_groups(group_sort):
                 contacts_filtered = group.get_contacts(roster.contact_filter)
@@ -1657,6 +1670,7 @@ class RosterWin(Win):
             if self.start_pos + self.height-2 < self.roster_len:
                 self.draw_plus(self.height-1)
             self._refresh()
+
 
     def draw_plus(self, y):
         """
