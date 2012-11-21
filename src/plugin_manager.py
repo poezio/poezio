@@ -6,6 +6,7 @@ plugin env.
 """
 
 from importlib import machinery
+from sys import version_info
 import os
 from os import path
 import sys
@@ -42,7 +43,13 @@ default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 
 sys.path.append(default_plugin_path)
 sys.path.append(plugins_dir)
-finder = machinery.PathFinder()
+
+PY33 = version_info[1] >= 3
+if not PY33:
+    from importlib._bootstrap import _DefaultPathFinder
+    finder = _DefaultPathFinder
+else:
+    finder = machinery.PathFinder
 
 class PluginManager(object):
     """
@@ -72,7 +79,7 @@ class PluginManager(object):
             if not loader:
                 self.core.information('Could not find plugin: %s' % name, 'Error')
                 return
-            module = loader.load_module()
+            module = loader.load_module(name)
         except Exception as e:
             import traceback
             log.debug("Could not load plugin: \n%s", traceback.format_exc())
@@ -253,7 +260,11 @@ class PluginManager(object):
         all .py files in plugins_dir
         """
         try:
-            names = os.listdir(plugins_dir)
+            try:
+                names = set(os.listdir(default_plugin_path))
+            except:
+                names = set()
+            names |= set(os.listdir(plugins_dir))
         except OSError as e:
             self.core.information(_('Completion failed: %s' % e), 'Error')
             return
