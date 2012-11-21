@@ -2672,7 +2672,7 @@ class RosterInfoTab(Tab):
         return True
 
     def set_roster_filter_slow(self, txt):
-        roster.jids_filter = (jid_and_name_match_slow, txt)
+        roster.contact_filter = (jid_and_name_match_slow, txt)
         self.refresh()
         return False
 
@@ -3337,6 +3337,8 @@ def diffmatch(search, string):
     be 'almost' found INSIDE a string.
     'almost' being defined by difflib
     """
+    if len(search) > len(string):
+        return False
     l = len(search)
     ratio = 0.7
     for i in range(len(string) - l + 1):
