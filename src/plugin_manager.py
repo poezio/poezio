@@ -5,8 +5,7 @@ the API together. Defines also a bunch of variables related to the
 plugin env.
 """
 
-from importlib import machinery
-from sys import version_info
+import imp
 import os
 from os import path
 import sys
@@ -44,13 +43,6 @@ default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 sys.path.append(default_plugin_path)
 sys.path.append(plugins_dir)
 
-PY33 = version_info[1] >= 3
-if not PY33:
-    from importlib._bootstrap import _DefaultPathFinder
-    finder = _DefaultPathFinder
-else:
-    finder = machinery.PathFinder
-
 class PluginManager(object):
     """
     Plugin Manager
@@ -75,16 +67,23 @@ class PluginManager(object):
             self.unload(name)
 
         try:
-            loader = finder.find_module(name)
-            if not loader:
-                self.core.information('Could not find plugin: %s' % name, 'Error')
-                return
-            module = loader.load_module(name)
+            if name in self.modules:
+                imp.acquire_lock()
+                module = imp.reload(self.modules[name])
+                imp.release_lock()
+            else:
+                file, filename, info = imp.find_module(name, [plugins_dir, default_plugin_path])
+                imp.acquire_lock()
+                module = imp.load_module(name, file, filename, info)
+                imp.release_lock()
         except Exception as e:
             import traceback
             log.debug("Could not load plugin: \n%s", traceback.format_exc())
             self.core.information("Could not load plugin: %s" % e, 'Error')
             return
+        finally:
+            if imp.lock_held():
+                imp.release_lock()
 
         self.modules[name] = module
         self.commands[name] = {}
