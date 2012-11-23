@@ -98,7 +98,7 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
       	bpos += 2;
       else if (buffer[bpos] >= 224 && buffer[bpos] <= 239)
       	bpos += 3;
-      else if (buffer[bpos] >= 240 && buffer[bpos] <= 244)
+      else if (buffer[bpos] >= 240 && buffer[bpos] <= 247)
       	bpos += 4;
       else
 	return NULL;
