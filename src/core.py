@@ -1682,7 +1682,8 @@ class Core(object):
         if histo_length is not None:
             histo_length= str(histo_length)
         if tab and not tab.joined:
-            seconds = (datetime.now() - tab.last_connection).total_seconds() if tab.last_connection is not None else 0
+            delta = datetime.now() - tab.last_connection
+            seconds = delta.seconds + delta.days * 24 * 3600 if tab.last_connection is not None else 0
             seconds = int(seconds)
             muc.join_groupchat(self.xmpp, room, nick, password,
                                histo_length, current_status.message, current_status.show, seconds=seconds)
