@@ -1997,6 +1997,7 @@ class Core(object):
         elif option == 'plugins_dir':
             path = os.path.expanduser(value)
             self.plugin_manager.on_plugins_dir_change(path)
+        self.call_for_resize()
         self.information(msg, 'Info')
 
     def completion_set(self, the_input):
