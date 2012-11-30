@@ -227,6 +227,8 @@ class UserList(Win):
 
     def refresh(self, users):
         log.debug('Refresh: %s',self.__class__.__name__)
+        if config.get("hide_user_list", "false") == "true":
+            return # do not refresh if this win is hidden.
         with g_lock:
             self._win.erase()
             if config.get('user_list_sort', 'desc').lower() == 'asc':

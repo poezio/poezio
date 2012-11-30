@@ -196,6 +196,12 @@ section of this documentation.
   If the message takes more than one line, the popup will stay visible
   two more second per additional lines
 
+*hide_user_list*:: false
+
+  Whether to hide the list of user in the MultiUserChat tabs or not. Useful
+  for example if you want to copy/paste the content of the buffer, or if you
+  want to gain space
+
 *filter_info_messages*:: [empty]
 
   A list of words or sentences separated by colons (":"). All the
