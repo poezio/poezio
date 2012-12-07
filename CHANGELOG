@@ -3,6 +3,7 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/project/poezio/roadmap
 
 * Poezio 0.8 - dev
+- Add an option to hide message timestamps.
 
 * Poezio 0.7.5.1 & 2 - Summer 2012
 - Fix tracebacks caused by a change in Sleekxmpp
