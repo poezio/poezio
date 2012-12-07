@@ -765,7 +765,7 @@ class TextWin(Win):
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 
-    def build_new_message(self, message, history=None, clean=True, highlight=False):
+    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
@@ -779,14 +779,15 @@ class TextWin(Win):
             return 0
         nick = truncate_nick(message.nickname)
         offset = 0
-        if message.str_time:
-            offset += 1 + len(message.str_time)
         if nick:
             offset += wcwidth.wcswidth(nick) + 2 # + nick + spaces length
-        if get_theme().CHAR_TIME_LEFT and message.str_time:
-            offset += 1
-        if get_theme().CHAR_TIME_RIGHT and message.str_time:
-            offset += 1
+        if timestamp:
+            if message.str_time:
+                offset += 1 + len(message.str_time)
+            if get_theme().CHAR_TIME_LEFT and message.str_time:
+                offset += 1
+            if get_theme().CHAR_TIME_RIGHT and message.str_time:
+                offset += 1
         lines = cut_text(txt, self.width-offset)
         if self.lock:
             for line in lines:
@@ -814,6 +815,7 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
+        with_timestamps = config.get("show_timestamps", 'true') != 'false'
         with g_lock:
             self._win.move(0, 0)
             self._win.erase()
@@ -827,7 +829,8 @@ class TextWin(Win):
                             color = msg.user.color
                         else:
                             color = None
-                        self.write_time(msg.str_time)
+                        if with_timestamps:
+                            self.write_time(msg.str_time)
                         self.write_nickname(msg.nickname, color)
                 if y != self.height-1:
                     self.addstr('\n')
@@ -837,7 +840,10 @@ class TextWin(Win):
                     self.write_line_separator(y)
                 else:
                     self.write_text(y,
-                            (3 if line.msg.nickname else (1 if line.msg.str_time else 0)) + len(line.msg.str_time)+len(truncate_nick(line.msg.nickname) or ''),
+                                    # Offset for the timestamp (if any) plus a space after it
+                                    (0 if not with_timestamps else (len(line.msg.str_time) + 1)) +
+                                    # Offset for the nickname (if any) plus a space and a > after it
+                                    (0 if not line.msg.nickname else (len(truncate_nick(line.msg.nickname))) + 2),
                             line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
@@ -883,8 +889,9 @@ class TextWin(Win):
 
     def rebuild_everything(self, room):
         self.built_lines = []
+        with_timestamps = config.get("show_timestamps", 'true') != 'false'
         for message in room.messages:
-            self.build_new_message(message, clean=False)
+            self.build_new_message(message, clean=False, timestamp=with_timestamps)
             if self.separator_after is message:
                 self.build_new_message(None)
         while len(self.built_lines) > self.lines_nb_limit:
