@@ -128,6 +128,11 @@ section of this documentation.
   Whether or not to add a space after a completion in the middle of the
   input (not at the start of it)
 
+*max_nick_length*:: 25
+
+  The maximum length of the nickname that will be displayed in the
+  conversation window.
+
 *show_timestamps*:: true
 
   Whether or not to display a timestamp before each message.
