@@ -1576,6 +1576,7 @@ class RosterWin(Win):
         self.start_pos = 1      # position of the start of the display
         self.roster_len = 0
         self.selected_row = None
+        self.roster_cache = [] 
 
     def move_cursor_down(self, number=1):
         """
@@ -1630,8 +1631,9 @@ class RosterWin(Win):
         We get the roster object
         """
         log.debug('Refresh: %s',self.__class__.__name__)
+        self.roster_cache = [] 
         with g_lock:
-            self.roster_len = len(roster)
+            self.roster_len = len(roster);
             while self.roster_len and self.pos >= self.roster_len:
                 self.move_cursor_up()
             self._win.erase()
@@ -1650,6 +1652,7 @@ class RosterWin(Win):
                     self.selected_row = group
                 if y >= self.start_pos:
                     self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
+                self.roster_cache.append(group)
                 y += 1
                 if group.folded:
                     continue
@@ -1662,6 +1665,8 @@ class RosterWin(Win):
                         break
                     if y >= self.start_pos:
                         self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
+                    log.debug('ammend: %s',contact.bare_jid)
+                    self.roster_cache.append(contact)
                     y += 1
                     if not contact.folded:
                         for resource in contact.get_resources():
@@ -1671,6 +1676,7 @@ class RosterWin(Win):
                                 break
                             if y >= self.start_pos:
                                 self.draw_resource_line(y-self.start_pos+1, resource, y-1==self.pos)
+                            self.roster_cache.append(resource)
                             y += 1
                 if y-self.start_pos+1 == self.height:
                     break
@@ -1777,7 +1783,12 @@ class RosterWin(Win):
         self.finish_line()
 
     def get_selected_row(self):
-        return self.selected_row
+        if self.pos >= len(self.roster_cache):
+            return self.selected_row
+        if len(self.roster_cache) > 0:
+            self.selected_row = self.roster_cache[self.pos]
+            return self.roster_cache[self.pos]
+        return None
 
 class ContactInfoWin(Win):
     def __init__(self):

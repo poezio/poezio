@@ -2559,25 +2559,28 @@ class RosterInfoTab(Tab):
         while not isinstance(self.roster_win.get_selected_row(), Contact):
             if not self.roster_win.move_cursor_up():
                 break
+        self.roster_win.refresh(roster)
 
     def move_cursor_to_next_contact(self):
         self.roster_win.move_cursor_down()
-        self.roster_win.refresh(roster)
         while not isinstance(self.roster_win.get_selected_row(), Contact):
             if not self.roster_win.move_cursor_down():
                 break
+        self.roster_win.refresh(roster)
 
     def move_cursor_to_prev_group(self):
         self.roster_win.move_cursor_up()
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_up():
                 break
+        self.roster_win.refresh(roster)
 
     def move_cursor_to_next_group(self):
         self.roster_win.move_cursor_down()
         while not isinstance(self.roster_win.get_selected_row(), RosterGroup):
             if not self.roster_win.move_cursor_down():
                 break
+        self.roster_win.refresh(roster)
 
     def on_scroll_down(self):
         return self.roster_win.move_cursor_down(self.height // 2)
