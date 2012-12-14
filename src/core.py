@@ -52,7 +52,7 @@ from logger import logger
 from roster import roster
 from contact import Contact, Resource
 from text_buffer import TextBuffer
-from keyboard import read_char
+from keyboard import keyboard
 from theming import get_theme
 from fifo import Fifo
 from windows import g_lock
@@ -205,9 +205,11 @@ class Core(object):
             "^S": self.scroll_half_up,
             "KEY_F(5)": self.rotate_rooms_left,
             "^P": self.rotate_rooms_left,
+            "M-[-D": self.rotate_rooms_left,
             'kLFT3': self.rotate_rooms_left,
             "KEY_F(6)": self.rotate_rooms_right,
             "^N": self.rotate_rooms_right,
+            "M-[-C": self.rotate_rooms_right,
             'kRIT3': self.rotate_rooms_right,
             "KEY_F(4)": self.toggle_left_pane,
             "KEY_F(7)": self.shrink_information_win,
@@ -1077,8 +1079,8 @@ class Core(object):
         curses.noecho()
         curses.nonl()
         curses.raw()
-        stdscr.idlok(True)
-        stdscr.keypad(True)
+        stdscr.idlok(1)
+        stdscr.keypad(1)
         curses.start_color()
         curses.use_default_colors()
         theming.reload_theme()
@@ -1298,14 +1300,14 @@ class Core(object):
     def read_keyboard(self):
         """
         Get the next keyboard key pressed and returns it.
-        read_char() has a timeout: it returns None when the timeout
+        get_user_input() has a timeout: it returns None when the timeout
         occurs. In that case we do not return (we loop until we get
         a non-None value), but we check for timed events instead.
         """
-        res = read_char(self.stdscr)
+        res = keyboard.get_user_input(self.stdscr)
         while res is None:
             self.check_timed_events()
-            res = read_char(self.stdscr)
+            res = keyboard.get_user_input(self.stdscr)
         return res
 
 ####################### Commands and completions ##############################
