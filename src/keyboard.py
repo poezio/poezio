@@ -115,7 +115,11 @@ def get_char_list_new(s):
                             pass
                         else:
                             key = '%s-%s' % (key, part)
-            ret_list.append('^M' if key == '\r' else key)
+            if key == '\x7f':
+                key = '^?'
+            elif key == '\r':
+                key = '^M'
+            ret_list.append(key)
 
 class Keyboard(object):
     def __init__(self):
