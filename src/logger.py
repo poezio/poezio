@@ -49,7 +49,7 @@ class Logger(object):
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if config.get('use_log', 'false') == 'false':
+        if config.get_by_tabname('use_log', 'false', room) == 'false':
             return None
         directory = os.path.join(DATA_HOME, 'logs')
         try:

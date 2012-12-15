@@ -533,6 +533,11 @@ foo = true
 
   The message you want to be sent when someone tries to message you.
 
+*use_log*:: [empty]
+
+  Use logs for this JID or not. No value will make poezio fall back to the
+  global value.
+
 *autorejoin*:: false
 
   Set to 'true' if you want to automatically rejoin the
