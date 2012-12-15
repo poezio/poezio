@@ -17,6 +17,7 @@ from os import environ, makedirs, path
 from shutil import copy2
 from args import parse_args
 
+
 class Config(RawConfigParser):
     """
     load/save the config to a file
@@ -24,7 +25,10 @@ class Config(RawConfigParser):
     def __init__(self, file_name):
         self.file_name = file_name
         RawConfigParser.__init__(self, None)
-        RawConfigParser.read(self, file_name, encoding='utf-8')
+        try:
+            RawConfigParser.read(self, file_name, encoding='utf-8')
+        except TypeError: # python < 3.2 sucks
+            RawConfigParser.read(self, file_name)
         # Check config integrity and fix it if it’s wrong
         for section in ('bindings', 'var'):
             if not self.has_section(section):
