@@ -24,6 +24,8 @@ http://dev.louiz.org/projects/poezio/roadmap
 - Add a /self command.
 - Add a /runkey command.
 - Support underlined text in the input with C-c u.
+- Add support for /set <option> toggle, which toggles the current value, if
+  it’s a bool.
 
 * Poezio 0.7.5.1 & 2 - Summer 2012
 - Fix tracebacks caused by a change in Sleekxmpp

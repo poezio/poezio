@@ -165,7 +165,7 @@ class Core(object):
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`"), self.completion_set),
+            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`. `toggle` can be used as a special value to toggle a boolean option."), self.completion_set),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
             'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
             'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
@@ -1977,7 +1977,7 @@ class Core(object):
         if len(args) == 2:
             option = args[0]
             value = args[1]
-            config.set_and_save(option, value)
+            info = config.set_and_save(option, value)
         elif len(args) == 3:
             if '|' in args[0]:
                 plugin_name, section = args[0].split('|')[:2]
@@ -1988,13 +1988,12 @@ class Core(object):
                 if not plugin_name in self.plugin_manager.plugins:
                     return
                 plugin = self.plugin_manager.plugins[plugin_name]
-                plugin.config.set_and_save(option, value, section)
+                info = plugin.config.set_and_save(option, value, section)
             else:
                 section = args[0]
                 option = args[1]
                 value = args[2]
-                config.set_and_save(option, value, section)
-        msg = "%s=%s" % (option, value)
+                info = config.set_and_save(option, value, section)
         # Remove all gaptabs if switching from gaps to nogaps
         if option == 'create_gaps' and value.lower() == 'false':
             self.tabs = list(filter(lambda x: bool(x), self.tabs))
@@ -2002,7 +2001,7 @@ class Core(object):
             path = os.path.expanduser(value)
             self.plugin_manager.on_plugins_dir_change(path)
         self.call_for_resize()
-        self.information(msg, 'Info')
+        self.information(info, "Info")
 
     def completion_set(self, the_input):
         """Completion for /set"""

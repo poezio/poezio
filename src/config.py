@@ -158,12 +158,25 @@ class Config(RawConfigParser):
         set the value in the configuration then save it
         to the file
         """
+        # Special case for a 'toggle' value. We take the current value
+        # and set the opposite. Warning if the no current value exists
+        # or it is not a bool.
+        if value == "toggle":
+            current = self.get(option, "", section)
+            if current.lower() == "false":
+                value = "true"
+            elif current.lower() == "true":
+                value = "false"
+            else:
+                return "Could not toggle option: %s. Current value is %s." % (option, current or "empty")
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
             self.add_section(section)
             RawConfigParser.set(self, section, option, value)
         self.write_in_file(section, option, value)
+        return "%s=%s" % (option, value)
+
 
     def set(self, option, value, section=DEFSECTION):
         """

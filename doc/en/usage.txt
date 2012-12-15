@@ -276,14 +276,17 @@ These commands work in *any* tab.
 
 */bookmarks*:: Show the current bookmarks.
 
-*/set [plugin|][section] <option> <value>*:: Set the value to the option in your
- configuration file. You can, for example, change your default nickname by
- doing "/set default_nick toto" or your resource with "/set resource blabla".
- Doing so will write in the main config file, and in the main section
- ([Poezio]). But you can also write to another section, with "/set bindings
- M-i ^i", to a plugin configuration with "/set mpd_client| host main" (notice
- the *|*, it is mandatory to write in a plugin), or even to another section
- in a plugin configuration "/set plugin|other_section option value".
+*/set [plugin|][section] <option> <value>*:: Set the value to the option in
+ your configuration file. You can, for example, change your default nickname
+ by doing "/set default_nick toto" or your resource with "/set resource
+ blabla".  Doing so will write in the main config file, and in the main
+ section ([Poezio]). But you can also write to another section, with "/set
+ bindings M-i ^i", to a plugin configuration with "/set mpd_client| host
+ main" (notice the *|*, it is mandatory to write in a plugin), or even to
+ another section in a plugin configuration "/set plugin|other_section option
+ value".  *toggle* can be used as a special value for a boolean option. It
+ just set the option to true if it’s currently false, and to false if it’s
+ currently true.
 
 */move_tab <source> <destination>*:: Move tab <source> to <destination>. If
 the create_gaps option is true, then it will leave a gap at the <source>
