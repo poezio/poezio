@@ -18,7 +18,7 @@ from datetime import datetime
 from config import config
 from theming import get_theme
 
-Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user identifier')
+Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user identifier highlight')
 
 class TextBuffer(object):
     """
@@ -40,7 +40,7 @@ class TextBuffer(object):
         return self.messages[-1] if self.messages else None
 
 
-    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None):
+    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False):
         time = time or datetime.now()
         if txt.startswith('/me '):
             if nick_color:
@@ -57,12 +57,12 @@ class TextBuffer(object):
                 nick_color=nick_color,
                 time=time,
                 str_time=(time.strftime("%Y-%m-%d %H:%M:%S") if history else time.strftime("%H:%M:%S")) if str_time is None else '',
-                      nickname=nickname, user=user, identifier=identifier)
+                      nickname=nickname, user=user, identifier=identifier, highlight=highlight)
         log.debug('Set message %s with %s.' % (identifier, msg))
         return msg
 
     def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None, str_time=None):
-        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier, str_time)
+        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier, str_time, highlight)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
@@ -79,7 +79,7 @@ class TextBuffer(object):
     def modify_message(self, txt, old_id, new_id):
         for i, msg in enumerate(self.messages):
             if msg.identifier == old_id:
-                message = self.make_message(txt, msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id)
+                message = self.make_message(txt, msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, msg.highlight)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.' % (old_id, new_id))
                 return

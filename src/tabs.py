@@ -1574,26 +1574,26 @@ class MucTab(ChatTab):
         """
         Set the tab color and returns the nick color
         """
-        color = None
+        highlighted = False
         if not time and nickname and nickname != self.own_nick and self.joined:
             if self.own_nick.lower() in txt.lower():
                 if self.state != 'current':
                     self.state = 'highlight'
-                color = get_theme().COLOR_HIGHLIGHT_NICK
+                highlighted = True
             else:
                 highlight_words = config.get_by_tabname('highlight_on', '', self.general_jid, True).split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
                         if self.state != 'current':
                             self.state = 'highlight'
-                        color = get_theme().COLOR_HIGHLIGHT_NICK
+                        highlighted = True
                         break
-        if color:
+        if highlighted:
             beep_on = config.get('beep_on', 'highlight private').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if config.get_by_tabname('disable_beep', 'false', self.name, False).lower() != 'true':
                     curses.beep()
-        return color
+        return highlighted
 
     def get_user_by_name(self, nick):
         """
@@ -1628,8 +1628,6 @@ class MucTab(ChatTab):
             txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
         else:                   # TODO
             highlight = self.do_highlight(txt, time, nickname)
-            if highlight:
-                nick_color = highlight
         time = time or datetime.now()
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
         return highlight

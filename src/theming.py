@@ -80,7 +80,10 @@ class Theme(object):
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
     COLOR_INFORMATION_TEXT = (5, -1) # TODO
-    COLOR_HIGHLIGHT_NICK = (3, 5, 'b')
+    # "reverse" is a special value, available only for this option. It just
+    # takes the nick colors and reverses it. A theme can still specify a
+    # fixed color if need be.
+    COLOR_HIGHLIGHT_NICK = "reverse"
 
     # User list color
     COLOR_USER_VISITOR = (239, -1)

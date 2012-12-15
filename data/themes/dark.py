@@ -14,8 +14,6 @@ class DarkTheme(theming.Theme):
     COLOR_NEW_TEXT_SEPARATOR = (213, -1)
     COLOR_MORE_INDICATOR = (6, 4)
 
-    COLOR_HIGHLIGHT_NICK = (236, 202, 'b')
-
     COLOR_TAB_NORMAL = (-1, 236)
     COLOR_TAB_CURRENT = (-1, 16)
     COLOR_TAB_NEW_MESSAGE = (3, 236)

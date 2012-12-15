@@ -831,7 +831,18 @@ class TextWin(Win):
                             color = None
                         if with_timestamps:
                             self.write_time(msg.str_time)
-                        self.write_nickname(msg.nickname, color)
+                        if msg.highlight:
+                            hl_color = get_theme().COLOR_HIGHLIGHT_NICK
+                            if hl_color == "reverse":
+                                self._win.attron(curses.A_REVERSE)
+                            else:
+                                color = hl_color
+                            self.write_nickname(msg.nickname, color)
+                            if hl_color == "reverse":
+                                self._win.attroff(curses.A_REVERSE)
+                        else:
+                            self.write_nickname(msg.nickname, color)
+                        self.addstr("> ")
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
@@ -871,7 +882,6 @@ class TextWin(Win):
         self.addstr(truncate_nick(nickname))
         if color:
             self._win.attroff(to_curses_attr(color))
-        self.addstr("> ")
 
     def write_time(self, time):
         """
