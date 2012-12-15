@@ -81,15 +81,19 @@ class Logger(object):
             return
 
         pos = fd.seek(0, 2)
-        while len(fd.readlines()) < nb + 1:
+        reads = fd.readlines()
+        while len(reads) < nb + 1:
             pos -= 100
             if pos < 0:
                 break
             fd.seek(pos)
-        fd.seek(pos)
-        logs = fd.readlines()
+            try:
+                reads = fd.readlines()
+            except UnicodeDecodeError:
+                pass
         fd.close()
-        return logs[-nb:]
+        logs = reads[-nb:]
+        return logs
 
     def log_message(self, jid, nick, msg):
         """
