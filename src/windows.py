@@ -253,9 +253,15 @@ class UserList(Win):
                     break
             # draw indicators of position in the list
             if self.pos > 0:
-                self.draw_plus(0)
+                if config.get('user_list_sort', 'desc').lower() == 'asc':
+                    self.draw_plus(self.height-1)
+                else:
+                    self.draw_plus(0)
             if self.pos + self.height < len(users):
-                self.draw_plus(self.height-1)
+                if config.get('user_list_sort', 'desc').lower() == 'asc':
+                    self.draw_plus(0)
+                else:
+                    self.draw_plus(self.height-1)
             self._refresh()
 
     def draw_role_affiliation(self, y, user):
