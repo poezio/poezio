@@ -435,7 +435,7 @@ class ChatTab(Tab):
         self.update_keys()
 
         # Get the logs
-        log_nb = config.get('load_log', 200)
+        log_nb = config.get('load_log', 10)
 
         if isinstance(self, PrivateTab):
             logs = logger.get_logs(safeJID(self.get_name()).full.replace('/', '\\'), log_nb)

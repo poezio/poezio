@@ -63,7 +63,7 @@ class Logger(object):
         except IOError:
             return None
 
-    def get_logs(self, jid, nb=200):
+    def get_logs(self, jid, nb=10):
         """
         Get the log history for the given jid
         """
