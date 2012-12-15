@@ -1,9 +1,29 @@
 This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
-http://dev.louiz.org/project/poezio/roadmap
+http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8 - dev
-- Add an option to hide message timestamps.
+- Add an option (show_timestamps) to show message timestamps.
+- Add an option (hide_user_list) to hide the user list in MUCs.
+- Add a "reverse" theme option for highlight nicks that displays
+  the nick in reverse mode on highlight messages.
+- Use get_wch() if available (introduced in python3.3) instead of our custom
+  way to read unicode input.
+- Add an option to preload last logs into the conversation when opening a new tab.
+- Introduce support for XEP 308, Last message correction
+  (http://xmpp.org/extensions/xep-0308.html).
+- Rewrite the Executor class to make remote execution more reliable, and
+  command easier to write (without a lot of escaping to do).
+- Increase roster speed a lot.
+- Add option to sort the roster more precisely.
+- Add an option to avoid gap in the tab numbering when closing a tab.
+- Add a /move_tab command, to move tabs.
+- Add simple communication blocking support
+  (http://xmpp.org/extensions/xep-0191.html).
+- Add last activity support (http://xmpp.org/extensions/xep-0012.html).
+- Add a /self command.
+- Add a /runkey command.
+- Support underlined text in the input with C-c u.
 
 * Poezio 0.7.5.1 & 2 - Summer 2012
 - Fix tracebacks caused by a change in Sleekxmpp
