@@ -49,7 +49,7 @@ class Logger(object):
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if config.get_by_tabname('use_log', 'false', room) == 'false':
+        if config.get('use_log', 'false') == 'false':
             return None
         directory = os.path.join(DATA_HOME, 'logs')
         try:
@@ -67,17 +67,26 @@ class Logger(object):
         """
         Get the log history for the given jid
         """
+        if config.get_by_tabname('use_log', 'false', jid) == 'false':
+            return
+
         if nb <= 0:
-            return None
+            return
         directory = os.path.join(DATA_HOME, 'logs')
         try:
             fd = open(os.path.join(directory, jid), 'r')
         except:
-            return None
-        else:
-            if not fd:
-                return None
+            return
+        if not fd:
+            return
 
+        pos = fd.seek(0, 2)
+        while len(fd.readlines()) < nb + 1:
+            pos -= 100
+            if pos < 0:
+                break
+            fd.seek(pos)
+        fd.seek(pos)
         logs = fd.readlines()
         fd.close()
         return logs[-nb:]
