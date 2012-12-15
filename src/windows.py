@@ -504,6 +504,7 @@ class ConversationInfoWin(InfoWin):
         """
         for key in informations:
             self.addstr(informations[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
     def write_resource_information(self, resource):
         """
         Write the informations about the resource

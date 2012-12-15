@@ -1509,15 +1509,17 @@ class Core(object):
                 self.current_tab_nb = nb
         else:
             for tab in self.tabs:
-                if nb in safeJID(tab.get_name()).user:
-                    self.current_tab_nb = tab.nb
+                for name in tab.matching_names():
+                    if nb in name:
+                        self.current_tab_nb = tab.nb
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
     def completion_win(self, the_input):
         """Completion for /win"""
-        l =  [safeJID(tab.get_name()).user for tab in self.tabs]
-        l.remove('')
+        l = []
+        for tab in self.tabs:
+            l.extend(tab.matching_names())
         return the_input.auto_completion(l, ' ', quotify=False)
 
     def command_move_tab(self, arg):

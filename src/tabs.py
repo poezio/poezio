@@ -366,6 +366,15 @@ class Tab(object):
         if self.input:
             self.input.on_delete()
 
+    def matching_names(self):
+        """
+        Returns a list of strings that are used to name a tab with the /win
+        command.  For example you could switch to a tab that returns
+        ['hello', 'coucou'] using /win hel, or /win coucou
+        If not implemented in the tab, it just doesn’t match with anything.
+        """
+        return []
+
     def __del__(self):
         log.debug('------ Closing tab %s', self.__class__.__name__)
 
@@ -1632,6 +1641,9 @@ class MucTab(ChatTab):
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
         return highlight
 
+    def matching_names(self):
+        return [safeJID(self.get_name()).user]
+
 class PrivateTab(ChatTab):
     """
     The tab containg a private conversation (someone from a MUC)
@@ -1899,6 +1911,9 @@ class PrivateTab(ChatTab):
                 history=None,
                 user=forced_user,
                 identifier=identifier)
+
+    def matching_names(self):
+        return [safeJID(self.get_name()).resource]
 
 class RosterInfoTab(Tab):
     """
@@ -2972,6 +2987,12 @@ class ConversationTab(ChatTab):
                 user=forced_user,
                 identifier=identifier)
 
+    def matching_names(self):
+        contact = roster[self.get_name()]
+        res = [contact.bare_jid if contact else safeJID(self.get_name()).bare]
+        if contact and contact.name:
+            res.append(contact.name)
+        return res
 
 class MucListTab(Tab):
     """
@@ -3143,7 +3164,6 @@ class MucListTab(Tab):
         self.core.doupdate()
 
 class XMLTab(Tab):
-
     def __init__(self):
         Tab.__init__(self)
         self.state = 'normal'
