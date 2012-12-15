@@ -111,6 +111,10 @@ class Theme(object):
     # Color for the /me message
     COLOR_ME_MESSAGE = (6, -1)
 
+    # Color for various important text. For example the "?" before JIDs in
+    # the roster that require an user action.
+    COLOR_IMPORTANT_TEXT = (3, 5, 'b')
+
     # Separators
     COLOR_VERTICAL_SEPARATOR = (4, -1)
     COLOR_NEW_TEXT_SEPARATOR = (2, -1)

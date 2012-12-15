@@ -1767,7 +1767,7 @@ class RosterWin(Win):
         else:
             self.addstr(display_name)
         if contact.ask:
-            self.addstr('?', to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
+            self.addstr('?', to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
         self.finish_line()
 
     def draw_resource_line(self, y, resource, colored):
@@ -1815,7 +1815,7 @@ class ContactInfoWin(Win):
         if contact.ask:
             self.addstr(' ')
             if contact.ask == 'asked':
-                self.addstr('Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_HIGHLIGHT_NICK))
+                self.addstr('Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
             else:
                 self.addstr('Ask: %s' % (contact.ask,))
         self.finish_line()
