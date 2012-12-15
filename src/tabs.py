@@ -269,7 +269,7 @@ class Tab(object):
         """
         Called on each screen refresh (when something has changed)
         """
-        raise NotImplementedError
+        pass
 
     def get_name(self):
         """
@@ -388,6 +388,9 @@ class GapTab(Tab):
 
     def get_name(self):
         return ''
+
+    def refresh(self):
+        log.debug('WARNING: refresh() called on a gap tab, this should not happen')
 
 class ChatTab(Tab):
     """
@@ -611,7 +614,7 @@ class ChatTab(Tab):
             return self._text_buffer.messages
 
     def command_say(self, line):
-        raise NotImplementedError
+        pass
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)

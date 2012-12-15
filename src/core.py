@@ -1012,6 +1012,10 @@ class Core(object):
         if config.get('create_gaps', 'false').lower() == 'true':
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
+                nb -= 1
+                while not self.tabs[nb]: # remove the trailing gaps
+                    self.tabs.pop()
+                    nb -= 1
             else:
                 self.tabs[nb] = tabs.GapTab()
         else:
@@ -1506,6 +1510,8 @@ class Core(object):
         self.current_tab().on_lose_focus()
         if isinstance(nb, int):
             if 0 <= nb < len(self.tabs):
+                if not self.tabs[nb]:
+                    return
                 self.current_tab_nb = nb
         else:
             for tab in self.tabs:
