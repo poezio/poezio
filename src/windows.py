@@ -239,8 +239,10 @@ class UserList(Win):
                 y = 0
                 users = sorted(users)
 
-            if self.pos >= len(users) and self.pos != 0:
-                self.pos = len(users)-1
+            if len(users) < self.height:
+                self.pos = 0
+            elif self.pos >= len(users) - self.height and self.pos != 0:
+                self.pos = len(users) - self.height
             for user in users[self.pos:]:
                 self.draw_role_affiliation(y, user)
                 self.draw_status_chatstate(y, user)
