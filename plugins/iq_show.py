@@ -11,4 +11,3 @@ class Plugin(BasePlugin):
 
     def cleanup(self):
         self.core.xmpp.remove_handler('Iq_show')
-        del self.handle_iq

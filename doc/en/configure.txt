@@ -525,6 +525,12 @@ foo = true
 
   Ignore private messages sent from this room.
 
+*load_log*:: 10
+
+  The number of line to preload in a chat buffer when it opens. The lines are
+  loaded from the log files. 0 or a negative value here disable that option.
+  No value makes poezio fall back to the global value.
+
 *private_auto_response*:: "Not in private, please."
 
   The message you want to be sent when someone tries to message you.
