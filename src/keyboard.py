@@ -59,9 +59,9 @@ def get_char_list_old(s):
                 continue
             if first == 27:
                 second = get_char_list_old(s)
-                if second is None: # if escape was pressed, a second char
+                if not second: # if escape was pressed, a second char
                                    # has to be read. But it timed out.
-                    return None
+                    return []
                 res = 'M-%s' % (second[0],)
                 ret_list.append(res)
                 (first, char) = get_next_byte(s)
