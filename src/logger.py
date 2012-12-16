@@ -49,8 +49,8 @@ class Logger(object):
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if config.get('use_log', 'false') == 'false':
-            return None
+        if config.get_by_tabname('use_log', 'false', room) == 'false':
+            return
         directory = os.path.join(DATA_HOME, 'logs')
         try:
             makedirs(directory)
@@ -61,13 +61,13 @@ class Logger(object):
             self.fds[room] = fd
             return fd
         except IOError:
-            return None
+            return
 
     def get_logs(self, jid, nb=10):
         """
         Get the log history for the given jid
         """
-        if config.get_by_tabname('use_log', 'false', jid) == 'false':
+        if config.get_by_tabname('load_log', 10, jid) <= 0:
             return
 
         if nb <= 0:
@@ -83,9 +83,11 @@ class Logger(object):
         pos = fd.seek(0, 2)
         reads = fd.readlines()
         while len(reads) < nb + 1:
+            if pos == 0:
+                break
             pos -= 100
             if pos < 0:
-                break
+                pos = 0
             fd.seek(pos)
             try:
                 reads = fd.readlines()
