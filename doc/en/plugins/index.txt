@@ -144,7 +144,7 @@ Plugins index
 
     Replace some patterns in your messages.
 
-*Time Marker*:: link::time_marker.html[Time marker plugin]
+*Time Marker*:: link:time_marker.html[Time marker plugin]
 
     Display the time between two messages.
 
