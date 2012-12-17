@@ -16,6 +16,7 @@ import ssl
 
 from functools import reduce
 from hashlib import sha1
+from threading import Event
 from datetime import datetime
 from xml.etree import cElementTree as ET
 
@@ -119,6 +120,7 @@ class Core(object):
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.paused = False
+        self.event = Event()
         self.debug = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
@@ -400,7 +402,6 @@ class Core(object):
                 res.append(current)
             return res
         while self.running:
-            if self.paused: continue
             big_char_list = [common.replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
             # whether to refresh after ALL keys have been handled
@@ -408,6 +409,7 @@ class Core(object):
                 if self.paused:
                     self.current_tab().input.do_command(char_list[0])
                     self.current_tab().input.prompt()
+                    self.event.set()
                     continue
                 # Special case for M-x where x is a number
                 if len(char_list) == 1:
@@ -2922,14 +2924,14 @@ class Core(object):
             else:
                 saved_input = self.current_tab().input
                 log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, found_cert)
-                input = windows.YesNoInput(text="WARNING! Certificate hash changed to %s. Accept? (y/n)" % found_cert)
+                input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n) (%s)" % found_cert)
                 self.current_tab().input = input
                 input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
                 input.refresh()
                 self.doupdate()
                 self.paused = True
                 while input.value is None:
-                    pass
+                    self.event.wait()
                 self.current_tab().input = saved_input
                 self.paused = False
                 if input.value:
