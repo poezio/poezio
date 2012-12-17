@@ -38,6 +38,8 @@ class DarkTheme(theming.Theme):
     COLOR_VERTICAL_TAB_ATTENTION = (6, -1)
     COLOR_VERTICAL_TAB_DISCONNECTED = (13, -1)
 
+    COLOR_INFORMATION_TEXT = (244, -1)
+
 
 theme = DarkTheme()
 
