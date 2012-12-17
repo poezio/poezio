@@ -1,0 +1,31 @@
+Time Marker
+===========
+
+Display the time between two messages.
+
+Installation
+------------
+
+You only have to load the plugin.
+
+================
+
+ /load amsg
+
+================
+
+Configuration
+-------------
+
+You can configure the minimum delay between two messages, to display the time marker, in seconds. The default is 10 minutes (aka 600 seconds).
+
+[source,conf]
+---------------------------------------------------------------------
+[time_marker]
+delay = 600
+---------------------------------------------------------------------
+
+Usage
+-----
+
+Messages like “2 hours, 25 minutes passed…” are automatically displayed into the converstation. You don’t need to (and can’t) do anything.
