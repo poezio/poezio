@@ -608,10 +608,7 @@ class ChatTab(Tab):
         self.input.refresh()
 
     def get_conversation_messages(self):
-        if self.text_win.pos:
-            return self._text_buffer.messages[:-self.text_win.pos]
-        else:
-            return self._text_buffer.messages
+        return self._text_buffer.messages
 
     def command_say(self, line):
         pass
