@@ -998,7 +998,7 @@ class MucTab(ChatTab):
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_participant,
                     participant[1],  participant[0].color[0], participant[0].nick))
         for visitor in visitors:
-            buf.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_visitor,
+            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_visitor,
                     visitor[1],  visitor[0].color[0], visitor[0].nick))
         for other in others:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_other,
