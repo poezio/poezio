@@ -115,7 +115,7 @@ def get_char_list_new(s):
                             pass
                         else:
                             key = '%s-%s' % (key, part)
-            if key == '\x7f':
+            if key == '\x7f' or key == '\x08':
                 key = '^?'
             elif key == '\r':
                 key = '^M'
