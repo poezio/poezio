@@ -73,6 +73,8 @@ class Bookmark(object):
         if self.nick:
             local += '/%s' % self.nick
         local += ':'
+        if self.password:
+            config.set_and_save('password', self.password, section=self.jid)
         return local
 
     def parse_from_element(el, method=None):
@@ -211,6 +213,7 @@ def get_local():
             nick = jid.resource
         else:
             nick = None
-        b = Bookmark(jid.bare, autojoin=True, nick=nick, method='local')
+        passwd = config.get_by_tabname('password', '', jid.bare, fallback=False) or None
+        b = Bookmark(jid.bare, autojoin=True, nick=nick, password=passwd, method='local')
         if not get_by_jid(b.jid):
             bookmarks.append(b)

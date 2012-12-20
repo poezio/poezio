@@ -531,6 +531,10 @@ foo = true
   loaded from the log files. 0 or a negative value here disable that option.
   No value makes poezio fall back to the global value.
 
+*password:: [empty]
+
+  The password needed to join the room.
+
 *private_auto_response*:: "Not in private, please."
 
   The message you want to be sent when someone tries to message you.

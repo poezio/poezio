@@ -165,7 +165,7 @@ class Core(object):
             'move_tab': (self.command_move_tab, _("Usage: /move_tab <source> <destination>\nMove Tab: Insert the <source> tab at the position of <destination>. This will make the following tabs shift in some cases (refer to the documentation). A tab can be designated by its number or by the beginning of its address."), self.completion_move_tab),
             'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
             'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
+            'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick] [password]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
             'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
             'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`. `toggle` can be used as a special value to toggle a boolean option."), self.completion_set),
             'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
@@ -1695,6 +1695,8 @@ class Core(object):
                 histo_length= None
         if histo_length is not None:
             histo_length= str(histo_length)
+        if password is None: # try to use a saved password
+            password = config.get_by_tabname('password', None, room, fallback=False)
         if tab and not tab.joined:
             delta = datetime.now() - tab.last_connection
             seconds = delta.seconds + delta.days * 24 * 3600 if tab.last_connection is not None else 0
@@ -1757,10 +1759,11 @@ class Core(object):
 
     def command_bookmark_local(self, arg=''):
         """
-        /bookmark_local [room][/nick]
+        /bookmark_local [room][/nick] [password]
         """
         args = common.shell_split(arg)
         nick = None
+        password = None
         if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
             return
         if len(args) == 0:
@@ -1790,6 +1793,8 @@ class Core(object):
                 if not isinstance(self.current_tab(), tabs.MucTab):
                     return
                 roomname = self.current_tab().get_name()
+            if len(args) > 1:
+                password = args[1]
 
         bm = bookmark.get_by_jid(roomname)
         if not bm:
@@ -1801,6 +1806,7 @@ class Core(object):
         if nick:
             bm.nick = nick
         bm.autojoin = True
+        bm.password = password
         bm.method = "local"
         bookmark.save_local()
         self.information(_('Your local bookmarks are now: %s') %
@@ -2778,7 +2784,7 @@ class Core(object):
                 histo_length= None
             if histo_length is not None:
                 histo_length= str(histo_length)
-            muc.join_groupchat(self.xmpp, bm.jid, nick, None, histo_length)
+            muc.join_groupchat(self.xmpp, bm.jid, nick, bm.password, histo_length)
 
     ### Other handlers ###
 
