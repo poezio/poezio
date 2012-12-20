@@ -194,6 +194,14 @@ class Theme(object):
     # Vertical tab list color
     COLOR_VERTICAL_TAB_NUMBER = (34, -1)
 
+    # Info messages color (the part before the ">")
+    INFO_COLORS = {
+            'Info': (5, -1),
+            'Error': (16, 1),
+            'Roster': (2, 16),
+            'default': (0, -1),
+    }
+
 # This is the default theme object, used if no theme is defined in the conf
 theme = Theme()
 

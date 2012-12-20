@@ -1062,7 +1062,9 @@ class Core(object):
             if words and words in msg:
                 log.debug('Did not show the message:\n\t%s> %s', typ, msg)
                 return False
-        nb_lines = self.information_buffer.add_message(msg, nickname=typ)
+        colors = get_theme().INFO_COLORS
+        color = colors.get(typ, colors.get('default', None))
+        nb_lines = self.information_buffer.add_message(msg, nickname=typ, nick_color=color)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
         elif typ != '' and typ.lower() in config.get('information_buffer_popup_on',
