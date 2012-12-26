@@ -114,6 +114,9 @@ class Theme(object):
     # Color for the /me message
     COLOR_ME_MESSAGE = (6, -1)
 
+    # Color for the number of revisions of a message
+    COLOR_REVISIONS_MESSAGE = (3, -1, 'b')
+
     # Color for various important text. For example the "?" before JIDs in
     # the roster that require an user action.
     COLOR_IMPORTANT_TEXT = (3, 5, 'b')

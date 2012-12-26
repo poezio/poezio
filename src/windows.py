@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 import curses
 import string
+from math import ceil, log10
 from config import config
 
 from threading import RLock
@@ -789,8 +790,9 @@ class TextWin(Win):
         nick = truncate_nick(message.nickname)
         offset = 0
         if nick:
-            # TODO: add the number of corrections.
             offset += wcwidth.wcswidth(nick) + 2 # + nick + '> ' length
+        if message.revisions > 0:
+            offset += ceil(log10(message.revisions + 1))
         if message.me:
             offset += 1 # '* ' before and ' ' after
         if timestamp:
@@ -846,9 +848,17 @@ class TextWin(Win):
                             self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
                             self.addstr('* ')
                             self.write_nickname(msg.nickname, color, msg.highlight)
+                            if msg.revisions:
+                                self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
+                                self.addstr('%d' % msg.revisions)
+                                self._win.attrset(0)
                             self.addstr(' ')
                         else:
                             self.write_nickname(msg.nickname, color, msg.highlight)
+                            if msg.revisions:
+                                self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
+                                self.addstr('%d' % msg.revisions)
+                                self._win.attrset(0)
                             self.addstr('> ')
                 if y != self.height-1:
                     self.addstr('\n')
@@ -861,7 +871,7 @@ class TextWin(Win):
                                     # Offset for the timestamp (if any) plus a space after it
                                     (0 if not with_timestamps else (len(line.msg.str_time) + 1)) +
                                     # Offset for the nickname (if any) plus a space and a > after it
-                                    (0 if not line.msg.nickname else (len(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2))),
+                                    (0 if not line.msg.nickname else (len(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
                             line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')

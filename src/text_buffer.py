@@ -18,7 +18,7 @@ from datetime import datetime
 from config import config
 from theming import get_theme
 
-Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user identifier highlight me old_message')
+Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user identifier highlight me old_message revisions')
 
 class TextBuffer(object):
     """
@@ -40,7 +40,7 @@ class TextBuffer(object):
         return self.messages[-1] if self.messages else None
 
 
-    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None):
+    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None, revisions=0):
         time = time or datetime.now()
         me = False
         if txt.startswith('/me '):
@@ -56,7 +56,8 @@ class TextBuffer(object):
                 identifier=identifier,
                 highlight=highlight,
                 me=me,
-                old_message=old_message)
+                old_message=old_message,
+                revisions=revisions)
         log.debug('Set message %s with %s.' % (identifier, msg))
         return msg
 
@@ -78,7 +79,7 @@ class TextBuffer(object):
     def modify_message(self, txt, old_id, new_id, highlight=False, time=None):
         for i, msg in enumerate(self.messages):
             if msg.identifier == old_id:
-                message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg)
+                message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.' % (old_id, new_id))
                 return
