@@ -2455,7 +2455,8 @@ class Core(object):
             date = date if delayed == True else None
             replaced_id = message['replace']['id']
             if replaced_id is not '':
-                tab.modify_message(body, replaced_id, message['id'])
+                if tab.modify_message(body, replaced_id, message['id'], date, nick_from):
+                    self.events.trigger('highlight', message, tab)
             elif tab.add_message(body, date, nick_from, history=True if date else False, identifier=message['id']):
                 self.events.trigger('highlight', message, tab)
             if tab is self.current_tab():

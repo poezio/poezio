@@ -590,11 +590,6 @@ class ChatTab(Tab):
     def completion_correct(self, the_input):
         return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
 
-    def modify_message(self, txt, old_id, new_id):
-        self._text_buffer.modify_message(txt, old_id, new_id)
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.core.refresh_window()
-
     @property
     def inactive(self):
         """Whether we should send inactive or active as a chatstate"""
@@ -1639,6 +1634,14 @@ class MucTab(ChatTab):
             highlight = self.do_highlight(txt, time, nickname)
         time = time or datetime.now()
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
+        return highlight
+
+    def modify_message(self, txt, old_id, new_id, time=None, nickname=None):
+        self.log_message(txt, time, nickname)
+        highlight = self.do_highlight(txt, time, nickname)
+        self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time)
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.core.refresh_window()
         return highlight
 
     def matching_names(self):
