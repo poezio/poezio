@@ -70,6 +70,11 @@ Plugins index
     Logs the day change inside the buffers, to keep track of the days when
     backlogging.
 
+*Display corrections*:: link:display_corrections.html[Display corrections
+plugin]
+
+    Lists old versions of a corrected message.
+
 *Exec*:: link:exec.html[System command plugin]
 
     Runs a system command an optionally sends the output as a message.

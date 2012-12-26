@@ -1,0 +1,32 @@
+Display corrections
+===================
+
+Lists old versions of a corrected message.
+
+Installation
+------------
+
+============================
+
+ /load display\_corrections
+
+============================
+
+
+Usage
+-----
+This plugin adds a _/display\_corrections command that will display a list of
+old versions of a message.
+
+
+_/display\_corrections_ without argument will list the last corrected message,
+if any is found.  If an integer argument is given, /display\_corrections will
+go back gradually in the buffer to list the previous corrected messages, and so
+on.
+
+
+If you are scrolling in the buffer, poezio will list the corrected messages
+starting from the first you can see.  (although there are some problems with
+multiline messages).
+
+
