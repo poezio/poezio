@@ -35,9 +35,10 @@ class Executor(threading.Thread):
     WARNING: Be careful to properly escape what is untrusted by using
     pipes.quote (or shlex.quote with python 3.3) for example.
     """
-    def __init__(self, command):
+    def __init__(self, command, remote=False):
         threading.Thread.__init__(self)
         self.command = command
+        self.remote = remote
         # check for > or >> special case
         self.filename = None
         self.redirection_mode = 'w'
@@ -57,7 +58,14 @@ class Executor(threading.Thread):
             except (OSError, IOError) as e:
                 log.error('Could not open redirection file: %s (%s)' % (self.filename, e,))
                 return
-        subprocess.call(self.command, stdout=stdout)
+        try:
+            subprocess.call(self.command, stdout=stdout)
+        except:
+            import traceback
+            if self.remote:
+                print(traceback.format_exc())
+            else:
+                log.error('Could not execute %s:\n%s', self.command, traceback.format_exc())
 
 def main():
     while True:
@@ -65,7 +73,7 @@ def main():
         if line == '':
             break
         command = shlex.split(line)
-        e = Executor(command)
+        e = Executor(command, remote=True)
         e.start()
 
 if __name__ == '__main__':
