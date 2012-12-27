@@ -50,6 +50,7 @@ def get_char_list_old(s):
             return [char]
         if first == 127 or first == 8:
             ret_list.append("KEY_BACKSPACE")
+            break
         s.timeout(0)            # we are now getting the missing utf-8 bytes to get a whole char
         if first < 127:  # ASCII char on one byte
             if first <= 26:         # transform Ctrl+* keys
