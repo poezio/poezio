@@ -1183,16 +1183,18 @@ class Core(object):
     def grow_information_win(self, nb=1):
         if self.information_win_size >= self.current_tab().height -5 or \
                 self.information_win_size+nb >= self.current_tab().height-4:
-            return
+            return 0
         if self.information_win_size == 14:
-            return
+            return 0
         self.information_win_size += nb
         if self.information_win_size > 14:
+            nb = nb - (self.information_win_size - 14)
             self.information_win_size = 14
         self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
         self.refresh_window()
+        return nb
 
     def shrink_information_win(self, nb=1):
         if self.information_win_size == 0:
@@ -1231,9 +1233,10 @@ class Core(object):
         """
         if time <= 0 or size <= 0:
             return
-        self.grow_information_win(size)
-        timed_event = timed_events.DelayedEvent(time, self.shrink_information_win, size)
+        result = self.grow_information_win(size)
+        timed_event = timed_events.DelayedEvent(time, self.shrink_information_win, result)
         self.add_timed_event(timed_event)
+        self.refresh_window()
 
     def toggle_left_pane(self):
         """
