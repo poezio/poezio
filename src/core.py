@@ -2086,7 +2086,7 @@ class Core(object):
                 self.information(_("No server specified"), "Error")
                 return
         for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and safeJID(tab.get_name()).domain == domain:
+            if isinstance(tab, tabs.MucTab) and tab.get_name().endswith(domain):
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
                 tab.joined = False
@@ -2100,13 +2100,12 @@ class Core(object):
         if txt.endswith(' '):
             n += 1
         if n == 2:
-            serv_list = []
+            serv_list = set()
             for tab in self.tabs:
                 if isinstance(tab, tabs.MucTab):
                     serv = safeJID(tab.get_name()).server
-                    if not serv in serv_list:
-                        serv_list.append(serv)
-            return the_input.auto_completion(serv_list, ' ')
+                    serv_list.add(serv)
+            return the_input.auto_completion(list(serv_list), ' ')
 
     def command_activity(self, arg):
         """
