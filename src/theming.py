@@ -161,6 +161,8 @@ class Theme(object):
     # This is your own nickname
     COLOR_OWN_NICK = (254, -1)
 
+    # This is for in-tab error messages
+    COLOR_ERROR_MSG = (9, 7, 'b')
     # Status color
     COLOR_STATUS_XA = (16, 90)
     COLOR_STATUS_NONE = (16, 4)
@@ -199,10 +201,11 @@ class Theme(object):
 
     # Info messages color (the part before the ">")
     INFO_COLORS = {
-            'Info': (5, -1),
-            'Error': (16, 1),
-            'Roster': (2, 16),
-            'default': (0, -1),
+            'info': (5, -1),
+            'error': (16, 1),
+            'roster': (2, 16),
+            'headline': (11, -1, 'b'),
+            'default': (7, -1),
     }
 
 # This is the default theme object, used if no theme is defined in the conf

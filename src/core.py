@@ -1063,7 +1063,7 @@ class Core(object):
                 log.debug('Did not show the message:\n\t%s> %s', typ, msg)
                 return False
         colors = get_theme().INFO_COLORS
-        color = colors.get(typ, colors.get('default', None))
+        color = colors.get(typ.lower(), colors.get('default', None))
         nb_lines = self.information_buffer.add_message(msg, nickname=typ, nick_color=color)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -2381,6 +2381,8 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if message['type'] == 'error':
             return self.information(self.get_error_message(message, deprecated=True), 'Error')
+        elif message['type'] == 'headline':
+            return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
         if not body:
             return
         conversation = self.get_conversation_by_jid(jid, create=True)
@@ -2887,7 +2889,7 @@ class Core(object):
         """
         tab = self.get_tab_by_name(room_name)
         error_message = self.get_error_message(error)
-        self.add_message_to_text_buffer(tab._text_buffer, error_message)
+        tab._text_buffer.add_message(error_message, highlight=True, nickname='Error', nick_color=get_theme().COLOR_ERROR_MSG)
         code = error['error']['code']
         if code == '401':
             msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
