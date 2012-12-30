@@ -1639,10 +1639,11 @@ class MucTab(ChatTab):
     def modify_message(self, txt, old_id, new_id, time=None, nickname=None):
         self.log_message(txt, time, nickname)
         highlight = self.do_highlight(txt, time, nickname)
-        self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time)
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.core.refresh_window()
-        return highlight
+        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
+            return highlight
 
     def matching_names(self):
         return [safeJID(self.get_name()).user]

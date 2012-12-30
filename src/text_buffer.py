@@ -82,8 +82,9 @@ class TextBuffer(object):
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.' % (old_id, new_id))
-                return
+                return message
         log.debug('Message %s not found in text_buffer, abort replacement.' % (old_id))
+        return
 
     def del_window(self, win):
         self.windows.remove(win)

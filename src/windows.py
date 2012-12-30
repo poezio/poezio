@@ -781,12 +781,31 @@ class TextWin(Win):
         Return the number of lines that are built for the given
         message.
         """
-        if message is None:  # line separator
-            self.built_lines.append(None)
+        lines = self.build_message(message, timestamp=timestamp)
+        if self.lock:
+            self.lock_buffer.extend(lines)
+        else:
+            self.built_lines.extend(lines)
+        if not lines or not lines[0]:
             return 0
+        if highlight:
+            self.highlights.append(lines[0])
+        if clean:
+            while len(self.built_lines) > self.lines_nb_limit:
+                self.built_lines.pop(0)
+        return len(lines)
+
+    def build_message(self, message, timestamp=False):
+        """
+        Build a list of lines from a message, without adding it
+        to a list
+        """
+        if message is None:  # line separator
+            return [None]
         txt = message.txt
         if not txt:
-            return 0
+            return []
+        ret = []
         nick = truncate_nick(message.nickname)
         offset = 0
         if nick:
@@ -803,22 +822,10 @@ class TextWin(Win):
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
         lines = cut_text(txt, self.width-offset)
-        if self.lock:
-            for line in lines:
-                self.lock_buffer.append(Line(msg=message,
-                                             start_pos=line[0],
-                                             end_pos=line[1]))
-        else:
-            for line in lines:
-                saved_line = Line(msg=message, start_pos=line[0], end_pos=line[1])
-                self.built_lines.append(saved_line)
-                if highlight:
-                    highlight = False
-                    self.highlights.append(saved_line)
-        if clean:
-            while len(self.built_lines) > self.lines_nb_limit:
-                self.built_lines.pop(0)
-            return len(lines)
+        for line in lines:
+            saved = Line(msg=message, start_pos=line[0], end_pos=line[1])
+            ret.append(saved)
+        return ret
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
@@ -931,6 +938,25 @@ class TextWin(Win):
                 self.build_new_message(None)
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
+
+    def modify_message(self, old_id, message):
+        """
+        Find a message, and replace it with a new one
+        (instead of rebuilding everything in order to correct a message)
+        """
+        with_timestamps = config.get("show_timestamps", 'true') != 'false'
+        for i in range(len(self.built_lines)-1, 0, -1):
+            if self.built_lines[i].msg.identifier == old_id:
+                index = i
+                while index > 0 and self.built_lines[index].msg.identifier == old_id:
+                    self.built_lines.pop(index)
+                    index -= 1
+                index += 1
+                lines = self.build_message(message, timestamp=with_timestamps)
+                for line in lines:
+                    self.built_lines.insert(index, line)
+                    index +=1
+                break
 
     def __del__(self):
         log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
