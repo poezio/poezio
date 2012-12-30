@@ -2403,7 +2403,11 @@ class Core(object):
         if replaced_id is not '':
             conversation.modify_message(body, replaced_id, message['id'])
         else:
-            conversation._text_buffer.add_message(body, date, nickname=remote_nick, nick_color=get_theme().COLOR_REMOTE_USER, history=delayed)
+            conversation._text_buffer.add_message(body, date,
+                    nickname=remote_nick,
+                    nick_color=get_theme().COLOR_REMOTE_USER,
+                    history=delayed,
+                    identifier=message['id'])
         if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
@@ -2502,7 +2506,8 @@ class Core(object):
             tab.modify_message(body, replaced_id, message['id'])
         else:
             tab.add_message(body, time=None, nickname=nick_from,
-                            forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from))
+                            forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from),
+                            identifier=message['id'])
         conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
         if conversation and conversation.remote_wants_chatstates is None:
             if message['chat_state']:

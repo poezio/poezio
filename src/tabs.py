@@ -451,6 +451,13 @@ class ChatTab(Tab):
                         user='',
                         str_time=''
                         )
+    def log_message(self, txt, time, nickname):
+        """
+        Log the messages in the archives, if it needs
+        to be
+        """
+        if time is None and self.joined:        # don't log the history messages
+            logger.log_message(self.name, nickname, txt)
 
     def last_words_completion(self):
         """
@@ -605,7 +612,7 @@ class ChatTab(Tab):
     def get_conversation_messages(self):
         return self._text_buffer.messages
 
-    def command_say(self, line):
+    def command_say(self, line, correct=False):
         pass
 
     def on_line_up(self):
@@ -1717,7 +1724,14 @@ class PrivateTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
-        self.add_message(msg['body'], nickname=self.core.own_nick or self.own_nick, nick_color=get_theme().COLOR_OWN_NICK)
+        if correct:
+            msg['replace']['id'] = self.last_sent_message['id']
+            self.modify_message(line, self.last_sent_message['id'], msg['id'])
+        else:
+            self.add_message(msg['body'],
+                    nickname=self.core.own_nick or self.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -1726,8 +1740,6 @@ class PrivateTab(ChatTab):
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
             msg['attention'] = True
-        if correct:
-            msg['replace']['id'] = self.last_sent_message['id']
         self.core.events.trigger('private_say_after', msg, self)
         self.last_sent_message = msg
         msg.send()
@@ -1905,8 +1917,11 @@ class PrivateTab(ChatTab):
             self.add_message(txt=reason)
 
     def modify_message(self, txt, old_id, new_id):
-        self._text_buffer.modify_message(txt, old_id, new_id)
-        self.core.refresh_window()
+        self.log_message(txt, time, self.name)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
@@ -2774,8 +2789,14 @@ class ConversationTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
-        self.add_message(msg['body'], nickname=self.core.own_nick,
-                nick_color=get_theme().COLOR_OWN_NICK)
+        if correct:
+            msg['replace']['id'] = self.last_sent_message['id']
+            self.modify_message(line, self.last_sent_message['id'], msg['id'])
+        else:
+            self.add_message(msg['body'],
+                    nickname=self.core.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
             msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
@@ -2784,8 +2805,6 @@ class ConversationTab(ChatTab):
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
             msg['attention'] = True
-        if correct:
-            msg['replace']['id'] = self.last_sent_message['id']
         self.core.events.trigger('conversation_say_after', msg, self)
         self.last_sent_message = msg
         msg.send()
@@ -2980,8 +2999,11 @@ class ConversationTab(ChatTab):
             self.send_chat_state('gone')
 
     def modify_message(self, txt, old_id, new_id):
-        self._text_buffer.modify_message(txt, old_id, new_id)
-        self.core.refresh_window()
+        self.log_message(txt, time, self.name)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
