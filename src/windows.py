@@ -946,7 +946,7 @@ class TextWin(Win):
         """
         with_timestamps = config.get("show_timestamps", 'true') != 'false'
         for i in range(len(self.built_lines)-1, -1, -1):
-            if self.build_lines[i] and self.built_lines[i].msg.identifier == old_id:
+            if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i
                 while index >= 0 and self.built_lines[index].msg.identifier == old_id:
                     self.built_lines.pop(index)
