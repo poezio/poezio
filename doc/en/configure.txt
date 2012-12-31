@@ -197,6 +197,10 @@ section of this documentation.
   The 'server' option will be ignored if you specify a JID (Jabber id)
   It should be in the form nickname@server.tld
 
+*lang*:: en
+
+  The lang some automated entities will use when replying to you.
+
 *lazy_resize*:: true
 
   Defines if all tabs are resized at the same time (if set to false)

@@ -46,7 +46,8 @@ class Connection(sleekxmpp.ClientXMPP):
                 jid = '%s/%s' % (jid, resource)
             password = None
         jid = safeJID(jid)
-        sleekxmpp.ClientXMPP.__init__(self, jid, password)
+        # TODO: use the system language
+        sleekxmpp.ClientXMPP.__init__(self, jid, password, lang=config.get('lang', 'en'))
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.reconnect_max_attempts = 0
