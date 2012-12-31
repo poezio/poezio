@@ -1528,12 +1528,12 @@ class MucTab(ChatTab):
             display_message = True
         if status != user.status:
             # if the user sets his status to nothing
-            if not status and show in SHOW_NAME:
-                msg += _('show: %s, ') % SHOW_NAME[show]
-            else:
+            if status:
                 msg += _('status: %s, ') % status
-            display_message = True
-
+                display_message = True
+            elif show in SHOW_NAME and show == user.show:
+                msg += _('show: %s, ') % SHOW_NAME[show]
+                display_message = True
         if not display_message:
             return
         msg = msg[:-2] # remove the last ", "
