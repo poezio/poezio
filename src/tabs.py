@@ -243,18 +243,25 @@ class Tab(object):
                 not txt.startswith('/me '):
             command = txt.strip().split()[0][1:]
             arg = txt[2+len(command):] # jump the '/' and the ' '
+            func = None
             if command in self.commands: # check tab-specific commands
-                self.commands[command][0](arg)
+                func = self.commands[command][0]
             elif command in self.core.commands: # check global commands
-                self.core.commands[command][0](arg)
+                func = self.core.commands[command][0]
             else:
                 low = command.lower()
                 if low in self.commands:
-                    self.commands[low][0](arg)
+                    func = self.commands[low][0]
                 elif low in self.core.commands:
-                    self.core.commands[low][0](arg)
+                    func = self.core.commands[low][0]
                 else:
                     self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+            if command in ('correct', 'say'): # hack
+                arg = xhtml.convert_simple_to_full_colors(arg)
+            else:
+                arg = xhtml.clean_text_simple(arg)
+            if func:
+                func(arg)
             return True
         else:
             return False
@@ -481,8 +488,7 @@ class ChatTab(Tab):
     def on_enter(self):
         txt = self.input.key_enter()
         if txt:
-            clean_text = xhtml.clean_text_simple(txt)
-            if not self.execute_command(clean_text):
+            if not self.execute_command(txt):
                 if txt.startswith('//'):
                     txt = txt[1:]
                 self.command_say(xhtml.convert_simple_to_full_colors(txt))
