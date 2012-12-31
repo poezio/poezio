@@ -1,6 +1,9 @@
 Install
 =======
 
+NOTE: Python 3.2 or better is highly recommended, as we do not officially
+support python 3.1 (although we do try to keep things running).
+
 
 Poezio in the GNU/Linux distributions
 -------------------------------------
