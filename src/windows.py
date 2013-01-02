@@ -948,7 +948,7 @@ class TextWin(Win):
         for i in range(len(self.built_lines)-1, -1, -1):
             if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i
-                while index >= 0 and self.built_lines[index].msg.identifier == old_id:
+                while index >= 0 and self.built_lines[index] and self.built_lines[index].msg.identifier == old_id:
                     self.built_lines.pop(index)
                     index -= 1
                 index += 1
