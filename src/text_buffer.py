@@ -18,7 +18,34 @@ from datetime import datetime
 from config import config
 from theming import get_theme
 
-Message = collections.namedtuple('Message', 'txt nick_color time str_time nickname user identifier highlight me old_message revisions')
+message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions'
+Message = collections.namedtuple('Message', message_fields)
+
+def other_elems(self):
+    acc = ['Message(']
+    fields = message_fields.split()
+    fields.remove('old_message')
+    for field in fields:
+        acc.append('%s=%s' % (field, getattr(self, field)))
+    return (', '.join(acc) + ', old_message=')
+
+def repr_message(self):
+    init = other_elems(self)
+    acc = []
+    next = self.old_message
+    rev = 0
+    while next:
+        acc.append(other_elems(next))
+        next = next.old_message
+        rev += 1
+    acc.append('None')
+    while rev:
+        acc.append(')')
+        rev -= 1
+    return ''.join(acc)
+
+Message.__repr__ = repr_message
+Message.__str__ = repr_message
 
 class TextBuffer(object):
     """
@@ -58,7 +85,7 @@ class TextBuffer(object):
                 me=me,
                 old_message=old_message,
                 revisions=revisions)
-        log.debug('Set message %s with %s.' % (identifier, msg))
+        log.debug('Set message %s with %s.', identifier, msg)
         return msg
 
     def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None, str_time=None):
@@ -82,13 +109,13 @@ class TextBuffer(object):
             if msg.identifier == old_id:
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
-                log.debug('Replacing message %s with %s.' % (old_id, new_id))
+                log.debug('Replacing message %s with %s.', old_id, new_id)
                 return message
-        log.debug('Message %s not found in text_buffer, abort replacement.' % (old_id))
+        log.debug('Message %s not found in text_buffer, abort replacement.', old_id)
         return
 
     def del_window(self, win):
         self.windows.remove(win)
 
     def __del__(self):
-        log.debug('** Deleting %s messages from textbuffer' % (len(self.messages)))
+        log.debug('** Deleting %s messages from textbuffer', len(self.messages))
