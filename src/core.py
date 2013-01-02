@@ -754,22 +754,17 @@ class Core(object):
             if new_pos > old_pos:
                 self.tabs.insert(new_pos, tab)
                 self.tabs[old_pos] = tabs.GapTab()
-                i = self.tabs.index(tab)
             elif new_pos < old_pos:
                 self.tabs[old_pos] = tabs.GapTab()
                 self.tabs.insert(new_pos, tab)
             else:
                 return False
+            i = self.tabs.index(tab)
             done = False
             # Remove the first Gap on the right in the list
             # in order to prevent global shifts when there is empty space
-            while not done:
-                i += 1
-                if i >= len(self.tabs):
-                    done = True
-                elif not self.tabs[i]:
-                    self.tabs.pop(i)
-                    done = True
+            if i < len(self.tabs) and not self.tabs[i]:
+                self.tabs.pop(i)
         # Remove the trailing gaps
         i = len(self.tabs) - 1
         while isinstance(self.tabs[i], tabs.GapTab):
