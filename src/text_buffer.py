@@ -77,7 +77,8 @@ class TextBuffer(object):
         return ret_val or 1
 
     def modify_message(self, txt, old_id, new_id, highlight=False, time=None):
-        for i, msg in enumerate(self.messages):
+        for i in range(len(self.messages) -1, -1, -1):
+            msg = self.messages[i]
             if msg.identifier == old_id:
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
