@@ -203,6 +203,7 @@ class Theme(object):
     INFO_COLORS = {
             'info': (5, -1),
             'error': (16, 1),
+            'warning': (1, 16),
             'roster': (2, 16),
             'headline': (11, -1, 'b'),
             'default': (7, -1),
