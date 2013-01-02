@@ -321,6 +321,10 @@ section of this documentation.
   separated by colons (":"). If there are more than 3 or 4 chained
   sorting methods, your sorting is most likely inefficient.
 
+*save_status*:: true
+
+  Save the status automatically in the status and status_message options.
+
 *send_chat_states*:: true
 
   if true, chat states will be sent to the people you are talking to.
@@ -390,6 +394,16 @@ section of this documentation.
 *show_timestamps*:: true
 
   Whether or not to display a timestamp before each message.
+
+*status*:: [empty]
+
+  The status (show) poezio will send when connecting. It can be available,
+  dnd,chat, xa or away.
+  Nothing or an invalid value will mean available.
+
+*status_message*:: [empty]
+
+  The status message poezio will send when connecting.
 
 *use_bookmark_method*:: [empty]
 

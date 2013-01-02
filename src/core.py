@@ -113,7 +113,10 @@ class Core(object):
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
         self.connection_time = time.time()
-        self.status = Status(show=None, message='')
+        status = config.get('status', None)
+        status = possible_show.get(status, None)
+        self.status = Status(show=status,
+                message=config.get('status_message', ''))
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
@@ -600,6 +603,9 @@ class Core(object):
         or to use it when joining a new muc)
         """
         self.status = Status(show=pres, message=msg)
+        if config.get('save_status', 'true').lower() != 'false':
+            config.set_and_save('status', pres if pres else '')
+            config.set_and_save('status_message', msg.replace('\n', '|') if msg else '')
 
     def get_bookmark_nickname(self, room_name):
         """
@@ -2773,8 +2779,10 @@ class Core(object):
             # request the roster
             self.xmpp.get_roster()
             # send initial presence
-            if config.get('send_initial_presence', 'true').lower() == 'true':
+            if config.get('send_initial_presence', 'true').lower() != 'false':
                 pres = self.xmpp.make_presence()
+                pres['show'] = self.status.show
+                pres['status'] = self.status.message
                 self.events.trigger('send_normal_presence', pres)
                 pres.send()
         bookmark.get_local()
@@ -2791,7 +2799,11 @@ class Core(object):
                 histo_length= None
             if histo_length is not None:
                 histo_length= str(histo_length)
-            muc.join_groupchat(self.xmpp, bm.jid, nick, bm.password, histo_length)
+            muc.join_groupchat(self.xmpp, bm.jid, nick,
+                    passwd=bm.password,
+                    maxhistory=histo_length,
+                    status=self.status.message,
+                    show=self.status.show)
 
     ### Other handlers ###
 
