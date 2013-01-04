@@ -2382,7 +2382,7 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if message['type'] == 'error':
             return self.information(self.get_error_message(message, deprecated=True), 'Error')
-        elif message['type'] == 'headline':
+        elif message['type'] == 'headline' and message['body']:
             return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
         if not body:
             return
