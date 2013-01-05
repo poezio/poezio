@@ -2389,6 +2389,8 @@ class Core(object):
         conversation = self.get_conversation_by_jid(jid, create=True)
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
+        if not body:
+            return
         if jid.bare in roster:
             remote_nick = roster[jid.bare].name or jid.user
         else:
