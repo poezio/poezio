@@ -102,6 +102,7 @@ possible_show = {'available':None,
                  }
 
 Status = collections.namedtuple('Status', 'show message')
+Command = collections.namedtuple('Command', 'func desc comp short usage')
 
 class Core(object):
     """
@@ -156,42 +157,8 @@ class Core(object):
         #  a completion function, taking a Input as argument. Can be None)
         #  The completion function should return True if a completion was
         #  made ; False otherwise
-        self.commands = {
-            'help': (self.command_help, '\_o< KOIN KOIN KOIN', self.completion_help),
-            'join': (self.command_join, _("Usage: /join [room_name][@server][/nick] [password]\nJoin: Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"), self.completion_join),
-            'exit': (self.command_quit, _("Usage: /exit\nExit: Just disconnect from the server and exit poezio."), None),
-            'quit': (self.command_quit, _("Usage: /quit\nQuit: Just disconnect from the server and exit poezio."), None),
-            'next': (self.rotate_rooms_right, _("Usage: /next\nNext: Go to the next room."), None),
-            'prev': (self.rotate_rooms_left, _("Usage: /prev\nPrev: Go to the previous room."), None),
-            'win': (self.command_win, _("Usage: /win <number>\nWin: Go to the specified room."), self.completion_win),
-            'w': (self.command_win, _("Usage: /w <number>\nW: Go to the specified room."), self.completion_win),
-            'move_tab': (self.command_move_tab, _("Usage: /move_tab <source> <destination>\nMove Tab: Insert the <source> tab at the position of <destination>. This will make the following tabs shift in some cases (refer to the documentation). A tab can be designated by its number or by the beginning of its address."), self.completion_move_tab),
-            'show': (self.command_status, _('Usage: /show <availability> [status message]\nShow: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'status': (self.command_status, _('Usage: /status <availability> [status message]\nStatus: Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'), self.completion_status),
-            'bookmark_local': (self.command_bookmark_local, _("Usage: /bookmark_local [roomname][/nick] [password]\nBookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark_local),
-            'bookmark': (self.command_bookmark, _("Usage: /bookmark [roomname][/nick] [autojoin] [password]\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"), self.completion_bookmark),
-            'set': (self.command_set, _("Usage: /set [plugin|][section] <option> [value]\nSet: Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`. `toggle` can be used as a special value to toggle a boolean option."), self.completion_set),
-            'theme': (self.command_theme, _('Usage: /theme [theme_name]\nTheme: Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'), self.completion_theme),
-            'list': (self.command_list, _('Usage: /list\nList: Get the list of public chatrooms on the specified server.'), self.completion_list),
-            'message': (self.command_message, _('Usage: /message <jid> [optional message]\nMessage: Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'), self.completion_version),
-            'version': (self.command_version, _('Usage: /version <jid>\nVersion: Get the software version of the given JID (usually its XMPP client and Operating System).'), self.completion_version),
-            'server_cycle': (self.command_server_cycle, _('Usage: /server_cycle [domain] [message]\nServer Cycle: Disconnect and reconnect in all the rooms in domain.'), self.completion_server_cycle),
-            'bind': (self.command_bind, _('Usage: /bind <key> <equ>\nBind: Bind a key to an other key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'), None),
-            'load': (self.command_load, _('Usage: /load <plugin>\nLoad: Load the specified plugin'), self.plugin_manager.completion_load),
-            'unload': (self.command_unload, _('Usage: /unload <plugin>\nUnload: Unload the specified plugin'), self.plugin_manager.completion_unload),
-            'plugins': (self.command_plugins, _('Usage: /plugins\nPlugins: Show the plugins in use.'), None),
-            'presence': (self.command_presence, _('Usage: /presence <JID> [type] [status]\nPresence: Send a directed presence to <JID> and using [type] and [status] if provided.'), self.completion_presence),
-            'rawxml': (self.command_rawxml, _('Usage: /rawxml\nRawXML: Send a custom xml stanza.'), None),
-            'invite': (self.command_invite, _("Usage: /invite <jid> <room> [reason]\nInvite: Invite jid in room with reason."), self.completion_invite),
-            'decline': (self.command_decline, _("Usage: /decline <room> [reason]\nDecline: Decline the invitation to room with or without reason."), self.completion_decline),
-            'invitations': (self.command_invitations, _("Usage: /invites\nInvites: Show the pending invitations."), None),
-            'bookmarks': (self.command_bookmarks, _("Usage: /bookmarks\nBookmarks: Show the current bookmarks."), None),
-            'remove_bookmark': (self.command_remove_bookmark, _("Usage: /remove_bookmark [jid]\nRemove Bookmark: Remove the specified bookmark, or the bookmark on the current tab, if any."), self.completion_remove_bookmark),
-            'xml_tab': (self.command_xml_tab, _("Usage: /xml_tab\nXML Tab: Open an XML tab."), None),
-            'runkey': (self.command_runkey, _("Usage: /runkey <key>\nRunkey: Execute the action defined for <key>."), self.completion_runkey),
-            'self': (self.command_self, _("Usage: /self\nSelf: Remind you of who you are."), None),
-            'activity': (self.command_activity, _("Usage: /activity <jid>\nActivity: Informs you of the last activity of a JID."), self.completion_activity),
-        }
+        self.commands = {}
+        self.register_initial_commands()
 
         # We are invisible
         if config.get('send_initial_presence', 'true').lower() == 'false':
@@ -1324,27 +1291,55 @@ class Core(object):
 
 ####################### Commands and completions ##############################
 
+    def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
+        if name in self.commands:
+            return
+        if not desc and shortdesc:
+            desc = shortdesc
+        self.commands[name] = Command(func, desc, completion, shortdesc, usage)
+
     def command_help(self, arg):
         """
         /help <command_name>
         """
         args = arg.split()
-        acc = []
         if not args:
-            msg = _('Available commands are: ')
+            color = get_theme().COLOR_HELP_COMMANDS[0]
+            acc = []
+            buff = ['Global commands:']
             for command in self.commands:
-               acc.append(command)
-            for command in self.current_tab().commands:
-               acc.append(command)
-            msg += ' '.join(sorted(acc))
+                if isinstance(self.commands[command], Command):
+                    acc.append('  \x19%s}%s\x19o - %s' % (color, command, self.commands[command].short))
+                else:
+                    acc.append('  \x19%s}%s\x19o' % (color, command))
+            acc = sorted(acc)
+            buff.extend(acc)
+            acc = []
+            buff.append('Tab-specific commands:')
+            commands = self.current_tab().commands
+            for command in commands:
+                if isinstance(commands[command], Command):
+                    acc.append('  \x19%s}%s\x19o - %s' % (color, command, commands[command].short))
+                else:
+                    acc.append('  \x19%s}%s\x19o' % (color, command))
+            acc = sorted(acc)
+            buff.extend(acc)
+
+            msg = '\n'.join(buff)
             msg += _("\nType /help <command_name> to know what each command does")
         if args:
             if args[0] in self.commands:
-                msg = self.commands[args[0]][1]
+                tup = self.commands[args[0]]
             elif args[0] in self.current_tab().commands:
-                msg = self.current_tab().commands[args[0]][1]
+                tup = self.current_tab().commands[args[0]]
             else:
-                msg = _('Unknown command: %s') % args[0]
+                self.information(_('Unknown command: %s') % args[0], 'Error')
+                return
+            if isinstance(tup, Command):
+                msg = _('Usage: /%s %s\n' % (args[0], tup.usage))
+                msg += tup.desc
+            else:
+                msg = tup[1]
         self.information(msg, 'Help')
 
     def completion_help(self, the_input):
@@ -2326,6 +2321,139 @@ class Core(object):
                 nick)
         self.information(info, 'Info')
 
+    def register_initial_commands(self):
+        """
+        Register the commands when poezio starts
+        """
+        self.register_command('help', self.command_help,
+                usage=_('[command]'),
+                shortdesc='\_o< KOIN KOIN KOIN',
+                completion=self.completion_help)
+        self.register_command('join', self.command_join,
+                usage=_("[room_name][@server][/nick] [password]"),
+                desc=_("Join the specified room. You can specify a nickname after a slash (/). If no nickname is specified, you will use the default_nick in the configuration file. You can omit the room name: you will then join the room you\'re looking at (useful if you were kicked). You can also provide a room_name without specifying a server, the server of the room you're currently in will be used. You can also provide a password to join the room.\nExamples:\n/join room@server.tld\n/join room@server.tld/John\n/join room2\n/join /me_again\n/join\n/join room@server.tld/my_nick password\n/join / password"),
+                shortdesc=_('Join a room'),
+                completion=self.completion_join)
+        self.register_command('exit', self.command_quit,
+                desc=_('Just disconnect from the server and exit poezio.'),
+                shortdesc=_('Exit poezio.'))
+        self.register_command('quit', self.command_quit,
+                desc=_('Just disconnect from the server and exit poezio.'),
+                shortdesc=_('Exit poezio.'))
+        self.register_command('next', self.rotate_rooms_right,
+                shortdesc=_('Go to the next room.'))
+        self.register_command('prev', self.rotate_rooms_left,
+                shortdesc=_('Go to the previous room.'))
+        self.register_command('win', self.command_win,
+                usage=_('<number or name>'),
+                shortdesc=_('Go to the specified room'),
+                completion=self.completion_win)
+        self.commands['w'] = self.commands['win']
+        self.register_command('move_tab', self.command_move_tab,
+                usage=_('<source> <destination>'),
+                desc=_('Insert the <source> tab at the position of <destination>. This will make the following tabs shift in some cases (refer to the documentation). A tab can be designated by its number or by the beginning of its address.'),
+                shortdesc=_('Move a tab.'),
+                completion=self.completion_move_tab)
+        self.register_command('show', self.command_status,
+                usage=_('<availability> [status message]'),
+                desc=_('Sets your availability and (optionally) your status message. The <availability> argument is one of \"available, chat, away, afk, dnd, busy, xa\" and the optional [status message] argument will be your status message.'),
+                shortdesc=_('Change your availability.'),
+                completion=self.completion_status)
+        self.commands['status'] = self.commands['show']
+        self.register_command('bookmark_local', self.command_bookmark_local,
+                usage=_("[roomname][/nick] [password]"),
+                desc=_("Bookmark Local: Bookmark locally the specified room (you will then auto-join it on each poezio start). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"),
+                shortdesc=_('Bookmark a room locally.'),
+                completion=self.completion_bookmark_local)
+        self.register_command('bookmark', self.command_bookmark,
+                usage=_("[roomname][/nick] [autojoin] [password]"),
+                desc=_("\nBookmark: Bookmark online the specified room (you will then auto-join it on each poezio start if autojoin is specified and is 'true'). This commands uses almost the same syntaxe as /join. Type /help join for syntaxe examples. Note that when typing \"/bookmark\" on its own, the room will be bookmarked with the nickname you\'re currently using in this room (instead of default_nick)"),
+                shortdesc=_("Bookmark a room online."),
+                completion=self.completion_bookmark)
+        self.register_command('set', self.command_set,
+                usage=_("[plugin|][section] <option> [value]"),
+                desc=_("Set the value of an option in your configuration file. You can, for example, change your default nickname by doing `/set default_nick toto` or your resource with `/set resource blabla`. You can also set options in specific sections with `/set bindings M-i ^i` or in specific plugin with `/set mpd_client| host 127.0.0.1`. `toggle` can be used as a special value to toggle a boolean option."),
+                shortdesc=_("Set the value of an option"),
+                completion=self.completion_set)
+        self.register_command('theme', self.command_theme,
+                usage=_('[theme name]'),
+                desc=_('Reload the theme defined in the config file. If theme_name is provided, set that theme before reloading it.'),
+                shortdesc=_('Load a theme'),
+                completion=self.completion_theme)
+        self.register_command('list', self.command_list,
+                usage=_('[server]'),
+                desc=_('Get the list of public chatrooms on the specified server.'),
+                shortdesc=_('List the rooms.'),
+                completion=self.completion_list)
+        self.register_command('message', self.command_message,
+                usage=_('<jid> [optional message]'),
+                desc=_('Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'),
+                shortdesc=_('Send a message'),
+                completion=self.completion_version)
+        self.register_command('version', self.command_version,
+                usage='<jid>',
+                desc=_('Get the software version of the given JID (usually its XMPP client and Operating System).'),
+                shortdesc=_('Get the software version of a JID.'),
+                completion=self.completion_version)
+        self.register_command('server_cycle', self.command_server_cycle,
+                usage=_('[domain] [message]'),
+                desc=_('Disconnect and reconnect in all the rooms in domain.'),
+                shortdesc=_('Cycle a range of rooms'),
+                completion=self.completion_server_cycle)
+        self.register_command('bind', self.command_bind,
+                usage=_(' <key> <equ>'),
+                desc=_('Bind a key to another key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'),
+                shortdesc=_('Bind a key to another key.'))
+        self.register_command('load', self.command_load,
+                usage=_('<plugin>'),
+                shortdesc=_('Load the specified plugin'),
+                completion=self.plugin_manager.completion_load)
+        self.register_command('unload', self.command_unload,
+                usage=_('<plugin>'),
+                shortdesc=_('Unload the specified plugin'),
+                completion=self.plugin_manager.completion_unload)
+        self.register_command('plugins', self.command_plugins,
+                shortdesc=_('Show the plugins in use.'))
+        self.register_command('presence', self.command_presence,
+                usage=_('<JID> [type] [status]'),
+                desc=_('Send a directed presence to <JID> and using [type] and [status] if provided.'),
+                shortdesc=_('Send a directed presence.'),
+                completion=self.completion_presence)
+        self.register_command('rawxml', self.command_rawxml,
+                usage='<xml>',
+                shortdesc=_('Send a custom xml stanza.'))
+        self.register_command('invite', self.command_invite,
+                usage=_('<jid> <room> [reason]'),
+                desc=_('Invite jid in room with reason.'),
+                shortdesc=_('Invite someone in a room.'),
+                completion=self.completion_invite)
+        self.register_command('decline', self.command_decline,
+                usage=_('<room> [reason]'),
+                desc=_('Decline the invitation to room with or without reason.'),
+                shortdesc=_('Decline an invitation.'),
+                completion=self.completion_decline)
+        self.register_command('invitations', self.command_invitations,
+                shortdesc=_('Show the pending invitations.'))
+        self.register_command('bookmarks', self.command_bookmarks,
+                shortdesc=_('Show the current bookmarks.'))
+        self.register_command('remove_bookmark', self.command_remove_bookmark,
+                usage='[jid]',
+                desc=_('Remove the specified bookmark, or the bookmark on the current tab, if any.'),
+                shortdesc=_('Remove a bookmark'),
+                completion=self.completion_remove_bookmark)
+        self.register_command('xml_tab', self.command_xml_tab,
+                shortdesc=_('Open an XML tab.'))
+        self.register_command('runkey', self.command_runkey,
+                usage=_('<key>'),
+                shortdesc=_('Execute the action defined for <key>.'),
+                completion=self.completion_runkey)
+        self.register_command('self', self.command_self,
+                shortdesc=_('Remind you of who you are.'))
+        self.register_command('activity', self.command_activity,
+                usage='<jid>',
+                desc=_('Informs you of the last activity of a JID.'),
+                shortdesc=_('Get the activity of someone.'),
+                completion=self.completion_activity)
 
 ####################### XMPP Event Handlers  ##################################
 

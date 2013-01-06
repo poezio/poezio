@@ -80,6 +80,10 @@ class Theme(object):
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
     COLOR_INFORMATION_TEXT = (5, -1) # TODO
+
+    # Color of the commands in the help message
+    COLOR_HELP_COMMANDS = (208, -1)
+
     # "reverse" is a special value, available only for this option. It just
     # takes the nick colors and reverses it. A theme can still specify a
     # fixed color if need be.
@@ -205,6 +209,7 @@ class Theme(object):
             'error': (16, 1),
             'warning': (1, 16),
             'roster': (2, 16),
+            'help': (10, -1),
             'headline': (11, -1, 'b'),
             'default': (7, -1),
     }

@@ -101,6 +101,7 @@ STATE_PRIORITY = {
 
 class Tab(object):
     tab_core = None
+
     def __init__(self):
         self.input = None
         if isinstance(self, MucTab) and not self.joined:
@@ -187,6 +188,16 @@ class Tab(object):
         else:
             Tab.visible = True
         windows.Win._tab_win = scr
+
+    def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
+        """
+        Add a command
+        """
+        if name in self.commands:
+            return
+        if not desc and shortdesc:
+            desc = shortdesc
+        self.commands[name] = core.Command(func, desc, completion, shortdesc, usage)
 
     def complete_commands(self, the_input):
         """
@@ -429,14 +440,18 @@ class ChatTab(Tab):
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
-        self.commands['say'] =  (self.command_say,
-                                 _("""Usage: /say <message>\nSay: Just send the message.
-                                        Useful if you want your message to begin with a '/'."""), None)
-        self.commands['xhtml'] =  (self.command_xhtml, _("Usage: /xhtml <custom xhtml>\nXHTML: Send custom XHTML."), None)
-        self.commands['clear'] =  (self.command_clear,
-                                 _('Usage: /clear\nClear: Clear the current buffer.'), None)
-        self.commands['correct'] = (self.command_correct, _('Usage: /correct\nCorrect: Fix the last message with whatever you want.'), self.completion_correct)
-
+        self.register_command('say', self.command_say,
+                usage=_('<message>'),
+                shortdesc=_('Send the message.'))
+        self.register_command('xhtml', self.command_xhtml,
+                usage=_('<custom xhtml>'),
+                shortdesc=_('Send custom XHTML.'))
+        self.register_command('clear', self.command_clear,
+                shortdesc=_('Clear the current buffer.'))
+        self.register_command('correct', self.command_correct,
+                desc=_('Fix the last message with whatever you want.'),
+                shortdesc=_('Correct the last message.'),
+                completion=self.completion_correct)
         self.chat_state = None
         self.update_commands()
         self.update_keys()
@@ -678,23 +693,83 @@ class MucTab(ChatTab):
         self.key_func['M-n'] = self.go_to_next_hl
         self.key_func['M-p'] = self.go_to_prev_hl
         # commands
-        self.commands['ignore'] = (self.command_ignore, _("Usage: /ignore <nickname> \nIgnore: Ignore a specified nickname."), self.completion_ignore)
-        self.commands['unignore'] = (self.command_unignore, _("Usage: /unignore <nickname>\nUnignore: Remove the specified nickname from the ignore list."), self.completion_unignore)
-        self.commands['kick'] =  (self.command_kick, _("Usage: /kick <nick> [reason]\nKick: Kick the user with the specified nickname. You also can give an optional reason."), self.completion_quoted)
-        self.commands['ban'] =  (self.command_ban, _("Usage: /ban <nick> [reason]\nBan: ban the user with the specified nickname. You also can give an optional reason."), self.completion_quoted)
-        self.commands['role'] =  (self.command_role, _("Usage: /role <nick> <role> [reason]\nRole: Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason."), self.completion_role)
-        self.commands['affiliation'] =  (self.command_affiliation, _("Usage: /affiliation <nick or jid> <affiliation>\nAffiliation: Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner."), self.completion_affiliation)
-        self.commands['topic'] = (self.command_topic, _("Usage: /topic <subject>\nTopic: Change the subject of the room."), self.completion_topic)
-        self.commands['query'] = (self.command_query, _('Usage: /query <nick> [message]\nQuery: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'), self.completion_quoted)
-        self.commands['part'] = (self.command_part, _("Usage: /part [message]\nPart: Disconnect from a room. You can specify an optional message."), None)
-        self.commands['close'] = (self.command_close, _("Usage: /close [message]\nClose: Disconnect from a room and close the tab. You can specify an optional message if you are still connected."), None)
-        self.commands['nick'] = (self.command_nick, _("Usage: /nick <nickname>\nNick: Change your nickname in the current room."), self.completion_nick)
-        self.commands['recolor'] = (self.command_recolor, _('Usage: /recolor\nRecolor: Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'), self.completion_recolor)
-        self.commands['cycle'] = (self.command_cycle, _('Usage: /cycle [message]\nCycle: Leave the current room and rejoin it immediately.'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info <nickname>\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), self.completion_info)
-        self.commands['configure'] = (self.command_configure, _('Usage: /configure\nConfigure: Configure the current room, through a form.'), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version <jid or nick>\nVersion: Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'), self.completion_version)
-        self.commands['names'] = (self.command_names, _('Usage: /names\nNames: Get the list of the users in the room, and the list of the people assuming the different roles.'), None)
+        self.register_command('ignore', self.command_ignore,
+                usage=_('<nickname>'),
+                desc=_('Ignore a specified nickname.'),
+                shortdesc=_('Ignore someone'),
+                completion=self.completion_ignore)
+        self.register_command('unignore', self.command_unignore,
+                usage=_('<nickname>'),
+                desc=_('Remove the specified nickname from the ignore list.'),
+                shortdesc=_('Unignore someone.'),
+                completion=self.completion_unignore)
+        self.register_command('kick', self.command_kick,
+                usage=_('<nick> [reason]'),
+                desc=_('Kick the user with the specified nickname. You also can give an optional reason.'),
+                shortdesc=_('Kick someone.'),
+                completion=self.completion_quoted)
+        self.register_command('ban', self.command_ban,
+                usage=_('<nick> [reason]'),
+                desc=_('Ban the user with the specified nickname. You also can give an optional reason.'),
+                shortdesc='Ban someone',
+                completion=self.completion_quoted)
+        self.register_command('role', self.command_role,
+                usage=_('<nick> <role> [reason]'),
+                desc=_('Set the role of an user. Roles can be: none, visitor, participant, moderator. You also can give an optional reason.'),
+                shortdesc=_('Set the role of an user.'),
+                completion=self.completion_role)
+        self.register_command('affiliation', self.command_affiliation,
+                usage=_('<nick or jid> <affiliation>'),
+                desc=_('Set the affiliation of an user. Affiliations can be: outcast, none, member, admin, owner.'),
+                shortdesc=_('Set the affiliation of an user.'),
+                completion=self.completion_affiliation)
+        self.register_command('topic', self.command_topic,
+                usage=_('<subject>'),
+                desc=_('Change the subject of the room.'),
+                shortdesc=_('Change the subject.'),
+                completion=self.completion_topic)
+        self.register_command('query', self.command_query,
+                usage=_('<nick> [message]'),
+                desc=_('Query: Open a private conversation with <nick>. This nick has to be present in the room you\'re currently in. If you specified a message after the nickname, it will immediately be sent to this user.'),
+                shortdesc=_('Query an user.'),
+                completion=self.completion_quoted)
+        self.register_command('part', self.command_part,
+                usage=_('[message]'),
+                desc=_('Disconnect from a room. You can specify an optional message.'),
+                shortdesc=_('Leave the room.'))
+        self.register_command('close', self.command_close,
+                usage=_('[message]'),
+                desc=_('Disconnect from a room and close the tab. You can specify an optional message if you are still connected.'),
+                shortdesc=_('Close the tab.'))
+        self.register_command('nick', self.command_nick,
+                usage=_('<nickname>'),
+                desc=_('Change your nickname in the current room.'),
+                shortdesc=_('Change your nickname.'),
+                completion=self.completion_nick)
+        self.register_command('recolor', self.command_recolor,
+                desc=_('Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'),
+                shortdesc=_('Change the nicks colors.'),
+                completion=self.completion_recolor)
+        self.register_command('cycle', self.command_cycle,
+                usage=_('[message]'),
+                desc=_('Leave the current room and rejoin it immediately.'),
+                shortdesc=_('Leave and re-join the room.'))
+        self.register_command('info', self.command_info,
+                usage=_('<nickname>'),
+                desc=_('Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'),
+                shortdesc=_('Show an user\'s infos.'),
+                completion=self.completion_info)
+        self.register_command('configure', self.command_configure,
+                desc=_('Configure the current room, through a form.'),
+                shortdesc=_('Configure the room.'))
+        self.register_command('version', self.command_version,
+                usage=_('<jid or nick>'),
+                desc=_('Get the software version of the given JID or nick in room (usually its XMPP client and Operating System).'),
+                shortdesc=_('Get the software version of a jid.'),
+                completion=self.completion_version)
+        self.register_command('names', self.command_names,
+                desc=_('Get the list of the users in the room, and the list of the people assuming the different roles.'),
+                shortdesc=_('List the users.'))
 
         if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
             del self.commands["nick"]
@@ -1680,10 +1755,16 @@ class PrivateTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'), None)
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: Close the tab."), None)
-        self.commands['close'] = (self.command_unquery, _("Usage: /close\nClose: Close the tab."), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
+        self.register_command('info', self.command_info,
+                desc=_('Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'),
+                shortdesc=_('Info about the user.'))
+        self.register_command('unquery', self.command_unquery,
+                shortdesc=_('Close the tab.'))
+        self.register_command('close', self.command_unquery,
+                shortdesc=_('Close the tab.'))
+        self.register_command('version', self.command_version,
+                desc=_('Get the software version of the current interlocutor (usually its XMPP client and Operating System).'),
+                shortdesc=_('Get the software version of a jid.'))
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
         self.on = True
@@ -1975,19 +2056,64 @@ class RosterInfoTab(Tab):
         self.key_func["n"] = self.change_contact_name
         self.key_func["s"] = self.start_search
         self.key_func["S"] = self.start_search_slow
-        self.commands['deny'] = (self.command_deny, _("Usage: /deny [jid]\nDeny: Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster."), self.completion_deny)
-        self.commands['accept'] = (self.command_accept, _("Usage: /accept [jid]\nAccept: Allow the provided JID (or the selected contact in your roster), to see your presence."), self.completion_deny)
-        self.commands['add'] = (self.command_add, _("Usage: /add <jid>\nAdd: Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence."), None)
-        self.commands['name'] = (self.command_name, _("Usage: /name <jid> <name>\nSet the given JID's name."), self.completion_name)
-        self.commands['groupadd'] = (self.command_groupadd, _("Usage: /groupadd <jid> <group>\nAdd the given JID to the given group."), self.completion_groupadd)
-        self.commands['groupmove'] = (self.command_groupmove, _("Usage: /groupchange <jid> <old group> <new group>\nMoves the given JID from the old group to the new group."), self.completion_groupmove)
-        self.commands['groupremove'] = (self.command_groupremove, _("Usage: /groupremove <jid> <group>\nRemove the given JID from the given group."), self.completion_groupremove)
-        self.commands['remove'] = (self.command_remove, _("Usage: /remove [jid]\nRemove: Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster."), self.completion_remove)
-        self.commands['reconnect'] = (self.command_reconnect, _('Usage: /reconnect\nConnect: Disconnect from the remote server if you are currently connected and then connect to it again.'), None)
-        self.commands['export'] = (self.command_export, _("Usage: /export [/path/to/file]\nExport: Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
-        self.commands['import'] = (self.command_import, _("Usage: /import [/path/to/file]\nImport: Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not."), self.completion_file)
-        self.commands['clear_infos'] = (self.command_clear_infos, _("Usage: /clear_infos\nClear Infos: Use this command to clear the info buffer."), None)
-        self.commands['activity'] = (self.command_activity, _("Usage: /activity <jid>\nActivity: Informs you of the last activity of a JID."), self.core.completion_activity)
+        self.register_command('deny', self.command_deny,
+                usage=_('[jid]'),
+                desc=_('Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster.'),
+                shortdesc=_('Deny an user your presence.'),
+                completion=self.completion_deny)
+        self.register_command('accept', self.command_accept,
+                usage=_('[jid]'),
+                desc=_('Allow the provided JID (or the selected contact in your roster), to see your presence.'),
+                shortdesc=_('Allow an user your presence.'),
+                completion=self.completion_deny)
+        self.register_command('add', self.command_add,
+                usage=_('<jid>'),
+                desc=_('Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence.'),
+                shortdesc=_('Add an user to your roster.'))
+        self.register_command('name', self.command_name,
+                usage=_('<jid> <name>'),
+                shortdesc=_('Set the given JID\'s name.'),
+                completion=self.completion_name)
+        self.register_command('groupadd', self.command_groupadd,
+                usage=_('<jid> <group>'),
+                desc=_('Add the given JID to the given group.'),
+                shortdesc=_('Add an user to a group'),
+                completion=self.completion_groupadd)
+        self.register_command('groupmove', self.command_groupmove,
+                usage=_('<jid> <old group> <new group>'),
+                desc=_('Move the given JID from the old group to the new group.'),
+                shortdesc=_('Move an user to another group.'),
+                completion=self.completion_groupmove)
+        self.register_command('groupremove', self.command_groupremove,
+                usage=_('<jid> <group>'),
+                desc=_('Remove the given JID from the given group.'),
+                shortdesc=_('Remove an user from a group.'),
+                completion=self.completion_groupremove)
+        self.register_command('remove', self.command_remove,
+                usage=_('[jid]'),
+                desc=_('Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster.'),
+                shortdesc=_('Remove an user from your roster.'),
+                completion=self.completion_remove)
+        self.register_command('reconnect', self.command_reconnect,
+                desc=_('Disconnect from the remote server if you are currently connected and then connect to it again.'),
+                shortdesc=_('Disconnect and reconnect to the server.'))
+        self.register_command('export', self.command_export,
+                usage=_('[/path/to/file]'),
+                desc=_('Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.'),
+                shortdesc=_('Export your roster to a file.'),
+                completion=self.completion_file)
+        self.register_command('import', self.command_import,
+                usage=_('[/path/to/file]'),
+                desc=_('Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.'),
+                shortdesc=_('Import your roster from a file.'),
+                completion=self.completion_file)
+        self.register_command('clear_infos', self.command_clear_infos,
+                shortdesc=_('Clear the info buffer.'))
+        self.register_command('activity', self.command_activity,
+                usage=_('<jid>'),
+                desc=_('Informs you of the last activity of a JID.'),
+                shortdesc=_('Get the activity of someone.'),
+                completion=self.core.completion_activity)
         self.core.xmpp.add_event_handler('session_start',
                 lambda event: self.core.xmpp.plugin['xep_0030'].get_info(
                     jid=self.core.xmpp.boundjid.domain,
@@ -2001,9 +2127,16 @@ class RosterInfoTab(Tab):
         if iq['type'] == 'error':
             return
         if 'urn:xmpp:blocking' in iq['disco_info'].get_features():
-            self.commands['block'] = (self.command_block, _("Usage: /block [jid]\nBlock: prevent a JID from talking to you."), self.completion_block)
-            self.commands['unblock'] = (self.command_unblock, _("Usage: /unblock [jid]\nUnblock: allow a JID to talk to you."), self.completion_unblock)
-            self.commands['list_blocks'] = (self.command_list_blocks, _("Usage: /list_blocks\nList Blocks: Retrieve the list of the blocked contacts."), None)
+            self.register_command('block', self.command_block,
+                    usage=_('[jid]'),
+                    shortdesc=_('Prevent a JID from talking to you.'),
+                    completion=self.completion_block)
+            self.register_command('unblock', self.command_unblock,
+                    usage=_('[jid]'),
+                    shortdesc=_('Allow a JID to talk to you.'),
+                    completion=self.completion_unblock)
+            self.register_command('list_blocks', self.command_list_blocks,
+                    shortdesc=_('Show the blocked contacts.'))
             self.core.xmpp.del_event_handler('session_start', self.check_blocking)
             self.core.xmpp.add_event_handler('blocked_message', self.on_blocked_message)
         else:
@@ -2763,11 +2896,20 @@ class ConversationTab(ChatTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.commands['unquery'] = (self.command_unquery, _("Usage: /unquery\nUnquery: Close the tab."), None)
-        self.commands['close'] = (self.command_unquery, _("Usage: /close\Close: Close the tab."), None)
-        self.commands['version'] = (self.command_version, _('Usage: /version\nVersion: Get the software version of the current interlocutor (usually its XMPP client and Operating System).'), None)
-        self.commands['info'] = (self.command_info, _('Usage: /info\nInfo: Get the status of the contact.'), None)
-        self.commands['activity'] = (self.command_activity, _('Usage: /activity [jid]\nActivity: Get the last activity of the given or the current contact.'), self.core.completion_activity)
+        self.register_command('unquery', self.command_unquery,
+                shortdesc=_('Close the tab.'))
+        self.register_command('close', self.command_unquery,
+                shortdesc=_('Close the tab.'))
+        self.register_command('version', self.command_version,
+                desc=_('Get the software version of the current interlocutor (usually its XMPP client and Operating System).'),
+                shortdesc=_('Get the software version of the user.'))
+        self.register_command('info', self.command_info,
+                shortdesc=_('Get the status of the contact.'))
+        self.register_command('activity', self.command_activity,
+                usage=_('[jid]'),
+                desc=_('Get the last activity of the given or the current contact.'),
+                shortdesc=_('Get the activity.'),
+                completion=self.core.completion_activity)
         self.resize()
         self.update_commands()
         self.update_keys()
@@ -3058,7 +3200,8 @@ class MucListTab(Tab):
         self.key_func['KEY_LEFT'] = self.list_header.sel_column_left
         self.key_func['KEY_RIGHT'] = self.list_header.sel_column_right
         self.key_func[' '] = self.sort_by
-        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
+        self.register_command('close', self.close,
+                shortdesc=_('Close this tab.'))
         self.resize()
         self.update_keys()
         self.update_commands()
@@ -3206,12 +3349,24 @@ class XMLTab(Tab):
         self.text_win = windows.TextWin()
         self.core.xml_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
-        self.commands['close'] = (self.close, _("Usage: /close\nClose: Just close this tab."), None)
-        self.commands['clear'] = (self.command_clear, _("Usage: /clear\nClear: Clear the content of the current buffer."), None)
-        self.commands['reset'] = (self.command_reset, _("Usage: /reset\nReset: Reset the stanza filter."), None)
-        self.commands['filter_id'] = (self.command_filter_id, _("Usage: /filter_id <id>\nFilterId: Show only the stanzas with the id <id>."), None)
-        self.commands['filter_xpath'] = (self.command_filter_xpath, _("Usage: /filter_xpath <xpath>\nFilterXPath: Show only the stanzas matching the xpath <xpath>."), None)
-        self.commands['filter_xmlmask'] = (self.command_filter_xmlmask, _("Usage: /filter_xmlmask <xml mask>\nFilterXMLMask: Show only the stanzas matching the given xml mask."), None)
+        self.register_command('close', self.close,
+                shortdesc=_("Close this tab."))
+        self.register_command('clear', self.command_clear,
+                shortdesc=_('Clear the current buffer.'))
+        self.register_command('reset', self.command_reset,
+                shortdesc=_('Reset the stanza filter.'))
+        self.register_command('filter_id', self.command_filter_id,
+                usage='<id>',
+                desc=_('Show only the stanzas with the id <id>.'),
+                shortdesc=_('Filter by id.'))
+        self.register_command('filter_xpath', self.command_filter_xpath,
+                usage='<xpath>',
+                desc=_('Show only the stanzas matching the xpath <xpath>.'),
+                shortdesc=_('Filter by XPath.'))
+        self.register_command('filter_xmlmask', self.command_filter_xmlmask,
+                usage=_('<xml mask>'),
+                desc=_('Show only the stanzas matching the given xml mask.'),
+                shortdesc=_('Filter by xml mask.'))
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
