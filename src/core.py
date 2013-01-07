@@ -736,8 +736,13 @@ class Core(object):
             done = False
             # Remove the first Gap on the right in the list
             # in order to prevent global shifts when there is empty space
-            if i < len(self.tabs) and not self.tabs[i]:
-                self.tabs.pop(i)
+            while not done:
+                i += 1
+                if i >= len(self.tabs):
+                    done = True
+                elif not self.tabs[i]:
+                    self.tabs.pop(i)
+                    done = True
         # Remove the trailing gaps
         i = len(self.tabs) - 1
         while isinstance(self.tabs[i], tabs.GapTab):
