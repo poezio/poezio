@@ -422,6 +422,26 @@ class InfoWin(Win):
             plus = ' -MORE(%s)-' % window.pos
             self.addstr(plus, to_curses_attr(get_theme().COLOR_SCROLLABLE_NUMBER))
 
+class XMLInfoWin(InfoWin):
+    """
+    Info about the latest xml filter used and the state of the buffer.
+    """
+    def __init__(self):
+        InfoWin.__init__(self)
+
+    def refresh(self, filter_t='', filter='', window=None):
+        log.debug('Refresh: %s', self.__class__.__name__)
+        with g_lock:
+            self._win.erase()
+            if not filter_t:
+                self.addstr('[No filter]', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            else:
+                info = '[%s] %s' % (filter_t, filter)
+                self.addstr(info, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.print_scroll_position(window)
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+            self._refresh()
+
 class PrivateInfoWin(InfoWin):
     """
     The live above the information window, displaying informations
@@ -650,6 +670,7 @@ class TextWin(Win):
             self.release_lock()
         else:
             self.acquire_lock()
+        return self.lock
 
     def acquire_lock(self):
         self.lock = True

@@ -3348,6 +3348,7 @@ class XMLTab(Tab):
         self.state = 'normal'
         self.text_win = windows.TextWin()
         self.core.xml_buffer.add_window(self.text_win)
+        self.info_header = windows.XMLInfoWin()
         self.default_help_message = windows.HelpText("/ to enter a command")
         self.register_command('close', self.close,
                 shortdesc=_("Close this tab."))
@@ -3375,8 +3376,14 @@ class XMLTab(Tab):
         self.key_func["^K"] = self.on_freeze
         self.key_func["/"] = self.on_slash
         self.resize()
+        # Used to display the infobar
+        self.filter_type = ''
+        self.filter = ''
 
     def on_freeze(self):
+        """
+        Freeze the display.
+        """
         self.text_win.toggle_lock()
         self.refresh()
 
@@ -3387,6 +3394,9 @@ class XMLTab(Tab):
                     self.core.incoming_stanza)
             self.core.xmpp.remove_handler('custom matcher')
             self.core.xmpp.register_handler(handler)
+            self.filter_type = "XML Mask Filter"
+            self.filter = arg
+            self.refresh()
         except:
             self.core.information('Invalid XML Mask', 'Error')
             self.command_reset('')
@@ -3397,6 +3407,9 @@ class XMLTab(Tab):
         handler = Callback('custom matcher', matcher.MatcherId(arg),
                 self.core.incoming_stanza)
         self.core.xmpp.register_handler(handler)
+        self.filter_type = "Id Filter"
+        self.filter = arg
+        self.refresh()
 
     def command_filter_xpath(self, arg):
         """/filter_xpath <xpath>"""
@@ -3406,6 +3419,9 @@ class XMLTab(Tab):
                     self.core.incoming_stanza)
             self.core.xmpp.remove_handler('custom matcher')
             self.core.xmpp.register_handler(handler)
+            self.filter_type = "XPath Filter"
+            self.filter = arg
+            self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
             self.command_reset('')
@@ -3414,6 +3430,9 @@ class XMLTab(Tab):
         """/reset"""
         self.core.xmpp.remove_handler('custom matcher')
         self.core.xmpp.register_handler(self.core.all_stanzas)
+        self.filter_type = ''
+        self.filter = ''
+        self.refresh()
 
     def on_slash(self):
         """
@@ -3468,11 +3487,13 @@ class XMLTab(Tab):
         self.core.close_tab()
 
     def resize(self):
-        if not self.visible:
+        if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.need_resize = False
         min = 1 if self.left_tab_win else 2
-        self.text_win.resize(self.height-min, self.width, 0, 0)
+        self.text_win.resize(self.height-self.core.information_win_size - Tab.tab_win_height() - 2, self.width, 0, 0)
+        self.text_win.rebuild_everything(self.core.xml_buffer)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
@@ -3480,7 +3501,9 @@ class XMLTab(Tab):
             self.resize()
         log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
+        self.info_header.refresh(self.filter_type, self.filter, self.text_win)
         self.refresh_tab_win()
+        self.info_win.refresh()
         self.input.refresh()
 
     def on_lose_focus(self):
@@ -3492,6 +3515,13 @@ class XMLTab(Tab):
 
     def on_close(self):
         self.core.xml_tab = False
+
+    def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
+        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+
 
 class SimpleTextTab(Tab):
     """
