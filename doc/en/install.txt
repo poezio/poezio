@@ -31,6 +31,9 @@ You can download poezio's https://dev.louiz.org/project/poezio/download[stable
 git clone https://git.louiz.org/poezio
 ============================
 
+NOTE: To clone the repo, which uses a self-signed certificated, you can
+prefix the clone command with GIT_SSL_NO_VERIFY=1.
+
 In order for poezio to correctly work, you need the libs SleekXMPP and
  dnspython. You can install them by downloading it from the
  https://github.com/fritzy/SleekXMPP/[SleekXMPP] page and the
@@ -50,7 +53,7 @@ If you want to install SleekXMPP and dnspython by yourself, follow these
 
 Download SleekXMPP
 ============================
-git clone git://github.com/louiz/SleekXMPP.git
+git clone https://github.com/fritzy/SleekXMPP.git
 ============================
 
 Make sure you're using the develop branch by typing
