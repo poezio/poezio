@@ -3082,7 +3082,7 @@ class ConversationTab(ChatTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster[self.get_name()] or safeJID(self.get_name()).user,
+        self.info_header.refresh(self.get_name(), roster[self.get_name()],
                 self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
