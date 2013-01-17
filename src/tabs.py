@@ -2869,6 +2869,7 @@ class RosterInfoTab(Tab):
         self.refresh()
         return False
 
+    @refresh_wrapper.always
     def on_search_terminate(self, txt):
         curses.curs_set(0)
         roster.contact_filter = None
