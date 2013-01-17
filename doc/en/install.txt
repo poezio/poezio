@@ -53,7 +53,7 @@ If you want to install SleekXMPP and dnspython by yourself, follow these
 
 Download SleekXMPP
 ============================
-git clone https://github.com/fritzy/SleekXMPP.git
+git clone git://github.com/fritzy/SleekXMPP.git
 ============================
 
 Make sure you're using the develop branch by typing
