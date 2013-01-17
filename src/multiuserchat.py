@@ -79,7 +79,7 @@ def join_groupchat(xmpp, jid, nick, passwd='', maxhistory=None, status=None, sho
         stanza.append(x)
         stanza.send()
         xmpp.plugin['xep_0045'].rooms[jid] = {}
-        xmpp.plugin['xep_0045'].our_nicks[jid] = nick
+        xmpp.plugin['xep_0045'].ourNicks[jid] = nick
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """
@@ -119,6 +119,8 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
     jid = safeJID(jid)
     muc_jid = safeJID(muc_jid)
     try:
-        return xmpp.plugin['xep_0045'].set_affiliation(muc_jid, jid, nick, affiliation)
+        return xmpp.plugin['xep_0045'].setAffiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
     except:
+        import traceback
+        log.debug('Error setting the affiliation: %s', traceback.format_exc())
         return False

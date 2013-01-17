@@ -20,14 +20,23 @@ fi
 
 if [ -e "SleekXMPP" ]
 then
+    echo "Removing the old SleekXMPP"
+    rm -rf SleekXMPP
+    rm src/sleekxmpp
+    git clone https://github.com/fritzy/SleekXMPP.git Sleek
+fi
+
+if [ -e "Sleek" ]
+then
     echo "Updating SleekXMPP"
-    cd SleekXMPP
+    cd Sleek
     git pull
     cd ..
 else
     echo "Downloading SleekXMPP"
-    git clone git://github.com/louiz/SleekXMPP.git
+    git clone https://github.com/fritzy/SleekXMPP.git Sleek
 fi
+
 if [ -e ".dnspython.tgz" ]
 then
     if [ -e "dnspython" ]
@@ -59,5 +68,5 @@ then
     echo 'Link src/sleekxmpp already exists'
 else
     echo "Creating link src/sleekxmpp"
-    ln -s ../SleekXMPP/sleekxmpp sleekxmpp
+    ln -s ../Sleek/sleekxmpp sleekxmpp
 fi

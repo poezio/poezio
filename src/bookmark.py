@@ -58,13 +58,9 @@ class Bookmark(object):
         el['jid'] = self.jid
         el['autojoin'] = 'true' if self.autojoin else 'false'
         if self.nick:
-            n = Nick().xml
-            n.text = self.nick
-            el.append(n)
+            el['nick'] = self.nick
         if self.password:
-            p = Password().xml
-            p.text = self.password
-            el.append(p)
+            el['password'] = self.password
         return el
 
     def local(self):
@@ -113,18 +109,20 @@ def remove(value):
 
 def stanza_storage(method):
     """Generate a <storage/> stanza with the conference elements."""
-    storage = Storage()
+    storage = Bookmarks()
     for b in filter(lambda b: b.method == method, bookmarks):
         storage.append(b.stanza())
     return storage
 
 def save_pep(xmpp):
     """Save the remote bookmarks via PEP."""
-    xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'))
+    xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'),
+            method='xep_0223')
 
 def save_privatexml(xmpp):
     """"Save the remote bookmarks with privatexml."""
-    xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_storage('privatexml'))
+    xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('privatexml'),
+            method='xep_0049')
 
 def save_remote(xmpp, method=preferred):
     """Save the remote bookmarks."""
@@ -132,9 +130,11 @@ def save_remote(xmpp, method=preferred):
 
     try:
         if method is 'privatexml':
-            xmpp.plugin['xep_0048'].set_bookmarks_old(stanza_storage('privatexml'))
+            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('privatexml'),
+                    method='xep_0049')
         else:
-            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'))
+            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'),
+                    method='xep_0223')
     except:
         import traceback
         log.debug("Could not save the bookmarks:\n%s" % traceback.format_exc())
@@ -161,7 +161,7 @@ def save(xmpp, core=None):
 def get_pep(xmpp):
     """Add the remotely stored bookmarks via pep to the list."""
     try:
-        iq = xmpp.plugin['xep_0048'].get_bookmarks()
+        iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223', block=True)
     except:
         return False
     for conf in iter(iq.xml, '{storage:bookmarks}conference'):
@@ -173,7 +173,7 @@ def get_pep(xmpp):
 def get_privatexml(xmpp):
     """Add the remotely stored bookmarks via privatexml to the list."""
     try:
-        iq = xmpp.plugin['xep_0048'].get_bookmarks_old()
+        iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049', block=True)
     except:
         return False
     for conf in iter(iq.xml, '{storage:bookmarks}conference'):
@@ -186,18 +186,25 @@ def get_remote(xmpp):
     """Add the remotely stored bookmarks to the list."""
     if xmpp.anon:
         return
-    pep, privatexml = True, True
-    for method in methods[1:]:
+    method = config.get('use_bookmarks_method', '')
+    if not method:
+        pep, privatexml = True, True
+        for method in methods[1:]:
+            if method == 'pep':
+                pep = get_pep(xmpp)
+            else:
+                privatexml = get_privatexml(xmpp)
+        if pep and not privatexml:
+            config.set_and_save('use_bookmarks_method', 'pep')
+        elif privatexml and not pep:
+            config.set_and_save('use_bookmarks_method', 'privatexml')
+        elif not pep and not privatexml:
+            config.set_and_save('use_bookmarks_method', '')
+    else:
         if method == 'pep':
-            pep = get_pep(xmpp)
+            get_pep(xmpp)
         else:
-            privatexml = get_privatexml(xmpp)
-    if pep and not privatexml:
-        config.set_and_save('use_bookmarks_method', 'pep')
-    elif privatexml and not pep:
-        config.set_and_save('use_bookmarks_method', 'privatexml')
-    elif not pep and not privatexml:
-        config.set_and_save('use_bookmarks_method', '')
+            get_privatexml(xmpp)
 
 def get_local():
     """Add the locally stored bookmarks to the list."""

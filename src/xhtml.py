@@ -191,7 +191,7 @@ def get_body_from_message_stanza(message):
     the body (without any color) otherwise
     """
     if config.get('enable_xhtml_im', 'true') == 'true':
-        xhtml_body = message['xhtml_im']
+        xhtml_body = message['html']['body']
         if xhtml_body:
             content = xhtml_to_poezio_colors(xhtml_body)
             content = content if content else message['body']
@@ -224,7 +224,7 @@ def ncurses_color_to_html(color):
         r = g = b = color / 24 * 6
     return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
 
-def xhtml_to_poezio_colors(text):
+def xhtml_to_poezio_colors(xml):
     def parse_css(css):
         def get_color(value):
             if value[0] == '#':
@@ -283,7 +283,6 @@ def xhtml_to_poezio_colors(text):
     def trim(string):
         return re.sub(whitespace_re, ' ', string)
 
-    xml = ET.fromstring(text)
     message = ''
     if version_info[1] == 2:
         elems = xml.iter()

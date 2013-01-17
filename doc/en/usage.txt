@@ -316,8 +316,6 @@ their number will change if you close a tab on the left of the list).
 */invite <jid> <room> [reason]*:: Invite _jid_ to _room_ wit _reason_ (if
   provided).
 
-*/decline <room> [reason]*:: Decline invitation to _room_ with _reason_.
-
 */invitations*:: Show the pending invitations.
 
 */activity <jid>*:: Show the last activity of a contact or a server (its

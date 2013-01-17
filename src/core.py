@@ -2432,11 +2432,6 @@ class Core(object):
                 desc=_('Invite jid in room with reason.'),
                 shortdesc=_('Invite someone in a room.'),
                 completion=self.completion_invite)
-        self.register_command('decline', self.command_decline,
-                usage=_('<room> [reason]'),
-                desc=_('Decline the invitation to room with or without reason.'),
-                shortdesc=_('Decline an invitation.'),
-                completion=self.completion_decline)
         self.register_command('invitations', self.command_invitations,
                 shortdesc=_('Show the pending invitations.'))
         self.register_command('bookmarks', self.command_bookmarks,

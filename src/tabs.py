@@ -526,7 +526,8 @@ class ChatTab(Tab):
 
         msg = self.core.xmpp.make_message(self.get_name())
         msg['body'] = body
-        msg['xhtml_im'] = arg
+        msg.enable('html')
+        msg['html']['body'] = arg
         if isinstance(self, MucTab):
             msg['type'] = 'groupchat'
         if isinstance(self, ConversationTab):
@@ -1193,7 +1194,8 @@ class MucTab(ChatTab):
         # be converted in xhtml.
         self.core.events.trigger('muc_say', msg, self)
         if msg['body'].find('\x19') != -1:
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg.enable('html')
+            msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             msg['chat_state'] = needed
@@ -1820,7 +1822,8 @@ class PrivateTab(ChatTab):
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg.enable('html')
+            msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.inactive else 'active'
@@ -2950,7 +2953,8 @@ class ConversationTab(ChatTab):
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
-            msg['xhtml_im'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg.enable('html')
+            msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and self.remote_wants_chatstates is not False:
             needed = 'inactive' if self.inactive else 'active'

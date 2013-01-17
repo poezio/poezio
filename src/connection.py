@@ -16,6 +16,7 @@ from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
                      gettext as _)
 
 import getpass
+import sys
 import sleekxmpp
 
 from config import config, options
@@ -58,13 +59,26 @@ class Connection(sleekxmpp.ClientXMPP):
             self.whitespace_keepalive_interval = int(interval)
         else:
             self.whitespace_keepalive_interval = 300
+        # Hack to check the sleekxmpp version
+        # TODO: Remove that when a sufficient time has passed since the move
+        try:
+            self.register_plugin('xep_0071')
+            wrong_version = True
+        except:
+            wrong_version = False
+        finally:
+            if wrong_version:
+                print("You are using the wrong sleekxmpp version. Please run "
+                        "update.sh again or install the corresponding "
+                        "sleekxmpp package.")
+                sys.exit()
+
         self.register_plugin('xep_0012')
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0045')
         self.register_plugin('xep_0060')
         self.register_plugin('xep_0048')
-        self.register_plugin('xep_0071')
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0191')
         if config.get('send_poezio_info', 'true') == 'true':
