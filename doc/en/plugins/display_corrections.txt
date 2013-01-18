@@ -8,19 +8,19 @@ Installation
 
 ============================
 
- /load display\_corrections
+ /load display_corrections
 
 ============================
 
 
 Usage
 -----
-This plugin adds a _/display\_corrections command that will display a list of
+This plugin adds a _/display_corrections_ command that will display a list of
 old versions of a message.
 
 
-_/display\_corrections_ without argument will list the last corrected message,
-if any is found.  If an integer argument is given, /display\_corrections will
+_display_corrections_ without argument will list the last corrected message,
+if any is found.  If an integer argument is given, _display_corrections_ will
 go back gradually in the buffer to list the previous corrected messages, and so
 on.
 

@@ -1,0 +1,21 @@
+Message Correction
+==================
+
+Poezio implements the link:http://xmpp.org/extensions/xep-0308.html[XEP-0308]
+which allows the correction of the last message sent.
+
+The corrections are signalled with a number append to the nick of the user, in
+a different color.
+
+image::../../images/correct.png["Corrected message", title="A corrected message"]
+
+The *9* here represents the number of times this message has been corrected.
+
+
+You can show the revisions of a message by loading the
+link:../plugins/display_corrections.html[display_corrections] plugin, and you
+can correct your own messages with the */correct* command.
+
+
+NOTE: Please do not abuse of this feature, as it will simply be displayed as
+another message in the other clients.
