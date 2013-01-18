@@ -113,12 +113,13 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     def unload(self):
         self.cleanup()
 
-    def add_command(self, name, handler, help, completion=None):
+    def add_command(self, name, handler, help, completion=None, short='', usage=''):
         """
         Add a global command.
         You cannot overwrite the existing commands.
         """
-        return self.plugin_manager.add_command(self.__module__, name, handler, help, completion)
+        return self.plugin_manager.add_command(self.__module__, name, handler, help,
+                completion=completion, short=short, usage=usage)
 
     def del_command(self, name):
         """
@@ -151,11 +152,12 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         return self.plugin_manager.del_tab_key(self.__module__, tab_type, key)
 
-    def add_tab_command(self, tab_type, name, handler, help, completion=None):
+    def add_tab_command(self, tab_type, name, handler, help, completion=None, short='', usage=''):
         """
         Add a command only for a type of tab.
         """
-        return self.plugin_manager.add_tab_command(self.__module__, tab_type, name, handler, help, completion)
+        return self.plugin_manager.add_tab_command(self.__module__, tab_type, name, handler, help,
+                completion=completion, short=short, usage=usage)
 
     def del_tab_command(self, tab_type, name):
         """

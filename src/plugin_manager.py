@@ -12,6 +12,7 @@ import sys
 import logging
 from gettext import gettext as _
 
+import core
 import tabs
 from config import config
 
@@ -126,7 +127,7 @@ class PluginManager(object):
                 log.debug("Could not unload plugin: \n%s", traceback.format_exc())
                 self.core.information("Could not unload plugin: %s" % e, 'Error')
 
-    def add_command(self, module_name, name, handler, help, completion=None):
+    def add_command(self, module_name, name, handler, help, completion=None, short='', usage=''):
         """
         Add a global command.
         """
@@ -134,8 +135,8 @@ class PluginManager(object):
             raise Exception(_("Command '%s' already exists") % (name,))
 
         commands = self.commands[module_name]
-        commands[name] = (handler, help, completion)
-        self.core.commands[name] = (handler, help, completion)
+        commands[name] = core.Command(handler, help, completion, short, usage)
+        self.core.commands[name] = commands[name]
 
     def del_command(self, module_name, name):
         """
@@ -146,7 +147,7 @@ class PluginManager(object):
             if name in self.core.commands:
                 del self.core.commands[name]
 
-    def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None):
+    def add_tab_command(self, module_name, tab_type, name, handler, help, completion=None, short='', usage=''):
         """
         Add a command only for a type of Tab.
         """
@@ -157,7 +158,7 @@ class PluginManager(object):
         if not t in commands:
             commands[t] = []
         commands[t].append((name, handler, help, completion))
-        tab_type.plugin_commands[name] = (handler, help, completion)
+        tab_type.plugin_commands[name] = core.Command(handler, help, completion, short, usage)
         for tab in self.core.tabs:
             if isinstance(tab, tab_type):
                 tab.update_commands()
