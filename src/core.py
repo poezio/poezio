@@ -2918,22 +2918,25 @@ class Core(object):
         bookmark.get_local()
         if not self.xmpp.anon and not config.get('use_remote_bookmarks', 'true').lower() == 'false':
             bookmark.get_remote(self.xmpp)
-        for bm in [item for item in bookmark.bookmarks if item.autojoin]:
+        for bm in bookmark.bookmarks:
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
             if not tab:
                 self.open_new_room(bm.jid, bm.nick, False)
             nick = bm.nick if bm.nick else self.own_nick
             self.initial_joins.append(bm.jid)
-            histo_length= config.get('muc_history_length', 20)
+            histo_length = config.get('muc_history_length', 20)
             if histo_length == -1:
                 histo_length= None
             if histo_length is not None:
                 histo_length= str(histo_length)
-            muc.join_groupchat(self.xmpp, bm.jid, nick,
-                    passwd=bm.password,
-                    maxhistory=histo_length,
-                    status=self.status.message,
-                    show=self.status.show)
+            # do not join rooms that do not have autojoin
+            # but display them anyway
+            if bm.autojoin:
+                muc.join_groupchat(self.xmpp, bm.jid, nick,
+                        passwd=bm.password,
+                        maxhistory=histo_length,
+                        status=self.status.message,
+                        show=self.status.show)
 
     ### Other handlers ###
 
