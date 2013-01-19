@@ -36,6 +36,7 @@ log = logging.getLogger(__name__)
 import multiuserchat as muc
 import tabs
 
+import fixes
 import decorators
 import xhtml
 import events
@@ -1620,12 +1621,12 @@ class Core(object):
             return self.command_help('version')
         jid = safeJID(args[0])
         if jid.resource or jid not in roster:
-            self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+            fixes.get_version(self.xmpp, jid, callback=callback)
         elif jid in roster:
             for resource in roster[jid].resources:
-                self.xmpp.plugin['xep_0092'].get_version(resource.jid, callback=callback)
+                fixes.get_version(self.xmpp, resource.jid, callback=callback)
             else:
-                self.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+                fixes.get_version(self.xmpp, jid, callback=callback)
 
     def completion_version(self, the_input):
         """Completion for /version"""

@@ -23,6 +23,7 @@ from gettext import gettext as _
 
 import windows
 import curses
+import fixes
 import difflib
 import string
 import common
@@ -898,7 +899,7 @@ class MucTab(ChatTab):
         self.core.information(info, 'Info')
 
     def command_configure(self, arg):
-        form = self.core.xmpp.plugin['xep_0045'].getRoomForm(self.get_name())
+        form = fixes.get_room_form(self.core.xmpp, self.get_name())
         if not form:
             self.core.information('Could not retrieve the configuration form', 'Error')
             return
@@ -971,7 +972,7 @@ class MucTab(ChatTab):
             jid = safeJID(jid + '/' + arg)
         else:
             jid = safeJID(arg)
-        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     def command_nick(self, arg):
         """
@@ -1878,7 +1879,7 @@ class PrivateTab(ChatTab):
         if arg:
             return self.core.command_version(arg)
         jid = safeJID(self.name)
-        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     def command_info(self, arg):
         """
@@ -3058,7 +3059,7 @@ class ConversationTab(ChatTab):
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
                 jid = resource.jid if resource else jid
-        self.core.xmpp.plugin['xep_0092'].get_version(jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
