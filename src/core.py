@@ -1705,9 +1705,12 @@ class Core(object):
         if password is None: # try to use a saved password
             password = config.get_by_tabname('password', None, room, fallback=False)
         if tab and not tab.joined:
-            delta = datetime.now() - tab.last_connection
-            seconds = delta.seconds + delta.days * 24 * 3600 if tab.last_connection is not None else 0
-            seconds = int(seconds)
+            if tab.last_connection:
+                delta = datetime.now() - tab.last_connection
+                seconds = delta.seconds + delta.days * 24 * 3600 if tab.last_connection is not None else 0
+                seconds = int(seconds)
+            else:
+                seconds = 0
             muc.join_groupchat(self.xmpp, room, nick, password,
                                histo_length, current_status.message, current_status.show, seconds=seconds)
         if not tab:
