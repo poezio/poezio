@@ -789,7 +789,7 @@ class MucTab(ChatTab):
         last_message = self._text_buffer.last_message
         if last_message:
             return last_message.time
-        return None
+        return 0
 
     @refresh_wrapper.always
     def go_to_next_hl(self):
