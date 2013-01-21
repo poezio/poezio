@@ -47,6 +47,11 @@ class Resource(object):
     def __repr__(self):
         return '<%s>' % self._jid
 
+    def __eq__(self, value):
+        if not isinstance(value, Resource):
+            return False
+        return self.jid == value.jid and self._data == value._data
+
 class Contact(object):
     """
     This a way to gather multiple resources from the same bare JID.

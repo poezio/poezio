@@ -25,7 +25,7 @@ from config import config
 
 from threading import RLock
 
-from contact import Contact
+from contact import Contact, Resource
 from roster import RosterGroup
 from poopt import cut_text
 
@@ -1658,7 +1658,7 @@ class RosterWin(Win):
         self.start_pos = 1      # position of the start of the display
         self.roster_len = 0
         self.selected_row = None
-        self.roster_cache = [] 
+        self.roster_cache = []
 
     def move_cursor_down(self, number=1):
         """
@@ -1674,6 +1674,7 @@ class RosterWin(Win):
                 self.scroll_down(8)
             else:
                 self.scroll_down(self.pos-self.start_pos - self.height // 2)
+        self.update_pos()
         return pos != self.pos
 
     def move_cursor_up(self, number=1):
@@ -1690,7 +1691,14 @@ class RosterWin(Win):
                 self.scroll_up(8)
             else:
                 self.scroll_up(self.start_pos-self.pos + self.height // 2)
+        self.update_pos()
         return pos != self.pos
+
+    def update_pos(self):
+        if len(self.roster_cache) > self.pos and self.pos >= 0:
+            self.selected_row = self.roster_cache[self.pos]
+        elif self.roster_cache:
+            self.selected_row = self.roster_cache[-1]
 
     def scroll_down(self, number=8):
         pos = self.start_pos
@@ -1713,55 +1721,50 @@ class RosterWin(Win):
         We get the roster object
         """
         log.debug('Refresh: %s',self.__class__.__name__)
-        self.roster_cache = [] 
+        self.roster_cache = []
+        show_offline = config.get('roster_show_offline', 'false') == 'true'
+        sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+        group_sort = config.get('roster_group_sort', 'name') or 'name'
+        # build the cache
+        for group in roster.get_groups(group_sort):
+            contacts_filtered = group.get_contacts(roster.contact_filter)
+            if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
+                continue    # Ignore empty groups
+            self.roster_cache.append(group)
+            if group.folded:
+                continue # ignore folded groups
+            for contact in group.get_contacts(roster.contact_filter, sort):
+                if not show_offline and len(contact) == 0:
+                    continue # ignore offline contacts
+                self.roster_cache.append(contact)
+                if not contact.folded:
+                    for resource in contact.get_resources():
+                        self.roster_cache.append(resource)
+
         with g_lock:
             self.roster_len = len(roster);
-            while self.roster_len and self.pos >= self.roster_len:
-                self.move_cursor_up()
+            self.move_cursor_up(self.roster_len - self.pos if self.pos >= self.roster_len else 0)
             self._win.erase()
             self._win.move(0, 0)
             self.draw_roster_information(roster)
             y = 1
-            show_offline = config.get('roster_show_offline', 'false') == 'true'
-            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-            group_sort = config.get('roster_group_sort', 'name') or 'name'
-            for group in roster.get_groups(group_sort):
-                contacts_filtered = group.get_contacts(roster.contact_filter)
-                if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
-                    continue    # Ignore empty groups
-                # This loop is really REALLY ugly :^)
-                if y-1 == self.pos:
-                    self.selected_row = group
-                if y >= self.start_pos:
-                    self.draw_group(y-self.start_pos+1, group, y-1==self.pos)
-                self.roster_cache.append(group)
+            # draw the roster from the cache
+            for item in self.roster_cache[self.start_pos-1:self.start_pos+self.height]:
+
+                draw_selected = False
+                if y -2 + self.start_pos  == self.pos:
+                    draw_selected = True
+                    self.selected_row = item
+
+                if isinstance(item, RosterGroup):
+                    self.draw_group(y, item, draw_selected)
+                elif isinstance(item, Contact):
+                    self.draw_contact_line(y, item, draw_selected)
+                elif isinstance(item, Resource):
+                    self.draw_resource_line(y, item, draw_selected)
+
                 y += 1
-                if group.folded:
-                    continue
-                for contact in group.get_contacts(roster.contact_filter, sort):
-                    if not show_offline and len(contact) == 0:
-                        continue
-                    if y-1 == self.pos:
-                        self.selected_row = contact
-                    if y-self.start_pos+1 == self.height:
-                        break
-                    if y >= self.start_pos:
-                        self.draw_contact_line(y-self.start_pos+1, contact, y-1==self.pos)
-                    log.debug('ammend: %s',contact.bare_jid)
-                    self.roster_cache.append(contact)
-                    y += 1
-                    if not contact.folded:
-                        for resource in contact.get_resources():
-                            if y-1 == self.pos:
-                                self.selected_row = resource
-                            if y-self.start_pos+1 == self.height:
-                                break
-                            if y >= self.start_pos:
-                                self.draw_resource_line(y-self.start_pos+1, resource, y-1==self.pos)
-                            self.roster_cache.append(resource)
-                            y += 1
-                if y-self.start_pos+1 == self.height:
-                    break
+
             if self.start_pos > 1:
                 self.draw_plus(1)
             if self.start_pos + self.height-2 < self.roster_len:
