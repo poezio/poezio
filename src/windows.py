@@ -946,8 +946,12 @@ class TextWin(Win):
 
     def resize(self, height, width, y, x, room=None):
         with g_lock:
+            if hasattr(self, 'width'):
+                old_width = self.width
+            else:
+                old_width = None
             self._resize(height, width, y, x)
-            if room:
+            if room and self.width != old_width:
                 self.rebuild_everything(room)
 
     def rebuild_everything(self, room):
