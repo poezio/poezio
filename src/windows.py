@@ -503,7 +503,7 @@ class ConversationInfoWin(InfoWin):
         else:
             resource = None
         # if contact is None, then resource is None too: user is not in the roster
-        # so we don't know almost anything about it
+        # so we know almost nothing about it
         # If contact is a Contact, then
         # resource can now be a Resource: user is in the roster and online
         # or resource is None: user is in the roster but offline
@@ -546,8 +546,9 @@ class ConversationInfoWin(InfoWin):
         if not contact:
             self.addstr("(contact not in roster)", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             return
-        display_name = contact.name or contact.bare_jid
-        self.addstr('%s '%(display_name), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        display_name = contact.name
+        if display_name:
+            self.addstr('%s '%(display_name), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_jid(self, jid):
         """
@@ -560,6 +561,18 @@ class ConversationInfoWin(InfoWin):
     def write_chatstate(self, state):
         if state:
             self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
+class DynamicConversationInfoWin(ConversationInfoWin):
+    def write_contact_jid(self, jid):
+        """
+        Just displays the resource in an other color
+        """
+        log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s" % jid.resource)
+        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(jid.bare, to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
+        if jid.resource:
+            self.addstr("/%s" % (jid.resource,), to_curses_attr(get_theme().COLOR_CONVERSATION_RESOURCE))
+        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class ConversationStatusMessageWin(InfoWin):
     """

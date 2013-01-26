@@ -525,7 +525,7 @@ class ChatTab(Tab):
             self.core.information('Could not send custom xhtml', 'Error')
             return
 
-        msg = self.core.xmpp.make_message(self.get_name())
+        msg = self.core.xmpp.make_message(self.get_dest_jid())
         msg['body'] = body
         msg.enable('html')
         msg['html']['body'] = arg
@@ -535,6 +535,9 @@ class ChatTab(Tab):
             self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
             self.refresh()
         msg.send()
+
+    def get_dest_jid(self):
+        return self.get_name()
 
     @refresh_wrapper.always
     def command_clear(self, args):
@@ -551,7 +554,7 @@ class ChatTab(Tab):
         if not isinstance(self, MucTab) or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
-            msg = self.core.xmpp.make_message(self.get_name())
+            msg = self.core.xmpp.make_message(self.get_dest_jid())
             msg['type'] = self.message_type
             msg['chat_state'] = state
             self.chat_state = state
@@ -2883,6 +2886,7 @@ class RosterInfoTab(Tab):
 class ConversationTab(ChatTab):
     """
     The tab containg a normal conversation (not from a MUC)
+    Must not be instantiated, use Static or Dynamic version only.
     """
     plugin_commands = {}
     plugin_keys = {}
@@ -2895,7 +2899,6 @@ class ConversationTab(ChatTab):
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
-        self.info_header = windows.ConversationInfoWin()
         self.input = windows.MessageInput()
         self.check_attention()
         # keys
@@ -2938,7 +2941,7 @@ class ConversationTab(ChatTab):
         self.complete_commands(self.input)
 
     def command_say(self, line, attention=False, correct=False):
-        msg = self.core.xmpp.make_message(self.get_name())
+        msg = self.core.xmpp.make_message(self.get_dest_jid())
         msg['type'] = 'chat'
         msg['body'] = line
         # trigger the event BEFORE looking for colors.
@@ -2966,7 +2969,7 @@ class ConversationTab(ChatTab):
         self.core.events.trigger('conversation_say_after', msg, self)
         self.last_sent_message = msg
         msg.send()
-        logger.log_message(safeJID(self.get_name()).bare, self.core.own_nick, line)
+        logger.log_message(safeJID(self.get_dest_jid()).bare, self.core.own_nick, line)
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
@@ -3007,8 +3010,8 @@ class ConversationTab(ChatTab):
 
     @refresh_wrapper.conditional
     def command_info(self, arg):
-        contact = roster[self.get_name()]
-        jid = safeJID(self.get_name())
+        contact = roster[self.get_dest_jid()]
+        jid = safeJID(self.get_dest_jid())
         if jid.resource:
             resource = contact[jid.full]
         else:
@@ -3021,13 +3024,13 @@ class ConversationTab(ChatTab):
         if message is not '':
             self.command_say(message, attention=True)
         else:
-            msg = self.core.xmpp.make_message(self.get_name())
+            msg = self.core.xmpp.make_message(self.get_dest_jid())
             msg['type'] = 'chat'
             msg['attention'] = True
             msg.send()
 
     def check_attention(self):
-        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_name(), block=False, timeout=5, callback=self.on_attention_checked)
+        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_dest_jid(), block=False, timeout=5, callback=self.on_attention_checked)
 
     def on_attention_checked(self, iq):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
@@ -3076,14 +3079,14 @@ class ConversationTab(ChatTab):
             self.resize()
         log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
-        self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
-        self.info_header.refresh(self.get_name(), roster[self.get_name()], self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
+        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.info_win.refresh()
         self.refresh_tab_win()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_name(), roster[self.get_name()],
+        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()],
                 self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
@@ -3108,8 +3111,8 @@ class ConversationTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        contact = roster[self.get_name()]
-        jid = safeJID(self.get_name())
+        contact = roster[self.get_dest_jid()]
+        jid = safeJID(self.get_dest_jid())
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -3125,8 +3128,8 @@ class ConversationTab(ChatTab):
                 self.send_chat_state('inactive')
 
     def on_gain_focus(self):
-        contact = roster[self.get_name()]
-        jid = safeJID(self.get_name())
+        contact = roster[self.get_dest_jid()]
+        jid = safeJID(self.get_dest_jid())
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -3177,6 +3180,83 @@ class ConversationTab(ChatTab):
         if contact and contact.name:
             res.append(contact.name)
         return res
+
+class DynamicConversationTab(ConversationTab):
+    """
+    A conversation tab associated with one bare JID that can be “locked” to
+    a full jid, and unlocked, as described in the XEP-0296.
+    Only one DynamicConversationTab can be opened for a given jid.
+    """
+    def __init__(self, jid, resource=None):
+        self.locked_resource = None
+        self.name = safeJID(jid).bare
+        if resource:
+            self.lock(resource)
+        self.info_header = windows.DynamicConversationInfoWin()
+        ConversationTab.__init__(self, jid)
+
+    def lock(self, resource):
+        """
+        Lock the tab to the resource.
+        """
+        assert(resource)
+        self.locked_resource = resource
+
+    def unlock(self):
+        """
+        Unlock the tab from a resource. It is now “associated” with the bare
+        jid.
+        """
+        self.locked_resource = None
+
+    def get_dest_jid(self):
+        """
+        Returns the full jid (using the locked resource), or the bare jid if
+        the conversation is not locked.
+        """
+        if self.locked_resource:
+            return "%s/%s" % (self.get_name(), self.locked_resource)
+        return self.get_name()
+
+    def refresh(self):
+        """
+        Different from the parent class only for the info_header object.
+        """
+        if self.need_resize:
+            self.resize()
+        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        self.text_win.refresh()
+        self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
+        if self.locked_resource:
+            displayed_jid = "%s/%s" % (self.get_name(), self.locked_resource)
+        else:
+            displayed_jid = self.get_name()
+        self.info_header.refresh(displayed_jid, roster[self.get_name()], self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.info_win.refresh()
+        self.refresh_tab_win()
+        self.input.refresh()
+
+    def refresh_info_header(self):
+        """
+        Different from the parent class only for the info_header object.
+        """
+        if self.locked_resource:
+            displayed_jid = "%s/%s" % (self.get_name(), self.locked_resource)
+        else:
+            displayed_jid = self.get_name()
+        self.info_header.refresh(displayed_jid, roster[self.get_name()],
+                self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.input.refresh()
+
+class StaticConversationTab(ConversationTab):
+    """
+    A conversation tab associated with one Full JID. It cannot be locked to
+    an different resource or unlocked.
+    """
+    def __init__(self, jid):
+        assert(safeJID(jid).resource)
+        self.info_header = windows.ConversationInfoWin()
+        ConversationTab.__init__(self, jid)
 
 class MucListTab(Tab):
     """
@@ -3527,7 +3607,6 @@ class XMLTab(Tab):
             return
         self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
         self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-
 
 class SimpleTextTab(Tab):
     """

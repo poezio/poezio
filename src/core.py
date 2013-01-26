@@ -654,15 +654,17 @@ class Core(object):
         and return it. Otherwise, we return None
         """
         jid = safeJID(jid)
-        # We first check if we have a conversation opened with this precise resource
-        conversation = self.get_tab_by_name(jid.full, tabs.ConversationTab)
+        # We first check if we have a static conversation opened with this precise resource
+        conversation = self.get_tab_by_name(jid.full, tabs.StaticConversationTab)
         if not conversation:
             # If not, we search for a conversation with the bare jid
-            conversation = self.get_tab_by_name(jid.bare, tabs.ConversationTab)
+            conversation = self.get_tab_by_name(jid.bare, tabs.DynamicConversationTab)
             if not conversation:
                 if create:
-                    # We create the conversation with the full Jid if nothing was found
-                    conversation = self.open_conversation_window(jid.full, False)
+                    # We create a dynamic conversation with the bare Jid if
+                    # nothing was found (and we lock it to the resource
+                    # later)
+                    conversation = self.open_conversation_window(jid.bare, False)
                 else:
                     conversation = None
         return conversation
@@ -869,15 +871,14 @@ class Core(object):
 
     def open_conversation_window(self, jid, focus=True):
         """
-        Open a new conversation tab and focus it if needed
+        Open a new conversation tab and focus it if needed. If a resource is
+        provided, we open a StaticConversationTab, else a
+        DynamicConversationTab
         """
-        for tab in self.tabs: # if the room exists, focus it and return
-            if isinstance(tab, tabs.ConversationTab):
-                if tab.get_name() == jid:
-                    self.command_win('%s' % tab.nb)
-                    return tab
-        new_tab = tabs.ConversationTab(jid)
-        # insert it in the rooms
+        if safeJID(jid).resource:
+            new_tab = tabs.StaticConversationTab(jid)
+        else:
+            new_tab = tabs.DynamicConversationTab(jid)
         if not focus:
             new_tab.state = "private"
         self.add_tab(new_tab, focus)
@@ -2523,6 +2524,8 @@ class Core(object):
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
+        if isinstance(conversation, tabs.DynamicConversationTab):
+            conversation.lock(jid.resource)
         if jid.bare in roster:
             remote_nick = roster[jid.bare].name or jid.user
         else:
@@ -2692,6 +2695,8 @@ class Core(object):
             return False
         self.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
+        if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
+            tab.unlock()
         if tab == self.current_tab():
             tab.refresh_info_header()
             self.doupdate()
@@ -2802,6 +2807,9 @@ class Core(object):
             return
         jid = presence['from']
         contact = roster[jid.bare]
+        tab = self.get_conversation_by_jid(jid, create=False)
+        if isinstance(tab, tabs.DynamicConversationTab):
+            tab.unlock()
         if contact is None:
             return
         self.events.trigger('normal_presence', presence, contact[jid.full])
