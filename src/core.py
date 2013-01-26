@@ -2803,7 +2803,7 @@ class Core(object):
     ### Presence-related handlers ###
 
     def on_presence(self, presence):
-        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'): 
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
             return
         jid = presence['from']
         contact = roster[jid.bare]
