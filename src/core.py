@@ -2304,7 +2304,11 @@ class Core(object):
         jid = safeJID(args[0])
         if not jid.user and not jid.domain and not jid.resource:
             return self.information('Invalid JID.', 'Error')
-        tab = self.open_conversation_window(jid.full, focus=True)
+        tab = self.get_conversation_by_jid(jid.full, False)
+        if not tab:
+            tab = self.open_conversation_window(jid.full, focus=True)
+        else:
+            self.focus_tab_named(tab.get_name())
         if len(args) > 1:
             tab.command_say(args[1])
 
