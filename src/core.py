@@ -2308,6 +2308,15 @@ class Core(object):
         if len(args) > 1:
             tab.command_say(args[1])
 
+    def completion_message(self, the_input):
+        """Completion for /message"""
+        n = len(the_input.get_text().split())
+        if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
+            return
+        comp = reduce(lambda x, y: x + [i for i in y], (jid.resources for jid in roster if len(jid)), [])
+        comp = (str(res.jid) for res in comp)
+        return the_input.auto_completion(sorted(comp), '', quotify=True)
+
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
         self.xml_tab = True
@@ -2399,7 +2408,7 @@ class Core(object):
                 usage=_('<jid> [optional message]'),
                 desc=_('Open a conversation with the specified JID (even if it is not in our roster), and send a message to it, if the message is specified.'),
                 shortdesc=_('Send a message'),
-                completion=self.completion_version)
+                completion=self.completion_message)
         self.register_command('version', self.command_version,
                 usage='<jid>',
                 desc=_('Get the software version of the given JID (usually its XMPP client and Operating System).'),
