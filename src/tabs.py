@@ -2640,6 +2640,7 @@ class RosterInfoTab(Tab):
         else:
             jid = safeJID(arg).bare
         nodepart = safeJID(jid).user
+        jid = safeJID(jid)
         # crappy transports putting resources inside the node part
         if '\\2f' in nodepart:
             jid.user = nodepart.split('\\2f')[0]
