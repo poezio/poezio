@@ -793,13 +793,15 @@ class TextWin(Win):
             self.pos = len(self.built_lines) - self.built_lines.index(None) - self.height + 1
             if self.pos < 0:
                 self.pos = 0
-            # Chose a proper position (not too high)
-            self.scroll_up(0)
-            # Make “next highlight” work afterwards. This makes it easy to
-            # review all the highlights since the separator was placed, in
-            # the correct order.
-            self.hl_pos = len(self.highlights) - self.nb_of_highlights_after_separator - 1
-            log.debug("self.hl_pos = %s" % self.hl_pos)
+        else:
+            self.pos = len(self.built_lines) - self.height + 1
+        # Chose a proper position (not too high)
+        self.scroll_up(0)
+        # Make “next highlight” work afterwards. This makes it easy to
+        # review all the highlights since the separator was placed, in
+        # the correct order.
+        self.hl_pos = len(self.highlights) - self.nb_of_highlights_after_separator - 1
+        log.debug("self.hl_pos = %s" % self.hl_pos)
 
     def remove_line_separator(self):
         """
