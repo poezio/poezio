@@ -673,8 +673,15 @@ class TextWin(Win):
 
         # the Lines of the highlights in that buffer
         self.highlights = []
-        # the current HL position in that list
-        self.hl_pos = -1
+        # the current HL position in that list NaN means that we’re not on
+        # an hl. -1 is a valid position (it's before the first hl of the
+        # list. i.e the separator, in the case where there’s no hl before
+        # it.)
+        self.hl_pos = float('nan')
+
+        # Keep track of the number of hl after the separator.
+        # This is useful to make “go to next highlight“ work after a “move to separator”.
+        self.nb_of_highlights_after_separator = 0
 
         self.separator_after = None
 
@@ -701,9 +708,9 @@ class TextWin(Win):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the next highlight…')
-        if not self.highlights or self.hl_pos == -1 or \
+        if not self.highlights or self.hl_pos != self.hl_pos or \
                 self.hl_pos == len(self.highlights)-1:
-            self.hl_pos = -1
+            self.hl_pos = float('nan')
             self.pos = 0
             return
         hl_size = len(self.highlights) - 1
@@ -711,7 +718,7 @@ class TextWin(Win):
             self.hl_pos += 1
         else:
             self.hl_pos = hl_size
-
+        log.debug("self.hl_pos = %s" % self.hl_pos)
         hl = self.highlights[self.hl_pos]
         pos = None
         while not pos:
@@ -720,7 +727,7 @@ class TextWin(Win):
             except ValueError:
                 self.highlights = self.highlights[self.hl_pos+1:]
                 if not self.highlights:
-                    self.hl_pos = -1
+                    self.hl_pos = float('nan')
                     self.pos = 0
                     return
                 hl = self.highlights[0]
@@ -736,15 +743,15 @@ class TextWin(Win):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the previous highlight…')
-        if not self.highlights or self.hl_pos == 0:
-            self.hl_pos = -1
+        if not self.highlights or self.hl_pos <= 0:
+            self.hl_pos = float('nan')
             self.pos =  0
             return
-        if self.hl_pos < 0:
+        if self.hl_pos != self.hl_pos:
             self.hl_pos = len(self.highlights) - 1
         elif self.hl_pos > 0:
             self.hl_pos -= 1
-
+        log.debug("self.hl_pos = %s" % self.hl_pos)
         hl = self.highlights[self.hl_pos]
         pos = None
         while not pos:
@@ -753,7 +760,7 @@ class TextWin(Win):
             except ValueError:
                 self.highlights = self.highlights[self.hl_pos+1:]
                 if not self.highlights:
-                    self.hl_pos = -1
+                    self.hl_pos = float('nan')
                     self.pos = 0
                     return
                 hl = self.highlights[0]
@@ -788,6 +795,11 @@ class TextWin(Win):
                 self.pos = 0
             # Chose a proper position (not too high)
             self.scroll_up(0)
+            # Make “next highlight” work afterwards. This makes it easy to
+            # review all the highlights since the separator was placed, in
+            # the correct order.
+            self.hl_pos = len(self.highlights) - self.nb_of_highlights_after_separator - 1
+            log.debug("self.hl_pos = %s" % self.hl_pos)
 
     def remove_line_separator(self):
         """
@@ -806,6 +818,8 @@ class TextWin(Win):
         """
         if None not in self.built_lines:
             self.built_lines.append(None)
+            self.nb_of_highlights_after_separator = 0
+            log.debug("Reseting number of highlights after separator")
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 
@@ -824,6 +838,9 @@ class TextWin(Win):
             return 0
         if highlight:
             self.highlights.append(lines[0])
+            self.nb_of_highlights_after_separator += 1
+            log.debug("Number of highlights after separator is now %s" % \
+                          self.nb_of_highlights_after_separator)
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
                 self.built_lines.pop(0)
