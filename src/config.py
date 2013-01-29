@@ -25,6 +25,8 @@ class Config(RawConfigParser):
     def __init__(self, file_name):
         self.file_name = file_name
         RawConfigParser.__init__(self, None)
+        # make the options case sensitive
+        self.optionxform = str
         try:
             RawConfigParser.read(self, file_name, encoding='utf-8')
         except TypeError: # python < 3.2 sucks
