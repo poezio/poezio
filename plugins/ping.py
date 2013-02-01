@@ -1,6 +1,6 @@
 from plugin import BasePlugin
-from sleekxmpp.xmlstream.jid import JID
 from roster import roster
+from common import safeJID
 import common
 import tabs
 
@@ -16,9 +16,9 @@ class Plugin(BasePlugin):
     def command_ping(self, arg):
         if not arg:
             return
-        jid = JID(arg)
+        jid = safeJID(arg)
         try:
-            delay = self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid)
+            delay = self.core.xmpp.plugin['xep_0199'].ping(jid=jid)
         except:
             delay = None
         if delay is not None:
