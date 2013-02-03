@@ -1109,6 +1109,7 @@ class Input(Win):
             'M-b': self.jump_word_left,
             "M-[1;5D": self.jump_word_left,
             '^W': self.delete_word,
+            'M-d': self.delete_next_word,
             '^K': self.delete_end_of_line,
             '^U': self.delete_begining_of_line,
             '^Y': self.paste_clipboard,
@@ -1180,6 +1181,20 @@ class Input(Win):
         while self.pos <= len(self.text) and self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
             self.key_backspace()
 
+        return True
+
+    def delete_next_word(self):
+        """
+        Delete the word just after the cursor
+        """
+        log.debug("delete_next_word")
+        if len(self.text) == self.pos+self.line_pos or not len(self.text):
+            return
+        separators = string.punctuation+' '
+        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] in separators:
+            self.key_dc()
+        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] not in separators:
+            self.key_dc()
         return True
 
     def delete_end_of_line(self):
