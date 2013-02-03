@@ -2777,9 +2777,21 @@ class RosterInfoTab(Tab):
         if isinstance(self.input, windows.Input):
             return
         selected_row = self.roster_win.get_selected_row()
-        if isinstance(selected_row, RosterGroup) or\
-                isinstance(selected_row, Contact):
+        if isinstance(selected_row, RosterGroup):
             selected_row.toggle_folded()
+            return True
+        elif isinstance(selected_row, Contact):
+            group = "none"
+            found_group = False
+            pos = self.roster_win.pos
+            while not found_group and pos >= 0:
+                row = self.roster_win.roster_cache[pos]
+                pos -= 1
+                log.debug(row)
+                if isinstance(row, RosterGroup):
+                    found_group = True
+                    group = row.name
+            selected_row.toggle_folded(group)
             return True
         return False
 

@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 from sleekxmpp import JID
 from common import safeJID
+from collections import defaultdict
 
 class Resource(object):
     """
@@ -63,7 +64,7 @@ class Contact(object):
         item: a SleekXMPP RosterItem pointing to that contact
         """
         self.__item = item
-        self.folded = True      # Folded by default
+        self.folded_states = defaultdict(lambda: True)
 
     @property
     def groups(self):
@@ -165,11 +166,17 @@ class Contact(object):
             return resources[-1]
         return None
 
-    def toggle_folded(self):
+    def folded(self, group_name='none'):
+        """
+        Return the Folded state of a contact for this group
+        """
+        return self.folded_states[group_name]
+
+    def toggle_folded(self, group='none'):
         """
         Fold if it's unfolded, and vice versa
         """
-        self.folded = not self.folded
+        self.folded_states[group] = not self.folded_states[group]
 
     def __repr__(self):
         ret = '<Contact: %s' % self.bare_jid

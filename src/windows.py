@@ -1786,7 +1786,7 @@ class RosterWin(Win):
                 if not show_offline and len(contact) == 0:
                     continue # ignore offline contacts
                 self.roster_cache.append(contact)
-                if not contact.folded:
+                if not contact.folded(group.name):
                     for resource in contact.get_resources():
                         self.roster_cache.append(resource)
 
@@ -1797,6 +1797,7 @@ class RosterWin(Win):
             self._win.move(0, 0)
             self.draw_roster_information(roster)
             y = 1
+            group = "none"
             # draw the roster from the cache
             for item in self.roster_cache[self.start_pos-1:self.start_pos+self.height]:
 
@@ -1807,8 +1808,9 @@ class RosterWin(Win):
 
                 if isinstance(item, RosterGroup):
                     self.draw_group(y, item, draw_selected)
+                    group = item.name
                 elif isinstance(item, Contact):
-                    self.draw_contact_line(y, item, draw_selected)
+                    self.draw_contact_line(y, item, draw_selected, group)
                 elif isinstance(item, Resource):
                     self.draw_resource_line(y, item, draw_selected)
 
@@ -1859,7 +1861,7 @@ class RosterWin(Win):
             return name
         return name[:self.width - added - 1] + '…'
 
-    def draw_contact_line(self, y, contact, colored):
+    def draw_contact_line(self, y, contact, colored, group):
         """
         Draw on a line all informations about one contact.
         This is basically the highest priority resource's informations
@@ -1883,7 +1885,7 @@ class RosterWin(Win):
 
         self.addstr(' ')
         if resource:
-            self.addstr('[+] ' if contact.folded else '[-] ')
+            self.addstr('[+] ' if contact.folded(group) else '[-] ')
             added += 4
         if contact.ask:
             added += 1

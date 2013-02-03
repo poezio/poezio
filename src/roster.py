@@ -188,7 +188,7 @@ class Roster(object):
                             len(contact) == 0:
                         continue
                     length += 1      # One for the contact's line
-                    if not contact.folded:
+                    if not contact.folded(group.name):
                         # One for each resource, if the contact is unfolded
                         length += len(contact)
             if not self.contact_filter or before != length:
