@@ -193,8 +193,8 @@ class Core(object):
             'M-z': self.go_to_previous_tab,
             '^L': self.full_screen_redraw,
             'M-j': self.go_to_room_number,
-            'M-d': self.scroll_info_up,
-            'M-c': self.scroll_info_down,
+            'M-D': self.scroll_info_up,
+            'M-C': self.scroll_info_down,
         ######## actions mappings ##########
             '_bookmark': self.command_bookmark,
             '_bookmark_local': self.command_bookmark_local,

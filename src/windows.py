@@ -1101,9 +1101,7 @@ class Input(Win):
     def __init__(self):
         self.key_func = {
             "KEY_LEFT": self.key_left,
-            "M-D": self.key_left,
             "KEY_RIGHT": self.key_right,
-            "M-C": self.key_right,
             "KEY_END": self.key_end,
             "KEY_HOME": self.key_home,
             "KEY_DC": self.key_dc,
