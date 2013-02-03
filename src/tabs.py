@@ -621,7 +621,8 @@ class ChatTab(Tab):
         self.command_say(line, correct=True)
 
     def completion_correct(self, the_input):
-        return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
+        if self.last_sent_message:
+            return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
 
     @property
     def inactive(self):
