@@ -1247,7 +1247,7 @@ class MucTab(ChatTab):
             self.core.information(_('%s is now unignored') % nick)
 
     def completion_unignore(self, the_input):
-        return the_input.auto_completion([user.nick for user in self.ignores], ' ', quotify=False)
+        return the_input.auto_completion([user.nick for user in self.ignores], '', quotify=False)
 
     def resize(self):
         """
