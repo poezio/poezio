@@ -614,6 +614,7 @@ class MucInfoWin(InfoWin):
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
+            self.write_participants_number(room)
             self.write_own_nick(room)
             self.write_disconnected(room)
             self.write_role(room)
@@ -625,7 +626,12 @@ class MucInfoWin(InfoWin):
     def write_room_name(self, room):
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(room.name, to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
-        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
+    def write_participants_number(self, room):
+        self.addstr('{', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(str(len(room.users)), to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
+        self.addstr('} ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_disconnected(self, room):
         """
