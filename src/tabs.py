@@ -837,7 +837,9 @@ class MucTab(ChatTab):
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
         userlist = [user.nick for user in self.users]
-        userlist.remove(self.own_nick)
+        if self.own_nick in userlist:
+            userlist.remove(self.own_nick)
+        userlist.sort()
         return the_input.auto_completion(userlist, '', quotify=False)
 
     def completion_role(self, the_input):
