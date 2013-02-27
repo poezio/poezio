@@ -482,6 +482,23 @@ class ChatTab(Tab):
         if time is None and self.joined:        # don't log the history messages
             logger.log_message(self.name, nickname, txt)
 
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
+        self._text_buffer.add_message(txt, time=time,
+                nickname=nickname,
+                nick_color=nick_color,
+                history=None,
+                user=forced_user,
+                identifier=identifier)
+
+    def modify_message(self, txt, old_id, new_id, user=None):
+        self.log_message(txt, time, self.name)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
+            return True
+        return False
+
     def last_words_completion(self):
         """
         Complete the input with words recently said
@@ -1733,14 +1750,15 @@ class MucTab(ChatTab):
         self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
         return highlight
 
-    def modify_message(self, txt, old_id, new_id, time=None, nickname=None):
+    def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None):
         self.log_message(txt, time, nickname)
         highlight = self.do_highlight(txt, time, nickname)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
         if message:
             self.text_win.modify_message(old_id, message)
             self.core.refresh_window()
             return highlight
+        return False
 
     def matching_names(self):
         return [safeJID(self.get_name()).user]
@@ -1826,6 +1844,7 @@ class PrivateTab(ChatTab):
         else:
             self.add_message(msg['body'],
                     nickname=self.core.own_nick or self.own_nick,
+                    forced_user=self.parent_muc.get_user_by_name(self.own_nick),
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
@@ -2012,21 +2031,6 @@ class PrivateTab(ChatTab):
         self.on = False
         if reason:
             self.add_message(txt=reason)
-
-    def modify_message(self, txt, old_id, new_id):
-        self.log_message(txt, time, self.name)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time)
-        if message:
-            self.text_win.modify_message(old_id, message)
-            self.core.refresh_window()
-
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
-        self._text_buffer.add_message(txt, time=time,
-                nickname=nickname,
-                nick_color=nick_color,
-                history=None,
-                user=forced_user,
-                identifier=identifier)
 
     def matching_names(self):
         return [safeJID(self.get_name()).resource]
@@ -3174,21 +3178,6 @@ class ConversationTab(ChatTab):
         Tab.on_close(self)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true':
             self.send_chat_state('gone')
-
-    def modify_message(self, txt, old_id, new_id):
-        self.log_message(txt, time, self.name)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time)
-        if message:
-            self.text_win.modify_message(old_id, message)
-            self.core.refresh_window()
-
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
-        self._text_buffer.add_message(txt, time=time,
-                nickname=nickname,
-                nick_color=nick_color,
-                history=None,
-                user=forced_user,
-                identifier=identifier)
 
     def matching_names(self):
         contact = roster[self.get_name()]

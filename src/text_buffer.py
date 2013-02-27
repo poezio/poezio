@@ -21,6 +21,8 @@ from theming import get_theme
 message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions'
 Message = collections.namedtuple('Message', message_fields)
 
+class CorrectionError(Exception): pass
+
 def other_elems(self):
     acc = ['Message(']
     fields = message_fields.split()
@@ -103,16 +105,20 @@ class TextBuffer(object):
                 window.scroll_up(nb)
         return ret_val or 1
 
-    def modify_message(self, txt, old_id, new_id, highlight=False, time=None):
+    def modify_message(self, txt, old_id, new_id, highlight=False, time=None, user=None):
         for i in range(len(self.messages) -1, -1, -1):
             msg = self.messages[i]
             if msg.identifier == old_id:
+                if msg.user and msg.user is not user:
+                    raise CorrectionError("wrong user")
+                elif len(msg.str_time) > 8: # ugly
+                    raise CorrectionError("delayed message")
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.', old_id, new_id)
                 return message
         log.debug('Message %s not found in text_buffer, abort replacement.', old_id)
-        return
+        raise CorrectionError("nothing to replace")
 
     def del_window(self, win):
         self.windows.remove(win)

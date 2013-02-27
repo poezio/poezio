@@ -53,7 +53,7 @@ from config import config
 from logger import logger
 from roster import roster
 from contact import Contact, Resource
-from text_buffer import TextBuffer
+from text_buffer import TextBuffer, CorrectionError
 from keyboard import keyboard
 from theming import get_theme
 from fifo import Fifo
@@ -2551,9 +2551,14 @@ class Core(object):
             delayed = False
             date = None
         replaced_id = message['replace']['id']
+        replaced = False
         if replaced_id is not '':
-            conversation.modify_message(body, replaced_id, message['id'])
-        else:
+            try:
+                conversation.modify_message(body, replaced_id, message['id'])
+                replaced = True
+            except CorrectionError:
+                pass
+        if not replaced :
             conversation._text_buffer.add_message(body, date,
                     nickname=remote_nick,
                     nick_color=get_theme().COLOR_REMOTE_USER,
@@ -2603,18 +2608,23 @@ class Core(object):
         if not tab:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
-        if tab.get_user_by_name(nick_from) and\
-                tab.get_user_by_name(nick_from) in tab.ignores:
+        user = tab.get_user_by_name(nick_from)
+        if user and user in tab.ignores:
             return
         self.events.trigger('muc_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message)
         if body:
             date = date if delayed == True else None
             replaced_id = message['replace']['id']
+            replaced = False
             if replaced_id is not '':
-                if tab.modify_message(body, replaced_id, message['id'], date, nick_from):
-                    self.events.trigger('highlight', message, tab)
-            elif tab.add_message(body, date, nick_from, history=True if date else False, identifier=message['id']):
+                try:
+                    if tab.modify_message(body, replaced_id, message['id'], date, nick_from, user):
+                        self.events.trigger('highlight', message, tab)
+                    replaced = True
+                except CorrectionError:
+                    pass
+            if not replaced and tab.add_message(body, date, nick_from, history=True if date else False, identifier=message['id']):
                 self.events.trigger('highlight', message, tab)
             if tab is self.current_tab():
                 tab.text_win.refresh()
@@ -2653,26 +2663,31 @@ class Core(object):
         if not body or not tab:
             return
         replaced_id = message['replace']['id']
+        replaced = False
         if replaced_id is not '':
-            tab.modify_message(body, replaced_id, message['id'])
-        else:
+            user = self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from),
+            try:
+                tab.modify_message(body, replaced_id, message['id'], user=user)
+                replaced = True
+            except CorrectionError:
+                pass
+        if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from),
                             identifier=message['id'])
-        conversation = self.get_tab_by_name(jid.full, tabs.PrivateTab)
-        if conversation and conversation.remote_wants_chatstates is None:
+        if tab.remote_wants_chatstates is None:
             if message['chat_state']:
-                conversation.remote_wants_chatstates = True
+                tab.remote_wants_chatstates = True
             else:
-                conversation.remote_wants_chatstates = False
+                tab.remote_wants_chatstates = False
         if 'private' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', jid.full, False).lower() != 'true':
                 curses.beep()
         logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
-        if conversation is self.current_tab():
+        if tab is self.current_tab():
             self.refresh_window()
         else:
-            conversation.state = 'private'
+            tab.state = 'private'
             self.refresh_tab_win()
 
     ### Chatstates ###
