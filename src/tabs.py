@@ -126,7 +126,6 @@ class Tab(object):
     @property
     def nb(self):
         for index, tab in enumerate(self.core.tabs):
-            log.debug("%s", tab.__class__)
             if tab == self:
                 return index
         return len(self.core.tabs)
