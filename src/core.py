@@ -268,12 +268,12 @@ class Core(object):
 
         self.pending_invites = {}
 
-    def sighup_handler(self, num, stack):
+    def sigusr_handler(self, num, stack):
         """
-        Handle SIGHUP (1)
+        Handle SIGUSR1 (10)
         When caught, reload all the possible files.
         """
-        log.debug("SIGHUP caught, reloading the files…")
+        log.debug("SIGUSR1 caught, reloading the files…")
         # reload all log files
         log.debug("Reloading the log files…")
         logger.reload_all()
@@ -286,6 +286,13 @@ class Core(object):
         log.debug("Reloading the config…")
         config.__init__(config.file_name)
         log.debug("Config reloaded.")
+
+    def exit_from_signal(self, *args, **kwargs):
+        """
+        Quit when receiving SIGHUP or SIGTERM
+        """
+        log.debug("Either SIGHUP or SIGTERM received. Exiting…")
+        self.command_quit()
 
     def autoload_plugins(self):
         """
