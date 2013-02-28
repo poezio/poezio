@@ -14,8 +14,8 @@ As far as I know, Poezio is available in the following distributions, you just
 
 * *Archlinux*: A poezio and poezio-git packages are in AUR (use your favourite
  AUR wrapper to install them)
-* *Frugalware*: Just use pacmang-g2 to install the poezio package. (Thanks to
- its maintainer, Kooda)
+* *Gentoo*: https://github.com/sekh/sekh_overlay[Sekh’s overlay] contains
+    everything required to build poezio (sleekxmpp, dnspython, and poezio)
 * *Debian*: Use an other distro.
 
 (If an other distribution provides a poezio package, please tell us and we will
