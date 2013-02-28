@@ -193,6 +193,8 @@ def get_body_from_message_stanza(message):
     if config.get('enable_xhtml_im', 'true') == 'true':
         xhtml_body = message['html']['body']
         if xhtml_body:
+            if isinstance(xhtml_body, str):
+                xhtml_body = ET.fromstring(xhtml_body)
             content = xhtml_to_poezio_colors(xhtml_body)
             content = content if content else message['body']
             return content or " "
