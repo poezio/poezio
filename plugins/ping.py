@@ -11,14 +11,14 @@ class Plugin(BasePlugin):
         self.add_command('ping', self.command_ping, '/ping <jid>\nPing: Send a XMPP ping to jid (see XEP-0199).', self.completion_ping)
         self.add_tab_command(tabs.MucTab, 'ping', self.command_muc_ping, '/ping <jid or nick>\nPing: Send a XMPP ping to jid or nick (see XEP-0199)', self.completion_muc_ping)
         self.add_tab_command(tabs.PrivateTab, 'ping', self.command_private_ping, '/ping\nPing: Send a XMPP ping to the current interlocutor (see XEP-0199)')
-        self.add_tab_command(tabs.ConversationTab, 'ping', self.command_private_ping, '/ping\nPing: Send a XMPP ping to the current interlocutor (see XEP-0199)')
+        self.add_tab_command(tabs.ConversationTab, 'ping', self.command_private_ping, '/ping\nPing: Send a XMPP ping to the current interlocutor (see XEP-0199)', self.completion_ping)
 
     def command_ping(self, arg):
         if not arg:
             return
         jid = safeJID(arg)
         try:
-            delay = self.core.xmpp.plugin['xep_0199'].ping(jid=jid)
+            delay = self.core.xmpp.plugin['xep_0199'].ping(jid=jid, timeout=5)
         except:
             delay = None
         if delay is not None:
@@ -30,24 +30,25 @@ class Plugin(BasePlugin):
         users = [user.nick for user in self.core.current_tab().users]
         l = [contact.bare_jid for contact in roster.get_contacts()]
         users.extend(l)
-        return the_input.auto_completion(users, '')
+        return the_input.auto_completion(users, '', quotify=False)
 
     def command_private_ping(self, arg):
+        if arg:
+            self.command_ping(arg)
         self.command_ping(self.core.current_tab().get_name())
 
     def command_muc_ping(self, arg):
-        args = common.shell_split(arg)
-        if not args:
+        if not arg.strip():
             return
-        user = self.core.current_tab().get_user_by_name(args[0])
+        user = self.core.current_tab().get_user_by_name(arg)
         if user:
-            jid = JID(self.core.current_tab().get_name())
+            jid = safeJID(self.core.current_tab().get_name())
             jid.resource = user.nick
         else:
-            jid = JID(args[0])
+            jid = safeJID(arg)
         self.command_ping(jid.full)
 
     def completion_ping(self, the_input):
         l = [contact.bare_jid for contact in roster.get_contacts()]
-        return the_input.auto_completion(l, '')
+        return the_input.auto_completion(l, '', quotify=False)
 
