@@ -12,9 +12,11 @@ url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_tab_command(tabs.MucTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
-        self.add_tab_command(tabs.PrivateTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
-        self.add_tab_command(tabs.ConversationTab, 'link', self.command_link, "Usage: /link\nLink: opens the last link from the conversation into a browser.")
+        for _class in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
+            self.add_tab_command(_class, 'link', self.command_link,
+                    usage='[num]',
+                    help='Opens the last link from the conversation into a browser.\nIf [num] is given, then it will open the num-th link displayed.',
+                    short='Open links into a browser')
 
     def find_link(self, nb):
         messages = self.core.get_conversation_messages()

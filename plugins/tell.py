@@ -5,10 +5,14 @@ import common
 class Plugin(BasePlugin):
     def init(self):
         self.add_tab_command(tabs.MucTab, 'tell', self.command_tell,
-                '/tell <nick> <message>\nTell: will tell <nick> of <message> when he next joins.')
+                usage='<nick> <message>',
+                help='Will tell <nick> of <message> when he next joins.',
+                short='Send a message when someone joins')
         self.add_tab_command(tabs.MucTab, 'untell', self.command_untell,
-                '/untell <nick>\nUntell: will remove the saved messages from /tell.',
-                self.completion_untell)
+                usage='<nick>',
+                help='Remove the planned messages from /tell.',
+                short='Cancel a /tell message',
+                completion=self.completion_untell)
         self.add_event_handler('muc_join', self.on_join)
         # {tab -> {nick -> [messages]}
         self.tabs = {}

@@ -8,10 +8,22 @@ import tabs
 class Plugin(BasePlugin):
     def init(self):
         self.core.xmpp.register_plugin('xep_0199')
-        self.add_command('ping', self.command_ping, '/ping <jid>\nPing: Send a XMPP ping to jid (see XEP-0199).', self.completion_ping)
-        self.add_tab_command(tabs.MucTab, 'ping', self.command_muc_ping, '/ping <jid or nick>\nPing: Send a XMPP ping to jid or nick (see XEP-0199)', self.completion_muc_ping)
-        self.add_tab_command(tabs.PrivateTab, 'ping', self.command_private_ping, '/ping\nPing: Send a XMPP ping to the current interlocutor (see XEP-0199)')
-        self.add_tab_command(tabs.ConversationTab, 'ping', self.command_private_ping, '/ping\nPing: Send a XMPP ping to the current interlocutor (see XEP-0199)', self.completion_ping)
+        self.add_command('ping', self.command_ping,
+                usage='<jid>',
+                help='Send a XMPP ping to jid (see XEP-0199).',
+                short='Send a ping',
+                completion=self.completion_ping)
+        self.add_tab_command(tabs.MucTab, 'ping', self.command_muc_ping,
+                usage='<jid|nick>',
+                help='Send a XMPP ping to jid or nick (see XEP-0199).',
+                short='Send a ping.',
+                completion=self.completion_muc_ping)
+        for _class in (tabs.PrivateTab, tabs.ConversationTab):
+            self.add_tab_command(_class, 'ping', self.command_private_ping,
+                    usage='[jid]',
+                    help='Send a XMPP ping to the current interlocutor or the given JID.',
+                    short='Send a ping',
+                    completion=self.completion_ping)
 
     def command_ping(self, arg):
         if not arg:

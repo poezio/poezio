@@ -56,7 +56,11 @@ class Plugin(BasePlugin):
         self.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_command('gpg', self.command_gpg, "Usage: /gpg <force|disable|setkey> [JID] [keyid]\nGpg: Force or disable gpg encryption with the fulljid of the current conversation. The setkey argument lets you associate a keyid with the given bare JID.", self.gpg_completion)
+        self.add_tab_command(ConversationTab, 'gpg', self.command_gpg,
+                usage='<force|disable|setkey> [jid] [keyid]',
+                help='Force or disable gpg encryption with the fulljid of the current conversation. The setkey argument lets you associate a keyid with the given bare JID.',
+                short='Manage the GPG status',
+                completion=self.gpg_completion)
         ConversationTab.add_information_element('gpg', self.display_encryption_status)
 
     def cleanup(self):

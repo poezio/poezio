@@ -7,9 +7,12 @@ import tabs
 
 class Plugin(BasePlugin):
     def init(self):
-        usage = 'Usage: /display_corrections <number>\nDisplay_corrections: display all the corrections of the number-th last corrected message.'
         for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.add_tab_command(tab_type, 'display_corrections', self.command_display_corrections, usage)
+            self.add_tab_command(tab_type, 'display_corrections',
+                    handler=self.command_display_corrections,
+                    usage='<number>',
+                    help='Display all the corrections of the number-th last corrected message.',
+                    short='Display the corrections of a message')
 
     def find_corrected(self, nb):
         messages = self.core.get_conversation_messages()

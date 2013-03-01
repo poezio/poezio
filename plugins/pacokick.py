@@ -5,7 +5,10 @@ from plugin import BasePlugin
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('pacokick', self.command_kick, '/pacokick <nick> [reason]\nPacokick: kick a random user.')
+        self.add_command('pacokick', self.command_kick,
+                usage='',
+                help='Kick a random user.',
+                short='Kick a random user')
 
     def command_kick(self, arg):
         tab = self.core.current_tab()

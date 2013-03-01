@@ -10,8 +10,15 @@ from common import parse_command_args_to_alias as parse
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('alias', self.command_alias, '/alias <alias> <command> <args>\nAlias: create an alias command')
-        self.add_command('unalias', self.command_unalias, '/unalias <alias>\nUnalias: remove a previously created alias')
+        self.add_command('alias', self.command_alias,
+                usage='<alias> <command> [args]',
+                short='Create an alias command',
+                help='Create an alias for <command> with [args].')
+        self.add_command('unalias', self.command_unalias,
+                usage='<alias>',
+                help='Remove a previously created alias',
+                short='Remove an alias',
+                completion=self.completion_unalias)
         self.commands = {}
 
     def command_alias(self, line):
@@ -41,6 +48,11 @@ class Plugin(BasePlugin):
             del self.commands[alias]
             self.del_command(alias)
             self.core.information('Alias /%s successfuly deleted' % alias, 'Info')
+
+    def completion_unalias(self, the_input):
+        aliases = [alias for alias in self.commands]
+        aliases.sort()
+        return the_input.auto_completion(aliases, '', quotify=False)
 
     def get_command(self, name):
         """Returns the function associated with a command"""

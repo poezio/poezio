@@ -6,7 +6,10 @@ from sleekxmpp.xmlstream.stanzabase import JID
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('uptime', self.command_uptime, '/uptime [jid]\nUptime: Ask for the uptime of a server or component (see XEP-0012).', None)
+        self.add_command('uptime', self.command_uptime,
+                usage='<jid>',
+                help='Ask for the uptime of a server or component (see XEP-0012).',
+                short='Get the uptime')
 
     def command_uptime(self, arg):
         def callback(iq):

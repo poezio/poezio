@@ -8,7 +8,10 @@ import subprocess
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('exec', self.command_exec, "Usage: /exec [-o|-O] <command>\nExec: Execute a shell command and prints the result in the information buffer. The command should be ONE argument, that means it should be between \"\". The first argument (before the command) can be -o or -O. If -o is specified, it sends the result in the current conversation. If -O is specified, it sends the command and its result in the current conversation.\nExample: /exec -O \"uptime\" will send “uptime\n20:36:19 up  3:47,  4 users,  load average: 0.09, 0.13, 0.09” in the current conversation.")
+        self.add_command('exec', self.command_exec,
+                usage='[-o|-O] <command>',
+                help='Execute a shell command and prints the result in the information buffer. The command should be ONE argument, that means it should be between \"\". The first argument (before the command) can be -o or -O. If -o is specified, it sends the result in the current conversation. If -O is specified, it sends the command and its result in the current conversation.\nExample: /exec -O \"uptime\" will send “uptime\n20:36:19 up  3:47,  4 users,  load average: 0.09, 0.13, 0.09” in the current conversation.',
+                short='Execute a command')
 
     def command_exec(self, args):
         args = common.shell_split(args)

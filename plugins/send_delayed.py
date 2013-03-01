@@ -6,9 +6,12 @@ import timed_events
 class Plugin(BasePlugin):
 
     def init(self):
-        self.add_tab_command(tabs.PrivateTab, 'send_delayed', self.command_delayed, "Usage: /send_delayed <delay> <message>\nSend Delayed: Send <message> with a delay of <delay> seconds.", self.completion_delay)
-        self.add_tab_command(tabs.MucTab, 'send_delayed', self.command_delayed, "Usage: /send_delayed <delay> <message>\nSend Delayed: Send <message> with a delay of <delay> seconds.", self.completion_delay)
-        self.add_tab_command(tabs.ConversationTab, 'send_delayed', self.command_delayed, "Usage: /send_delayed <delay> <message>\nSend Delayed: Send <message> with a delay of <delay> seconds.", self.completion_delay)
+        for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
+            self.add_tab_command(_class, 'send_delayed', self.command_delayed,
+                    usage='<delay> <message>',
+                    help='Send <message> with a delay of <delay> seconds.',
+                    short='Send a message later',
+                    completion=self.completion_delay)
 
     def command_delayed(self, arg):
         args = common.shell_split(arg)

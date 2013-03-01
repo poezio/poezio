@@ -8,9 +8,12 @@ import mpd
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_tab_command(tabs.ConversationTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
-        self.add_tab_command(tabs.MucTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
-        self.add_tab_command(tabs.PrivateTab, 'mpd', self.command_mpd, "Usage: /mpd [full]\nMpd: sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.", self.completion_mpd)
+        for _class in (tabs.ConversationTab, tabs.MucTab, tabs.PrivateTab):
+            self.add_tab_command(_class, 'mpd', self.command_mpd,
+                    usage='[full]',
+                    help='Sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.',
+                    short='Send the MPD status',
+                    completion=self.completion_mpd)
 
     def command_mpd(self, args):
         args = shell_split(args)
