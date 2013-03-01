@@ -19,35 +19,52 @@ from config import config
 from theming import get_theme
 
 message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions'
-Message = collections.namedtuple('Message', message_fields)
+
+class Message(object):
+    __slots__ = ('txt', 'nick_color', 'time', 'str_time', 'nickname', 'user',
+                 'identifier', 'highlight', 'me', 'old_message', 'revisions')
+    #'txt nick_color time str_time nickname user identifier highlight me old_message revisions'
+    def __init__(self, txt, nick_color, time, str_time, nickname, user, identifier, highlight, me, old_message, revisions):
+        self.txt = txt
+        self.nick_color = nick_color
+        self.time = time
+        self.str_time = str_time
+        self.nickname = nickname
+        self.user = user
+        self.identifier = identifier
+        self.highlight = highlight
+        self.me = me
+        self.old_message = old_message
+        self.revisions = revisions
+
+    @classmethod
+    def other_elems(obj):
+        acc = ['Message(']
+        fields = message_fields.split()
+        fields.remove('old_message')
+        for field in fields:
+            acc.append('%s=%s' % (field, getattr(self, field)))
+        return (', '.join(acc) + ', old_message=')
+
+    def __repr__(self):
+        init = other_elems(self)
+        acc = []
+        next = self.old_message
+        rev = 0
+        while next:
+            acc.append(self.other_elems(next))
+            next = next.old_message
+            rev += 1
+        acc.append('None')
+        while rev:
+            acc.append(')')
+            rev -= 1
+        return ''.join(acc)
+
+    __str__ = __repr__
+
 
 class CorrectionError(Exception): pass
-
-def other_elems(self):
-    acc = ['Message(']
-    fields = message_fields.split()
-    fields.remove('old_message')
-    for field in fields:
-        acc.append('%s=%s' % (field, getattr(self, field)))
-    return (', '.join(acc) + ', old_message=')
-
-def repr_message(self):
-    init = other_elems(self)
-    acc = []
-    next = self.old_message
-    rev = 0
-    while next:
-        acc.append(other_elems(next))
-        next = next.old_message
-        rev += 1
-    acc.append('None')
-    while rev:
-        acc.append(')')
-        rev -= 1
-    return ''.join(acc)
-
-Message.__repr__ = repr_message
-Message.__str__ = repr_message
 
 class TextBuffer(object):
     """
