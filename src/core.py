@@ -2148,6 +2148,8 @@ class Core(object):
                     (' and his/her last status was %s' % status) if status else '',)
             self.information(msg, 'Info')
         jid = safeJID(arg)
+        if jid == '':
+            return self.command_help('activity')
         self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
 
     def completion_activity(self, the_input):
