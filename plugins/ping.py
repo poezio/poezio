@@ -34,7 +34,7 @@ class Plugin(BasePlugin):
 
     def command_private_ping(self, arg):
         if arg:
-            self.command_ping(arg)
+            return self.command_ping(arg)
         self.command_ping(self.core.current_tab().get_name())
 
     def command_muc_ping(self, arg):
