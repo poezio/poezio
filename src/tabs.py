@@ -2110,6 +2110,9 @@ class RosterInfoTab(Tab):
         self.register_command('reconnect', self.command_reconnect,
                 desc=_('Disconnect from the remote server if you are currently connected and then connect to it again.'),
                 shortdesc=_('Disconnect and reconnect to the server.'))
+        self.register_command('disconnect', self.command_disconnect,
+                desc=_('Disconnect from the remote server.'),
+                shortdesc=_('Disconnect from the server.'))
         self.register_command('export', self.command_export,
                 usage=_('[/path/to/file]'),
                 desc=_('Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.'),
@@ -2250,6 +2253,12 @@ class RosterInfoTab(Tab):
         /reconnect
         """
         self.core.disconnect(reconnect=True)
+
+    def command_disconnect(self, args=None):
+        """
+        /disconnect
+        """
+        self.core.disconnect()
 
     def command_activity(self, arg=None):
         """
