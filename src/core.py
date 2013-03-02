@@ -598,12 +598,10 @@ class Core(object):
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         msg = msg or ''
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and tab.joined:
-                tab.command_part(msg)
         self.save_config()
-        # Ugly fix thanks to gmail servers
-        self.xmpp.disconnect(reconnect)
+        self.xmpp.disconnect()
+        if reconnect:
+            self.xmpp.start()
 
     def send_message(self, msg):
         """
