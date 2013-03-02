@@ -2032,6 +2032,9 @@ class Core(object):
         elif option == 'plugins_dir':
             path = os.path.expanduser(value)
             self.plugin_manager.on_plugins_dir_change(path)
+        elif option == 'plugins_conf_dir':
+            path = os.path.expanduser(value)
+            self.plugin_manager.on_plugins_conf_dir_change(path)
         self.call_for_resize()
         self.information(info, "Info")
 

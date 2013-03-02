@@ -25,10 +25,13 @@ plugins_dir = plugins_dir or\
                  'poezio', 'plugins')
 plugins_dir = os.path.expanduser(plugins_dir)
 
-config_home = os.environ.get("XDG_CONFIG_HOME")
-if not config_home:
-    config_home = os.path.join(os.environ.get('HOME'), '.config')
-plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
+plugins_conf_dir = config.get('plugins_conf_dir', '')
+if not plugins_conf_dir:
+    config_home = os.environ.get('XDG_CONFIG_HOME')
+    if not config_home:
+        config_home = os.path.join(os.environ.get('HOME'), '.config')
+    plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
+plugins_conf_dir = os.path.expanduser(plugins_conf_dir)
 
 try:
     os.makedirs(plugins_dir)
@@ -39,6 +42,7 @@ try:
     os.makedirs(plugins_conf_dir)
 except OSError:
     pass
+
 default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 
 sys.path.append(default_plugin_path)
@@ -283,3 +287,7 @@ class PluginManager(object):
             sys.path.remove(plugins_dir)
         sys.path.append(new_value)
         plugins_dir = new_value
+
+    def on_plugins_conf_dir_change(self, new_value):
+        global plugins_conf_dir
+        plugins_conf_dir = new_value

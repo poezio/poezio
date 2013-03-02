@@ -255,6 +255,13 @@ section of this documentation.
 
   Space separated list of plugins to load on startup.
 
+*plugins_conf_dir*:: [empty]
+
+  If plugins_conf_dir is not set, plugin configs will be loaded from
+  $XDG_CONFIG_HOME/poezio/plugins.
+  You can specify another directory to use, it will be created if it
+  does not exist.
+
 *plugins_dir*:: [empty]
 
   If plugins_dir is not set, plugins will be loaded from
