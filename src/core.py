@@ -381,7 +381,7 @@ class Core(object):
                 res.append(current)
             return res
         while self.running:
-            big_char_list = [common.replace_key_with_bound(key)\
+            big_char_list = [replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
             # whether to refresh after ALL keys have been handled
             for char_list in separate_chars_from_bindings(big_char_list):
@@ -3174,5 +3174,11 @@ class KeyDict(dict):
         if isinstance(k, str) and k.startswith('_exc_') and len(k) > 5:
             return lambda: dict.get(self, '_exc_')(k[5:])
         return dict.get(self, k, d)
+
+def replace_key_with_bound(key):
+    bind = config.get(key, key, 'bindings')
+    if not bind:
+        bind = key
+    return bind
 
 

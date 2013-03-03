@@ -16,6 +16,7 @@ from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
 from args import parse_args
+from common import safeJID
 
 
 class Config(RawConfigParser):
@@ -62,7 +63,7 @@ class Config(RawConfigParser):
         """
         return self.get(option, default, section).lower()
 
-    def get_by_tabname(self, option, default, tabname, fallback=True):
+    def get_by_tabname(self, option, default, tabname, fallback=True, fallback_server=True):
         """
         Try to get the value for the option. First we look in
         a section named `tabname`, if the option is not present
@@ -73,10 +74,26 @@ class Config(RawConfigParser):
             if option in self.options(tabname):
                 # We go the tab-specific option
                 return self.get(option, default, tabname)
+        if fallback_server:
+            return self.get_by_servname(tabname, option, default, fallback)
         if fallback:
             # We fallback to the global option
             return self.get(option, default)
         return default
+
+    def get_by_servname(self, jid, option, default, fallback=True):
+        """
+        Try to get the value of an option for a server
+        """
+        server = safeJID(jid).server
+        if server:
+            server = '@' + server
+            if server in self.sections() and option in self.options(server):
+                return self.get(option, default, server)
+        if fallback:
+            return self.get(option, default)
+        return default
+
 
     def __get(self, option, section=DEFSECTION):
         """

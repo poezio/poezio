@@ -483,6 +483,13 @@ after a JID. These option will apply only for the given JID. For example
 if an option appears in a section named [user@example.com], it will
 apply only for the conversations with user@example.com.
 
+If an option appears in a section named [@example.com], it will apply
+for all the conversations with people @example.com, except when the option
+is already defined in a [user@example.com] section.
+
+The priority of settings is thus like this:
+user@example.com > @example.com > Poezio (more specific to less specific)
+
 Note that some of these options can also appear in the global section,
 they will be used as a fallback value when no JID-specific option is
 found.
@@ -495,6 +502,8 @@ found.
 foo = false
 [user@example.com]
 foo = true
+[@example.com]
+bar = false
 -------------
 ============================================
 

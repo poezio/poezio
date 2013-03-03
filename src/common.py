@@ -20,8 +20,6 @@ import time
 import string
 import shlex
 
-from config import config
-
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
 ROOM_STATE_PRIVATE = 15
@@ -187,12 +185,6 @@ def shell_split(st):
         return ret
     except ValueError:
         return st.split(" ")
-
-def replace_key_with_bound(key):
-    bind = config.get(key, key, 'bindings')
-    if not bind:
-        bind = key
-    return bind
 
 def parse_str_to_secs(duration=''):
     """
