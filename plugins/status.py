@@ -7,7 +7,7 @@ class Plugin(BasePlugin):
     def init(self):
         for st in ('dnd', 'busy', 'afk', 'chat', 'xa', 'away', 'available'):
             self.add_command(st,
-                    lambda line: self.core.command_status(st + ' "'+line+'"'),
+                    lambda line,st=st: self.core.command_status(st + ' "'+line+'"'),
                     usage='[status message]',
                     short='Set your status as %s' % st,
                     help='Set your status as %s' % st)
