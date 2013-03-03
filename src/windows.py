@@ -1894,7 +1894,9 @@ class RosterWin(Win):
             self.addstr('[+] ' if contact.folded(group) else '[-] ')
             added += 4
         if contact.ask:
-            added += 1
+            added += len(get_theme().CHAR_ROSTER_ASKED)
+        if contact.error:
+            added += len(get_theme().CHAR_ROSTER_ERROR)
 
         if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
             display_name = '%s' % contact.name
@@ -1902,6 +1904,7 @@ class RosterWin(Win):
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
         else:
             display_name = '%s' % (contact.bare_jid,)
+
         display_name = self.truncate_name(display_name, added) + nb
 
         if colored:
@@ -1909,7 +1912,10 @@ class RosterWin(Win):
         else:
             self.addstr(display_name)
         if contact.ask:
-            self.addstr('?', to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
+            self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
+        if contact.error:
+            self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+
         self.finish_line()
 
     def draw_resource_line(self, y, resource, colored):
@@ -1954,15 +1960,19 @@ class ContactInfoWin(Win):
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self.addstr(1, 0, 'Subscription: %s' % (contact.subscription,))
+        self.finish_line()
         if contact.ask:
-            self.addstr(' ')
             if contact.ask == 'asked':
                 self.addstr('Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
             else:
                 self.addstr('Ask: %s' % (contact.ask,))
-        self.finish_line()
+            self.finish_line()
         if resource:
             self.addstr(2, 0, 'Status: %s' % (resource.status))
+            self.finish_line()
+
+        if contact.error:
+            self.addstr('Error: %s' % contact.error, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
 
 
     def draw_group_info(self, group):

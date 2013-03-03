@@ -65,6 +65,7 @@ class Contact(object):
         """
         self.__item = item
         self.folded_states = defaultdict(lambda: True)
+        self.error = None
 
     @property
     def groups(self):

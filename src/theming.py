@@ -196,7 +196,10 @@ class Theme(object):
     CHAR_KICK = '-!-'
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC =' ▼'
+    CHAR_ROSTER_ERROR = '✖'
+    CHAR_ROSTER_ASKED = '?'
 
+    COLOR_ROSTER_ERROR = (1, -1)
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
     COLOR_KICK_CHAR = (1, -1)

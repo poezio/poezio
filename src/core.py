@@ -245,6 +245,7 @@ class Core(object):
         self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
+        self.xmpp.add_event_handler("presence_error", self.on_presence_error)
         self.xmpp.add_event_handler("roster_subscription_request", self.on_subscription_request)
         self.xmpp.add_event_handler("roster_subscription_authorized", self.on_subscription_authorized)
         self.xmpp.add_event_handler("roster_subscription_remove", self.on_subscription_remove)
@@ -2850,6 +2851,7 @@ class Core(object):
             tab.unlock()
         if contact is None:
             return
+        contact.error = None
         self.events.trigger('normal_presence', presence, contact[jid.full])
         tab = self.get_conversation_by_jid(jid, create=False)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -2857,6 +2859,13 @@ class Core(object):
         elif self.current_tab() == tab:
             tab.refresh()
             self.doupdate()
+
+    def on_presence_error(self, presence):
+        jid = presence['from']
+        contact = roster[jid.bare]
+        if not contact:
+            return
+        contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
 
     def on_got_offline(self, presence):
         """
