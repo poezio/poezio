@@ -227,6 +227,8 @@ def ncurses_color_to_html(color):
     return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
 
 def xhtml_to_poezio_colors(xml):
+    if isinstance(xml, str):
+        xml = ET.fromstring(xml)
     def parse_css(css):
         def get_color(value):
             if value[0] == '#':
