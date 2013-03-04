@@ -91,7 +91,7 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
     except KeyError:
         log.debug("muc.leave_groupchat: could not leave the room %s" % jid)
 
-def set_user_role(xmpp, jid, nick, reason, role):
+def set_user_role(xmpp, jid, nick, reason, role, callback=None):
     """
     (try to) Set the role of a MUC user
     (role = 'none': eject user)
@@ -107,17 +107,28 @@ def set_user_role(xmpp, jid, nick, reason, role):
     query.append(item)
     iq.append(query)
     iq['to'] = jid
+    if callback:
+        return iq.send(block=False, callback=callback)
     try:
         return iq.send()
     except Exception as e:
         return e.iq
 
-def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason=None):
+def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason=None, callback=None):
     """
     (try to) Set the affiliation of a MUC user
     """
-    jid = safeJID(jid)
     muc_jid = safeJID(muc_jid)
+    query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
+    if nick:
+        item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'nick':nick})
+    else:
+        item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'jid':str(jid)})
+    query.append(item)
+    iq = xmpp.makeIqSet(query)
+    iq['to'] = muc_jid
+    if callback:
+        return iq.send(block=False, callback=callback)
     try:
         return xmpp.plugin['xep_0045'].setAffiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
     except:
