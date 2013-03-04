@@ -388,6 +388,10 @@ section of this documentation.
   the contact names). If there is no contact name, the JID will still be
   displayed.
 
+*show_s2s_errors*:: true
+
+  Show s2s errors in the roster or not.
+
 *show_tab_names*:: false
 
   If you want to show the tab name in the bottom Tab bar, set this to true.

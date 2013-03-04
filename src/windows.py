@@ -1895,7 +1895,7 @@ class RosterWin(Win):
             added += 4
         if contact.ask:
             added += len(get_theme().CHAR_ROSTER_ASKED)
-        if contact.error:
+        if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
             added += len(get_theme().CHAR_ROSTER_ERROR)
 
         if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
@@ -1913,7 +1913,7 @@ class RosterWin(Win):
             self.addstr(display_name)
         if contact.ask:
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
-        if contact.error:
+        if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
 
         self.finish_line()
