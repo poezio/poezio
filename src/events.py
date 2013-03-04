@@ -32,7 +32,7 @@ class EventHandler(object):
             'conversation_msg': [],
             'private_msg': [],
             'muc_msg': [],
-            'normal_chatstate': [],
+            'conversation_chatstate': [],
             'muc_chatstate': [],
             'private_chatstate': [],
             'normal_presence': [],
