@@ -40,9 +40,9 @@ These keys work in *any* tab.
 
 *Ctrl-l*:: Refresh the screen.
 
-*Alt-d*:: Scroll the information buffer up.
+*Alt-D*:: Scroll the information buffer up.
 
-*Alt-c*:: Scroll the information buffer down.
+*Alt-C*:: Scroll the information buffer down.
 
 Input keys
 ~~~~~~~~~~
