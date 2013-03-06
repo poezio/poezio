@@ -194,6 +194,7 @@ class Theme(object):
     CHAR_JOIN = '--->'
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
+    CHAR_NEW_TEXT_SEPARATOR = '- '
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC =' ▼'
     CHAR_ROSTER_ERROR = '✖'

@@ -945,7 +945,11 @@ class TextWin(Win):
             self._refresh()
 
     def write_line_separator(self, y):
-        self.addnstr(y, 0, '- '*(self.width//2-1)+'-', self.width, to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
+        char = get_theme().CHAR_NEW_TEXT_SEPARATOR
+        self.addnstr(y, 0,
+                char*(self.width//len(char)),
+                self.width,
+                to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
     def write_text(self, y, x, txt):
         """
