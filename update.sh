@@ -6,8 +6,14 @@
 
 # Use launch.sh to start poezio directly from here
 
+function error() {
+    echo -e "\033[1;31mThe script failed to update $1.\033[0m"
+    echo -e "\033[1;31mPlease investigate.\033[0m"
+    exit 1
+}
+
 echo 'Updating poezio'
-git pull origin master
+git pull origin master || error poezio
 
 make
 if [ $? -ne 0 ]
@@ -23,18 +29,18 @@ then
     echo "Removing the old SleekXMPP"
     rm -rf SleekXMPP
     rm src/sleekxmpp
-    git clone https://github.com/fritzy/SleekXMPP.git Sleek
+    git clone https://github.com/fritzy/SleekXMPP.git Sleek || error SleekXMPP
 fi
 
 if [ -e "Sleek" ]
 then
     echo "Updating SleekXMPP"
     cd Sleek
-    git pull
+    git pull || error SleekXMPP
     cd ..
 else
     echo "Downloading SleekXMPP"
-    git clone https://github.com/fritzy/SleekXMPP.git Sleek
+    git clone https://github.com/fritzy/SleekXMPP.git Sleek || error SleekXMPP
 fi
 
 if [ -e ".dnspython.tgz" ]
@@ -49,7 +55,7 @@ then
     fi
 else
     echo "Downloading dnspython"
-    wget -c -q -O .dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz
+    wget -c -q -O .dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz || error dnspython
     rm -fr dnspython
     tar xfz .dnspython.tgz
     mv dnspython3-1.10.0 dnspython
