@@ -14,6 +14,7 @@ from gettext import gettext as _
 
 import core
 import tabs
+from plugin import PluginAPI
 from config import config
 
 log = logging.getLogger(__name__)
@@ -63,6 +64,8 @@ class PluginManager(object):
         self.tab_commands = {} #module name -> dict of tab types; tab type -> commands loaded by the module
         self.keys = {} # module name → dict of keys/handlers loaded for the module
         self.tab_keys = {} #module name → dict of tab types; tab type → list of keybinds (tuples)
+        self.roster_elements = {}
+        self.plugin_api = PluginAPI(core, self)
 
     def load(self, name, notify=True):
         """
@@ -96,7 +99,7 @@ class PluginManager(object):
         self.tab_keys[name] = {}
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
-        self.plugins[name] = module.Plugin(self, self.core, plugins_conf_dir)
+        self.plugins[name] = module.Plugin(self.plugin_api, self.core, plugins_conf_dir)
         if notify:
             self.core.information('Plugin %s loaded' % name, 'Info')
 
