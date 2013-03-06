@@ -191,10 +191,9 @@ def get_body_from_message_stanza(message):
     the body (without any color) otherwise
     """
     if config.get('enable_xhtml_im', 'true') == 'true':
-        xhtml_body = message['html']['body']
+        xhtml = message['html'].xml
+        xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
         if xhtml_body:
-            if isinstance(xhtml_body, str):
-                xhtml_body = ET.fromstring(xhtml_body)
             content = xhtml_to_poezio_colors(xhtml_body)
             content = content if content else message['body']
             return content or " "
