@@ -6,7 +6,7 @@
 
 # Use launch.sh to start poezio directly from here
 
-function error() {
+error() {
     echo -e "\033[1;31mThe script failed to update $1.\033[0m"
     echo -e "\033[1;31mPlease investigate.\033[0m"
     exit 1
