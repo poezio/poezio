@@ -150,7 +150,7 @@ class PluginAPI(object):
 
         :param str line: The command to run.
         """
-        return self.core.current_tab().execute_command(line)
+        return self.core.current_tab().execute_command(*args, **kwargs)
 
     def all_tabs(self, _):
         """
