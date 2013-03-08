@@ -6,7 +6,7 @@
 # it under the terms of the zlib license. See the COPYING file.
 
 """
-various useful functions
+Various useful functions.
 """
 
 from datetime import datetime, timedelta
@@ -29,6 +29,13 @@ ROOM_STATE_HL = 13
 def get_base64_from_file(path):
     """
     Convert the content of a file to base64
+
+    :param str path: The path of the file to convert.
+    :return: A tuple of (encoded data, mime type, sha1 hash) if
+        the file exists and does not exceeds the upper size limit of 16384.
+    :return: (None, None, error message) if it fails
+    :rtype: :py:class:`tuple`
+
     """
     if not os.path.isfile(path):
         return (None, None, "File does not exist")
@@ -44,7 +51,11 @@ def get_base64_from_file(path):
 
 def get_output_of_command(command):
     """
-    Runs a command and returns its output
+    Runs a command and returns its output.
+
+    :param str command: The command to run.
+    :return: The output or None
+    :rtype: :py:class:`str`
     """
     try:
         return subprocess.check_output(command.split()).decode('utf-8').split('\n')
@@ -53,9 +64,14 @@ def get_output_of_command(command):
 
 def is_in_path(command, return_abs_path=False):
     """
-    Return True if 'command' is found in one of the directories in the user's
-    path. If 'return_abs_path' is True, return the absolute path of the first
-    found command instead. Return False otherwise and on errors
+    Check if *command* is in the $PATH or not.
+
+    :param str command: The command to be checked.
+    :param bool return_abs_path: Return the absolute path of the command instead
+        of True if the command is found.
+    :return: True if the command is found, the command path if the command is found
+        and *return_abs_path* is True, otherwise False.
+
     """
     for directory in os.getenv('PATH').split(os.pathsep):
         try:
@@ -95,6 +111,8 @@ def get_os_info():
     """
     Returns a detailed and well formated string containing
     informations about the operating system
+
+    :rtype: str
     """
     if os.name == 'posix':
         executable = 'lsb_release'
@@ -151,14 +169,21 @@ def get_os_info():
 
 def datetime_tuple(timestamp):
     """
-    Convert timestamp using strptime and the format: %Y%m%dT%H:%M:%S
+    Convert a timestamp using strptime and the format: %Y%m%dT%H:%M:%S.
 
-    Because of various datetime formats are used the following exceptions
+    Because various datetime formats are used, the following exceptions
     are handled:
-            - Optional milliseconds appened to the string are removed
-            - Optional Z (that means UTC) appened to the string are removed
-            - XEP-082 datetime strings have all '-' cahrs removed to meet
-              the above format.
+
+    * Optional milliseconds appened to the string are removed
+    * Optional Z (that means UTC) appened to the string are removed
+    * XEP-082 datetime strings have all '-' chars removed to meet the above format.
+
+    :param str timestamp: The string containing the formatted date.
+    :return: The date.
+    :rtype: :py:class:`datetime.datetime`
+
+    >>> common.datetime_tuple('20130226T06:23:12')
+    datetime.datetime(2013, 2, 26, 8, 23, 12)
     """
     timestamp = timestamp.split('.')[0]
     timestamp = timestamp.replace('-', '')
@@ -172,6 +197,17 @@ def datetime_tuple(timestamp):
     return ret
 
 def shell_split(st):
+    """
+    Split a string correctly according to the quotes
+    around the elements.
+
+    :param str st: The string to split.
+    :return: A list of the different of the string.
+    :rtype: :py:class:`list`
+
+    >>> shell_split('"sdf 1" "toto 2"')
+    ['sdf 1', 'toto 2']
+    """
     sh = shlex.shlex(st, posix=True)
     sh.commenters = ''
     sh.whitespace_split = True
@@ -188,7 +224,12 @@ def shell_split(st):
 
 def parse_str_to_secs(duration=''):
     """
-    Parse a string of with a number of d, h, m, s
+    Parse a string of with a number of d, h, m, s.
+
+    :param str duration: The formatted string.
+    :return: The number of seconds represented by the string
+    :rtype: :py:class:`int`
+
     >>> parse_str_to_secs("1d3m1h")
     90180
     """
@@ -210,8 +251,15 @@ def parse_str_to_secs(duration=''):
 
 def parse_secs_to_str(duration=0):
     """
+    Do the reverse operation of :py:func:`parse_str_to_secs`.
+
     Parse a number of seconds to a human-readable string.
     The string has the form XdXhXmXs. 0 units are removed.
+
+    :param int duration: The duration, in seconds.
+    :return: A formatted string containing the duration.
+    :rtype: :py:class:`str`
+
     >>> parse_secs_to_str(3601)
     1h1s
     """
@@ -230,36 +278,13 @@ def parse_secs_to_str(duration=0):
         result = '0s'
     return result
 
-def parse_command_args_to_alias(arg, strto):
-    """
-    Parse command parameters.
-    Numbers can be from 0 to 9.
-    >>> parse_command_args_to_alias('sdf koin', '%1 %0')
-    "koin sdf"
-    """
-    if '%' not in strto:
-        return strto + arg
-    args = shell_split(arg)
-    l = len(args)
-    dest = ''
-    var_num = False
-    for i in strto:
-        if i != '%':
-            if not var_num:
-                dest += i
-            elif i in string.digits:
-                if 0 <= int(i) < l:
-                    dest += args[int(i)]
-                var_num = False
-        elif i == '%':
-            if var_num:
-                dest += '%'
-                var_num = False
-            else:
-                var_num = True
-    return dest
-
 def safeJID(*args, **kwargs):
+    """
+    Construct a :py:class:`sleekxmpp.JID` object from a string.
+
+    Used to avoid tracebacks during is stringprep fails
+    (fall back to a JID with an empty string).
+    """
     try:
         return JID(*args, **kwargs)
     except InvalidJID:

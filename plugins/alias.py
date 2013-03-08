@@ -6,7 +6,7 @@ Allows the creation and the removal of personal aliases.
 
 from plugin import BasePlugin
 import common
-from common import parse_command_args_to_alias as parse
+from common import shell_split
 
 class Plugin(BasePlugin):
     def init(self):
@@ -27,18 +27,18 @@ class Plugin(BasePlugin):
         """
         arg = common.shell_split(line)
         if len(arg) < 2:
-            self.core.information('Alias: Not enough parameters', 'Error')
+            self.api.information('Alias: Not enough parameters', 'Error')
             return
         alias = arg[0]
         command = arg[1]
         tmp_args = arg[2] if len(arg) > 2 else ''
 
         if alias in self.core.commands or alias in self.commands:
-            self.core.information('Alias: command already exists', 'Error')
+            self.api.information('Alias: command already exists', 'Error')
             return
-        self.commands[alias] = lambda arg: self.get_command(command)(parse(arg, tmp_args))
+        self.commands[alias] = lambda arg: self.get_command(command)(tmp_args.format(*shell_split(arg)))
         self.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %( command, tmp_args))
-        self.core.information('Alias /%s successfuly created' % alias, 'Info')
+        self.api.information('Alias /%s successfuly created' % alias, 'Info')
 
     def command_unalias(self, alias):
         """
@@ -47,7 +47,7 @@ class Plugin(BasePlugin):
         if alias in self.commands:
             del self.commands[alias]
             self.del_command(alias)
-            self.core.information('Alias /%s successfuly deleted' % alias, 'Info')
+            self.api.information('Alias /%s successfuly deleted' % alias, 'Info')
 
     def completion_unalias(self, the_input):
         aliases = [alias for alias in self.commands]
@@ -61,6 +61,6 @@ class Plugin(BasePlugin):
             pass
         if name in self.core.commands:
             return self.core.commands[name][0]
-        elif name in self.core.current_tab().commands:
-            return self.core.current_tab().commands[name][0]
+        elif name in self.api.current_tab().commands:
+            return self.api.current_tab().commands[name][0]
         return dummy

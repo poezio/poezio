@@ -6,6 +6,7 @@ These are used in the plugin system added in poezio 0.7.5
 import os
 from functools import partial
 from configparser import RawConfigParser
+from timed_events import TimedEvent, DelayedEvent
 import config
 import inspect
 import traceback
@@ -120,11 +121,48 @@ class PluginAPI(object):
 
     def add_timed_event(self, _, *args, **kwargs):
         """
-        Add a timed event.
+        Schedule a timed event.
 
-        :param event: The timed event to add.
+        :param timed_events.TimedEvent event: The timed event to schedule.
         """
         return self.core.add_timed_event(*args, **kwargs)
+
+    def remove_timed_event(self, _, *args, **kwargs):
+        """
+        Unschedule a timed event.
+
+        :param timed_events.TimedEvent event: The event to unschedule.
+        """
+        return self.core.remove_timed_event(*args, **kwargs)
+
+    def create_timed_event(self, _, *args, **kwargs):
+        """
+        Create a timed event, but do not schedule it;
+        :py:func:`~PluginAPI.add_timed_event` must be used for that.
+
+        :param datetime.datetime date: The time at which the handler must be executed
+        :param function callback: The handler that will be executed
+        :param \*args: Optional arguments passed to the handler.
+        :return: The created event.
+        :rtype: :py:class:`timed_events.TimedEvent`
+        """
+        return TimedEvent(*args, **kwargs)
+
+    def create_delayed_event(self, _, *args, **kwargs):
+        """
+        Create a delayed event, but do not schedule it;
+        :py:func:`~PluginAPI.add_timed_event` must be used for that.
+
+        A delayed event is a timed event with a delay from the time
+        this function is called (instead of a datetime).
+
+        :param int delay: The number of seconds to schedule the execution
+        :param function callback: The handler that will be executed
+        :param \*args: Optional arguments passed to the handler.
+        :return: The created event.
+        :rtype: :py:class:`timed_events.DelayedEvent`
+        """
+        return DelayedEvent(*args, **kwargs)
 
     def information(self, _, *args, **kwargs):
         """
@@ -139,7 +177,7 @@ class PluginAPI(object):
         """
         Get the current Tab.
 
-        :returns: tabs.Tab The current tab.
+        :returns: The current tab.
         """
         return self.core.current_tab()
 
@@ -176,7 +214,7 @@ class PluginAPI(object):
 
             Example string: "<server> [port]"
 
-        :raises: Exception If the command already exists.
+        :raises Exception: If the command already exists.
         """
         return self.plugin_manager.add_command(module, *args, **kwargs)
 
