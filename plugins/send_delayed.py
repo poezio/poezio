@@ -7,7 +7,7 @@ class Plugin(BasePlugin):
 
     def init(self):
         for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
-            self.add_tab_command(_class, 'send_delayed', self.command_delayed,
+            self.api.add_tab_command(_class, 'send_delayed', self.command_delayed,
                     usage='<delay> <message>',
                     help='Send <message> with a delay of <delay> seconds.',
                     short='Send a message later',
@@ -21,9 +21,9 @@ class Plugin(BasePlugin):
         if not delay:
             return
 
-        tab = self.core.current_tab()
+        tab = self.api.current_tab()
         timed_event = timed_events.DelayedEvent(delay, self.say, (tab, args[1]))
-        self.core.add_timed_event(timed_event)
+        self.api.add_timed_event(timed_event)
 
     def completion_delay(self, the_input):
         txt = the_input.get_text()

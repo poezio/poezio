@@ -6,17 +6,17 @@ import timed_events
 class Plugin(BasePlugin):
 
     def init(self):
-        self.add_command('remind', self.command_remind,
+        self.api.add_command('remind', self.command_remind,
                 usage='<seconds> <todo>',
                 help='Remind you of <todo> every <time> seconds.',
                 short='Remind you of a task',
                 completion=self.completion_remind)
-        self.add_command('done', self.command_done,
+        self.api.add_command('done', self.command_done,
                 usage='<id>',
                 help='Stop reminding you do the task identified by <id>.',
                 short='Remove a task',
                 completion=self.completion_done)
-        self.add_command('tasks', self.command_tasks,
+        self.api.add_command('tasks', self.command_tasks,
                 usage='',
                 help='List all the current tasks and their ids.',
                 short='List current tasks')
@@ -46,8 +46,8 @@ class Plugin(BasePlugin):
 
         self.tasks[self.count] = (time, args[1])
         timed_event = timed_events.DelayedEvent(time, self.remind, self.count)
-        self.core.add_timed_event(timed_event)
-        self.core.information('Task %s added: %s every %s.' % (self.count, args[1],
+        self.api.add_timed_event(timed_event)
+        self.api.information('Task %s added: %s every %s.' % (self.count, args[1],
             common.parse_secs_to_str(time)), 'Info')
         self.count += 1
 
@@ -71,7 +71,7 @@ class Plugin(BasePlugin):
         if not id in self.tasks:
             return
 
-        self.core.information('Task %s: %s [DONE]' % (id, self.tasks[id][1]), 'Info')
+        self.api.information('Task %s: %s [DONE]' % (id, self.tasks[id][1]), 'Info')
         del self.tasks[id]
 
     def command_tasks(self, arg, nocommand=None):
@@ -83,16 +83,16 @@ class Plugin(BasePlugin):
             s += 'Task %s: %s every %s.\n' % (key, repr(self.tasks[key][1]),
                     common.parse_secs_to_str(self.tasks[key][0]))
         if s:
-            self.core.information(s, 'Info')
+            self.api.information(s, 'Info')
 
     def remind(self, id=0):
         if not id in self.tasks:
             return
-        self.core.information('Task %s: %s' % (id, self.tasks[id][1]), 'Info')
+        self.api.information('Task %s: %s' % (id, self.tasks[id][1]), 'Info')
         if self.config.get('beep', '') == 'true':
             curses.beep()
         timed_event = timed_events.DelayedEvent(self.tasks[id][0], self.remind, id)
-        self.core.add_timed_event(timed_event)
+        self.api.add_timed_event(timed_event)
 
     def cleanup(self):
         if self.tasks:

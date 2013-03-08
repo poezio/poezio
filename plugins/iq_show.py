@@ -7,7 +7,7 @@ class Plugin(BasePlugin):
         self.core.xmpp.register_handler(Callback('Iq_show', StanzaPath('iq'), self.handle_iq))
 
     def handle_iq(self, iq):
-        self.core.information('%s' % iq, 'Iq')
+        self.api.information('%s' % iq, 'Iq')
 
     def cleanup(self):
         self.core.xmpp.remove_handler('Iq_show')

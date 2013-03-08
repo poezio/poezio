@@ -8,14 +8,14 @@ import tabs
 class Plugin(BasePlugin):
     def init(self):
         for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.add_tab_command(tab_type, 'display_corrections',
+            self.api.add_tab_command(tab_type, 'display_corrections',
                     handler=self.command_display_corrections,
                     usage='<number>',
                     help='Display all the corrections of the number-th last corrected message.',
                     short='Display the corrections of a message')
 
     def find_corrected(self, nb):
-        messages = self.core.get_conversation_messages()
+        messages = self.api.get_conversation_messages()
         if not messages:
             return None
         for message in messages[::-1]:
@@ -32,7 +32,7 @@ class Plugin(BasePlugin):
             try:
                 nb = int(args[0])
             except:
-                return self.core.command_help('display_corrections')
+                return self.api.run_command('/help display_corrections')
         else:
             nb = 1
         message = self.find_corrected(nb)
@@ -41,9 +41,9 @@ class Plugin(BasePlugin):
             while message:
                 display.append('%s %s%s%s %s' % (message.str_time, '* ' if message.me else '', message.nickname, '' if message.me else '>', message.txt))
                 message = message.old_message
-            self.core.information('Older versions:\n' + '\n'.join(display[::-1]), 'Info')
+            self.api.information('Older versions:\n' + '\n'.join(display[::-1]), 'Info')
         else:
-            self.core.information('No corrected message found.', 'Warning')
+            self.api.information('No corrected message found.', 'Warning')
 
     def cleanup(self):
         del self.config

@@ -13,10 +13,10 @@ class Plugin(BasePlugin):
     def init(self):
         self.contacts = {}
         # a dict of {full-JID: OTR object}
-        self.add_event_handler('conversation_say_after', self.on_conversation_say)
-        self.add_event_handler('conversation_msg', self.on_conversation_msg)
+        self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
+        self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_tab_command(ConversationTab, 'otr', self.command_otr,
+        self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
                 usage='<start|end|fpr>',
                 help='Start or stop OTR for the current conversation.',
                 short='Manage OTR status',
@@ -113,27 +113,27 @@ class Plugin(BasePlugin):
         """
         args = args.split()
         if not args:
-            return self.core.command_help("otr")
-        if isinstance(self.core.current_tab(), ConversationTab):
-            jid = JID(self.core.current_tab().get_name())
+            return self.api.run_command("/help otr")
+        if isinstance(self.api.current_tab(), ConversationTab):
+            jid = JID(self.api.current_tab().get_name())
         command = args[0]
         if command == 'start':
-            otr_state = self.get_otr(self.core.current_tab())
-            self.otr_say(self.core.current_tab(), otr_state.start().decode())
+            otr_state = self.get_otr(self.api.current_tab())
+            self.otr_say(self.api.current_tab(), otr_state.start().decode())
         elif command == 'end':
-            otr_state = self.get_otr(self.core.current_tab())
+            otr_state = self.get_otr(self.api.current_tab())
             msg = otr_state.end()
             if msg is not None:
-                self.otr_say(self.core.current_tab(), msg.decode())
+                self.otr_say(self.api.current_tab(), msg.decode())
         elif command == 'fpr':
-            otr_state = self.get_otr(self.core.current_tab())
+            otr_state = self.get_otr(self.api.current_tab())
             our = otr_state.our_fpr
             if our:
                 our = hex(int.from_bytes(our, 'big'))[2:].ljust(40).upper()
             their = otr_state.their_fpr
             if their:
                 their = hex(int.from_bytes(their, 'big'))[2:].ljust(40).upper()
-            self.core.current_tab().add_message('Your: %s Their: %s' % (our, their))
+            self.api.current_tab().add_message('Your: %s Their: %s' % (our, their))
         self.core.refresh_window()
 
     def otr_completion(self, the_input):

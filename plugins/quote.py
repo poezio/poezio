@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 class Plugin(BasePlugin):
     def init(self):
         for _class in (tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab):
-            self.add_tab_command(_class, 'quote', self.command_quote,
+            self.api.add_tab_command(_class, 'quote', self.command_quote,
                     usage='<timestamp>',
                     help='Takes the message received at <timestamp> and insert it in the input, to quote it.',
                     short='Quote a message from a timestamp',
@@ -24,9 +24,9 @@ class Plugin(BasePlugin):
         if len(args) in (1, 2):
             timestamp = args[-1]
         else:
-            return self.core.command_help('quote')
+            return self.api.run_command('/help quote')
         if re.match(timestamp_re, timestamp) is None:
-            return self.core.information('Timestamp has a wrong format.', 'Warning')
+            return self.api.information('Timestamp has a wrong format.', 'Warning')
         message = self.find_message_with_timestamp(timestamp)
         if message:
             before = self.config.get('before_quote', '') % {'nick': message.nickname or '',
@@ -37,12 +37,12 @@ class Plugin(BasePlugin):
                                                                           'quote': clean_text(message.txt),
                                                                           'after': after.replace('\\n', '\n').replace('[SP]', ' ')})
         else:
-            self.core.information('No message found for timestamp %s.' % timestamp, 'Warning')
+            self.api.information('No message found for timestamp %s.' % timestamp, 'Warning')
 
     def find_message_with_timestamp(self, timestamp):
         # TODO: handle messages with the same
         # timestamp but not the same day
-        messages = self.core.get_conversation_messages()
+        messages = self.api.get_conversation_messages()
         if not messages:
             return None
         for message in messages[::-1]:
@@ -57,7 +57,7 @@ class Plugin(BasePlugin):
             return msg.nickname.lower().startswith(nick.lower())
         def time_match(msg):
             return msg.str_time.endswith(time)
-        messages = self.core.get_conversation_messages()
+        messages = self.api.get_conversation_messages()
         if not messages:
             return
         text = the_input.get_text()

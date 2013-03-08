@@ -5,7 +5,7 @@ from tabs import MucTab
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('amsg', self.command_amsg,
+        self.api.add_command('amsg', self.command_amsg,
                 usage='<message>',
                 short='Broadcast a message',
                 help='Broadcast the message to all the joined rooms.')

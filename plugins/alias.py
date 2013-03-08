@@ -10,11 +10,11 @@ from common import shell_split
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('alias', self.command_alias,
+        self.api.add_command('alias', self.command_alias,
                 usage='<alias> <command> [args]',
                 short='Create an alias command',
                 help='Create an alias for <command> with [args].')
-        self.add_command('unalias', self.command_unalias,
+        self.api.add_command('unalias', self.command_unalias,
                 usage='<alias>',
                 help='Remove a previously created alias',
                 short='Remove an alias',
@@ -36,8 +36,9 @@ class Plugin(BasePlugin):
         if alias in self.core.commands or alias in self.commands:
             self.api.information('Alias: command already exists', 'Error')
             return
-        self.commands[alias] = lambda arg: self.get_command(command)(tmp_args.format(*shell_split(arg)))
-        self.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %( command, tmp_args))
+
+        self.commands[alias] = lambda arg: self.get_command(command)(tmp_args + arg)
+        self.api.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %( command, tmp_args))
         self.api.information('Alias /%s successfuly created' % alias, 'Info')
 
     def command_unalias(self, alias):
@@ -46,7 +47,7 @@ class Plugin(BasePlugin):
         """
         if alias in self.commands:
             del self.commands[alias]
-            self.del_command(alias)
+            self.api.del_command(alias)
             self.api.information('Alias /%s successfuly deleted' % alias, 'Info')
 
     def completion_unalias(self, the_input):

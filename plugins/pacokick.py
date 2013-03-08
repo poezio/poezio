@@ -5,13 +5,13 @@ from plugin import BasePlugin
 
 class Plugin(BasePlugin):
     def init(self):
-        self.add_command('pacokick', self.command_kick,
+        self.api.add_command('pacokick', self.command_kick,
                 usage='',
                 help='Kick a random user.',
                 short='Kick a random user')
 
     def command_kick(self, arg):
-        tab = self.core.current_tab()
+        tab = self.api.current_tab()
         if isinstance(tab, MucTab):
             kickable = list(filter(lambda x: x.affiliation in ('none', 'member'), tab.users))
             if kickable:
@@ -20,4 +20,4 @@ class Plugin(BasePlugin):
                     to_kick = to_kick.nick
                     tab.command_kick(to_kick + ' ' +arg)
             else:
-                self.core.information('No one to kick :(', 'Info')
+                self.api.information('No one to kick :(', 'Info')

@@ -9,13 +9,13 @@ class Plugin(BasePlugin):
         self.schedule_event()
 
     def cleanup(self):
-        self.core.remove_timed_event(self.next_event)
+        self.api.remove_timed_event(self.next_event)
 
     def schedule_event(self):
         day_change = datetime.datetime.combine(datetime.date.today(), datetime.time())
         day_change += datetime.timedelta(1)
         self.next_event = timed_events.TimedEvent(day_change, self.day_change)
-        self.core.add_timed_event(self.next_event)
+        self.api.add_timed_event(self.next_event)
 
     def day_change(self):
         msg = datetime.date.today().strftime(_("Day changed to %x"))

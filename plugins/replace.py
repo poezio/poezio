@@ -13,9 +13,9 @@ from sleekxmpp.xmlstream.stanzabase import JID
 class Plugin(BasePlugin):
     def init(self):
         self.patterns = {}
-        self.add_event_handler('conversation_say', self.replace_pattern)
-        self.add_event_handler('muc_say', self.replace_pattern)
-        self.add_event_handler('private_say', self.replace_pattern)
+        self.api.add_event_handler('conversation_say', self.replace_pattern)
+        self.api.add_event_handler('muc_say', self.replace_pattern)
+        self.api.add_event_handler('private_say', self.replace_pattern)
         self.patterns['time'] = replace_time
         self.patterns['date'] = replace_date
         self.patterns['datetime'] = replace_datetime

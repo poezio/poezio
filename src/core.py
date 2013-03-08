@@ -300,8 +300,12 @@ class Core(object):
         Load the plugins on startup.
         """
         plugins = config.get('plugins_autoload', '')
-        for plugin in plugins.split():
-            self.plugin_manager.load(plugin)
+        if ':' in plugins:
+            for plugin in plugins.split(':'):
+                self.plugin_manager.load(plugin)
+        else:
+            for plugin in plugins.split():
+                self.plugin_manager.load(plugin)
         self.plugins_autoloaded = True
 
     def start(self):

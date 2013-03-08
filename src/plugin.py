@@ -119,6 +119,16 @@ class PluginAPI(object):
         """
         return self.core.send_message(*args, **kwargs)
 
+    def get_conversation_messages(self, _, *args, **kwargs):
+        """
+        Get all the Messages of the current Tab.
+
+        :returns: The list of :py:class:`text_buffer.Message` objects.
+        :returns: None if the Tab does not inherit from ChatTab.
+        :rtype: :py:class:`list`
+        """
+        return self.core.get_conversation_messages()
+
     def add_timed_event(self, _, *args, **kwargs):
         """
         Schedule a timed event.
@@ -331,7 +341,7 @@ class PluginAPI(object):
         A list of the SleekXMPP events can be found here
         http://sleekxmpp.com/event_index.html
         """
-        self.core.xmmp.add_event_handler(event_name, handler)
+        self.core.xmpp.add_event_handler(event_name, handler)
 
     def del_sleek_event_handler(self, module, event_name, handler):
         """

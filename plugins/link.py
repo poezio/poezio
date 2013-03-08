@@ -13,13 +13,13 @@ url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 class Plugin(BasePlugin):
     def init(self):
         for _class in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.add_tab_command(_class, 'link', self.command_link,
+            self.api.add_tab_command(_class, 'link', self.command_link,
                     usage='[num]',
                     help='Opens the last link from the conversation into a browser.\nIf [num] is given, then it will open the num-th link displayed.',
                     short='Open links into a browser')
 
     def find_link(self, nb):
-        messages = self.core.get_conversation_messages()
+        messages = self.api.get_conversation_messages()
         if not messages:
             return None
         for message in messages[::-1]:
@@ -38,14 +38,14 @@ class Plugin(BasePlugin):
             try:
                 nb = int(args[0])
             except:
-                return self.core.command_help('link')
+                return self.api.run_command('/help link')
         else:
             nb = 1
         link = self.find_link(nb)
         if link:
             self.core.exec_command([self.config.get('browser', 'firefox'), link])
         else:
-            self.core.information('No URL found.', 'Warning')
+            self.api.information('No URL found.', 'Warning')
 
     def cleanup(self):
         del self.config

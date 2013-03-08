@@ -253,7 +253,7 @@ section of this documentation.
 
 *plugins_autoload*:: [empty]
 
-  Space separated list of plugins to load on startup.
+  Colon-separated list of plugins to load on startup.
 
 *plugins_conf_dir*:: [empty]
 
