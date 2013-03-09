@@ -68,6 +68,7 @@ NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
 STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
+        'scrolled': lambda: get_theme().COLOR_TAB_SCROLLED,
         'joined': lambda: get_theme().COLOR_TAB_JOINED,
         'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
@@ -79,6 +80,7 @@ STATE_COLORS = {
 
 VERTICAL_STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
+        'scrolled': lambda: get_theme().COLOR_VERTICAL_TAB_SCROLLED,
         'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
         'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
@@ -93,6 +95,7 @@ STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
         'disconnected': 0,
+        'scrolled': 0.5,
         'message': 1,
         'joined': 1,
         'highlight': 2,
@@ -173,7 +176,8 @@ class Tab(object):
         if not value in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
-                value not in ('current', 'disconnected'):
+                value not in ('current', 'disconnected') and \
+                not (self._state == 'scrolled' and value == 'disconnected'):
             log.debug("Did not set state because of lower priority, asked: %s, kept: %s", value, self._state)
         elif self._state == 'disconnected' and value not in ('joined', 'current'):
             log.debug('Did not set state because disconnected tabs remain visible')
@@ -654,6 +658,10 @@ class ChatTab(Tab):
 
     def get_conversation_messages(self):
         return self._text_buffer.messages
+
+    def check_scrolled(self):
+        if self.text_win.pos != 0:
+            self.state = 'scrolled'
 
     def command_say(self, line, correct=False):
         pass
@@ -1361,6 +1369,7 @@ class MucTab(ChatTab):
         self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and not self.input.get_text():
             self.send_chat_state('inactive')
+        self.check_scrolled()
 
     def on_gain_focus(self):
         self.state = 'current'
@@ -1970,6 +1979,7 @@ class PrivateTab(ChatTab):
                 'send_chat_states', 'true', self.general_jid, True) == 'true'\
                     and not self.input.get_text() and self.on:
             self.send_chat_state('inactive')
+        self.check_scrolled()
 
     def on_gain_focus(self):
         self.state = 'current'
@@ -3158,6 +3168,7 @@ class ConversationTab(ChatTab):
         if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) == 'true' and (not self.input.get_text() or not self.input.get_text().startswith('//')):
             if resource:
                 self.send_chat_state('inactive')
+        self.check_scrolled()
 
     def on_gain_focus(self):
         contact = roster[self.get_dest_jid()]
