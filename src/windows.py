@@ -43,7 +43,7 @@ allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
 # delimiting the text in this line.
 # first is a bool telling if this is the first line of the message.
-Line = collections.namedtuple('Line', 'msg start_pos end_pos')
+Line = collections.namedtuple('Line', 'msg start_pos end_pos prepend')
 
 g_lock = RLock()
 
@@ -56,6 +56,33 @@ def truncate_nick(nick, size=None):
     if nick and len(nick) > size:
         return nick[:size]+'…'
     return nick
+
+def parse_attrs(text, previous=None):
+    next_attr_char = text.find('\x19')
+    if previous:
+        attrs = previous
+    else:
+        attrs = []
+    while next_attr_char != -1 and text:
+        if next_attr_char + 1 < len(text):
+            attr_char = text[next_attr_char+1].lower()
+        else:
+            attr_char = str()
+        if attr_char == 'o':
+            attrs = []
+        elif attr_char == 'u':
+            attrs.append('u')
+        elif attr_char == 'b':
+            attrs.append('b')
+        if attr_char in string.digits and attr_char != '':
+            color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
+            if color_str:
+                attrs.append(color_str + '}')
+            text = text[next_attr_char+len(color_str)+2:]
+        else:
+            text = text[next_attr_char+2:]
+        next_attr_char = text.find('\x19')
+    return attrs
 
 
 class Win(object):
@@ -881,8 +908,15 @@ class TextWin(Win):
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
         lines = cut_text(txt, self.width-offset)
+        prepend = ''
+        attrs = []
         for line in lines:
-            saved = Line(msg=message, start_pos=line[0], end_pos=line[1])
+            saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
+            attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
+            if attrs:
+                prepend = '\x19' + '\x19'.join(attrs)
+            else:
+                prepend = ''
             ret.append(saved)
         return ret
 
@@ -938,7 +972,7 @@ class TextWin(Win):
                                     (0 if not with_timestamps else (len(line.msg.str_time) + 1)) +
                                     # Offset for the nickname (if any) plus a space and a > after it
                                     (0 if not line.msg.nickname else (len(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
-                            line.msg.txt[line.start_pos:line.end_pos])
+                            line.prepend+line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
             self._win.attrset(0)
