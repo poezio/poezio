@@ -2333,8 +2333,11 @@ class Core(object):
         if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
             return
         comp = reduce(lambda x, y: x + [i for i in y], (jid.resources for jid in roster if len(jid)), [])
-        comp = (str(res.jid) for res in comp)
-        return the_input.auto_completion(sorted(comp), '', quotify=True)
+        comp = sorted((str(res.jid) for res in comp))
+        bares = sorted(contact.bare_jid for contact in roster if len(contact))
+        off = sorted(contact.bare_jid for contact in roster if not len(contact))
+        comp = bares + comp + off
+        return the_input.auto_completion(comp, '', quotify=True)
 
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
