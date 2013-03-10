@@ -21,6 +21,7 @@ class DarkTheme(theming.Theme):
     COLOR_TAB_ATTENTION = (6, 236)
     COLOR_TAB_PRIVATE = (2, 236)
     COLOR_TAB_DISCONNECTED = (13, 236)
+    COLOR_TAB_SCROLLED = (66, 236)
 
     COLOR_TOPIC_BAR = (-1, 236)
     COLOR_SCROLLABLE_NUMBER = (220, 236, 'b')
