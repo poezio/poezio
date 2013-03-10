@@ -67,6 +67,13 @@ class PluginManager(object):
         self.roster_elements = {}
         self.plugin_api = PluginAPI(core, self)
 
+    def disable_plugins(self):
+        for plugin in set(self.plugins.keys()):
+            try:
+                self.unload(plugin)
+            except:
+                pass
+
     def load(self, name, notify=True):
         """
         Load a plugin.

@@ -2230,6 +2230,7 @@ class Core(object):
             msg = arg
         else:
             msg = None
+        self.plugin_manager.disable_plugins()
         self.disconnect(msg)
         self.running = False
         self.reset_curses()
