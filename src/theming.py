@@ -202,7 +202,11 @@ class Theme(object):
     CHAR_ROSTER_ERROR = '✖'
     CHAR_ROSTER_TUNE = '♪'
     CHAR_ROSTER_ASKED = '?'
+    CHAR_ROSTER_ACTIVITY = '☃'
+    CHAR_ROSTER_MOOD = '☺'
 
+    COLOR_ROSTER_MOOD = (2, -1)
+    COLOR_ROSTER_ACTIVITY = (3, -1)
     COLOR_ROSTER_TUNE = (6, -1)
     COLOR_ROSTER_ERROR = (1, -1)
     COLOR_JOIN_CHAR = (4, -1)
@@ -221,6 +225,8 @@ class Theme(object):
             'help': (10, -1),
             'headline': (11, -1, 'b'),
             'tune': (6, -1),
+            'mood': (2, -1),
+            'activity': (3, -1),
             'default': (7, -1),
     }
 

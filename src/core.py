@@ -20,6 +20,7 @@ from threading import Event
 from datetime import datetime
 from xml.etree import cElementTree as ET
 
+import pep
 import common
 import theming
 import logging
@@ -230,7 +231,6 @@ class Core(object):
         self.key_func.update(key_func)
 
         # Add handlers
-        self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
         self.xmpp.add_event_handler('connected', self.on_connected)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
         self.xmpp.add_event_handler('no_auth', self.on_failed_auth)
@@ -260,8 +260,14 @@ class Core(object):
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
         self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
-        if config.get('use_pep_nick', 'true') != 'false':
+        if config.get('enable_user_tune', 'true') != 'false':
+            self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
+        if config.get('enable_user_nick', 'true') != 'false':
             self.xmpp.add_event_handler("user_nick_publish", self.on_nick_received)
+        if config.get('enable_user_mood', 'true') != 'false':
+            self.xmpp.add_event_handler("user_mood_publish", self.on_mood)
+        if config.get('enable_user_activity', 'true') != 'false':
+            self.xmpp.add_event_handler("user_activity_publish", self.on_activity)
         self.xmpp.register_handler(self.all_stanzas)
 
         self.initial_joins = []
@@ -2132,7 +2138,7 @@ class Core(object):
                     serv_list.add(serv)
             return the_input.auto_completion(list(serv_list), ' ')
 
-    def command_activity(self, arg):
+    def command_last_activity(self, arg):
         """
         /activity <jid>
         """
@@ -2158,11 +2164,71 @@ class Core(object):
             self.information(msg, 'Info')
         jid = safeJID(arg)
         if jid == '':
-            return self.command_help('activity')
+            return self.command_help('last_activity')
         self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
 
-    def completion_activity(self, the_input):
+    def completion_last_activity(self, the_input):
             return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
+
+    def command_mood(self, arg):
+        """
+        /mood [<mood> [text]]
+        """
+        args = common.shell_split(arg)
+        if not args:
+            return self.xmpp.plugin['xep_0107'].stop(block=False)
+        mood = args[0]
+        if mood not in pep.MOODS:
+            return self.information('%s is not a correct value for a mood.' % mood, 'Error')
+        if len(args) > 1:
+            text = args[1]
+        else:
+            text = None
+        self.xmpp.plugin['xep_0107'].publish_mood(mood, text, block=False)
+
+    def completion_mood(self, the_input):
+        """Completion for /mood"""
+        return the_input.auto_completion(list(pep.MOODS.keys()), '', quotify=False)
+
+    def command_activity(self, arg):
+        """
+        /activity [<general> [specific] [text]]
+        """
+        args = common.shell_split(arg)
+        length = len(args)
+        if not length:
+            return self.xmpp.plugin['xep_0108'].stop(block=False)
+        general = args[0]
+        if general not in pep.ACTIVITIES:
+            return self.information('%s is not a correct value for an activity' % general, 'Error')
+        specific = None
+        text = None
+        if length == 2:
+            if args[1] in pep.ACTIVITIES[general]:
+                specific = args[1]
+            else:
+                text = args[1]
+        elif length == 3:
+            specific = args[1]
+            text = args[2]
+        if specific and specific not in pep.ACTIVITIES[general]:
+            return self.information('%s is not a correct value for an activity' % specific, 'Error')
+        self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text, block=False)
+
+    def completion_activity(self, the_input):
+        """Completion for /activity"""
+        txt = the_input.get_text()
+        args = common.shell_split(txt)
+        n = len(args)
+        if txt.endswith(' '):
+            n += 1
+        if n == 2:
+            return the_input.auto_completion(list(pep.ACTIVITIES.keys()), '', quotify=False)
+        elif n == 3:
+            if args[1] in pep.ACTIVITIES:
+                l = list(pep.ACTIVITIES[args[1]])
+                l.remove('category')
+                return the_input.auto_completion(l, '', quotify=False)
 
     def command_invite(self, arg):
         """/invite <to> <room> [reason]"""
@@ -2233,6 +2299,10 @@ class Core(object):
             msg = arg
         else:
             msg = None
+        if config.get('enable_user_mood', 'true') != 'false':
+            self.xmpp.plugin['xep_0107'].stop(block=False)
+        if config.get('enable_user_activity', 'true') != 'false':
+            self.xmpp.plugin['xep_0108'].stop(block=False)
         self.plugin_manager.disable_plugins()
         self.disconnect(msg)
         self.running = False
@@ -2489,11 +2559,25 @@ class Core(object):
                 completion=self.completion_runkey)
         self.register_command('self', self.command_self,
                 shortdesc=_('Remind you of who you are.'))
-        self.register_command('activity', self.command_activity,
+        self.register_command('last_activity', self.command_last_activity,
                 usage='<jid>',
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
-                completion=self.completion_activity)
+                completion=self.completion_last_activity)
+        if config.get('enable_user_mood', 'true') != 'false':
+            self.register_command('activity', self.command_activity,
+                    usage='[<general> [specific] [text]]',
+                    desc=_('Send your current activity to your contacts (use the completion).'
+                           ' Nothing means "stop broadcasting an activity".'),
+                    shortdesc=_('Send your activity.'),
+                    completion=self.completion_activity)
+        if config.get('eanble_user_activity', 'true') != 'false':
+            self.register_command('mood', self.command_mood,
+                    usage='[<mood> [text]]',
+                    desc=_('Send your current mood to your contacts (use the completion).'
+                           ' Nothing means "stop broadcasting a mood".'),
+                    shortdesc=_('Send your mood.'),
+                    completion=self.completion_mood)
 
 ####################### XMPP Event Handlers  ##################################
 
@@ -2555,7 +2639,7 @@ class Core(object):
         else:
             remote_nick = ''
         # check for a received nick
-        if not remote_nick and config.get('use_pep_nick', 'true') != 'false':
+        if not remote_nick and config.get('enable_user_nick', 'true') != 'false':
             if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                 remote_nick = message['nick']['nick']
         # bind the nick to the conversation
@@ -2633,6 +2717,68 @@ class Core(object):
         item = message['pubsub_event']['items']['item']
         if item.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
             contact.name = item['nick']['nick']
+        else:
+            contact.name= ''
+
+    def on_mood(self, message):
+        """
+        Called when a pep notification for an user mood
+        is received.
+        """
+        contact = roster[message['from'].bare]
+        if not contact:
+            return
+        item = message['pubsub_event']['items']['item']
+        if item.xml.find('{http://jabber.org/protocol/mood}mood') is not None:
+            mood = item['mood']['value']
+            if mood:
+                mood = pep.MOODS.get(mood, mood)
+                text = item['mood']['text']
+                if text:
+                    mood = '%s (%s)' % (mood, text)
+                contact.mood = mood
+            else:
+                contact.mood = ''
+        else:
+            contact.mood = ''
+        if config.get_by_tabname('display_mood_notifications', 'false', contact.bare_jid) == 'true':
+            if contact.mood:
+                self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
+            else:
+                self.information(contact.bare_jid + ' stopped having his/her mood.', 'Mood')
+
+    def on_activity(self, message):
+        """
+        Called when a pep notification for an user activity
+        is received.
+        """
+        contact = roster[message['from'].bare]
+        if not contact:
+            return
+        item = message['pubsub_event']['items']['item']
+        if item.xml.find('{http://jabber.org/protocol/activity}activity') is not None:
+            try:
+                activity = item['activity']['value']
+            except ValueError:
+                return
+            if activity[0]:
+                general = pep.ACTIVITIES.get(activity[0])
+                s = general['category']
+                if activity[1]:
+                    s = s + '/' + general.get(activity[1], 'other')
+                text = item['activity']['text']
+                if text:
+                    s = '%s (%s)' % (s, text)
+                contact.activity = s
+            else:
+                contact.activity = ''
+        else:
+            contact.activity = ''
+        if config.get_by_tabname('display_activity_notifications', 'false', contact.bare_jid) == 'true':
+            if contact.activity:
+                self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
+            else:
+                self.information(contact.bare_jid + ' stopped doing his/her activity.', 'Activity')
 
     def on_tune_event(self, message):
         """
@@ -2656,10 +2802,13 @@ class Core(object):
                 }
         else:
             contact.tune = {}
-        if config.get('display_tune_notifications', 'false') == 'true' and contact.tune:
-            self.information(
-                    'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
-                    'Tune')
+        if config.get_by_tabname('display_tune_notifications', 'false', contact.bare_jid) == 'true':
+            if contact.tune:
+                self.information(
+                        'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
+                        'Tune')
+            else:
+                self.information(contact.bare_jid + ' stopped listening to music.', 'Tune')
 
     def on_groupchat_message(self, message):
         """
@@ -3068,7 +3217,7 @@ class Core(object):
                         status=self.status.message,
                         show=self.status.show)
 
-        if config.get('use_pep_nick', 'true') != 'false':
+        if config.get('enable_user_nick', 'true') != 'false':
             self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick)
 
     ### Other handlers ###

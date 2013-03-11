@@ -68,6 +68,8 @@ class Contact(object):
         self._name = ''
         self.error = None
         self.tune = {}
+        self.mood = ''
+        self.activity = ''
 
     @property
     def groups(self):

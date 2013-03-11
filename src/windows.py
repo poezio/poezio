@@ -1938,6 +1938,10 @@ class RosterWin(Win):
             added += len(get_theme().CHAR_ROSTER_ERROR)
         if contact.tune:
             added += len(get_theme().CHAR_ROSTER_TUNE)
+        if contact.mood:
+            added += len(get_theme().CHAR_ROSTER_MOOD)
+        if contact.activity:
+            added += len(get_theme().CHAR_ROSTER_ACTIVITY)
 
         if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
             display_name = '%s' % contact.name
@@ -1958,7 +1962,10 @@ class RosterWin(Win):
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
         if contact.tune:
             self.addstr(get_theme().CHAR_ROSTER_TUNE, to_curses_attr(get_theme().COLOR_ROSTER_TUNE))
-
+        if contact.activity:
+            self.addstr(get_theme().CHAR_ROSTER_ACTIVITY, to_curses_attr(get_theme().COLOR_ROSTER_ACTIVITY))
+        if contact.mood:
+            self.addstr(get_theme().CHAR_ROSTER_MOOD, to_curses_attr(get_theme().COLOR_ROSTER_MOOD))
         self.finish_line()
 
     def draw_resource_line(self, y, resource, colored):
@@ -2026,6 +2033,14 @@ class ContactInfoWin(Win):
 
         if contact.tune:
             self.addstr(i, 0, 'Current Tune: %s' % common.format_tune_string(contact.tune), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+            i += 1
+
+        if contact.mood:
+            self.addstr(i, 0, 'Mood: %s' % contact.mood, to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+            i += 1
+
+        if contact.activity:
+            self.addstr(i, 0, 'Activity: %s' % contact.activity, to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
             i += 1
 
     def draw_group_info(self, group):

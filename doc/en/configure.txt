@@ -118,10 +118,39 @@ section of this documentation.
   If set to true, notifications about the music your contacts listen to
   will be displayed in the info buffer as 'Tune' messages.
 
+*display_mood_notifications*:: false
+
+  If set to true, notifications about the mood of your contacts
+  will be displayed in the info buffer as 'Mood' messages.
+
+*display_activity_notifications*:: false
+
+  If set to true, notifications about the current activity of your contacts
+  will be displayed in the info buffer as 'Activity' messages.
+
 *display_user_color_in_join_part*:: false
 
   If set to true, the color of the nick will be used in MUCs information
   messages, instead of the default color from the theme.
+
+*enable_user_activity*:: true
+
+  Set this to false if you don’t want to receive the mood of your contacts
+  anymore.
+
+*enable_user_mood*:: true
+
+  Set this to false if you don’t want to receive the mood of your contacts
+  anymore.
+
+*enable_user_nick*:: true
+
+  Set to false if you don’t want your contacts to hint you their identity.
+
+*enable_user_tune*:: true
+
+  If this is set to false, you will no longer be subscribed to tune events,
+  and the display_tune_notifications option will be ignored.
 
 *enable_vertical_tab_list*:: false
 
@@ -280,11 +309,6 @@ section of this documentation.
   pops up.
   If the message takes more than one line, the popup will stay visible
   two more second per additional lines.
-
-*receive_user_tune*:: true
-
-  If this is set to false, you will no longer be subscribed to tune events,
-  and the display_tune_notifications option will be ignored.
 
 *remote_fifo_path*:: ./poezio.fifo
 
@@ -543,10 +567,25 @@ bar = false
   Disable the beeps triggered by this conversation. Works in MucTab,
   PrivateTab and ConversationTab.
 
+*display_activity_notifications*:: false
+
+  If set to true, notifications about the current activity of your contacts
+  will be displayed in the info buffer as 'Activity' messages.
+
+*display_mood_notifications*:: false
+
+  If set to true, notifications about the mood of your contacts
+  will be displayed in the info buffer as 'Mood' messages.
+
 *display_user_color_in_join_part*:: false
 
   If set to true, the color of the nick will be used in MUCs information
   messages, instead of the default color from the theme.
+
+*display_tune_notifications*:: false
+
+  If set to true, notifications about the music your contacts listen to
+  will be displayed in the info buffer as 'Tune' messages.
 
 *hide_exit_join*:: -1
 

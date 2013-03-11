@@ -2076,7 +2076,7 @@ class RosterInfoTab(Tab):
         self.key_func["M-Y"] = self.move_cursor_to_prev_group
         self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
         self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
-        self.key_func["l"] = self.command_activity
+        self.key_func["l"] = self.command_last_activity
         self.key_func["o"] = self.toggle_offline_show
         self.key_func["v"] = self.get_contact_version
         self.key_func["i"] = self.show_contact_info
@@ -2139,11 +2139,11 @@ class RosterInfoTab(Tab):
                 completion=self.completion_file)
         self.register_command('clear_infos', self.command_clear_infos,
                 shortdesc=_('Clear the info buffer.'))
-        self.register_command('activity', self.command_activity,
+        self.register_command('last_activity', self.command_last_activity,
                 usage=_('<jid>'),
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
-                completion=self.core.completion_activity)
+                completion=self.core.completion_last_activity)
         self.core.xmpp.add_event_handler('session_start',
                 lambda event: self.core.xmpp.plugin['xep_0030'].get_info(
                     jid=self.core.xmpp.boundjid.domain,
@@ -2274,11 +2274,10 @@ class RosterInfoTab(Tab):
         """
         self.core.disconnect()
 
-    def command_activity(self, arg=None):
+    def command_last_activity(self, arg=None):
         """
         /activity [jid]
         """
-
         item = self.roster_win.selected_row
         if arg:
             jid = arg
@@ -2289,7 +2288,7 @@ class RosterInfoTab(Tab):
         else:
             self.core.information('No JID selected.', 'Error')
             return
-        self.core.command_activity(jid)
+        self.core.command_last_activity(jid)
 
     def resize(self):
         if not self.visible:
@@ -2845,14 +2844,18 @@ class RosterInfoTab(Tab):
         if isinstance(selected_row, Contact):
             cont = selected_row
             res = selected_row.get_highest_priority_resource()
-            msg = 'Contact: %s (%s)\n%s connected resource%s\nCurrent status: %s\nCurrent tune: %s' % (
-                    cont.bare_jid,
-                    res.presence if res else 'unavailable',
-                    len(cont),
-                    '' if len(cont) == 1 else 's',
-                    res.status if res else '',
-                    common.format_tune_string(cont.tune),
-                    )
+            acc = []
+            acc.append('Contact: %s (%s)' % (cont.bare_jid, res.presence if res else 'unavailable'))
+            if res:
+                acc.append('%s connected resource%s' % (len(cont), '' if len(cont) == 1 else 's'))
+                acc.append('Current status: %s' % res.status)
+            if cont.tune:
+                acc.append('Tune: %s' % common.format_tune_string(cont.tune))
+            if cont.mood:
+                acc.append('Mood: %s' % cont.mood)
+            if cont.activity:
+                acc.append('Activity: %s' % cont.activity)
+            msg = '\n'.join(acc)
         elif isinstance(selected_row, Resource):
             res = selected_row
             msg = 'Resource: %s (%s)\nCurrent status: %s\nPriority: %s' % (
@@ -2959,11 +2962,11 @@ class ConversationTab(ChatTab):
                 shortdesc=_('Get the software version of the user.'))
         self.register_command('info', self.command_info,
                 shortdesc=_('Get the status of the contact.'))
-        self.register_command('activity', self.command_activity,
+        self.register_command('last_activity', self.command_last_activity,
                 usage=_('[jid]'),
                 desc=_('Get the last activity of the given or the current contact.'),
                 shortdesc=_('Get the activity.'),
-                completion=self.core.completion_activity)
+                completion=self.core.completion_last_activity)
         self.resize()
         self.update_commands()
         self.update_keys()
@@ -3023,12 +3026,12 @@ class ConversationTab(ChatTab):
         self.text_win.refresh()
         self.input.refresh()
 
-    def command_activity(self, arg):
+    def command_last_activity(self, arg):
         """
         /activity [jid]
         """
         if arg.strip():
-            return self.core.command_activity(arg)
+            return self.core.command_last_activity(arg)
 
         def callback(iq):
             if iq['type'] != 'result':

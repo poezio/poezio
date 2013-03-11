@@ -72,10 +72,18 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0115')
         self.register_plugin('xep_0191')
 
-        if config.get('receive_user_tune', 'true') != 'false':
+        if config.get('enable_user_tune', 'true') != 'false':
             self.register_plugin('xep_0118')
-        if config.get('use_pep_nick', 'true') != 'false':
+
+        if config.get('enable_user_nick', 'true') != 'false':
             self.register_plugin('xep_0172')
+
+        if config.get('enable_user_mood', 'true') != 'false':
+            self.register_plugin('xep_0107')
+
+        if config.get('enable_user_activity', 'true') != 'false':
+            self.register_plugin('xep_0108')
+
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
                     'version': options.version}
