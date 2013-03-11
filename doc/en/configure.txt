@@ -281,6 +281,11 @@ section of this documentation.
   If the message takes more than one line, the popup will stay visible
   two more second per additional lines.
 
+*receive_user_tune*:: true
+
+  If this is set to false, you will no longer be subscribed to tune events,
+  and the display_tune_notifications option will be ignored.
+
 *remote_fifo_path*:: ./poezio.fifo
 
   The path of the FIFO used to send the commands (see the exec_remote option).
