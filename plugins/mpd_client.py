@@ -38,6 +38,8 @@ class UpdateThread(threading.Thread):
                     self.xmpp.plugin['xep_0118'].publish_tune(artist=song.get('artist'),
                             length=song.get('time'), title=song.get('title'),
                             track=song.get('track'), block=False)
+                else if status['state'] != 'play':
+                    self.xmpp.plugin['xep_0118'].stop(block=False)
                 self.c.disconnect()
             except:
                 pass
