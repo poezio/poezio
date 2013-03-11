@@ -230,6 +230,7 @@ class Core(object):
         self.key_func.update(key_func)
 
         # Add handlers
+        self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
         self.xmpp.add_event_handler('connected', self.on_connected)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
         self.xmpp.add_event_handler('no_auth', self.on_failed_auth)
@@ -2597,6 +2598,29 @@ class Core(object):
             self.refresh_tab_win()
         else:
             self.refresh_window()
+
+    def on_tune_event(self, message):
+        contact = roster[message['from'].bare]
+        if not contact:
+            return
+        item = message['pubsub_event']['items']['item']
+        if item.find('{http://jabber.org/protocol/tune}tune'):
+            item = item['tune']
+            contact.tune =  {
+                    'artist': item['artist'],
+                    'length': item['length'],
+                    'rating': item['rating'],
+                    'source': item['source'],
+                    'title': item['title'],
+                    'track': item['track'],
+                    'uri': item['uri']
+                }
+        else:
+            contact.tune = {}
+        if config.get('display_tune_notifications', 'false') == 'true' and contact.tune:
+            self.information(
+                    'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
+                    'Tune')
 
     def on_groupchat_message(self, message):
         """

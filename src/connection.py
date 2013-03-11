@@ -70,6 +70,7 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0071')
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
+        self.register_plugin('xep_0118')
         self.register_plugin('xep_0191')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',

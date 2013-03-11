@@ -31,6 +31,7 @@ from poopt import cut_text
 
 from sleekxmpp import JID
 from common import safeJID
+import common
 
 import core
 import wcwidth
@@ -1935,6 +1936,8 @@ class RosterWin(Win):
             added += len(get_theme().CHAR_ROSTER_ASKED)
         if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
             added += len(get_theme().CHAR_ROSTER_ERROR)
+        if contact.tune:
+            added += len(get_theme().CHAR_ROSTER_TUNE)
 
         if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
             display_name = '%s' % contact.name
@@ -1953,6 +1956,8 @@ class RosterWin(Win):
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
         if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+        if contact.tune:
+            self.addstr(get_theme().CHAR_ROSTER_TUNE, to_curses_attr(get_theme().COLOR_ROSTER_TUNE))
 
         self.finish_line()
 
@@ -1995,23 +2000,33 @@ class ContactInfoWin(Win):
             presence = resource.presence
         else:
             presence = 'unavailable'
+        i = 0
         self.addstr(0, 0, '%s (%s)'%(jid, presence,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-        self.addstr(1, 0, 'Subscription: %s' % (contact.subscription,))
+        i += 1
+        self.addstr(i, 0, 'Subscription: %s' % (contact.subscription,))
         self.finish_line()
+        i += 1
         if contact.ask:
             if contact.ask == 'asked':
-                self.addstr('Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
+                self.addstr(i, 0, 'Ask: %s' % (contact.ask,), to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
             else:
-                self.addstr('Ask: %s' % (contact.ask,))
+                self.addstr(i, 0, 'Ask: %s' % (contact.ask,))
             self.finish_line()
+            i += 1
         if resource:
-            self.addstr(2, 0, 'Status: %s' % (resource.status))
+            self.addstr(i, 0, 'Status: %s' % (resource.status))
             self.finish_line()
+            i += 1
 
         if contact.error:
-            self.addstr('Error: %s' % contact.error, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+            self.addstr(i, 0, 'Error: %s' % contact.error, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+            self.finish_line()
+            i += 1
 
+        if contact.tune:
+            self.addstr(i, 0, 'Current Tune: %s' % common.format_tune_string(contact.tune), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+            i += 1
 
     def draw_group_info(self, group):
         """

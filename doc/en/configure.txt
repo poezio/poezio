@@ -113,6 +113,11 @@ section of this documentation.
   the nick you will use when joining a room with no associated nick
   If this is empty, the $USER environnement variable will be used
 
+*display_tune_notifications*:: false
+
+  If set to true, notifications about the music your contacts listen to
+  will be displayed in the info buffer as 'Tune' messages.
+
 *display_user_color_in_join_part*:: false
 
   If set to true, the color of the nick will be used in MUCs information

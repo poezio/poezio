@@ -278,6 +278,43 @@ def parse_secs_to_str(duration=0):
         result = '0s'
     return result
 
+def format_tune_string(infos):
+    """
+    Contruct a string from a dict created from an "User tune" event.
+
+    :param dict infos: The informations
+    :return: The formatted string
+    :rtype: :py:class:`str`
+    """
+    elems = []
+    track = infos.get('track')
+    if track:
+        elems.append(track)
+    title = infos.get('title')
+    if title:
+        elems.append(title)
+    else:
+        elems.append('Unknown title')
+    elems.append('-')
+    artist = infos.get('artist')
+    if artist:
+        elems.append(artist)
+    else:
+        elems.append('Unknown artist')
+
+    rating = infos.get('rating')
+    if rating:
+        elems.append('[ ' + rating + '/10' + ' ]')
+    length = infos.get('length')
+    if length:
+        length = int(length)
+        secs = length % 60
+        mins = length // 60
+        secs = str(secs).zfill(2)
+        mins = str(mins).zfill(2)
+        elems.append('[' + mins + ':' + secs + ']')
+    return ' '.join(elems)
+
 def safeJID(*args, **kwargs):
     """
     Construct a :py:class:`sleekxmpp.JID` object from a string.

@@ -200,8 +200,10 @@ class Theme(object):
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC =' ▼'
     CHAR_ROSTER_ERROR = '✖'
+    CHAR_ROSTER_TUNE = '♪'
     CHAR_ROSTER_ASKED = '?'
 
+    COLOR_ROSTER_TUNE = (6, -1)
     COLOR_ROSTER_ERROR = (1, -1)
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
@@ -218,6 +220,7 @@ class Theme(object):
             'roster': (2, -1),
             'help': (10, -1),
             'headline': (11, -1, 'b'),
+            'tune': (6, -1),
             'default': (7, -1),
     }
 

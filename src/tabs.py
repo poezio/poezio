@@ -2845,12 +2845,14 @@ class RosterInfoTab(Tab):
         if isinstance(selected_row, Contact):
             cont = selected_row
             res = selected_row.get_highest_priority_resource()
-            msg = 'Contact: %s (%s)\n%s connected resource%s\nCurrent status: %s' % (
+            msg = 'Contact: %s (%s)\n%s connected resource%s\nCurrent status: %s\nCurrent tune: %s' % (
                     cont.bare_jid,
                     res.presence if res else 'unavailable',
                     len(cont),
                     '' if len(cont) == 1 else 's',
-                    res.status if res else '',)
+                    res.status if res else '',
+                    common.format_tune_string(cont.tune),
+                    )
         elif isinstance(selected_row, Resource):
             res = selected_row
             msg = 'Resource: %s (%s)\nCurrent status: %s\nPriority: %s' % (
