@@ -437,6 +437,11 @@ section of this documentation.
   Set to 'false' if you don’t want to save logs of all the messages
   in files.
 
+*use_pep_nick*:: true
+
+  Use the nickname broadcasted by the user if set to true, and if none
+  has already been set manually.
+
 *use_remote_bookmarks*:: true
 
     Use this option to force the use of local bookmarks if needed.

@@ -74,6 +74,8 @@ class Connection(sleekxmpp.ClientXMPP):
 
         if config.get('receive_user_tune', 'true') != 'false':
             self.register_plugin('xep_0118')
+        if config.get('use_pep_nick', 'true') != 'false':
+            self.register_plugin('xep_0172')
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
                     'version': options.version}

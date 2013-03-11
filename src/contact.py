@@ -65,6 +65,7 @@ class Contact(object):
         """
         self.__item = item
         self.folded_states = defaultdict(lambda: True)
+        self._name = ''
         self.error = None
         self.tune = {}
 
@@ -81,7 +82,12 @@ class Contact(object):
     @property
     def name(self):
         """The name of the contact or an empty string."""
-        return self.__item['name'] or ''
+        return self.__item['name'] or self._name or ''
+
+    @name.setter
+    def name(self, value):
+        """Set the name of the contact with user nickname"""
+        self._name = value
 
     @property
     def ask(self):

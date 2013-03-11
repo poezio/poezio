@@ -2679,7 +2679,7 @@ class RosterInfoTab(Tab):
         self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
         self.core.xmpp.client_roster.send_last_presence()
         if contact.subscription in ('from', 'none') and not contact.pending_out:
-            self.core.xmpp.send_presence(pto=jid, ptype='subscribe')
+            self.core.xmpp.send_presence(pto=jid, ptype='subscribe', pnick=self.core.own_nick)
 
     def refresh(self):
         if self.need_resize:
@@ -2938,6 +2938,8 @@ class ConversationTab(ChatTab):
     message_type = 'chat'
     def __init__(self, jid):
         ChatTab.__init__(self, jid)
+        self.nick = None
+        self.nick_sent = False
         self.state = 'normal'
         self.name = jid        # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
@@ -2988,6 +2990,9 @@ class ConversationTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_dest_jid())
         msg['type'] = 'chat'
         msg['body'] = line
+        if not self.nick_sent:
+            msg['nick'] = self.core.own_nick
+            self.nick_sent = True
         # trigger the event BEFORE looking for colors.
         # and before displaying the message in the window
         # This lets a plugin insert \x19xxx} colors, that will
@@ -3143,6 +3148,8 @@ class ConversationTab(ChatTab):
         if contact:
             return contact.name or jid.user
         else:
+            if self.nick:
+                return self.nick
             return jid.user
 
     def on_input(self, key, raw):

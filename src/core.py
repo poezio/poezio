@@ -260,6 +260,8 @@ class Core(object):
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
         self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
+        if config.get('use_pep_nick', 'true') != 'false':
+            self.xmpp.add_event_handler("user_nick_publish", self.on_nick_received)
         self.xmpp.register_handler(self.all_stanzas)
 
         self.initial_joins = []
@@ -2545,6 +2547,22 @@ class Core(object):
         When receiving "normal" messages (from someone in our roster)
         """
         jid = message['from']
+
+
+        # check for a name
+        if jid.bare in roster:
+            remote_nick = roster[jid.bare].name
+        else:
+            remote_nick = ''
+        # check for a received nick
+        if not remote_nick and config.get('use_pep_nick', 'true') != 'false':
+            if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
+                remote_nick = message['nick']['nick']
+        # bind the nick to the conversation
+        conversation = self.get_conversation_by_jid(jid, create=False)
+        if conversation and remote_nick and jid.bare not in roster:
+            conversation.nick = remote_nick
+
         body = xhtml.get_body_from_message_stanza(message)
         if message['type'] == 'error':
             return self.information(self.get_error_message(message, deprecated=True), 'Error')
@@ -2553,16 +2571,21 @@ class Core(object):
         if not body:
             return
         conversation = self.get_conversation_by_jid(jid, create=True)
+
+        if not remote_nick and conversation.nick:
+            remote_nick = conversation.nick
+        elif jid.bare not in roster and remote_nick:
+            conversation.nick = remote_nick
+        elif not remote_nick:
+            remote_nick = jid.user
+
         self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
         if isinstance(conversation, tabs.DynamicConversationTab):
             conversation.lock(jid.resource)
-        if jid.bare in roster:
-            remote_nick = roster[jid.bare].name or jid.user
-        else:
-            remote_nick = jid.user
+        conversation.nick = remote_nick
         delay_tag = message.find('{urn:xmpp:delay}delay')
         if delay_tag is not None:
             delayed = True
@@ -2599,7 +2622,23 @@ class Core(object):
         else:
             self.refresh_window()
 
+    def on_nick_received(self, message):
+        """
+        Called when a pep notification for an user nickname
+        is received
+        """
+        contact = roster[message['from'].bare]
+        if not contact:
+            return
+        item = message['pubsub_event']['items']['item']
+        if item.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
+            contact.name = item['nick']['nick']
+
     def on_tune_event(self, message):
+        """
+        Called when a pep notification for an user tune
+        is received
+        """
         contact = roster[message['from'].bare]
         if not contact:
             return
@@ -3028,6 +3067,9 @@ class Core(object):
                         maxhistory=histo_length,
                         status=self.status.message,
                         show=self.status.show)
+
+        if config.get('use_pep_nick', 'true') != 'false':
+            self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick)
 
     ### Other handlers ###
 
