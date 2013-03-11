@@ -23,6 +23,7 @@ class UpdateThread(threading.Thread):
 
     def run(self, *args, **kwargs):
         self.alive = True
+        current = None
         while self.alive:
             try:
                 self.c.connect(host=self.plugin.config.get('host', 'localhost'), port=self.plugin.config.get('port', '6600'))
@@ -35,11 +36,14 @@ class UpdateThread(threading.Thread):
                 status = self.c.status()
                 if status['state'] == 'play' and self.alive:
                     song = self.c.currentsong()
-                    self.xmpp.plugin['xep_0118'].publish_tune(artist=song.get('artist'),
-                            length=song.get('time'), title=song.get('title'),
-                            track=song.get('track'), block=False)
-                else if status['state'] != 'play':
+                    if current != song:
+                        self.xmpp.plugin['xep_0118'].publish_tune(artist=song.get('artist'),
+                                length=song.get('time'), title=song.get('title'),
+                                track=song.get('track'), block=False)
+                    current = song
+                elif status['state'] != 'play':
                     self.xmpp.plugin['xep_0118'].stop(block=False)
+                    current = None
                 self.c.disconnect()
             except:
                 pass
