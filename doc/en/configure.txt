@@ -113,6 +113,11 @@ section of this documentation.
   the nick you will use when joining a room with no associated nick
   If this is empty, the $USER environnement variable will be used
 
+*display_gaming_notifications*:: false
+
+  If set to true, notifications about the games your are playing
+  will be displayed in the info buffer as 'Gaming' messages.
+
 *display_tune_notifications*:: false
 
   If set to true, notifications about the music your contacts listen to
@@ -135,7 +140,12 @@ section of this documentation.
 
 *enable_user_activity*:: true
 
-  Set this to false if you don’t want to receive the mood of your contacts
+  Set this to false if you don’t want to receive the activity of your contacts
+  anymore.
+
+*enable_user_gaming*:: true
+
+  Set this to false if you don’t want to receive the gaming activity of your contacts
   anymore.
 
 *enable_user_mood*:: true
@@ -571,6 +581,12 @@ bar = false
 
   If set to true, notifications about the current activity of your contacts
   will be displayed in the info buffer as 'Activity' messages.
+
+*display_gaming_notifications*:: false
+
+  If set to true, notifications about the game your are playing
+  will be displayed in the info buffer as 'Gaming' messages.
+
 
 *display_mood_notifications*:: false
 

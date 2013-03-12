@@ -265,9 +265,11 @@ class Core(object):
         if config.get('enable_user_nick', 'true') != 'false':
             self.xmpp.add_event_handler("user_nick_publish", self.on_nick_received)
         if config.get('enable_user_mood', 'true') != 'false':
-            self.xmpp.add_event_handler("user_mood_publish", self.on_mood)
+            self.xmpp.add_event_handler("user_mood_publish", self.on_mood_event)
         if config.get('enable_user_activity', 'true') != 'false':
-            self.xmpp.add_event_handler("user_activity_publish", self.on_activity)
+            self.xmpp.add_event_handler("user_activity_publish", self.on_activity_event)
+        if config.get('enable_user_gaming', 'true') != 'false':
+            self.xmpp.add_event_handler("user_gaming_publish", self.on_gaming_event)
         self.xmpp.register_handler(self.all_stanzas)
 
         self.initial_joins = []
@@ -2215,6 +2217,20 @@ class Core(object):
             return self.information('%s is not a correct value for an activity' % specific, 'Error')
         self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text, block=False)
 
+    def command_gaming(self, arg):
+        """
+        /gaming [<game name> [server address]]
+        """
+        args = common.shell_split(arg)
+        if not args:
+            return self.xmpp.plugin['xep_1096'].stop(block=False)
+        name = args[0]
+        if len(args) > 1:
+            address = args[1]
+        else:
+            address = None
+        return self.xmpp.plugin['xep_0196'].publish_gaming(name=name, server_address=address, block=False)
+
     def completion_activity(self, the_input):
         """Completion for /activity"""
         txt = the_input.get_text()
@@ -2303,6 +2319,8 @@ class Core(object):
             self.xmpp.plugin['xep_0107'].stop(block=False)
         if config.get('enable_user_activity', 'true') != 'false':
             self.xmpp.plugin['xep_0108'].stop(block=False)
+        if config.get('enable_user_gaming', 'true') != 'false':
+            self.xmpp.plugin['xep_0196'].stop(block=False)
         self.plugin_manager.disable_plugins()
         self.disconnect(msg)
         self.running = False
@@ -2571,13 +2589,20 @@ class Core(object):
                            ' Nothing means "stop broadcasting an activity".'),
                     shortdesc=_('Send your activity.'),
                     completion=self.completion_activity)
-        if config.get('eanble_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', 'true') != 'false':
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
                     desc=_('Send your current mood to your contacts (use the completion).'
                            ' Nothing means "stop broadcasting a mood".'),
                     shortdesc=_('Send your mood.'),
                     completion=self.completion_mood)
+        if config.get('enable_user_gaming', 'true') != 'false':
+            self.register_command('gaming', self.command_gaming,
+                    usage='[<game name> [server address]]',
+                    desc=_('Send your current gaming activity to your contacts.'
+                           ' Nothing means "stop broadcasting a mood".'),
+                    shortdesc=_('Send your gaming activity.'),
+                    completion=None)
 
 ####################### XMPP Event Handlers  ##################################
 
@@ -2720,7 +2745,37 @@ class Core(object):
         else:
             contact.name= ''
 
-    def on_mood(self, message):
+    def on_gaming_event(self, message):
+        """
+        Called when a pep notification for user gaming
+        is received
+        """
+        contact = roster[message['from'].bare]
+        if not contact:
+            return
+        item = message['pubsub_event']['items']['item']
+        if item.find('{urn:xmpp:gaming:0}gaming') is not None:
+            item = item['gaming']
+            # only name and server_address are used for now
+            contact.gaming = {
+                    'character_name': item['character_name'],
+                    'character_profile': item['character_profile'],
+                    'name': item['name'],
+                    'level': item['level'],
+                    'uri': item['uri'],
+                    'server_name': item['server_name'],
+                    'server_address': item['server_address'],
+                }
+        else:
+            contact.gaming = {}
+
+        if config.get_by_tabname('display_gaming_notifications', 'false', contact.bare_jid) == 'true':
+            if contact.gaming:
+                self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
+            else:
+                self.information(contact.bare_jid + ' stopped playing.', 'Gaming')
+
+    def on_mood_event(self, message):
         """
         Called when a pep notification for an user mood
         is received.
@@ -2747,7 +2802,7 @@ class Core(object):
             else:
                 self.information(contact.bare_jid + ' stopped having his/her mood.', 'Mood')
 
-    def on_activity(self, message):
+    def on_activity_event(self, message):
         """
         Called when a pep notification for an user activity
         is received.

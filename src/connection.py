@@ -84,6 +84,9 @@ class Connection(sleekxmpp.ClientXMPP):
         if config.get('enable_user_activity', 'true') != 'false':
             self.register_plugin('xep_0108')
 
+        if config.get('enable_user_gaming', 'true') != 'false':
+            self.register_plugin('xep_0196')
+
         if config.get('send_poezio_info', 'true') == 'true':
             info = {'name':'poezio',
                     'version': options.version}

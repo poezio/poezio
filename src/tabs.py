@@ -2855,6 +2855,8 @@ class RosterInfoTab(Tab):
                 acc.append('Mood: %s' % cont.mood)
             if cont.activity:
                 acc.append('Activity: %s' % cont.activity)
+            if cont.gaming:
+                acc.append('Game: %s' % (common.format_gaming_string(cont.gaming)))
             msg = '\n'.join(acc)
         elif isinstance(selected_row, Resource):
             res = selected_row

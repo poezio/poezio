@@ -315,6 +315,25 @@ def format_tune_string(infos):
         elems.append('[' + mins + ':' + secs + ']')
     return ' '.join(elems)
 
+def format_gaming_string(infos):
+    """
+    Construct a string from a dict containing the "user gaming"
+    informations.
+    (for now, only use address and name)
+
+    :param dict infos: The informations
+    :returns: The formatted string
+    :rtype: :py:class:`str`
+    """
+    name = infos.get('name')
+    if not name:
+        return ''
+
+    server_address = infos.get('server_address')
+    if server_address:
+        return '%s on %s' % (name, server_address)
+    return name
+
 def safeJID(*args, **kwargs):
     """
     Construct a :py:class:`sleekxmpp.JID` object from a string.
