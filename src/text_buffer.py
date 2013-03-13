@@ -33,9 +33,9 @@ def other_elems(self):
 
 def repr_message(self):
     init = other_elems(self)
-    acc = []
+    acc = [init]
     next = self.old_message
-    rev = 0
+    rev = 1
     while next:
         acc.append(other_elems(next))
         next = next.old_message

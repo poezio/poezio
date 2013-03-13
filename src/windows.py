@@ -982,7 +982,7 @@ class TextWin(Win):
     def write_line_separator(self, y):
         char = get_theme().CHAR_NEW_TEXT_SEPARATOR
         self.addnstr(y, 0,
-                char*(self.width//len(char)),
+                char*((self.width//len(char) - 1)),
                 self.width,
                 to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
@@ -2036,7 +2036,7 @@ class ContactInfoWin(Win):
             i += 1
 
         if contact.tune:
-            self.addstr(i, 0, 'Current Tune: %s' % common.format_tune_string(contact.tune), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+            self.addstr(i, 0, 'Tune: %s' % common.format_tune_string(contact.tune), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
@@ -2051,7 +2051,7 @@ class ContactInfoWin(Win):
             i += 1
 
         if contact.gaming:
-            self.addstr(i, 0, 'Game: %s on %s' % (contact.gaming['name'], contact.gamin['server_address']), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+            self.addstr(i, 0, 'Game: %s' % common.format_gaming_string(contact.gaming), to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
