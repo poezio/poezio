@@ -10,12 +10,18 @@ XEP
 |0027      |Current Jabber OpenPGP Usage|100%
 |0030      |Service Discovery|~100%
 |0045      |Multi-User Chat|~90%
+|0048      |Bookmarks|90%
 |0059      |Result Set Management|~100%
 |0071      |XHTML-IM|~70%
 |0085      |Chat State Notifications|100%
 |0092      |Software Version|100%
+|0107      |User Mood|100%
+|0108      |User Activity|100%
 |0115      |Entity capabilities|~20%
+|0118      |User Tune|90%
+|0172      |User Nickname|100%
 |0191      |Simple Communication Blocking|95%
+|0196      |User Gaming|70%
 |0199      |XMPP Ping|70%
 |0202      |Entity time|100%
 |0224      |Attention|100%
