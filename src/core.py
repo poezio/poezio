@@ -614,7 +614,6 @@ class Core(object):
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         msg = msg or ''
-        self.save_config()
         self.xmpp.disconnect()
         if reconnect:
             self.xmpp.start()
@@ -2321,6 +2320,7 @@ class Core(object):
             self.xmpp.plugin['xep_0108'].stop(block=False)
         if config.get('enable_user_gaming', 'true') != 'false':
             self.xmpp.plugin['xep_0196'].stop(block=False)
+        self.save_config()
         self.plugin_manager.disable_plugins()
         self.disconnect(msg)
         self.running = False
