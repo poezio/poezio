@@ -495,11 +495,15 @@ class ChatTab(Tab):
 
     def modify_message(self, txt, old_id, new_id, user=None):
         self.log_message(txt, time, self.name)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
-        if message:
-            self.text_win.modify_message(old_id, message)
-            self.core.refresh_window()
-            return True
+        try:
+            message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
+        except CorrectionError as e:
+            self.core.information("%s" % (e,), 'Error')
+        else:
+            if message:
+                self.text_win.modify_message(old_id, message)
+                self.core.refresh_window()
+                return True
         return False
 
     def last_words_completion(self):
@@ -1765,11 +1769,15 @@ class MucTab(ChatTab):
     def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None):
         self.log_message(txt, time, nickname)
         highlight = self.do_highlight(txt, time, nickname)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
-        if message:
-            self.text_win.modify_message(old_id, message)
-            self.core.refresh_window()
-            return highlight
+        try:
+            message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
+        except CorrectionError as e:
+            self.core.information("%s" % (e,), 'Error')
+        else:
+            if message:
+                self.text_win.modify_message(old_id, message)
+                self.core.refresh_window()
+                return highlight
         return False
 
     def matching_names(self):
