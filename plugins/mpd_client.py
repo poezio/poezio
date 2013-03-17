@@ -31,7 +31,7 @@ class UpdateThread(threading.Thread):
                 if password:
                     self.c.password(password)
                 self.c.send_idle()
-                select([self.c], [], [])
+                select([self.c], [], [], timeout=600)
                 self.c.fetch_idle()
                 status = self.c.status()
                 if status['state'] == 'play' and self.alive:
