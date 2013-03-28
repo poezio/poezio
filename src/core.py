@@ -2600,7 +2600,7 @@ class Core(object):
             self.register_command('gaming', self.command_gaming,
                     usage='[<game name> [server address]]',
                     desc=_('Send your current gaming activity to your contacts.'
-                           ' Nothing means "stop broadcasting a mood".'),
+                           ' Nothing means "stop broadcasting a gaming activity".'),
                     shortdesc=_('Send your gaming activity.'),
                     completion=None)
 
