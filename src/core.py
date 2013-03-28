@@ -2222,7 +2222,7 @@ class Core(object):
         """
         args = common.shell_split(arg)
         if not args:
-            return self.xmpp.plugin['xep_1096'].stop(block=False)
+            return self.xmpp.plugin['xep_0196'].stop(block=False)
         name = args[0]
         if len(args) > 1:
             address = args[1]
