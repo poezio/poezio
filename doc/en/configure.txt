@@ -57,7 +57,7 @@ section of this documentation.
   This value will be added to your nickname to create the alternative nickname.
   For example, if you set "\_", and wanted to use the nickname "john",
   your alternative nickname will be "john_".
- 
+
 *autorejoin*:: false
 
   Set to true if you want to automatically rejoin the room when you're kicked.
@@ -661,3 +661,6 @@ bar = false
   Use logs for this JID or not. No value will make poezio fall back to the
   global value.
 
+*notify_messages*:: true
+
+  Only for MUC tabs: if true the tab will change its color to notify you when a new message is received.  You will still be notified of highlights.  Set to false if you’re not interested in a room non-highlight notifications.

@@ -1754,7 +1754,8 @@ class MucTab(ChatTab):
         if not time and nickname and\
                 nickname != self.own_nick and\
                     self.state != 'current':
-            if self.state != 'highlight':
+            if self.state != 'highlight' and\
+                    config.get_by_tabname('notify_messages', 'true', self.get_name()) == 'true':
                 self.state = 'message'
         nick_color = nick_color or None
         highlight = False
