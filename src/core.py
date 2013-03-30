@@ -2740,7 +2740,7 @@ class Core(object):
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
+        if item.xml.find('{http://jabber.org/protocol/nick}nick'):
             contact.name = item['nick']['nick']
         else:
             contact.name= ''
@@ -2754,7 +2754,8 @@ class Core(object):
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.find('{urn:xmpp:gaming:0}gaming') is not None:
+        old_gaming = contact.gaming
+        if item.xml.find('{urn:xmpp:gaming:0}gaming'):
             item = item['gaming']
             # only name and server_address are used for now
             contact.gaming = {
@@ -2769,7 +2770,7 @@ class Core(object):
         else:
             contact.gaming = {}
 
-        if config.get_by_tabname('display_gaming_notifications', 'false', contact.bare_jid) == 'true':
+        if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', 'false', contact.bare_jid) == 'true':
             if contact.gaming:
                 self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
             else:
@@ -2784,7 +2785,8 @@ class Core(object):
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.xml.find('{http://jabber.org/protocol/mood}mood') is not None:
+        old_mood = contact.mood
+        if item.xml.find('{http://jabber.org/protocol/mood}mood'):
             mood = item['mood']['value']
             if mood:
                 mood = pep.MOODS.get(mood, mood)
@@ -2796,7 +2798,8 @@ class Core(object):
                 contact.mood = ''
         else:
             contact.mood = ''
-        if config.get_by_tabname('display_mood_notifications', 'false', contact.bare_jid) == 'true':
+
+        if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', 'false', contact.bare_jid) == 'true':
             if contact.mood:
                 self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
             else:
@@ -2811,7 +2814,8 @@ class Core(object):
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.xml.find('{http://jabber.org/protocol/activity}activity') is not None:
+        old_activity = contact.activity
+        if item.xml.find('{http://jabber.org/protocol/activity}activity'):
             try:
                 activity = item['activity']['value']
             except ValueError:
@@ -2829,7 +2833,8 @@ class Core(object):
                 contact.activity = ''
         else:
             contact.activity = ''
-        if config.get_by_tabname('display_activity_notifications', 'false', contact.bare_jid) == 'true':
+
+        if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', 'false', contact.bare_jid) == 'true':
             if contact.activity:
                 self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
             else:
@@ -2844,7 +2849,8 @@ class Core(object):
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.find('{http://jabber.org/protocol/tune}tune'):
+        old_tune = contact.tune
+        if item.xml.find('{http://jabber.org/protocol/tune}tune'):
             item = item['tune']
             contact.tune =  {
                     'artist': item['artist'],
@@ -2857,7 +2863,8 @@ class Core(object):
                 }
         else:
             contact.tune = {}
-        if config.get_by_tabname('display_tune_notifications', 'false', contact.bare_jid) == 'true':
+
+        if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', 'false', contact.bare_jid) == 'true':
             if contact.tune:
                 self.information(
                         'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
