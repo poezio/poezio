@@ -5,54 +5,6 @@ from common import shell_split
 from os.path import basename as base
 import tabs
 import mpd
-import threading
-from select import select
-from time import sleep
-
-class UpdateThread(threading.Thread):
-    """
-    Background thread that awaits mpd changes
-    """
-
-    def __init__(self, plugin, xmpp):
-        threading.Thread.__init__(self)
-        self.plugin = plugin
-        self.xmpp = xmpp
-        self.alive = False
-        self.c = mpd.MPDClient()
-
-    def run(self, *args, **kwargs):
-        self.alive = True
-        current = None
-        while self.alive:
-            try:
-                self.c.connect(host=self.plugin.config.get('host', 'localhost'), port=self.plugin.config.get('port', '6600'))
-                password = self.plugin.config.get('password', '')
-                if password:
-                    self.c.password(password)
-                self.c.send_idle()
-                select([self.c], [], [], timeout=600)
-                self.c.fetch_idle()
-                status = self.c.status()
-                if status['state'] == 'play' and self.alive:
-                    song = self.c.currentsong()
-                    if current != song:
-                        self.xmpp.plugin['xep_0118'].publish_tune(artist=song.get('artist'),
-                                length=song.get('time'), title=song.get('title'),
-                                track=song.get('track'), block=False)
-                    current = song
-                elif status['state'] != 'play':
-                    self.xmpp.plugin['xep_0118'].stop(block=False)
-                    current = None
-                self.c.disconnect()
-            except:
-                pass
-            finally:
-                try:
-                    self.c.disconnect()
-                except:
-                    pass
-                sleep(8)
 
 class Plugin(BasePlugin):
     def init(self):
@@ -62,15 +14,6 @@ class Plugin(BasePlugin):
                     help='Sends a message showing the current song of an MPD instance. If full is provided, the message is more verbose.',
                     short='Send the MPD status',
                     completion=self.completion_mpd)
-        if self.config.get('broadcast', 'true').lower() != 'false':
-            self.core.xmpp.register_plugin('xep_0118')
-            self.thread = UpdateThread(plugin=self, xmpp=self.core.xmpp)
-            self.thread.start()
-
-    def cleanup(self):
-        self.thread.alive = False
-        self.thread.c.disconnect()
-        self.core.xmpp.plugin['xep_0118'].stop(block=False)
 
     def command_mpd(self, args):
         args = shell_split(args)

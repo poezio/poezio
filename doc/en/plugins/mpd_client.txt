@@ -38,8 +38,6 @@ port = 6600
 password = password if necessary
 ---------------------------------------------------------------------
 
-To enable link:http://xmpp.org/extensions/xep-0118.html[User tune]
-publishing, you also have to set the _broadcast_ option to _true_.
 
 Usage
 -----
