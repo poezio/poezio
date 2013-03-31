@@ -48,7 +48,7 @@ from sleekxmpp.xmlstream.handler import Callback
 from config import config
 from roster import RosterGroup, roster
 from contact import Contact, Resource
-from text_buffer import TextBuffer
+from text_buffer import TextBuffer, CorrectionError
 from user import User
 from os import getenv, path
 from logger import logger
@@ -477,13 +477,11 @@ class ChatTab(Tab):
                         user='',
                         str_time=''
                         )
-    def log_message(self, txt, time, nickname):
+    def log_message(self, txt, nickname, time=None):
         """
-        Log the messages in the archives, if it needs
-        to be
+        Log the messages in the archives.
         """
-        if time is None and self.joined:        # don't log the history messages
-            logger.log_message(self.name, nickname, txt)
+        logger.log_message(self.name, nickname, txt, date=time)
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
@@ -494,16 +492,12 @@ class ChatTab(Tab):
                 identifier=identifier)
 
     def modify_message(self, txt, old_id, new_id, user=None):
-        self.log_message(txt, time, self.name)
-        try:
-            message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
-        except CorrectionError as e:
-            self.core.information("%s" % (e,), 'Error')
-        else:
-            if message:
-                self.text_win.modify_message(old_id, message)
-                self.core.refresh_window()
-                return True
+        self.log_message(txt, self.name)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
+            return True
         return False
 
     def last_words_completion(self):
@@ -1696,7 +1690,7 @@ class MucTab(ChatTab):
         """
         return self.topic.replace('\n', '|')
 
-    def log_message(self, txt, time, nickname):
+    def log_message(self, txt, nickname, time=None):
         """
         Log the messages in the archives, if it needs
         to be
@@ -1745,7 +1739,7 @@ class MucTab(ChatTab):
         in the room anymore
         Return True if the message highlighted us. False otherwise.
         """
-        self.log_message(txt, time, nickname)
+        self.log_message(txt, nickname, time=time)
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
@@ -1768,17 +1762,13 @@ class MucTab(ChatTab):
         return highlight
 
     def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None):
-        self.log_message(txt, time, nickname)
+        self.log_message(txt, nickname, time=time)
         highlight = self.do_highlight(txt, time, nickname)
-        try:
-            message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
-        except CorrectionError as e:
-            self.core.information("%s" % (e,), 'Error')
-        else:
-            if message:
-                self.text_win.modify_message(old_id, message)
-                self.core.refresh_window()
-                return highlight
+        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
+        if message:
+            self.text_win.modify_message(old_id, message)
+            self.core.refresh_window()
+            return highlight
         return False
 
     def matching_names(self):
@@ -1859,13 +1849,21 @@ class PrivateTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
+        user = self.parent_muc.get_user_by_name(self.own_nick)
+        replaced = False
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']
-            self.modify_message(line, self.last_sent_message['id'], msg['id'])
-        else:
+            if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
+                try:
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'], user=user)
+                    replaced = True
+                except:
+                    pass
+
+        if not replaced:
             self.add_message(msg['body'],
                     nickname=self.core.own_nick or self.own_nick,
-                    forced_user=self.parent_muc.get_user_by_name(self.own_nick),
+                    forced_user=user,
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'])
         if msg['body'].find('\x19') != -1:
@@ -3012,10 +3010,16 @@ class ConversationTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
+        replaced = False
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']
-            self.modify_message(line, self.last_sent_message['id'], msg['id'])
-        else:
+            if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
+                try:
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'])
+                    replaced = True
+                except:
+                    pass
+        if not replaced:
             self.add_message(msg['body'],
                     nickname=self.core.own_nick,
                     nick_color=get_theme().COLOR_OWN_NICK,

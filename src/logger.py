@@ -97,7 +97,7 @@ class Logger(object):
         logs = reads[-nb:]
         return logs
 
-    def log_message(self, jid, nick, msg):
+    def log_message(self, jid, nick, msg, date=None):
         """
         log the message in the appropriate jid's file
         """
@@ -109,10 +109,14 @@ class Logger(object):
             return
         try:
             msg = clean_text(msg)
-            if nick:
-                fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+nick+': '+msg+'\n')
+            if date is None:
+                str_time = datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')
             else:
-                fd.write(datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')+'* '+msg+'\n')
+                str_time = date.strftime('%d-%m-%y [%H:%M:%S] ')
+            if nick:
+                fd.write(''.join((str_time, nick, ': ', msg, '\n')))
+            else:
+                fd.write(''.join((str_time,  '* ', msg, '\n')))
         except IOError:
             pass
         else:

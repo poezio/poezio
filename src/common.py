@@ -196,6 +196,31 @@ def datetime_tuple(timestamp):
     ret -= dst
     return ret
 
+def find_delayed_tag(message):
+    """
+    Check if a message is delayed or not.
+
+    :param sleekxmpp.Message message: The message to check.
+    :return: A tuple containing (True, the datetime) or (False, None)
+    :rtype: :py:class:`tuple`
+    """
+
+    delay_tag = message.find('{urn:xmpp:delay}delay')
+    if delay_tag is not None:
+        delayed = True
+        date = datetime_tuple(delay_tag.attrib['stamp'])
+    else:
+        # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
+        # But it sucks, please, Jabber servers, don't do this :(
+        delay_tag = message.find('{jabber:x:delay}x')
+        if delay_tag is not None:
+            delayed = True
+            date = common.datetime_tuple(delay_tag.attrib['stamp'])
+        else:
+            delayed = False
+            date = None
+    return (delayed, date)
+
 def shell_split(st):
     """
     Split a string correctly according to the quotes

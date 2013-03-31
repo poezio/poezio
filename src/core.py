@@ -2695,16 +2695,11 @@ class Core(object):
         if isinstance(conversation, tabs.DynamicConversationTab):
             conversation.lock(jid.resource)
         conversation.nick = remote_nick
-        delay_tag = message.find('{urn:xmpp:delay}delay')
-        if delay_tag is not None:
-            delayed = True
-            date = common.datetime_tuple(delay_tag.attrib['stamp'])
-        else:
-            delayed = False
-            date = None
+        delayed, date = common.find_delayed_tag(message)
         replaced_id = message['replace']['id']
         replaced = False
-        if replaced_id is not '':
+        if replaced_id is not '' and (config.get_by_tabname(
+            'group_corrections', 'true', jid.bare).lower() != 'false'):
             try:
                 conversation.modify_message(body, replaced_id, message['id'])
                 replaced = True
@@ -2878,59 +2873,54 @@ class Core(object):
         """
         if message['subject']:
             return
-        delay_tag = message.find('{urn:xmpp:delay}delay')
-        if delay_tag is not None:
-            delayed = True
-            date = common.datetime_tuple(delay_tag.attrib['stamp'])
-        else:
-            # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
-            # But it sucks, please, Jabber servers, don't do this :(
-            delay_tag = message.find('{jabber:x:delay}x')
-            if delay_tag is not None:
-                delayed = True
-                date = common.datetime_tuple(delay_tag.attrib['stamp'])
-            else:
-                delayed = False
-                date = None
-        nick_from = message['mucnick']
         room_from = message.getMucroom()
+
         if message['type'] == 'error': # Check if it's an error
             return self.room_error(message, room_from)
+
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
-        old_state = tab.state
         if not tab:
             self.information(_("message received for a non-existing room: %s") % (room_from))
             return
+
+        nick_from = message['mucnick']
         user = tab.get_user_by_name(nick_from)
         if user and user in tab.ignores:
             return
+
         self.events.trigger('muc_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message)
-        if body:
-            date = date if delayed == True else None
-            replaced_id = message['replace']['id']
-            replaced = False
-            if replaced_id is not '':
-                try:
-                    if tab.modify_message(body, replaced_id, message['id'], date, nick_from, user):
-                        self.events.trigger('highlight', message, tab)
-                    replaced = True
-                except CorrectionError:
-                    pass
-            if not replaced and tab.add_message(body, date, nick_from, history=True if date else False, identifier=message['id']):
-                self.events.trigger('highlight', message, tab)
-            if tab is self.current_tab():
-                tab.text_win.refresh()
-                tab.info_header.refresh(tab, tab.text_win)
-                tab.input.refresh()
-                self.doupdate()
-            elif tab.state != old_state:
-                self.refresh_tab_win()
-                self.current_tab().input.refresh()
-                self.doupdate()
-            if 'message' in config.get('beep_on', 'highlight private').split():
-                if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
-                    curses.beep()
+        if not body:
+            return
+
+        old_state = tab.state
+        delayed, date = common.find_delayed_tag(message)
+        replaced_id = message['replace']['id']
+        replaced = False
+        if replaced_id is not '' and (config.get_by_tabname(
+            'group_corrections', 'true', message['from'].bare).lower() != 'false'):
+            try:
+                if tab.modify_message(body, replaced_id, message['id'], date, nick_from, user):
+                    self.events.trigger('highlight', message, tab)
+                replaced = True
+            except CorrectionError:
+                pass
+        if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id']):
+            self.events.trigger('highlight', message, tab)
+
+        if tab is self.current_tab():
+            tab.text_win.refresh()
+            tab.info_header.refresh(tab, tab.text_win)
+            tab.input.refresh()
+            self.doupdate()
+        elif tab.state != old_state:
+            self.refresh_tab_win()
+            self.current_tab().input.refresh()
+            self.doupdate()
+
+        if 'message' in config.get('beep_on', 'highlight private').split():
+            if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
+                curses.beep()
 
     def on_groupchat_private_message(self, message):
         """
@@ -2957,8 +2947,9 @@ class Core(object):
             return
         replaced_id = message['replace']['id']
         replaced = False
-        if replaced_id is not '':
-            user = self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from),
+        user = tab.parent_muc.get_user_by_name(nick_from)
+        if replaced_id is not '' and (config.get_by_tabname(
+            'group_corrections', 'true', room_from).lower() != 'false'):
             try:
                 tab.modify_message(body, replaced_id, message['id'], user=user)
                 replaced = True
@@ -2966,7 +2957,7 @@ class Core(object):
                 pass
         if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
-                            forced_user=self.get_tab_by_name(room_from, tabs.MucTab).get_user_by_name(nick_from),
+                            forced_user=user,
                             identifier=message['id'])
         if tab.remote_wants_chatstates is None:
             if message['chat_state']:

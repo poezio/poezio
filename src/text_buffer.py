@@ -110,9 +110,9 @@ class TextBuffer(object):
             msg = self.messages[i]
             if msg.identifier == old_id:
                 if msg.user and msg.user is not user:
-                    raise CorrectionError("wrong user")
+                    raise CorrectionError("Different users")
                 elif len(msg.str_time) > 8: # ugly
-                    raise CorrectionError("delayed message")
+                    raise CorrectionError("Delayed message")
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.', old_id, new_id)
