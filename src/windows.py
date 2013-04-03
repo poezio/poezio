@@ -1456,7 +1456,7 @@ class Input(Win):
 
     def get_text(self):
         """
-        Clear the input and return the text entered so far
+        Return the text entered so far
         """
         return self.text
 
@@ -1495,7 +1495,119 @@ class Input(Win):
         self.clear_text()
         return txt
 
-class MessageInput(Input):
+class HistoryInput(Input):
+    """
+    An input with colors and stuff, plus an history
+    ^R allows to search inside the history (as in a shell)
+    """
+    history = list()
+
+    def __init__(self):
+        Input.__init__(self)
+        self.help_message = ''
+        self.current_completed = ''
+        self.key_func['^R'] = self.toggle_search
+        self.search = False
+
+    def toggle_search(self):
+        if self.help_message:
+            return
+        self.search = not self.search
+        self.refresh()
+
+    def update_completed(self):
+        """
+        Find a match for the current text
+        """
+        if not self.text:
+            return
+        for i in self.history:
+            if self.text in i:
+                self.current_completed = i
+                return
+        self.current_completed = ''
+
+    def history_enter(self):
+        """
+        Enter was pressed, set the text to the
+        current completion and disable history
+        search
+        """
+        if self.search:
+            self.search = False
+            if self.current_completed:
+                self.text = self.current_completed
+                self.current_completed = ''
+            self.refresh()
+            return True
+        self.refresh()
+        return False
+
+    def key_up(self):
+        """
+        Get the previous line in the history
+        """
+        self.reset_completion()
+        if self.histo_pos == -1 and self.get_text():
+            if not self.history or self.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                MessageInput.history.insert(0, self.get_text())
+                self.histo_pos += 1
+        if self.histo_pos < len(self.history) - 1:
+            self.histo_pos += 1
+            self.text = self.history[self.histo_pos]
+        self.key_end()
+
+    def key_down(self):
+        """
+        Get the next line in the history
+        """
+        self.reset_completion()
+        if self.histo_pos > 0:
+            self.histo_pos -= 1
+            self.text = self.history[self.histo_pos]
+        elif self.histo_pos <= 0 and self.get_text():
+            if not self.history or self.history[0] != self.get_text():
+                # add the message to history, we do not want to lose it
+                self.history.insert(0, self.get_text())
+            self.text = ''
+            self.histo_pos = -1
+        self.key_end()
+
+    def rewrite_text(self):
+        """
+        Rewrite the text just like a normal input, but with the instruction
+        on the left or a "completion bar" on the right (those are mutually
+        exclusive)
+        """
+        with g_lock:
+            text = self.text.replace('\n', '|').replace('\t', ' ')
+            self._win.erase()
+            if self.help_message:
+                self.addstr(self.help_message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                text_pos = len(self.help_message) + 1
+                self.addstr(' ')
+            else:
+                text_pos = 0
+            if self.color:
+                self._win.attron(to_curses_attr(self.color))
+
+            width = self.width // 2 if self.search else self.width
+            displayed_text = text[self.line_pos:self.line_pos+width-1]
+
+            self._win.attrset(0)
+            self.addstr_colored_lite(displayed_text)
+
+            if self.search:
+                self.update_completed()
+                self.addstr(0, width, self.current_completed.ljust(width+1, ' '), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
+            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]) + text_pos, '')
+            if self.color:
+                self._win.attroff(to_curses_attr(self.color))
+            self._refresh()
+
+class MessageInput(HistoryInput):
     """
     The input featuring history and that is being used in
     Conversation, Muc and Private tabs
@@ -1505,7 +1617,7 @@ class MessageInput(Input):
     text_attributes = set(('b', 'o', 'u'))
 
     def __init__(self):
-        Input.__init__(self)
+        HistoryInput.__init__(self)
         self.last_completion = None
         self.histo_pos = -1
         self.key_func["KEY_UP"] = self.key_up
@@ -1513,21 +1625,6 @@ class MessageInput(Input):
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
         self.key_func['^C'] = self.enter_attrib
-
-    def key_up(self):
-        """
-        Get the previous line in the history
-        """
-        self.reset_completion()
-        if self.histo_pos == -1 and self.get_text():
-            if not MessageInput.history or MessageInput.history[0] != self.get_text():
-                # add the message to history, we do not want to lose it
-                MessageInput.history.insert(0, self.get_text())
-                self.histo_pos += 1
-        if self.histo_pos < len(MessageInput.history) - 1:
-            self.histo_pos += 1
-            self.text = MessageInput.history[self.histo_pos]
-        self.key_end()
 
     def enter_attrib(self):
         """
@@ -1538,55 +1635,20 @@ class MessageInput(Input):
             self.do_command('\x19', False)
             self.do_command(attr_char)
 
-    def key_down(self):
-        """
-        Get the next line in the history
-        """
-        self.reset_completion()
-        if self.histo_pos > 0:
-            self.histo_pos -= 1
-            self.text = MessageInput.history[self.histo_pos]
-        elif self.histo_pos <= 0 and self.get_text():
-            if not MessageInput.history or MessageInput.history[0] != self.get_text():
-                # add the message to history, we do not want to lose it
-                MessageInput.history.insert(0, self.get_text())
-            self.text = ''
-            self.histo_pos = -1
-        self.key_end()
-
     def key_enter(self):
+        if self.history_enter():
+            return
+
         txt = self.get_text()
         if len(txt) != 0:
-            if not MessageInput.history or MessageInput.history[0] != txt:
+            if not self.history or self.history[0] != txt:
                 # add the message to history, but avoid duplicates
-                MessageInput.history.insert(0, txt)
+                self.history.insert(0, txt)
             self.histo_pos = -1
         self.clear_text()
         return txt
 
-    def rewrite_text(self):
-        """
-        Refresh the line onscreen, from the pos and pos_line, with colors
-        """
-        with g_lock:
-            # Replace \t with ' ' just to make the input easily editable.
-            # That's not perfect, because we cannot differenciate a tab and
-            # a space. But at least it makes it possible to paste text
-            # containing a tab by sending a real tab, not just four spaces
-            # while still being able to edit the input in that case.
-            text = self.text.replace('\n', '|').replace('\t', ' ')
-            self._win.erase()
-            if self.color:
-                self._win.attron(to_curses_attr(self.color))
-            displayed_text = text[self.line_pos:self.line_pos+self.width-1]
-            self._win.attrset(0)
-            self.addstr_colored_lite(displayed_text)
-            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
-            if self.color:
-                self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
-
-class CommandInput(Input):
+class CommandInput(HistoryInput):
     """
     An input with an help message in the left, with three given callbacks:
     one when when successfully 'execute' the command and when we abort it.
@@ -1598,7 +1660,7 @@ class CommandInput(Input):
     history = list()
 
     def __init__(self, help_message, on_abort, on_success, on_input=None):
-        Input.__init__(self)
+        HistoryInput.__init__(self)
         self.on_abort = on_abort
         self.on_success = on_success
         self.on_input = on_input
@@ -1636,8 +1698,10 @@ class CommandInput(Input):
         call the success callback, passing the text as argument
         """
         self.on_input = None
+        if self.search:
+            self.history_enter()
         res = self.on_success(self.get_text())
-        return  res
+        return res
 
     def abort(self):
         """
@@ -1645,22 +1709,6 @@ class CommandInput(Input):
         """
         self.on_input = None
         return self.on_abort(self.get_text())
-
-    def rewrite_text(self):
-        """
-        Rewrite the text just like a normal input, but with the instruction
-        on the left
-        """
-        with g_lock:
-            self._win.erase()
-            self.addstr(self.help_message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            cursor_pos = self.pos + len(self.help_message)
-            if len(self.help_message):
-                self.addstr(' ')
-                cursor_pos += 1
-            self.addstr(self.text[self.line_pos:self.line_pos+self.width-1])
-            self.addstr(0, cursor_pos, '') # WTF, this works but .move() doesn't…
-            self._refresh()
 
     def on_delete(self):
         """
@@ -1677,37 +1725,6 @@ class CommandInput(Input):
         self.on_success = None
         self.on_input = None
         self.key_func.clear()
-
-    def key_up(self):
-        """
-        Get the previous line in the history
-        """
-        self.reset_completion()
-        if self.histo_pos == -1 and self.get_text():
-            if not self.history or self.history[0] != self.get_text():
-                # add the message to history, we do not want to lose it
-                self.history.insert(0, self.get_text())
-                self.histo_pos += 1
-        if self.histo_pos < len(self.history) - 1:
-            self.histo_pos += 1
-            self.text = self.history[self.histo_pos]
-        self.key_end()
-
-    def key_down(self):
-        """
-        Get the next line in the history
-        """
-        self.reset_completion()
-        if self.histo_pos > 0:
-            self.histo_pos -= 1
-            self.text = self.history[self.histo_pos]
-        elif self.histo_pos <= 0 and self.get_text():
-            if not self.history or self.history[0] != self.get_text():
-                # add the message to history, we do not want to lose it
-                self.history.insert(0, self.get_text())
-            self.text = ''
-            self.histo_pos = -1
-        self.key_end()
 
     def key_enter(self):
         txt = self.get_text()

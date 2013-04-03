@@ -3444,6 +3444,7 @@ class MucListTab(Tab):
     def reset_help_message(self, _=None):
         curses.curs_set(0)
         self.input = self.default_help_message
+        self.input.resize(1, self.width, self.height-1, 0)
         return True
 
     def execute_slash_command(self, txt):
