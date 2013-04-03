@@ -409,6 +409,11 @@ section of this documentation.
   if true, your current time will be sent if asked
   Set to false if you don't want people to know that information
 
+*separate_history*:: false
+
+  If true, the history of inputs of the same nature won’t be shared
+  between tabs (as in weechat).
+
 *server*:: anon.jeproteste.info
 
   The server to use for anonymous authentication.

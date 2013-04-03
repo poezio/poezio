@@ -1508,6 +1508,8 @@ class HistoryInput(Input):
         self.current_completed = ''
         self.key_func['^R'] = self.toggle_search
         self.search = False
+        if config.get('separate_history', 'false') == 'true':
+            self.history = list()
 
     def toggle_search(self):
         if self.help_message:
