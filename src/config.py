@@ -12,6 +12,8 @@ from/to the config file
 
 DEFSECTION = "Poezio"
 
+from gettext import gettext as _
+
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
@@ -171,10 +173,16 @@ class Config(RawConfigParser):
             result_lines.append('%s = %s' % (option, value))
 
 
-        df = open(self.file_name, 'w', encoding='utf-8')
-        for line in result_lines:
-            df.write('%s\n' % line)
-        df.close()
+        try:
+            df = open(self.file_name, 'w', encoding='utf-8')
+            for line in result_lines:
+                df.write('%s\n' % line)
+            df.close()
+        except:
+            success = False
+        else:
+            success = True
+        return success
 
     def set_and_save(self, option, value, section=DEFSECTION):
         """
@@ -191,15 +199,26 @@ class Config(RawConfigParser):
             elif current.lower() == "true":
                 value = "false"
             else:
-                return "Could not toggle option: %s. Current value is %s." % (option, current or "empty")
+                return (_("Could not toggle option: %s. Current value is %s.") % (option, current or _("empty")), 'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
             self.add_section(section)
             RawConfigParser.set(self, section, option, value)
-        self.write_in_file(section, option, value)
-        return "%s=%s" % (option, value)
+        if not self.write_in_file(section, option, value):
+            return (_('Unable to write in the config file'), 'Error')
+        return ("%s=%s" % (option, value), 'Info')
 
+    def silent_set(self, option, value, section=DEFSECTION):
+        """
+        Set a value, save, and return True on success and False on failure
+        """
+        if self.has_section(section):
+            RawConfigParser.set(self, section, option, value)
+        else:
+            self.add_section(section)
+            RawConfigParser.set(self, section, option, value)
+        return self.write_in_file(section, option, value)
 
     def set(self, option, value, section=DEFSECTION):
         """

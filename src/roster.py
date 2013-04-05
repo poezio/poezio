@@ -141,7 +141,7 @@ class Roster(object):
         folded_groups = ':'.join([group.name for group in self.groups.values()\
                                       if group.folded])
         log.debug('folded:%s\n' %folded_groups)
-        config.set_and_save('folded_roster_groups', folded_groups, 'var')
+        return config.silent_set('folded_roster_groups', folded_groups, 'var')
 
     def get_nb_connected_contacts(self):
         """

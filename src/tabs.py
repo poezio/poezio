@@ -481,7 +481,8 @@ class ChatTab(Tab):
         """
         Log the messages in the archives.
         """
-        logger.log_message(self.name, nickname, txt, date=time)
+        if not logger.log_message(self.name, nickname, txt, date=time):
+            self.core.information(_('Unable to write in the log file'), 'Error')
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
         self._text_buffer.add_message(txt, time=time,
@@ -1696,7 +1697,8 @@ class MucTab(ChatTab):
         to be
         """
         if time is None and self.joined:        # don't log the history messages
-            logger.log_message(self.name, nickname, txt)
+            if not logger.log_message(self.name, nickname, txt):
+                self.core.information(_('Unable to write in the log file'), 'Error')
 
     def do_highlight(self, txt, time, nickname):
         """
@@ -1844,7 +1846,8 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
-        logger.log_message(self.get_name().replace('/', '\\'), self.own_nick, line)
+        if not logger.log_message(self.get_name().replace('/', '\\'), self.own_nick, line):
+            self.core.information(_('Unable to write in the log file'), 'Error')
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
@@ -2722,9 +2725,11 @@ class RosterInfoTab(Tab):
         """
         option = 'roster_show_offline'
         if config.get(option, 'false') == 'false':
-            config.set_and_save(option, 'true')
+            success = config.silent_set(option, 'true')
         else:
-            config.set_and_save(option, 'false')
+            success = config.silent_set(option, 'false')
+        if not success:
+            self.information(_('Unable to write in the config file'), 'Error')
         return True
 
     def on_slash(self):
@@ -3036,7 +3041,8 @@ class ConversationTab(ChatTab):
         self.core.events.trigger('conversation_say_after', msg, self)
         self.last_sent_message = msg
         msg.send()
-        logger.log_message(safeJID(self.get_dest_jid()).bare, self.core.own_nick, line)
+        if not logger.log_message(safeJID(self.get_dest_jid()).bare, self.core.own_nick, line):
+            self.core.information(_('Unable to write in the log file'), 'Error')
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()

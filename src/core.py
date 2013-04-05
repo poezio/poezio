@@ -432,8 +432,9 @@ class Core(object):
         """
         Save config in the file just before exit
         """
-        roster.save_to_config_file()
-        config.set_and_save('info_win_height', self.information_win_size, 'var')
+        if not roster.save_to_config_file() or \
+                not config.silent_set('info_win_height', self.information_win_size, 'var'):
+            self.information(_('Unable to write in the config file'), 'Error')
 
     def on_roster_enter_key(self, roster_row):
         """
@@ -595,8 +596,9 @@ class Core(object):
         """
         self.status = Status(show=pres, message=msg)
         if config.get('save_status', 'true').lower() != 'false':
-            config.set_and_save('status', pres if pres else '')
-            config.set_and_save('status_message', msg.replace('\n', '|') if msg else '')
+            if not config.silent_set('status', pres if pres else '') or \
+                    not config.silent_set('status_message', msg.replace('\n', '|') if msg else ''):
+                self.information(_('Unable to write in the config file'), 'Error')
 
     def get_bookmark_nickname(self, room_name):
         """
@@ -1238,7 +1240,8 @@ class Core(object):
         Enable/disable the left panel.
         """
         enabled = config.get('enable_vertical_tab_list', 'false')
-        config.set_and_save('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true')
+        if not config.silent_set('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true'):
+            self.information(_('Unable to write in the config file'), 'Error')
         self.call_for_resize()
 
     def resize_global_information_win(self):
@@ -2051,7 +2054,7 @@ class Core(object):
             path = os.path.expanduser(value)
             self.plugin_manager.on_plugins_conf_dir_change(path)
         self.call_for_resize()
-        self.information(info, "Info")
+        self.information(*info)
 
     def completion_set(self, the_input):
         """Completion for /set"""
@@ -2336,7 +2339,8 @@ class Core(object):
             return self.command_help('bind')
         elif len(args) < 2:
             args.append("")
-        config.set_and_save(args[0], args[1], section='bindings')
+        if not config.silent_set(args[0], args[1], section='bindings'):
+            self.information(_('Unable to write in the config file'), 'Error')
         if args[1]:
             self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
         else:
@@ -2716,7 +2720,8 @@ class Core(object):
                 conversation.remote_wants_chatstates = True
             else:
                 conversation.remote_wants_chatstates = False
-        logger.log_message(jid.bare, remote_nick, body)
+        if not logger.log_message(jid.bare, remote_nick, body):
+            self.information(_('Unable to write in the log file'), 'Error')
         if 'private' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', jid.bare, False).lower() != 'true':
                 curses.beep()
@@ -2967,7 +2972,8 @@ class Core(object):
         if 'private' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', jid.full, False).lower() != 'true':
                 curses.beep()
-        logger.log_message(jid.full.replace('/', '\\'), nick_from, body)
+        if not logger.log_message(jid.full.replace('/', '\\'), nick_from, body):
+            self.information(_('Unable to write in the log file'), 'Error')
         if tab is self.current_tab():
             self.refresh_window()
         else:
@@ -3147,7 +3153,8 @@ class Core(object):
         if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
             return
         jid = presence['from']
-        logger.log_roster_change(jid.bare, 'got offline')
+        if not logger.log_roster_change(jid.bare, 'got offline'):
+            self.information(_('Unable to write in the log file'), 'Error')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         if jid.resource:
@@ -3168,7 +3175,8 @@ class Core(object):
         if contact is None:
             # Todo, handle presence coming from contacts not in roster
             return
-        logger.log_roster_change(jid.bare, 'got online')
+        if not logger.log_roster_change(jid.bare, 'got online'):
+            self.information(_('Unable to write in the log file'), 'Error')
         resource = Resource(jid.full, {
             'priority': presence.get_priority() or 0,
             'status': presence['status'],
@@ -3430,13 +3438,15 @@ class Core(object):
                 if input.value:
                     self.information('Setting new certificate: old: %s, new: %s' % (cert, found_cert), 'Info')
                     log.debug('Setting certificate to %s', found_cert)
-                    config.set_and_save('certificate', found_cert)
+                    if not config.silent_set('certificate', found_cert):
+                        self.information(_('Unable to write in the config file'), 'Error')
                 else:
                     self.information('You refused to validate the certificate. You are now disconnected', 'Info')
                     self.xmpp.disconnect()
         else:
             log.debug('First time. Setting certificate to %s', found_cert)
-            config.set_and_save('certificate', found_cert)
+            if not config.silent_set('certificate', found_cert):
+                self.information(_('Unable to write in the config file'), 'Error')
 
 
 

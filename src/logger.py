@@ -32,7 +32,10 @@ class Logger(object):
     def __del__(self):
         for opened_file in self.fds.values():
             if opened_file:
-                opened_file.close()
+                try:
+                    opened_file.close()
+                except: # Can't close? too bad
+                    pass
 
     def reload_all(self):
         """Close and reload all the file handles (on SIGHUP)"""
@@ -106,7 +109,7 @@ class Logger(object):
         else:
             fd = self.check_and_create_log_dir(jid)
         if not fd:
-            return
+            return True
         try:
             msg = clean_text(msg)
             if date is None:
@@ -117,18 +120,26 @@ class Logger(object):
                 fd.write(''.join((str_time, nick, ': ', msg, '\n')))
             else:
                 fd.write(''.join((str_time,  '* ', msg, '\n')))
-        except IOError:
-            pass
+        except:
+            return False
         else:
-            fd.flush()          # TODO do something better here?
+            try:
+                fd.flush()          # TODO do something better here?
+            except:
+                return False
+        return True
 
     def log_roster_change(self, jid, message):
         if not self.roster_logfile:
             try:
                 self.roster_logfile = open(os.path.join(DATA_HOME, 'logs', 'roster.log'), 'a')
             except IOError:
-                return
-        self.roster_logfile.write('%s %s %s\n' % (datetime.now().strftime('%d-%m-%y [%H:%M:%S]'), jid, message))
-        self.roster_logfile.flush()
+                return False
+        try:
+            self.roster_logfile.write('%s %s %s\n' % (datetime.now().strftime('%d-%m-%y [%H:%M:%S]'), jid, message))
+            self.roster_logfile.flush()
+        except:
+            return False
+        return True
 
 logger = Logger()
