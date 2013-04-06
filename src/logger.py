@@ -104,6 +104,8 @@ class Logger(object):
         """
         log the message in the appropriate jid's file
         """
+        if config.get_by_tabname('use_log', 'false', jid) != 'true':
+            return True
         if jid in self.fds.keys():
             fd = self.fds[jid]
         else:
@@ -130,6 +132,11 @@ class Logger(object):
         return True
 
     def log_roster_change(self, jid, message):
+        """
+        Log a roster change
+        """
+        if config.get_by_tabname('use_log', 'false', jid) != 'true':
+            return True
         if not self.roster_logfile:
             try:
                 self.roster_logfile = open(os.path.join(DATA_HOME, 'logs', 'roster.log'), 'a')
