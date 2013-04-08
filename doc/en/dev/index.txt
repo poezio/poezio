@@ -1,8 +1,0 @@
-Development
-===========
-
-This section of the documentation is here to provide a quickstart for someone
-willing to start hacking poezio.
-
-* link:overview.html[Overview]
-* link:contributing.html[Contributing]

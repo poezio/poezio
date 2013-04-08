@@ -1,9 +1,0 @@
-Other topics
-============
-
-Available pages in this topic
------------------------------
-
-
-* link:correct.html[Message Correction]
-* link:separate.html[Using several accounts]
