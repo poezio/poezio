@@ -13,6 +13,7 @@ Contents:
 
     install
     themes
+    commands
     dev/index
 
 ..

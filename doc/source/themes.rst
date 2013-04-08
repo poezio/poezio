@@ -51,7 +51,7 @@ To define a *color pair* and assign it to the *COLOR_NAME* option, just do
     class FooTheme(theming.Theme):
           COLOR_NAME = (fg_color, bg_color, opt_attr)
 
-You do not have to define all the :ref:`available options`,
+You do not have to define all the :ref:`available-options`,
 you can decide that your theme will only change some options, the other
 one will just have the default value (from the default theme).
 
@@ -105,4 +105,4 @@ Available options
 .. warning:: This section is not complete.
 
 All available options can be found into the default theme, which is into the
-_theming.py_ file from the poezio’s source code.
+**theming.py** file from the poezio’s source code.
