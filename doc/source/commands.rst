@@ -223,6 +223,11 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
 .. glossary::
     :sorted:
 
+    /correct
+        **Usage:** ``/correct <corrected message>``
+
+        Replace the content of the last sent message with *corrected message*.
+
     /say
         **Usage:** ``/say <message>``
 
