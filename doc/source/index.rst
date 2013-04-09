@@ -15,6 +15,7 @@ Contents:
     themes
     commands
     dev/index
+    misc/index
 
 ..
     configure

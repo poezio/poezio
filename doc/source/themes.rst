@@ -69,7 +69,7 @@ text white on black by default, a fg_color of -1 is white, and a bg_color
 of -1 is black). If it’s between 0 and 256 it represents one of the colors
 on the image:
 
-.. figure:: ../images/theme_256_colors.png
+.. figure:: ./images/theme_256_colors.png
     :alt: The list of all 256 colors
 
     The list of all 256 colors
