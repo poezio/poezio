@@ -1,23 +1,12 @@
-Miscellaneous topics
-====================
+Other topics
+============
 
 Contents:
 
 .. toctree::
     :maxdepth: 2
 
+    separate
     correct
     ssl
-
-
-..
-    configure
-    ssl
-    usage
-    themes
-    keys
-    plugins
-    misc
-    xep
-    dev
 

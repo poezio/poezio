@@ -7,9 +7,7 @@ you can use the **"** character to surround this argument.
 
 The commands described in this page are shown like this:
 
-.. code-block::
-
-    /command <mandatory argument> [optional argument]
+``/command <mandatory argument> [optional argument]``
 
 You can get the same help as below from inside poezio with the **/help** command.
 

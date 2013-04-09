@@ -16,4 +16,5 @@ Contents:
    timed_events
    common
    sleek
+   theming
 
