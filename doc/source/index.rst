@@ -9,19 +9,17 @@ Poezio documentation
 Contents:
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     install
-    themes
     commands
-    dev/index
+    configuration
     misc/index
+    themes
+    dev/index
 
 ..
-    configure
-    ssl
     usage
-    themes
     keys
     plugins
     misc

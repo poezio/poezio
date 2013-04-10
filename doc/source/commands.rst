@@ -309,7 +309,7 @@ MultiUserChat tab commands
         Display some information about the user in the room:
         his/her role, affiliation, status, and status message.
 
-    /version [MUC tab version]
+    /version
         **Usage:** ``/version <nickname or jid>``
 
         Get the software version of the given nick in
@@ -328,13 +328,13 @@ Private tab commands
 .. glossary::
     :sorted:
 
-    /info [Private tab version]
+    /info
         Display some info about this user in the MultiUserChat.
 
-    /unquery [Private tab version]
+    /unquery
         Close the tab.
 
-    /version [Private tab version]
+    /version
         Get the software version of the current interlocutor (usually its
         XMPP client and Operating System).
 
@@ -344,13 +344,13 @@ Normal Conversation tab commands
 .. glossary::
     :sorted:
 
-    /info [Conversation tab version]
+    /info
         Display the status of this contact.
 
-    /unquery [Conversation tab version]
+    /unquery
         Close the tab.
 
-    /version [Conversation tab version]
+    /version
         Get the software version of the current interlocutor (usually its
         XMPP client and Operating System).
 
