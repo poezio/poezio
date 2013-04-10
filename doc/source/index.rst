@@ -6,23 +6,20 @@
 Poezio documentation
 ====================
 
-Contents:
-
 .. toctree::
     :maxdepth: 2
 
     install
     commands
     configuration
+    keys
     misc/index
     themes
     dev/index
 
 ..
     usage
-    keys
     plugins
-    misc
     xep
     dev
 

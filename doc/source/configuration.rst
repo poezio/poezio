@@ -1,12 +1,12 @@
-Configure
-=========
+Configuration
+=============
 
-The configuration is located in the file *~/.config/poezio/poezio.cfg*
+The configuration is located in the file ``~/.config/poezio/poezio.cfg``
 On its first startup, poezio will create that file (and its containing
 directories) with the default configuration. You can edit that file manually
 or use the :term:`/set` command to edit some of its values directly from poezio.
 This file is also used to configure key bindings, but this is explained
-in the *keys* documentation file.
+in the :ref:`keys-page` documentation file.
 
 That file is read at each startup and the configuration is saved when poezio
 is closed.
@@ -26,11 +26,8 @@ option entirely.
 Here is a list of all the available configuration options, their meaning
 and their default value.
 
-Configuration options
----------------------
-
 Global section options
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 These options have a sense when they are in the global section. Some of
 them can also be in an optional configuration section, see the next
@@ -328,7 +325,8 @@ section of this documentation.
         **Default value:** ``10``
 
         The number of line to preload in a chat buffer when it opens. The lines are
-        loaded from the log files. ``0`` or a negative value here disable that option.
+        loaded from the log files.
+        ``0`` or a negative value here disable that option.
 
     log_dir
 
@@ -652,14 +650,14 @@ section of this documentation.
 
         The tabs have a name, and a nick, which is, for a contact, its name in the
         roster, or for a private conversation, the nickname in the MUC. Set this to
-        true if you want to have them shown instead of the jid of the contact.
+        ``true`` if you want to have them shown instead of the jid of the contact.
 
     theme
 
         **Default value:** ``[empty]``
 
         The name of the theme file (without the .py extension) that will be used.
-        The file should be located in the theme_dir directory.
+        The file should be located in the :term:`themes_dir` directory.
 
         If the file is not found (or no filename is specified) the default
         theme will be used instead
@@ -713,7 +711,8 @@ section of this documentation.
 
 
 Optional section options
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
+
 These option can appear in optional sections. These section are named
 after a JID. These option will apply only for the given JID. For example
 if an option appears in a section named [user@example.com], it will
@@ -754,7 +753,9 @@ found.
         **Default value:** ``5``
 
         Set to the number of seconds before reconnecting after getting kicked or
-        banned. ``0``, a negative value, or no value means instant reconnection.
+        banned.
+       ``0``, a negative value, or no value means instant reconnection.
+
         This option only works if :term:`autorejoin` is ``true``.
 
     disable_beep
@@ -845,7 +846,8 @@ found.
         **Default value:** ``10``
 
         The number of line to preload in a chat buffer when it opens. The lines are
-        loaded from the log files. ``0`` or a negative value here disable that option.
+        loaded from the log files.
+        ``0`` or a negative value here disable that option.
 
         No value makes poezio fall back to the global value.
 
@@ -887,3 +889,4 @@ found.
 
         Only for MUC tabs: if true the tab will change its color to notify you when a new message is received.
         You will still be notified of highlights.  Set to ``false`` if you’re not interested in a room non-highlight notifications.
+

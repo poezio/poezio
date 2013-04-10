@@ -57,6 +57,14 @@ These commands work in *any* tab.
     /quit
         Just disconnect from the server and exit poezio.
 
+    /plugin
+        **Usage:** ``/load <plugin name>``
+
+        Load a plugin.
+
+    /plugins
+        List the loaded plugins.
+
     /next
         Go to the next room.
 
@@ -149,6 +157,9 @@ These commands work in *any* tab.
         **Usage:** ``/rawxml <stanza>``
 
         Send a custom XML stanza.
+
+    /xml_tab
+        Open an XML tab.
 
     /list
         **Usage:** ``/list [server.tld]``
