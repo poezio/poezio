@@ -1,21 +1,23 @@
 Commands
 ========
 
-Commands start with the **/** character and can take a list of any number
+Commands start with the ``/`` character and can take a list of any number
 of arguments, separated by spaces. If an argument should contain a space,
-you can use the **"** character to surround this argument.
+you can use the ``"`` character to surround this argument.
 
 The commands described in this page are shown like this:
 
 ``/command <mandatory argument> [optional argument]``
 
-You can get the same help as below from inside poezio with the **/help** command.
+You can get the same help as below from inside poezio with the :term:`/help` command.
 
 .. note:: Use command parameters like this:
 
     - Do not use quotes if they are unnecessary (words without special chars or spaces)
     - If the command takes several agrguments, you need to put quotes around arguments containing special chars such as backslashes or quotes
     - If the command always takes only one argument, then do not use quotes even for words containing special chars
+
+.. _global-commands:
 
 Global commands
 ~~~~~~~~~~~~~~~
@@ -164,7 +166,7 @@ These commands work in *any* tab.
     /list
         **Usage:** ``/list [server.tld]``
 
-        Get the list of public chatrooms in the specified server
+        Get the list of public chatrooms in the specified server (open a :ref:`listtab`)
 
     /message
         **Usage:** ``/message <jid> [optional message]``
@@ -223,6 +225,8 @@ These commands work in *any* tab.
                     which can’t be closed.
 
 
+.. _chattab-commands:
+
 Chat tab commands
 ~~~~~~~~~~~~~~~~~
 
@@ -251,6 +255,8 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
 
     /clear
         Clear the current buffer.
+
+.. _muctab-commands:
 
 MultiUserChat tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,7 +289,7 @@ MultiUserChat tab commands
     /query
         **Usage:** ``/query <nick> [message]``
 
-        Open a private conversation with <nick>. This nick
+        Open a :ref:`privatetab` with <nick>. This nick
         has to be present in the room you’re currently in. If you specified a message
         after the nickname, it will be sent to this user.
 
@@ -327,11 +333,13 @@ MultiUserChat tab commands
         room or the given jid (usually its XMPP client and Operating System).
 
     /configure
-        Configure the current room through a form.
+        Configure the current room through a form (Open a :ref:`dataformtab`).
 
     /names
         Get the list of the users in the room, their number, and the list
         of the people assuming different roles.
+
+.. _privatetab-commands:
 
 Private tab commands
 ~~~~~~~~~~~~~~~~~~~~
@@ -349,6 +357,8 @@ Private tab commands
         Get the software version of the current interlocutor (usually its
         XMPP client and Operating System).
 
+.. _conversationtab-commands:
+
 Normal Conversation tab commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -364,6 +374,8 @@ Normal Conversation tab commands
     /version
         Get the software version of the current interlocutor (usually its
         XMPP client and Operating System).
+
+.. _rostertab-commands:
 
 Roster tab commands
 ~~~~~~~~~~~~~~~~~~~
@@ -455,14 +467,16 @@ Roster tab commands
     /export
         **Usage:** ``/export [/path/to/file]``
 
-        Export your contacts into /path/to/file if
-        specified, or $HOME/poezio_contacts if not.
+        Export your contacts into :file:`/path/to/file` if
+        specified, or :file:`$HOME/poezio_contacts` if not.
 
     /import
         **Usage:** ``/import [/path/to/file]``
 
-        Import your contacts from /path/to/file if
-        specified, or $HOME/poezio_contacts if not.
+        Import your contacts from :file:`/path/to/file` if
+        specified, or :file:`$HOME/poezio_contacts` if not.
+
+.. _xmltab-commands:
 
 XML tab commands
 ~~~~~~~~~~~~~~~~

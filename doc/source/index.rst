@@ -10,15 +10,15 @@ Poezio documentation
     :maxdepth: 2
 
     install
-    commands
     configuration
+    usage
+    commands
     keys
     misc/index
     themes
     dev/index
 
 ..
-    usage
     plugins
     xep
     dev
