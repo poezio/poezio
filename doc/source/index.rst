@@ -16,6 +16,7 @@ Poezio documentation
     keys
     misc/index
     themes
+    plugins/index
     dev/index
 
 ..

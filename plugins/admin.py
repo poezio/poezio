@@ -1,3 +1,63 @@
+"""
+This plugin adds several convenient aliases, to shorten
+roles/affiliation management.
+
+Installation
+------------
+
+You only have to load the plugin:
+
+``/load admin``
+
+Aliases defined
+---------------
+
+All those commands take a nick or a JID as a parameter.
+
+For roles
+~~~~~~~~~
+
+.. glossary::
+    :sorted:
+
+    /visitor
+    /mute
+        Set the role to ``visitor``
+
+    /participant
+        Set the role to ``participant``
+
+    /moderator
+    /op
+        Set the role to ``moderator``
+
+
+For affiliations
+~~~~~~~~~~~~~~~~
+
+.. glossary::
+    :sorted:
+
+    /admin
+        Set the affiliation to ``admin``
+
+    /member
+    /voice
+        Set the affiliation to ``member``
+
+    /noaffiliation
+        Set the affiliation to ``none``
+
+    /owner
+        Set the affiliation to ``owner``
+
+
+
+
+
+"""
+
+
 from plugin import BasePlugin
 from tabs import MucTab
 
