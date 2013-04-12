@@ -20,7 +20,6 @@ Poezio documentation
 
 ..
     plugins
-    xep
     dev
 
 Indices and tables

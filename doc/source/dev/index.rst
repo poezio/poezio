@@ -17,4 +17,5 @@ Contents:
    common
    sleek
    theming
+   xep
 
