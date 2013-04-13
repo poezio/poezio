@@ -1,6 +1,80 @@
-# A plugin that adds the /link command, letting you open links that are pasted
-# in the conversation, without having to click them.
+"""
+Opens links in a browser.
 
+Installation
+------------
+
+First use case: local use
+~~~~~~~~~~~~~~~~~~~~~~~~~
+If you use poezio on your workstation, this is for you.
+You only have to load the plugin: ::
+
+    /load link
+
+Second use case: remote use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you use poezio through SSH, this is for you.
+
+.. note:: Small explanation: Poezio will create a `Unix FIFO`_ and send the commands in,
+            and you will have to run a dæmon locally with ssh, to get those commands.
+
+First, set the :term:`exec_remote` option in the config file to ``true``. Then select
+the directory you want to put the fifo in (default is the current
+directory, :file:`./`), the :file:`poezio.fifo` file will be created there.
+
+After that, load the plugin: ::
+
+    /load link
+
+And open a link with :term:`/link` (as described below), this will create the FIFO.
+
+You need to grab poezio’s sources on your client computer, or at least the `daemon.py`_
+file.
+
+Finally, on your client computer, run the ssh command:
+
+.. code-block:: bash
+
+    ssh toto@example.org "cat ~/poezio/poezio.fifo" | python3 daemon.py
+
+Usage
+-----
+
+.. glossary::
+
+    /link
+        **Usage:** ``/link [num]``
+
+        This plugin adds a :term:`/link` command that will open the links in ``firefox``. If
+        you want to use another browser, you can use the :term:`/set` command  to change the
+        :term:`browser` option.
+
+
+        :term:`/link` without argument will open the last received link, if any is found.
+        If an integer argument is given, /link will go back gradually in the buffer
+        to open the previous link, and so on.
+
+
+        If you are scrolling in the buffer, poezio will open the links starting from
+        the first you can see. (although there are some problems with multiline
+        messages).
+
+Options
+-------
+
+:term:`exec_remote`
+
+    To execute the command on your client
+
+.. glossary::
+
+    browser
+        Set the default browser started by the plugin
+
+.. _Unix FIFO: https://en.wikipedia.org/wiki/Named_pipe
+.. _daemon.py: http://gitweb.louiz.org/?p=poezio;a=blob_plain;f=src/daemon.py;hb=HEAD
+
+"""
 import re
 
 from plugin import BasePlugin

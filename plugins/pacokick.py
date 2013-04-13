@@ -1,3 +1,25 @@
+"""
+This plugin adds a :term:`/pacokick` command, which is a random kick.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load pacokick
+
+Usage
+-----
+
+.. glossary::
+
+    /pacokick
+
+        Run the command in a room where you are a moderator to
+        kick someone randomly.
+"""
+
 from random import choice
 from tabs import MucTab
 

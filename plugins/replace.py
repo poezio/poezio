@@ -1,7 +1,65 @@
 """
-Replace a pattern from a message you're about to send, by the result of a
-function.  For example you can insert the current time in your sentence by
-writing %time% in it.
+Replace some patterns in a message before sending it.
+
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load replace
+
+Usage
+-----
+Insert a pattern in the form
+
+.. code-block:: none
+
+    %pattern%
+
+in your message, and it will be replaced by the corresponding text.
+
+The list of provided patterns is:
+
+- **time**: Insert the current time
+- **date**: Insert the current date
+- **datetime**: Insert the current date and time
+- **random_nick**: Insert a random nick from the current MUC
+- **dice**: Insert a random number between 1 and 6
+
+Add your own pattern
+--------------------
+
+You can easily edit this plugin to add your own patterns. For example if
+don’t want to search for an insult everytime you’re angry, you can create a
+curse pattern this way:
+
+- In the init(self) method of the Plugin class, add something like
+
+.. code-block:: python
+
+        self.patterns['curse'] = replace_curse
+
+- then define a function (not a method of the Plugin class) at the bottom
+  of the file. For example:
+
+
+.. code-block:: python
+
+    def replace_curse(message, tab):
+        return random.choice(['dumb shit', 'idiot', 'moron'])
+
+and you can now use something like
+
+.. code-block:: none
+
+    Shut up, %curse%!
+
+in your everyday-conversations.
+
+For more convenience, you can read your nice words from a file, do whatever
+you want in that function, as long as it returns a string.
 """
 
 from plugin import BasePlugin

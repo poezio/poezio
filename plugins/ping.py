@@ -1,3 +1,35 @@
+"""
+This plugin allows you to ping an entity.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load ping
+
+Command
+-------
+
+.. glossary::
+
+    /ping
+        **Usage (globally):** ``/ping <jid>``
+
+        **Usage (in a MUC tab):** ``/ping <jid or nick>``
+
+        **Usage (in a conversation tab):** ``/ping [jid]``
+
+        Globally, you can do ``/ping jid@example.com`` to get a ping.
+
+        In a MUC, you can either do it to a JID or a nick (``/ping nick`` or ``/ping
+        jid@example.com``).
+
+        In a private or a direct conversation, you can do ``/ping`` to ping
+        the current interlocutor.
+"""
+
 from plugin import BasePlugin
 from roster import roster
 from common import safeJID

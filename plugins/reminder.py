@@ -1,3 +1,60 @@
+"""
+Installation
+------------
+You only have to load the plugin:
+
+.. code-block:: none
+
+    /load reminder
+
+Usage
+-----
+
+This plugin defines three new global commands: :term:`/remind`,
+:term:`/done`, and :term:`/tasks`.
+
+.. glossary::
+
+    /remind
+        **Usage:** ``/remind <time> <todo>``
+
+        This command will remind you to do ``todo`` every ``time``.
+
+    /done
+        **Usage:** ``/done <id>``
+        Remove a reminder.
+
+        The ``id`` is found using :term:`/tasks`.
+
+
+    /tasks
+
+        Print a list of the tasks, their ids, and their frequency, into the
+        information buffer.
+
+Time format
+-----------
+
+In seconds:
+
+.. code-block:: none
+
+    /remind 600 Work!
+
+Will remind you to work every 10 minutes.
+
+Defining the time in seconds is not really practical, so you can describe it
+with days, hours, and minutes, in a time-string, e.g:
+
+.. code-block:: python
+
+    /remind 1h23m "Get up"
+
+Will remind you to get up every 1 hour 23 minutes.
+
+
+"""
+
 from plugin import BasePlugin
 import curses
 import common

@@ -1,5 +1,7 @@
 """
-A plugin that helps you identify the times of a conversation.  For example
+Display the time between two messages.
+
+Helps you identify the times of a conversation.  For example
 if you disable the timestamps, and remove the join/quit notifications in a
 MUC, you can’t really distinguish when a conversation stopped and when a new
 one started, because you don’t have a visual separation between the two.
@@ -9,6 +11,31 @@ passed between two messages, if the time is bigger than X minutes
 (configurable, of course. Default is 15 minutes). This way you know how many time elapsed between
 them, letting you understand more easily what is going on without any visual
 clutter.
+
+Installation
+------------
+
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load time_marker
+
+Configuration
+-------------
+
+You can configure the minimum delay between two messages, to display the time marker, in seconds. The default is 10 minutes (aka 600 seconds).
+
+.. code-block:: ini
+
+    [time_marker]
+    delay = 600
+
+Usage
+-----
+
+Messages like “2 hours, 25 minutes passed…” are automatically displayed into the converstation. You don’t need to (and can’t) do anything.
+
 """
 
 from plugin import BasePlugin

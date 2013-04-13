@@ -1,3 +1,17 @@
+"""
+Shuffle the words in every message you send in a :ref:`muctab`
+(may confuse the reader).
+
+Installation
+------------
+
+You only have to load the plugin:
+
+.. code-block:: none
+
+    /load shuffle
+
+"""
 from plugin import BasePlugin
 from random import shuffle
 

@@ -27,6 +27,8 @@ e.g.
 
     plugins_autoload = gpg:tell:exec
 
+.. _plugin-configuration:
+
 Plugin configuration
 --------------------
 
@@ -50,6 +52,7 @@ Plugin index
 ------------
 
 .. glossary::
+    :sorted:
 
     Admin
         :ref:`Documentation <admin-plugin>`
@@ -57,98 +60,167 @@ Plugin index
         Creates convenient aliases for MUC administration.
 
     Alias
+        :ref:`Documentation <alias-plugin>`
 
         Allows you to create your own aliases.
 
     Amsg
+        :ref:`Documentation <amsg-plugin>`
 
         Allows a message to be broadcasted on all the rooms your are in.
         Caution: do not overuse.
 
     Day Change
+        :ref:`Documentation <daychange-plugin>`
 
         Logs the day change inside the buffers, to keep track of the days when
         backlogging.
 
     Display corrections
+        :ref:`Documentation <displaycorrections-plugin>`
 
         Lists old versions of a corrected message.
 
     Exec
+        :ref:`Documentation <exec-plugin>`
 
         Runs a system command an optionally sends the output as a message.
 
     Figlet
+        :ref:`Documentation <figlet-plugin>`
 
         Ascii-art writing (requires the ``figlet`` package on your system).
 
     GPG
+        :ref:`Documentation <gpg-plugin>`
 
         Allows encrypted exchanges and presence signing using GnuPG.
 
     IQ Show
+        :ref:`Documentation <iqshow-plugin>`
 
         Shows the received IQs, for debugging purposes.
 
     Link
+        :ref:`Documentation <link-plugin>`
 
         Opens links in a web browser, locally or remotely using a FIFO and SSH.
 
     MPD Client
+        :ref:`Documentation <mpdclient-plugin>`
 
         Sends the current song (and optionally the progress inside the song) to
         the current (chat) tab.
 
     OTR
+        :ref:`Documentation <otr-plugin>`
 
         Allows encrypted and deniable exchanges using OTR.
 
     PacoKick
+        :ref:`Documentation <pacokick-plugin>`
 
         Kicks a random user in the room.
 
     Ping
+        :ref:`Documentation <ping-plugin>`
 
         Sends a ping probe to an entity (XEP-0199)
 
     Quote
+        :ref:`Documentation <quote-plugin>`
 
         Adds a /quote command to quote a message at HH:MM:SS and put it in the
         input (to prevent painful copy/pastes).
 
     Rainbow
+        :ref:`Documentation <rainbow-plugin>`
 
         Sends your messages in rainbow colors using XHTML-IM.
 
     Reminder
+        :ref:`Documentation <reminder-plugin>`
 
         Reminds you to do something every now and then.
 
     Screen Detach
+        :ref:`Documentation <screendetach-plugin>`
 
         Changes your status to _away_ if the screen poezio is in is detached.
 
     Simple notify
+        :ref:`Documentation <simplenotify-plugin>`
 
         Sends a notification with a command of your choice on (non-MUC) messages.
 
     Status
+        :ref:`Documentation <status-plugin>`
 
         Adds convenient aliases to /status (/away, etc).
 
     Tell
+        :ref:`Documentation <tell-plugin>`
 
         Tells a message to a nick when he connects to a MUC.
 
     Uptime
+        :ref:`Documentation <uptime-plugin>`
 
         Gets the uptime of a XMPP server or a component.
 
     Replace
+        :ref:`Documentation <replace-plugin>`
 
         Replace some patterns in your messages.
 
     Time Marker
+        :ref:`Documentation <timemarker-plugin>`
 
         Display the time between two messages.
 
+    Revstr
+        :ref:`Documentation <revstr-plugin>`
+
+        Reverse everything you say.
+
+    Shuffle
+        :ref:`Documentation <shuffle-plugin>`
+
+        Shuffle everything you say.
+
+    Double
+        :ref:`Documentation <double-plugin>`
+
+        Double the first word of each sentence.
+
+.. toctree::
+    :hidden:
+
+    admin
+    alias
+    amsg
+    day_change
+    display_corrections
+    exec
+    figlet
+    gpg
+    link
+    mpd_client
+    otr
+    pacokick
+    ping
+    quote
+    rainbow
+    reminder
+    replace
+    screen_detach
+    send_delayed
+    simple_notify
+    status
+    tell
+    time_marker
+    uptime
+    revstr
+    double
+    shuffle
+    iq_show

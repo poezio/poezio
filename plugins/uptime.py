@@ -1,3 +1,25 @@
+"""
+This plugin retrieves the uptime of a server.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load uptime
+
+
+Command
+-------
+
+.. glossary::
+
+    /uptime
+        **Usage:** ``/uptime <jid>``
+
+        Retrieve the uptime of the server of ``jid``.
+"""
 from plugin import BasePlugin
 import tabs
 from common import parse_secs_to_str, safeJID

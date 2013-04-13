@@ -20,7 +20,7 @@ Poezio documentation
     dev/index
 
 ..
-    plugins
+    plugins/index
     dev
 
 Indices and tables

@@ -1,4 +1,46 @@
-# A plugin that can execute a command and send the result in the conversation
+"""
+This plugin lets you execute a system command through poezio.
+
+Installation
+------------
+
+You only have to load the plugin. ::
+
+    /load exec
+
+Usage
+-----
+
+.. warning:: Running commands that start a daemon or an interface is not a good
+             idea.
+
+.. glossary::
+
+    /exec
+        **Usage:** ``/exec [-o|-O] <command>``
+
+        Execute a system command.
+
+        ::
+
+            /exec command
+
+        Will give you the result in the information buffer.
+
+        ::
+
+            /exec -o command
+
+        Will send the result of the command into the current tab, if possible.
+
+        ::
+
+            /exec -O command
+
+        Will send the result of the command and the command summary into the current
+        tab, if possible.
+
+"""
 
 from plugin import BasePlugin
 import os

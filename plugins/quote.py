@@ -1,3 +1,33 @@
+"""
+This plugin allows you to quote messages easily.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load quote
+
+Usage
+-------
+
+.. glossary::
+
+    /quote
+        **Usage:** ``/quote <timestamp>``
+
+        Timestamp is in ``HH:MM:SS`` format, and can be completed with [tab].
+
+        Example:
+
+        .. code-block:: none
+
+            /quote 21:12:23
+
+        If there is a message at 21:12:23, it will be put in the input. If there
+        isn’t, you will get a warning.
+"""
 from plugin import BasePlugin
 from xhtml import clean_text
 import common

@@ -1,4 +1,53 @@
-# a plugin adding a command to manipulate an MPD instance
+"""
+This plugin is here to send what you are listening to in a chat tab.
+
+
+
+Installation
+------------
+
+You need `python-mpd`_, in its python3 version.
+
+Then you can load the plugin.
+
+.. code-block:: none
+
+ /load mpd_client
+
+
+Configuration
+-------------
+
+You have to put the following into :file:`mpd_client.cfg`, as explained in
+the :ref:`plugin-configuration` section.
+
+.. note:: If you do not put anything, the plugin will try to connect to
+        :file:`localhost:6600` with no password.
+
+.. code-block:: ini
+
+    [mpd_client]
+    host = the_mpd_host
+    port = 6600
+    password = password if necessary
+
+
+Usage
+-----
+
+.. glossary::
+
+    /mpd
+        **Usage:** ``/mpd [full]``
+
+        The bare command will show the current song, artist, and album
+
+        ``/mpd full`` will show the current song, artist, and album,
+        plus a nice progress bar in color.
+
+.. _python-mpd: https://github.com/Mic92/python-mpd2
+
+"""
 
 from plugin import BasePlugin
 from common import shell_split

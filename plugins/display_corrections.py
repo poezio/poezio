@@ -1,6 +1,33 @@
-# A plugin that adds the /display_corrections command, to view the previous
-# versions of a corrected message.
+"""
+Lists old versions of a corrected message.
 
+Installation
+------------
+::
+
+    /load display_corrections
+
+Usage
+-----
+
+.. glossary::
+
+    /display_corrections
+        **Usage:** ``/display_corrections [number]``
+
+        This command lists the old versions of a message.
+
+        Without argument, it will list the last corrected message if there
+        is any. If you give an integer as an argument, ``/display_corrections``
+        will go back gradually in the buffer to find the message matching
+        that number (starting from 1, for the last corrected message).
+
+        If you are scrolling in the buffer, Poezio will list the corrected messages
+        starting from the first you can see.  (although there are some problems with
+        multiline messages).
+
+
+"""
 from plugin import BasePlugin
 from common import shell_split
 import tabs

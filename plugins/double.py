@@ -1,3 +1,15 @@
+"""
+Double the first word of any message you send in a :ref:`muctab`, making you appear retarded.
+
+Installation
+------------
+
+You only have to load the plugin:
+
+.. code-block:: none
+
+    /load double
+"""
 from plugin import BasePlugin
 
 class Plugin(BasePlugin):

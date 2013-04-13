@@ -1,3 +1,38 @@
+"""
+This plugin adds several aliases, to shorten status changes.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load status
+
+Aliases
+-------
+
+.. glossary::
+    :sorted:
+
+    /afk
+    /away
+        Set your status to ``away``
+
+    /dnd
+    /busy
+        Set your status to ``dnd``
+
+    /available
+        Set your status to ``available``
+
+    /chat
+        Set your status to ``chat``
+
+    /xa
+        Set your status to ``xa``
+
+"""
 from plugin import BasePlugin
 
 class Plugin(BasePlugin):

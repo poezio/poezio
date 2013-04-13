@@ -1,3 +1,16 @@
+"""
+Show the exchanged IQs (useful for debugging).
+
+Installation
+------------
+
+Load the plugin:
+
+.. code-block:: none
+
+    /load iq_show
+
+"""
 from plugin import BasePlugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream.handler import Callback

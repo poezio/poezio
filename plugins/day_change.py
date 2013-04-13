@@ -1,3 +1,15 @@
+"""
+This plugin adds a message at 00:00 in each of your chat tabs saying that the
+date has changed.
+
+Installation
+------------
+You only have to load the plugin.::
+
+    /load day_change
+
+"""
+
 from gettext import gettext as _
 from plugin import BasePlugin
 import datetime

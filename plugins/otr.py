@@ -1,3 +1,98 @@
+"""
+
+.. warning:: THE OTR LIB IS IN AN EXPERIMENTAL STATE AND SHOULD NOT BE
+            CONSIDERED AS ENTIRELY RELIABLE
+
+This plugin implements `Off The Record messaging`_.
+
+This is a plugin used to encrypt one-to-one conversation using the OTR
+encryption method. You can use it if you want good privacy, deniability,
+authentication, and strong secrecy. Without this
+encryption, your messages are encrypted **at least** from your client (poezio) to
+your server. The message is decrypted by your server and you cannot control the
+encryption method of your messages from your server to your contact’s server
+(unless you are your own server’s administrator), nor from your contact’s
+server to your contact’s client.
+
+This plugin does end-to-end encryption. This means that **only** your contact can
+decrypt your messages, and it is fully encrypted during **all** its travel
+through the internet.
+
+Note that if you are having an encrypted conversation with a contact, you can
+**not** send XHTML-IM messages to him. They will be removed and be replaced by
+plain text messages.
+
+Installation and configuration
+------------------------------
+
+To use the OTR plugin, you must first install libopenotr.
+
+If you use Archlinux, there is a `libopenotr-git`_ package on the AUR.
+
+If not, then you will have to install it by hand.
+
+First, clone the repo and go inside the created directory:
+
+.. code-block:: bash
+
+    git clone https://github.com/teisenbe/libopenotr.git
+    cd libopenotr
+
+Then run autogen.sh and configure
+
+.. code-block:: bash
+
+    sh autogen.sh
+    ./configure --enable-gaping-security-hole
+
+(as of now, you *should* have been warned enough that the library is not finished)
+
+Then compile & install the lib:
+
+.. code-block:: bash
+
+    make
+    sudo make install
+
+Finally, install the python module:
+
+.. code-block:: bash
+
+    python3 setup.py build
+    sudo python3 setup.py install
+
+Usage
+-----
+
+To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
+
+Once you are in a private conversation, you have to do a:
+
+
+.. code-block:: none
+
+    /otr start
+
+The status of the OTR encryption should appear in the bar between the chat and
+the input as ``OTR: encrypted``.
+
+
+Once you’re done, end the OTR session with
+
+.. code-block:: none
+
+    /otr end
+
+Known problems
+--------------
+
+Empty messages send when changing status.
+
+.. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
+.. _libopenotr-git:  https://aur.archlinux.org/packages.php?ID=57957
+
+"""
+
 import pyotr
 from sleekxmpp.xmlstream.stanzabase import JID
 

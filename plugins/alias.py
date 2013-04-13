@@ -1,7 +1,41 @@
 """
-Alias plugin.
+Installation
+------------
+You only have to load the plugin:
 
-Allows the creation and the removal of personal aliases.
+``/load alias``
+
+Usage
+-----
+
+This plugin defines two new global commands: :term:`/alias` and :term:`/unalias`.
+
+.. glossary::
+
+    /alias
+        **Usage:** ``/alias <name> <command> [args]``
+
+        This command will create a new command, named ``name`` (and callable with
+        ``/name``), that runs ``/command``, with ``[args]`` as fixed args for the command.
+        When you run the alias, you can also pass parameters to it, that will be fed
+        to the original command.
+
+        Example: ::
+
+            /alias toto say "koin "
+
+        Will bind ``/say koin `` to ``/toto``, so this alias will work in any
+        Chat tab. If someone calls it with ::
+
+            /toto koin
+
+        Poezio will then execute ``/say koin koin``.
+
+    /unalias
+        **Usage:** ``/unalias <name>``
+
+        This command removes a defined alias.
+
 """
 
 from plugin import BasePlugin

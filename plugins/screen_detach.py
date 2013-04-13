@@ -1,3 +1,15 @@
+"""
+This plugin will set your status to **away** if you detach your screen.
+
+Installation
+------------
+You only have to load the plugin.
+
+.. code-block:: none
+
+    /load screen_detach
+
+"""
 from plugin import BasePlugin
 import os
 import stat

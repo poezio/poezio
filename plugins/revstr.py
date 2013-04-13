@@ -1,3 +1,17 @@
+"""
+Reverse everything you say.
+
+Installation
+------------
+
+You only have to load the plugin:
+
+.. code-block:: none
+
+    /load revstr
+
+
+"""
 from plugin import BasePlugin
 
 class Plugin(BasePlugin):

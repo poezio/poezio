@@ -1,7 +1,6 @@
 .. _admin-plugin:
 
-Room administration plugin
-==========================
-
+Admin
+=====
 
 .. automodule:: admin
