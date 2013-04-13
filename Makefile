@@ -14,7 +14,7 @@ clean:
 	find ./ -name \*.pyo -delete
 	find ./ -name \*~ -delete
 	find ./ -name "#*#" -delete
-	find ./ -name "*.html" -delete
+	rm -r doc/build/
 
 install: all
 	mkdir -p $(DESTDIR)$(prefix)
@@ -43,7 +43,7 @@ uninstall:
 	rm -rf $(DESTDIR)$(MANDIR)/man1/poezio.1
 
 doc:
-	find doc -name \*.txt -exec asciidoc -a toc {} \;
+	make -C doc/ html
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
 
