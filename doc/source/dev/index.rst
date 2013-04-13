@@ -6,16 +6,25 @@
 Development documentation
 =========================
 
-Contents:
+
+About plugins
+-------------
 
 .. toctree::
    :maxdepth: 2
 
    plugin
    events
-   timed_events
-   common
    sleek
-   theming
    xep
 
+About Poezio
+------------
+
+.. toctree::
+
+   overview
+   contributing
+   theming
+   timed_events
+   common

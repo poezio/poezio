@@ -1,6 +1,9 @@
 Plugin API documentation
 ========================
 
+BasePlugin
+----------
+
 .. module:: plugin
 
 .. autoclass:: BasePlugin
@@ -34,8 +37,36 @@ The :py:class:`~PluginAPI` object is an a interface through which the :py:class:
 (and inheritors) *should* go to interact with poezio. If it is not sufficient, then the ``core``
 member can be used.
 
+PluginAPI
+---------
+
 .. autoclass:: PluginAPI
     :members:
     :undoc-members:
 
 
+Example plugins
+---------------
+
+**Example 1:** Add a simple command that sends "Hello World!" into the conversation
+
+.. code-block:: python
+
+    class Plugin(BasePlugin):
+        def init(self):
+            self.add_command('hello', self.command_hello, "Send 'Hello World!'")
+
+        def command_hello(self, arg):
+            self.core.send_message('Hello World!')
+
+**Example 2:** Adds an event handler that sends “tg” to a groupchat when a message is received from someone named “Partauche”
+
+.. code-block:: python
+
+    class Plugin(BasePlugin):
+        def init(self):
+            self.add_event_handler('muc_msg', self.on_groupchat_message)
+
+        def on_groupchat_message(self, message, tab):
+            if message['mucnick'] == "Partauche":
+                tab.command_say('tg')
