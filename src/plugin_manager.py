@@ -11,6 +11,7 @@ from os import path
 import sys
 import logging
 from gettext import gettext as _
+from sys import version_info
 
 import core
 import tabs
@@ -49,6 +50,11 @@ default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 sys.path.append(default_plugin_path)
 sys.path.append(plugins_dir)
 
+if version_info[1] >= 3: # 3.3 & >
+    from importlib import machinery
+    finder = machinery.PathFinder()
+
+
 class PluginManager(object):
     """
     Plugin Manager
@@ -82,23 +88,31 @@ class PluginManager(object):
             self.unload(name)
 
         try:
-            if name in self.modules:
-                imp.acquire_lock()
-                module = imp.reload(self.modules[name])
-                imp.release_lock()
-            else:
-                file, filename, info = imp.find_module(name, [plugins_dir, default_plugin_path])
-                imp.acquire_lock()
-                module = imp.load_module(name, file, filename, info)
-                imp.release_lock()
+            module = None
+            if version_info[1] < 3: # < 3.3
+                if name in self.modules:
+                    imp.acquire_lock()
+                    module = imp.reload(self.modules[name])
+                else:
+                    file, filename, info = imp.find_module(name, [plugins_dir, default_plugin_path])
+                    imp.acquire_lock()
+                    module = imp.load_module(name, file, filename, info)
+            else: # 3.3 & >
+                loader = finder.find_module(name)
+                if not loader:
+                    self.core.information('Could not load plugin: %s' % e, 'Error')
+                    return
+                module = loader.load_module()
+
         except Exception as e:
             import traceback
             log.debug("Could not load plugin: \n%s", traceback.format_exc())
             self.core.information("Could not load plugin: %s" % e, 'Error')
-            return
         finally:
-            if imp.lock_held():
+            if version_info[1] < 3 and imp.lock_held():
                 imp.release_lock()
+            if not module:
+                return
 
         self.modules[name] = module
         self.commands[name] = {}
