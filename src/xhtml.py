@@ -286,32 +286,34 @@ def xhtml_to_poezio_colors(xml):
     def trim(string):
         return re.sub(whitespace_re, ' ', string)
 
-    message = ''
+    builder = []
+
     if version_info[1] == 2:
         elems = xml.iter()
     else:
         elems = xml.getiterator()
+
     for elem in elems:
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
             if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
-                message += '\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text if elem.text else ""))
+                builder.append('\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text if elem.text else "")))
             else:
-                message += '\x19u' + (elem.text if elem.text else "") + '\x19o'
+                builder.append('\x19u' + (elem.text if elem.text else "") + '\x19o')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
-            message += '“'
+            builder.append('“')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}body':
             pass
         elif elem.tag == '{http://www.w3.org/1999/xhtml}br':
-            message += '\n'
+            builder.append('\n')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
-            message += '\x19u'
+            builder.append('\x19u')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
-            message += '\x19i'
+            builder.append('\x19i')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}img' and 'src' in elem.attrib:
             if 'alt' in elem.attrib:
-                message += '%s (%s)' % (trim(elem.attrib['src']), trim(elem.attrib['alt']))
+                builder.append('%s (%s)' % (trim(elem.attrib['src']), trim(elem.attrib['alt'])))
             else:
-                message += elem.attrib['src']
+                builder.append(elem.attrib['src'])
         elif elem.tag == '{http://www.w3.org/1999/xhtml}li':
             pass
         elif elem.tag == '{http://www.w3.org/1999/xhtml}ol':
@@ -321,42 +323,42 @@ def xhtml_to_poezio_colors(xml):
         elif elem.tag == '{http://www.w3.org/1999/xhtml}span':
             pass
         elif elem.tag == '{http://www.w3.org/1999/xhtml}strong':
-            message += '\x19b'
+            builder.append('\x19b')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}ul':
             pass
 
         if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}em'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
-            message += parse_css(elem.attrib['style'])
+            builder.append(parse_css(elem.attrib['style']))
 
         if (elem.text and elem.tag != '{http://www.w3.org/1999/xhtml}a'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                       and elem.tag != '{http://www.w3.org/1999/xhtml}img'):
-            message += trim(elem.text)
+            builder.append(trim(elem.text))
 
         if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}em'
                                    and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
-            message += '\x19o'
+            builder.append('\x19o')
 
         if elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
-            message += '”'
+            builder.append('”')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
-            message += '\x19o'
+            builder.append('\x19o')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
-            message += '\x19o'
+            builder.append('\x19o')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}strong' or elem.tag == '{http://www.w3.org/1999/xhtml}b':
-            message += '\x19o'
+            builder.append('\x19o')
         elif elem.tag == '{http://www.w3.org/1999/xhtml}u':
-            message += '\x19o'
+            builder.append('\x19o')
 
         if 'title' in elem.attrib:
-            message += ' [' + elem.attrib['title'] + ']'
+            builder.append(' [' + elem.attrib['title'] + ']')
 
         if elem.tail:
-            message += trim(elem.tail)
-    return message
+            builder.append(trim(elem.tail))
+    return ''.join(builder)
 
 def clean_text(s):
     """
