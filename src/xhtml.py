@@ -288,10 +288,10 @@ def xhtml_to_poezio_colors(xml):
 
     builder = []
 
-    if version_info[1] == 2:
-        elems = xml.iter()
-    else:
+    if version_info[1] < 2: #deprecated
         elems = xml.getiterator()
+    else:
+        elems = xml.iter()
 
     for elem in elems:
         if elem.tag == '{http://www.w3.org/1999/xhtml}a':
