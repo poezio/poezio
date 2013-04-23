@@ -2306,7 +2306,7 @@ class Core(object):
         if self.pending_invites:
             build = "You are invited to the following rooms:\n" + build
         else:
-            build = "You are do not have any pending invitation."
+            build = "You do not have any pending invitations."
         self.information(build, 'Info')
 
     def command_quit(self, arg=''):
