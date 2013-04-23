@@ -30,7 +30,7 @@ class Plugin(BasePlugin):
         self.api.add_timed_event(self.next_event)
 
     def day_change(self):
-        msg = datetime.date.today().strftime(_("Day changed to %x"))
+        msg = _("Day changed to %s") % (datetime.date.today().isoformat())
 
         for tab in self.core.tabs:
             if (isinstance(tab, tabs.MucTab) or
