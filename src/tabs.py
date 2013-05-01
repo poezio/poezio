@@ -1408,7 +1408,8 @@ class MucTab(ChatTab):
                 new_user = User(from_nick, affiliation, show, status, role, jid)
                 self.users.append(new_user)
                 self.core.events.trigger('muc_join', presence, self)
-                if from_nick == self.own_nick:
+                if '110' in status_codes:
+                    self.own_nick = from_nick
                     self.joined = True
                     if self.get_name() in self.core.initial_joins:
                         self.core.initial_joins.remove(self.get_name())
