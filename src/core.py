@@ -1637,7 +1637,7 @@ class Core(object):
             version = '%s is running %s version %s on %s' % (jid,
                                                              res.get('name') or _('an unknown software'),
                                                              res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
+                                                             res.get('os') or _('an unknown platform'))
             self.information(version, 'Info')
 
         args = common.shell_split(arg)

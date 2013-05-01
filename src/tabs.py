@@ -991,7 +991,7 @@ class MucTab(ChatTab):
             version = '%s is running %s version %s on %s' % (jid,
                          res.get('name') or _('an unknown software'),
                          res.get('version') or _('unknown'),
-                         res.get('os') or _('on an unknown platform'))
+                         res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
 
         if not arg:
@@ -1922,7 +1922,7 @@ class PrivateTab(ChatTab):
             version = '%s is running %s version %s on %s' % (jid,
                                                              res.get('name') or _('an unknown software'),
                                                              res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
+                                                             res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
         if arg:
             return self.core.command_version(arg)
@@ -3127,7 +3127,7 @@ class ConversationTab(ChatTab):
             version = '%s is running %s version %s on %s' % (jid,
                                                              res.get('name') or _('an unknown software'),
                                                              res.get('version') or _('unknown'),
-                                                             res.get('os') or _('on an unknown platform'))
+                                                             res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
         if arg:
             return self.core.command_version(arg)
