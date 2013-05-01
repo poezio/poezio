@@ -109,7 +109,7 @@ The following events are poezio-only events, for SleekXMPP events, check out
     send_normal_presence
         - **presence:** :py:class:`~sleekxmpp.Presence` sent
 
-        Triggered when before poezio sends a new :py:class:`~sleekxmpp.Presence` stanza.
+        Triggered when poezio sends a new :py:class:`~sleekxmpp.Presence` stanza. The presence can thus be modified before being sent.
 
     muc_join
         - **presence:** :py:class:`~sleekxmpp.Presence` received
