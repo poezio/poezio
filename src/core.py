@@ -1735,11 +1735,11 @@ class Core(object):
                 seconds = int(seconds)
             else:
                 seconds = 0
-            muc.join_groupchat(self.xmpp, room, nick, password,
+            muc.join_groupchat(self, room, nick, password,
                                histo_length, current_status.message, current_status.show, seconds=seconds)
         if not tab:
             self.open_new_room(room, nick)
-            muc.join_groupchat(self.xmpp, room, nick, password,
+            muc.join_groupchat(self, room, nick, password,
                                histo_length, current_status.message, current_status.show)
         else:
             tab.own_nick = nick
@@ -3272,7 +3272,7 @@ class Core(object):
             # do not join rooms that do not have autojoin
             # but display them anyway
             if bm.autojoin:
-                muc.join_groupchat(self.xmpp, bm.jid, nick,
+                muc.join_groupchat(self, bm.jid, nick,
                         passwd=bm.password,
                         maxhistory=histo_length,
                         status=self.status.message,

@@ -38,6 +38,7 @@ class EventHandler(object):
             'normal_presence': [],
             'muc_presence': [],
             'muc_join': [],
+            'joining_muc': [],
             'muc_kick': [],
             'muc_nickchange': [],
             'muc_ban': [],
