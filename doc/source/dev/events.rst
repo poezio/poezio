@@ -100,6 +100,12 @@ The following events are poezio-only events, for SleekXMPP events, check out
 
         Triggered when a presence is received from someone in a :py:class:`~tabs.MucTab`.
 
+    joining_muc
+        - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
+
+
+        Triggered when joining a MUC. The presence can thus be modified before being sent.
+
     send_normal_presence
         - **presence:** :py:class:`~sleekxmpp.Presence` sent
 
