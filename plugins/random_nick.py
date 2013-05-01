@@ -27,8 +27,9 @@ class Plugin(BasePlugin):
 
     def change_nick_to_random(self, presence):
         to = presence["to"]
-        to.resource = gen_nick(3)
-        presence["to"] = to
+        if to.resource == 'RANDOM':
+            to.resource = gen_nick(3)
+            presence["to"] = to
 
 s = ["i", "ou", "ou", "on", "a", "o", "u", "i"]
 c = ["b", "c", "d", "f", "g", "h", "j", "k", "m", "l", "n", "p", "r", "s", "t", "v", "z"]
