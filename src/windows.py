@@ -1165,6 +1165,7 @@ class Input(Win):
             "KEY_BACKSPACE": self.key_backspace,
             "M-KEY_BACKSPACE": self.delete_word,
             '^?': self.key_backspace,
+            "M-^?": self.delete_word,
             # '^J': self.add_line_break,
             }
         Win.__init__(self)
