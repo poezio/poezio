@@ -433,7 +433,7 @@ section of this documentation.
 
     rooms
 
-        **Default value:** ``poezio@muc.poezio.eu``
+        **Default value:** ``[empty]``
 
         The rooms you will join automatically on startup, with associated
         nickname or not.

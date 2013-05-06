@@ -14,6 +14,9 @@ DEFSECTION = "Poezio"
 
 from gettext import gettext as _
 
+import logging
+log = logging.getLogger(__name__)
+
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
@@ -238,16 +241,17 @@ CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
 if not CONFIG_HOME:
     CONFIG_HOME = path.join(environ.get('HOME'), '.config')
 CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
+
 try:
     makedirs(CONFIG_PATH)
 except OSError:
     pass
 
-if not path.isfile(path.join(CONFIG_PATH, 'poezio.cfg')):
-    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), path.join(CONFIG_PATH, 'poezio.cfg'))
+options = parse_args(CONFIG_PATH)
+
+# Copy a default file if none exists
+if not path.isfile(options.filename):
+    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), options.filename)
     firstrun = True
 
-options = parse_args(CONFIG_PATH)
 config = Config(options.filename)
-if firstrun:
-    config.set('firstrun', True)

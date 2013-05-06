@@ -50,7 +50,7 @@ import bookmark
 from plugin_manager import PluginManager
 
 from data_forms import DataFormsTab
-from config import config
+from config import config, firstrun
 from logger import logger
 from roster import roster
 from contact import Contact, Resource
@@ -330,13 +330,13 @@ class Core(object):
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information(_('Welcome to poezio!'))
-        if config.get('firstrun', ''):
+        if firstrun:
             self.information(_(
-                'It seems that it is the first time you start poezio.\n' + \
-                'The online help is here http://poezio.eu/en/documentation.php.\n' + \
-                'By default, you are in poezio’s chatroom, where you can ask for help or tell us how great it is.\n' + \
-                'Just press Ctrl-n.' \
-            ))
+                'It seems that it is the first time you start poezio.\n'
+                'The online help is here http://poezio.eu/doc/en/\n'
+                'No room is joined by default, but you can join poezio’s chatroom '
+                '(with /join poezio@muc.poezio.eu), where you can ask for help or tell us how great it is.'
+            ), 'Help')
         self.refresh_window()
 
     def on_exception(self, typ, value, trace):
