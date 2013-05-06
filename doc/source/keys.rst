@@ -107,6 +107,7 @@ current conversation, if any.
         - 5: Pink
         - 6: Turquoise
         - b: Bold
+        - u: Underlined
         - o: Stop formatting
 
 MultiUserChat tab input keys
