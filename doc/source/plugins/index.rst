@@ -153,6 +153,11 @@ Plugin index
 
         Sends a notification with a command of your choice on (non-MUC) messages.
 
+    Spam
+        :ref:`Documentation <spam-plugin>`
+
+        Adds a subtle little advertising in your messages.
+
     Status
         :ref:`Documentation <status-plugin>`
 
@@ -216,6 +221,7 @@ Plugin index
     screen_detach
     send_delayed
     simple_notify
+    spam
     status
     tell
     time_marker
