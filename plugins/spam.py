@@ -14,7 +14,7 @@ You only have to load the plugin:
 Configuration
 -------------
 [spam]
-ad = I’m a happy Poezio user. Get it at http://poezio.eu
+ad = I’m a happy poezio user. Get it at http://poezio.eu
 
 """
 
@@ -27,4 +27,4 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_say', self.advert)
 
     def advert(self, msg, tab):
-        msg['body'] = "%s\n\n%s" % (msg['body'], self.config.get("ad", "Sent from Poezio"))
+        msg['body'] = "%s\n\n%s" % (msg['body'], self.config.get("ad", "Sent from poezio"))
