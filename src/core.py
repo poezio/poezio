@@ -1540,7 +1540,7 @@ class Core(object):
         if self.current_tab_nb == nb:
             return
         self.previous_tab_nb = self.current_tab_nb
-        self.current_tab().on_lose_focus()
+        old_tab = self.current_tab()
         if isinstance(nb, int):
             if 0 <= nb < len(self.tabs):
                 if not self.tabs[nb]:
@@ -1551,6 +1551,7 @@ class Core(object):
                 for name in tab.matching_names():
                     if nb in name:
                         self.current_tab_nb = tab.nb
+        old_tab.on_lose_focus()
         self.current_tab().on_gain_focus()
         self.refresh_window()
 
