@@ -1408,7 +1408,10 @@ class MucTab(ChatTab):
                 new_user = User(from_nick, affiliation, show, status, role, jid)
                 self.users.append(new_user)
                 self.core.events.trigger('muc_join', presence, self)
-                if '110' in status_codes:
+                if '110' in status_codes or self.own_nick == from_nick:
+                    # second part of the condition is a workaround for old
+                    # ejabberd or every gateway in the world that just do
+                    # not send a 110 status code with the presence
                     self.own_nick = from_nick
                     self.joined = True
                     if self.get_name() in self.core.initial_joins:
