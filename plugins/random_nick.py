@@ -24,6 +24,7 @@ from random import choice
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('joining_muc', self.change_nick_to_random)
+        self.api.add_event_handler('changing_nick', self.change_nick_to_random)
 
     def change_nick_to_random(self, presence):
         to = presence["to"]
