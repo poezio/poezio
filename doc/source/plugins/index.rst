@@ -173,6 +173,11 @@ Plugin index
 
         Gets the uptime of a XMPP server or a component.
 
+    Regex Admin
+        :ref:`Documentation <regex-admin-plugin>`
+
+        Add regex-based kick and ban commands.
+
     Replace
         :ref:`Documentation <replace-plugin>`
 
@@ -230,3 +235,4 @@ Plugin index
     double
     shuffle
     iq_show
+    regex_admin
