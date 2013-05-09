@@ -395,6 +395,7 @@ class Core(object):
             if current:
                 res.append(current)
             return res
+
         while self.running:
             big_char_list = [replace_key_with_bound(key)\
                              for key in self.read_keyboard()]

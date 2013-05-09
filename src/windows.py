@@ -1437,9 +1437,8 @@ class Input(Win):
         if reset:
             self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
-        (y, x) = self._win.getyx()
         for i in range(len(key)):
-            if x == self.width-1:
+            if self.pos >= self.width-1:
                 self.line_pos += 1 # wcwidth.wcswidth(key)
             else:
                 self.pos += 1 # wcwidth.wcswidth(key)
@@ -1447,6 +1446,7 @@ class Input(Win):
             self.rewrite_text()
         if self.on_input:
             self.on_input(self.get_text())
+
         return True
 
     def add_line_break(self):
