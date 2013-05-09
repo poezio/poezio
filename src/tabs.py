@@ -1015,7 +1015,7 @@ class MucTab(ChatTab):
         current_status = self.core.get_status()
         if not safeJID(self.get_name() + '/' + nick):
             return self.core.information('Invalid nick', 'Info')
-        muc.change_nick(self.core.xmpp, self.name, nick, current_status.message, current_status.show)
+        muc.change_nick(self.core, self.name, nick, current_status.message, current_status.show)
 
     def command_part(self, arg):
         """
