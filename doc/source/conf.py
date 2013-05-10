@@ -224,8 +224,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'poeziodoc', 'Poezio Documentation',
-     ['Mathieu Pasquet - Florent Le Coz'], 1)
+    ('configuration', 'poezio.cfg', 'Poezio Configuration File',
+     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
 ]
 
 # If true, show URL addresses after external links.
