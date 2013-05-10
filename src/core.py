@@ -146,7 +146,7 @@ class Core(object):
         self._current_tab_nb = 0
         self.previous_tab_nb = 0
 
-        self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user
+        self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user or os.environ.get('USER') or 'poezio'
 
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
@@ -1810,7 +1810,7 @@ class Core(object):
         if len(args) == 0:
             tab = self.current_tab()
             roomname = tab.get_name()
-            if tab.joined:
+            if tab.joined and tab.own_nick != self.own_nick:
                 nick = tab.own_nick
         elif args[0] == '*':
             for tab in self.tabs:
@@ -3267,9 +3267,9 @@ class Core(object):
             bookmark.get_remote(self.xmpp)
         for bm in bookmark.bookmarks:
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-            if not tab:
-                self.open_new_room(bm.jid, bm.nick, False)
             nick = bm.nick if bm.nick else self.own_nick
+            if not tab:
+                self.open_new_room(bm.jid, nick, False)
             self.initial_joins.append(bm.jid)
             histo_length = config.get('muc_history_length', 20)
             if histo_length == -1:

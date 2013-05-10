@@ -28,9 +28,6 @@ class Bookmark(object):
         self.jid = jid
         self.name = name or jid
         self.autojoin = autojoin
-        if not nick:
-            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-            nick = config.get('default_nick', '') or default
         self.nick = nick
         self.password = password
         self._method = method
