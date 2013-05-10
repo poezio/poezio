@@ -1362,15 +1362,17 @@ class Core(object):
             msg = '\n'.join(buff)
             msg += _("\nType /help <command_name> to know what each command does")
         if args:
-            if args[0] in self.commands:
-                tup = self.commands[args[0]]
-            elif args[0] in self.current_tab().commands:
-                tup = self.current_tab().commands[args[0]]
+            command = args[0].lstrip('/').strip()
+
+            if command in self.commands:
+                tup = self.commands[command]
+            elif command in self.current_tab().commands:
+                tup = self.current_tab().commands[command]
             else:
-                self.information(_('Unknown command: %s') % args[0], 'Error')
+                self.information(_('Unknown command: %s') % command, 'Error')
                 return
             if isinstance(tup, Command):
-                msg = _('Usage: /%s %s\n' % (args[0], tup.usage))
+                msg = _('Usage: /%s %s\n' % (command, tup.usage))
                 msg += tup.desc
             else:
                 msg = tup[1]
