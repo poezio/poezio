@@ -1,0 +1,3 @@
+-e git://github.com/fritzy/SleekXMPP.git@develop#egg=SleekXMPP
+dnspython3==1.10.0
+argparse
