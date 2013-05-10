@@ -1153,15 +1153,24 @@ class MucTab(ChatTab):
         """
         /ban <nick> [reason]
         """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.room_error(iq, self.get_name())
         args = common.shell_split(arg)
         if not args:
             self.core.command_help('ban')
+        if len(args) > 1:
+            msg = args[1]
         else:
-            if len(args) > 1:
-                msg = ' "%s"' %args[1]
-            else:
-                msg = ''
-            self.command_affiliation('"'+args[0]+ '" outcast'+msg)
+            msg = ''
+        nick = args[0]
+
+        if nick in [user.nick for user in self.users]:
+            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), 'outcast', nick=nick, callback=callback, reason=msg)
+        else:
+            res = muc.set_user_affiliation(self.core.xmpp, self.get_name(), 'outcast', jid=safeJID(nick), callback=callback, reason=msg)
+        if not res:
+            self.core.information('Could not ban user', 'Error')
 
     def command_role(self, arg):
         """

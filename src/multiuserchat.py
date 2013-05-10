@@ -127,6 +127,12 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
         item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'nick':nick})
     else:
         item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'jid':str(jid)})
+
+    if reason:
+        reason_item = ET.Element('{http://jabber.org/protocol/muc#admin}reason')
+        reason_item.text = reason
+        item.append(reason_item)
+
     query.append(item)
     iq = xmpp.makeIqSet(query)
     iq['to'] = muc_jid
