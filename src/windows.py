@@ -1830,34 +1830,43 @@ class RosterWin(Win):
             self.start_pos = 1
         return self.start_pos != pos
 
+    def build_roster_cache(self, roster):
+        """
+        Regenerates the roster cache if needed
+        """
+        with g_lock:
+            if roster.needs_rebuild:
+                log.debug('The roster has changed, rebuilding the cache…')
+                show_offline = config.get('roster_show_offline', 'false') == 'true'
+                sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+                group_sort = config.get('roster_group_sort', 'name') or 'name'
+                self.roster_cache = []
+                # build the cache
+                for group in roster.get_groups(group_sort):
+                    contacts_filtered = group.get_contacts(roster.contact_filter)
+                    if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
+                        continue    # Ignore empty groups
+                    self.roster_cache.append(group)
+                    if group.folded:
+                        continue # ignore folded groups
+                    for contact in group.get_contacts(roster.contact_filter, sort):
+                        if not show_offline and len(contact) == 0:
+                            continue # ignore offline contacts
+                        self.roster_cache.append(contact)
+                        if not contact.folded(group.name):
+                            for resource in contact.get_resources():
+                                self.roster_cache.append(resource)
+
     def refresh(self, roster):
         """
-        We get the roster object
+        We display a number of lines from the roster cache
+        (and rebuild it if needed)
         """
         log.debug('Refresh: %s',self.__class__.__name__)
-        self.roster_cache = []
-        show_offline = config.get('roster_show_offline', 'false') == 'true'
-        sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-        group_sort = config.get('roster_group_sort', 'name') or 'name'
-        # build the cache
-        for group in roster.get_groups(group_sort):
-            contacts_filtered = group.get_contacts(roster.contact_filter)
-            if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
-                continue    # Ignore empty groups
-            self.roster_cache.append(group)
-            if group.folded:
-                continue # ignore folded groups
-            for contact in group.get_contacts(roster.contact_filter, sort):
-                if not show_offline and len(contact) == 0:
-                    continue # ignore offline contacts
-                self.roster_cache.append(contact)
-                if not contact.folded(group.name):
-                    for resource in contact.get_resources():
-                        self.roster_cache.append(resource)
-
+        self.build_roster_cache(roster)
         with g_lock:
             self.roster_len = len(roster);
-            self.move_cursor_up(self.roster_len - self.pos if self.pos >= self.roster_len else 0)
+            self.move_cursor_up(self.roster_len + self.pos if self.pos >= self.roster_len else 0)
             self._win.erase()
             self._win.move(0, 0)
             self.draw_roster_information(roster)

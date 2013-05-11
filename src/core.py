@@ -152,6 +152,7 @@ class Core(object):
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
 
+
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
@@ -298,6 +299,8 @@ class Core(object):
         log.debug("Reloading the config…")
         config.__init__(config.file_name)
         log.debug("Config reloaded.")
+        # in case some roster options have changed
+        roster.modified()
 
     def exit_from_signal(self, *args, **kwargs):
         """
@@ -2060,6 +2063,8 @@ class Core(object):
         elif option == 'plugins_conf_dir':
             path = os.path.expanduser(value)
             self.plugin_manager.on_plugins_conf_dir_change(path)
+        # in case some roster options have changed
+        roster.modified()
         self.call_for_resize()
         self.information(*info)
 
@@ -2791,6 +2796,7 @@ class Core(object):
         contact = roster[message['from'].bare]
         if not contact:
             return
+        roster.modified()
         item = message['pubsub_event']['items']['item']
         old_mood = contact.mood
         if item.xml.find('{http://jabber.org/protocol/mood}mood'):
@@ -2820,6 +2826,7 @@ class Core(object):
         contact = roster[message['from'].bare]
         if not contact:
             return
+        roster.modified()
         item = message['pubsub_event']['items']['item']
         old_activity = contact.activity
         if item.xml.find('{http://jabber.org/protocol/activity}activity'):
@@ -2855,6 +2862,7 @@ class Core(object):
         contact = roster[message['from'].bare]
         if not contact:
             return
+        roster.modified()
         item = message['pubsub_event']['items']['item']
         old_tune = contact.tune
         if item.xml.find('{http://jabber.org/protocol/tune}tune'):
@@ -3085,6 +3093,7 @@ class Core(object):
             contact.pending_in = True
             self.information('%s wants to subscribe to your presence' % jid, 'Roster')
             self.get_tab_by_number(0).state = 'highlight'
+            roster.modified()
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -3096,6 +3105,9 @@ class Core(object):
             self.information('%s accepted your contact proposal' % jid, 'Roster')
         if contact.pending_out:
             contact.pending_out = False
+
+        roster.modified()
+
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -3105,6 +3117,7 @@ class Core(object):
         contact = roster[jid]
         if not contact:
             return
+        roster.modified()
         self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
         self.get_tab_by_number(0).state = 'highlight'
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -3116,6 +3129,7 @@ class Core(object):
         contact = roster[jid]
         if not contact:
             return
+        roster.modified()
         if contact.pending_out:
             self.information('%s rejected your contact proposal' % jid, 'Roster')
             contact.pending_out = False
@@ -3137,6 +3151,7 @@ class Core(object):
             tab.unlock()
         if contact is None:
             return
+        roster.modified()
         contact.error = None
         self.events.trigger('normal_presence', presence, contact[jid.full])
         tab = self.get_conversation_by_jid(jid, create=False)
@@ -3151,6 +3166,7 @@ class Core(object):
         contact = roster[jid.bare]
         if not contact:
             return
+        roster.modified()
         contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
 
     def on_got_offline(self, presence):
@@ -3168,6 +3184,7 @@ class Core(object):
             self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
         self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
         self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
+        roster.modified()
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
@@ -3182,6 +3199,7 @@ class Core(object):
         if contact is None:
             # Todo, handle presence coming from contacts not in roster
             return
+        roster.modified()
         if not logger.log_roster_change(jid.bare, 'got online'):
             self.information(_('Unable to write in the log file'), 'Error')
         resource = Resource(jid.full, {

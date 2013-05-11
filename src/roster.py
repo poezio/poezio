@@ -17,6 +17,7 @@ from contact import Contact
 from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 
 from os import path as p
+from datetime import datetime
 from common import safeJID
 from sleekxmpp import JID
 from sleekxmpp.exceptions import IqError, IqTimeout
@@ -42,6 +43,17 @@ class Roster(object):
                 section='var').split(':'))
         self.groups = {}
         self.contacts = {}
+
+        # Used for caching roster infos
+        self.last_built = datetime.now()
+        self.last_modified = datetime.now()
+
+    def modified(self):
+        self.last_modified = datetime.now()
+
+    @property
+    def needs_rebuild(self):
+        return self.last_modified >= self.last_built
 
     def __getitem__(self, key):
         """Get a Contact from his bare JID"""
