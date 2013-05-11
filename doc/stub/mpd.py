@@ -1,0 +1,2 @@
+class MPDClient:
+    pass
