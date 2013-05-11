@@ -19,6 +19,7 @@ from args import parse_args
 from common import safeJID
 
 
+
 class Config(RawConfigParser):
     """
     load/save the config to a file

@@ -8,12 +8,16 @@ Here is a quick howto and a plugin index.
 Setting up plugins
 ------------------
 
+
 Poezio seeks the plugins in the :file:`~/.local/share/poezio/plugins/` dir (more
 generally, the :file:`$XDG_DATA_HOME/poezio/plugins/` dir), but that can be changed
 by setting the :term:`plugins_dir` option to the directory where you want to
 put your plugins.
 
-This means that if you want to use a plugin, you have to copy it (the .py file or the directory) into :term:`plugins_dir`.
+By default, poezio will also seek the plugins in :file:`../plugins`, in the source
+directory, in order to always load the latest versions. You should put a plugin
+in :file:`$XDG_DATA_HOME/poezio/plugins` only if you have a custom version (that
+will override the one in :file:`../plugins`), or if it is a plugin you made.
 
 
 Plugin autoload

@@ -1,3 +1,6 @@
 -e git://github.com/fritzy/SleekXMPP.git@develop#egg=SleekXMPP
 dnspython3==1.10.0
+sphinx==1.2b1
 argparse
+pyinotify
+python-mpd2
