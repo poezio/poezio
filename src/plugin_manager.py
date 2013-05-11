@@ -47,8 +47,8 @@ except OSError:
 
 default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 
-sys.path.append(default_plugin_path)
 sys.path.append(plugins_dir)
+sys.path.append(default_plugin_path)
 
 if version_info[1] >= 3: # 3.3 & >
     from importlib import machinery
