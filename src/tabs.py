@@ -2439,6 +2439,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('JID already in group'), 'Error')
             return
 
+        roster.modified()
         new_groups.add(group)
         try:
             new_groups.remove('none')
@@ -2486,6 +2487,7 @@ class RosterInfoTab(Tab):
             self.core.information(_('The groups are the same.'), 'Error')
             return
 
+        roster.modified()
         new_groups.add(group_to)
         if 'none' in new_groups:
             new_groups.remove('none')
@@ -2520,6 +2522,8 @@ class RosterInfoTab(Tab):
             self.core.information(_('JID not in group'), 'Error')
             return
 
+        roster.modified()
+
         new_groups.remove(group)
         name = contact.name
         subscription = contact.subscription
@@ -2541,6 +2545,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No roster item to remove')
                 return
         del roster[jid]
+        roster.modified()
 
     def command_import(self, arg):
         """
@@ -2698,6 +2703,7 @@ class RosterInfoTab(Tab):
         contact = roster[jid]
         if contact is None:
             return
+        roster.modified()
         self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
         self.core.xmpp.client_roster.send_last_presence()
         if contact.subscription in ('from', 'none') and not contact.pending_out:
@@ -2741,6 +2747,7 @@ class RosterInfoTab(Tab):
             success = config.silent_set(option, 'true')
         else:
             success = config.silent_set(option, 'false')
+        roster.modified()
         if not success:
             self.information(_('Unable to write in the config file'), 'Error')
         return True
@@ -2831,6 +2838,7 @@ class RosterInfoTab(Tab):
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, RosterGroup):
             selected_row.toggle_folded()
+            roster.modified()
             return True
         elif isinstance(selected_row, Contact):
             group = "none"
@@ -2844,6 +2852,7 @@ class RosterInfoTab(Tab):
                     found_group = True
                     group = row.name
             selected_row.toggle_folded(group)
+            roster.modified()
             return True
         return False
 
@@ -3765,6 +3774,7 @@ def jid_and_name_match(contact, txt):
     """
     Match jid with text precisely
     """
+    roster.modified()
     if not txt:
         return True
     if txt in safeJID(contact.bare_jid).user:
@@ -3778,6 +3788,7 @@ def jid_and_name_match_slow(contact, txt):
     A function used to know if a contact in the roster should
     be shown in the roster
     """
+    roster.modified()
     if not txt:
         return True             # Everything matches when search is empty
     user = safeJID(contact.bare_jid).user

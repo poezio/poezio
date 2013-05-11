@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 import curses
 import string
+from datetime import datetime
 from math import ceil, log10
 from config import config
 
@@ -1856,6 +1857,7 @@ class RosterWin(Win):
                         if not contact.folded(group.name):
                             for resource in contact.get_resources():
                                 self.roster_cache.append(resource)
+                roster.last_built = datetime.now()
 
     def refresh(self, roster):
         """
