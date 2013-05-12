@@ -226,6 +226,10 @@ latex_documents = [
 man_pages = [
     ('configuration', 'poezio.cfg', 'Poezio Configuration File',
      ['Mathieu Pasquet', 'Florent Le Coz'], 7),
+    ('keys', 'poezio.keys', 'Poezio Key Bindings',
+     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
+    ('commands', 'poezio.commands', 'Poezio Commands',
+     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
 ]
 
 # If true, show URL addresses after external links.
