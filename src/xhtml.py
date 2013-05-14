@@ -398,61 +398,64 @@ number_to_color_names = {
     7: 'white'
 }
 
+def format_inline_css(_dict):
+    return ''.join(('%s: %s;' % (key, value) for key, value in _dict.items()))
+
 def poezio_colors_to_html(string):
     """
-    Convert poezio colors to html makups
-    (e.g. \x191: <span style='color: red'>)
+    Convert poezio colors to html
+    (e.g. \x191}: <span style='color: red'>)
     """
-    # XXX: You cannot underline AND use color on the same portion of your
-    # message (because both these things use a <span/> element, and the
-    # current way it is done, when you open a <span/> element, you close the
-    # previous one). Dectecting if a span is already opened, close it and
-    # reopen it with the same style PLUS the new style seems complicated.
-    # I'll keep it that way unless someone fixes that properly.
-
-    # a list of all opened elements, e.g. ['strong', 'span']
-    # So that we know what we need to close
-    opened_elements = []
-    res = "<body xmlns='http://www.w3.org/1999/xhtml'><p>"
+    # Maintain a list of the current css attributes used
+    # And check if a tag is open (by design, we only open
+    # spans tag, and they cannot be nested.
+    current_attrs = {}
+    tag_open = False
     next_attr_char = string.find('\x19')
+    build = ["<body xmlns='http://www.w3.org/1999/xhtml'><p>"]
+
+    def check_property(key, value):
+        nonlocal tag_open
+        if current_attrs.get(key, None) == value:
+            return
+        current_attrs[key] = value
+        if tag_open:
+            tag_open = False
+            build.append('</span>')
+
     while next_attr_char != -1:
         attr_char = string[next_attr_char+1].lower()
-        if next_attr_char != 0:
-            res += xml.sax.saxutils.escape(string[:next_attr_char])
+
+        if next_attr_char != 0 and string[:next_attr_char]:
+            if current_attrs and not tag_open:
+                build.append('<span style="%s">' % format_inline_css(current_attrs))
+                tag_open = True
+            build.append(xml.sax.saxutils.escape(string[:next_attr_char]))
+
         if attr_char == 'o':
-            for elem in opened_elements[::-1]:
-                res += '</%s>' % (elem,)
-            opened_elements = []
+            if tag_open:
+                build.append('</span>')
+                tag_open = False
+            current_attrs = {}
         elif attr_char == 'b':
-            if 'strong' not in opened_elements:
-                opened_elements.append('strong')
-                res += '<strong>'
+            check_property('font-weight', 'bold')
         elif attr_char == 'u':
-            if 'strong' in opened_elements:
-                res += '</strong>'
-                opened_elements.remove('strong')
-            if 'span' in opened_elements:
-                res += '</span>'
-            else:
-                opened_elements.append('span')
-            res += "<span style='text-decoration:underline'>"
+            check_property('text-decoration', 'underline')
+
         if attr_char in digits:
-            number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
-            number = int(number_str)
-            if 'strong' in opened_elements:
-                res += '</strong>'
-                opened_elements.remove('strong')
-            if 'span' in opened_elements:
-                res += '</span>'
-            else:
-                opened_elements.append('span')
-            res += "<span style='color: %s'>" % (ncurses_color_to_html(number),)
-            string = string[next_attr_char+len(number_str)+2:]
+            number = int(attr_char)
+            check_property('color', number_to_color_names.get(number, 'black'))
+            string = string[next_attr_char+3:]
         else:
             string = string[next_attr_char+2:]
         next_attr_char = string.find('\x19')
-    res += xml.sax.saxutils.escape(string)
-    for elem in opened_elements[::-1]:
-        res += '</%s>' % (elem,)
-    res += "</p></body>"
-    return res.replace('\n', '<br />')
+
+    if current_attrs and not tag_open and string:
+        build.append('<span style="%s">' % format_inline_css(current_attrs))
+        tag_open = True
+    build.append(xml.sax.saxutils.escape(string))
+    if tag_open:
+        build.append('</span>')
+    build.append("</p></body>")
+    text = ''.join(build)
+    return text.replace('\n', '<br />')
