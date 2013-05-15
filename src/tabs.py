@@ -850,8 +850,7 @@ class MucTab(ChatTab):
     def completion_nick(self, the_input):
         """Completion for /nick"""
         nicks = [os.environ.get('USER'), config.get('default_nick', ''), self.core.get_bookmark_nickname(self.get_name())]
-        while nicks.count(''):
-            nicks.remove('')
+        nicks = [i for i in nicks if i]
         return the_input.auto_completion(nicks, '', quotify=False)
 
     def completion_recolor(self, the_input):
