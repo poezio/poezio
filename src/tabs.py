@@ -1094,7 +1094,9 @@ class MucTab(ChatTab):
                 'none': get_theme().CHAR_AFFILIATION_NONE,
                 }
 
-        for user in self.users:
+        users = self.users[:]
+        users.sort(key=lambda x: x.nick.lower())
+        for user in users:
             if user.role == 'visitor':
                 visitors.append((user, aff[user.affiliation]))
             elif user.role == 'participant':
