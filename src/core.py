@@ -2717,7 +2717,7 @@ class Core(object):
         if replaced_id is not '' and (config.get_by_tabname(
             'group_corrections', 'true', jid.bare).lower() != 'false'):
             try:
-                conversation.modify_message(body, replaced_id, message['id'])
+                conversation.modify_message(body, replaced_id, message['id'], jid=message['from'])
                 replaced = True
             except CorrectionError:
                 pass
@@ -2726,7 +2726,8 @@ class Core(object):
                     nickname=remote_nick,
                     nick_color=get_theme().COLOR_REMOTE_USER,
                     history=delayed,
-                    identifier=message['id'])
+                    identifier=message['id'],
+                    jid=message['from'])
         if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
@@ -2925,7 +2926,7 @@ class Core(object):
                 replaced = True
             except CorrectionError:
                 pass
-        if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id']):
+        if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from']):
             self.events.trigger('highlight', message, tab)
 
         if tab is self.current_tab():
@@ -2971,14 +2972,15 @@ class Core(object):
         if replaced_id is not '' and (config.get_by_tabname(
             'group_corrections', 'true', room_from).lower() != 'false'):
             try:
-                tab.modify_message(body, replaced_id, message['id'], user=user)
+                tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'])
                 replaced = True
             except CorrectionError:
                 pass
         if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=user,
-                            identifier=message['id'])
+                            identifier=message['id'],
+                            jid=message['from'])
         if tab.remote_wants_chatstates is None:
             if message['chat_state']:
                 tab.remote_wants_chatstates = True

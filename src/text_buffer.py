@@ -18,7 +18,7 @@ from datetime import datetime
 from config import config
 from theming import get_theme
 
-message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions'
+message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions jid'
 Message = collections.namedtuple('Message', message_fields)
 
 class CorrectionError(Exception): pass
@@ -69,7 +69,7 @@ class TextBuffer(object):
         return self.messages[-1] if self.messages else None
 
 
-    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None, revisions=0):
+    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None, revisions=0, jid=None):
         time = time or datetime.now()
         me = False
         if txt.startswith('/me '):
@@ -86,12 +86,13 @@ class TextBuffer(object):
                 highlight=highlight,
                 me=me,
                 old_message=old_message,
-                revisions=revisions)
+                revisions=revisions,
+                jid=jid)
         log.debug('Set message %s with %s.', identifier, msg)
         return msg
 
-    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None, str_time=None):
-        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier, str_time=str_time, highlight=highlight)
+    def add_message(self, txt, time=None, nickname=None, nick_color=None, history=None, user=None, highlight=False, identifier=None, str_time=None, jid=None):
+        msg = self.make_message(txt, time, nickname, nick_color, history, user, identifier, str_time=str_time, highlight=highlight, jid=jid)
         self.messages.append(msg)
         while len(self.messages) > self.messages_nb_limit:
             self.messages.pop(0)
@@ -105,7 +106,7 @@ class TextBuffer(object):
                 window.scroll_up(nb)
         return ret_val or 1
 
-    def modify_message(self, txt, old_id, new_id, highlight=False, time=None, user=None):
+    def modify_message(self, txt, old_id, new_id, highlight=False, time=None, user=None, jid=None):
         for i in range(len(self.messages) -1, -1, -1):
             msg = self.messages[i]
             if msg.identifier == old_id:
@@ -113,6 +114,10 @@ class TextBuffer(object):
                     raise CorrectionError("Different users")
                 elif len(msg.str_time) > 8: # ugly
                     raise CorrectionError("Delayed message")
+                elif not msg.user and (msg.jid is None or jid is None):
+                    raise CorrectionError('Could not check the identity of the sender')
+                elif not msg.user and msg.jid.full != jid.full:
+                    raise CorrectionError('Messages %s and %s have not been sent by the same fullJID' % (old_id, new_id))
                 message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.', old_id, new_id)

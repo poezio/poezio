@@ -484,17 +484,18 @@ class ChatTab(Tab):
         if not logger.log_message(self.name, nickname, txt, date=time):
             self.core.information(_('Unable to write in the log file'), 'Error')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None, jid=None):
         self._text_buffer.add_message(txt, time=time,
                 nickname=nickname,
                 nick_color=nick_color,
                 history=None,
                 user=forced_user,
-                identifier=identifier)
+                identifier=identifier,
+                jid=jid)
 
-    def modify_message(self, txt, old_id, new_id, user=None):
+    def modify_message(self, txt, old_id, new_id, user=None, jid=None):
         self.log_message(txt, self.name)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user, jid=jid)
         if message:
             self.text_win.modify_message(old_id, message)
             self.core.refresh_window()
@@ -1748,7 +1749,7 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None, identifier=None):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None, identifier=None, jid=None):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
@@ -1774,13 +1775,13 @@ class MucTab(ChatTab):
         else:                   # TODO
             highlight = self.do_highlight(txt, time, nickname)
         time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier)
+        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier, jid=jid)
         return highlight
 
-    def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None):
+    def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None, jid=None):
         self.log_message(txt, nickname, time=time)
         highlight = self.do_highlight(txt, time, nickname)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user)
+        message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user, jid=jid)
         if message:
             self.text_win.modify_message(old_id, message)
             self.core.refresh_window()
@@ -1872,7 +1873,7 @@ class PrivateTab(ChatTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'], user=user)
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'], user=user, jid=self.core.xmpp.boundjid)
                     replaced = True
                 except:
                     pass
@@ -1882,7 +1883,8 @@ class PrivateTab(ChatTab):
                     nickname=self.core.own_nick or self.own_nick,
                     forced_user=user,
                     nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'])
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -3043,7 +3045,7 @@ class ConversationTab(ChatTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'])
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid)
                     replaced = True
                 except:
                     pass
@@ -3051,7 +3053,8 @@ class ConversationTab(ChatTab):
             self.add_message(msg['body'],
                     nickname=self.core.own_nick,
                     nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'])
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
