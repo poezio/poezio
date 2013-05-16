@@ -1555,7 +1555,7 @@ class HistoryInput(Input):
         if self.histo_pos == -1 and self.get_text():
             if not self.history or self.history[0] != self.get_text():
                 # add the message to history, we do not want to lose it
-                MessageInput.history.insert(0, self.get_text())
+                self.history.insert(0, self.get_text())
                 self.histo_pos += 1
         if self.histo_pos < len(self.history) - 1:
             self.histo_pos += 1
