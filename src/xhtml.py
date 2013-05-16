@@ -443,9 +443,13 @@ def poezio_colors_to_html(string):
             check_property('text-decoration', 'underline')
 
         if attr_char in digits:
-            number = int(attr_char)
-            check_property('color', number_to_color_names.get(number, 'black'))
-            string = string[next_attr_char+3:]
+            number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
+            number = int(number_str)
+            if number in number_to_color_names:
+                check_property('color', number_to_color_names.get(number, 'black'))
+            else:
+                check_property('color', ncurses_color_to_html(number))
+            string = string[next_attr_char+len(number_str)+2:]
         else:
             string = string[next_attr_char+2:]
         next_attr_char = string.find('\x19')
