@@ -874,7 +874,8 @@ class MucTab(ChatTab):
             n += 1
         if n == 2:
             userlist = [user.nick for user in self.users]
-            userlist.remove(self.own_nick)
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
             return the_input.auto_completion(userlist, '')
         elif n == 3:
             possible_roles = ['none', 'visitor', 'participant', 'moderator']
@@ -897,7 +898,7 @@ class MucTab(ChatTab):
             userlist.extend(jidlist)
             return the_input.auto_completion(userlist, '')
         elif n == 3:
-            possible_affiliations = ['none', 'member', 'admin', 'owner']
+            possible_affiliations = ['none', 'member', 'admin', 'owner', 'outcast']
             return the_input.auto_completion(possible_affiliations, '')
 
     def scroll_user_list_up(self):
