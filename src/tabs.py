@@ -1161,7 +1161,7 @@ class MucTab(ChatTab):
                 self.core.room_error(iq, self.get_name())
         args = common.shell_split(arg)
         if not args:
-            self.core.command_help('ban')
+            return self.core.command_help('ban')
         if len(args) > 1:
             msg = args[1]
         else:
