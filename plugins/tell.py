@@ -1,3 +1,31 @@
+"""
+The command added by this plugin sends a message to someone when he next joins.
+
+Installation
+------------
+You only have to load the plugin:
+
+
+``/load tell``
+
+Usage
+-----
+This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/untell`.
+
+.. glossary::
+    :sorted:
+
+    /tell
+         *Usage*: ``/tell <nick> <message>``
+
+         Send *message* to *nick* at his next join.
+
+    /untell
+        *Usage:* ``/untell <nick>``
+
+        Cancel all scheduled messages to *nick*.
+
+"""
 from plugin import BasePlugin
 import tabs
 import common
