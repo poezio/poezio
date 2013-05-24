@@ -100,7 +100,7 @@ class PluginManager(object):
             else: # 3.3 & >
                 loader = finder.find_module(name)
                 if not loader:
-                    self.core.information('Could not load plugin: %s' % e, 'Error')
+                    self.core.information('Could not find plugin')
                     return
                 module = loader.load_module()
 
