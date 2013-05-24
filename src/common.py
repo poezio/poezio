@@ -215,7 +215,7 @@ def find_delayed_tag(message):
         delay_tag = message.find('{jabber:x:delay}x')
         if delay_tag is not None:
             delayed = True
-            date = common.datetime_tuple(delay_tag.attrib['stamp'])
+            date = datetime_tuple(delay_tag.attrib['stamp'])
         else:
             delayed = False
             date = None
