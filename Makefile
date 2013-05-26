@@ -17,10 +17,9 @@ clean:
 	rm -r doc/build/
 
 install: all
+	python3 setup.py install --root=$(DESTDIR) --optimize=1
 	mkdir -p $(DESTDIR)$(prefix)  $(DESTDIR)$(DOCDIR)/poezio/ $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR)
-
 	cp -R doc/* $(DESTDIR)$(DOCDIR)/poezio/
-
 	cp README CHANGELOG COPYING $(DESTDIR)$(DOCDIR)/poezio/
 
 uninstall:
