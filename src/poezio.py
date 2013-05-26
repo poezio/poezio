@@ -12,11 +12,13 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import signal
 import logging
-from logger import logger
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from logger import logger
 from config import options
 import singleton
 import core

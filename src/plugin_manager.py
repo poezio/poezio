@@ -20,6 +20,8 @@ from config import config
 
 log = logging.getLogger(__name__)
 
+load_path = []
+
 plugins_dir = config.get('plugins_dir', '')
 plugins_dir = plugins_dir or\
     os.path.join(os.environ.get('XDG_DATA_HOME') or\
@@ -39,6 +41,8 @@ try:
     os.makedirs(plugins_dir)
 except OSError:
     pass
+else:
+    load_path.append(plugins_dir)
 
 try:
     os.makedirs(plugins_conf_dir)
@@ -47,13 +51,22 @@ except OSError:
 
 default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
 
-sys.path.append(plugins_dir)
-sys.path.append(default_plugin_path)
+if os.path.exists(default_plugin_path):
+    load_path.append(default_plugin_path)
+
+try:
+    import poezio_plugins
+except:
+    pass
+else:
+    if poezio_plugins.__path__:
+        load_path.append(poezio_plugins.__path__[0])
+
+sys.path.extend(load_path)
 
 if version_info[1] >= 3: # 3.3 & >
     from importlib import machinery
     finder = machinery.PathFinder()
-
 
 class PluginManager(object):
     """
@@ -94,7 +107,7 @@ class PluginManager(object):
                     imp.acquire_lock()
                     module = imp.reload(self.modules[name])
                 else:
-                    file, filename, info = imp.find_module(name, [plugins_dir, default_plugin_path])
+                    file, filename, info = imp.find_module(name, load_path)
                     imp.acquire_lock()
                     module = imp.load_module(name, file, filename, info)
             else: # 3.3 & >
@@ -288,15 +301,19 @@ class PluginManager(object):
         all .py files in plugins_dir
         """
         try:
-            try:
-                names = set(os.listdir(default_plugin_path))
-            except:
-                names = set()
-            names |= set(os.listdir(plugins_dir))
+            names = set()
+            for path in load_path:
+                try:
+                    add = set(os.listdir(path))
+                    names |= add
+                except:
+                    pass
         except OSError as e:
             self.core.information(_('Completion failed: %s' % e), 'Error')
             return
-        plugins_files = [name[:-3] for name in names if name.endswith('.py')]
+        plugins_files = [name[:-3] for name in names if name.endswith('.py')
+                and name != '__init__.py' and not name.startswith('.')]
+        plugins_files.sort()
         return the_input.auto_completion(plugins_files, '', quotify=False)
 
     def completion_unload(self, the_input):

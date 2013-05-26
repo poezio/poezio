@@ -251,7 +251,12 @@ options = parse_args(CONFIG_PATH)
 
 # Copy a default file if none exists
 if not path.isfile(options.filename):
-    copy2(path.join(path.dirname(__file__), '../data/default_config.cfg'), options.filename)
+    default = path.join(path.dirname(__file__), '../data/default_config.cfg')
+    other = '/etc/poezio/default_config.cfg'
+    if path.isfile(default):
+        copy2(default, options.filename)
+    elif path.isfile(other):
+        copy2(other, options.filename)
     firstrun = True
 
 config = Config(options.filename)
