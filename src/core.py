@@ -3307,6 +3307,7 @@ class Core(object):
 
         if config.get('enable_user_nick', 'true') != 'false':
             self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick)
+        self.xmpp.plugin['xep_0115'].update_caps()
 
     ### Other handlers ###
 

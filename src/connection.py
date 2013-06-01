@@ -102,8 +102,6 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0224')
         self.register_plugin('xep_0308')
 
-        self.plugin['xep_0115'].update_caps()
-
     def start(self):
         # TODO, try multiple servers
         # With anon auth.
