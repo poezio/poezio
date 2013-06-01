@@ -40,6 +40,7 @@ import tabs
 class Plugin(BasePlugin):
     def init(self):
         self.core.xmpp.register_plugin('xep_0199')
+        self.core.xmpp.plugin['xep_0115'].update_caps()
         self.api.add_command('ping', self.command_ping,
                 usage='<jid>',
                 help='Send a XMPP ping to jid (see XEP-0199).',
