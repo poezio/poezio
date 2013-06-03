@@ -2407,6 +2407,10 @@ class RosterInfoTab(Tab):
         """
         Set a name for the specified JID in your roster
         """
+        def callback(iq):
+            if not iq:
+                self.core.information('The name could not be set.', 'Error')
+                log.debug('Error in /name:\n%s', iq)
         args = common.shell_split(arg)
         if not args:
             return self.core.command_help('name')
@@ -2419,9 +2423,11 @@ class RosterInfoTab(Tab):
             return
 
         groups = set(contact.groups)
+        if 'none' in groups:
+            groups.remove('none')
         subscription = contact.subscription
-        if not self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription):
-            self.core.information('The name could not be set.', 'Error')
+        self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription,
+                callback=callback, block=False)
 
     def command_groupadd(self, args):
         """
@@ -2452,8 +2458,16 @@ class RosterInfoTab(Tab):
 
         name = contact.name
         subscription = contact.subscription
-        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.update_contact_groups(jid)
+
+        def callback(iq):
+            if iq:
+                roster.update_contact_groups(jid)
+            else:
+                self.core.information('The group could not be set.', 'Error')
+                log.debug('Error in groupadd:\n%s', iq)
+
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
+                callback=callback, block=False)
 
     def command_groupmove(self, arg):
         """
@@ -2499,8 +2513,16 @@ class RosterInfoTab(Tab):
         new_groups.remove(group_from)
         name = contact.name
         subscription = contact.subscription
-        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.update_contact_groups(contact)
+
+        def callback(iq):
+            if iq:
+                roster.update_contact_groups(contact)
+            else:
+                self.information('The group could not be set')
+                log.debug('Error in groupmove:\n%s', iq)
+
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
+                callback=callback, block=False)
 
     def command_groupremove(self, args):
         """
@@ -2531,8 +2553,16 @@ class RosterInfoTab(Tab):
         new_groups.remove(group)
         name = contact.name
         subscription = contact.subscription
-        if self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription):
-            roster.update_contact_groups(jid)
+
+        def callback(iq):
+            if iq:
+                roster.update_contact_groups(jid)
+            else:
+                self.information('The group could not be set')
+                log.debug('Error in groupremove:\n%s', iq)
+
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
+                callback=callback, block=False)
 
     def command_remove(self, args):
         """

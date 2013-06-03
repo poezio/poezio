@@ -49,13 +49,14 @@ class Connection(sleekxmpp.ClientXMPP):
         jid = safeJID(jid)
         # TODO: use the system language
         sleekxmpp.ClientXMPP.__init__(self, jid, password, lang=config.get('lang', 'en'))
+
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.reconnect_max_attempts = 0
         self.auto_authorize = None
         self.ca_certs = config.get('ca_cert_path', '') or None
         interval = config.get('whitespace_interval', '300')
-        if interval.isnumeric():
+        if interval.isdecimal() and int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
         else:
             self.whitespace_keepalive_interval = 300
