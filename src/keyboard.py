@@ -92,6 +92,9 @@ def get_char_list_new(s):
         except curses.error:
             # No input, this means a timeout occurs.
             return ret_list
+        except ValueError: # invalid input
+            log.debug('Invalid character entered.')
+            return ret_list
         s.timeout(0)
         if isinstance(key, int):
             ret_list.append(curses.keyname(key).decode())
@@ -104,6 +107,9 @@ def get_char_list_new(s):
                         part = s.get_wch()
                     except curses.error:
                         pass
+                    except ValueError: # invalid input
+                        log.debug('Invalid character entered.')
+                        pass
                     else:
                         key = 'M-%s' % part
                     # and an even more special case for keys like
@@ -113,6 +119,9 @@ def get_char_list_new(s):
                         try:
                             part = s.get_wch()
                         except curses.error:
+                            pass
+                        except ValueError:
+                            log.debug('Invalid character entered.')
                             pass
                         else:
                             key = '%s-%s' % (key, part)
