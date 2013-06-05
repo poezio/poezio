@@ -1684,7 +1684,12 @@ class Core(object):
             room = safeJID(tab.get_name()).bare
             nick = tab.own_nick
         else:
-            info = safeJID(args[0])
+            if args[0].startswith('@'): # we try to join a server directly
+                server_root = True
+                info = safeJID(args[0][1:])
+            else:
+                info = safeJID(args[0])
+                server_root = False
             if info == '' and len(args[0]) > 1 and args[0][0] == '/':
                 nick = args[0][1:]
             elif info.resource == '':
@@ -1703,15 +1708,14 @@ class Core(object):
                     nick = tab.own_nick
             else:
                 room = info.bare
-            if room.find('@') == -1: # no server is provided, like "/join hello"
+            if room.find('@') == -1 and not server_root: # no server is provided, like "/join hello"
                 # use the server of the current room if available
                 # check if the current room's name has a server
                 if isinstance(self.current_tab(), tabs.MucTab) and\
                         self.current_tab().get_name().find('@') != -1:
                     room += '@%s' % safeJID(self.current_tab().get_name()).domain
-                else:           # no server could be found, print a message and return
-                    self.information(_("You didn't specify a server for the room you want to join"), 'Error')
-                    return
+                else:
+                    room = args[0]
         room = room.lower()
         if room in self.pending_invites:
             del self.pending_invites[room]
