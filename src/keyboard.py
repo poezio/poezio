@@ -134,6 +134,16 @@ def get_char_list_new(s):
 class Keyboard(object):
     def __init__(self):
         self.get_char_list = get_char_list_new
+        self.escape = False
+
+    def escape_next_key(self):
+        """
+        The next key pressed by the user should be escaped. e.g. if the user
+        presses ^N, keyboard.get_user_input() will return ["^", "N"] instead
+        of ["^N"]. This will display ^N in the input, instead of
+        interpreting the key binding.
+        """
+        self.escape = True
 
     def get_user_input(self, s, timeout=1000):
         """
@@ -160,7 +170,13 @@ class Keyboard(object):
         if len(ret_list) != 1:
             if ret_list[-1] == '^M':
                 ret_list.pop(-1)
-            return [char if char != '^M' else '^J' for char in ret_list]
+            ret_list = [char if char != '^M' else '^J' for char in ret_list]
+        if self.escape:
+            # Modify the first char of the list into its escaped version (i.e one or more char)
+            key = ret_list.pop(0)
+            for char in key[::-1]:
+                ret_list.insert(0, char)
+            self.escape = False
         return ret_list
 
 keyboard = Keyboard()

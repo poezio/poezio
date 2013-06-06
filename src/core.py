@@ -197,6 +197,7 @@ class Core(object):
             'M-j': self.go_to_room_number,
             'M-D': self.scroll_info_up,
             'M-C': self.scroll_info_down,
+            'M-k': self.escape_next_key,
         ######## actions mappings ##########
             '_bookmark': self.command_bookmark,
             '_bookmark_local': self.command_bookmark_local,
@@ -1325,6 +1326,13 @@ class Core(object):
             self.check_timed_events()
             res = keyboard.get_user_input(self.stdscr)
         return res
+
+    def escape_next_key(self):
+        """
+        Tell the Keyboard object that the next key pressed by the user
+        should be escaped. See Keyboard.get_user_input
+        """
+        keyboard.escape_next_key()
 
 ####################### Commands and completions ##############################
 
