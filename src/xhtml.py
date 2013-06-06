@@ -227,7 +227,11 @@ def ncurses_color_to_html(color):
 
 def xhtml_to_poezio_colors(xml):
     if isinstance(xml, str):
-        xml = ET.fromstring(xml)
+        try:
+            xml = ET.fromstring(xml)
+        except cElementTree.ParserError as e:
+            log.error("Error decoding XML: [%s] (%s)" % (xml, e))
+            return ""
     def parse_css(css):
         def get_color(value):
             if value[0] == '#':
