@@ -33,10 +33,11 @@ PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(text, width)\n\n\nReturn a list of tw
 
 static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 {
-  unsigned char *buffer;
-  int width;
+  const unsigned char *buffer;
+  const int width;
+  const size_t buffer_len;
 
-  if (PyArg_ParseTuple(args, "si", &buffer, &width) == 0)
+  if (PyArg_ParseTuple(args, "is#", &width, &buffer, &buffer_len) == 0)
     return NULL;
 
   int bpos = 0;			/* the real position in the char* */
@@ -48,7 +49,7 @@ static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
 		     of colors attribute be ignored */
   PyObject* retlist = PyList_New(0);
 
-  while (buffer[bpos])
+  while (bpos < buffer_len)
     {
       if (buffer[bpos] == ' ')
 	last_space = spos;
