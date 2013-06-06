@@ -67,6 +67,12 @@ and save it to the clipboard.
 the line break is represented by the character ``|`` in it but will be
 sent as the real ``\n`` character.
 
+**Alt-k**: Escape the next key pressed. For example if you press Alt-k,
+followed by Ctrl-q, this will enter “^Q” into the text input. This is useful
+for example in conjunction with the bind command, to help you know how to
+bind something to a key combination without having to remember how to write
+them by hand.
+
 
 Chat tab input keys
 ~~~~~~~~~~~~~~~~~~~
