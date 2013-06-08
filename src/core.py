@@ -1920,7 +1920,7 @@ class Core(object):
             password = None
         elif args[0] == '*':
             if len(args) > 1:
-                autojoin = False if args[1].lower() == 'false' else True
+                autojoin = False if args[1].lower() != 'true' else True
             else:
                 autojoin = True
             for tab in self.tabs:
@@ -1948,7 +1948,7 @@ class Core(object):
                     return
                 roomname = self.current_tab().get_name()
             if len(args) > 1:
-                autojoin = False if args[1].lower() == 'false' else True
+                autojoin = False if args[1].lower() != 'true' else True
             else:
                 autojoin = True
             if len(args) > 2:
@@ -1964,8 +1964,7 @@ class Core(object):
             bm.nick = nick
         if password:
             bm.password = password
-        if autojoin:
-            bm.autojoin = autojoin
+        bm.autojoin = autojoin
         if bookmark.save_remote(self.xmpp):
             self.information('Bookmark added.', 'Info')
         self.information(_('Your remote bookmarks are now: %s') %

@@ -44,7 +44,7 @@ class Bookmark(object):
         self._method = value
 
     def __repr__(self):
-        return '<%s>' % self.jid
+        return '<%s%s%s>' % (self.jid, ('/'+self.nick) if self.nick else '', '|autojoin' if self.autojoin else '')
 
     def stanza(self):
         """
