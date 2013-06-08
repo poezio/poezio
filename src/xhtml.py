@@ -180,7 +180,7 @@ log = logging.getLogger(__name__)
 
 whitespace_re = re.compile(r'\s+')
 
-xhtml_attr_re = re.compile(r'\x19\d{0,3}\}|\x19[buaio]')
+xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
 
 xhtml_simple_attr_re = re.compile(r'\x19\d')
 
