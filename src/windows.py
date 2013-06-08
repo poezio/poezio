@@ -39,7 +39,7 @@ import wcwidth
 import singleton
 import collections
 
-from theming import get_theme, to_curses_attr
+from theming import get_theme, to_curses_attr, read_tuple, dump_tuple
 
 allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
@@ -168,7 +168,17 @@ class Win(object):
                 self._win.attron(curses.A_BOLD)
             if attr_char in string.digits and attr_char != '':
                 color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
-                if color_str:
+                if ',' in color_str:
+                    tup, char = read_tuple(color_str)
+                    self._win.attron(to_curses_attr(tup))
+                    if char:
+                        if char == 'o':
+                            self._win.attrset(0)
+                        elif char == 'u':
+                            self._win.attron(curses.A_UNDERLINE)
+                        elif char == 'b':
+                            self._win.attron(curses.A_BOLD)
+                elif color_str:
                     self._win.attron(to_curses_attr((int(color_str), -1)))
                 text = text[next_attr_char+len(color_str)+2:]
             else:
@@ -224,23 +234,7 @@ class UserList(Win):
     def __init__(self):
         Win.__init__(self)
         self.pos = 0
-        self.color_role = {'moderator': lambda: get_theme().COLOR_USER_MODERATOR,
-                'participant': lambda: get_theme().COLOR_USER_PARTICIPANT,
-                'visitor': lambda: get_theme().COLOR_USER_VISITOR,
-                'none': lambda: get_theme().COLOR_USER_NONE,
-                '': lambda: get_theme().COLOR_USER_NONE
-               }
-        self.symbol_affiliation = {'owner': lambda: get_theme().CHAR_AFFILIATION_OWNER,
-                'admin': lambda: get_theme().CHAR_AFFILIATION_ADMIN,
-                'member': lambda: get_theme().CHAR_AFFILIATION_MEMBER,
-                'none': lambda: get_theme().CHAR_AFFILIATION_NONE, }
-        self.color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
-                'none': lambda: get_theme().COLOR_STATUS_NONE,
-                '': lambda: get_theme().COLOR_STATUS_NONE,
-                'dnd': lambda: get_theme().COLOR_STATUS_DND,
-                'away': lambda: get_theme().COLOR_STATUS_AWAY,
-                'chat': lambda: get_theme().COLOR_STATUS_CHAT
-               }
+
     def scroll_up(self):
         self.pos += self.height-1
         return True
@@ -297,18 +291,13 @@ class UserList(Win):
             self._refresh()
 
     def draw_role_affiliation(self, y, user):
-        if not user.role in self.color_role:
-            color = get_theme().COLOR_USER_NONE
-        else:
-            color = self.color_role[user.role]()
-        symbol = self.symbol_affiliation.get(user.affiliation, lambda: '-')()
+        theme = get_theme()
+        color = theme.color_role(user.role)
+        symbol = theme.char_affiliation(user.affiliation)
         self.addstr(y, 1, symbol, to_curses_attr(color))
 
     def draw_status_chatstate(self, y, user):
-        if not user.show in self.color_show:
-            show_col = get_theme().COLOR_STATUS_NONE
-        else:
-            show_col = self.color_show[user.show]()
+        show_col = get_theme().color_show(user.show)
         if user.chatstate == 'composing':
             char = get_theme().CHAR_CHATSTATE_COMPOSING
         elif user.chatstate == 'active':
@@ -505,15 +494,6 @@ class ConversationInfoWin(InfoWin):
     The line above the information window, displaying informations
     about the user we are talking to
     """
-    color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
-                  'none': lambda: get_theme().COLOR_STATUS_ONLINE,
-                  '': lambda: get_theme().COLOR_STATUS_ONLINE,
-                  'available': lambda: get_theme().COLOR_STATUS_ONLINE,
-                  'dnd': lambda: get_theme().COLOR_STATUS_DND,
-                  'away': lambda: get_theme().COLOR_STATUS_AWAY,
-                  'chat': lambda: get_theme().COLOR_STATUS_CHAT,
-                  'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
-                  }
 
     def __init__(self):
         InfoWin.__init__(self)
@@ -563,7 +543,7 @@ class ConversationInfoWin(InfoWin):
             presence = "unavailable"
         else:
             presence = resource.presence
-        color = RosterWin.color_show[presence]()
+        color = get_theme().color_show(presence)
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
@@ -1757,15 +1737,6 @@ class VerticalSeparator(Win):
         self.rewrite_line()
 
 class RosterWin(Win):
-    color_show = {'xa': lambda: get_theme().COLOR_STATUS_XA,
-            'none': lambda: get_theme().COLOR_STATUS_ONLINE,
-            '': lambda: get_theme().COLOR_STATUS_ONLINE,
-            'available': lambda: get_theme().COLOR_STATUS_ONLINE,
-            'dnd':lambda: get_theme().COLOR_STATUS_DND,
-            'away': lambda: get_theme().COLOR_STATUS_AWAY,
-            'chat': lambda: get_theme().COLOR_STATUS_CHAT,
-            'unavailable': lambda: get_theme().COLOR_STATUS_UNAVAILABLE
-                  }
 
     def __init__(self):
         Win.__init__(self)
@@ -1945,6 +1916,7 @@ class RosterWin(Win):
         the currently selected contact in the list
         """
 
+        theme = get_theme()
         resource = contact.get_highest_priority_resource()
         if not resource:
             # There's no online resource
@@ -1953,11 +1925,11 @@ class RosterWin(Win):
         else:
             presence = resource.presence
             nb = ' (%s)' % len(contact)
-        color = RosterWin.color_show[presence]()
-        added =  2 + len(get_theme().CHAR_STATUS) + len(nb)
+        color = theme.color_show(presence)
+        added =  2 + len(theme.CHAR_STATUS) + len(nb)
 
         self.addstr(y, 0, ' ')
-        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
+        self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
 
         self.addstr(' ')
         if resource:
@@ -2007,7 +1979,7 @@ class RosterWin(Win):
         """
         Draw a specific resource line
         """
-        color = RosterWin.color_show[resource.presence]()
+        color = get_theme().color_show(resource.presence)
         self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
             self.addstr(y, 6, self.truncate_name(str(resource.jid), 6), to_curses_attr(get_theme().COLOR_SELECTED_ROW))

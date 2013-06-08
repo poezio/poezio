@@ -38,7 +38,7 @@ import time
 
 import multiuserchat as muc
 
-from theming import get_theme
+from theming import get_theme, dump_tuple
 
 from common import safeJID
 from decorators import refresh_wrapper
@@ -469,7 +469,7 @@ class ChatTab(Tab):
             logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
         if logs:
             for log_line in logs:
-                log_line = '\x19%s}%s' % (get_theme().COLOR_INFORMATION_TEXT[0], log_line)
+                log_line = '\x19%s}%s' % (dump_tuple(get_theme().COLOR_INFORMATION_TEXT), log_line)
                 self._text_buffer.add_message(
                         txt=log_line.strip(),
                         time='',
@@ -920,10 +920,16 @@ class MucTab(ChatTab):
         user = self.get_user_by_name(arg)
         if not user:
             return self.core.information("Unknown user: %s" % arg)
-        info = '%s%s: show: %s, affiliation: %s, role: %s%s' % (arg,
-                        ' (%s)' % user.jid if user.jid else '',
+        theme = get_theme()
+        info = '\x19%s}%s\x19o%s: show: \x19%s}%s\x19o, affiliation: \x19%s}%s\x19o, role: \x19%s}%s\x19o%s' % (
+                        dump_tuple(user.color),
+                        arg,
+                        (' (\x19%s}%s\x19o)' % (dump_tuple(theme.COLOR_MUC_JID), user.jid)) if user.jid != '' else '',
+                        dump_tuple(theme.color_show(user.show)),
                         user.show or 'Available',
+                        dump_tuple(theme.color_role(user.role)),
                         user.affiliation or 'None',
+                        dump_tuple(theme.color_role(user.role)),
                         user.role or 'None',
                         '\n%s' % user.status if user.status else '')
         self.core.information(info, 'Info')
@@ -1070,7 +1076,7 @@ class MucTab(ChatTab):
         """
         if not arg.strip():
             self._text_buffer.add_message(_("\x19%s}The subject of the room is: %s") %
-                    (get_theme().COLOR_INFORMATION_TEXT[0], self.topic))
+                    (dump_tuple(get_theme().COLOR_INFORMATION_TEXT), self.topic))
             self.text_win.refresh()
             self.input.refresh()
             return
@@ -1083,10 +1089,10 @@ class MucTab(ChatTab):
         """
         if not self.joined:
             return
-        color_visitor = get_theme().COLOR_USER_VISITOR[0]
-        color_other = get_theme().COLOR_USER_NONE[0]
-        color_moderator = get_theme().COLOR_USER_MODERATOR[0]
-        color_participant = get_theme().COLOR_USER_PARTICIPANT[0]
+        color_visitor = dump_tuple(get_theme().COLOR_USER_VISITOR)
+        color_other = dump_tuple(get_theme().COLOR_USER_NONE)
+        color_moderator = dump_tuple(get_theme().COLOR_USER_MODERATOR)
+        color_participant = dump_tuple(get_theme().COLOR_USER_PARTICIPANT)
         visitors, moderators, participants, others = [], [], [], []
         aff = {
                 'owner': get_theme().CHAR_AFFILIATION_OWNER,
@@ -1110,16 +1116,16 @@ class MucTab(ChatTab):
         buff = ['Users: %s \n' % len(self.users)]
         for moderator in moderators:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_moderator,
-                    moderator[1],  moderator[0].color[0], moderator[0].nick))
+                    moderator[1],  dump_tuple(moderator[0].color), moderator[0].nick))
         for participant in participants:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_participant,
-                    participant[1],  participant[0].color[0], participant[0].nick))
+                    participant[1],  dump_tuple(participant[0].color), participant[0].nick))
         for visitor in visitors:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_visitor,
-                    visitor[1],  visitor[0].color[0], visitor[0].nick))
+                    visitor[1],  dump_tuple(visitor[0].color), visitor[0].nick))
         for other in others:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_other,
-                    other[1],  other[0].color[0], other[0].nick))
+                    other[1],  dump_tuple(other[0].color), other[0].nick))
         buff.append('\n')
         message = ' '.join(buff)
 
@@ -1434,13 +1440,19 @@ class MucTab(ChatTab):
                     if self.core.current_tab() == self and self.core.status.show not in ('xa', 'away'):
                         self.send_chat_state('active')
                     new_user.color = get_theme().COLOR_OWN_NICK
-                    self.add_message(_("\x19%(info_col)s}Your nickname is \x193}%(nick)s") % {'nick': from_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                    self.add_message(_("\x19%(info_col)s}Your nickname is \x19%(nick_col)s}%(nick)s") % {
+                        'nick': from_nick,
+                        'nick_col': dump_tuple(new_user.color),
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
                     if '201' in status_codes:
-                        self.add_message('\x19%(info_col)s}Info: The room has been created' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                        self.add_message('\x19%(info_col)s}Info: The room has been created' % {
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
                     if '170' in status_codes:
-                        self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                        self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
                     if '100' in status_codes:
-                        self.add_message('\x191}Warning: \x19%(info_col)s}This room is not anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                        self.add_message('\x191}Warning: \x19%(info_col)s}This room is not anonymous.' % {
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
                     if self.core.current_tab() is not self:
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
@@ -1491,12 +1503,14 @@ class MucTab(ChatTab):
 
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
-        self.add_message('\x19%(info_col)s}%You have been kicked because you are not a member and the room is now members-only.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.add_message('\x19%(info_col)s}%You have been kicked because you are not a member and the room is now members-only.' % {
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         self.disconnect()
 
     def on_muc_shutdown(self):
         """We have been kicked because the MUC service is shutting down"""
-        self.add_message('\x19%(info_col)s}%You have been kicked because the MUC service is shutting down.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.add_message('\x19%(info_col)s}%You have been kicked because the MUC service is shutting down.' % {
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         self.disconnect()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):
@@ -1508,11 +1522,16 @@ class MucTab(ChatTab):
         self.users.append(user)
         hide_exit_join = config.get_by_tabname('hide_exit_join', -1, self.general_jid, True)
         if hide_exit_join != 0:
-            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+            color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if not jid.full:
-                msg = '\x194}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} joined the room' % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                msg = '\x194}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} joined the room' % {
+                        'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_JOIN,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                msg = '\x194}%(spec)s \x19%(color)d}%(nick)s \x19%(info_col)s}(\x194}%(jid)s\x19%(info_col)s}) joined the room' % {'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                msg = '\x194}%(spec)s \x19%(color)s}%(nick)s \x19%(info_col)s}(\x19%(jid_color)s}%(jid)s\x19%(info_col)s}) joined the room' % {
+                        'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                        'jid_color': dump_tuple(get_theme().COLOR_MUC_JID)}
             self.add_message(msg)
         self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
@@ -1525,8 +1544,10 @@ class MucTab(ChatTab):
                 if isinstance(_tab, PrivateTab) and safeJID(_tab.get_name()).bare == self.name:
                     _tab.own_nick = new_nick
         user.change_nick(new_nick)
-        color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
-        self.add_message('\x19%(color)d}%(old)s\x19%(info_col)s} is now known as \x19%(color)d}%(new)s' % {'old':from_nick, 'new':new_nick, 'color':color, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+        self.add_message('\x19%(color)s}%(old)s\x19%(info_col)s} is now known as \x19%(color)s}%(new)s' % {
+            'old':from_nick, 'new':new_nick, 'color':color,
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         # rename the private tabs if needed
         self.core.rename_private_tabs(self.name, from_nick, new_nick)
 
@@ -1540,9 +1561,13 @@ class MucTab(ChatTab):
         by = by.attrib['jid'] if by is not None else None
         if from_nick == self.own_nick: # we are banned
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned by \x194}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned by \x194}%(by)s') % {
+                        'spec': get_theme().CHAR_KICK, 'by':by,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned.') % {'spec':get_theme().CHAR_KICK, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been banned.') % {
+                        'spec': get_theme().CHAR_KICK,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
@@ -1562,13 +1587,18 @@ class MucTab(ChatTab):
                         self.own_nick))
 
         else:
-            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+            color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
-                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} has been banned by \x194}%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has been banned by \x194}%(by)s') % {
+                        'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} has been banned') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has been banned') % {
+                        'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         if reason is not None and reason.text:
-            kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s\x19%(info_col)s}') % {'reason': reason.text, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s\x19%(info_col)s}') % {
+                    'reason': reason.text, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         self._text_buffer.add_message(kick_msg)
 
     def on_user_kicked(self, presence, user, from_nick):
@@ -1581,9 +1611,11 @@ class MucTab(ChatTab):
         by = by.attrib['jid'] if by is not None else None
         if from_nick == self.own_nick: # we are kicked
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked by \x193}%(by)s') % {'spec': get_theme().CHAR_KICK, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked by \x193}%(by)s') % {
+                        'spec': get_theme().CHAR_KICK, 'by':by,
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked.') % {'spec':get_theme().CHAR_KICK, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked.') % {'spec':get_theme().CHAR_KICK, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
@@ -1603,13 +1635,13 @@ class MucTab(ChatTab):
                         self.name,
                         self.own_nick))
         else:
-            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+            color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if by:
-                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} has been kicked by \x193}%(by)s') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has been kicked by \x193}%(by)s') % {'spec': get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'by':by, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                kick_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} has been kicked') % {'spec':get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has been kicked') % {'spec': get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         if reason is not None and reason.text:
-            kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s') % {'reason': reason.text, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s') % {'reason': reason.text, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         self.add_message(kick_msg)
 
     def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room):
@@ -1626,11 +1658,11 @@ class MucTab(ChatTab):
             self.core.doupdate()
         hide_exit_join = config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) if config.get_by_tabname('hide_exit_join', -1, self.general_jid, True) >= -1 else -1
         if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+            color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
             if not jid.full:
-                leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                leave_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'color':color, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             else:
-                leave_msg = _('\x191}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} (\x194}%(jid)s\x19%(info_col)s}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+                leave_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} (\x194}%(jid)s\x19%(info_col)s}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             if status:
                 leave_msg += ' (%s)' % status
             self.add_message(leave_msg)
@@ -1643,13 +1675,13 @@ class MucTab(ChatTab):
         # build the message
         display_message = False # flag to know if something significant enough
         # to be displayed has changed
-        color = user.color[0] if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
+        color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
         if from_nick == self.own_nick:
-            msg = _('\x193}You\x19%(info_col)s} changed: ') % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            msg = _('\x193}You\x19%(info_col)s} changed: ') % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         else:
-            msg = _('\x19%(color)d}%(nick)s\x19%(info_col)s} changed: ') % {'nick': from_nick, 'color': color, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            msg = _('\x19%(color)s}%(nick)s\x19%(info_col)s} changed: ') % {'nick': from_nick, 'color': color, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         if show not in SHOW_NAME:
-            self.core.information("%s from room %s sent an invalid show: %s" %\
+            self.core.information(_("%s from room %s sent an invalid show: %s") %\
                                       (from_nick, from_room, show), "Warning")
         if affiliation != user.affiliation:
             msg += _('affiliation: %s, ') % affiliation
@@ -1772,7 +1804,7 @@ class MucTab(ChatTab):
         nick_color = nick_color or None
         highlight = False
         if (not nickname or time) and not txt.startswith('/me '):
-            txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}
+            txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         else:                   # TODO
             highlight = self.do_highlight(txt, time, nickname)
         time = time or datetime.now()
@@ -2031,7 +2063,7 @@ class PrivateTab(ChatTab):
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+        self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         new_jid = safeJID(self.name).bare+'/'+new_nick
         self.name = new_jid
 
@@ -2042,9 +2074,9 @@ class PrivateTab(ChatTab):
         """
         self.deactivate()
         if not status_message:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         else:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
@@ -2058,8 +2090,8 @@ class PrivateTab(ChatTab):
         if tab and config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True):
             user = tab.get_user_by_name(nick)
             if user:
-                color = user.color[0]
-        self.add_message('\x194}%(spec)s \x19%(color)d}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                color = dump_tuple(user.color)
+        self.add_message('\x194}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
         return self.core.current_tab() is self
 
     def activate(self, reason=None):
@@ -2207,7 +2239,7 @@ class RosterInfoTab(Tab):
         if not tab:
             log.debug('Received message from nonexistent tab: %s', message['from'])
         message = '\x19%(info_col)s}Cannot send message to %(jid)s: contact blocked' % {
-                'info_col': get_theme().COLOR_INFORMATION_TEXT[0],
+                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                 'jid': message['from'],
             }
         tab.add_message(message)
@@ -3124,12 +3156,12 @@ class ConversationTab(ChatTab):
             msg = '\x19%s}The last activity of %s was %s ago%s'
             if not safeJID(from_).user:
                 msg = '\x19%s}The uptime of %s is %s.' % (
-                        get_theme().COLOR_INFORMATION_TEXT[0],
+                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                         from_,
                         common.parse_secs_to_str(seconds))
             else:
                 msg = '\x19%s}The last activity of %s was %s ago%s' % (
-                    get_theme().COLOR_INFORMATION_TEXT[0],
+                    dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                     from_,
                     common.parse_secs_to_str(seconds),
                     (' and his/her last status was %s' % status) if status else '',)
@@ -3147,7 +3179,7 @@ class ConversationTab(ChatTab):
         else:
             resource = contact.get_highest_priority_resource()
         if resource:
-            self._text_buffer.add_message("\x19%(info_col)s}Status: %(status)s\x193}" % {'status': resource.status, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]}, None, None, None, None, None)
+            self._text_buffer.add_message("\x19%(info_col)s}Status: %(status)s\x193}" % {'status': resource.status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, None, None, None, None, None)
             return True
 
     def command_attention(self, message=''):

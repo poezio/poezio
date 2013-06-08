@@ -77,6 +77,41 @@ class Theme(object):
     needs. Create a new theme and share it if you think it can be useful
     for others.
     """
+    @classmethod
+    def color_role(cls, role):
+        role_mapping = {
+            'moderator': cls.COLOR_USER_MODERATOR,
+            'participant': cls.COLOR_USER_PARTICIPANT,
+            'visitor': cls.COLOR_USER_VISITOR,
+            'none': cls.COLOR_USER_NONE,
+            '': cls.COLOR_USER_NONE
+        }
+        return role_mapping.get(role, cls.COLOR_USER_NONE)
+
+    @classmethod
+    def char_affiliation(cls, affiliation):
+        affiliation_mapping = {
+                'owner': cls.CHAR_AFFILIATION_OWNER,
+                'admin': cls.CHAR_AFFILIATION_ADMIN,
+                'member': cls.CHAR_AFFILIATION_MEMBER,
+                'none': cls.CHAR_AFFILIATION_NONE
+        }
+        return affiliation_mapping.get(affiliation, cls.CHAR_AFFILIATION_NONE)
+
+    @classmethod
+    def color_show(cls, show):
+        show_mapping = {
+                'xa': cls.COLOR_STATUS_XA,
+                'none': cls.COLOR_STATUS_NONE,
+                'dnd': cls.COLOR_STATUS_DND,
+                'away': cls.COLOR_STATUS_AWAY,
+                'chat': cls.COLOR_STATUS_CHAT,
+                '': cls.COLOR_STATUS_ONLINE,
+                'available': cls.COLOR_STATUS_ONLINE,
+                'unavailable': cls.COLOR_STATUS_UNAVAILABLE,
+        }
+        return show_mapping.get(show, cls.COLOR_STATUS_NONE)
+
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
     COLOR_INFORMATION_TEXT = (5, -1) # TODO
@@ -88,6 +123,9 @@ class Theme(object):
     # takes the nick colors and reverses it. A theme can still specify a
     # fixed color if need be.
     COLOR_HIGHLIGHT_NICK = "reverse"
+
+    # Color of the participant JID in a MUC
+    COLOR_MUC_JID = (4, -1)
 
     # User list color
     COLOR_USER_VISITOR = (239, -1)
@@ -265,6 +303,20 @@ def color_256_to_16(color):
     if color == -1:
         return color
     return table_256_to_16[color]
+
+def dump_tuple(tup):
+    """
+    Dump a tuple to a string of fg,bg,attr (optional)
+    """
+    return ','.join(str(i) for i in tup)
+
+def read_tuple(_str):
+    """
+    Read a tuple dumped with dump_tumple
+    """
+    attrs = _str.split(',')
+    char = attrs[2] if len(attrs) > 2 else None
+    return (int(attrs[0]), int(attrs[1])), char
 
 def to_curses_attr(color_tuple):
     """

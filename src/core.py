@@ -56,7 +56,7 @@ from roster import roster
 from contact import Contact, Resource
 from text_buffer import TextBuffer, CorrectionError
 from keyboard import keyboard
-from theming import get_theme
+from theming import get_theme, dump_tuple
 from fifo import Fifo
 from windows import g_lock
 from daemon import Executor
@@ -1349,7 +1349,7 @@ class Core(object):
         """
         args = arg.split()
         if not args:
-            color = get_theme().COLOR_HELP_COMMANDS[0]
+            color = dump_tuple(get_theme().COLOR_HELP_COMMANDS)
             acc = []
             buff = ['Global commands:']
             for command in self.commands:
@@ -3344,22 +3344,22 @@ class Core(object):
             modif = False
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
-                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
                 modif = True
             if show_unavailable:
-                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             elif hide_unavailable:
-                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             if non_anon:
-                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             elif semi_anon:
-                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             elif full_anon:
-                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             if logging_on:
-                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             elif logging_off:
-                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' % {'info_col': get_theme().COLOR_INFORMATION_TEXT[0]})
+                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             if modif:
                 self.refresh_window()
 
@@ -3376,11 +3376,11 @@ class Core(object):
         if nick_from:
             self.add_message_to_text_buffer(tab._text_buffer,
                     _("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
-                    {'info_col': get_theme().COLOR_INFORMATION_TEXT[0], 'nick':nick_from, 'subject':subject},
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
                     time=None)
         else:
             self.add_message_to_text_buffer(tab._text_buffer, _("\x19%(info_col)s}The subject is: %(subject)s") %
-                    {'subject':subject, 'info_col': get_theme().COLOR_INFORMATION_TEXT[0]},
+                    {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
                     time=None)
         tab.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
