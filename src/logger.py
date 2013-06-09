@@ -56,14 +56,17 @@ class Logger(object):
             return
         directory = os.path.join(DATA_HOME, 'logs')
         try:
-            makedirs(directory)
+            makedirs(directory, exist_ok=True)
         except OSError:
-            pass
+            import traceback
+            log.debug('Cannot create log directory "%s":\n%s', directory, traceback.format_exc())
         try:
             fd = open(os.path.join(directory, room), 'a')
             self.fds[room] = fd
             return fd
         except IOError:
+            import traceback
+            log.debug('Cannot open logfile %s:\n%s', room, traceback.format_exc())
             return
 
     def get_logs(self, jid, nb=10):

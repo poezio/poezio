@@ -372,7 +372,7 @@ def reload_theme():
                      'poezio', 'themes')
     themes_dir = os.path.expanduser(themes_dir)
     try:
-        os.makedirs(themes_dir)
+        os.makedirs(themes_dir, exist_ok=True)
     except OSError:
         pass
     theme_name = config.get('theme', 'default')
