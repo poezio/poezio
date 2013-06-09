@@ -72,7 +72,7 @@ Options
         Set the default browser started by the plugin
 
 .. _Unix FIFO: https://en.wikipedia.org/wiki/Named_pipe
-.. _daemon.py: http://gitweb.louiz.org/?p=poezio;a=blob_plain;f=src/daemon.py;hb=HEAD
+.. _daemon.py: http://dev.louiz.org/projects/poezio/repository/revisions/master/raw/src/daemon.py
 
 """
 import re
