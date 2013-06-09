@@ -1301,7 +1301,8 @@ class Core(object):
         # of the screen that the can occupy, and we draw the tab list
         # on the left remaining space
         if config.get('enable_vertical_tab_list', 'false') == 'true':
-            scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
+            with g_lock:
+                scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
         else:
             scr = self.stdscr
         tabs.Tab.resize(scr)
