@@ -1049,6 +1049,8 @@ class Core(object):
         tab = self.get_tab_by_name(jid, tabs.ConversationTab)
         if tab:
             tab.add_message(msg, typ=2)
+            if self.current_tab() is tab:
+                self.refresh_window()
 
 
 ####################### Curses and ui-related stuff ###########################
