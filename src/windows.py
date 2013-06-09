@@ -1829,6 +1829,8 @@ class RosterWin(Win):
                             for resource in contact.get_resources():
                                 self.roster_cache.append(resource)
                 roster.last_built = datetime.now()
+                if self.selected_row in self.roster_cache:
+                    self.pos = self.roster_cache.index(self.selected_row)
 
     def refresh(self, roster):
         """
@@ -1846,6 +1848,8 @@ class RosterWin(Win):
             y = 1
             group = "none"
             # draw the roster from the cache
+            if self.start_pos+self.height < self.pos:
+                self.start_pos = self.pos - (self.height//2)
             for item in self.roster_cache[self.start_pos-1:self.start_pos+self.height]:
 
                 draw_selected = False
