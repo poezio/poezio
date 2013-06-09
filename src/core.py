@@ -2652,6 +2652,7 @@ class Core(object):
         self.information(msg, 'Info')
         if 'invite' in config.get('beep_on', 'invite').split():
             curses.beep()
+        logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
         self.pending_invites[jid.bare] = inviter.full
 
     def on_groupchat_decline(self, decline):
@@ -2794,6 +2795,9 @@ class Core(object):
         else:
             contact.gaming = {}
 
+        if contact.gaming:
+            logger.log_roster_change(contact.bare_jid, 'is playing %s' % (common.format_gaming_string(contact.gaming)))
+
         if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', 'false', contact.bare_jid) == 'true':
             if contact.gaming:
                 self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
@@ -2823,6 +2827,9 @@ class Core(object):
                 contact.mood = ''
         else:
             contact.mood = ''
+
+        if contact.mood:
+            logger.log_roster_change(contact.bare_jid, 'has now the mood: %s' % contact.mood)
 
         if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', 'false', contact.bare_jid) == 'true':
             if contact.mood:
@@ -2860,6 +2867,9 @@ class Core(object):
         else:
             contact.activity = ''
 
+        if contact.activity:
+            logger.log_roster_change(contact.bare_jid, 'has now the activity %s' % contact.activity)
+
         if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', 'false', contact.bare_jid) == 'true':
             if contact.activity:
                 self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
@@ -2890,6 +2900,9 @@ class Core(object):
                 }
         else:
             contact.tune = {}
+
+        if contact.tune:
+            logger.log_roster_change(message['from'].bare, 'is now listening to %s' % common.format_tune_string(contact.tune))
 
         if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', 'false', contact.bare_jid) == 'true':
             if contact.tune:

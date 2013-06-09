@@ -156,7 +156,10 @@ class Logger(object):
             except IOError:
                 return False
         try:
-            self.roster_logfile.write('%s %s %s\n' % (datetime.now().strftime('%d-%m-%y [%H:%M:%S]'), jid, message))
+            str_time = datetime.now().strftime('%Y%m%dT%H%M%SZ')
+            message = clean_text(message)
+            lines = str(message.count('\n')).zfill(3)
+            self.roster_logfile.write('MI %s %s %s %s\n' % (str_time, lines, jid, message))
             self.roster_logfile.flush()
         except:
             return False
