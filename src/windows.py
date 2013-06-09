@@ -1418,11 +1418,11 @@ class Input(Win):
         if reset:
             self.reset_completion()
         self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
-        for i in range(len(key)):
-            if self.pos >= self.width-1:
-                self.line_pos += 1 # wcwidth.wcswidth(key)
-            else:
-                self.pos += 1 # wcwidth.wcswidth(key)
+        if self.pos + len(key) >= self.width - 1:
+            self.line_pos += self.pos + len(key) - (3*(self.width//4))
+            self.pos = 3*(self.width//4)
+        else:
+            self.pos += len(key)
         if reset:
             self.rewrite_text()
         if self.on_input:
