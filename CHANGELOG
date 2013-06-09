@@ -3,13 +3,21 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8 - dev
+- Imrpove the roster and the input (^R search, weechat-like
+  behaviour with long lines)
+- Add a way to send text with multiple styles at the
+  same time.
+- Background colors in themes are now fully supported (it
+  wasn’t for information text and nick colors, mostly)
+- The logs now use the mcabber format in order to improve tool
+  reuse (plus, our old log format wasn’t parsable).
 - The documentation now uses Sphinx/reST instead of AsciiDoc
 - Add User Tune/Nickname/Mood/Activity/Gaming support
 - More theming options
 - Add xml:lang support
 - Move to upstream sleekxmpp
 - Add support for XEP-0296 (best practices for resource locking)
-- Move the “config reload” signal to SIGUSR1
+- Move the “config reload” signal to SIGUSR1 instead of SIGHUP
 - Add a /disconnect command
 - New style and API for /help
 - Add a visual indicator of s2s errors in the roster
