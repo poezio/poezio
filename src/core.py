@@ -1003,7 +1003,7 @@ class Core(object):
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid)
         if tab: # display the message in private
-            tab.add_message(msg)
+            tab.add_message(msg, typ=2)
 
     def close_tab(self, tab=None):
         """
@@ -1048,7 +1048,7 @@ class Core(object):
         """
         tab = self.get_tab_by_name(jid, tabs.ConversationTab)
         if tab:
-            self.add_message_to_text_buffer(tab._text_buffer, msg)
+            tab.add_message(msg, typ=2)
 
 
 ####################### Curses and ui-related stuff ###########################
@@ -2728,24 +2728,24 @@ class Core(object):
         if replaced_id is not '' and (config.get_by_tabname(
             'group_corrections', 'true', jid.bare).lower() != 'false'):
             try:
-                conversation.modify_message(body, replaced_id, message['id'], jid=message['from'])
+                conversation.modify_message(body, replaced_id, message['id'], jid=message['from'],
+                        nickname=remote_nick)
                 replaced = True
             except CorrectionError:
                 pass
         if not replaced :
-            conversation._text_buffer.add_message(body, date,
+            conversation.add_message(body, date,
                     nickname=remote_nick,
                     nick_color=get_theme().COLOR_REMOTE_USER,
                     history=delayed,
                     identifier=message['id'],
-                    jid=message['from'])
+                    jid=message['from'],
+                    typ=1)
         if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
             else:
                 conversation.remote_wants_chatstates = False
-        if not logger.log_message(jid.bare, remote_nick, body):
-            self.information(_('Unable to write in the log file'), 'Error')
         if 'private' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', jid.bare, False).lower() != 'true':
                 curses.beep()
@@ -2932,12 +2932,13 @@ class Core(object):
         if replaced_id is not '' and (config.get_by_tabname(
             'group_corrections', 'true', message['from'].bare).lower() != 'false'):
             try:
-                if tab.modify_message(body, replaced_id, message['id'], date, nick_from, user):
+                if tab.modify_message(body, replaced_id, message['id'], time=date,
+                        nickname=nick_from, user=user):
                     self.events.trigger('highlight', message, tab)
                 replaced = True
             except CorrectionError:
                 pass
-        if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from']):
+        if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
             self.events.trigger('highlight', message, tab)
 
         if tab is self.current_tab():
@@ -2983,7 +2984,8 @@ class Core(object):
         if replaced_id is not '' and (config.get_by_tabname(
             'group_corrections', 'true', room_from).lower() != 'false'):
             try:
-                tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'])
+                tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
+                        nickname=nick_from)
                 replaced = True
             except CorrectionError:
                 pass
@@ -2991,7 +2993,8 @@ class Core(object):
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=user,
                             identifier=message['id'],
-                            jid=message['from'])
+                            jid=message['from'],
+                            typ=1)
         if tab.remote_wants_chatstates is None:
             if message['chat_state']:
                 tab.remote_wants_chatstates = True
@@ -3000,8 +3003,6 @@ class Core(object):
         if 'private' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', jid.full, False).lower() != 'true':
                 curses.beep()
-        if not logger.log_message(jid.full.replace('/', '\\'), nick_from, body):
-            self.information(_('Unable to write in the log file'), 'Error')
         if tab is self.current_tab():
             self.refresh_window()
         else:
@@ -3344,22 +3345,38 @@ class Core(object):
             modif = False
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
-                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
                 modif = True
             if show_unavailable:
-                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             elif hide_unavailable:
-                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             if non_anon:
-                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             elif semi_anon:
-                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             elif full_anon:
-                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             if logging_on:
-                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             elif logging_off:
-                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' %
+                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
             if modif:
                 self.refresh_window()
 
@@ -3374,14 +3391,15 @@ class Core(object):
         if not subject or not tab:
             return
         if nick_from:
-            self.add_message_to_text_buffer(tab._text_buffer,
-                    _("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+            tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
                     {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
-                    time=None)
+                    time=None,
+                    typ=2)
         else:
-            self.add_message_to_text_buffer(tab._text_buffer, _("\x19%(info_col)s}The subject is: %(subject)s") %
+            tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
                     {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                    time=None)
+                    time=None,
+                    typ=2)
         tab.topic = subject
         if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
             self.refresh_window()
@@ -3416,16 +3434,16 @@ class Core(object):
         """
         tab = self.get_tab_by_name(room_name)
         error_message = self.get_error_message(error)
-        tab._text_buffer.add_message(error_message, highlight=True, nickname='Error', nick_color=get_theme().COLOR_ERROR_MSG)
+        tab.add_message(error_message, highlight=True, nickname='Error', nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
         code = error['error']['code']
         if code == '401':
             msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
-            self.add_message_to_text_buffer(tab._text_buffer, msg)
+            tab.add_message(msg, typ=2)
         if code == '409':
             if config.get('alternative_nickname', '') != '':
                 self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
             else:
-                self.add_message_to_text_buffer(tab._text_buffer, _('You can join the room with an other nick, by typing "/join /other_nick"'))
+                tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
         self.refresh_window()
 
     def outgoing_stanza(self, stanza):

@@ -477,24 +477,27 @@ class ChatTab(Tab):
                         user='',
                         str_time=''
                         )
-    def log_message(self, txt, nickname, time=None):
+
+    def log_message(self, txt, nickname, time=None, typ=1):
         """
         Log the messages in the archives.
         """
-        if not logger.log_message(self.name, nickname, txt, date=time):
+        name = safeJID(self.name).bare
+        if not logger.log_message(name, nickname, txt, date=time, typ=typ):
             self.core.information(_('Unable to write in the log file'), 'Error')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None, jid=None):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None, jid=None, history=None, typ=1):
+        self.log_message(txt, nickname, time=time, typ=typ)
         self._text_buffer.add_message(txt, time=time,
                 nickname=nickname,
                 nick_color=nick_color,
-                history=None,
+                history=history,
                 user=forced_user,
                 identifier=identifier,
                 jid=jid)
 
-    def modify_message(self, txt, old_id, new_id, user=None, jid=None):
-        self.log_message(txt, self.name)
+    def modify_message(self, txt, old_id, new_id, user=None,jid=None, nickname=None):
+        self.log_message(txt, nickname, typ=1)
         message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user, jid=jid)
         if message:
             self.text_win.modify_message(old_id, message)
@@ -1037,7 +1040,7 @@ class MucTab(ChatTab):
                 msg = _("\x195}You left the chatroom (\x19o%s\x195})\x193}" % arg)
             else:
                 msg =_("\x195}You left the chatroom\x193}")
-            self.add_message(msg)
+            self.add_message(msg, typ=2)
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
@@ -1443,16 +1446,20 @@ class MucTab(ChatTab):
                     self.add_message(_("\x19%(info_col)s}Your nickname is \x19%(nick_col)s}%(nick)s") % {
                         'nick': from_nick,
                         'nick_col': dump_tuple(new_user.color),
-                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                        'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                        typ=2)
                     if '201' in status_codes:
                         self.add_message('\x19%(info_col)s}Info: The room has been created' % {
-                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                            typ=2)
                     if '170' in status_codes:
                         self.add_message('\x191}Warning: \x19%(info_col)s}this room is publicly logged' % {
-                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                            typ=2)
                     if '100' in status_codes:
                         self.add_message('\x191}Warning: \x19%(info_col)s}This room is not anonymous.' % {
-                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                            typ=2)
                     if self.core.current_tab() is not self:
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
@@ -1504,13 +1511,15 @@ class MucTab(ChatTab):
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
         self.add_message('\x19%(info_col)s}%You have been kicked because you are not a member and the room is now members-only.' % {
-            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+            typ=2)
         self.disconnect()
 
     def on_muc_shutdown(self):
         """We have been kicked because the MUC service is shutting down"""
         self.add_message('\x19%(info_col)s}%You have been kicked because the MUC service is shutting down.' % {
-            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+            typ=2)
         self.disconnect()
 
     def on_user_join(self, from_nick, affiliation, show, status, role, jid):
@@ -1532,7 +1541,7 @@ class MucTab(ChatTab):
                         'spec':get_theme().CHAR_JOIN, 'nick':from_nick, 'color':color, 'jid':jid.full,
                         'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                         'jid_color': dump_tuple(get_theme().COLOR_MUC_JID)}
-            self.add_message(msg)
+            self.add_message(msg, typ=2)
         self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
@@ -1547,7 +1556,8 @@ class MucTab(ChatTab):
         color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
         self.add_message('\x19%(color)s}%(old)s\x19%(info_col)s} is now known as \x19%(color)s}%(new)s' % {
             'old':from_nick, 'new':new_nick, 'color':color,
-            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+            typ=2)
         # rename the private tabs if needed
         self.core.rename_private_tabs(self.name, from_nick, new_nick)
 
@@ -1642,7 +1652,7 @@ class MucTab(ChatTab):
                 kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} has been kicked') % {'spec': get_theme().CHAR_KICK, 'nick':from_nick, 'color':color, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         if reason is not None and reason.text:
             kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s') % {'reason': reason.text, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
-        self.add_message(kick_msg)
+        self.add_message(kick_msg, typ=2)
 
     def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room):
         """
@@ -1665,7 +1675,7 @@ class MucTab(ChatTab):
                 leave_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} (\x194}%(jid)s\x19%(info_col)s}) has left the room') % {'spec':get_theme().CHAR_QUIT, 'nick':from_nick, 'color':color, 'jid':jid.full, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             if status:
                 leave_msg += ' (%s)' % status
-            self.add_message(leave_msg)
+            self.add_message(leave_msg, typ=2)
         self.core.on_user_left_private_conversation(from_room, from_nick, status)
 
     def on_user_change_status(self, user, from_nick, from_room, affiliation, role, show, status):
@@ -1739,13 +1749,13 @@ class MucTab(ChatTab):
         """
         return self.topic.replace('\n', '|')
 
-    def log_message(self, txt, nickname, time=None):
+    def log_message(self, txt, nickname, time=None, typ=1):
         """
         Log the messages in the archives, if it needs
         to be
         """
         if time is None and self.joined:        # don't log the history messages
-            if not logger.log_message(self.name, nickname, txt):
+            if not logger.log_message(self.name, nickname, txt, typ=typ):
                 self.core.information(_('Unable to write in the log file'), 'Error')
 
     def do_highlight(self, txt, time, nickname):
@@ -1782,37 +1792,37 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, history=None, identifier=None, jid=None):
+    def add_message(self, txt, time=None, nickname=None, **kwargs):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
         in the room anymore
         Return True if the message highlighted us. False otherwise.
         """
-        self.log_message(txt, nickname, time=time)
+        self.log_message(txt, nickname, time=time, typ=kwargs.get('typ', 1))
+        args = {key: value for key, value in kwargs.items() if key not in ('typ', 'forced_user')}
         user = self.get_user_by_name(nickname) if nickname is not None else None
         if user:
             user.set_last_talked(datetime.now())
-        if not user and forced_user:
-            user = forced_user
+            args['user'] = user
+        if not user and kwargs.get('forced_user'):
+            args['user'] = kwargs['forced_user']
         if not time and nickname and\
                 nickname != self.own_nick and\
                     self.state != 'current':
             if self.state != 'highlight' and\
                     config.get_by_tabname('notify_messages', 'true', self.get_name()) == 'true':
                 self.state = 'message'
-        nick_color = nick_color or None
-        highlight = False
         if (not nickname or time) and not txt.startswith('/me '):
             txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
-        else:                   # TODO
-            highlight = self.do_highlight(txt, time, nickname)
+        elif not kwargs.get('highlight'):                   # TODO
+            args['highlight'] = self.do_highlight(txt, time, nickname)
         time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, nick_color, history, user, highlight=highlight, identifier=identifier, jid=jid)
-        return highlight
+        self._text_buffer.add_message(txt, time, nickname, **args)
+        return args.get('highlight', False)
 
     def modify_message(self, txt, old_id, new_id, time=None, nickname=None, user=None, jid=None):
-        self.log_message(txt, nickname, time=time)
+        self.log_message(txt, nickname, time=time, typ=1)
         highlight = self.do_highlight(txt, time, nickname)
         message = self._text_buffer.modify_message(txt, old_id, new_id, highlight=highlight, time=time, user=user, jid=jid)
         if message:
@@ -1863,6 +1873,13 @@ class PrivateTab(ChatTab):
     def general_jid(self):
         return self.get_name()
 
+    def log_message(self, txt, nickname, time=None, typ=1):
+        """
+        Log the messages in the archives.
+        """
+        if not logger.log_message(self.name, nickname, txt, date=time, typ=typ):
+            self.core.information(_('Unable to write in the log file'), 'Error')
+
     def on_close(self):
         self.parent_muc.privates.remove(self)
 
@@ -1894,8 +1911,6 @@ class PrivateTab(ChatTab):
         msg = self.core.xmpp.make_message(self.get_name())
         msg['type'] = 'chat'
         msg['body'] = line
-        if not logger.log_message(self.get_name().replace('/', '\\'), self.own_nick, line):
-            self.core.information(_('Unable to write in the log file'), 'Error')
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
@@ -1906,7 +1921,8 @@ class PrivateTab(ChatTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'], user=user, jid=self.core.xmpp.boundjid)
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'],
+                            user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
                     replaced = True
                 except:
                     pass
@@ -1917,7 +1933,8 @@ class PrivateTab(ChatTab):
                     forced_user=user,
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid)
+                    jid=self.core.xmpp.boundjid,
+                    typ=1)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -2063,7 +2080,7 @@ class PrivateTab(ChatTab):
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+        self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         new_jid = safeJID(self.name).bare+'/'+new_nick
         self.name = new_jid
 
@@ -2074,9 +2091,9 @@ class PrivateTab(ChatTab):
         """
         self.deactivate()
         if not status_message:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         else:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
@@ -2091,18 +2108,18 @@ class PrivateTab(ChatTab):
             user = tab.get_user_by_name(nick)
             if user:
                 color = dump_tuple(user.color)
-        self.add_message('\x194}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+        self.add_message('\x194}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         return self.core.current_tab() is self
 
     def activate(self, reason=None):
         self.on = True
         if reason:
-            self.add_message(txt=reason)
+            self.add_message(txt=reason, typ=2)
 
     def deactivate(self, reason=None):
         self.on = False
         if reason:
-            self.add_message(txt=reason)
+            self.add_message(txt=reason, typ=2)
 
     def matching_names(self):
         return [safeJID(self.get_name()).resource]
@@ -3108,7 +3125,8 @@ class ConversationTab(ChatTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid)
+                    self.modify_message(line, self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
+                            nickname=self.core.own_nick)
                     replaced = True
                 except:
                     pass
@@ -3117,7 +3135,8 @@ class ConversationTab(ChatTab):
                     nickname=self.core.own_nick,
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid)
+                    jid=self.core.xmpp.boundjid,
+                    typ=1)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -3130,8 +3149,6 @@ class ConversationTab(ChatTab):
         self.core.events.trigger('conversation_say_after', msg, self)
         self.last_sent_message = msg
         msg.send()
-        if not logger.log_message(safeJID(self.get_dest_jid()).bare, self.core.own_nick, line):
-            self.core.information(_('Unable to write in the log file'), 'Error')
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()

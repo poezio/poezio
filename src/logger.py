@@ -103,10 +103,13 @@ class Logger(object):
         logs = reads[-nb:]
         return logs
 
-    def log_message(self, jid, nick, msg, date=None):
+    def log_message(self, jid, nick, msg, date=None, typ=1):
         """
         log the message in the appropriate jid's file
+        type: 1 = Message
+              2 = Status/whatever
         """
+        jid = str(jid).replace('/', '\\')
         if config.get_by_tabname('use_log', 'false', jid) != 'true':
             return True
         if jid in self.fds.keys():
@@ -118,13 +121,20 @@ class Logger(object):
         try:
             msg = clean_text(msg)
             if date is None:
-                str_time = datetime.now().strftime('%d-%m-%y [%H:%M:%S] ')
+                str_time = datetime.now().strftime('%Y%m%dT%H%M%SZ')
             else:
-                str_time = date.strftime('%d-%m-%y [%H:%M:%S] ')
+                str_time = date.strftime('%Y%m%dT%H%M%SZ')
+            if typ == 1:
+                prefix = 'MR'
+            else:
+                prefix = 'MI'
+            lines = msg.count('\n')
+            lines = str(lines).zfill(3)
             if nick:
-                fd.write(''.join((str_time, nick, ': ', msg, '\n')))
+                nick = '<' + nick + '>'
+                fd.write(' '.join((prefix, str_time, lines, nick, msg, '\n')))
             else:
-                fd.write(''.join((str_time,  '* ', msg, '\n')))
+                fd.write(' '.join((prefix, str_time, lines, msg, '\n')))
         except:
             return False
         else:
