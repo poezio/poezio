@@ -111,6 +111,23 @@ section of this documentation.
         The fingerprint of the SSL certificate as a hexadecimal string, you should
         not touch it, except if know what you are doing.
 
+    connection_check_interval
+
+        **Default value:** ``60``
+
+        A ping is sent to the server every N seconds, N being the value of that option.
+        Change this to a low value if you want to know quickly when you are disconnected,
+        and to a very high value if bandwidth matters so much that you can’t afford
+        100 bytes/minute (seriously?).
+
+    connection_timeout_delay
+
+        **Default value:** ``10``
+
+        The timeout delay of the ping referenced above, 10 should really be fine, but
+        if your network is really unstable, it can be set higher or lower, depending
+        of your preference.
+
     custom_host
 
         **Default value:** ``[empty]``
