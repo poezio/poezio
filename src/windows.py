@@ -166,7 +166,7 @@ class Win(object):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
-            if attr_char in string.digits and attr_char != '':
+            if (attr_char in string.digits or attr_char == '-') and attr_char != '':
                 color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
                 if ',' in color_str:
                     tup, char = read_tuple(color_str)
