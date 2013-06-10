@@ -169,6 +169,13 @@ section of this documentation.
         If set to true, the color of the nick will be used in MUCs information
         messages, instead of the default color from the theme.
 
+    enable_carbons
+
+        **Default value:** ``false``
+
+        Set this to ``true`` to enable Message Carbons (XEP-280), which allows transparent message
+        delivery from and to other resources with carbons enabled.
+
     enable_user_activity
 
         **Default value:** ``true``

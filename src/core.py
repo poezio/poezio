@@ -237,6 +237,7 @@ class Core(object):
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
         self.xmpp.add_event_handler('no_auth', self.on_failed_auth)
         self.xmpp.add_event_handler("session_start", self.on_session_start)
+        self.xmpp.add_event_handler("session_start", self.on_session_start_features)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invite)
@@ -262,6 +263,7 @@ class Core(object):
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
         self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
+        self.xmpp.register_handler(self.all_stanzas)
         if config.get('enable_user_tune', 'true') != 'false':
             self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
         if config.get('enable_user_nick', 'true') != 'false':
@@ -272,7 +274,6 @@ class Core(object):
             self.xmpp.add_event_handler("user_activity_publish", self.on_activity_event)
         if config.get('enable_user_gaming', 'true') != 'false':
             self.xmpp.add_event_handler("user_gaming_publish", self.on_gaming_event)
-        self.xmpp.register_handler(self.all_stanzas)
 
         self.initial_joins = []
 
@@ -2636,6 +2637,49 @@ class Core(object):
 
 ####################### XMPP Event Handlers  ##################################
 
+    def on_session_start_features(self, _):
+        """
+        Enable carbons & blocking on session start if wanted and possible
+        """
+        def callback(iq):
+            if not iq:
+                return
+            features = iq['disco_info']['features']
+            rostertab = self.get_tab_by_name('Roster')
+            rostertab.check_blocking(features)
+            if (config.get('enable_carbons', 'true').lower() != 'false' and
+                    'urn:xmpp:carbons:2' in features):
+                self.xmpp.plugin['xep_0280'].enable()
+                self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
+                self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
+        features = self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain, callback=callback, block=False)
+
+    def on_carbon_received(self, message):
+        recv = message['carbon_received']
+        if recv['from'].bare not in roster or roster[recv['from'].bare].subscription == 'none':
+            try:
+                if self.xmpp.plugin['xep_0030'].has_identity(jid=recv['from'].server, category="conference"):
+                    return
+            except:
+                pass
+            else:
+                return
+        recv['to'] = self.xmpp.boundjid.full
+        self.on_normal_message(recv)
+
+    def on_carbon_sent(self, message):
+        sent = message['carbon_sent']
+        if sent['to'].bare not in roster or roster[sent['to'].bare].subscription == 'none':
+            try:
+                if self.xmpp.plugin['xep_0030'].has_identity(jid=sent['to'].server, category="conference"):
+                    return
+            except:
+                pass
+            else:
+                return
+        sent['from'] = self.xmpp.boundjid.full
+        self.on_normal_message(sent)
+
     ### Invites ###
 
     def on_groupchat_invite(self, message):
@@ -2686,72 +2730,80 @@ class Core(object):
         """
         When receiving "normal" messages (from someone in our roster)
         """
-        jid = message['from']
-
-
-        # check for a name
-        if jid.bare in roster:
-            remote_nick = roster[jid.bare].name
-        else:
-            remote_nick = ''
-        # check for a received nick
-        if not remote_nick and config.get('enable_user_nick', 'true') != 'false':
-            if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
-                remote_nick = message['nick']['nick']
-        # bind the nick to the conversation
-        conversation = self.get_conversation_by_jid(jid, create=False)
-        if conversation and remote_nick and jid.bare not in roster:
-            conversation.nick = remote_nick
-
-        body = xhtml.get_body_from_message_stanza(message)
         if message['type'] == 'error':
             return self.information(self.get_error_message(message, deprecated=True), 'Error')
         elif message['type'] == 'headline' and message['body']:
             return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
-        if not body:
-            return
-        conversation = self.get_conversation_by_jid(jid, create=True)
 
-        if not remote_nick and conversation.nick:
-            remote_nick = conversation.nick
-        elif jid.bare not in roster and remote_nick:
-            conversation.nick = remote_nick
-        elif not remote_nick:
-            remote_nick = jid.user
-
-        self.events.trigger('conversation_msg', message, conversation)
         body = xhtml.get_body_from_message_stanza(message)
         if not body:
             return
+
+        remote_nick = ''
+        # normal message, we are the recipient
+        if message['to'].bare == self.xmpp.boundjid.bare:
+            conv_jid = message['from']
+            jid = conv_jid
+            color = get_theme().COLOR_REMOTE_USER
+            # check for a name
+            if conv_jid.bare in roster:
+                remote_nick = roster[conv_jid.bare].name
+            # check for a received nick
+            if not remote_nick and config.get('enable_user_nick', 'true') != 'false':
+                if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
+                    remote_nick = message['nick']['nick']
+        # we wrote the message (happens with carbons)
+        elif message['from'].bare == self.xmpp.boundjid.bare:
+            conv_jid = message['to']
+            jid = self.xmpp.boundjid
+            color = get_theme().COLOR_OWN_NICK
+            remote_nick = self.own_nick
+        # we are not part of that message, drop it
+        else:
+            return
+
+        conversation = self.get_conversation_by_jid(conv_jid, create=True)
         if isinstance(conversation, tabs.DynamicConversationTab):
-            conversation.lock(jid.resource)
+            conversation.lock(conv_jid.resource)
+
+        if not remote_nick and conversation.nick:
+            remote_nick = conversation.nick
+        elif not remote_nick:
+            remote_nick = jid.user
         conversation.nick = remote_nick
+
+        self.events.trigger('conversation_msg', message, conversation)
+        body = xhtml.get_body_from_message_stanza(message)
         delayed, date = common.find_delayed_tag(message)
-        replaced_id = message['replace']['id']
-        replaced = False
-        if replaced_id is not '' and (config.get_by_tabname(
-            'group_corrections', 'true', jid.bare).lower() != 'false'):
-            try:
-                conversation.modify_message(body, replaced_id, message['id'], jid=message['from'],
-                        nickname=remote_nick)
-                replaced = True
-            except CorrectionError:
-                pass
-        if not replaced :
+
+        def try_modify():
+            replaced_id = message['replace']['id']
+            if replaced_id and (config.get_by_tabname('group_corrections',
+                'true', conv_jid.bare).lower() != 'false'):
+                try:
+                    conversation.modify_message(body, replaced_id, message['id'], jid=jid,
+                            nickname=remote_nick)
+                    return True
+                except CorrectionError:
+                    pass
+            return False
+
+        if not try_modify():
             conversation.add_message(body, date,
                     nickname=remote_nick,
-                    nick_color=get_theme().COLOR_REMOTE_USER,
+                    nick_color=color,
                     history=delayed,
                     identifier=message['id'],
-                    jid=message['from'],
+                    jid=jid,
                     typ=1)
+
         if conversation.remote_wants_chatstates is None and not delayed:
             if message['chat_state']:
                 conversation.remote_wants_chatstates = True
             else:
                 conversation.remote_wants_chatstates = False
         if 'private' in config.get('beep_on', 'highlight private').split():
-            if config.get_by_tabname('disable_beep', 'false', jid.bare, False).lower() != 'true':
+            if config.get_by_tabname('disable_beep', 'false', conv_jid.bare, False).lower() != 'true':
                 curses.beep()
         if self.current_tab() is not conversation:
             conversation.state = 'private'

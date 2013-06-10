@@ -101,6 +101,8 @@ class Connection(sleekxmpp.ClientXMPP):
         if config.get('send_time', 'true') == 'true':
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
+        self.register_plugin('xep_0280')
+        self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')
 
     def start(self):

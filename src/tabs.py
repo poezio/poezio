@@ -2220,19 +2220,12 @@ class RosterInfoTab(Tab):
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.core.completion_last_activity)
-        self.core.xmpp.add_event_handler('session_start',
-                lambda event: self.core.xmpp.plugin['xep_0030'].get_info(
-                    jid=self.core.xmpp.boundjid.domain,
-                    block=False, timeout=5, callback=self.check_blocking)
-                )
         self.resize()
         self.update_commands()
         self.update_keys()
 
-    def check_blocking(self, iq):
-        if iq['type'] == 'error':
-            return
-        if 'urn:xmpp:blocking' in iq['disco_info'].get_features():
+    def check_blocking(self, features):
+        if 'urn:xmpp:blocking' in features:
             self.register_command('block', self.command_block,
                     usage=_('[jid]'),
                     shortdesc=_('Prevent a JID from talking to you.'),
