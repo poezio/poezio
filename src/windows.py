@@ -1742,9 +1742,12 @@ class RosterWin(Win):
         Win.__init__(self)
         self.pos = 0            # cursor position in the contact list
         self.start_pos = 1      # position of the start of the display
-        self.roster_len = 0
         self.selected_row = None
         self.roster_cache = []
+
+    @property
+    def roster_len(self):
+        return len(self.roster_cache)
 
     def move_cursor_down(self, number=1):
         """
@@ -1809,28 +1812,36 @@ class RosterWin(Win):
         with g_lock:
             if roster.needs_rebuild:
                 log.debug('The roster has changed, rebuilding the cache…')
-                show_offline = config.get('roster_show_offline', 'false') == 'true'
-                sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-                group_sort = config.get('roster_group_sort', 'name') or 'name'
-                self.roster_cache = []
-                # build the cache
-                for group in roster.get_groups(group_sort):
-                    contacts_filtered = group.get_contacts(roster.contact_filter)
-                    if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
-                        continue    # Ignore empty groups
-                    self.roster_cache.append(group)
-                    if group.folded:
-                        continue # ignore folded groups
-                    for contact in group.get_contacts(roster.contact_filter, sort):
-                        if not show_offline and len(contact) == 0:
-                            continue # ignore offline contacts
+                # This is a search
+                if roster.contact_filter:
+                    self.roster_cache = []
+                    sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+                    for contact in roster.get_contacts_sorted_filtered(sort):
                         self.roster_cache.append(contact)
-                        if not contact.folded(group.name):
-                            for resource in contact.get_resources():
-                                self.roster_cache.append(resource)
+                else:
+                    show_offline = config.get('roster_show_offline', 'false') == 'true' or roster.contact_filter
+                    sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+                    group_sort = config.get('roster_group_sort', 'name') or 'name'
+                    self.roster_cache = []
+                    # build the cache
+                    for group in roster.get_groups(group_sort):
+                        contacts_filtered = group.get_contacts(roster.contact_filter)
+                        if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
+                            continue    # Ignore empty groups
+                        self.roster_cache.append(group)
+                        if group.folded:
+                            continue # ignore folded groups
+                        for contact in group.get_contacts(roster.contact_filter, sort):
+                            if not show_offline and len(contact) == 0:
+                                continue # ignore offline contacts
+                            self.roster_cache.append(contact)
+                            if not contact.folded(group.name):
+                                for resource in contact.get_resources():
+                                    self.roster_cache.append(resource)
                 roster.last_built = datetime.now()
                 if self.selected_row in self.roster_cache:
-                    self.pos = self.roster_cache.index(self.selected_row)
+                    if self.pos < self.roster_len and self.roster_cache[self.pos] != self.selected_row:
+                        self.pos = self.roster_cache.index(self.selected_row)
 
     def refresh(self, roster):
         """
@@ -1840,16 +1851,17 @@ class RosterWin(Win):
         log.debug('Refresh: %s',self.__class__.__name__)
         self.build_roster_cache(roster)
         with g_lock:
-            self.roster_len = len(roster);
-            self.move_cursor_up(self.roster_len + self.pos if self.pos >= self.roster_len else 0)
+            # make sure we are within bounds
+            self.move_cursor_up((self.roster_len + self.pos) if self.pos >= self.roster_len else 0)
             self._win.erase()
             self._win.move(0, 0)
             self.draw_roster_information(roster)
             y = 1
             group = "none"
+            # scroll down if needed
+            if self.start_pos+self.height <= self.pos+2:
+                self.scroll_down(self.pos - self.start_pos - self.height + (self.height//2))
             # draw the roster from the cache
-            if self.start_pos+self.height < self.pos:
-                self.start_pos = self.pos - (self.height//2)
             for item in self.roster_cache[self.start_pos-1:self.start_pos+self.height]:
 
                 draw_selected = False
@@ -1887,7 +1899,7 @@ class RosterWin(Win):
         """
         self.addstr('Roster: %s/%s contacts' % (
             roster.get_nb_connected_contacts(),
-            len(roster.contacts))
+            len(roster))
             ,to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 

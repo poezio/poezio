@@ -115,8 +115,6 @@ class Roster(object):
                 key=lambda x: x.name.lower() if x.name else ''
             )
 
-        log.debug("Current groups: %s", group_list)
-
         for sorting in sort.split(':'):
             if sorting == 'reverse':
                 group_list = list(reversed(group_list))
@@ -144,6 +142,28 @@ class Roster(object):
         Return a list of all the contacts
         """
         return [self[jid] for jid in self.jids()]
+
+    def get_contacts_sorted_filtered(self, sort=''):
+        """
+        Return a list of all the contacts sorted with a criteria
+        """
+        contact_list = []
+        for contact in self.get_contacts():
+            if contact.bare_jid != self.jid:
+                if self.contact_filter:
+                    if self.contact_filter[0](contact, self.contact_filter[1]):
+                        contact_list.append(contact)
+                else:
+                    contact_list.append(contact)
+        contact_list = sorted(contact_list, key=SORTING_METHODS['name'])
+
+        for sorting in sort.split(':'):
+            if sorting == 'reverse':
+                contact_list = list(reversed(contact_list))
+            else:
+                method = SORTING_METHODS.get(sorting, lambda x: 0)
+                contact_list = sorted(contact_list, key=method)
+        return contact_list
 
     def save_to_config_file(self):
         """
@@ -184,28 +204,11 @@ class Roster(object):
 
     def __len__(self):
         """
-        Return the number of line that would be printed
-        for the whole roster
+        Return the number of contacts
+        (used to return the display size, but now we have
+        the display cache in RosterWin for that)
         """
-        length = 0
-        show_offline = config.get('roster_show_offline', 'false') == 'true'
-        for group in self.groups.values():
-            if not show_offline and group.get_nb_connected_contacts() == 0:
-                continue
-            before = length
-            if not group.name in self.folded_groups:
-                for contact in group.get_contacts(self.contact_filter):
-                    # We do not count the offline contacts (depending on config)
-                    if not show_offline and\
-                            len(contact) == 0:
-                        continue
-                    length += 1      # One for the contact's line
-                    if not contact.folded(group.name):
-                        # One for each resource, if the contact is unfolded
-                        length += len(contact)
-            if not self.contact_filter or before != length:
-                length += 1              # One for the group's line itself if needed
-        return length
+        return len(self.contacts)
 
     def __repr__(self):
         ret = '== Roster:\nContacts:\n'

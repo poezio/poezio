@@ -3012,6 +3012,8 @@ class RosterInfoTab(Tab):
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
         self.input.resize(1, self.width, self.height-1, 0)
         self.input.disable_history()
+        roster.modified()
+        self.refresh()
         return True
 
     @refresh_wrapper.always
@@ -3024,11 +3026,13 @@ class RosterInfoTab(Tab):
 
     def set_roster_filter_slow(self, txt):
         roster.contact_filter = (jid_and_name_match_slow, txt)
+        roster.modified()
         self.refresh()
         return False
 
     def set_roster_filter(self, txt):
         roster.contact_filter = (jid_and_name_match, txt)
+        roster.modified()
         self.refresh()
         return False
 
@@ -3037,6 +3041,7 @@ class RosterInfoTab(Tab):
         curses.curs_set(0)
         roster.contact_filter = None
         self.reset_help_message()
+        roster.modified()
         return False
 
     def on_close(self):
@@ -3851,12 +3856,12 @@ def jid_and_name_match(contact, txt):
     """
     Match jid with text precisely
     """
-    roster.modified()
     if not txt:
         return True
-    if txt in safeJID(contact.bare_jid).user:
+    txt = txt.lower()
+    if txt in safeJID(contact.bare_jid).bare.lower():
         return True
-    if txt in contact.name:
+    if txt in contact.name.lower():
         return True
     return False
 
@@ -3865,10 +3870,9 @@ def jid_and_name_match_slow(contact, txt):
     A function used to know if a contact in the roster should
     be shown in the roster
     """
-    roster.modified()
     if not txt:
         return True             # Everything matches when search is empty
-    user = safeJID(contact.bare_jid).user
+    user = safeJID(contact.bare_jid).bare
     if diffmatch(txt, user):
         return True
     if contact.name and diffmatch(txt, contact.name):
