@@ -41,6 +41,8 @@ class Resource(object):
     def presence(self):
         return self._data.get('show') or ''
 
+    show = presence
+
     @property
     def status(self):
         return self._data.get('status') or ''

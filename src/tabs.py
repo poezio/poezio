@@ -3189,13 +3189,22 @@ class ConversationTab(ChatTab):
     def command_info(self, arg):
         contact = roster[self.get_dest_jid()]
         jid = safeJID(self.get_dest_jid())
-        if jid.resource:
-            resource = contact[jid.full]
+        if contact:
+            if jid.resource:
+                resource = contact[jid.full]
+            else:
+                resource = contact.get_highest_priority_resource()
         else:
-            resource = contact.get_highest_priority_resource()
+            resource = None
         if resource:
-            self._text_buffer.add_message("\x19%(info_col)s}Status: %(status)s\x193}" % {'status': resource.status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, None, None, None, None, None)
+            status = (_('Status : %s') % resource.status) if resource.status else ''
+            self._text_buffer.add_message("\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
+                'show': resource.show or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
+        else:
+            self._text_buffer.add_message("\x19%(info_col)s}No information available\x19o" % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            return True
+
 
     def command_attention(self, message=''):
         if message is not '':
