@@ -13,6 +13,7 @@ from/to the config file
 DEFSECTION = "Poezio"
 
 from gettext import gettext as _
+import sys
 
 import logging
 log = logging.getLogger(__name__)
@@ -259,4 +260,10 @@ if not path.isfile(options.filename):
         copy2(other, options.filename)
     firstrun = True
 
-config = Config(options.filename)
+try:
+    config = Config(options.filename)
+except:
+    import traceback
+    sys.stderr.write('Poezio was unable to read or parse the config file.\n')
+    traceback.print_exc(limit=0)
+    sys.exit(1)
