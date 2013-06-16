@@ -59,7 +59,7 @@ class Plugin(BasePlugin):
         """/tell <nick> <message>"""
         arg = common.shell_split(args)
         if len(arg) != 2:
-            self.command_help('tell')
+            self.core.command_help('tell')
             return
         nick, msg = arg
         tab = self.api.current_tab()
