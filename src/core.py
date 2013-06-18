@@ -370,7 +370,18 @@ class Core(object):
         log.debug("Theme reloaded.")
         # reload the config from the disk
         log.debug("Reloading the config…")
-        config.__init__(config.file_name)
+        # Copy the old config in a dict
+        old_config = config.to_dict()
+        config.read_file(config.file_name)
+        # Compare old and current config, to trigger the callbacks of all
+        # modified options
+        for section in config.sections():
+            old_section = old_config.get(section, {})
+            for option in config.options(section):
+                old_value = old_section.get(option)
+                new_value = config.get(option, "", section)
+                if new_value != old_value:
+                    self.trigger_configuration_change(option, new_value)
         log.debug("Config reloaded.")
         # in case some roster options have changed
         roster.modified()

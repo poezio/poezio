@@ -30,10 +30,13 @@ class Config(RawConfigParser):
     load/save the config to a file
     """
     def __init__(self, file_name):
-        self.file_name = file_name
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
         self.optionxform = str
+        self.read_file(file_name)
+
+    def read_file(self, file_name):
+        self.file_name = file_name
         try:
             RawConfigParser.read(self, file_name, encoding='utf-8')
         except TypeError: # python < 3.2 sucks
@@ -175,8 +178,6 @@ class Config(RawConfigParser):
             result_lines.append('%s = %s' % (option, value))
         elif not written:
             result_lines.append('%s = %s' % (option, value))
-
-
         try:
             df = open(self.file_name, 'w', encoding='utf-8')
             for line in result_lines:
@@ -233,6 +234,16 @@ class Config(RawConfigParser):
         except NoSectionError:
             pass
 
+    def to_dict(self):
+        """
+        Returns a dict of the form {section: {option: value, option: value}, …}
+        """
+        res = {}
+        for section in self.sections():
+            res[section] = {}
+            for option in self.options(section):
+                res[section][option] = self.get(option, "", section)
+        return res
 
 firstrun = False
 
