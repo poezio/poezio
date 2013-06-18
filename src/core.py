@@ -3511,7 +3511,8 @@ class Core(object):
             if config.get('alternative_nickname', '') != '':
                 self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
             else:
-                tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
+                if not tab.joined:
+                    tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
         self.refresh_window()
 
     def outgoing_stanza(self, stanza):
