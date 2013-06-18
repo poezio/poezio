@@ -283,6 +283,77 @@ class Core(object):
 
         self.pending_invites = {}
 
+        # a dict of the form {'config_option': [list, of, callbacks]}
+        # Whenever a configuration option is changed (using /set or by
+        # reloading a new config using a signal), all the associated
+        # callbacks are triggered.
+        # Use Core.add_configuration_handler("option", callback) to add a
+        # handler
+        # Note that the callback will be called when it’s changed in the global section, OR
+        # in a special section.
+        # As a special case, handlers can be associated with the empty
+        # string option (""), they will be called for every option change
+        # The callback takes two argument: the config option, and the new
+        # value
+        self.configuration_change_handlers = {"": []}
+        self.add_configuration_handler("create_gaps", self.on_gaps_config_change)
+        self.add_configuration_handler("plugins_dir", self.on_plugins_dir_config_change)
+        self.add_configuration_handler("plugins_conf_dir", self.on_plugins_conf_dir_config_change)
+        self.add_configuration_handler("", self.on_any_config_change)
+
+    def on_any_config_change(self, option, value):
+        """
+        Update the roster, in case a roster option changed.
+        """
+        roster.modified()
+
+    def add_configuration_handler(self, option, callback):
+        """
+        Add a callback, associated with the given option. It will be called
+        each time the configuration option is changed using /set or by
+        reloading the configuration with a signal
+        """
+        if option not in self.configuration_change_handlers:
+            self.configuration_change_handlers[option] = []
+        self.configuration_change_handlers[option].append(callback)
+
+    def trigger_configuration_change(self, option, value):
+        """
+        Triggers all the handlers associated with the given configuration
+        option
+        """
+        # First call the callbacks associated with any configuration change
+        for callback in self.configuration_change_handlers[""]:
+            callback(option, value)
+        # and then the callbacks associated with this specific option, if
+        # any
+        if option not in self.configuration_change_handlers:
+            return
+        for callback in self.configuration_change_handlers[option]:
+            callback(option, value)
+
+    def on_gaps_config_change(self, option, value):
+        """
+        Called when the option create_gaps is changed.
+        Remove all gaptabs if switching from gaps to nogaps.
+        """
+        if value.lower() == "false":
+            self.tabs = list(filter(lambda x: bool(x), self.tabs))
+
+    def on_plugins_dir_config_change(self, option, value):
+        """
+        Called when the plugins_dir option is changed
+        """
+        path = os.path.expanduser(value)
+        self.plugin_manager.on_plugins_dir_change(path)
+
+    def on_plugins_conf_dir_config_change(self, option, value):
+        """
+        Called when the plugins_conf_dir option is changed
+        """
+        path = os.path.expanduser(value)
+        self.plugin_manager.on_plugins_conf_dir_change(path)
+
     def sigusr_handler(self, num, stack):
         """
         Handle SIGUSR1 (10)
@@ -2053,6 +2124,7 @@ class Core(object):
             option = args[0]
             value = args[1]
             info = config.set_and_save(option, value)
+            self.trigger_configuration_change(option, value)
         elif len(args) == 3:
             if '|' in args[0]:
                 plugin_name, section = args[0].split('|')[:2]
@@ -2069,17 +2141,7 @@ class Core(object):
                 option = args[1]
                 value = args[2]
                 info = config.set_and_save(option, value, section)
-        # Remove all gaptabs if switching from gaps to nogaps
-        if option == 'create_gaps' and value.lower() == 'false':
-            self.tabs = list(filter(lambda x: bool(x), self.tabs))
-        elif option == 'plugins_dir':
-            path = os.path.expanduser(value)
-            self.plugin_manager.on_plugins_dir_change(path)
-        elif option == 'plugins_conf_dir':
-            path = os.path.expanduser(value)
-            self.plugin_manager.on_plugins_conf_dir_change(path)
-        # in case some roster options have changed
-        roster.modified()
+                self.trigger_configuration_change(option, value)
         self.call_for_resize()
         self.information(*info)
 
