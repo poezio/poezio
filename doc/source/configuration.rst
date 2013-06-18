@@ -115,10 +115,12 @@ section of this documentation.
 
         **Default value:** ``60``
 
-        A ping is sent to the server every N seconds, N being the value of that option.
-        Change this to a low value if you want to know quickly when you are disconnected,
-        and to a very high value if bandwidth matters so much that you can’t afford
-        100 bytes/minute (seriously?).
+        A ping is sent to the server every N seconds, N being the value of
+        that option.  Change this to a low value if you want to know quickly
+        when you are disconnected, and to a very high value if bandwidth
+        matters so much that you can’t afford 100 bytes/minute, or if you
+        don’t want to waste your battery by waking up the TCP connection too
+        often.  Disable this ping altogether by setting this value to 0.
 
     connection_timeout_delay
 

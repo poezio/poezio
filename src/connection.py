@@ -115,13 +115,17 @@ class Connection(sleekxmpp.ClientXMPP):
         Unload and reload the ping plugin, with the new values.
         """
         ping_interval = config.get('connection_check_interval', 60)
-        if ping_interval <= 0:
-            ping_interval = 60
         timeout_delay = config.get('connection_timeout_delay', 10)
         if timeout_delay <= 0:
-            timeout_delay = 10
+            # We help the stupid user (with a delay of 0, poezio will try to
+            # reconnect immediately because the timeout is immediately
+            # passed)
+            # 1 second is short, but, well
+            timeout_delay = 1
         self.plugin['xep_0199'].disable_keepalive()
-        self.plugin['xep_0199'].enable_keepalive(ping_interval, timeout_delay)
+        # If the ping_interval is 0 or less, we just disable the keepalive
+        if ping_interval > 0:
+            self.plugin['xep_0199'].enable_keepalive(ping_interval, timeout_delay)
 
     def start(self):
         # TODO, try multiple servers
