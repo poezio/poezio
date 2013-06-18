@@ -72,13 +72,8 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
         self.register_plugin('xep_0191')
-        ping_interval = config.get('connection_check_interval', 60)
-        if ping_interval <= 0:
-            ping_interval = 60
-        timeout_delay = config.get('connection_timeout_delay', 10)
-        if timeout_delay <= 0:
-            timeout_delay = 10
-        self.register_plugin('xep_0199', pconfig={'keepalive': True, 'interval': ping_interval, 'timeout': timeout_delay})
+        self.register_plugin('xep_0199')
+        self.set_keepalive_values()
 
         if config.get('enable_user_tune', 'true') != 'false':
             self.register_plugin('xep_0118')
@@ -111,6 +106,22 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0280')
         self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')
+
+    def set_keepalive_values(self, option=None, value=None):
+        """
+        Called at startup, or triggered when one of
+        "connection_timeout_delay" and "connection_check_interval" options
+        is changed.
+        Unload and reload the ping plugin, with the new values.
+        """
+        ping_interval = config.get('connection_check_interval', 60)
+        if ping_interval <= 0:
+            ping_interval = 60
+        timeout_delay = config.get('connection_timeout_delay', 10)
+        if timeout_delay <= 0:
+            timeout_delay = 10
+        self.plugin['xep_0199'].disable_keepalive()
+        self.plugin['xep_0199'].enable_keepalive(ping_interval, timeout_delay)
 
     def start(self):
         # TODO, try multiple servers
