@@ -35,7 +35,6 @@ from common import safeJID
 import common
 
 import core
-import wcwidth
 import singleton
 import collections
 
