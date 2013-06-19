@@ -28,7 +28,7 @@ from threading import RLock
 
 from contact import Contact, Resource
 from roster import RosterGroup
-from poopt import cut_text
+import poopt
 
 from sleekxmpp import JID
 from common import safeJID
@@ -877,7 +877,7 @@ class TextWin(Win):
         nick = truncate_nick(message.nickname)
         offset = 0
         if nick:
-            offset += wcwidth.wcswidth(nick) + 2 # + nick + '> ' length
+            offset += poopt.wcswidth(nick) + 2 # + nick + '> ' length
         if message.revisions > 0:
             offset += ceil(log10(message.revisions + 1))
         if message.me:
@@ -889,7 +889,7 @@ class TextWin(Win):
                 offset += 1
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
-        lines = cut_text(self.width-offset-1, txt)
+        lines = poopt.cut_text(self.width-offset-1, txt)
         prepend = ''
         attrs = []
         for line in lines:
@@ -953,7 +953,7 @@ class TextWin(Win):
                                     # Offset for the timestamp (if any) plus a space after it
                                     (0 if not with_timestamps else (len(line.msg.str_time) + 1)) +
                                     # Offset for the nickname (if any) plus a space and a > after it
-                                    (0 if not line.msg.nickname else (len(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
+                                    (0 if not line.msg.nickname else (poopt.wcswidth(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
                             line.prepend+line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
@@ -1457,7 +1457,7 @@ class Input(Win):
                 (y, x) = self._win.getyx()
                 size = self.width-x
                 self.addnstr(' '*size, size, to_curses_attr(self.color))
-            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]), '')
+            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos]), '')
             if self.color:
                 self._win.attroff(to_curses_attr(self.color))
             self._refresh()
@@ -1586,7 +1586,7 @@ class HistoryInput(Input):
                 self.update_completed()
                 self.addstr(0, width, self.current_completed.ljust(width+1, ' '), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-            self.addstr(0, wcwidth.wcswidth(displayed_text[:self.pos]) + text_pos, '')
+            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos]) + text_pos, '')
             if self.color:
                 self._win.attroff(to_curses_attr(self.color))
             self._refresh()
