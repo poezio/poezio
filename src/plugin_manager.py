@@ -38,14 +38,14 @@ if not plugins_conf_dir:
 plugins_conf_dir = os.path.expanduser(plugins_conf_dir)
 
 try:
-    os.makedirs(plugins_dir, exist_ok=True)
+    os.makedirs(plugins_dir)
 except OSError:
     pass
 else:
     load_path.append(plugins_dir)
 
 try:
-    os.makedirs(plugins_conf_dir, exist_ok=True)
+    os.makedirs(plugins_conf_dir)
 except OSError:
     pass
 

@@ -255,7 +255,7 @@ if not CONFIG_HOME:
 CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
 
 try:
-    makedirs(CONFIG_PATH, exist_ok=True)
+    makedirs(CONFIG_PATH)
 except OSError:
     pass
 
