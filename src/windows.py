@@ -889,7 +889,7 @@ class TextWin(Win):
                 offset += 1
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
-        lines = cut_text(self.width-offset, txt)
+        lines = cut_text(self.width-offset-1, txt)
         prepend = ''
         attrs = []
         for line in lines:

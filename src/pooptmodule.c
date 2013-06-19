@@ -21,93 +21,154 @@ PyObject *ErrorObject;
     The module functions
  ***/
 
-/* cut_text: takes a string and returns a tuple of int.
+/**
+   cut_text: takes a string and returns a tuple of int.
    Each two int tuple is a line, represented by the ending position it (where it should be cut).
    Not that this position is calculed using the position of the python string characters,
    not just the individual bytes.
-   For example, poopt_cut_text("vivent les frigidaires", 6);
-   will return [(0, 6), (7, 10), (11, 17), (17, 22)], meaning that the lines are
-   "vivent", "les", "frigid" and "aires"
+   For example, poopt_cut_text("vivent les réfrigérateurs", 6);
+   will return [(0, 6), (7, 10), (11, 17), (17, 22), (22, 24)], meaning that the lines are
+   "vivent", "les", "réfrig", "érateu" and "rs"
 */
 PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(text, width)\n\n\nReturn a list of two-tuple, the first int is the starting position of the line and the second is its end.");
 
-static PyObject *poopt_cut_text(PyObject *self, PyObject *args)
+static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
 {
-  const unsigned char *buffer;
-  const int width;
-  const size_t buffer_len;
+    /* The list of tuples that we return */
+    PyObject* retlist = PyList_New(0);
 
-  if (PyArg_ParseTuple(args, "is#", &width, &buffer, &buffer_len) == 0)
-    return NULL;
+    /* Get the python arguments */
+    const int width;
+    const char* buffer;
+    const size_t buffer_len;
 
-  int bpos = 0;			/* the real position in the char* */
-  int spos = 0;			/* the position, considering UTF-8 chars */
-  int last_space = -1;
-  int start_pos = 0;
+    if (PyArg_ParseTuple(args, "is#", &width, &buffer, &buffer_len) == 0)
+        return NULL;
 
-  int w = width; /* this is a width that increases to make the length of char
-		     of colors attribute be ignored */
-  PyObject* retlist = PyList_New(0);
+    /* Pointer to the end of the string */
+    const char* end = buffer + buffer_len;
 
-  while (bpos < buffer_len)
+    /* The position, considering UTF-8 chars (aka, the position in the
+     * python string). This is used to determine the position in the python
+     * string at which we should cut */
+    int spos = 0;
+
+    /* The start position (in the python-string) of the next line */
+    int start_pos = 0;
+
+    /* The position of the last space seen in the current line. This is used
+     * to cut on spaces instead of cutting inside words, if possible (aka if
+     * there is a space) */
+    int last_space = -1;
+    /* The number of columns taken by chars between start_pos and last_space */
+    size_t cols_until_space = 0;
+
+    /* The number of bytes consumed by mbrtowc. We advance the buffer ptr by this value */
+    size_t consumed;
+
+    /* Number of columns taken to display the current line so far */
+    size_t columns = 0;
+
+    /* The utf-8 char found by mbrtowc */
+    wchar_t wc;
+
+    while (buffer < end)
     {
-      if (buffer[bpos] == ' ')
-	last_space = spos;
-      else if (buffer[bpos] == '\n')
-	{
-	  if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
-	    return NULL;
-	  start_pos = spos + 1;
-	  last_space = -1;
-	}
-      else if ((spos - start_pos) >= w)
-      	{
-      	  if (last_space == -1)
-      	    {
-      	      if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
-      	      	return NULL;
-      	      start_pos = spos;
-	    }
-      	  else
-      	    {
-      	      if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, last_space)) == -1)
-      	  	return NULL;
-      	      start_pos = last_space + 1;
-      	      last_space = -1;
-      	    }
-	  w = width;
-      	}
-      if (buffer[bpos] == 25)	/* \x19 */
-      	{
-	  while (buffer[bpos] &&
-		 buffer[bpos] != 'u' &&
-		 buffer[bpos] != 'b' &&
-		 buffer[bpos] != 'o' &&
-		 buffer[bpos] != '}')
-	    {
-	      bpos++;
-	      spos++;
-	      w++;
-	    }
-	  bpos++;
-	  w++;
-      	}
-      else
-      if (buffer[bpos] <= 127) /* ASCII char on one byte */
-      	bpos += 1;
-      else if (buffer[bpos] >= 194 && buffer[bpos] <= 223)
-      	bpos += 2;
-      else if (buffer[bpos] >= 224 && buffer[bpos] <= 239)
-      	bpos += 3;
-      else if (buffer[bpos] >= 240 && buffer[bpos] <= 247)
-      	bpos += 4;
-      else
-	return NULL;
-      spos++;
+        /* Special case to jump poezio special characters that are contained
+         * in the python string, but should not be counted as chars, because
+         * they will not be displayed. Those are the formatting chars (to
+         * insert colors or things like that in the string) */
+        if (*buffer == 25)   /* \x19 */
+        {
+            /* Jump everything until the end of this format marker, but
+             * without increasing the number of columns of the current
+             * line. Because these chars are not printed.  */
+            while (buffer < end && *buffer != 'u' &&
+                   *buffer != 'a' && *buffer != 'i' &&
+                   *buffer != 'b' && *buffer != 'o' &&
+                   *buffer != '}')
+            {
+                buffer++;
+                spos++;
+            }
+            buffer++;
+            spos++;
+            continue;
+        }
+        /* Find the next unicode character (a wchar_t) in the string.  This
+         * may consume from one to 4 bytes. */
+        consumed = mbrtowc(&wc, buffer, end-buffer, NULL);
+        if (consumed == 0)
+            break ;
+        else if ((size_t)-1 == consumed)
+        {
+            PyErr_SetString(PyExc_UnicodeError,
+                            "mbrtowc returned -1: Invalid multibyte sequence.");
+            return NULL;
+        }
+        else if ((size_t)-2 == consumed)
+        {
+            PyErr_SetString(PyExc_UnicodeError,
+                            "mbrtowc returned -2: Could not parse a complete multibyte character.");
+            return NULL;
+        }
+
+        buffer += consumed;
+        /* Get the number of columns needed to display this character. May be 0, 1 or 2 */
+        const size_t cols = wcwidth(wc);
+
+        /* This is one condition to end the line: an explicit \n is found */
+        if (wc == (wchar_t)'\n')
+        {
+            spos++;
+            if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
+                return NULL;
+            /* And then initiate a new line */
+            start_pos = spos;
+            last_space = -1;
+            columns = 0;
+            continue ;
+        }
+
+        /* This is the second condition to end the line: we have consumed
+         * enough characters to fill a whole line */
+        if (columns + cols > width)
+        {   /* If possible, cut on a space */
+            if (last_space != -1)
+            {
+                if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, last_space)) == -1)
+                    return NULL;
+                start_pos = last_space + 1;
+                last_space = -1;
+                columns -= (cols_until_space + 1);
+            }
+            else
+            {
+                /* Otherwise, cut in the middle of a word */
+                if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
+                    return NULL;
+                start_pos = spos;
+                columns = 0;
+            }
+        }
+        /* We save the position of the last space seen in this line, and the
+           number of columns we have until now. This helps us keep track of
+           the columns to count when we will use that space as a cutting
+           point, later */
+        if (wc == (wchar_t)' ')
+        {
+            last_space = spos;
+            cols_until_space = columns;
+        }
+        /* We advanced from one char, increment spos by one and add the
+         * char's columns to the line's columns */
+        columns += cols;
+        spos++;
     }
-  if (PyList_Append(retlist, Py_BuildValue("(i,i)", start_pos, spos)) == -1)
-    return NULL;
-  return retlist;
+    /* We are at the end of the string, append the last line, not finished */
+    if (PyList_Append(retlist, Py_BuildValue("(i,i)", start_pos, spos)) == -1)
+        return NULL;
+    return retlist;
 }
 
 /***
@@ -210,15 +271,13 @@ static PyTypeObject Null_Type = {
 
 
 /* List of functions defined in the module */
-
 static PyMethodDef poopt_methods[] = {
-  {"cut_text",             poopt_cut_text,         METH_VARARGS,
-   poopt_cut_text_doc},
-  {NULL,              NULL}           /* sentinel */
+  {"cut_text", poopt_cut_text, METH_VARARGS, poopt_cut_text_doc},
+  {}           /* sentinel */
 };
 
 PyDoc_STRVAR(module_doc,
-	     "This is a template module just for instruction. And poopt.");
+             "This is a template module just for instruction. And poopt.");
 
 /* Initialization function for the module (*must* be called PyInit_xx) */
 
