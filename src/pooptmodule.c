@@ -171,6 +171,43 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     return retlist;
 }
 
+/**
+   wcwidth: An emulation of the POSIX wcswidth(3) function using wcwidth and mbrtowc.
+*/
+PyDoc_STRVAR(poopt_wcswidth_doc, "wcswidth(s)\n\n\nThe wcswidth() function returns the number of columns needed to represent the wide-character string pointed to by s. Raise UnicodeError if an invalid unicode value is passed");
+static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
+{
+    const char* string;
+    const size_t len;
+    if (PyArg_ParseTuple(args, "s#", &string, &len) == 0)
+        return NULL;
+    const char* end = string + len;
+    size_t consumed = 0;
+    wchar_t wc;
+    int res = 0;
+    while (string < end)
+    {
+        consumed = mbrtowc(&wc, string, end-string, NULL);
+        if (consumed == 0)
+            break ;
+        else if ((size_t)-1 == consumed)
+        {
+            PyErr_SetString(PyExc_UnicodeError,
+                            "mbrtowc returned -1: Invalid multibyte sequence.");
+            return NULL;
+        }
+        else if ((size_t)-2 == consumed)
+        {
+            PyErr_SetString(PyExc_UnicodeError,
+                            "mbrtowc returned -2: Could not parse a complete multibyte character.");
+            return NULL;
+        }
+        string += consumed;
+        res += wcwidth(wc);
+    }
+    return Py_BuildValue("i", res);
+}
+
 /***
     Module initialization. Just taken from the xxmodule.c template from the python sources.
  ***/
@@ -273,6 +310,7 @@ static PyTypeObject Null_Type = {
 /* List of functions defined in the module */
 static PyMethodDef poopt_methods[] = {
   {"cut_text", poopt_cut_text, METH_VARARGS, poopt_cut_text_doc},
+  {"wcswidth", poopt_wcswidth, METH_VARARGS, poopt_wcswidth_doc},
   {}           /* sentinel */
 };
 
