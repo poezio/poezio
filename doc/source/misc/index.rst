@@ -8,6 +8,7 @@ Contents:
 
     carbons
     correct
+    personal_events
     separate
     ssl
 

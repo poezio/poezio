@@ -190,6 +190,28 @@ These commands work in *any* tab.
         Show the pending invitations.
 
     /activity
+        **Usage:** ``/activity [<general> [specific] [comment]]``
+
+        Send your current activity to your contacts (use the completion to cycle
+        through all the general and specific possible activities).
+
+        Nothing means "stop broadcasting an activity".
+
+    /mood
+        **Usage:** ``/mood [<mood> [comment]]``
+        Send your current mood to your contacts (use the completion to cycle
+        through all the possible moods).
+
+        Nothing means "stop broadcasting a mood".
+
+    /gaming
+        **Usage:** ``/gaming [<game name> [server address]]``
+
+        Send your current gaming activity to your contacts.
+
+        Nothing means "stop broadcasting a gaming activity".
+
+    /last_activity
         **Usage:** ``/activity <jid>``
 
         Show the last activity of a contact or a server (its
