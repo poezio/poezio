@@ -38,23 +38,23 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     PyObject* retlist = PyList_New(0);
 
     /* Get the python arguments */
-    const int width;
+    const size_t width;
     const char* buffer;
-    const size_t buffer_len;
+    const int buffer_len;
 
-    if (PyArg_ParseTuple(args, "is#", &width, &buffer, &buffer_len) == 0)
+    if (PyArg_ParseTuple(args, "Is#", &width, &buffer, &buffer_len) == 0)
         return NULL;
 
     /* Pointer to the end of the string */
-    const char* end = buffer + buffer_len;
+    const char* const end = buffer + buffer_len;
 
     /* The position, considering UTF-8 chars (aka, the position in the
      * python string). This is used to determine the position in the python
      * string at which we should cut */
-    int spos = 0;
+    unsigned int spos = 0;
 
     /* The start position (in the python-string) of the next line */
-    int start_pos = 0;
+    unsigned int start_pos = 0;
 
     /* The position of the last space seen in the current line. This is used
      * to cut on spaces instead of cutting inside words, if possible (aka if
@@ -121,7 +121,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         if (wc == (wchar_t)'\n')
         {
             spos++;
-            if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
+            if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
                 return NULL;
             /* And then initiate a new line */
             start_pos = spos;
@@ -136,7 +136,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         {   /* If possible, cut on a space */
             if (last_space != -1)
             {
-                if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, last_space)) == -1)
+                if (PyList_Append(retlist, Py_BuildValue("II", start_pos, last_space)) == -1)
                     return NULL;
                 start_pos = last_space + 1;
                 last_space = -1;
@@ -145,7 +145,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
             else
             {
                 /* Otherwise, cut in the middle of a word */
-                if (PyList_Append(retlist, Py_BuildValue("ii", start_pos, spos)) == -1)
+                if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
                     return NULL;
                 start_pos = spos;
                 columns = 0;
@@ -166,7 +166,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         spos++;
     }
     /* We are at the end of the string, append the last line, not finished */
-    if (PyList_Append(retlist, Py_BuildValue("(i,i)", start_pos, spos)) == -1)
+    if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
         return NULL;
     return retlist;
 }
@@ -178,16 +178,15 @@ PyDoc_STRVAR(poopt_wcswidth_doc, "wcswidth(s)\n\n\nThe wcswidth() function retur
 static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
 {
     const char* string;
-    const size_t len;
+    const int len;
     if (PyArg_ParseTuple(args, "s#", &string, &len) == 0)
         return NULL;
-    const char* end = string + len;
-    size_t consumed = 0;
+    const char* const end = string + len;
     wchar_t wc;
     int res = 0;
     while (string < end)
     {
-        consumed = mbrtowc(&wc, string, end-string, NULL);
+        const size_t consumed = mbrtowc(&wc, string, end-string, NULL);
         if (consumed == 0)
             break ;
         else if ((size_t)-1 == consumed)
