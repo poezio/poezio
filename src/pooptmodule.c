@@ -235,6 +235,8 @@ static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
 
   while (ptr < end)
     {
+      if (columns == limit)
+        break ;
       const size_t consumed = mbrtowc(&wc, ptr, end-ptr, NULL);
       if (consumed == 0)
         break ;
@@ -256,10 +258,6 @@ static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
         break ;
       ptr += consumed;
       columns += cols;
-      if (columns == limit)
-        /* With the new character we are exactly at the column limit. No
-           need to go check the next char */
-        break ;
     }
   return Py_BuildValue("s#", start, ptr - start);
 }
