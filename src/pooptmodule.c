@@ -42,7 +42,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     const char* buffer;
     const int buffer_len;
 
-    if (PyArg_ParseTuple(args, "Is#", &width, &buffer, &buffer_len) == 0)
+    if (PyArg_ParseTuple(args, "ks#", &width, &buffer, &buffer_len) == 0)
         return NULL;
 
     /* Pointer to the end of the string */
@@ -221,9 +221,9 @@ PyDoc_STRVAR(poopt_cut_by_columns_doc, "cut_by_columns(n, string)\n\n\nreturns a
 static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
 {
   const char* start;
-  const size_t len;
+  const int len;
   const size_t limit;
-  if (PyArg_ParseTuple(args, "Is#", &limit, &start, &len) == 0)
+  if (PyArg_ParseTuple(args, "ks#", &limit, &start, &len) == 0)
     return NULL;
 
   const char* const end = start + len;
