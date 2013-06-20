@@ -269,7 +269,7 @@ class UserList(Win):
             for user in users[self.pos:]:
                 self.draw_role_affiliation(y, user)
                 self.draw_status_chatstate(y, user)
-                self.addstr(y, 2, user.nick[:self.width-2], to_curses_attr(user.color))
+                self.addstr(y, 2, poopt.cut_by_columns(self.width-2, user.nick), to_curses_attr(user.color))
                 if config.get('user_list_sort', 'desc').lower() == 'asc':
                     y -= 1
                 else:
