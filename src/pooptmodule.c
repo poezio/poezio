@@ -207,6 +207,63 @@ static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
     return Py_BuildValue("i", res);
 }
 
+/**
+   cut_by_columns: takes a python string and a number of columns, returns a
+   python string truncated to take at most that many columns
+   For example cut_by_columns(n, "エメルカ") will return:
+   - n == 5 -> "エメ" (which takes only 4 columns since we can't cut the next character in half)
+   - n == 2 -> "エ"
+   - n == 1 -> ""
+   - n == 42 -> "エメルカ"
+   - etc
+*/
+PyDoc_STRVAR(poopt_cut_by_columns_doc, "cut_by_columns(n, string)\n\n\nreturns a string truncated to take at most n columns");
+static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
+{
+  const char* start;
+  const size_t len;
+  const size_t limit;
+  if (PyArg_ParseTuple(args, "Is#", &limit, &start, &len) == 0)
+    return NULL;
+
+  const char* const end = start + len;
+  const char* ptr = start;
+  wchar_t wc;
+
+  /* The number of columns that the string would take so far */
+  size_t columns = 0;
+
+  while (ptr < end)
+    {
+      const size_t consumed = mbrtowc(&wc, ptr, end-ptr, NULL);
+      if (consumed == 0)
+        break ;
+      else if ((size_t)-1 == consumed)
+        {
+          PyErr_SetString(PyExc_UnicodeError,
+                          "mbrtowc returned -1: Invalid multibyte sequence.");
+          return NULL;
+        }
+      else if ((size_t)-2 == consumed)
+        {
+          PyErr_SetString(PyExc_UnicodeError,
+                          "mbrtowc returned -2: Could not parse a complete multibyte character.");
+          return NULL;
+        }
+      const size_t cols = wcwidth(wc);
+      if (columns + cols > limit)
+        /* Adding the next character would exceed the column limit */
+        break ;
+      ptr += consumed;
+      columns += cols;
+      if (columns == limit)
+        /* With the new character we are exactly at the column limit. No
+           need to go check the next char */
+        break ;
+    }
+  return Py_BuildValue("s#", start, ptr - start);
+}
+
 /***
     Module initialization. Just taken from the xxmodule.c template from the python sources.
  ***/
@@ -310,6 +367,7 @@ static PyTypeObject Null_Type = {
 static PyMethodDef poopt_methods[] = {
   {"cut_text", poopt_cut_text, METH_VARARGS, poopt_cut_text_doc},
   {"wcswidth", poopt_wcswidth, METH_VARARGS, poopt_wcswidth_doc},
+  {"cut_by_columns", poopt_cut_by_columns, METH_VARARGS, poopt_cut_by_columns_doc},
   {}           /* sentinel */
 };
 
