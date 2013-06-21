@@ -468,15 +468,8 @@ class ChatTab(Tab):
         else:
             logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
         if logs:
-            for log_line in logs:
-                log_line = '\x19%s}%s' % (dump_tuple(get_theme().COLOR_INFORMATION_TEXT), log_line)
-                self._text_buffer.add_message(
-                        txt=log_line.strip(),
-                        time='',
-                        nickname='',
-                        user='',
-                        str_time=''
-                        )
+            for message in logs:
+                self._text_buffer.add_message(**message)
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """

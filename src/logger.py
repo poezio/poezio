@@ -7,16 +7,29 @@
 
 from os import environ, makedirs
 import os
+import re
 from datetime import datetime
 from config import config
 from xhtml import clean_text
+from theming import dump_tuple, get_theme
 
 import logging
 
 log = logging.getLogger(__name__)
 
-DATA_HOME = config.get('log_dir', '') or os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio')
-DATA_HOME = os.path.expanduser(DATA_HOME)
+log_dir = config.get('log_dir', '') or os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio', 'logs')
+log_dir = os.path.expanduser(log_dir)
+
+message_log_re = re.compile('MR (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) <([^ ]+)>  (.*)')
+info_log_re = re.compile('MI (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) (.*)')
+
+def parse_message_line(msg):
+    if re.match(message_log_re, msg):
+        return [i for i in re.split(message_log_re, msg) if i]
+    elif re.match(info_log_re, msg):
+        return [i for i in re.split(info_log_re, msg) if i]
+    return False
+
 
 class Logger(object):
     """
@@ -54,13 +67,12 @@ class Logger(object):
         """
         if config.get_by_tabname('use_log', 'false', room) == 'false':
             return
-        directory = os.path.join(DATA_HOME, 'logs')
         try:
-            makedirs(directory)
+            makedirs(log_dir)
         except OSError:
             pass
         try:
-            fd = open(os.path.join(directory, room), 'a')
+            fd = open(os.path.join(log_dir, room), 'a')
             self.fds[room] = fd
             return fd
         except IOError:
@@ -75,30 +87,67 @@ class Logger(object):
 
         if nb <= 0:
             return
-        directory = os.path.join(DATA_HOME, 'logs')
         try:
-            fd = open(os.path.join(directory, jid), 'r')
+            fd = open(os.path.join(log_dir, jid), 'rb')
         except:
             return
         if not fd:
             return
 
         pos = fd.seek(0, 2)
-        reads = fd.readlines()
-        while len(reads) < nb + 1:
+        reads = 0
+        check_next = False
+        while reads < nb:
             if pos == 0:
                 break
-            pos -= 100
+            pos -= 1
             if pos < 0:
                 pos = 0
             fd.seek(pos)
-            try:
-                reads = fd.readlines()
-            except UnicodeDecodeError:
-                pass
+            char = fd.read(1)
+            if char == b'\n':
+                if fd.read(2) in (b'MR', b'MI'):
+                    reads += 1
+                    fd.seek(-2, 1)
+        logs = fd.readlines()
         fd.close()
-        logs = reads[-nb:]
-        return logs
+        lines = []
+
+        for line in logs:
+            lines.append(line.decode(errors='replace')[:-1])
+        log.debug(lines)
+
+        messages = []
+        color = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+
+        idx = 0
+        while idx < len(lines):
+            if lines[idx].startswith(' '): # should not happen ; skip
+                idx += 1
+                log.debug('fail?')
+                continue
+            tup = parse_message_line(lines[idx])
+            idx += 1
+            if not tup or 7 > len(tup) > 10  : # skip
+                log.debug('format? %s', tup)
+                continue
+            time = [int(i) for index, i in enumerate(tup) if index < 6]
+            message = {'lines': [], 'history': True, 'time': datetime(*time)}
+            size = int(tup[6])
+            if len(tup) == 8: #info line
+                message['lines'].append(color+tup[7])
+            else: # message line
+                message['nickname'] = tup[7]
+                message['lines'].append(color+tup[8])
+            while size != 0 and idx < len(lines):
+                message['lines'].append(lines[idx][1:])
+                size -= 1
+                idx += 1
+            message['txt'] = '\n'.join(message['lines'])
+            del message['lines']
+            messages.append(message)
+
+        return messages
 
     def log_message(self, jid, nick, msg, date=None, typ=1):
         """
@@ -118,20 +167,27 @@ class Logger(object):
         try:
             msg = clean_text(msg)
             if date is None:
-                str_time = datetime.now().strftime('%Y%m%dT%H%M%SZ')
+                str_time = datetime.now().strftime('%Y%m%dT%H:%M:%SZ')
             else:
-                str_time = date.strftime('%Y%m%dT%H%M%SZ')
+                str_time = date.strftime('%Y%m%dT%H:%M:%SZ')
             if typ == 1:
                 prefix = 'MR'
             else:
                 prefix = 'MI'
-            lines = msg.count('\n')
-            lines = str(lines).zfill(3)
+            lines = msg.split('\n')
+            first_line = lines.pop(0)
+            nb_lines = str(len(lines)).zfill(3)
+
+            for line in lines:
+                self.roster_logfile.write(' %s\n' % line)
+
             if nick:
                 nick = '<' + nick + '>'
-                fd.write(' '.join((prefix, str_time, lines, nick, msg, '\n')))
+                fd.write(' '.join((prefix, str_time, nb_lines, nick, ' '+first_line, '\n')))
             else:
-                fd.write(' '.join((prefix, str_time, lines, msg, '\n')))
+                fd.write(' '.join((prefix, str_time, nb_lines, first_line, '\n')))
+            for line in lines:
+                fd.write(' %s\n' % line)
         except:
             return False
         else:
@@ -149,14 +205,18 @@ class Logger(object):
             return True
         if not self.roster_logfile:
             try:
-                self.roster_logfile = open(os.path.join(DATA_HOME, 'logs', 'roster.log'), 'a')
+                self.roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
             except IOError:
                 return False
         try:
-            str_time = datetime.now().strftime('%Y%m%dT%H%M%SZ')
+            str_time = datetime.now().strftime('%Y%m%dT%H:%M:%SZ')
             message = clean_text(message)
-            lines = str(message.count('\n')).zfill(3)
-            self.roster_logfile.write('MI %s %s %s %s\n' % (str_time, lines, jid, message))
+            lines = message.split('\n')
+            first_line = lines.pop(0)
+            nb_lines = str(len(lines)).zfill(3)
+            self.roster_logfile.write('MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
+            for line in lines:
+                self.roster_logfile.write(' %s\n' % line)
             self.roster_logfile.flush()
         except:
             return False
