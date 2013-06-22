@@ -1825,7 +1825,7 @@ class MucTab(ChatTab):
         return False
 
     def matching_names(self):
-        return [safeJID(self.get_name()).user]
+        return [(1, safeJID(self.get_name()).user), (3, self.get_name())]
 
 class PrivateTab(ChatTab):
     """
@@ -2115,7 +2115,7 @@ class PrivateTab(ChatTab):
             self.add_message(txt=reason, typ=2)
 
     def matching_names(self):
-        return [safeJID(self.get_name()).resource]
+        return [(3, safeJID(self.get_name()).resource), (4, self.get_name())]
 
 class RosterInfoTab(Tab):
     """
@@ -3342,10 +3342,13 @@ class ConversationTab(ChatTab):
             self.send_chat_state('gone')
 
     def matching_names(self):
+        res = []
+        jid = safeJID(self.get_name())
+        res.append((2, jid.bare))
+        res.append((1, jid.user))
         contact = roster[self.get_name()]
-        res = [contact.bare_jid if contact else safeJID(self.get_name()).bare]
         if contact and contact.name:
-            res.append(contact.name)
+            res.append((0, contact.name))
         return res
 
 class DynamicConversationTab(ConversationTab):
@@ -3601,6 +3604,9 @@ class MucListTab(Tab):
         self.listview.move_cursor_down()
         self.listview.refresh()
         self.core.doupdate()
+
+    def matching_names(self):
+        return [(2, self.name)]
 
 class XMLTab(Tab):
     def __init__(self):

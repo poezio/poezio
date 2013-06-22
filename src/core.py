@@ -1652,10 +1652,16 @@ class Core(object):
                     return
                 self.current_tab_nb = nb
         else:
+            matchs = []
             for tab in self.tabs:
                 for name in tab.matching_names():
-                    if nb in name:
+                    if nb.lower() in name[1].lower():
+                        matchs.append((name[0], tab))
                         self.current_tab_nb = tab.nb
+            if not matchs:
+                return
+            tab = min(matchs, key=lambda m: m[0])[1]
+            self.current_tab_nb = tab.nb
         old_tab.on_lose_focus()
         self.current_tab().on_gain_focus()
         self.refresh_window()
