@@ -17,14 +17,17 @@ python functions that are too slow. */
 
 PyObject *ErrorObject;
 
+/***
+     Internal functions
+ ***/
+
 /**
- * Internal functions
- */
-/* Just checking if the return value is -1.  In some (all?) implementations,
+   Just checking if the return value is -1.  In some (all?) implementations,
  wcwidth("😆") returns -1 while it should return 1.  In these cases, we
  return 1 instead because this is by far the most probable real value.  As
  for \n, \t and their friends, they are not supposed to be passed in this
- function, ever. */
+ function, ever.
+*/
 static int xwcwidth(wchar_t c)
 {
   const int res = wcwidth(c);
