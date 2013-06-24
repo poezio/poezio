@@ -101,6 +101,13 @@ class Roster(object):
         """Our JID"""
         return self.__node.jid
 
+    def get_and_set(self, jid):
+        if not jid in self.contacts:
+            contact = Contact(self.__node[jid])
+            self.contacts[jid] = contact
+            return contact
+        return self.contacts[jid]
+
     def set_node(self, value):
         """Set the SleekXMPP RosterSingle for our roster"""
         self.__node = value
@@ -135,7 +142,12 @@ class Roster(object):
 
     def jids(self):
         """List of the contact JIDS"""
-        return [key for key in self.__node.keys() if key != self.jid]
+        l = []
+        for key in self.__node.keys():
+            contact = self.get_and_set(key)
+            if key != self.jid and (contact and self.exists(contact)):
+                l.append(key)
+        return l
 
     def get_contacts(self):
         """
@@ -181,7 +193,7 @@ class Roster(object):
         """
         n = 0
         for contact in self:
-            if len(contact):
+            if self.exists(contact) and len(contact):
                 n += 1
         return n
 
@@ -208,7 +220,7 @@ class Roster(object):
         (used to return the display size, but now we have
         the display cache in RosterWin for that)
         """
-        return len(self.contacts)
+        return len(self.jids())
 
     def __repr__(self):
         ret = '== Roster:\nContacts:\n'
@@ -230,6 +242,15 @@ class Roster(object):
             return True
         except IOError:
             return
+
+    def exists(self, contact):
+        if not contact:
+            return False
+        for group in contact.groups:
+            if contact not in self.groups.get(group, tuple()):
+                return False
+        return True
+
 
 class RosterGroup(object):
     """
@@ -297,7 +318,6 @@ class RosterGroup(object):
     def get_nb_connected_contacts(self):
         """Return the number of connected contacts"""
         return len([1 for contact in self.contacts if len(contact)])
-
 
 # Shared roster object
 roster = Roster()
