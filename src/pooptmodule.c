@@ -25,7 +25,7 @@ PyObject *ErrorObject;
  return 1 instead because this is by far the most probable real value.  As
  for \n, \t and their friends, they are not supposed to be passed in this
  function, ever. */
-int xwcwidth(wchar_t c)
+static int xwcwidth(wchar_t c)
 {
   const int res = wcwidth(c);
   if (res == -1)
