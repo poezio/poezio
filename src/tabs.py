@@ -3035,7 +3035,7 @@ class RosterInfoTab(Tab):
         roster.contact_filter = None
         self.reset_help_message()
         roster.modified()
-        return False
+        return True
 
     def on_close(self):
         return
