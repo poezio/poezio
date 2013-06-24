@@ -17,6 +17,22 @@ python functions that are too slow. */
 
 PyObject *ErrorObject;
 
+/**
+ * Internal functions
+ */
+/* Just checking if the return value is -1.  In some (all?) implementations,
+ wcwidth("😆") returns -1 while it should return 1.  In these cases, we
+ return 1 instead because this is by far the most probable real value.  As
+ for \n, \t and their friends, they are not supposed to be passed in this
+ function, ever. */
+int xwcwidth(wchar_t c)
+{
+  const int res = wcwidth(c);
+  if (res == -1)
+    return 1;
+  return res;
+}
+
 /***
     The module functions
  ***/
@@ -114,8 +130,6 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         }
 
         buffer += consumed;
-        /* Get the number of columns needed to display this character. May be 0, 1 or 2 */
-        const size_t cols = wcwidth(wc);
 
         /* This is one condition to end the line: an explicit \n is found */
         if (wc == (wchar_t)'\n')
@@ -129,6 +143,9 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
             columns = 0;
             continue ;
         }
+
+        /* Get the number of columns needed to display this character. May be 0, 1 or 2 */
+        const size_t cols = xwcwidth(wc);
 
         /* This is the second condition to end the line: we have consumed
          * enough characters to fill a whole line */
@@ -172,7 +189,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
 }
 
 /**
-   wcwidth: An emulation of the POSIX wcswidth(3) function using wcwidth and mbrtowc.
+   wcswidth: An emulation of the POSIX wcswidth(3) function using wcwidth and mbrtowc.
 */
 PyDoc_STRVAR(poopt_wcswidth_doc, "wcswidth(s)\n\n\nThe wcswidth() function returns the number of columns needed to represent the wide-character string pointed to by s. Raise UnicodeError if an invalid unicode value is passed");
 static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
@@ -202,7 +219,7 @@ static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
             return NULL;
         }
         string += consumed;
-        res += wcwidth(wc);
+        res += xwcwidth(wc);
     }
     return Py_BuildValue("i", res);
 }
