@@ -1671,6 +1671,7 @@ class Core(object):
         l = []
         for tab in self.tabs:
             l.extend(tab.matching_names())
+        l = [i[1] for i in l]
         return the_input.auto_completion(l, ' ', quotify=False)
 
     def command_move_tab(self, arg):
