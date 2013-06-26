@@ -2297,7 +2297,7 @@ class Core(object):
             text = args[1]
         else:
             text = None
-        self.xmpp.plugin['xep_0107'].publish_mood(mood, text, block=False)
+        self.xmpp.plugin['xep_0107'].publish_mood(mood, text, callback=dumb_callback, block=False)
 
     def completion_mood(self, the_input):
         """Completion for /mood"""
@@ -2326,7 +2326,7 @@ class Core(object):
             text = args[2]
         if specific and specific not in pep.ACTIVITIES[general]:
             return self.information('%s is not a correct value for an activity' % specific, 'Error')
-        self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text, block=False)
+        self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text, callback=dumb_callback, block=False)
 
     def command_gaming(self, arg):
         """
@@ -2340,7 +2340,7 @@ class Core(object):
             address = args[1]
         else:
             address = None
-        return self.xmpp.plugin['xep_0196'].publish_gaming(name=name, server_address=address, block=False)
+        return self.xmpp.plugin['xep_0196'].publish_gaming(name=name, server_address=address, callback=dumb_callback, block=False)
 
     def completion_activity(self, the_input):
         """Completion for /activity"""
@@ -3468,7 +3468,7 @@ class Core(object):
                         show=self.status.show)
 
         if config.get('enable_user_nick', 'true') != 'false':
-            self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick)
+            self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)
         self.xmpp.plugin['xep_0115'].update_caps()
 
     ### Other handlers ###
@@ -3675,4 +3675,6 @@ def replace_key_with_bound(key):
         bind = key
     return bind
 
+def dumb_callback(*args, **kwargs):
+    pass
 
