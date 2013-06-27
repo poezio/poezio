@@ -23,11 +23,14 @@ PyObject *ErrorObject;
 
 /**
    Just checking if the return value is -1.  In some (all?) implementations,
- wcwidth("😆") returns -1 while it should return 1.  In these cases, we
- return 1 instead because this is by far the most probable real value.  As
- for \n, \t and their friends, they are not supposed to be passed in this
- function, ever.
-*/
+   wcwidth("😆") returns -1 while it should return 1.  In these cases, we
+   return 1 instead because this is by far the most probable real value.
+   Since the string is received from python, and the unicode character is
+   extracted with mbrtowc(), and supposing these two compononents are not
+   bugged, and since poezio’s code should never pass '\t', '\n' or their
+   friends, a return value of -1 from wcwidth() is considered to be a bug in
+   wcwidth() (until proven otherwise). xwcwidth() is here to work around
+   this bug. */
 static int xwcwidth(wchar_t c)
 {
   const int res = wcwidth(c);
@@ -42,12 +45,17 @@ static int xwcwidth(wchar_t c)
 
 /**
    cut_text: takes a string and returns a tuple of int.
-   Each two int tuple is a line, represented by the ending position it (where it should be cut).
-   Not that this position is calculed using the position of the python string characters,
-   not just the individual bytes.
-   For example, poopt_cut_text("vivent les réfrigérateurs", 6);
-   will return [(0, 6), (7, 10), (11, 17), (17, 22), (22, 24)], meaning that the lines are
+
+   Each two int tuple is a line, represented by the ending position it
+   (where it should be cut).  Not that this position is calculed using the
+   position of the python string characters, not just the individual bytes.
+
+   For example,
+   poopt_cut_text("vivent les réfrigérateurs", 6);
+   will return [(0, 6), (7, 10), (11, 17), (17, 22), (22, 24)], meaning that
+   the lines are
    "vivent", "les", "réfrig", "érateu" and "rs"
+
 */
 PyDoc_STRVAR(poopt_cut_text_doc, "cut_text(text, width)\n\n\nReturn a list of two-tuple, the first int is the starting position of the line and the second is its end.");
 
@@ -67,7 +75,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     /* Pointer to the end of the string */
     const char* const end = buffer + buffer_len;
 
-    /* The position, considering UTF-8 chars (aka, the position in the
+    /* The position, considering unicode chars (aka, the position in the
      * python string). This is used to determine the position in the python
      * string at which we should cut */
     unsigned int spos = 0;
@@ -88,7 +96,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     /* Number of columns taken to display the current line so far */
     size_t columns = 0;
 
-    /* The utf-8 char found by mbrtowc */
+    /* The unicode character found by mbrtowc */
     wchar_t wc;
 
     while (buffer < end)
@@ -151,7 +159,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         const size_t cols = xwcwidth(wc);
 
         /* This is the second condition to end the line: we have consumed
-         * enough characters to fill a whole line */
+         * enough columns to fill a whole line */
         if (columns + cols > width)
         {   /* If possible, cut on a space */
             if (last_space != -1)
@@ -192,7 +200,8 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
 }
 
 /**
-   wcswidth: An emulation of the POSIX wcswidth(3) function using wcwidth and mbrtowc.
+   wcswidth: An emulation of the POSIX wcswidth(3) function using wcwidth
+   and mbrtowc.
 */
 PyDoc_STRVAR(poopt_wcswidth_doc, "wcswidth(s)\n\n\nThe wcswidth() function returns the number of columns needed to represent the wide-character string pointed to by s. Raise UnicodeError if an invalid unicode value is passed");
 static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
@@ -231,7 +240,8 @@ static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
    cut_by_columns: takes a python string and a number of columns, returns a
    python string truncated to take at most that many columns
    For example cut_by_columns(n, "エメルカ") will return:
-   - n == 5 -> "エメ" (which takes only 4 columns since we can't cut the next character in half)
+   - n == 5 -> "エメ" (which takes only 4 columns since we can't cut the
+     next character in half)
    - n == 2 -> "エ"
    - n == 1 -> ""
    - n == 42 -> "エメルカ"
@@ -283,7 +293,8 @@ static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
 }
 
 /***
-    Module initialization. Just taken from the xxmodule.c template from the python sources.
+    Module initialization. Just taken from the xxmodule.c template from the
+    python sources.
  ***/
 static PyTypeObject Str_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
