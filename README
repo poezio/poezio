@@ -1,11 +1,12 @@
-	                      _
-	                     (_)
-	 _ __   ___   ___ _____  ___
-	| '_ \ / _ \ / _ \_  / |/ _ \
-	| |_) | (_) |  __// /| | (_) |
-	| .__/ \___/ \___/___|_|\___/
-	| |
-	|_|
+
+                          _
+                         (_)
+     _ __   ___   ___ _____  ___
+    | '_ \ / _ \ / _ \_  / |/ _ \
+    | |_) | (_) |  __// /| | (_) |
+    | .__/ \___/ \___/___|_|\___/
+    | |
+    |_|
 
 Homepage:	http://poez.io
 Forge Page:	http://dev.poez.io
@@ -15,22 +16,25 @@ connections to simply let the user join MultiUserChats.  This way, the user
 doesn't have to create a Jabber account, exactly like people are using
 IRC.  Poezio's commands are designed to be (if possible) like commonly
 used IRC clients (weechat, irssi, etc).
+
 Since version 0.7, poezio can handle real Jabber accounts along with
-roster and one to one conversations, making it a full-featured console
+roster and one-to-one conversations, making it a full-featured console
 Jabber client, but still MultiUserChats-centered.
-In the futur, poezio should implement at a 100% level all XEP related to
+In the future, poezio should implement at a 100% level all XEP related to
 MUCs, especially XEP 0045.
 
 =======================
-	Install
+    Install
 =======================
-You need python 3 (and the associated devel package, to build C modules)
-or higher, and the SleekXMPP python library.
-In the developement version, you’ll need this fork of SleekXMPP
-http://github.com/louiz/SleekXMPP.
-Additionally, you’ll need asciidoc and source-highlight to build the html
-documentation pages.  To read the documentation without these dependance,
-just read the .txt files, or read it on the webpage.
+
+You need python 3.1 or higher (preferably 3.3) and the associated devel
+package, to build C modules, and the SleekXMPP python library (develop branch).
+You can optionally add dnspython if you want SRV record support.
+
+Additionally, you’ll need sphinx to build the documentation pages.
+To read the documentation without these dependancies just read the rst
+files in the doc/source/ directory or the generated documentation on the
+website.
 
 The simplest way to have up-to-date dependencies and to be able to test
 this developement version is to use the update.sh script that downloads
@@ -51,23 +55,25 @@ $ make install
 (`make uninstall' works, don't worry ;))
 you can now simply launch `poezio'
 
-You can edit the configuration file (~/.config/poezio/poezio.cfg by default)
-or data/default_config.cfg (if you want to edit the config before the
-first launch).  The default config file is fully commented, but you can
-also read the “configure” documentation page.
+You can edit the configuration file which is located in
+~/.config/poezio/poezio.cfg by default, and you will have to edit
+data/default_config.cfg if you want to edit the config before the
+first launch.  The default config file is fully commented, but you can
+also read the “Configuration” documentation page which has links between
+options and longer descriptions.
 
-Please, see the online documentation for more information on installing,
+Please see the online documentation for more information on installing,
 configuring or using poezio:
 http://doc.poez.io/
 
 If you still have questions, or if you're lost, don't hesitate to come
 talk to us directly on our Jabber chat room (see Contact section).
 
-Please DO report any bug you encounter and ask for any
-feature you want.
+Please DO report any bug you encounter and ask for any feature you want
+(we may implement it or not, but it’s always better to ask).
 
 =======================
-	Authors
+    Authors
 =======================
 Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
 Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
@@ -80,7 +86,7 @@ Jabber ChatRoom:   poezio@muc.poezio.eu
 Report a bug:      http://dev.poez.io/new
 
 =======================
-	License
+    License
 =======================
 Poezio is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
@@ -95,6 +101,7 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 =======================
        Hacking
 =======================
+
 If you want to contribute, you are invited on poezio@muc.poezio.eu to
 announce your ideas, what you are going to do, or to seek help if you
 have trouble understanding some of the code.
@@ -138,8 +145,9 @@ we merge it to “master” as well, of course).
 
 
 =======================
-	Thanks
+    Thanks
 =======================
+
 = People =
  - Todd Eisenberger (todd@teisen.be) - Plugin system and OTR support
  - Jérôme Parment (Manfraid) - Code, testing
@@ -152,5 +160,5 @@ we merge it to “master” as well, of course).
  - And all the people using and testing poezio, and especially the ones present
    on the jabber chatroom doing bug reports and/or feature requests.
 = Project =
- Gajim - send_vcard method and common.py
+ Gajim - send_vcard method, common.py, and PEP listings
 
