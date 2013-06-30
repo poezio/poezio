@@ -3780,6 +3780,7 @@ class XMLTab(Tab):
         curses.curs_set(0)
 
     def on_close(self):
+        self.command_clear('')
         self.core.xml_tab = False
 
     def on_info_win_size_changed(self):
