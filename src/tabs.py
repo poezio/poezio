@@ -3332,7 +3332,6 @@ class ConversationTab(ChatTab):
         self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
         self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
 
-
     def get_text_window(self):
         return self.text_win
 
@@ -3445,11 +3444,10 @@ class MucListTab(Tab):
         Tab.__init__(self)
         self.state = 'normal'
         self.name = server
-        self.upper_message = windows.Topic()
-        self.upper_message.set_message('Chatroom list on server %s (Loading)' % self.name)
         columns = ('node-part', 'name', 'users')
         self.list_header = windows.ColumnHeaderWin(columns)
         self.listview = windows.ListWin(columns)
+        self.info_header = windows.MucListInfoWin(_('Chatroom list on server %s (Loading)') % self.name)
         self.default_help_message = windows.HelpText("“j”: join room.")
         self.input = self.default_help_message
         self.key_func["KEY_DOWN"] = self.move_cursor_down
@@ -3472,25 +3470,26 @@ class MucListTab(Tab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s',self.__class__.__name__)
-        self.upper_message.refresh()
+        self.info_header.refresh()
+        self.info_win.refresh()
+        self.refresh_tab_win()
         self.list_header.refresh()
         self.listview.refresh()
-        self.refresh_tab_win()
         self.input.refresh()
         self.update_commands()
 
     def resize(self):
-        if not self.visible:
+        if self.core.information_win_size >= self.height-3 or not self.visible:
             return
         self.need_resize = False
-        self.upper_message.resize(1, self.width, 0, 0)
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
         column_size = {'node-part': int(self.width*2/8) ,
                        'name': int(self.width*5/8),
                        'users': self.width-int(self.width*2/8)-int(self.width*5/8)}
         self.list_header.resize_columns(column_size)
-        self.list_header.resize(1, self.width, 1, 0)
+        self.list_header.resize(1, self.width, 0, 0)
         self.listview.resize_columns(column_size)
-        self.listview.resize(self.height-4, self.width, 2, 0)
+        self.listview.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def on_slash(self):
@@ -3514,8 +3513,8 @@ class MucListTab(Tab):
         If there's an error (retrieving the values etc)
         """
         self._error_message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
-        self.upper_message.set_message(self._error_message)
-        self.upper_message.refresh()
+        self.info_header.message = self._error_message
+        self.info_header.refresh()
         curses.doupdate()
 
     def on_muc_list_item_received(self, iq):
@@ -3530,10 +3529,10 @@ class MucListTab(Tab):
                   'jid': item[0],
                   'name': item[2] or '' ,'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
-        self.upper_message.set_message('Chatroom list on server %s' % self.name)
+        self.info_header.message = _('Chatroom list on server %s') % self.name
         if self.core.current_tab() is self:
             self.listview.refresh()
-            self.upper_message.refresh()
+            self.info_header.refresh()
         else:
             self.state = 'highlight'
             self.refresh_tab_win()
@@ -3556,6 +3555,7 @@ class MucListTab(Tab):
             return
         self.core.command_join(row['jid'])
 
+    @refresh_wrapper.always
     def reset_help_message(self, _=None):
         curses.curs_set(0)
         self.input = self.default_help_message
@@ -3581,6 +3581,12 @@ class MucListTab(Tab):
             return True
         if not raw and key in self.key_func:
             return self.key_func[key]()
+
+    def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
+        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.listview.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
 
     def on_lose_focus(self):
         self.state = 'normal'

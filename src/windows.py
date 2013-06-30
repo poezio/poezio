@@ -431,7 +431,7 @@ class InfoWin(Win):
 
     def print_scroll_position(self, window):
         """
-        Print, link in Weechat, a -MORE(n)- where n
+        Print, like in Weechat, a -MORE(n)- where n
         is the number of available lines to scroll
         down
         """
@@ -461,7 +461,7 @@ class XMLInfoWin(InfoWin):
 
 class PrivateInfoWin(InfoWin):
     """
-    The live above the information window, displaying informations
+    The line above the information window, displaying informations
     about the MUC user we are talking to
     """
     def __init__(self):
@@ -487,6 +487,26 @@ class PrivateInfoWin(InfoWin):
     def write_chatstate(self, state):
         if state:
             self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
+class MucListInfoWin(InfoWin):
+    """
+    The live above the information window, displaying informations
+    about the muc server being listed
+    """
+    def __init__(self, message=''):
+        InfoWin.__init__(self)
+        self.message = message
+
+    def refresh(self, name=None):
+        log.debug('Refresh: %s',self.__class__.__name__)
+        with g_lock:
+            self._win.erase()
+            if name:
+                self.addstr(name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            else:
+                self.addstr(self.message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+            self._refresh()
 
 class ConversationInfoWin(InfoWin):
     """
