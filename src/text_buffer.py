@@ -28,7 +28,7 @@ def other_elems(self):
     fields = message_fields.split()
     fields.remove('old_message')
     for field in fields:
-        acc.append('%s=%s' % (field, getattr(self, field)))
+        acc.append('%s=%s' % (field, repr(getattr(self, field))))
     return (', '.join(acc) + ', old_message=')
 
 def repr_message(self):
