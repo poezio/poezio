@@ -1320,10 +1320,18 @@ class Input(Win):
         """
         if reset:
             self.reset_completion()
-        if self.pos == self.width-1 and self.line_pos > 0:
-            self.line_pos -= 1
+
+        if self.pos < (3*(self.width)//4) and self.line_pos > 0 and self.line_pos+self.pos-1<=len(self.text):
+            self.line_pos -= self.width//4
+            if self.line_pos < 0:
+                self.pos += (self.width//4) + self.line_pos - 1
+                self.line_pos = 0
+            else:
+                self.pos += self.width//4 - 1
         elif self.pos >= 1:
             self.pos -= 1
+        elif self.line_pos > 0:
+            self.line_pos -= 1
         if jump and self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
             self.key_left()
         elif reset:
