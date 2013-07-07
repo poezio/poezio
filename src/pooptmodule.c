@@ -67,7 +67,7 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
     /* Get the python arguments */
     const size_t width;
     const char* buffer;
-    const int buffer_len;
+    const Py_ssize_t buffer_len;
 
     if (PyArg_ParseTuple(args, "s#k", &buffer, &buffer_len, &width) == 0)
         return NULL;
@@ -207,7 +207,7 @@ PyDoc_STRVAR(poopt_wcswidth_doc, "wcswidth(s)\n\n\nThe wcswidth() function retur
 static PyObject* poopt_wcswidth(PyObject* self, PyObject* args)
 {
     const char* string;
-    const int len;
+    const Py_ssize_t len;
     if (PyArg_ParseTuple(args, "s#", &string, &len) == 0)
         return NULL;
     const char* const end = string + len;
@@ -251,7 +251,7 @@ PyDoc_STRVAR(poopt_cut_by_columns_doc, "cut_by_columns(n, string)\n\n\nreturns a
 static PyObject* poopt_cut_by_columns(PyObject* self, PyObject* args)
 {
   const char* start;
-  const int len;
+  const Py_ssize_t len;
   const size_t limit;
   if (PyArg_ParseTuple(args, "s#k", &start, &len, &limit) == 0)
     return NULL;
