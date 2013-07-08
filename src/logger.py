@@ -169,9 +169,14 @@ class Logger(object):
     def log_message(self, jid, nick, msg, date=None, typ=1):
         """
         log the message in the appropriate jid's file
-        type: 1 = Message
+        type:
+              0 = Don’t log
+              1 = Message
               2 = Status/whatever
         """
+        if not typ:
+            return True
+
         jid = str(jid).replace('/', '\\')
         if config.get_by_tabname('use_log', 'false', jid) != 'true':
             return True
