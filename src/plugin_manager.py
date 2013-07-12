@@ -119,8 +119,8 @@ class PluginManager(object):
 
         except Exception as e:
             import traceback
-            log.debug("Could not load plugin: \n%s", traceback.format_exc())
-            self.core.information("Could not load plugin: %s" % e, 'Error')
+            log.debug("Could not load plugin %s: \n%s", name, traceback.format_exc())
+            self.core.information("Could not load plugin %s: %s" % (name, e), 'Error')
         finally:
             if version_info[1] < 3 and imp.lock_held():
                 imp.release_lock()
