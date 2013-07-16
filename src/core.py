@@ -2885,6 +2885,8 @@ class Core(object):
         conversation.nick = remote_nick
 
         self.events.trigger('conversation_msg', message, conversation)
+        if not message['body']:
+            return
         body = xhtml.get_body_from_message_stanza(message)
         delayed, date = common.find_delayed_tag(message)
 

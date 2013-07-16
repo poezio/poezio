@@ -1240,6 +1240,8 @@ class MucTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('muc_say', msg, self)
+        if not msg['body']:
+            return
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1250,6 +1252,8 @@ class MucTab(ChatTab):
             msg['replace']['id'] = self.last_sent_message['id']
         self.cancel_paused_delay()
         self.core.events.trigger('muc_say_after', msg, self)
+        if not msg['body']:
+            return
         self.last_sent_message = msg
         msg.send()
         self.chat_state = needed
@@ -1908,6 +1912,8 @@ class PrivateTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
+        if not msg['body']:
+            return
         user = self.parent_muc.get_user_by_name(self.own_nick)
         replaced = False
         if correct:
@@ -1938,6 +1944,8 @@ class PrivateTab(ChatTab):
         if attention and self.remote_supports_attention:
             msg['attention'] = True
         self.core.events.trigger('private_say_after', msg, self)
+        if not msg['body']:
+            return
         self.last_sent_message = msg
         msg.send()
         self.cancel_paused_delay()
@@ -3100,6 +3108,8 @@ class ConversationTab(ChatTab):
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
+        if not msg['body']:
+            return
         replaced = False
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']
@@ -3127,6 +3137,8 @@ class ConversationTab(ChatTab):
         if attention and self.remote_supports_attention:
             msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
+        if not msg['body']:
+            return
         self.last_sent_message = msg
         msg.send()
         self.cancel_paused_delay()
