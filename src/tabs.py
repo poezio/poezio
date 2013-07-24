@@ -2613,8 +2613,8 @@ class RosterInfoTab(Tab):
             else:
                 self.core.information('No roster item to remove')
                 return
+        roster.remove(jid)
         del roster[jid]
-        roster.modified()
 
     def command_import(self, arg):
         """

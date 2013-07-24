@@ -69,24 +69,30 @@ class Roster(object):
         """Set the a Contact value for the bare jid key"""
         self.contacts[key] = value
 
-    def __delitem__(self, jid):
-        """Remove a contact from the roster"""
+    def remove(self, jid):
+        """Send a removal iq to the server"""
         jid = safeJID(jid).bare
-        contact = self[jid]
-        if not contact:
-            return
-        for group in list(self.groups.values()):
-            group.remove(contact)
-            if not group:
-                del self.groups[group.name]
-        del self.contacts[contact.bare_jid]
-        if jid in self.jids():
+        if self.__node[jid]:
             try:
                 self.__node[jid].send_presence(ptype='unavailable')
                 self.__node.remove(jid)
             except (IqError, IqTimeout):
                 import traceback
                 log.debug('IqError when removing %s:\n%s', jid, traceback.format_exc())
+
+    def __delitem__(self, jid):
+        """Remove a contact from the roster view"""
+        jid = safeJID(jid).bare
+        contact = self[jid]
+        if not contact:
+            return
+        del self.contacts[contact.bare_jid]
+
+        for group in list(self.groups.values()):
+            group.remove(contact)
+            if not group:
+                del self.groups[group.name]
+        self.modified()
 
     def __iter__(self):
         """Iterate over the jids of the contacts"""
