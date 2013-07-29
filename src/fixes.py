@@ -1,4 +1,4 @@
-from sleekxmpp import ET
+from sleekxmpp.xmlstream import ET
 """
 Module used to provide fixes for sleekxmpp functions not yet fixed
 upstream.
