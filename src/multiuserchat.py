@@ -66,8 +66,7 @@ def change_nick(core, jid, nick, status=None, show=None):
 
 def join_groupchat(core, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=0):
     xmpp = core.xmpp
-    jid = safeJID(jid)
-    stanza = xmpp.makePresence(pto="%s/%s" % (jid, nick), pstatus=status, pshow=show)
+    stanza = xmpp.makePresence(pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
     x = ET.Element('{http://jabber.org/protocol/muc}x')
     if passwd:
         passelement = ET.Element('password')

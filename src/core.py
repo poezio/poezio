@@ -1811,14 +1811,14 @@ class Core(object):
                     nick = tab.own_nick
             else:
                 room = info.bare
-            if room.find('@') == -1 and not server_root: # no server is provided, like "/join hello"
-                # use the server of the current room if available
-                # check if the current room's name has a server
-                if isinstance(self.current_tab(), tabs.MucTab) and\
-                        self.current_tab().get_name().find('@') != -1:
-                    room += '@%s' % safeJID(self.current_tab().get_name()).domain
-                else:
-                    room = args[0]
+                if room.find('@') == -1 and not server_root: # no server is provided, like "/join hello"
+                    # use the server of the current room if available
+                    # check if the current room's name has a server
+                    if isinstance(self.current_tab(), tabs.MucTab) and\
+                            self.current_tab().get_name().find('@') != -1:
+                        room += '@%s' % safeJID(self.current_tab().get_name()).domain
+                    else:
+                        room = args[0]
         room = room.lower()
         if room in self.pending_invites:
             del self.pending_invites[room]
