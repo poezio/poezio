@@ -762,16 +762,19 @@ class Core(object):
         self.current_tab_nb = self.current_tab_nb
         return self.tabs[self.current_tab_nb]
 
-    def get_conversation_by_jid(self, jid, create=True):
+    def get_conversation_by_jid(self, jid, create=True, fallback_barejid=True):
         """
         From a JID, get the tab containing the conversation with it.
         If none already exist, and create is "True", we create it
-        and return it. Otherwise, we return None
+        and return it. Otherwise, we return None.
+
+        If fallback_barejid is True, then this method will seek other
+        tabs with the same barejid, instead of searching only by fulljid.
         """
         jid = safeJID(jid)
         # We first check if we have a static conversation opened with this precise resource
         conversation = self.get_tab_by_name(jid.full, tabs.StaticConversationTab)
-        if not conversation:
+        if not conversation and fallback_barejid:
             # If not, we search for a conversation with the bare jid
             conversation = self.get_tab_by_name(jid.bare, tabs.DynamicConversationTab)
             if not conversation:
@@ -2524,7 +2527,7 @@ class Core(object):
         jid = safeJID(args[0])
         if not jid.user and not jid.domain and not jid.resource:
             return self.information('Invalid JID.', 'Error')
-        tab = self.get_conversation_by_jid(jid.full, False)
+        tab = self.get_conversation_by_jid(jid.full, False, fallback_barejid=False)
         if not tab:
             tab = self.open_conversation_window(jid.full, focus=True)
         else:
