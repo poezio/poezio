@@ -200,7 +200,7 @@ class Roster(object):
     def update_contact_groups(self, contact):
         """Regenerate the RosterGroups when receiving a contact update"""
         if not isinstance(contact, Contact):
-            contact = self[contact]
+            contact = self.get_and_set(contact)
         if not contact:
             return
         for name, group in self.groups.items():
