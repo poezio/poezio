@@ -3094,6 +3094,9 @@ class Core(object):
         if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
             self.events.trigger('highlight', message, tab)
 
+        if message['from'].resource == tab.own_nick:
+            tab.last_sent_message = message
+
         if tab is self.current_tab():
             tab.text_win.refresh()
             tab.info_header.refresh(tab, tab.text_win)
