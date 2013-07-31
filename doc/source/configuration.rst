@@ -606,6 +606,17 @@ section of this documentation.
 
         Show s2s errors in the roster or not.
 
+    show_roster_subscriptions
+
+        **Defalt value:** ``[empty]``
+
+        Select the level of display of subscriptions with a char the roster
+
+        - ``all`` to display all subscriptions
+        - ``incomplete`` to display *from*, *to* and *none*
+        - one of ``from``, ``to``, ``none`` and ``both`` to display only that one
+        - no value or any other value to disable it
+
     show_tab_names
 
         **Default value:** ``false``

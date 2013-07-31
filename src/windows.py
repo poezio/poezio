@@ -1974,6 +1974,8 @@ class RosterWin(Win):
         self.addstr(y, 0, ' ')
         self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
 
+        show_roster_sub = config.getl('show_roster_subscriptions', '')
+
         self.addstr(' ')
         if resource:
             self.addstr('[+] ' if contact.folded(group) else '[-] ')
@@ -1990,6 +1992,8 @@ class RosterWin(Win):
             added += len(get_theme().CHAR_ROSTER_ACTIVITY)
         if contact.gaming:
             added += len(get_theme().CHAR_ROSTER_GAMING)
+        if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both', 'none'):
+            added += len(theme.char_subscription(contact.subscription, keep=show_roster_sub))
 
         if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
             display_name = '%s' % contact.name
@@ -2004,6 +2008,9 @@ class RosterWin(Win):
             self.addstr(display_name, to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
+
+        if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both', 'none'):
+            self.addstr(theme.char_subscription(contact.subscription, keep=show_roster_sub), to_curses_attr(theme.COLOR_ROSTER_SUBSCRIPTION))
         if contact.ask:
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
         if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:

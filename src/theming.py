@@ -112,6 +112,20 @@ class Theme(object):
         }
         return show_mapping.get(show, cls.COLOR_STATUS_NONE)
 
+    @classmethod
+    def char_subscription(cls, sub, keep='incomplete'):
+        sub_mapping = {
+                'from': cls.CHAR_ROSTER_FROM,
+                'both': cls.CHAR_ROSTER_BOTH,
+                'none': cls.CHAR_ROSTER_NONE,
+                'to': cls.CHAR_ROSTER_TO,
+        }
+        if keep == 'incomplete' and sub == 'both':
+            return ''
+        if keep in ('both', 'none', 'to', 'from'):
+            return sub_mapping[sub] if sub == keep else ''
+        return sub_mapping.get(sub, '')
+
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
     COLOR_INFORMATION_TEXT = (5, -1) # TODO
@@ -243,12 +257,18 @@ class Theme(object):
     CHAR_ROSTER_ACTIVITY = '☃'
     CHAR_ROSTER_MOOD = '☺'
     CHAR_ROSTER_GAMING = '♠'
+    CHAR_ROSTER_FROM = '←'
+    CHAR_ROSTER_BOTH = '↔'
+    CHAR_ROSTER_TO = '→'
+    CHAR_ROSTER_NONE = '⇹'
 
     COLOR_ROSTER_GAMING = (6, -1)
     COLOR_ROSTER_MOOD = (2, -1)
     COLOR_ROSTER_ACTIVITY = (3, -1)
     COLOR_ROSTER_TUNE = (6, -1)
     COLOR_ROSTER_ERROR = (1, -1)
+    COLOR_ROSTER_SUBSCRIPTION = (-1, -1)
+
     COLOR_JOIN_CHAR = (4, -1)
     COLOR_QUIT_CHAR = (1, -1)
     COLOR_KICK_CHAR = (1, -1)
