@@ -34,7 +34,7 @@ PyObject *ErrorObject;
 static int xwcwidth(wchar_t c)
 {
   const int res = wcwidth(c);
-  if (res == -1)
+  if (res == -1 && c != '\x19')
     return 1;
   return res;
 }
