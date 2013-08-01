@@ -2206,7 +2206,7 @@ class RosterInfoTab(Tab):
                 desc=_('Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.'),
                 shortdesc=_('Import your roster from a file.'),
                 completion=self.completion_file)
-        self.register_command('clear_infos', self.command_clear_infos,
+        self.register_command('clear', self.command_clear,
                 shortdesc=_('Clear the info buffer.'))
         self.register_command('last_activity', self.command_last_activity,
                 usage=_('<jid>'),
@@ -2394,9 +2394,9 @@ class RosterInfoTab(Tab):
 
             return the_input.auto_completion(end_list, '')
 
-    def command_clear_infos(self, arg):
+    def command_clear(self, arg=''):
         """
-        /clear_infos
+        /clear
         """
         self.core.information_buffer.messages = []
         self.information_win.rebuild_everything(self.core.information_buffer)

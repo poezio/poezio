@@ -286,6 +286,11 @@ MultiUserChat tab commands
 .. glossary::
     :sorted:
 
+    /clear [RosterTab version]
+        **Usage:** ``/clear``
+
+        Clear the information buffer. (was /clear_infos)
+
     /ignore
         **Usage:** ``/ignore <nickname>``
 
