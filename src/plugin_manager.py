@@ -314,13 +314,13 @@ class PluginManager(object):
         plugins_files = [name[:-3] for name in names if name.endswith('.py')
                 and name != '__init__.py' and not name.startswith('.')]
         plugins_files.sort()
-        return the_input.auto_completion(plugins_files, '', quotify=False)
+        return the_input.new_completion(plugins_files, 1, '', quotify=False)
 
     def completion_unload(self, the_input):
         """
         completion function that completes the name of the plugins that are loaded
         """
-        return the_input.auto_completion(list(self.plugins.keys()), '', quotify=False)
+        return the_input.new_completion(sorted(self.plugins.keys()), 1, '', quotify=False)
 
     def on_plugins_dir_change(self, new_value):
         global plugins_dir

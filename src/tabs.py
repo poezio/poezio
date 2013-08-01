@@ -215,8 +215,29 @@ class Tab(object):
         txt = the_input.get_text()
         # check if this is a command
         if txt.startswith('/') and not txt.startswith('//'):
+            position = the_input.get_argument_position(quoted=False)
+            if position == 0:
+                words = ['/%s'% (name) for name in sorted(self.core.commands)] +\
+                    ['/%s' % (name) for name in sorted(self.commands)]
+                the_input.new_completion(words, 0)
+                # Do not try to cycle command completion if there was only
+                # one possibily. The next tab will complete the argument.
+                # Otherwise we would need to add a useless space before being
+                # able to complete the arguments.
+                hit_copy = set(the_input.hit_list)
+                while not hit_copy:
+                    whitespace = the_input.text.find(' ')
+                    if whitespace == -1:
+                        whitespace = len(the_input.text)
+                    the_input.text = the_input.text[:whitespace-1] + the_input.text[whitespace:]
+                    the_input.new_completion(words, 0)
+                    hit_copy = set(the_input.hit_list)
+                if len(hit_copy) == 1:
+                    the_input.do_command(' ')
+                    the_input.reset_completion()
+                return True
             # check if we are in the middle of the command name
-            if len(txt.split()) > 1 or\
+            elif len(txt.split()) > 1 or\
                     (txt.endswith(' ') and not the_input.last_completion):
                 command_name = txt.split()[0][1:]
                 if command_name in self.commands:
@@ -229,22 +250,6 @@ class Tab(object):
                     return False # There's no completion function
                 else:
                     return command[2](the_input)
-            else:
-                # complete the command's name
-                words = ['/%s'% (name) for name in self.core.commands] +\
-                    ['/%s' % (name) for name in self.commands]
-                the_input.auto_completion(words, '', quotify=False)
-                # Do not try to cycle command completion if there was only
-                # one possibily. The next tab will complete the argument.
-                # Otherwise we would need to add a useless space before being
-                # able to complete the arguments.
-                hit_copy = set(the_input.hit_list)
-                while not hit_copy:
-                    the_input.key_backspace()
-                    the_input.auto_completion(words, '', quotify=False)
-                    hit_copy = set(the_input.hit_list)
-                if len(hit_copy) == 1:
-                    the_input.do_command(' ')
                 return True
         return False
 
@@ -637,7 +642,7 @@ class ChatTab(Tab):
         self.command_say(line, correct=True)
 
     def completion_correct(self, the_input):
-        if self.last_sent_message:
+        if self.last_sent_message and the_input.get_argument_position() == 1:
             return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
 
     @property
@@ -834,15 +839,13 @@ class MucTab(ChatTab):
         compare_users = lambda x: x.last_talked
         userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
-        contact_list = [jid for jid in roster.jids()]
-        userlist.extend(contact_list)
-        return the_input.auto_completion(userlist, '', quotify=False)
+        return the_input.auto_completion(userlist, quotify=False)
 
     def completion_info(self, the_input):
         """Completion for /info"""
         compare_users = lambda x: x.last_talked
         userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)]
-        return the_input.auto_completion(userlist, '', quotify=False)
+        return the_input.auto_completion(userlist, quotify=False)
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
@@ -851,7 +854,9 @@ class MucTab(ChatTab):
         return the_input.auto_completion(nicks, '', quotify=False)
 
     def completion_recolor(self, the_input):
-        return the_input.auto_completion(['random'], '', quotify=False)
+        if the_input.get_argument_position() == 1:
+            return the_input.new_completion(['random'], 1, '', quotify=False)
+        return True
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
@@ -859,32 +864,24 @@ class MucTab(ChatTab):
         if self.own_nick in userlist:
             userlist.remove(self.own_nick)
         userlist.sort()
-        return the_input.auto_completion(userlist, '', quotify=False)
+        return the_input.auto_completion(userlist, quotify=False)
 
     def completion_role(self, the_input):
         """Completion for /role"""
-        text = the_input.get_text()
-        args = common.shell_split(text)
-        n = len(args)
-        if text.endswith(' '):
-            n += 1
-        if n == 2:
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
             userlist = [user.nick for user in self.users]
             if self.own_nick in userlist:
                 userlist.remove(self.own_nick)
-            return the_input.auto_completion(userlist, '')
-        elif n == 3:
+            return the_input.new_completion(userlist, 1, '', quotify=True)
+        elif n == 2:
             possible_roles = ['none', 'visitor', 'participant', 'moderator']
-            return the_input.auto_completion(possible_roles, '')
+            return the_input.new_completion(possible_roles, 2, '', quotify=True)
 
     def completion_affiliation(self, the_input):
         """Completion for /affiliation"""
-        text = the_input.get_text()
-        args = common.shell_split(text)
-        n = len(args)
-        if text.endswith(' '):
-            n += 1
-        if n == 2:
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
             userlist = [user.nick for user in self.users]
             if self.own_nick in userlist:
                 userlist.remove(self.own_nick)
@@ -892,10 +889,10 @@ class MucTab(ChatTab):
             if self.core.xmpp.boundjid.bare in jidlist:
                 jidlist.remove(self.core.xmpp.boundjid.bare)
             userlist.extend(jidlist)
-            return the_input.auto_completion(userlist, '')
-        elif n == 3:
+            return the_input.new_completion(userlist, 1, '', quotify=True)
+        elif n == 2:
             possible_affiliations = ['none', 'member', 'admin', 'owner', 'outcast']
-            return the_input.auto_completion(possible_affiliations, '')
+            return the_input.new_completion(possible_affiliations, 2,  '', quotify=True)
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
@@ -1130,15 +1127,16 @@ class MucTab(ChatTab):
         self.input.refresh()
 
     def completion_topic(self, the_input):
-        current_topic = self.topic
-        return the_input.auto_completion([current_topic], '', quotify=False)
+        if the_input.get_argument_position() == 1:
+            return the_input.auto_completion([self.topic], '', quotify=False)
 
     def completion_quoted(self, the_input):
         """Nick completion, but with quotes"""
-        compare_users = lambda x: x.last_talked
-        word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
-                         if user.nick != self.own_nick]
-        return the_input.auto_completion(word_list, '', quotify=True)
+        if the_input.get_argument_position(quoted=True) == 1:
+            compare_users = lambda x: x.last_talked
+            word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
+                             if user.nick != self.own_nick]
+            return the_input.new_completion(word_list, 1, quotify=True)
 
     def command_kick(self, arg):
         """
@@ -1290,7 +1288,8 @@ class MucTab(ChatTab):
             self.core.information(_('%s is now unignored') % nick)
 
     def completion_unignore(self, the_input):
-        return the_input.auto_completion([user.nick for user in self.ignores], '', quotify=False)
+        if the_input.get_argument_position() == 1:
+            return the_input.new_completion([user.nick for user in self.ignores], 1, '', quotify=False)
 
     def resize(self):
         """
@@ -2270,8 +2269,9 @@ class RosterInfoTab(Tab):
         """
         Completion for /block
         """
-        jids = roster.jids()
-        return the_input.auto_completion(jids, '', quotify=False)
+        if the_input.get_argument_position() == 1:
+            jids = roster.jids()
+            return the_input.new_completion(jids, 1, '', quotify=False)
 
     def command_unblock(self, arg):
         """
@@ -2296,15 +2296,16 @@ class RosterInfoTab(Tab):
         """
         Completion for /unblock
         """
-        try:
-            iq = self.core.xmpp.plugin['xep_0191'].get_blocked(block=True)
-        except Exception as e:
-            iq = e.iq
-        finally:
-            if iq['type'] == 'error':
-                return
-            l = [str(item) for item in iq['blocklist']['items']]
-            return the_input.auto_completion(l, quotify=False)
+        if the_input.get_argument_position():
+            try:
+                iq = self.core.xmpp.plugin['xep_0191'].get_blocked(block=True)
+            except Exception as e:
+                iq = e.iq
+            finally:
+                if iq['type'] == 'error':
+                    return
+                l = sorted(str(item) for item in iq['blocklist']['items'])
+                return the_input.new_completion(l, 1, quotify=False)
 
     def command_list_blocks(self, arg=None):
         """
@@ -2673,73 +2674,58 @@ class RosterInfoTab(Tab):
         return the_input.auto_completion(jids, '', quotify=False)
 
     def completion_name(self, the_input):
-        text = the_input.get_text()
-        n = len(common.shell_split(text))
-        if text.endswith(' '):
-            n += 1
-
-        if n == 2:
+        """Completion for /name"""
+        n = the_input.get_argument_position()
+        if n == 1:
             jids = [jid for jid in roster.jids()]
-            return the_input.auto_completion(jids, '')
+            return the_input.new_completion(jids, n, quotify=True)
         return False
 
     def completion_groupadd(self, the_input):
-        text = the_input.get_text()
-        n = len(common.shell_split(text))
-        if text.endswith(' '):
-            n += 1
-
-        if n == 2:
-            jids = [jid for jid in roster.jids()]
-            return the_input.auto_completion(jids, '')
-        elif n == 3:
-            groups = [group for group in roster.groups if group != 'none']
-            return the_input.auto_completion(groups, '')
+        n = the_input.get_argument_position()
+        if n == 1:
+            jids = sorted(jid for jid in roster.jids())
+            return the_input.new_completion(jids, n, '', quotify=True)
+        elif n == 2:
+            groups = sorted(group for group in roster.groups if group != 'none')
+            return the_input.new_completion(groups, n, '', quotify=True)
         return False
 
     def completion_groupmove(self, the_input):
-        text = the_input.get_text()
-        args = common.shell_split(text)
-        n = len(args)
-        if text.endswith(' '):
-            n += 1
-
-        if n == 2:
-            jids = [jid for jid in roster.jids()]
-            return the_input.auto_completion(jids, '')
-        elif n == 3:
+        args = common.shell_split(the_input.text)
+        n = the_input.get_argument_position()
+        if n == 1:
+            jids = sorted(jid for jid in roster.jids())
+            return the_input.new_completion(jids, n, '', quotify=True)
+        elif n == 2:
             contact = roster[args[1]]
             if not contact:
                 return False
             groups = list(contact.groups)
             if 'none' in groups:
                 groups.remove('none')
-            return the_input.auto_completion(groups, '')
-        elif n == 4:
-            groups = [group for group in roster.groups]
-            return the_input.auto_completion(groups, '')
+            return the_input.new_completion(groups, n, '', quotify=True)
+        elif n == 3:
+            groups = sorted(group for group in roster.groups)
+            return the_input.new_completion(groups, n, '', quotify=True)
         return False
 
     def completion_groupremove(self, the_input):
-        text = the_input.get_text()
-        args = common.shell_split(text)
-        n = len(args)
-        if text.endswith(' '):
-            n += 1
-
-        if n == 2:
-            jids = [jid for jid in roster.jids()]
-            return the_input.auto_completion(jids, '')
-        elif n == 3:
+        args = common.shell_split(the_input.text)
+        n = the_input.get_argument_position()
+        if n == 1:
+            jids = sorted(jid for jid in roster.jids())
+            return the_input.new_completion(jids, n, '', quotify=True)
+        elif n == 2:
             contact = roster[args[1]]
             if contact is None:
                 return False
-            groups = list(contact.groups)
+            groups = sorted(contact.groups)
             try:
                 groups.remove('none')
             except ValueError:
                 pass
-            return the_input.auto_completion(groups, '')
+            return the_input.new_completion(groups, n, '', quotify=True)
         return False
 
     def completion_deny(self, the_input):
@@ -2747,9 +2733,9 @@ class RosterInfoTab(Tab):
         Complete the first argument from the list of the
         contact with ask=='subscribe'
         """
-        jids = [str(contact.bare_jid) for contact in roster.contacts.values()\
-             if contact.pending_in]
-        return the_input.auto_completion(jids, '', quotify=False)
+        jids = sorted(str(contact.bare_jid) for contact in roster.contacts.values()
+             if contact.pending_in)
+        return the_input.new_completion(jids, 1, '', quotify=False)
 
     def command_accept(self, arg):
         """
@@ -2772,6 +2758,7 @@ class RosterInfoTab(Tab):
         contact = roster[jid]
         if contact is None:
             return
+        contact.pending_in = False
         roster.modified()
         self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
         self.core.xmpp.client_roster.send_last_presence()

@@ -1383,6 +1383,122 @@ class Input(Win):
         self.normal_completion(word_list, add_after)
         return True
 
+    def new_completion(self, word_list, argument_position=-1, add_after='', quotify=True):
+        """
+        Complete the argument at position ``argument_postion`` in the input.
+        If ``quotify`` is ``True``, then the completion will operate on block of words
+        (e.g. "toto titi") whereas if it is ``False``, it will operate on words (e.g
+        "toto", "titi").
+
+        The completions may modify other parts of the input when completing an argument,
+        for example removing useless double quotes around single-words, or setting the
+        space between each argument to only one space.
+
+        The case where we complete the first argument is special, because we complete
+        the command, and we do not want to modify anything else in the input.
+
+        This method is the one that should be used if the command being completed
+        has several arguments.
+        """
+        if argument_position == 0:
+            self._new_completion_first(word_list)
+        else:
+            self._new_completion_args(word_list, argument_position, add_after, quotify)
+        self.rewrite_text()
+        return True
+
+    def _new_completion_args(self, word_list, argument_position=-1, add_after='', quoted=True):
+        """
+        Case for completing arguments with position ≠ 0
+        """
+        if quoted:
+            words = common.shell_split(self.text)
+        else:
+            words = self.text.split()
+        if argument_position >= len(words):
+            current = ''
+        else:
+            current = words[argument_position]
+
+        if quoted:
+            split_words = words[1:]
+            words = [words[0]]
+            for word in split_words:
+                if ' ' in word:
+                    words.append('"' + word + '"')
+                else:
+                    words.append(word)
+        current_l = current.lower()
+        if self.last_completion is not None:
+            self.hit_list.append(self.hit_list.pop(0))
+        else:
+            hit_list = []
+            for word in word_list:
+                if word.lower().startswith(current_l):
+                    hit_list.append(word)
+
+            if not hit_list:
+                return
+            self.hit_list = hit_list
+
+        if argument_position >= len(words):
+            if quoted and ' ' in self.hit_list[0]:
+                words.append('"'+self.hit_list[0]+'"')
+            else:
+                words.append(self.hit_list[0])
+        else:
+            if quoted and ' ' in self.hit_list[0]:
+                words[argument_position] = '"'+self.hit_list[0]+'"'
+            else:
+                words[argument_position] = self.hit_list[0]
+
+        new_pos = -1
+        for i, word in enumerate(words):
+            if argument_position >= i:
+                new_pos += len(word) + 1
+
+        self.last_completion = self.hit_list[0]
+        self.text = words[0] + ' ' + ' '.join(words[1:])
+        self.pos = new_pos
+
+    def _new_completion_first(self, word_list):
+        """
+        Special case of completing the command itself:
+        we don’t want to change anything to the input doing that
+        """
+        space_pos = self.text.find(' ')
+        if space_pos != -1:
+            current, follow = self.text[:space_pos], self.text[space_pos:]
+        else:
+            current, follow = self.text, ''
+
+        if self.last_completion:
+            self.hit_list.append(self.hit_list.pop(0))
+        else:
+            hit_list = []
+            for word in word_list:
+                if word.lower().startswith(current):
+                    hit_list.append(word)
+            if not hit_list:
+                return
+            self.hit_list = hit_list
+
+        self.last_completion = self.hit_list[0]
+        self.text = self.hit_list[0] + follow
+        self.pos = len(self.hit_list[0])
+
+    def get_argument_position(self, quoted=True):
+        """
+        Get the argument number at the current position
+        """
+        command_stop = self.text.find(' ')
+        if command_stop == -1 or self.pos <= command_stop:
+            return 0
+        text = self.text[command_stop+1:]
+        pos = self.pos + self.line_pos - len(self.text) + len(text) - 1
+        val = common.find_argument(pos, text, quoted=quoted) + 1
+        return val
+
     def reset_completion(self):
         """
         Reset the completion list (called on ALL keys except tab)

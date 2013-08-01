@@ -91,24 +91,27 @@ Completions are a bit tricky, but it’s easy once you get used to it:
 
 They take an **Input** (a _windows_ class) as a parameter, named the_input
 everywhere in the sources. To effectively have a completion, you have to call
-**the_input.auto_completion()** at the end of the function.
+**the_input.auto_completion()** or **the_input.new_completion()** at the end
+of the function.
 
 
 .. code-block:: python
 
     class Input(Win):
         # …
-        def auto_completion(completion_list, after='', quote=True):
+        def auto_completion(completion_list, after='', quotify=True):
+            # …
+
+        def new_completion(completion_list, argument_position, after='', quotify=True):
             # …
 
 Set the input to iterate over _completion_list_ when the user hits tab, insert
 **after** after the completed item, and surround the item with double quotes or
 not.
 
-There is no method to find the current argument in the input (although the
-feature is planned), so you have to assume the current argument is the last,
-and guess it by splitting the string an checking for end-space.
+To find the current completed argument, use the **input.get_argument_position()**
+method. You can then use new_completion() to select the argument to be completed.
 
 You can look for examples in the sources, all the possible cases are
 covered (single-argument, complex arguments with spaces, several arguments,
-etc…)
+etc…).

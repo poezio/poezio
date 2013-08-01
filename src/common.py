@@ -182,7 +182,7 @@ def datetime_tuple(timestamp):
     :return: The date.
     :rtype: :py:class:`datetime.datetime`
 
-    >>> common.datetime_tuple('20130226T06:23:12')
+    >>> datetime_tuple('20130226T06:23:12')
     datetime.datetime(2013, 2, 26, 8, 23, 12)
     """
     timestamp = timestamp.split('.')[0]
@@ -233,19 +233,82 @@ def shell_split(st):
     >>> shell_split('"sdf 1" "toto 2"')
     ['sdf 1', 'toto 2']
     """
-    sh = shlex.shlex(st, posix=True)
-    sh.commenters = ''
-    sh.whitespace_split = True
-    sh.quotes = '"'
-    ret = list()
-    try:
+    sh = shlex.shlex(st)
+    ret = []
+    w = sh.get_token()
+    while w and w[2] is not None:
+        ret.append(w[2])
         w = sh.get_token()
-        while w is not None:
-            ret.append(w)
-            w = sh.get_token()
-        return ret
-    except ValueError:
-        return st.split(" ")
+    return ret
+
+def find_argument(pos, text, quoted=True):
+    """
+    Split an input into a list of arguments, return the number of the
+    argument selected by pos.
+
+    If the position searched is outside the string, or in a space between words,
+    then it will return the position of an hypothetical new argument.
+
+    See the doctests of the two methods for example behaviors.
+
+    :param int pos: The position to search.
+    :param str text: The text to analyze.
+    :param quoted: Whether to take quotes into account or not.
+    :rtype: int
+    """
+    if quoted:
+        return find_argument_quoted(pos, text)
+    else:
+        return find_argument_unquoted(pos, text)
+
+def find_argument_quoted(pos, text):
+    """
+    >>> find_argument_quoted(4, 'toto titi tata')
+    3
+    >>> find_argument_quoted(4, '"toto titi" tata')
+    0
+    >>> find_argument_quoted(8, '"toto" "titi tata"')
+    1
+    >>> find_argument_quoted(8, '"toto" "titi tata')
+    1
+    >>> find_argument_quoted(18, '"toto" "titi tata" ')
+    2
+    """
+    sh = shlex.shlex(text)
+    count = -1
+    w = sh.get_token()
+    while w and w[2] is not None:
+        count += 1
+        if w[0] <= pos < w[1]:
+            return count
+        w = sh.get_token()
+
+    return count + 1
+
+def find_argument_unquoted(pos, text):
+    """
+    >>> find_argument_unquoted(2, 'toto titi tata')
+    0
+    >>> find_argument_unquoted(3, 'toto titi tata')
+    0
+    >>> find_argument_unquoted(6, 'toto titi tata')
+    1
+    >>> find_argument_unquoted(4, 'toto titi tata')
+    3
+    >>> find_argument_unquoted(25, 'toto titi tata')
+    3
+    """
+    ret = text.split()
+    search = 0
+    argnum = 0
+    for i, elem in enumerate(ret):
+        elem_start = text.find(elem, search)
+        elem_end = elem_start + len(elem)
+        search = elem_end
+        if elem_start <= pos < elem_end:
+            return i
+        argnum = i
+    return argnum + 1
 
 def parse_str_to_secs(duration=''):
     """
@@ -286,7 +349,7 @@ def parse_secs_to_str(duration=0):
     :rtype: :py:class:`str`
 
     >>> parse_secs_to_str(3601)
-    1h1s
+    '1h1s'
     """
     secs, mins, hours, days = 0, 0, 0, 0
     result = ''
@@ -370,3 +433,8 @@ def safeJID(*args, **kwargs):
         return JID(*args, **kwargs)
     except InvalidJID:
         return JID('')
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

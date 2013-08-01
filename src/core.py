@@ -1482,8 +1482,8 @@ class Core(object):
 
     def completion_help(self, the_input):
         """Completion for /help."""
-        commands = list(self.commands.keys()) + list(self.current_tab().commands.keys())
-        return the_input.auto_completion(commands, ' ', quotify=False)
+        commands = sorted(self.commands.keys()) + sorted(self.current_tab().commands.keys())
+        return the_input.new_completion(commands, 1, quotify=False)
 
     def command_runkey(self, arg):
         """
@@ -1509,7 +1509,7 @@ class Core(object):
         list_ = []
         list_.extend(self.key_func.keys())
         list_.extend(self.current_tab().key_func.keys())
-        return the_input.auto_completion(list_, '', quotify=False)
+        return the_input.new_completion(list_, 1, quotify=False)
 
     def command_status(self, arg):
         """
@@ -1548,7 +1548,8 @@ class Core(object):
         """
         Completion of /status
         """
-        return the_input.auto_completion([status for status in possible_show], ' ', quotify=False)
+        if the_input.get_argument_position() == 1:
+            return the_input.new_completion([status for status in possible_show], 1, ' ', quotify=False)
 
     def command_presence(self, arg):
         """
@@ -1595,15 +1596,11 @@ class Core(object):
         """
         Completion of /presence
         """
-        text = the_input.get_text()
-        args = text.split()
-        n = len(args)
-        if text.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion([jid for jid in roster.jids()], '')
-        elif n == 3:
-            return the_input.auto_completion([status for status in possible_show], '')
+        arg = the_input.get_argument_position()
+        if arg == 1:
+            return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=True)
+        elif arg == 2:
+            return the_input.auto_completion([status for status in possible_show], '', quotify=True)
 
     def command_theme(self, arg=''):
         """/theme <theme name>"""
@@ -1631,7 +1628,7 @@ class Core(object):
         theme_files = [name[:-3] for name in names if name.endswith('.py')]
         if not 'default' in theme_files:
             theme_files.append('default')
-        return the_input.auto_completion(theme_files, '', quotify=False)
+        return the_input.new_completion(theme_files, 1, '', quotify=False)
 
     def command_win(self, arg):
         """
@@ -1675,7 +1672,7 @@ class Core(object):
         for tab in self.tabs:
             l.extend(tab.matching_names())
         l = [i[1] for i in l]
-        return the_input.auto_completion(l, ' ', quotify=False)
+        return the_input.new_completion(l, 1, '', quotify=False)
 
     def command_move_tab(self, arg):
         """
@@ -1692,7 +1689,7 @@ class Core(object):
             except ValueError:
                 old_tab = None
                 for tab in self.tabs:
-                    if not old_tab and value in safeJID(tab.get_name()).user:
+                    if not old_tab and value == tab.get_name():
                         old_tab = tab
                 if not old_tab:
                     self.information("Tab %s does not exist" % args[0], "Error")
@@ -1712,8 +1709,11 @@ class Core(object):
 
     def completion_move_tab(self, the_input):
         """Completion for /move_tab"""
-        nodes = [safeJID(tab.get_name()).user for tab in self.tabs]
-        return the_input.auto_completion(nodes, ' ', quotify=True)
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            nodes = [tab.get_name() for tab in self.tabs if tab]
+            nodes.remove('Roster')
+            return the_input.new_completion(nodes, 1, ' ', quotify=True)
 
     def command_list(self, arg):
         """
@@ -1741,7 +1741,7 @@ class Core(object):
                     tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(safeJID(tab.get_name()).server)
         if muc_serv_list:
-            return the_input.auto_completion(muc_serv_list, ' ', quotify=False)
+            return the_input.new_completion(muc_serv_list, 1, quotify=False)
 
     def command_version(self, arg):
         """
@@ -1770,12 +1770,11 @@ class Core(object):
 
     def completion_version(self, the_input):
         """Completion for /version"""
-        n = len(the_input.get_text().split())
-        if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
+        n = the_input.get_argument_position(quoted=True)
+        if n >= 2:
             return
-        comp = reduce(lambda x, y: x + [i for i in y], (jid.resources for jid in roster if len(jid)), [])
-        comp = (str(res.jid) for res in comp)
-        return the_input.auto_completion(sorted(comp), '', quotify=False)
+        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
+        return the_input.new_completion(sorted(comp), 1, '', quotify=True)
 
     def command_join(self, arg, histo_length=None):
         """
@@ -1968,18 +1967,15 @@ class Core(object):
 
     def completion_bookmark_local(self, the_input):
         """Completion for /bookmark_local"""
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
+        n = the_input.get_argument_position(quoted=True)
+        args = common.shell_split(the_input.text)
 
-        if len(args) == 1:
-            jid = safeJID('')
-        else:
-            jid = safeJID(args[1])
-        if len(args) > 2:
+        if n >= 2:
             return
+        if len(args) == 1:
+            args.append('')
+        jid = safeJID(args[1])
+
         if jid.server and (jid.resource or jid.full.endswith('/')):
             tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
@@ -1992,10 +1988,10 @@ class Core(object):
                 if not nick in nicks:
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
-            return the_input.auto_completion(jids_list, '')
+            return the_input.new_completion(jids_list, 1, quotify=True)
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
         muc_list.append('*')
-        return the_input.auto_completion(muc_list, '')
+        return the_input.new_completion(muc_list, 1, quotify=True)
 
     def command_bookmark(self, arg=''):
         """
@@ -2070,21 +2066,17 @@ class Core(object):
 
     def completion_bookmark(self, the_input):
         """Completion for /bookmark"""
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
+        args = common.shell_split(the_input.text)
+        n = the_input.get_argument_position(quoted=True)
+
+        if n == 2:
+            return the_input.new_completion(['true', 'false'], 2, quotify=True)
+        if n >= 3:
+            return
 
         if len(args) == 1:
-            jid = safeJID('')
-        else:
-            jid = safeJID(args[1])
-
-        if len(args) == 2:
-            return the_input.auto_completion(['true', 'false'], '')
-        if len(args) == 3:
-            return
+            args.append('')
+        jid = safeJID(args[1])
 
         if jid.server and (jid.resource or jid.full.endswith('/')):
             tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
@@ -2098,10 +2090,11 @@ class Core(object):
                 if not nick in nicks:
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
-            return the_input.auto_completion(jids_list, '')
+            return the_input.new_completion(jids_list, 1, quotify=True)
         muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list.sort()
         muc_list.append('*')
-        return the_input.auto_completion(muc_list, '')
+        return the_input.new_completion(muc_list, 1, quotify=True)
 
     def command_bookmarks(self, arg=''):
         """/bookmarks"""
@@ -2133,7 +2126,7 @@ class Core(object):
 
     def completion_remove_bookmark(self, the_input):
         """Completion for /remove_bookmark"""
-        return the_input.auto_completion([bm.jid for bm in bookmark.bookmarks], '')
+        return the_input.new_completion([bm.jid for bm in bookmark.bookmarks], 1, quotify=False)
 
     def command_set(self, arg):
         """
@@ -2170,27 +2163,24 @@ class Core(object):
 
     def completion_set(self, the_input):
         """Completion for /set"""
-        text = the_input.get_text()
-        args = common.shell_split(text)
-        n = len(args)
-        empty = False
-        if text.endswith(' '):
-            n += 1
-            empty = True
-        if n == 2:
-            if not empty and '|' in args[1]:
+        args = common.shell_split(the_input.text)
+        n = the_input.get_argument_position(quoted=True)
+        if n >= len(args):
+            args.append('')
+        if n == 1:
+            if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if not plugin_name in self.plugin_manager.plugins:
-                        return the_input.auto_completion([],'')
+                        return the_input.new_completion([], n, quotify=True)
                 plugin = self.plugin_manager.plugins[plugin_name]
                 end_list = ['%s|%s' % (plugin_name, section) for section in plugin.config.sections()]
             else:
                 end_list = config.options('Poezio')
-        elif n == 3:
+        elif n == 2:
             if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if not plugin_name in self.plugin_manager.plugins:
-                        return the_input.auto_completion([''],'')
+                        return the_input.auto_completion([''], n, quotify=True)
                 plugin = self.plugin_manager.plugins[plugin_name]
                 end_list = plugin.config.options(section or plugin_name)
             elif not config.has_option('Poezio', args[1]):
@@ -2201,11 +2191,11 @@ class Core(object):
                     end_list = []
             else:
                 end_list = [config.get(args[1], ''), '']
-        elif n == 4:
+        elif n == 3:
             if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if not plugin_name in self.plugin_manager.plugins:
-                        return the_input.auto_completion([],'')
+                        return the_input.auto_completion([''], n, quotify=True)
                 plugin = self.plugin_manager.plugins[plugin_name]
                 end_list = [plugin.config.get(args[2], '', section or plugin_name), '']
             else:
@@ -2213,7 +2203,9 @@ class Core(object):
                     end_list = ['']
                 else:
                     end_list = [config.get(args[2], '', args[1]), '']
-        return the_input.auto_completion(end_list, '')
+        else:
+            return
+        return the_input.new_completion(end_list, n, quotify=True)
 
     def command_server_cycle(self, arg=''):
         """
@@ -2241,18 +2233,12 @@ class Core(object):
 
     def completion_server_cycle(self, the_input):
         """Completion for /server_cycle"""
-        txt = the_input.get_text()
-        args = txt.split()
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            serv_list = set()
-            for tab in self.tabs:
-                if isinstance(tab, tabs.MucTab):
-                    serv = safeJID(tab.get_name()).server
-                    serv_list.add(serv)
-            return the_input.auto_completion(list(serv_list), ' ')
+        serv_list = set()
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab):
+                serv = safeJID(tab.get_name()).server
+                serv_list.add(serv)
+        return the_input.new_completion(sorted(serv_list), 1, ' ')
 
     def command_last_activity(self, arg):
         """
@@ -2284,7 +2270,7 @@ class Core(object):
         self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
 
     def completion_last_activity(self, the_input):
-            return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=False)
+            return the_input.new_completion([jid for jid in roster.jids()], 1, quotify=False)
 
     def command_mood(self, arg):
         """
@@ -2304,7 +2290,9 @@ class Core(object):
 
     def completion_mood(self, the_input):
         """Completion for /mood"""
-        return the_input.auto_completion(list(pep.MOODS.keys()), '', quotify=False)
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            return the_input.new_completion(sorted(pep.MOODS.keys()), 1, quotify=True)
 
     def command_activity(self, arg):
         """
@@ -2347,18 +2335,16 @@ class Core(object):
 
     def completion_activity(self, the_input):
         """Completion for /activity"""
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion(list(pep.ACTIVITIES.keys()), '', quotify=False)
-        elif n == 3:
+        n = the_input.get_argument_position(quoted=True)
+        args = common.shell_split(the_input.text)
+        if n == 1:
+            return the_input.new_completion(sorted(pep.ACTIVITIES.keys()), n, quotify=True)
+        elif n == 2:
             if args[1] in pep.ACTIVITIES:
                 l = list(pep.ACTIVITIES[args[1]])
                 l.remove('category')
-                return the_input.auto_completion(l, '', quotify=False)
+                l.sort()
+                return the_input.new_completion(l, n, quotify=True)
 
     def command_invite(self, arg):
         """/invite <to> <room> [reason]"""
@@ -2372,19 +2358,16 @@ class Core(object):
 
     def completion_invite(self, the_input):
         """Completion for /invite"""
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion([jid for jid in roster.jids()], '')
-        elif n == 3:
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            return the_input.new_completion(sorted(jid for jid in roster.jids()), n, quotify=True)
+        elif n == 2:
             rooms = []
             for tab in self.tabs:
                 if isinstance(tab, tabs.MucTab) and tab.joined:
                     rooms.append(tab.get_name())
-            return the_input.auto_completion(rooms, '')
+            rooms.sort()
+            return the_input.new_completion(rooms, n, '', quotify=True)
 
     def command_decline(self, arg):
         """/decline <room@server.tld> [reason]"""
@@ -2400,13 +2383,9 @@ class Core(object):
 
     def completion_decline(self, the_input):
         """Completion for /decline"""
-        txt = the_input.get_text()
-        args = common.shell_split(txt)
-        n = len(args)
-        if txt.endswith(' '):
-            n += 1
-        if n == 2:
-            return the_input.auto_completion(list(self.pending_invites.keys()), '')
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            return the_input.auto_completion(sorted(self.pending_invites.keys()), 1, '', quotify=True)
 
     ### Commands without a completion in this class ###
 
@@ -2441,6 +2420,20 @@ class Core(object):
         self.running = False
         self.reset_curses()
         sys.exit()
+
+    def completion_bind(self, the_input):
+        n = the_input.get_argument_position()
+        if n == 1:
+            args = [key for key in self.key_func if not key.startswith('_')]
+        elif n == 2:
+            args = [key for key in self.key_func]
+        else:
+            return
+
+        return the_input.new_completion(args, n, '', quotify=False)
+
+
+        return the_input
 
     def command_bind(self, arg):
         """
@@ -2537,15 +2530,15 @@ class Core(object):
 
     def completion_message(self, the_input):
         """Completion for /message"""
-        n = len(the_input.get_text().split())
-        if n > 2 or (n == 2 and the_input.get_text().endswith(' ')):
+        n = the_input.get_argument_position(quoted=True)
+        if n >= 2:
             return
-        comp = reduce(lambda x, y: x + [i for i in y], (jid.resources for jid in roster if len(jid)), [])
-        comp = sorted((str(res.jid) for res in comp))
-        bares = sorted(contact.bare_jid for contact in roster if len(contact))
-        off = sorted(contact.bare_jid for contact in roster if not len(contact))
+        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
+        comp = sorted(comp)
+        bares = sorted(roster[contact].bare_jid for contact in roster.jids() if len(roster[contact]))
+        off = sorted(jid for jid in roster.jids() if jid not in bares)
         comp = bares + comp + off
-        return the_input.auto_completion(comp, '', quotify=True)
+        return the_input.new_completion(comp, 1, '', quotify=True)
 
     def command_xml_tab(self, arg=''):
         """/xml_tab"""
@@ -2652,6 +2645,7 @@ class Core(object):
         self.register_command('bind', self.command_bind,
                 usage=_(' <key> <equ>'),
                 desc=_('Bind a key to another key or to a “command”. For example "/bind ^H KEY_UP" makes Control + h do the same same as the Up key.'),
+                completion=self.completion_bind,
                 shortdesc=_('Bind a key to another key.'))
         self.register_command('load', self.command_load,
                 usage=_('<plugin>'),
@@ -3253,12 +3247,14 @@ class Core(object):
         """subscribe received"""
         jid = presence['from'].bare
         contact = roster[jid]
-        if contact.subscription in ('from', 'both'):
+        if contact and contact.subscription in ('from', 'both'):
             return
-        elif contact.subscription == 'to':
+        elif contact and contact.subscription == 'to':
             self.xmpp.sendPresence(pto=jid, ptype='subscribed')
             self.xmpp.sendPresence(pto=jid)
         else:
+            if not contact:
+                contact = roster.get_and_set(jid)
             roster.update_contact_groups(contact)
             contact.pending_in = True
             self.information('%s wants to subscribe to your presence' % jid, 'Roster')
