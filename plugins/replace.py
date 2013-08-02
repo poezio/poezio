@@ -66,6 +66,7 @@ from plugin import BasePlugin
 import tabs
 import datetime
 import random
+import re
 from sleekxmpp.xmlstream.stanzabase import JID
 
 class Plugin(BasePlugin):
@@ -88,16 +89,9 @@ class Plugin(BasePlugin):
         body = message['body']
         for pattern in self.patterns:
             new = body
-            while True:
-                # we don't use a replace on all occurence, otherwise the
-                # result would be the same for all occurence of the pattern
-                # and that's not desirable in some of them (for example the
-                # ones that provide random results)
-                new = body.replace('%%%s%%' % pattern,
-                                   self.patterns[pattern](message, tab), 1)
-                if new == body:
-                    break
-                body = new
+            body = re.sub('%%%s%%' % pattern,
+                    lambda x: self.patterns[pattern](message, tab),
+                    body)
         message['body'] = body
 
 
