@@ -19,9 +19,9 @@ Global keys
 ~~~~~~~~~~~
 These keys work in **any** tab.
 
-**Ctrl-n**: Go to the next tab.
+**Ctrl-p** or **F5**: Go to the previous tab.
 
-**Ctrl-p**: Go to the previous tab.
+**Ctrl-n** or **F6**: Go to the next tab.
 
 **Alt-number**: Go to the tab with that number.
 
@@ -33,6 +33,8 @@ highlight > message > non-empty input).
 **Alt-z**: Go to the previously selected tab.
 
 **Alt-r**: Go to the roster tab.
+
+**F4**: Toggle the left pane.
 
 **F7**: Shrink the information buffer.
 
