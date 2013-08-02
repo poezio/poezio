@@ -1383,7 +1383,7 @@ class Input(Win):
         self.normal_completion(word_list, add_after)
         return True
 
-    def new_completion(self, word_list, argument_position=-1, add_after='', quotify=True):
+    def new_completion(self, word_list, argument_position=-1, add_after='', quotify=True, override=False):
         """
         Complete the argument at position ``argument_postion`` in the input.
         If ``quotify`` is ``True``, then the completion will operate on block of words
@@ -1403,11 +1403,11 @@ class Input(Win):
         if argument_position == 0:
             self._new_completion_first(word_list)
         else:
-            self._new_completion_args(word_list, argument_position, add_after, quotify)
+            self._new_completion_args(word_list, argument_position, add_after, quotify, override)
         self.rewrite_text()
         return True
 
-    def _new_completion_args(self, word_list, argument_position=-1, add_after='', quoted=True):
+    def _new_completion_args(self, word_list, argument_position=-1, add_after='', quoted=True, override=False):
         """
         Case for completing arguments with position ≠ 0
         """
@@ -1432,11 +1432,13 @@ class Input(Win):
         if self.last_completion is not None:
             self.hit_list.append(self.hit_list.pop(0))
         else:
-            hit_list = []
-            for word in word_list:
-                if word.lower().startswith(current_l):
-                    hit_list.append(word)
-
+            if override:
+                hit_list = word_list
+            else:
+                hit_list = []
+                for word in word_list:
+                    if word.lower().startswith(current_l):
+                        hit_list.append(word)
             if not hit_list:
                 return
             self.hit_list = hit_list

@@ -1872,42 +1872,64 @@ class Core(object):
 
     def completion_join(self, the_input):
         """
-        Try to complete the server of the MUC's jid (for now only from the currently
-        open ones)
-        TODO: have a history of recently joined MUCs, and use that too
+        Completion for /join
+
+        Try to complete the MUC JID:
+            if only a resource is provided, complete with the default nick
+            if only a server is provided, complete with the rooms from the
+                disco#items of that server
+            if only a nodepart is provided, complete with the servers of the
+                current joined rooms
         """
-        txt = the_input.get_text()
-        if len(txt.split()) != 2:
+        n = the_input.get_argument_position(quoted=True)
+        args = common.shell_split(the_input.text)
+        if n != 1:
             # we are not on the 1st argument of the command line
             return False
-        jid = safeJID(txt.split()[1])
-        if jid.server:
-            if jid.resource or jid.full.endswith('/'):
-                # we are writing the resource: complete the node
-                if not the_input.last_completion:
-                    try:
-                        response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
-                    except:
-                        response = None
-                    if response:
-                        items = response['disco_items'].get_items()
-                    else:
-                        return True
-                    items = ['%s/%s' % (tup[0], jid.resource) for tup in items]
-                    for _ in range(len(jid.server) + 2 + len(jid.resource)):
-                        the_input.key_backspace()
-                else:
-                    items = []
-                items.extend(list(self.pending_invites.keys()))
-                the_input.auto_completion(items, '')
+        if len(args) == 1:
+            args.append('')
+        jid = safeJID(args[1])
+        if args[1].endswith('@') and not jid.user and not jid.server:
+            jid.user = args[1][:-1]
+
+        relevant_rooms = []
+        relevant_rooms.extend(sorted(self.pending_invites.keys()))
+        bookmarks = {str(elem.jid): False for elem in bookmark.bookmarks}
+        for tab in self.tabs:
+            if isinstance(tab, tabs.MucTab):
+                name = tab.get_name()
+                if name in bookmarks and not tab.joined:
+                    bookmarks[name] = True
+        relevant_rooms.extend(sorted(room[0] for room in bookmarks.items() if room[1]))
+
+        if the_input.last_completion:
+            return the_input.new_completion([], 1, quotify=True)
+
+        if jid.server and not jid.user:
+            # no room was given: complete the node
+            try:
+                response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
+            except:
+                response = None
+            if response:
+                items = response['disco_items'].get_items()
             else:
-                # we are writing the server: complete the server
-                serv_list = []
-                for tab in self.tabs:
-                    if isinstance(tab, tabs.MucTab):
-                        serv_list.append('%s@%s'% (jid.user, safeJID(tab.get_name()).host))
-                serv_list.extend(list(self.pending_invites.keys()))
-                the_input.auto_completion(serv_list, '')
+                return True
+            items = sorted('%s/%s' % (tup[0], jid.resource) for tup in items)
+            return the_input.new_completion(items, 1, quotify=True, override=True)
+        elif jid.user:
+            # we are writing the server: complete the server
+            serv_list = []
+            for tab in self.tabs:
+                if isinstance(tab, tabs.MucTab) and tab.joined:
+                    serv_list.append('%s@%s'% (jid.user, safeJID(tab.get_name()).host))
+            serv_list.extend(relevant_rooms)
+            return the_input.new_completion(serv_list, 1, quotify=True)
+        elif args[1].startswith('/'):
+            # we completing only a resource
+            return the_input.new_completion(['/%s' % self.own_nick], 1, quotify=True)
+        else:
+            return the_input.new_completion(relevant_rooms, 1, quotify=True)
         return True
 
     def command_bookmark_local(self, arg=''):
