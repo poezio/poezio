@@ -544,6 +544,7 @@ class ChatTab(Tab):
             ET.fromstring(arg)
         except:
             self.core.information('Could not send custom xhtml', 'Error')
+            log.error('/xhtml: Unable to send custom xhtml', exc_info=True)
             return
 
         msg = self.core.xmpp.make_message(self.get_dest_jid())
@@ -1917,7 +1918,7 @@ class PrivateTab(ChatTab):
                             user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
                     replaced = True
                 except:
-                    pass
+                    log.error('Unable to correct a message', exc_info=True)
 
         if not replaced:
             self.add_message(msg['body'],
@@ -2638,6 +2639,7 @@ class RosterInfoTab(Tab):
             handle.close()
         except IOError:
             self.core.information('Could not open %s' % filepath, 'Error')
+            log.error('Unable to correct a message', exc_info=True)
             return
         for jid in lines:
             self.command_add(jid.lstrip('\n'))
@@ -3107,7 +3109,7 @@ class ConversationTab(ChatTab):
                             nickname=self.core.own_nick)
                     replaced = True
                 except:
-                    pass
+                    log.error('Unable to correct a message', exc_info=True)
         if not replaced:
             self.add_message(msg['body'],
                     nickname=self.core.own_nick,

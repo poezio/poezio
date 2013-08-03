@@ -362,6 +362,13 @@ section of this documentation.
         i.e. in ``~/.local/share/poezio/logs/``. So, you should specify the directory
         you want to use instead. This directory will be created if it doesn't exist
 
+    log_errors
+
+        **Default value:** ``true``
+
+        Logs all the tracebacks or poezio/sleekxmpp in :term:`log_dir`/errors.log by
+        default. ``false`` disables this option.
+
     max_lines_in_memory
 
         **Default value:** ``2048``

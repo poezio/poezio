@@ -17,8 +17,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
-log_dir = config.get('log_dir', '') or os.path.join(environ.get('XDG_DATA_HOME') or os.path.join(environ.get('HOME'), '.local', 'share'), 'poezio', 'logs')
-log_dir = os.path.expanduser(log_dir)
+from config import LOG_DIR
+
+log_dir = os.path.join(LOG_DIR, 'logs')
 
 message_log_re = re.compile('MR (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) <([^ ]+)>  (.*)')
 info_log_re = re.compile('MI (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) (.*)')
@@ -69,13 +70,19 @@ class Logger(object):
             return
         try:
             makedirs(log_dir)
-        except OSError:
+        except FileExistsError:
+            pass
+        except:
+            log.error('Unable to create the log dir', exc_info=True)
             pass
         try:
             fd = open(os.path.join(log_dir, room), 'a')
             self.fds[room] = fd
             return fd
         except IOError:
+            log.error('Unable to open the log file (%s)',
+                    os.path.join(log_dir, room),
+                    exc_info=True)
             return
 
     def get_logs(self, jid, nb=10):
@@ -90,6 +97,9 @@ class Logger(object):
         try:
             fd = open(os.path.join(log_dir, jid), 'rb')
         except:
+            log.error('Unable to open the log file (%s)',
+                    os.path.join(log_dir, room),
+                    exc_info=True)
             return
         if not fd:
             return
@@ -189,11 +199,17 @@ class Logger(object):
             for line in lines:
                 fd.write(' %s\n' % line)
         except:
+            log.error('Unable to write in the log file (%s)',
+                    os.path.join(log_dir, jid),
+                    exc_info=True)
             return False
         else:
             try:
                 fd.flush()          # TODO do something better here?
             except:
+                log.error('Unable to flush the log file (%s)',
+                        os.path.join(log_dir, jid),
+                        exc_info=True)
                 return False
         return True
 
@@ -207,6 +223,9 @@ class Logger(object):
             try:
                 self.roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
             except IOError:
+                log.error('Unable to create the log file (%s)',
+                        os.path.join(log_dir, 'roster.log'),
+                        exc_info=True)
                 return False
         try:
             str_time = datetime.now().strftime('%Y%m%dT%H:%M:%SZ')
@@ -219,6 +238,9 @@ class Logger(object):
                 self.roster_logfile.write(' %s\n' % line)
             self.roster_logfile.flush()
         except:
+            log.error('Unable to write in the log file (%s)',
+                    os.path.join(log_dir, 'roster.log'),
+                    exc_info=True)
             return False
         return True
 

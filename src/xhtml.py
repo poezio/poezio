@@ -229,8 +229,8 @@ def xhtml_to_poezio_colors(xml):
     if isinstance(xml, str):
         try:
             xml = ET.fromstring(xml)
-        except cElementTree.ParserError as e:
-            log.error("Error decoding XML: [%s] (%s)" % (xml, e))
+        except:
+            log.error("Error decoding XML: [%s]", repr(xml), exc_info=True)
             return ""
     def parse_css(css):
         def get_color(value):

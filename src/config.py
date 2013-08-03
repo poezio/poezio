@@ -22,7 +22,6 @@ from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path
 from shutil import copy2
 from args import parse_args
-from common import safeJID
 
 
 class Config(RawConfigParser):
@@ -278,3 +277,59 @@ except:
     sys.stderr.write('Poezio was unable to read or parse the config file.\n')
     traceback.print_exc(limit=0)
     sys.exit(1)
+
+LOG_DIR = config.get('log_dir', '') or path.join(environ.get('XDG_DATA_HOME') or path.join(environ.get('HOME'), '.local', 'share'), 'poezio')
+LOG_DIR = path.expanduser(LOG_DIR)
+
+try:
+    makedirs(LOG_DIR)
+except:
+    pass
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s:%(module)s:%(message)s'
+        }
+    },
+    'handlers': {
+        'debug':{
+            'level':'DEBUG',
+            'class':'logging.FileHandler',
+            'filename': '/tmp/dummy',
+            'formatter': 'simple',
+        },
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/dummy',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+            'handlers': [],
+            'propagate': True,
+            'level': 'DEBUG',
+    }
+}
+if config.get('log_errors', 'true').lower() != 'false':
+    LOGGING_CONFIG['root']['handlers'].append('error')
+    LOGGING_CONFIG['handlers']['error']['filename'] = path.join(
+            LOG_DIR,
+            'errors.log')
+
+if options.debug:
+    LOGGING_CONFIG['root']['handlers'].append('debug')
+    LOGGING_CONFIG['handlers']['debug']['filename'] = options.debug
+
+if LOGGING_CONFIG['root']['handlers']:
+    logging.config.dictConfig(LOGGING_CONFIG)
+else:
+    logging.basicConfig(level=logging.CRITICAL)
+
+# common import sleekxmpp, which creates then its loggers, so
+# it needs to be after logger configuration
+from common import safeJID
+

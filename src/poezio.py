@@ -14,24 +14,22 @@ import sys
 import os
 
 import signal
-import logging
+import logging.config
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from logger import logger
 from config import options
+from logger import logger
 import singleton
 import core
+
+log = logging.getLogger('')
 
 def main():
     """
     Enter point
     """
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
-    if options.debug:
-        logging.basicConfig(filename=options.debug, level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.CRITICAL)
     cocore = singleton.Singleton(core.Core)
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler) # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
@@ -48,6 +46,7 @@ def main():
         print("Poezio could not start, maybe you tried aborting it while it was starting?\n"
                 "If you think it is abnormal, please run it with the -d option and report the bug.")
     else:
+        log.error('------------------------ new poezio start ------------------------')
         cocore.main_loop()    # Refresh the screen, wait for user events etc
 
 if __name__ == '__main__':

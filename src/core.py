@@ -614,12 +614,19 @@ class Core(object):
                 try:
                     self.remote_fifo = Fifo(os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'), 'w')
                 except (OSError, IOError) as e:
+                    log.error('Could not open the fifo for writing (%s)',
+                            os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'),
+                            exc_info=True)
                     self.information('Could not open fifo file for writing: %s' % (e,), 'Error')
                     return
             command_str = ' '.join([pipes.quote(arg.replace('\n', ' ')) for arg in command]) + '\n'
             try:
                 self.remote_fifo.write(command_str)
             except (IOError) as e:
+                log.error('Could not write in the fifo (%s): %s',
+                            os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'),
+                            repr(command),
+                            exc_info=True)
                 self.information('Could not execute %s: %s' % (command, e,), 'Error')
                 self.remote_fifo = None
         else:
@@ -627,6 +634,7 @@ class Core(object):
             try:
                 e.start()
             except ValueError as e:
+                log.error('Could not execute command (%s)', repr(command), exc_info=True)
                 self.information('%s' % (e,), 'Error')
 
 
@@ -644,8 +652,7 @@ class Core(object):
         try:
             self.current_tab().execute_command(line)
         except:
-            import traceback
-            log.debug('Execute failed:\n%s', traceback.format_exc())
+            log.error('Execute failed (%s)', line, exc_info=True)
 
 
 ########################## TImed Events #######################################
@@ -1573,9 +1580,9 @@ class Core(object):
             self.events.trigger('send_normal_presence', pres)
             pres.send()
         except :
-            import traceback
             self.information(_('Could not send directed presence'), 'Error')
-            log.debug(_("Could not send directed presence:\n") + traceback.format_exc())
+            log.debug('Could not send directed presence to %s', jid, exc_info=True)
+            return
         tab = self.get_tab_by_name(jid)
         if tab:
             if type in ('xa', 'away'):
@@ -1623,7 +1630,7 @@ class Core(object):
         try:
             names = os.listdir(themes_dir)
         except OSError as e:
-            log.debug(_('Completion failed: %s'), e)
+            log.error('Completion for /theme failed', exc_info=True)
             return
         theme_files = [name[:-3] for name in names if name.endswith('.py')]
         if not 'default' in theme_files:
@@ -1910,6 +1917,9 @@ class Core(object):
             try:
                 response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
             except:
+                log.error('/join completion: Unable to get the list of rooms for %s',
+                        jid.server,
+                        exc_info=True)
                 response = None
             if response:
                 items = response['disco_items'].get_items()
@@ -2499,9 +2509,10 @@ class Core(object):
         try:
             StanzaBase(self.xmpp, xml=ET.fromstring(arg)).send()
         except:
-            import traceback
             self.information(_('Could not send custom stanza'), 'Error')
-            log.debug(_("Could not send custom stanza:\n") + traceback.format_exc())
+            log.debug('/rawxml: Could not send custom stanza (%s)',
+                    repr(arg),
+                    exc_info=True)
 
     def command_load(self, arg):
         """
@@ -2886,7 +2897,7 @@ class Core(object):
                             nickname=remote_nick)
                     return True
                 except CorrectionError:
-                    pass
+                    log.error('Unable to correct a message', exc_info=True)
             return False
 
         if not try_modify():
@@ -3106,7 +3117,7 @@ class Core(object):
                     self.events.trigger('highlight', message, tab)
                 replaced = True
             except CorrectionError:
-                pass
+                log.error('Unable to correct a message', exc_info=True)
         if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
             self.events.trigger('highlight', message, tab)
 
@@ -3160,7 +3171,7 @@ class Core(object):
                         nickname=nick_from)
                 replaced = True
             except CorrectionError:
-                pass
+                log.error('Unable to correct a message', exc_info=True)
         if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=user,
