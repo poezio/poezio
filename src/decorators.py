@@ -2,8 +2,6 @@
 Module containing various decorators
 """
 
-from functools import partial
-
 class RefreshWrapper(object):
     def __init__(self):
         self.core = None
@@ -42,14 +40,4 @@ class RefreshWrapper(object):
             return ret
         return wrap
 
-def __completion(quoted, func):
-    class Completion(object):
-        quoted = quoted
-        def __new__(cls, *args, **kwargs):
-            return func(*args, **kwargs)
-    return Completion
-
-
-completion_quotes = partial(__completion, True)
-completion_raw = partial(__completion, False)
 refresh_wrapper = RefreshWrapper()
