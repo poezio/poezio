@@ -180,6 +180,13 @@ class PoezioAccount(Account):
         except:
             log.error('Error in load_privkey', exc_info=True)
 
+    def drop_privkey(self):
+        try:
+            os.remove(self.key_dir + '.key3')
+        except:
+            log.exception('Error in drop_privkey (removing %s)', self.key_dir + '.key3')
+        self.privkey = None
+
     def save_privkey(self):
         try:
             with open(self.key_dir + '.key3', 'xb') as keyfile:
@@ -368,8 +375,13 @@ class Plugin(BasePlugin):
             if tab.get_name() in self.contexts:
                 ctx = self.contexts[tab.get_name()]
                 self.api.information('The key fingerprint for %s is %s' % (name, ctx.getCurrentKey()) , 'OTR')
+        elif arg == 'drop':
+            # drop the privkey (and obviously, end the current conversations before that)
+            for context in self.contexts.values():
+                if context.state not in (STATE_FINISHED, STATE_PLAINTEXT):
+                    context.disconnect()
+            self.account.drop_privkey()
 
     def completion_otr(self, the_input):
-        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end'], 1, quotify=True)
-
+        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end', 'drop'], 1, quotify=True)
 
