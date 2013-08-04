@@ -1,6 +1,0 @@
-class OTR(object):
-    pass
-
-MSG_STATE_PLAINTEXT = 1
-MSG_STATE_ENCRYPTED = 2
-MSG_STATE_FINISHED = 3
