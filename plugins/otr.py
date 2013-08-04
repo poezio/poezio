@@ -89,11 +89,14 @@ import logging
 
 log = logging.getLogger(__name__)
 import os
+import curses
+
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage, STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account
 
 from plugin import BasePlugin
 from tabs import ConversationTab, DynamicConversationTab, PrivateTab
 from common import safeJID
+from config import config
 
 OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
         '~/.local/share', 'poezio', 'otr')
@@ -108,6 +111,16 @@ POLICY_FLAGS = {
 }
 
 log = logging.getLogger(__name__)
+
+
+def hl(tab):
+    if tab.state != 'current':
+        tab.state = 'private'
+
+    conv_jid = safeJID(tab.name)
+    if 'private' in config.get('beep_on', 'highlight private').split():
+        if config.get_by_tabname('disable_beep', 'false', conv_jid.bare, False).lower() != 'true':
+            curses.beep()
 
 class PoezioContext(Context):
     def __init__(self, account, peer, xmpp, core):
@@ -136,14 +149,17 @@ class PoezioContext(Context):
                 log.debug('OTR conversation with %s refreshed', self.peer)
                 if tab:
                     tab.add_message('Refreshed OTR conversation with %s' % self.peer)
+                    hl(tab)
             elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
                 log.debug('OTR conversation with %s finished', self.peer)
                 if tab:
                     tab.add_message('Ended OTR conversation with %s' % self.peer)
+                    hl(tab)
         else:
             if newstate == STATE_ENCRYPTED:
                 if tab:
                     tab.add_message('Started OTR conversation with %s' % self.peer)
+                    hl(tab)
 
         log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
         super(PoezioContext, self).setState(newstate)
@@ -258,12 +274,14 @@ class Plugin(BasePlugin):
                     jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
                     typ=0)
             del msg['body']
+            hl(tab)
             self.core.refresh_window()
             return
         except ErrorReceived as err:
             # Received an OTR error
             tab.add_message('Received the following error from %s: %s' % (msg['from'], err.args[0]))
             del msg['body']
+            hl(tab)
             self.core.refresh_window()
             return
         except NotOTRMessage as err:
@@ -276,6 +294,7 @@ class Plugin(BasePlugin):
                     ' currently communicating privately.' % msg['from'],
                     jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
                     typ=0)
+            hl(tab)
             del msg['body']
             self.core.refresh_window()
             return
@@ -296,6 +315,7 @@ class Plugin(BasePlugin):
         body = txt.decode()
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
                 forced_user=user, typ=0)
+        hl(tab)
         self.core.refresh_window()
         del msg['body']
 
