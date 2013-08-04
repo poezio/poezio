@@ -165,7 +165,6 @@ class PoezioAccount(Account):
             log.error('Error in load_privkey', exc_info=True)
 
     def save_privkey(self):
-        log.error('coucou')
         try:
             with open(self.key_dir + '.key3', 'xb') as keyfile:
                 keyfile.write(self.getPrivkey().serializePrivateKey())
@@ -215,11 +214,20 @@ class Plugin(BasePlugin):
         PrivateTab.add_information_element('otr', self.display_encryption_status)
         self.account = PoezioAccount(self.core.xmpp.boundjid.bare, OTR_DIR)
         self.contexts = {}
+        usage = '[start|refresh|end|fpr|ourfpr]'
+        shortdesc = 'Manage an OTR conversation'
+        desc = ('Manage an OTR conversation. Use “/otr start” to start a converation,'
+                ' “/otr end” to end it, “/otr fpr” to show the fingerprint of your '
+                'contact, and “/otr ourfpr” to show your fingerprint.')
         self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
-                help='coucou',
+                help=desc,
+                usage=usage,
+                short=shortdesc,
                 completion=self.completion_otr)
         self.api.add_tab_command(PrivateTab, 'otr', self.command_otr,
-                help='coucou',
+                help=desc,
+                usage=usage,
+                short=shortdesc,
                 completion=self.completion_otr)
 
     def cleanup(self):
