@@ -1241,6 +1241,9 @@ class MucTab(ChatTab):
         # be converted in xhtml.
         self.core.events.trigger('muc_say', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
@@ -1253,6 +1256,9 @@ class MucTab(ChatTab):
         self.cancel_paused_delay()
         self.core.events.trigger('muc_say_after', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         self.last_sent_message = msg
         msg.send()
@@ -1929,6 +1935,9 @@ class PrivateTab(ChatTab):
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         user = self.parent_muc.get_user_by_name(self.own_nick)
         replaced = False
@@ -1961,6 +1970,9 @@ class PrivateTab(ChatTab):
             msg['attention'] = True
         self.core.events.trigger('private_say_after', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         self.last_sent_message = msg
         msg.send()
@@ -3125,6 +3137,9 @@ class ConversationTab(ChatTab):
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         replaced = False
         if correct:
@@ -3154,6 +3169,9 @@ class ConversationTab(ChatTab):
             msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
         if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
             return
         self.last_sent_message = msg
         msg.send()

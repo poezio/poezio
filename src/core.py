@@ -3161,6 +3161,7 @@ class Core(object):
                 self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
             return
         self.events.trigger('private_msg', message, tab)
+        body = xhtml.get_body_from_message_stanza(message)
         if not body or not tab:
             return
         replaced_id = message['replace']['id']
