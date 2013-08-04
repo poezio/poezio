@@ -1,4 +1,5 @@
 -e git://github.com/fritzy/SleekXMPP.git@develop#egg=SleekXMPP
+-e git://github.com/afflux/pure-python-otr.git#egg=potr
 dnspython3==1.10.0
 sphinx==1.2b1
 argparse

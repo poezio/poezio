@@ -1,8 +1,5 @@
 """
 
-.. warning:: THE OTR LIB IS IN AN EXPERIMENTAL STATE AND SHOULD NOT BE
-            CONSIDERED AS ENTIRELY RELIABLE
-
 This plugin implements `Off The Record messaging`_.
 
 This is a plugin used to encrypt one-to-one conversation using the OTR
@@ -22,52 +19,46 @@ Note that if you are having an encrypted conversation with a contact, you can
 **not** send XHTML-IM messages to him. They will be removed and be replaced by
 plain text messages.
 
-Installation and configuration
-------------------------------
+Installation
+------------
 
-To use the OTR plugin, you must first install libopenotr.
+To use the OTR plugin, you must first install pure-python-otr.
 
-If you use Archlinux, there is a `libopenotr-git`_ package on the AUR.
+You have to install it from the git because a few issues were
+found with the python3 compatibility while writing this plugin,
+and the fixes did not make it into a stable release yet.
 
-If not, then you will have to install it by hand.
-
-First, clone the repo and go inside the created directory:
-
-.. code-block:: bash
-
-    git clone https://github.com/teisenbe/libopenotr.git
-    cd libopenotr
-
-Then run autogen.sh and configure
+Install the python module:
 
 .. code-block:: bash
 
-    sh autogen.sh
-    ./configure --enable-gaping-security-hole
+    git clone https://github.com/afflux/pure-python-otr.git
+    cd pure-python-otr
+    python3 setup.py install --user
 
-(as of now, you *should* have been warned enough that the library is not finished)
+You can also use pip with the requirements.txt at the root of
+the poezio directory.
 
-Then compile & install the lib:
-
-.. code-block:: bash
-
-    make
-    sudo make install
-
-Finally, install the python module:
-
-.. code-block:: bash
-
-    python3 setup.py build
-    sudo python3 setup.py install
 
 Usage
 -----
 
+Command added to Conversation Tabs and Private Tabs:
+
+.. glossary::
+
+    /otr
+        **Usage:** ``/otr [start|refresh|end|fpr|ourfpr]``
+
+        This command is used to start (or refresh), or end an OTR private session.
+
+        The ``fpr`` command gives you the fingerprint of the key of the remove entity, and
+        the ``ourfpr`` command gives you the fingerprint of your own key.
+
+
 To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
 
 Once you are in a private conversation, you have to do a:
-
 
 .. code-block:: none
 
@@ -76,160 +67,281 @@ Once you are in a private conversation, you have to do a:
 The status of the OTR encryption should appear in the bar between the chat and
 the input as ``OTR: encrypted``.
 
-
 Once you’re done, end the OTR session with
 
 .. code-block:: none
 
     /otr end
 
-Known problems
---------------
 
-Empty messages send when changing status.
+Important details
+-----------------
+
+The OTR session is considered for a full jid.
+
 
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
-.. _libopenotr-git:  https://aur.archlinux.org/packages.php?ID=57957
 
 """
-
-import pyotr
-from sleekxmpp.xmlstream.stanzabase import JID
-
+import potr
+import theming
 import logging
+
 log = logging.getLogger(__name__)
+import os
+from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage, STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account
 
 from plugin import BasePlugin
+from tabs import ConversationTab, DynamicConversationTab, PrivateTab
+from common import safeJID
 
-import tabs
-from tabs import ConversationTab
+OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
+        '~/.local/share', 'poezio', 'otr')
+
+POLICY_FLAGS = {
+        'ALLOW_V1':False,
+        'ALLOW_V2':True,
+        'REQUIRE_ENCRYPTION': False,
+        'SEND_TAG': True,
+        'WHITESPACE_START_AKE': True,
+        'ERROR_START_AKE': True
+}
+
+log = logging.getLogger(__name__)
+
+class PoezioContext(Context):
+    def __init__(self, account, peer, xmpp, core):
+        super(PoezioContext, self).__init__(account, peer)
+        self.xmpp = xmpp
+        self.core = core
+        self.flags = {}
+
+    def getPolicy(self, key):
+        if key in self.flags:
+            return self.flags[key]
+        else:
+            return False
+
+    def inject(self, msg, appdata=None):
+        self.xmpp.send_message(mto=self.peer, mbody=msg.decode('ascii'), mtype='chat')
+
+    def setState(self, newstate):
+        tab = self.core.get_tab_by_name(self.peer)
+        if not tab:
+            tab = self.core.get_tab_by_name(safeJID(self.peer).bare, DynamicConversationTab)
+            if not tab.locked_resource == safeJID(self.peer).resource:
+                tab = None
+        if self.state == STATE_ENCRYPTED:
+            if newstate == STATE_ENCRYPTED:
+                log.debug('OTR conversation with %s refreshed', self.peer)
+                if tab:
+                    tab.add_message('Refreshed OTR conversation with %s' % self.peer)
+            elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
+                log.debug('OTR conversation with %s finished', self.peer)
+                if tab:
+                    tab.add_message('Ended OTR conversation with %s' % self.peer)
+        else:
+            if newstate == STATE_ENCRYPTED:
+                if tab:
+                    tab.add_message('Started OTR conversation with %s' % self.peer)
+
+        log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
+        super(PoezioContext, self).setState(newstate)
+        if tab:
+            self.core.refresh_window()
+            self.core.doupdate()
+
+class PoezioAccount(Account):
+
+    def __init__(self, jid, key_dir):
+        super(PoezioAccount, self).__init__(jid, 'xmpp', 1024)
+        self.key_dir = os.path.join(key_dir, jid)
+
+    def load_privkey(self):
+        try:
+            with open(self.key_dir + '.key3', 'rb') as keyfile:
+                return potr.crypt.PK.parsePrivateKey(keyfile.read())[0]
+        except:
+            log.error('Error in load_privkey', exc_info=True)
+
+    def save_privkey(self):
+        log.error('coucou')
+        try:
+            with open(self.key_dir + '.key3', 'xb') as keyfile:
+                keyfile.write(self.getPrivkey().serializePrivateKey())
+        except:
+            log.error('Error in save_privkey', exc_info=True)
+
+    def save_trusts(self):
+        """TODO"""
+        pass
+
+    saveTrusts = save_trusts
+    loadPrivkey = load_privkey
+    savePrivkey = save_privkey
+
+states = {
+        STATE_PLAINTEXT: 'plaintext',
+        STATE_ENCRYPTED: 'encrypted',
+        STATE_FINISHED: 'finished',
+}
 
 class Plugin(BasePlugin):
-    def init(self):
-        self.contacts = {}
-        # a dict of {full-JID: OTR object}
-        self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
-        self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
-                usage='<start|end|fpr>',
-                help='Start or stop OTR for the current conversation.',
-                short='Manage OTR status',
-                completion=self.otr_completion)
+    def init(self):
+        # set the default values from the config
+        policy = self.config.get('encryption_policy', 'ondemand').lower()
+        POLICY_FLAGS['REQUIRE_ENCRYPTION'] = (policy == 'always')
+        allow_v2 = self.config.get('allow_v2', 'true').lower()
+        POLICY_FLAGS['ALLOW_V2'] = (allow_v2 != 'false')
+        allow_v1 = self.config.get('allow_v1', 'false').lower()
+        POLICY_FLAGS['ALLOW_v1'] = (allow_v1 == 'true')
+
+        global OTR_DIR
+        OTR_DIR = os.path.expanduser(self.config.get('keys_dir', '') or OTR_DIR)
+        try:
+            os.makedirs(OTR_DIR)
+        except FileExistsError:
+            pass
+        except:
+            self.api.information('The OTR-specific folder could not be created'
+                    ' poezio will be unable to save keys and trusts', 'OTR')
+
+        self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
+        self.api.add_event_handler('private_msg', self.on_conversation_msg)
+        self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
+        self.api.add_event_handler('private_say_after', self.on_conversation_say)
         ConversationTab.add_information_element('otr', self.display_encryption_status)
+        PrivateTab.add_information_element('otr', self.display_encryption_status)
+        self.account = PoezioAccount(self.core.xmpp.boundjid.bare, OTR_DIR)
+        self.contexts = {}
+        self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
+                help='coucou',
+                completion=self.completion_otr)
+        self.api.add_tab_command(PrivateTab, 'otr', self.command_otr,
+                help='coucou',
+                completion=self.completion_otr)
 
     def cleanup(self):
         ConversationTab.remove_information_element('otr')
-        self.del_tab_command(ConversationTab, 'otr')
+        PrivateTab.remove_information_element('otr')
 
-    def otr_special(self, tab, typ):
-        def helper(msg):
-            tab.add_message('%s: %s' % (typ, msg.decode()))
-        return helper
+    def get_context(self, jid):
+        jid = safeJID(jid).full
+        if not jid in self.contexts:
+            flags = POLICY_FLAGS.copy()
+            policy = self.config.get_by_tabname('encryption_policy', 'ondemand', jid).lower()
+            flags['REQUIRE_ENCRYPTION'] = (policy == 'always')
+            allow_v2 = self.config.get_by_tabname('allow_v2', 'true', jid).lower()
+            flags['ALLOW_V2'] = (allow_v2 != 'false')
+            allow_v1 = self.config.get_by_tabname('allow_v1', 'false', jid).lower()
+            flags['ALLOW_V1'] = (allow_v1 == 'true')
+            self.contexts[jid] = PoezioContext(self.account, jid, self.core.xmpp, self.core)
+            self.contexts[jid].flags = flags
+        return self.contexts[jid]
 
-    def otr_on_state_change(self, tab):
-        def helper(old, new):
-            old = self.otr_state(old)
-            new = self.otr_state(new)
-            tab.add_message('OTR state has changed from %s to %s' % (old, new))
-        return helper
-
-    def get_otr(self, tab):
-        if tab not in self.contacts:
-            self.contacts[tab] = pyotr.OTR(on_error=self.otr_special(tab, 'Error'), on_warn=self.otr_special(tab, 'Warn'), on_state_change=self.otr_on_state_change(tab))
-        return self.contacts[tab]
-
-    def on_conversation_say(self, message, tab):
-        """
-        Feed the message through the OTR filter
-        """
-        to = message['to']
-        if not message['body']:
-            # there’s nothing to encrypt if this is a chatstate, for example
+    def on_conversation_msg(self, msg, tab):
+        try:
+            ctx = self.get_context(msg['from'])
+            txt, tlvs = ctx.receiveMessage(msg["body"].encode('utf-8'))
+        except UnencryptedMessage as err:
+            # received an unencrypted message inside an OTR session
+            tab.add_message('The following message from %s was not encrypted:\n%s' % (msg['from'], err.args[0].decode('utf-8')),
+                    jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
+                    typ=0)
+            del msg['body']
+            self.core.refresh_window()
             return
-        otr_state = self.get_otr(tab)
-        # Not sure what to do with xhtml bodies, and I don't like them anyway ;)
-        del message['xhtml_im']
-        say = otr_state.transform_msg(message['body'].encode())
-        if say is not None:
-            message['body'] = say.decode()
-        else:
-            del message['body']
-
-    def on_conversation_msg(self, message, tab):
-        """
-        Feed the message through the OTR filter
-        """
-        fro = message['from']
-        if not message['body']:
-            # there’s nothing to decrypt if this is a chatstate, for example
+        except ErrorReceived as err:
+            # Received an OTR error
+            tab.add_message('Received the following error from %s: %s' % (msg['from'], err.args[0]))
+            del msg['body']
+            self.core.refresh_window()
             return
-        otr_state = self.get_otr(tab)
-        # Not sure what to do with xhtml bodies, and I don't like them anyway ;)
-        del message['xhtml_im']
-        display, reply = otr_state.handle_msg(message['body'].encode())
-        #self.core.information('D: {!r}, R: {!r}'.format(display, reply))
-        if display is not None:
-            message['body'] = display.decode()
-        else:
-            del message['body']
-        if reply is not None:
-            self.otr_say(tab, reply.decode())
+        except NotOTRMessage as err:
+            # ignore non-otr messages
+            # if we expected an OTR message, we would have
+            # got an UnencryptedMesssage
+            return
+        except NotEncryptedError as err:
+            tab.add_message('An encrypted message from %s was received but is unreadable, as you are not'
+                    ' currently communicating privately.' % msg['from'],
+                    jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
+                    typ=0)
+            del msg['body']
+            self.core.refresh_window()
+            return
+        except:
+            return
 
-    @staticmethod
-    def otr_state(state):
-        if state == pyotr.MSG_STATE_PLAINTEXT:
-            return 'plaintext'
-        elif state == pyotr.MSG_STATE_ENCRYPTED:
-            return 'encrypted'
-        elif state == pyotr.MSG_STATE_FINISHED:
-            return 'finished'
+        # remove xhtml
+        del msg['html']
+        del msg['body']
+
+        if not txt:
+            return
+        if isinstance(tab, PrivateTab):
+            user = tab.parent_muc.get_user_by_name(msg['from'].resource)
+        else:
+            user = None
+
+        body = txt.decode()
+        tab.add_message(body, nickname=tab.nick, jid=msg['from'],
+                forced_user=user, typ=0)
+        self.core.refresh_window()
+        del msg['body']
+
+    def on_conversation_say(self, msg, tab):
+        """
+        On message sent
+        """
+        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
+            name = safeJID(tab.name)
+            name.resource = tab.locked_resource
+            name = name.full
+        else:
+            name = tab.name
+        ctx = self.contexts.get(name)
+        if ctx and ctx.state == STATE_ENCRYPTED:
+            ctx.sendMessage(0, msg['body'].encode('utf-8'))
+            # remove everything from the message so that it doesn’t get sent
+            del msg['body']
+            del msg['replace']
+            del msg['html']
 
     def display_encryption_status(self, jid):
-        """
-        Returns the status of encryption for the associated jid. This is to be used
-        in the ConversationTab’s InfoWin.
-        """
-        tab = self.core.get_tab_by_name(jid, tabs.ConversationTab)
-        if tab not in self.contacts:
-            return ''
-        state = self.otr_state(self.contacts[tab].state)
-        return ' OTR: %s' % (state,)
+        context = self.get_context(jid)
+        state = states[context.state]
+        return ' OTR: %s' % state
 
-    def otr_say(self, tab, line):
-        msg = self.core.xmpp.make_message(tab.get_name())
-        msg['type'] = 'chat'
-        msg['body'] = line
-        msg.send()
-
-    def command_otr(self, args):
+    def command_otr(self, arg):
         """
-        A command to start or end OTR encryption
+        /otr [start|refresh|end|fpr|ourfpr]
         """
-        args = args.split()
-        if not args:
-            return self.api.run_command("/help otr")
-        if isinstance(self.api.current_tab(), ConversationTab):
-            jid = JID(self.api.current_tab().get_name())
-        command = args[0]
-        if command == 'start':
-            otr_state = self.get_otr(self.api.current_tab())
-            self.otr_say(self.api.current_tab(), otr_state.start().decode())
-        elif command == 'end':
-            otr_state = self.get_otr(self.api.current_tab())
-            msg = otr_state.end()
-            if msg is not None:
-                self.otr_say(self.api.current_tab(), msg.decode())
-        elif command == 'fpr':
-            otr_state = self.get_otr(self.api.current_tab())
-            our = otr_state.our_fpr
-            if our:
-                our = hex(int.from_bytes(our, 'big'))[2:].ljust(40).upper()
-            their = otr_state.their_fpr
-            if their:
-                their = hex(int.from_bytes(their, 'big'))[2:].ljust(40).upper()
-            self.api.current_tab().add_message('Your: %s Their: %s' % (our, their))
-        self.core.refresh_window()
+        arg = arg.strip()
+        tab = self.api.current_tab()
+        name = tab.name
+        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
+            name = safeJID(tab.name)
+            name.resource = tab.locked_resource
+            name = name.full
+        if arg == 'end': # close the session
+            context = self.get_context(name)
+            context.disconnect()
+        elif arg == 'start' or arg == 'refresh':
+            otr = self.get_context(name)
+            self.core.xmpp.send_message(mto=name, mtype='chat',
+                mbody=self.contexts[name].sendMessage(0, b'?OTRv?').decode())
+        elif arg == 'ourfpr':
+            fpr = self.account.getPrivkey()
+            self.api.information('Your OTR key fingerprint is %s' % fpr, 'OTR')
+        elif arg == 'fpr':
+            tab = self.api.current_tab()
+            if tab.get_name() in self.contexts:
+                ctx = self.contexts[tab.get_name()]
+                self.api.information('The key fingerprint for %s is %s' % (name, ctx.getCurrentKey()) , 'OTR')
 
-    def otr_completion(self, the_input):
-        return the_input.auto_completion(['start', 'fpr', 'end'], '', quotify=False)
+    def completion_otr(self, the_input):
+        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end'], 1, quotify=True)
+
+
