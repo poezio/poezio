@@ -61,12 +61,12 @@ class Logger(object):
             self.fds[room] = self.check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
 
-    def check_and_create_log_dir(self, room):
+    def check_and_create_log_dir(self, room, open_fd=True):
         """
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if config.get_by_tabname('use_log', 'false', room) == 'false':
+        if config.get_by_tabname('use_log', 'true', room) == 'false':
             return
         try:
             makedirs(log_dir)
@@ -74,7 +74,9 @@ class Logger(object):
             pass
         except:
             log.error('Unable to create the log dir', exc_info=True)
-            pass
+            return
+        if not open_fd:
+            return
         try:
             fd = open(os.path.join(log_dir, room), 'a')
             self.fds[room] = fd
@@ -83,7 +85,6 @@ class Logger(object):
             log.error('Unable to open the log file (%s)',
                     os.path.join(log_dir, room),
                     exc_info=True)
-            return
 
     def get_logs(self, jid, nb=10):
         """
@@ -92,8 +93,14 @@ class Logger(object):
         if config.get_by_tabname('load_log', 10, jid) <= 0:
             return
 
+        if config.get_by_tabname('use_log', 'true', jid) == 'false':
+            return
+
         if nb <= 0:
             return
+
+        self.check_and_create_log_dir(jid, open_fd=False)
+
         try:
             fd = open(os.path.join(log_dir, jid), 'rb')
         except:
