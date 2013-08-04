@@ -98,7 +98,7 @@ class Logger(object):
             fd = open(os.path.join(log_dir, jid), 'rb')
         except:
             log.error('Unable to open the log file (%s)',
-                    os.path.join(log_dir, room),
+                    os.path.join(log_dir, jid),
                     exc_info=True)
             return
         if not fd:
