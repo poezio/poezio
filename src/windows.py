@@ -467,15 +467,24 @@ class PrivateInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, name, window, chatstate):
+    def refresh(self, name, window, chatstate, informations):
         log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(name)
             self.print_scroll_position(window)
             self.write_chatstate(chatstate)
+            self.write_additional_informations(informations, name)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
+
+    def write_additional_informations(self, informations, jid):
+        """
+        Write all informations added by plugins by getting the
+        value returned by the callbacks.
+        """
+        for key in informations:
+            self.addstr(informations[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
         jid = safeJID(name)

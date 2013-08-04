@@ -1837,6 +1837,7 @@ class PrivateTab(ChatTab):
     """
     message_type = 'chat'
     plugin_commands = {}
+    additional_informations = {}
     plugin_keys = {}
     def __init__(self, name, nick):
         ChatTab.__init__(self, name)
@@ -1869,6 +1870,21 @@ class PrivateTab(ChatTab):
     @property
     def general_jid(self):
         return self.get_name()
+
+    @property
+    def nick(self):
+        return self.get_nick()
+
+    @staticmethod
+    def add_information_element(plugin_name, callback):
+        """
+        Lets a plugin add its own information to the PrivateInfoWin
+        """
+        PrivateTab.additional_informations[plugin_name] = callback
+
+    @staticmethod
+    def remove_information_element(plugin_name):
+        del PrivateTab.additional_informations[plugin_name]
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
@@ -2019,13 +2035,13 @@ class PrivateTab(ChatTab):
             self.resize()
         log.debug('  TAB   Refresh: %s',self.__class__.__name__)
         self.text_win.refresh()
-        self.info_header.refresh(self.name, self.text_win, self.chatstate)
+        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
         self.info_win.refresh()
         self.refresh_tab_win()
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.name, self.text_win, self.chatstate)
+        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
         self.input.refresh()
 
     def get_name(self):
