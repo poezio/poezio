@@ -95,20 +95,6 @@ class shlex:
             return tok
         # No pushback.  Get a token.
         start, end,  raw = self.read_token()
-        # Handle inclusions
-        # Maybe we got EOF instead?
-        while raw == self.eof:
-            if not self.filestack:
-                return self.eof
-            else:
-                self.pop_source()
-                start, end, raw = self.get_token()
-        # Neither inclusion nor EOF
-        if self.debug >= 1:
-            if raw != self.eof:
-                print("shlex: token=" + repr(raw))
-            else:
-                print("shlex: token=EOF")
         return start, end, raw
 
     def read_token(self):

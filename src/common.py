@@ -232,6 +232,12 @@ def shell_split(st):
 
     >>> shell_split('"sdf 1" "toto 2"')
     ['sdf 1', 'toto 2']
+    >>> shell_split('toto "titi"')
+    ['toto', 'titi']
+    >>> shell_split('toto ""')
+    ['toto', '']
+    >>> shell_split('"toto titi" toto ""')
+    ['toto titi', 'toto', '']
     """
     sh = shlex.shlex(st)
     ret = []
