@@ -296,6 +296,13 @@ MultiUserChat tab commands
 
         Ignore a specified nickname.
 
+    /invite [MUCTab version]
+        **Usage:** ``/invite <jid> [reason]``
+
+        Invite *jid* to this room with *reason* (if
+        provided).
+
+
     /unignore
         **Usage:** ``/unignore <nickname>``
 

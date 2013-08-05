@@ -802,6 +802,11 @@ class MucTab(ChatTab):
         self.register_command('names', self.command_names,
                 desc=_('Get the list of the users in the room, and the list of the people assuming the different roles.'),
                 shortdesc=_('List the users.'))
+        self.register_command('invite', self.command_invite,
+                desc=_('Invite a contact to this room'),
+                usage=_('<jid> [reason]'),
+                shortdesc=_('Invite a contact to this room'),
+                completion=self.completion_invite)
 
         if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
             del self.commands["nick"]
@@ -894,6 +899,23 @@ class MucTab(ChatTab):
         elif n == 2:
             possible_affiliations = ['none', 'member', 'admin', 'owner', 'outcast']
             return the_input.new_completion(possible_affiliations, 2,  '', quotify=True)
+
+    def command_invite(self, args):
+        """/invite <jid> [reason]"""
+        args = common.shell_split(args)
+        if len(args) == 1:
+            jid, reason = args[0], ''
+        elif len(args) == 2:
+            jid, reason = args
+        else:
+            return self.core.command_help('invite')
+        self.core.command_invite('%s %s "%s"' % (jid, self.name, reason))
+
+    def completion_invite(self, the_input):
+        """Completion for /invite"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            return the_input.new_completion(roster.jids(), 1, quotify=True)
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
