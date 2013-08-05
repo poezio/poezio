@@ -128,6 +128,7 @@ class PoezioContext(Context):
         self.xmpp = xmpp
         self.core = core
         self.flags = {}
+        self.trustName = safeJID(peer).bare
 
     def getPolicy(self, key):
         if key in self.flags:
@@ -148,7 +149,11 @@ class PoezioContext(Context):
             if newstate == STATE_ENCRYPTED:
                 log.debug('OTR conversation with %s refreshed', self.peer)
                 if tab:
-                    tab.add_message('Refreshed OTR conversation with %s' % self.peer)
+                    if self.getCurrentTrust():
+                        tab.add_message('Refreshed \x19btrusted\x19o OTR conversation with %s' % self.peer)
+                    else:
+                        tab.add_message('Refreshed \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
+                                (self.peer, self.getCurrentKey()))
                     hl(tab)
             elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
                 log.debug('OTR conversation with %s finished', self.peer)
@@ -158,7 +163,11 @@ class PoezioContext(Context):
         else:
             if newstate == STATE_ENCRYPTED:
                 if tab:
-                    tab.add_message('Started OTR conversation with %s' % self.peer)
+                    if self.getCurrentTrust():
+                        tab.add_message('Started \x19btrusted\x19o OTR conversation with %s' % self.peer)
+                    else:
+                        tab.add_message('Started \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
+                                (self.peer, self.getCurrentKey()))
                     hl(tab)
 
         log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
@@ -194,11 +203,34 @@ class PoezioAccount(Account):
         except:
             log.error('Error in save_privkey', exc_info=True)
 
+    def load_trusts(self):
+        try:
+            with open(self.key_dir + '.fpr', 'r') as fpr_fd:
+                for line in fpr_fd:
+                    ctx, acc, proto, fpr, trust = line[:-1].split('\t')
+
+                    if acc != self.name or proto != 'xmpp':
+                        continue
+                    jid = safeJID(ctx).bare
+                    if not jid:
+                        continue
+                    self.setTrust(jid, fpr, trust)
+        except:
+            log.error('Error in load_trusts', exc_info=True)
+
     def save_trusts(self):
-        """TODO"""
-        pass
+        try:
+            with open(self.key_dir + '.fpr', 'w') as fpr_fd:
+                for uid, trusts in self.trusts.items():
+                    for fpr, trustVal in trusts.items():
+                        fpr_fd.write('\t'.join(
+                                (uid, self.name, 'xmpp', fpr, trustVal)))
+                        fpr_fd.write('\n')
+        except:
+            log.exception('Error in save_trusts', exc_info=True)
 
     saveTrusts = save_trusts
+    loadTrusts = load_trusts
     loadPrivkey = load_privkey
     savePrivkey = save_privkey
 
@@ -233,15 +265,23 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_msg', self.on_conversation_msg)
         self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.api.add_event_handler('private_say_after', self.on_conversation_say)
+
         ConversationTab.add_information_element('otr', self.display_encryption_status)
         PrivateTab.add_information_element('otr', self.display_encryption_status)
+
         self.account = PoezioAccount(self.core.xmpp.boundjid.bare, OTR_DIR)
+        self.account.load_trusts()
         self.contexts = {}
-        usage = '[start|refresh|end|fpr|ourfpr]'
+        usage = '[start|refresh|end|fpr|ourfpr|drop|trust|untrust]'
         shortdesc = 'Manage an OTR conversation'
-        desc = ('Manage an OTR conversation. Use “/otr start” to start a converation,'
-                ' “/otr end” to end it, “/otr fpr” to show the fingerprint of your '
-                'contact, and “/otr ourfpr” to show your fingerprint.')
+        desc = ('Manage an OTR conversation.\n'
+                'start/refresh: Start or refresh a conversation\n'
+                'end: End a conversation\n'
+                'fpr: Show the fingerprint of the key of the remote user\n'
+                'ourfpr: Show the fingerprint of your own key\n'
+                'drop: Remove the current key (FOREVER)\n'
+                'trust: Set this key for this contact as trusted\n'
+                'untrust: Remove the trust for the key of this contact\n')
         self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
                 help=desc,
                 usage=usage,
@@ -381,7 +421,25 @@ class Plugin(BasePlugin):
                 if context.state not in (STATE_FINISHED, STATE_PLAINTEXT):
                     context.disconnect()
             self.account.drop_privkey()
+        elif arg == 'trust':
+            ctx = self.get_context(name)
+            key = ctx.getCurrentKey()
+            if key:
+                fpr = key.cfingerprint()
+            else:
+                return
+            ctx.setTrust(fpr, 'verified')
+            self.account.saveTrusts()
+        elif arg == 'untrust':
+            ctx = self.get_context(name)
+            key = ctx.getCurrentKey()
+            if key:
+                fpr = key.cfingerprint()
+            else:
+                return
+            ctx.setTrust(fpr, '')
+            self.account.saveTrusts()
 
     def completion_otr(self, the_input):
-        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end', 'drop'], 1, quotify=True)
+        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end', 'trust', 'untrust'], 1, quotify=False)
 
