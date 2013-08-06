@@ -255,8 +255,11 @@ class Plugin(BasePlugin):
         OTR_DIR = os.path.expanduser(self.config.get('keys_dir', '') or OTR_DIR)
         try:
             os.makedirs(OTR_DIR)
-        except FileExistsError:
-            pass
+        except OSError as e:
+            if e.errno != 17:
+                self.api.information('The OTR-specific folder could not be created'
+                        ' poezio will be unable to save keys and trusts', 'OTR')
+
         except:
             self.api.information('The OTR-specific folder could not be created'
                     ' poezio will be unable to save keys and trusts', 'OTR')
