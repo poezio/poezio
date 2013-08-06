@@ -231,6 +231,7 @@ class Logger(object):
         """
         if config.get_by_tabname('use_log', 'false', jid) != 'true':
             return True
+        self.check_and_create_log_dir('', open_fd=False)
         if not self.roster_logfile:
             try:
                 self.roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
