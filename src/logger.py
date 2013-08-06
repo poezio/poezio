@@ -70,8 +70,9 @@ class Logger(object):
             return
         try:
             makedirs(log_dir)
-        except FileExistsError:
-            pass
+        except OSError as e:
+            if e.errno != 17: # file exists
+                log.error('Unable to create the log dir', exc_info=True)
         except:
             log.error('Unable to create the log dir', exc_info=True)
             return
