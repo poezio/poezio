@@ -237,7 +237,7 @@ class Plugin(BasePlugin):
         if veryfied:
             # remove the xhtm_im body if present, because that
             # cannot be encrypted.
-            del message['xhtml_im']
+            del message['html']
             encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
             text = self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'), always_trust=True)
             if not text:
