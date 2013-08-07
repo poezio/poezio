@@ -4,20 +4,24 @@ This plugin implements `Off The Record messaging`_.
 
 This is a plugin used to encrypt one-to-one conversation using the OTR
 encryption method. You can use it if you want good privacy, deniability,
-authentication, and strong secrecy. Without this
-encryption, your messages are encrypted **at least** from your client (poezio) to
-your server. The message is decrypted by your server and you cannot control the
-encryption method of your messages from your server to your contact’s server
-(unless you are your own server’s administrator), nor from your contact’s
-server to your contact’s client.
+authentication, and strong secrecy. Without this encryption, your messages
+are encrypted **at least** from your client (poezio) to your server. The
+message is decrypted by your server and you cannot control the encryption
+method of your messages from your server to your contact’s server (unless
+you are your own server’s administrator), nor from your contact’s server
+to your contact’s client.
 
 This plugin does end-to-end encryption. This means that **only** your contact can
 decrypt your messages, and it is fully encrypted during **all** its travel
 through the internet.
 
 Note that if you are having an encrypted conversation with a contact, you can
-**not** send XHTML-IM messages to him. They will be removed and be replaced by
-plain text messages.
+**not** send XHTML-IM messages to him (or correct messages, or anything more than
+raw text). They will be removed and be replaced by plain text messages.
+
+This is a limitation of the OTR protocol, and it will never be fixed. Some clients
+like Pidgin-OTR try do do magic stuff with html unescaping inside the OTR body, and
+it is not pretty.
 
 Installation
 ------------
@@ -48,17 +52,22 @@ Command added to Conversation Tabs and Private Tabs:
 .. glossary::
 
     /otr
-        **Usage:** ``/otr [start|refresh|end|fpr|ourfpr]``
+        **Usage:** ``/otr [start|refresh|end|fpr|ourfpr|trust|untrust]``
 
-        This command is used to start (or refresh), or end an OTR private session.
+        This command is used to manage an OTR private session.
 
-        The ``fpr`` command gives you the fingerprint of the key of the remove entity, and
-        the ``ourfpr`` command gives you the fingerprint of your own key.
+        - The ``start`` (or ``refresh``) command starts or refreshs a private OTR session
+        - The ``end`` command ends a private OTR session
+        - The ``fpr`` command gives you the fingerprint of the key of the remove entity
+        - The ``ourfpr`` command gives you the fingerprint of your own key
+        - The ``trust`` command marks the current remote key as trusted for the current remote JID
+        - The ``untrust`` command removes that trust
+        - Finally, the ``drop`` command is used if you want to delete your private key (not recoverable)
 
 
 To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
 
-Once you are in a private conversation, you have to do a:
+A simple workflow looks like this:
 
 .. code-block:: none
 
@@ -67,18 +76,70 @@ Once you are in a private conversation, you have to do a:
 The status of the OTR encryption should appear in the bar between the chat and
 the input as ``OTR: encrypted``.
 
+Then you use ``fpr``/``ourfpr`` to check the fingerprints, and confirm your respective
+identities out-of-band.
+
+You can then use
+
+.. code-block:: none
+
+    /otr trust
+
+To set the key as trusted, which will be shown when you start or refresh a conversation
+(the trust status will be in a bold font and if the key is untrusted, the remote fingerprint
+will be shown).
+
 Once you’re done, end the OTR session with
 
 .. code-block:: none
 
     /otr end
 
+Files
+-----
+
+This plugin creates trust files complatible with libotr and the files produced by gajim.
+
+
+The files are located in :file:`$XDG_DATA_HOME/poezio/otr/` by default (so
+:file:`~/.local/share/poezio/otr` in most cases).
+
+Two files are created:
+
+- An account_jid.key3 (:file:`example@example.com.key3`) file, which contains the private key
+- An account_jid.fpr (:file:`example@example.com.fpr`) file, which contains the list of trusted
+  (or untrusted) JIDs and keys.
+
+Configuration
+-------------
+
+.. glossary::
+    :sorted:
+
+    keys_dir
+        **Default:** ``$XDG_DATA_HOME/poezio/otr``
+
+        The directory in which you want keys and fpr to be stored.
+
+    allow_v2
+        **Default:** ``true``
+
+        Allow OTRv2
+
+    allow_v1
+        **Default:** ``false``
+
+        Allow OTRv1
+
+The :term:`allow_v1`` and :term:`allow_v2` configuration parameters are tab-specific.
 
 Important details
 -----------------
 
-The OTR session is considered for a full jid.
-
+The OTR session is considered for a full jid, but the trust is considered
+with a bare JID. This is important to know in the case of Private Chats, since
+you cannot always get the real the JID of your contact (or check if the same
+nick is used by different people).
 
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
 
@@ -91,7 +152,8 @@ log = logging.getLogger(__name__)
 import os
 import curses
 
-from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage, STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account
+from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
+        STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
 from plugin import BasePlugin
 from tabs import ConversationTab, DynamicConversationTab, PrivateTab
@@ -244,8 +306,6 @@ class Plugin(BasePlugin):
 
     def init(self):
         # set the default values from the config
-        policy = self.config.get('encryption_policy', 'ondemand').lower()
-        POLICY_FLAGS['REQUIRE_ENCRYPTION'] = (policy == 'always')
         allow_v2 = self.config.get('allow_v2', 'true').lower()
         POLICY_FLAGS['ALLOW_V2'] = (allow_v2 != 'false')
         allow_v1 = self.config.get('allow_v1', 'false').lower()
@@ -305,7 +365,6 @@ class Plugin(BasePlugin):
         if not jid in self.contexts:
             flags = POLICY_FLAGS.copy()
             policy = self.config.get_by_tabname('encryption_policy', 'ondemand', jid).lower()
-            flags['REQUIRE_ENCRYPTION'] = (policy == 'always')
             allow_v2 = self.config.get_by_tabname('allow_v2', 'true', jid).lower()
             flags['ALLOW_V2'] = (allow_v2 != 'false')
             allow_v1 = self.config.get_by_tabname('allow_v1', 'false', jid).lower()
@@ -324,13 +383,15 @@ class Plugin(BasePlugin):
                     jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
                     typ=0)
             del msg['body']
+            del msg['html']
             hl(tab)
             self.core.refresh_window()
             return
         except ErrorReceived as err:
             # Received an OTR error
-            tab.add_message('Received the following error from %s: %s' % (msg['from'], err.args[0]))
+            tab.add_message('Received the following error from %s: %s' % (msg['from'], err.args[0]), typ=0)
             del msg['body']
+            del msg['html']
             hl(tab)
             self.core.refresh_window()
             return
@@ -338,14 +399,26 @@ class Plugin(BasePlugin):
             # ignore non-otr messages
             # if we expected an OTR message, we would have
             # got an UnencryptedMesssage
+            log.error('coucou %s', ctx.getPolicy('REQUIRE_ENCRYPTION'))
             return
         except NotEncryptedError as err:
-            tab.add_message('An encrypted message from %s was received but is unreadable, as you are not'
-                    ' currently communicating privately.' % msg['from'],
-                    jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
+            tab.add_message('An encrypted message from %s was received but is '
+                    'unreadable, as you are not currently communicating'
+                    ' privately.' % msg['from'], jid=msg['from'],
+                    nick_color=theming.get_theme().COLOR_REMOTE_USER,
                     typ=0)
             hl(tab)
             del msg['body']
+            del msg['html']
+            self.core.refresh_window()
+            return
+        except crypt.InvalidParameterError:
+            tab.add_message('The message from %s could not be decrypted' %
+                    msg['from'], jid=msg['from'], typ=0,
+                    nick_color=theming.get_theme().COLOR_REMOTE_USER)
+            hl(tab)
+            del msg['body']
+            del msg['html']
             self.core.refresh_window()
             return
         except:
@@ -424,6 +497,7 @@ class Plugin(BasePlugin):
                 if context.state not in (STATE_FINISHED, STATE_PLAINTEXT):
                     context.disconnect()
             self.account.drop_privkey()
+            tab.add_message('Private key dropped.', typ=0)
         elif arg == 'trust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -431,8 +505,10 @@ class Plugin(BasePlugin):
                 fpr = key.cfingerprint()
             else:
                 return
-            ctx.setTrust(fpr, 'verified')
-            self.account.saveTrusts()
+            if not ctx.getCurrentTrust():
+                ctx.setTrust(fpr, 'verified')
+                self.account.saveTrusts()
+                tab.add_message('You added \x19b%s\x19o with key %s to your trusted list.' % (ctx.trustName, key), typ=0)
         elif arg == 'untrust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -440,8 +516,11 @@ class Plugin(BasePlugin):
                 fpr = key.cfingerprint()
             else:
                 return
-            ctx.setTrust(fpr, '')
-            self.account.saveTrusts()
+            if ctx.getCurrentTrust():
+                ctx.setTrust(fpr, '')
+                self.account.saveTrusts()
+                tab.add_message('You removed \x19b%s\x19o with key %s from your trusted list.' % (ctx.trustName, key), typ=0)
+        self.core.refresh_window()
 
     def completion_otr(self, the_input):
         return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end', 'trust', 'untrust'], 1, quotify=False)
