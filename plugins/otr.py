@@ -131,7 +131,7 @@ Configuration
 
         Allow OTRv1
 
-The :term:`allow_v1`` and :term:`allow_v2` configuration parameters are tab-specific.
+The :term:`allow_v1` and :term:`allow_v2` configuration parameters are tab-specific.
 
 Important details
 -----------------

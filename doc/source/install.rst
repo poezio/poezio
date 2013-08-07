@@ -1,25 +1,25 @@
-Installing Poezio
+Installing poezio
 =================
 
 
 .. important:: Python 3.2 or better is highly recommended, as we do not
     officially support python 3.1 (although we do try to keep things running).
 
-Poezio in the GNU/Linux distributions
+poezio in the GNU/Linux distributions
 -------------------------------------
 
 As far as I know, Poezio is available in the following distributions, you just
 have to install it by using the package manager of the distribution, if you're
 using one of these.
 
-- *Archlinux*: A poezio and poezio-git packages are in AUR (use your favourite
+- *Archlinux*: A poezio_ and poezio-git_ packages are in AUR (use your favourite
     AUR wrapper to install them)
 - *Gentoo*: `Sekh’s overlay`_ contains everything required to build poezio
     (sleekxmpp, dnspython, and poezio)
 - *Debian*: Use an other distro. (or make a package, we can provide help :) )
 
 (If an other distribution provides a poezio package, please tell us and we will
- add it to the list)
+add it to the list)
 
 Install poezio from the sources
 -------------------------------
@@ -29,16 +29,13 @@ version (trunk), using git:
 
 .. code-block:: bash
 
-    git clone https://git.louiz.org/poezio
-
-.. note:: To clone the repo, which uses a self-signed certificated, you can
-    prefix the clone command with GIT_SSL_NO_VERIFY=1.
+    git clone git://git.poez.io/poezio
 
 In order for poezio to correctly work, you need the libs SleekXMPP and
- dnspython. You can install them by downloading it from the `SleekXMPP`_
- page and the `dnspython`_ page , but you'll need the development
- version of SleekXMPP. Alternatively, you can download poezio's sources
- including SleekXMPP and dnspython, that's the easier way.
+dnspython. You can install them by downloading it from the `SleekXMPP`_
+page and the `dnspython`_ page , but you'll need the development
+version of SleekXMPP. Alternatively, you can download poezio's sources
+including SleekXMPP and dnspython, that's the easier way.
 
 """"""""""""
 Dependencies
@@ -90,8 +87,13 @@ And do the same again:
 .. _poezio-install-label:
 
 """""""""""""""""""
-Poezio installation
+poezio installation
 """""""""""""""""""
+
+.. note::
+
+    The update.sh + launch.sh method is the recommended way of using and upgrading
+    poezio.
 
 If you skipped the installation of the dependencies and you only want to test
 poezio without a system-wide install, do, in the *poezio* directory:
@@ -101,11 +103,11 @@ poezio without a system-wide install, do, in the *poezio* directory:
     ./update.sh
 
 If you have git installed, it will download and update locally the
- libraries for you. (and if you don’t have git installed, install it)
+libraries for you. (and if you don’t have git installed, install it)
 
 
 If you don't want to install poezio but just test it (or keep a development
- version), do:
+version), do:
 
 .. code-block:: bash
 
@@ -127,3 +129,5 @@ And then start it with:
 .. _stable sources: https://dev.louiz.org/project/poezio/download
 .. _SleekXMPP: https://github.com/fritzy/SleekXMPP/
 .. _dnspython: http://www.dnspython.org/
+.. _poezio: https://aur.archlinux.org/packages/poezio/
+.. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
