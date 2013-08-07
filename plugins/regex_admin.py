@@ -15,18 +15,17 @@ Commands
 Those commands take a regular expression (as defined in the
 `re module documentation`_) as a parameter.
 
-For roles
-~~~~~~~~~
-
 .. glossary::
     :sorted:
 
     /rkick
+        **Usage:** ``/rkick <regex>``
 
         Kick a participant using a regex.
 
 
     /rban
+        **Usage:** ``/rban <regex>``
 
         Ban a participant using a regex.
 
