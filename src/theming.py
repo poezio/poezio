@@ -67,6 +67,12 @@ from config import config
 import curses
 import imp
 import os
+from os import path
+from sys import version_info
+
+if version_info[1] >= 3:
+    from importlib import machinery
+    finder = machinery.PathFinder()
 
 class Theme(object):
     """
@@ -319,6 +325,8 @@ table_256_to_16 = [
          8,  8,  8,  8,  7,  7,  7,  7,  7,  7, 15, 15, 15, 15, 15, 15
 ]
 
+load_path = []
+
 def color_256_to_16(color):
     if color == -1:
         return color
@@ -384,29 +392,77 @@ def get_theme():
     """
     return theme
 
-def reload_theme():
-    themes_dir = config.get('themes_dir', '')
-    themes_dir = themes_dir or\
-        os.path.join(os.environ.get('XDG_DATA_HOME') or\
-                         os.path.join(os.environ.get('HOME'), '.local', 'share'),
-                     'poezio', 'themes')
-    themes_dir = os.path.expanduser(themes_dir)
+def update_themes_dir(option=None, value=None):
+    global load_path
+    load_path = []
+
+    # import from the git sources
+    default_dir = path.join(
+            path.dirname(path.dirname(__file__)),
+            'data/themes')
+    if path.exists(default_dir):
+        load_path.append(default_dir)
+
+    # import from the user-defined prefs
+    themes_dir = path.expanduser(
+            value or
+            config.get('themes_dir', '') or
+            path.join(os.environ.get('XDG_DATA_HOME') or
+                path.join(os.environ.get('HOME'), '.local', 'share'),
+                'poezio', 'themes')
+            )
     try:
         os.makedirs(themes_dir)
-    except OSError:
+    except OSError as e:
+        if e.errno != 17:
+            log.error('Unable to create the themes dir (%s)', themes_dir)
+        else:
+            load_path.append(themes_dir)
+    else:
+        load_path.append(themes_dir)
+
+    # system-wide import
+    try:
+        import poezio_themes
+    except:
         pass
+    else:
+        load_path.append(poezio_themes.__path__[0])
+
+def reload_theme():
     theme_name = config.get('theme', 'default')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()
         return
+    new_theme = None
+    exc = None
     try:
-        file_path  = os.path.join(themes_dir, theme_name)+'.py'
-        log.debug('Theme file to load: %s' %(file_path,))
-        new_theme = imp.load_source('theme', os.path.join(themes_dir, theme_name)+'.py')
+        if version_info[1] < 3:
+            file, filename, info = imp.find_module(theme_name, load_path)
+            imp.acquire_lock()
+            new_theme = imp.load_module(them_name, file, filename, info)
+        else:
+            loader = finder.find_module(theme_name, load_path)
+            if not loader:
+                return
+            new_theme = loader.load_module()
     except Exception as e:
-        return 'Failed to load theme: %s' % (e,)
-    theme = new_theme.theme
+        log.error('Failed to load the theme %s', theme_name, exc_info=True)
+        exc = e
+    finally:
+        if version_info[1] < 3:
+            imp.release_lock()
+
+    if not new_theme:
+        return 'Failed to load theme: %s' % exc
+
+    if hasattr(new_theme, 'theme'):
+        theme = new_theme.theme
+    else:
+        return 'No theme present in the theme file'
+
+update_themes_dir()
 
 if __name__ == '__main__':
     """

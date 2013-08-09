@@ -62,8 +62,6 @@ else:
     if poezio_plugins.__path__:
         load_path.append(poezio_plugins.__path__[0])
 
-sys.path.extend(load_path)
-
 if version_info[1] >= 3: # 3.3 & >
     from importlib import machinery
     finder = machinery.PathFinder()
@@ -111,7 +109,7 @@ class PluginManager(object):
                     imp.acquire_lock()
                     module = imp.load_module(name, file, filename, info)
             else: # 3.3 & >
-                loader = finder.find_module(name)
+                loader = finder.find_module(name, load_path)
                 if not loader:
                     self.core.information('Could not find plugin')
                     return
@@ -324,9 +322,9 @@ class PluginManager(object):
 
     def on_plugins_dir_change(self, new_value):
         global plugins_dir
-        if plugins_dir in sys.path:
-            sys.path.remove(plugins_dir)
-        sys.path.append(new_value)
+        if plugins_dir in load_path:
+            load_path.remove(plugins_dir)
+        load_path.insert(0, new_value)
         plugins_dir = new_value
 
     def on_plugins_conf_dir_change(self, new_value):

@@ -301,6 +301,7 @@ class Core(object):
         self.add_configuration_handler("plugins_conf_dir", self.on_plugins_conf_dir_config_change)
         self.add_configuration_handler("connection_timeout_delay", self.xmpp.set_keepalive_values)
         self.add_configuration_handler("connection_check_interval", self.xmpp.set_keepalive_values)
+        self.add_configuration_handler("themes_dir", theming.update_themes_dir)
         self.add_configuration_handler("", self.on_any_config_change)
 
     def on_any_config_change(self, option, value):
