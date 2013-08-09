@@ -3,6 +3,11 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8 - dev
+- /invite in a MUCTab now has the behavior one could expect
+  (inviting a specific JID to this MUC)
+- Themes and plugins are now loaded using a set of paths instead
+  of only a specific directory.
+- The OTR plugin has been completly rewritten
 - The completion can now complete the current argument in the input,
   instead of only the last one.
 - Poezio now periodically pings the server to detect connection loss

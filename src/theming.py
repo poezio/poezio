@@ -451,7 +451,7 @@ def reload_theme():
         log.error('Failed to load the theme %s', theme_name, exc_info=True)
         exc = e
     finally:
-        if version_info[1] < 3:
+        if version_info[1] < 3 and imp.lock_held():
             imp.release_lock()
 
     if not new_theme:
