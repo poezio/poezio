@@ -60,7 +60,7 @@ except:
     pass
 else:
     if poezio_plugins.__path__:
-        load_path.append(poezio_plugins.__path__[0])
+        load_path.append(list(poezio_plugins.__path__)[0])
 
 if version_info[1] >= 3: # 3.3 & >
     from importlib import machinery

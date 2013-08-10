@@ -427,7 +427,8 @@ def update_themes_dir(option=None, value=None):
     except:
         pass
     else:
-        load_path.append(poezio_themes.__path__[0])
+        if poezio_themes.__path__:
+            load_path.append(list(poezio_themes.__path__)[0])
 
 def reload_theme():
     theme_name = config.get('theme', 'default')
