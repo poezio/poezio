@@ -430,6 +430,8 @@ def update_themes_dir(option=None, value=None):
         if poezio_themes.__path__:
             load_path.append(list(poezio_themes.__path__)[0])
 
+    log.debug('Theme load path: %s', load_path)
+
 def reload_theme():
     theme_name = config.get('theme', 'default')
     global theme
@@ -442,7 +444,7 @@ def reload_theme():
         if version_info[1] < 3:
             file, filename, info = imp.find_module(theme_name, load_path)
             imp.acquire_lock()
-            new_theme = imp.load_module(them_name, file, filename, info)
+            new_theme = imp.load_module(theme_name, file, filename, info)
         else:
             loader = finder.find_module(theme_name, load_path)
             if not loader:
