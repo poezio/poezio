@@ -199,7 +199,9 @@ class PoezioContext(Context):
             return False
 
     def inject(self, msg, appdata=None):
-        self.xmpp.send_message(mto=self.peer, mbody=msg.decode('ascii'), mtype='chat')
+        message = self.xmpp.make_message(mto=self.peer, mbody=msg.decode('ascii'), mtype='chat')
+        message.enable('carbon_private')
+        message.send()
 
     def setState(self, newstate):
         tab = self.core.get_tab_by_name(self.peer)
