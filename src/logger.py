@@ -133,7 +133,6 @@ class Logger(object):
 
         for line in logs:
             lines.append(line.decode(errors='replace')[:-1])
-        log.debug(lines)
 
         messages = []
         color = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
@@ -200,9 +199,6 @@ class Logger(object):
             lines = msg.split('\n')
             first_line = lines.pop(0)
             nb_lines = str(len(lines)).zfill(3)
-
-            for line in lines:
-                self.roster_logfile.write(' %s\n' % line)
 
             if nick:
                 nick = '<' + nick + '>'
