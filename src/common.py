@@ -18,7 +18,7 @@ import hashlib
 import subprocess
 import time
 import string
-import shlex
+import poezio_shlex as shlex
 
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
