@@ -238,12 +238,16 @@ def shell_split(st):
     ['toto', '']
     >>> shell_split('"toto titi" toto ""')
     ['toto titi', 'toto', '']
+    >>> shell_split('toto "titi')
+    ['toto', 'titi']
     """
     sh = shlex.shlex(st)
     ret = []
     w = sh.get_token()
     while w and w[2] is not None:
         ret.append(w[2])
+        if w[1] == len(st):
+            return ret
         w = sh.get_token()
     return ret
 
@@ -277,6 +281,8 @@ def find_argument_quoted(pos, text):
     1
     >>> find_argument_quoted(8, '"toto" "titi tata')
     1
+    >>> find_argument_quoted(3, '"toto" "titi tata')
+    0
     >>> find_argument_quoted(18, '"toto" "titi tata" ')
     2
     """
