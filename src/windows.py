@@ -1433,7 +1433,7 @@ class Input(Win):
             split_words = words[1:]
             words = [words[0]]
             for word in split_words:
-                if ' ' in word:
+                if ' ' in word or '\\' in word:
                     words.append('"' + word + '"')
                 else:
                     words.append(word)
