@@ -439,7 +439,7 @@ class Plugin(BasePlugin):
 
         body = txt.decode()
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
-                forced_user=user, typ=0)
+                forced_user=user, typ=0, nick_color=theming.get_theme().COLOR_REMOTE_USER)
         hl(tab)
         self.core.refresh_window()
         del msg['body']
@@ -489,9 +489,8 @@ class Plugin(BasePlugin):
             fpr = self.account.getPrivkey()
             self.api.information('Your OTR key fingerprint is %s' % fpr, 'OTR')
         elif arg == 'fpr':
-            tab = self.api.current_tab()
-            if tab.get_name() in self.contexts:
-                ctx = self.contexts[tab.get_name()]
+            if name in self.contexts:
+                ctx = self.contexts[name]
                 self.api.information('The key fingerprint for %s is %s' % (name, ctx.getCurrentKey()) , 'OTR')
         elif arg == 'drop':
             # drop the privkey (and obviously, end the current conversations before that)
