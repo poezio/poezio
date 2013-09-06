@@ -131,7 +131,7 @@ class Logger(object):
             if pos == -1:       # If we don't have enough lines in the file
                 pos = 1         # 1, because we do -1 just on the next line
                                 # to get 0 (start of the file)
-            lines = m[pos-1:].decode(errors='replace').split("\n")[:-1]
+            lines = m[pos-1:].decode(errors='replace').splitlines()
 
         messages = []
         color = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
