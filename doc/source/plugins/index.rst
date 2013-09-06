@@ -207,6 +207,11 @@ Plugin index
 
         Double the first word of each sentence.
 
+    PointPoint
+        :ref:`Documention <pointpoint-plugin>`
+
+        Insert dots in your messages.
+
 .. toctree::
     :hidden:
 
@@ -240,3 +245,4 @@ Plugin index
     shuffle
     iq_show
     regex_admin
+    pointpoint
