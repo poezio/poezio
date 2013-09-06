@@ -6,6 +6,7 @@
 # it under the terms of the zlib license. See the COPYING file.
 
 from os import environ, makedirs
+import mmap
 import os
 import re
 from datetime import datetime
@@ -89,7 +90,10 @@ class Logger(object):
 
     def get_logs(self, jid, nb=10):
         """
-        Get the log history for the given jid
+        Get the nb last messages from the log history for the given jid.
+        Note that a message may be more than one line in these files, so
+        this function is a little bit more complicated than “read the last
+        nb lines”.
         """
         if config.get_by_tabname('load_log', 10, jid) <= 0:
             return
@@ -112,31 +116,27 @@ class Logger(object):
         if not fd:
             return
 
-        pos = fd.seek(0, 2)
-        reads = 0
-        check_next = False
-        while reads < nb:
-            if pos == 0:
-                break
-            pos -= 1
-            if pos < 0:
-                pos = 0
-            fd.seek(pos)
-            char = fd.read(1)
-            if char == b'\n':
-                if fd.read(2) in (b'MR', b'MI'):
-                    reads += 1
-                    fd.seek(-2, 1)
-        logs = fd.readlines()
-        fd.close()
-        lines = []
-
-        for line in logs:
-            lines.append(line.decode(errors='replace')[:-1])
+        # read the needed data from the file, we just search nb messages by
+        # searching "\nM" nb times from the end of the file.  We use mmap to
+        # do that efficiently, instead of seek()s and read()s which are costly.
+        with fd:
+            m = mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ)
+            pos = m.rfind(b"\nM") # start of messages begin with MI or MR,
+                                  # after a \n
+            # number of message found so far
+            count = 0
+            while pos != -1 and count < nb-1:
+                count += 1
+                pos = m.rfind(b"\nM", 0, pos)
+            if pos == -1:       # If we don't have enough lines in the file
+                pos = 1         # 1, because we do -1 just on the next line
+                                # to get 0 (start of the file)
+            lines = m[pos-1:].decode(errors='replace').split("\n")[:-1]
 
         messages = []
         color = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
 
+        # now convert that data into actual Message objects
         idx = 0
         while idx < len(lines):
             if lines[idx].startswith(' '): # should not happen ; skip
