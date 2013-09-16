@@ -243,11 +243,14 @@ class Roster(object):
             return
         try:
             f = open(path, 'w+', encoding='utf-8')
-            f.writelines([i + "\n" for i in self.contacts])
+            f.writelines([str(i) + "\n" for i in self.contacts if self[i] and (self[i].subscription == "both" or self[i].ask)])
             f.close()
             return True
         except IOError:
             return
+        except OSError:
+            return
+
 
     def exists(self, contact):
         if not contact:
