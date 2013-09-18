@@ -2007,6 +2007,8 @@ class RosterWin(Win):
         with g_lock:
             # make sure we are within bounds
             self.move_cursor_up((self.roster_len + self.pos) if self.pos >= self.roster_len else 0)
+            if not self.roster_cache:
+                self.selected_row = None
             self._win.erase()
             self._win.move(0, 0)
             self.draw_roster_information(roster)
@@ -2016,8 +2018,9 @@ class RosterWin(Win):
             if self.start_pos+self.height <= self.pos+2:
                 self.scroll_down(self.pos - self.start_pos - self.height + (self.height//2))
             # draw the roster from the cache
-            for item in self.roster_cache[self.start_pos-1:self.start_pos+self.height]:
+            roster_view = self.roster_cache[self.start_pos-1:self.start_pos+self.height]
 
+            for item in roster_view:
                 draw_selected = False
                 if y -2 + self.start_pos  == self.pos:
                     draw_selected = True

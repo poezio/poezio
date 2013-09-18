@@ -3447,6 +3447,7 @@ class Core(object):
         """
         When we are disconnected from remote server
         """
+        roster.modified()
         for tab in self.tabs:
             if isinstance(tab, tabs.MucTab):
                 tab.disconnect()

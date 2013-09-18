@@ -2963,7 +2963,6 @@ class RosterInfoTab(Tab):
             while not found_group and pos >= 0:
                 row = self.roster_win.roster_cache[pos]
                 pos -= 1
-                log.debug(row)
                 if isinstance(row, RosterGroup):
                     found_group = True
                     group = row.name
