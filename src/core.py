@@ -782,6 +782,9 @@ class Core(object):
         jid = safeJID(jid)
         # We first check if we have a static conversation opened with this precise resource
         conversation = self.get_tab_by_name(jid.full, tabs.StaticConversationTab)
+        if jid.bare == jid.full and not conversation:
+            conversation = self.get_tab_by_name(jid.full, tabs.DynamicConversationTab)
+
         if not conversation and fallback_barejid:
             # If not, we search for a conversation with the bare jid
             conversation = self.get_tab_by_name(jid.bare, tabs.DynamicConversationTab)
