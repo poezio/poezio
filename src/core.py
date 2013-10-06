@@ -1477,10 +1477,10 @@ class Core(object):
         if args:
             command = args[0].lstrip('/').strip()
 
-            if command in self.commands:
-                tup = self.commands[command]
-            elif command in self.current_tab().commands:
+            if command in self.current_tab().commands:
                 tup = self.current_tab().commands[command]
+            elif command in self.commands:
+                tup = self.commands[command]
             else:
                 self.information(_('Unknown command: %s') % command, 'Error')
                 return
