@@ -116,9 +116,9 @@ class TextBuffer(object):
                     raise CorrectionError("Delayed message")
                 elif not msg.user and (msg.jid is None or jid is None):
                     raise CorrectionError('Could not check the identity of the sender')
-                elif not msg.user and msg.jid.full != jid.full:
+                elif not msg.user and msg.jid != jid:
                     raise CorrectionError('Messages %s and %s have not been sent by the same fullJID' % (old_id, new_id))
-                message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1)
+                message = self.make_message(txt, time if time else msg.time, msg.nickname, msg.nick_color, None, msg.user, new_id, highlight=highlight, old_message=msg, revisions=msg.revisions + 1, jid=jid)
                 self.messages[i] = message
                 log.debug('Replacing message %s with %s.', old_id, new_id)
                 return message
