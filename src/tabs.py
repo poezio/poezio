@@ -2497,6 +2497,7 @@ class RosterInfoTab(Tab):
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
         roster.add(jid)
+        roster.modified()
 
     def command_name(self, arg):
         """
