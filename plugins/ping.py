@@ -35,6 +35,7 @@ from roster import roster
 from common import safeJID
 import common
 import tabs
+import time
 
 
 class Plugin(BasePlugin):
@@ -43,33 +44,35 @@ class Plugin(BasePlugin):
         self.core.xmpp.plugin['xep_0115'].update_caps()
         self.api.add_command('ping', self.command_ping,
                 usage='<jid>',
-                help='Send a XMPP ping to jid (see XEP-0199).',
+                help='Send an XMPP ping to jid (see XEP-0199).',
                 short='Send a ping',
                 completion=self.completion_ping)
         self.api.add_tab_command(tabs.MucTab, 'ping', self.command_muc_ping,
                 usage='<jid|nick>',
-                help='Send a XMPP ping to jid or nick (see XEP-0199).',
+                help='Send an XMPP ping to jid or nick (see XEP-0199).',
                 short='Send a ping.',
                 completion=self.completion_muc_ping)
         for _class in (tabs.PrivateTab, tabs.ConversationTab):
             self.api.add_tab_command(_class, 'ping', self.command_private_ping,
                     usage='[jid]',
-                    help='Send a XMPP ping to the current interlocutor or the given JID.',
+                    help='Send an XMPP ping to the current interlocutor or the given JID.',
                     short='Send a ping',
                     completion=self.completion_ping)
 
     def command_ping(self, arg):
         if not arg:
-            return
+            return self.core.command_help('ping')
         jid = safeJID(arg)
-        try:
-            delay = self.core.xmpp.plugin['xep_0199'].ping(jid=jid, timeout=5)
-        except:
-            delay = None
-        if delay is not None:
-            self.api.information('%s responded to ping after %s s' % (jid, round(delay, 4)), 'Info')
-        else:
-            self.api.information('%s did not respond to ping' % jid, 'Info')
+        start = time.time()
+        def callback(iq):
+            delay = time.time() - start
+            self.api.information("coucou %s %s" % (iq, type(iq)))
+            if iq['type'] == 'error' and iq['error']['condition'] in ('remote-server-timeout', 'remote-server-not-found'):
+                self.api.information('%s did not respond to ping' % jid, 'Info')
+            else:
+                self.api.information('%s responded to ping after %s s' % (jid, round(delay, 4)), 'Info')
+
+        self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid, callback=callback)
 
     def completion_muc_ping(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
