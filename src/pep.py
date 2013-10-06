@@ -100,7 +100,7 @@ ACTIVITIES = {
             'running_an_errand': _('Running an errand'),
             'walking_the_dog': _('Walking the dog'),
             'other': _('Other'),
-            }
+            },
         'drinking': {
             'category': _('Drinking'),
 
@@ -108,7 +108,7 @@ ACTIVITIES = {
             'having_coffee': _('Having coffee'),
             'having_tea': _('Having tea'),
             'other': _('Other'),
-            }
+            },
         'eating': {
             'category':_('Eating'),
 
@@ -117,7 +117,7 @@ ACTIVITIES = {
             'having_dinner': _('Having dinner'),
             'having_lunch': _('Having lunch'),
             'other': _('Other'),
-            }
+            },
         'exercising': {
             'category': _('Exercising'),
 
@@ -131,7 +131,7 @@ ACTIVITIES = {
             'swimming': _('Swimming'),
             'working_out': _('Working out'),
             'other': _('Other'),
-            }
+            },
         'grooming': {
             'category': _('Grooming'),
 
@@ -142,12 +142,12 @@ ACTIVITIES = {
             'taking_a_bath': _('Taking a bath'),
             'taking_a_shower': _('Taking a shower'),
             'other': _('Other'),
-            }
+            },
         'having_appointment': {
             'category': _('Having appointment'),
 
             'other': _('Other'),
-            }
+            },
         'inactive': {
             'category': _('Inactive'),
 
@@ -160,7 +160,7 @@ ACTIVITIES = {
             'sleeping': _('Sleeping'),
             'thinking': _('Thinking'),
             'other': _('Other'),
-            }
+            },
         'relaxing': {
             'category': _('Relaxing'),
 
@@ -177,7 +177,7 @@ ACTIVITIES = {
             'watching_a_movie': _('Watching a movie'),
             'watching_tv': _('Watching tv'),
             'other': _('Other'),
-            }
+            },
         'talking': {
             'category': _('Talking'),
 
@@ -185,7 +185,7 @@ ACTIVITIES = {
             'on_the_phone': _('On the phone'),
             'on_video_phone': _('On video phone'),
             'other': _('Other'),
-            }
+            },
         'traveling': {
             'category': _('Traveling'),
 
@@ -199,12 +199,12 @@ ACTIVITIES = {
             'walking': _('Walking'),
             'cycling': _('Cycling'),
             'other': _('Other'),
-            }
+            },
         'undefined': {
             'category': _('Undefined'),
 
             'other': _('Other'),
-            }
+            },
         'working': {
             'category': _('Working'),
 
