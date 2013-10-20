@@ -1378,7 +1378,7 @@ class MucTab(ChatTab):
         word_list = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
         after = config.get('after_completion', ',')+" "
-        input_pos = self.input.pos + self.input.line_pos
+        input_pos = self.input.pos
         if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
                      self.input.get_text()[:input_pos] == self.input.last_completion + after):
             add_after = after
@@ -1936,7 +1936,7 @@ class PrivateTab(ChatTab):
         word_list = [user.nick for user in sorted(self.parent_muc.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
         after = config.get('after_completion', ',')+" "
-        input_pos = self.input.pos + self.input.line_pos
+        input_pos = self.input.pos
         if ' ' not in self.input.get_text()[:input_pos] or (self.input.last_completion and\
                      self.input.get_text()[:input_pos] == self.input.last_completion + after):
             add_after = after
