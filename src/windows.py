@@ -1625,11 +1625,15 @@ class Input(Win):
             self.view_pos = 0
             return
         if self.pos < self.view_pos:
-            self.view_pos = self.pos - 6
-        if self.pos > self.view_pos + self.width:
-            self.view_pos = self.pos - self.width + 6
-        assert(self.view_pos > 0 and
-               self.pos > self.view_pos and
+            if self.width <= 25:
+                self.view_pos = self.pos - self.width
+            else:
+                self.view_pos = self.pos - 25
+        if self.pos >= self.view_pos + self.width - 1:
+                self.view_pos = self.pos - self.width + 12
+        if self.view_pos < 0:
+            self.view_pos = 0
+        assert(self.pos > self.view_pos and
                self.pos < self.view_pos + self.width)
 
     def refresh(self):
