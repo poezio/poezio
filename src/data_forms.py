@@ -402,7 +402,7 @@ class TextPrivateWin(TextSingleWin):
             self._win.erase()
             if self.color:
                 self._win.attron(to_curses_attr(self.color))
-            self.addstr('*'*len(self.text[self.line_pos:self.line_pos+self.width-1]))
+            self.addstr('*'*len(self.text[self.view_pos:self.view_pos+self.width-1]))
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x

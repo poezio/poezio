@@ -388,6 +388,13 @@ def convert_simple_to_full_colors(text):
     takes a \x19n formatted string and returns
     a \x19n} formatted one.
     """
+    # TODO, have a single list of this. This is some sort of
+    # dusplicate from windows.format_chars
+    mapping = str.maketrans({'\x0E': '\x19b', '\x0F': '\x19o', '\x10': '\x19u',
+                             '\x11': '\x191', '\x12': '\x192','\x13': '\x193',
+                             '\x14': '\x194', '\x15': '\x195','\x16': '\x196',
+                             '\x17': '\x197', '\x18': '\x198','\x19': '\x199'})
+    text = text.translate(mapping)
     def add_curly_bracket(match):
         return match.group(0) + '}'
     return re.sub(xhtml_simple_attr_re, add_curly_bracket, text)

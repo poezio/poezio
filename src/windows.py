@@ -40,6 +40,11 @@ import collections
 
 from theming import get_theme, to_curses_attr, read_tuple, dump_tuple
 
+FORMAT_CHAR = '\x19'
+# These are non-printable chars, so they should never appear in the input, I
+# guess. But maybe we can find better chars that are even less reasky.
+format_chars = ['\x0E', '\x0F', '\x10', '\x11', '\x12','\x13', '\x14', '\x15','\x16', '\x17']
+
 allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
 # delimiting the text in this line.
@@ -50,6 +55,16 @@ g_lock = RLock()
 
 LINES_NB_LIMIT = 4096
 
+def find_first_format_char(text):
+    pos = -1
+    for char in format_chars:
+        p = text.find(char)
+        if p == -1:
+            continue
+        if pos == -1 or p < pos:
+            pos = p
+    return pos
+
 def truncate_nick(nick, size=None):
     size = size or config.get('max_nick_length', 25)
     if size < 1:
@@ -59,7 +74,7 @@ def truncate_nick(nick, size=None):
     return nick
 
 def parse_attrs(text, previous=None):
-    next_attr_char = text.find('\x19')
+    next_attr_char = text.find(FORMAT_CHAR)
     if previous:
         attrs = previous
     else:
@@ -82,7 +97,7 @@ def parse_attrs(text, previous=None):
             text = text[next_attr_char+len(color_str)+2:]
         else:
             text = text[next_attr_char+2:]
-        next_attr_char = text.find('\x19')
+        next_attr_char = text.find(FORMAT_CHAR)
     return attrs
 
 
@@ -151,7 +166,7 @@ class Win(object):
         """
         if y is not None and x is not None:
             self.move(y, x)
-        next_attr_char = text.find('\x19')
+        next_attr_char = text.find(FORMAT_CHAR)
         while next_attr_char != -1 and text:
             if next_attr_char + 1 < len(text):
                 attr_char = text[next_attr_char+1].lower()
@@ -182,34 +197,7 @@ class Win(object):
                 text = text[next_attr_char+len(color_str)+2:]
             else:
                 text = text[next_attr_char+2:]
-            next_attr_char = text.find('\x19')
-        self.addstr(text)
-
-    def addstr_colored_lite(self, text, y=None, x=None):
-        """
-        Just like addstr_colored, but only handles colors with one digit.
-        \x193 is the 3rd color. We do not use any } char in this version
-        """
-        if y is not None and x is not None:
-            self.move(y, x)
-        next_attr_char = text.find('\x19')
-        while next_attr_char != -1:
-            if next_attr_char + 1 < len(text):
-                attr_char = text[next_attr_char+1].lower()
-            else:
-                attr_char = str()
-            if next_attr_char != 0:
-                self.addstr(text[:next_attr_char])
-            text = text[next_attr_char+2:]
-            if attr_char == 'o':
-                self._win.attrset(0)
-            elif attr_char == 'u':
-                self._win.attron(curses.A_UNDERLINE)
-            elif attr_char == 'b':
-                self._win.attron(curses.A_BOLD)
-            elif attr_char in string.digits and attr_char != '':
-                self._win.attron(to_curses_attr((int(attr_char), -1)))
-            next_attr_char = text.find('\x19')
+            next_attr_char = text.find(FORMAT_CHAR)
         self.addstr(text)
 
     def finish_line(self, color=None):
@@ -924,7 +912,7 @@ class TextWin(Win):
             saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
             attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
             if attrs:
-                prepend = '\x19' + '\x19'.join(attrs)
+                prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
             else:
                 prepend = ''
             ret.append(saved)
@@ -1179,8 +1167,11 @@ class Input(Win):
             }
         Win.__init__(self)
         self.text = ''
-        self.pos = 0            # cursor position
-        self.line_pos = 0 # position (in self.text) of
+        self.pos = 0     # The position of the “cursor” in the text
+                         # (not only in the view)
+        self.view_pos = 0       # The position (in the text) of the
+                                # first character displayed on the
+                                # screen
         self.on_input = None    # callback called on any key pressed
         self.color = None       # use this color on addstr
 
@@ -1196,18 +1187,29 @@ class Input(Win):
         self.rewrite_text()
 
     def is_empty(self):
-        return len(self.text) == 0
+        if self.text:
+            return False
+        return True
+
+    def is_cursor_at_end(self):
+        """
+        Whether or not the cursor is at the end of the text.
+        """
+        assert(len(self.text) >= self.pos)
+        if len(self.text) == self.pos:
+            return True
+        return False
 
     def jump_word_left(self):
         """
         Move the cursor one word to the left
         """
-        if not len(self.text) or self.pos == 0:
+        if self.pos == 0:
             return
         separators = string.punctuation+' '
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
+        while self.pos > 0 and self.text[self.pos-1] in separators:
             self.key_left()
-        while self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
+        while self.pos > 0 and self.text[self.pos-1] not in separators:
             self.key_left()
         return True
 
@@ -1215,12 +1217,12 @@ class Input(Win):
         """
         Move the cursor one word to the right
         """
-        if len(self.text) == self.pos+self.line_pos or not len(self.text):
-            return
+        if self.is_cursor_at_end():
+            return False
         separators = string.punctuation+' '
-        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] in separators:
+        while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_right()
-        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] not in separators:
+        while not self.is_cursor_at_end() and self.text[self.pos] not in separators:
             self.key_right()
         return True
 
@@ -1228,27 +1230,21 @@ class Input(Win):
         """
         Delete the word just before the cursor
         """
-        if not len(self.text) or self.pos == 0:
-            return
         separators = string.punctuation+' '
-        while self.pos <= len(self.text) and self.pos > 0 and self.text[self.pos+self.line_pos-1] in separators:
+        while self.pos > 0 and self.text[self.pos-1] in separators:
             self.key_backspace()
-        while self.pos <= len(self.text) and self.pos > 0 and self.text[self.pos+self.line_pos-1] not in separators:
+        while self.pos > 0 and self.text[self.pos-1] not in separators:
             self.key_backspace()
-
         return True
 
     def delete_next_word(self):
         """
         Delete the word just after the cursor
         """
-        log.debug("delete_next_word")
-        if len(self.text) == self.pos+self.line_pos or not len(self.text):
-            return
         separators = string.punctuation+' '
-        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] in separators:
+        while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_dc()
-        while len(self.text) != self.pos+self.line_pos and self.text[self.pos+self.line_pos] not in separators:
+        while not self.is_cursor_at_end() and self.text[self.pos] not in separators:
             self.key_dc()
         return True
 
@@ -1256,10 +1252,10 @@ class Input(Win):
         """
         Cut the text from cursor to the end of line
         """
-        if len(self.text) == self.pos+self.line_pos:
-            return              # nothing to cut
-        Input.clipboard = self.text[self.pos+self.line_pos:]
-        self.text = self.text[:self.pos+self.line_pos]
+        if self.is_cursor_at_end():
+            return False
+        Input.clipboard = self.text[self.pos:]
+        self.text = self.text[:self.pos]
         self.key_end()
         return True
 
@@ -1267,10 +1263,10 @@ class Input(Win):
         """
         Cut the text from cursor to the begining of line
         """
-        if self.pos+self.line_pos == 0:
+        if self.pos == 0:
             return
-        Input.clipboard = self.text[:self.pos+self.line_pos]
-        self.text = self.text[self.pos+self.line_pos:]
+        Input.clipboard = self.text[:self.pos]
+        self.text = self.text[self.pos:]
         self.key_home()
         return True
 
@@ -1278,7 +1274,7 @@ class Input(Win):
         """
         Insert what is in the clipboard at the cursor position
         """
-        if not Input.clipboard or len(Input.clipboard) == 0:
+        if not Input.clipboard:
             return
         for letter in Input.clipboard:
             self.do_command(letter, False)
@@ -1290,11 +1286,9 @@ class Input(Win):
         delete char just after the cursor
         """
         self.reset_completion()
-        if self.pos + self.line_pos == len(self.text):
+        if self.is_cursor_at_end():
             return              # end of line, nothing to delete
-        if self.text[self.pos+self.line_pos] == '\x19':
-            self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
-        self.text = self.text[:self.pos+self.line_pos]+self.text[self.pos+self.line_pos+1:]
+        self.text = self.text[:self.pos]+self.text[self.pos+1:]
         self.rewrite_text()
         return True
 
@@ -1304,7 +1298,6 @@ class Input(Win):
         """
         self.reset_completion()
         self.pos = 0
-        self.line_pos = 0
         self.rewrite_text()
         return True
 
@@ -1314,12 +1307,8 @@ class Input(Win):
         """
         if reset:
             self.reset_completion()
-        if len(self.text) >= self.width-1:
-            self.pos = self.width-1
-            self.line_pos = len(self.text)-self.pos
-        else:
-            self.pos = len(self.text)
-            self.line_pos = 0
+        self.pos = len(self.text)
+        assert(self.is_cursor_at_end())
         self.rewrite_text()
         return True
 
@@ -1329,21 +1318,10 @@ class Input(Win):
         """
         if reset:
             self.reset_completion()
-
-        if self.pos < (3*(self.width)//4) and self.line_pos > 0 and self.line_pos+self.pos-1<=len(self.text):
-            self.line_pos -= self.width//4
-            if self.line_pos < 0:
-                self.pos += (self.width//4) + self.line_pos - 1
-                self.line_pos = 0
-            else:
-                self.pos += self.width//4 - 1
-        elif self.pos >= 1:
-            self.pos -= 1
-        elif self.line_pos > 0:
-            self.line_pos -= 1
-        if jump and self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
-            self.key_left()
-        elif reset:
+        if self.pos == 0:
+            return
+        self.pos -= 1
+        if reset:
             self.rewrite_text()
         return True
 
@@ -1353,14 +1331,10 @@ class Input(Win):
         """
         if reset:
             self.reset_completion()
-        if self.pos == self.width-1:
-            if self.line_pos + self.width-1 < len(self.text):
-                self.line_pos += 1
-        elif self.pos < len(self.text):
-            self.pos += 1
-        if jump and self.pos+self.line_pos < len(self.text) and self.text[self.pos+self.line_pos-1] == '\x19':
-            self.key_right()
-        elif reset:
+        if self.is_cursor_at_end():
+            return
+        self.pos += 1
+        if reset:
             self.rewrite_text()
         return True
 
@@ -1371,12 +1345,8 @@ class Input(Win):
         self.reset_completion()
         if self.pos == 0:
             return
-        self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
-        self.key_left(False)
-        if self.pos+self.line_pos >= 1 and self.text[self.pos+self.line_pos-1] == '\x19':
-            self.text = self.text[:self.pos+self.line_pos-1]+self.text[self.pos+self.line_pos:]
-        if reset:
-            self.rewrite_text()
+        self.key_left()
+        self.key_dc()
         return True
 
     def auto_completion(self, word_list, add_after='', quotify=True):
@@ -1506,7 +1476,7 @@ class Input(Win):
         if command_stop == -1 or self.pos <= command_stop:
             return 0
         text = self.text[command_stop+1:]
-        pos = self.pos + self.line_pos - len(self.text) + len(text) - 1
+        pos = self.pos - len(self.text) + len(text) - 1
         val = common.find_argument(pos, text, quoted=quoted) + 1
         return val
 
@@ -1522,7 +1492,7 @@ class Input(Win):
         Normal completion
         """
         (y, x) = self._win.getyx()
-        pos = self.pos + self.line_pos
+        pos = self.pos
         if pos < len(self.text) and after.endswith(' ') and self.text[pos] == ' ':
             after = after[:-1]  # remove the last space if we are already on a space
         if not self.last_completion:
@@ -1571,12 +1541,9 @@ class Input(Win):
             return False   # ignore non-handled keyboard shortcuts
         if reset:
             self.reset_completion()
-        self.text = self.text[:self.pos+self.line_pos]+key+self.text[self.pos+self.line_pos:]
-        if self.pos + len(key) >= self.width - 1:
-            self.line_pos += self.pos + len(key) - (3*(self.width//4))
-            self.pos = 3*(self.width//4)
-        else:
-            self.pos += len(key)
+        # Insert the char at the cursor position
+        self.text = self.text[:self.pos]+key+self.text[self.pos:]
+        self.pos += len(key)
         if reset:
             self.rewrite_text()
         if self.on_input:
@@ -1596,25 +1563,74 @@ class Input(Win):
         """
         return self.text
 
+    def addstr_colored_lite(self, text, y=None, x=None):
+        """
+        Just like addstr_colored, with the single-char attributes
+        (\x0E to \x19 instead of \x19 + attr). We do not use any }
+        char in this version
+        """
+        if y is not None and x is not None:
+            self.move(y, x)
+        format_char = find_first_format_char(text)
+        while format_char != -1:
+            attr_char = self.text_attributes[format_chars.index(text[format_char])]
+            self.addstr(text[:format_char])
+            self.addstr(attr_char, curses.A_REVERSE)
+            text = text[format_char+1:]
+            if attr_char == 'o':
+                self._win.attrset(0)
+            elif attr_char == 'u':
+                self._win.attron(curses.A_UNDERLINE)
+            elif attr_char == 'b':
+                self._win.attron(curses.A_BOLD)
+            elif attr_char in string.digits and attr_char != '':
+                self._win.attron(to_curses_attr((int(attr_char), -1)))
+            format_char = find_first_format_char(text)
+        self.addstr(text)
+
     def rewrite_text(self):
         """
-        Refresh the line onscreen, from the pos and pos_line
+        Refresh the line onscreen, but first, always adjust the
+        view_pos.  Also, each FORMAT_CHAR+attr_char count only take
+        one screen column (this is done in addstr_colored_lite), we
+        have to do some special calculations to find the correct
+        length of text to display, and the position of the cursor.
         """
+        self.adjust_view_pos()
         with g_lock:
             text = self.text.replace('\n', '|')
             self._win.erase()
             if self.color:
                 self._win.attron(to_curses_attr(self.color))
-            displayed_text = text[self.line_pos:self.line_pos+self.width-1]
-            self.addstr(displayed_text)
+            displayed_text = text[self.view_pos:self.view_pos+self.width-1]
+            self._win.attrset(0)
+            self.addstr_colored_lite(displayed_text)
+            # Fill the rest of the line with the input color
             if self.color:
                 (y, x) = self._win.getyx()
                 size = self.width-x
                 self.addnstr(' '*size, size, to_curses_attr(self.color))
-            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos]), '')
+            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
             if self.color:
                 self._win.attroff(to_curses_attr(self.color))
             self._refresh()
+
+    def adjust_view_pos(self):
+        """
+        Adjust the position of the View, if needed (for example if the
+        cursor moved and would now be out of the view, we adapt the
+        view_pos so that we can always see our cursor)
+        """
+        if self.pos == 0:
+            self.view_pos = 0
+            return
+        if self.pos < self.view_pos:
+            self.view_pos = self.pos - 6
+        if self.pos > self.view_pos + self.width:
+            self.view_pos = self.pos - self.width + 6
+        assert(self.view_pos > 0 and
+               self.pos > self.view_pos and
+               self.pos < self.view_pos + self.width)
 
     def refresh(self):
         log.debug('Refresh: %s',self.__class__.__name__)
@@ -1623,7 +1639,6 @@ class Input(Win):
     def clear_text(self):
         self.text = ''
         self.pos = 0
-        self.line_pos = 0
         self.rewrite_text()
 
     def key_enter(self):
@@ -1712,39 +1727,6 @@ class HistoryInput(Input):
             self.histo_pos = -1
         self.key_end()
 
-    def rewrite_text(self):
-        """
-        Rewrite the text just like a normal input, but with the instruction
-        on the left or a "completion bar" on the right (those are mutually
-        exclusive)
-        """
-        with g_lock:
-            text = self.text.replace('\n', '|').replace('\t', ' ')
-            self._win.erase()
-            if self.help_message:
-                self.addstr(self.help_message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-                text_pos = len(self.help_message) + 1
-                self.addstr(' ')
-            else:
-                text_pos = 0
-            if self.color:
-                self._win.attron(to_curses_attr(self.color))
-
-            width = self.width // 2 if self.search else self.width
-            displayed_text = text[self.line_pos:self.line_pos+width-1]
-
-            self._win.attrset(0)
-            self.addstr_colored_lite(displayed_text)
-
-            if self.search:
-                self.update_completed()
-                self.addstr(0, width, self.current_completed.ljust(width+1, ' '), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-
-            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos]) + text_pos, '')
-            if self.color:
-                self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
-
 class MessageInput(HistoryInput):
     """
     The input featuring history and that is being used in
@@ -1752,7 +1734,7 @@ class MessageInput(HistoryInput):
     Also letting the user enter colors or other text markups
     """
     history = list()            # The history is common to all MessageInput
-    text_attributes = set(('b', 'o', 'u'))
+    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7']
 
     def __init__(self):
         HistoryInput.__init__(self)
@@ -1766,12 +1748,13 @@ class MessageInput(HistoryInput):
 
     def enter_attrib(self):
         """
-        Read one more char (c) and add \x19c to the string
+        Read one more char (c), add the corresponding char from formats_char to the text string
         """
         attr_char = self.core.read_keyboard()[0]
-        if attr_char in self.text_attributes or attr_char in allowed_color_digits:
-            self.do_command('\x19', False)
-            self.do_command(attr_char)
+        if attr_char in self.text_attributes:
+            char = format_chars[self.text_attributes.index(attr_char)]
+            self.do_command(char, False)
+            self.rewrite_text()
 
     def key_enter(self):
         if self.history_enter():
