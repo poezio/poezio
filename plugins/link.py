@@ -43,21 +43,22 @@ Usage
 .. glossary::
 
     /link
-        **Usage:** ``/link [num]``
+        **Usage:** ``/link [range]``
 
         This plugin adds a :term:`/link` command that will open the links in ``firefox``. If
         you want to use another browser, you can use the :term:`/set` command  to change the
         :term:`browser` option.
 
 
-        :term:`/link` without argument will open the last received link, if any is found.
-        If an integer argument is given, /link will go back gradually in the buffer
-        to open the previous link, and so on.
-
-
-        If you are scrolling in the buffer, poezio will open the links starting from
-        the first you can see. (although there are some problems with multiline
-        messages).
+        :term:`/link` without argument will open the last link found
+        in the current tab, if any is found. An optional range
+        argument can be given, to select one or more links to
+        open. Examples:
+        ``/link 1`` is equivalent to ``/link``
+        ``/link 3`` will open the third link found in the current tab,
+        starting from the bottom.
+        ``/link 1:5`` will open the last five links in the current tab
+        ``/link :2`` will open the last two links
 
 Options
 -------
@@ -109,17 +110,29 @@ class Plugin(BasePlugin):
     def command_link(self, args):
         args = common.shell_split(args)
         if len(args) == 1:
-            try:
-                nb = int(args[0])
-            except:
-                return self.api.run_command('/help link')
+            if args[0].find(':') == -1:
+                try:
+                    start = int(args[0])
+                    end = start
+                except ValueError:
+                    return self.api.run_command('/help link')
+            else:
+                start, end = args[0].split(':', 1)
+                if start == '':
+                    start = 1
+                try:
+                    start = int(start)
+                    end = int(end)
+                except ValueError:
+                    return self.api.information('Invalid range: %s' % (args[0]), 'Error')
         else:
-            nb = 1
-        link = self.find_link(nb)
-        if link:
+            start = 1
+            end = 1
+        for nb in range(start, end+1):
+            link = self.find_link(nb)
+            if not link:
+                return self.api.information('No URL found.', 'Warning')
             self.core.exec_command([self.config.get('browser', 'firefox'), link])
-        else:
-            self.api.information('No URL found.', 'Warning')
 
     def cleanup(self):
         del self.config
