@@ -1641,9 +1641,11 @@ class MucTab(ChatTab):
         When someone is kicked from a muc
         """
         self.users.remove(user)
-        by = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        actor_elem = presence.find('{%s}x/{%s}item/{%s}actor' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         reason = presence.find('{%s}x/{%s}item/{%s}reason' % (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        by = by.attrib['jid'] if by is not None else None
+        by = None
+        if actor_elem is not None:
+            by = actor_elem.get('nick') or actor_elem.get('jid')
         if from_nick == self.own_nick: # we are kicked
             if by:
                 kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s} have been kicked by \x193}%(by)s') % {
