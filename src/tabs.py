@@ -2887,7 +2887,7 @@ class RosterInfoTab(Tab):
             success = config.silent_set(option, 'false')
         roster.modified()
         if not success:
-            self.information(_('Unable to write in the config file'), 'Error')
+            self.core.information(_('Unable to write in the config file'), 'Error')
         return True
 
     def on_slash(self):
