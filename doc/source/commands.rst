@@ -440,6 +440,11 @@ Roster tab commands
 
         Set the given JID’s name in your roster.
 
+    /password
+        **Usage:** ``/password <password>``
+
+        Change your password.
+
     /groupadd
         **Usage:** ``/groupadd <jid> <group>``
 

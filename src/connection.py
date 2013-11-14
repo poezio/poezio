@@ -68,7 +68,10 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0045')
         self.register_plugin('xep_0048')
         self.register_plugin('xep_0060')
+        self.register_plugin('xep_0066')
         self.register_plugin('xep_0071')
+        self.register_plugin('xep_0077')
+        self.plugin['xep_0077'].create_account = False
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
         self.register_plugin('xep_0191')

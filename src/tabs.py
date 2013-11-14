@@ -2273,6 +2273,10 @@ class RosterInfoTab(Tab):
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.core.completion_last_activity)
+        self.register_command('password', self.command_password,
+                usage='<password>',
+                shortdesc=_('Change your password'))
+
         self.resize()
         self.update_commands()
         self.update_keys()
@@ -2464,6 +2468,21 @@ class RosterInfoTab(Tab):
         self.information_win.rebuild_everything(self.core.information_buffer)
         self.core.information_win.rebuild_everything(self.core.information_buffer)
         self.refresh()
+
+    def command_password(self, arg):
+        """
+        /password <password>
+        """
+        def callback(iq):
+            if iq['type'] == 'result':
+                self.core.information('Password updated', 'Account')
+                if config.get('password', ''):
+                    config.silent_set('password', arg)
+            else:
+                self.core.information('Unable to change the password', 'Account')
+        self.core.xmpp.plugin['xep_0077'].change_password(arg, callback=callback)
+
+
 
     def command_deny(self, arg):
         """
