@@ -66,7 +66,6 @@ class Plugin(BasePlugin):
         start = time.time()
         def callback(iq):
             delay = time.time() - start
-            self.api.information("coucou %s %s" % (iq, type(iq)))
             if iq['type'] == 'error' and iq['error']['condition'] in ('remote-server-timeout', 'remote-server-not-found'):
                 self.api.information('%s did not respond to ping' % jid, 'Info')
             else:
