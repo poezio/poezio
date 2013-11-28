@@ -212,6 +212,13 @@ Plugin index
 
         Insert dots in your messages.
 
+    Autocorrect
+        :ref:`Documentation <autocorrect-plugin>`
+
+        Add new ways to correct messages.
+
+
+
 .. toctree::
     :hidden:
 
@@ -246,3 +253,4 @@ Plugin index
     iq_show
     regex_admin
     pointpoint
+    autocorrect
