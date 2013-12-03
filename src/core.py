@@ -392,9 +392,25 @@ class Core(object):
     def exit_from_signal(self, *args, **kwargs):
         """
         Quit when receiving SIGHUP or SIGTERM
+
+        do not save the config because it is not a normal exit
+        (and only roster UI things are not yet saved)
         """
         log.debug("Either SIGHUP or SIGTERM received. Exiting…")
-        self.command_quit()
+        if config.get('enable_user_mood', 'true') != 'false':
+            self.xmpp.plugin['xep_0107'].stop(block=False)
+        if config.get('enable_user_activity', 'true') != 'false':
+            self.xmpp.plugin['xep_0108'].stop(block=False)
+        if config.get('enable_user_gaming', 'true') != 'false':
+            self.xmpp.plugin['xep_0196'].stop(block=False)
+        self.plugin_manager.disable_plugins()
+        self.disconnect('')
+        self.running = False
+        try:
+            self.reset_curses()
+        except: # too bad
+            pass
+        sys.exit()
 
     def autoload_plugins(self):
         """
