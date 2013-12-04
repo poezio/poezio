@@ -14,12 +14,13 @@ DEFSECTION = "Poezio"
 
 from gettext import gettext as _
 import sys
+import tempfile
 
+import os
 import logging
-log = logging.getLogger(__name__)
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
-from os import environ, makedirs, path
+from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
 
@@ -178,12 +179,22 @@ class Config(RawConfigParser):
         elif not written:
             result_lines.append('%s = %s' % (option, value))
         try:
-            df = open(self.file_name, 'w', encoding='utf-8')
+            prefix, file = path.split(self.file_name)
+            filename = path.join(prefix, '.%s.tmp' % file)
+            fd = os.fdopen(
+                    os.open(
+                        filename,
+                        os.O_WRONLY | os.O_CREAT,
+                        0o600),
+                    'w')
             for line in result_lines:
-                df.write('%s\n' % line)
-            df.close()
+                fd.write('%s\n' % line)
+            fd.close()
+            copy2(filename, self.file_name)
+            remove(filename)
         except:
             success = False
+            log.error('Unable to save the config file.', exc_info=True)
         else:
             success = True
         return success
@@ -332,4 +343,6 @@ else:
 # common import sleekxmpp, which creates then its loggers, so
 # it needs to be after logger configuration
 from common import safeJID
+
+log = logging.getLogger(__name__)
 
