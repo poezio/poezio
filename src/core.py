@@ -2531,7 +2531,7 @@ class Core(object):
         try:
             stanza = StanzaBase(self.xmpp, xml=ET.fromstring(arg))
             if stanza.xml.tag == 'iq' and \
-                    stanza.xml.attrib.get('type') == 'get' and \
+                    stanza.xml.attrib.get('type') in ('get', 'set') and \
                     stanza.xml.attrib.get('id'):
                 iq_id = stanza.xml.attrib.get('id')
 
