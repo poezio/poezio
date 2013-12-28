@@ -306,18 +306,6 @@ LOGGING_CONFIG = {
         }
     },
     'handlers': {
-        'debug':{
-            'level':'DEBUG',
-            'class':'logging.FileHandler',
-            'filename': '/tmp/dummy',
-            'formatter': 'simple',
-        },
-        'error': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/dummy',
-            'formatter': 'simple',
-        },
     },
     'root': {
             'handlers': [],
@@ -327,13 +315,22 @@ LOGGING_CONFIG = {
 }
 if config.get('log_errors', 'true').lower() != 'false':
     LOGGING_CONFIG['root']['handlers'].append('error')
-    LOGGING_CONFIG['handlers']['error']['filename'] = path.join(
-            LOG_DIR,
-            'errors.log')
+    LOGGING_CONFIG['handlers']['error'] = {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': path.join(LOG_DIR, 'errors.log'),
+            'formatter': 'simple',
+        }
 
 if options.debug:
     LOGGING_CONFIG['root']['handlers'].append('debug')
-    LOGGING_CONFIG['handlers']['debug']['filename'] = options.debug
+    LOGGING_CONFIG['handlers']['debug'] = {
+            'level':'DEBUG',
+            'class':'logging.FileHandler',
+            'filename': options.debug,
+            'formatter': 'simple',
+        }
+
 
 if LOGGING_CONFIG['root']['handlers']:
     logging.config.dictConfig(LOGGING_CONFIG)
