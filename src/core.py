@@ -31,6 +31,7 @@ from sleekxmpp import JID, InvalidJID
 from common import safeJID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 from sleekxmpp.xmlstream.handler import Callback
+from sleekxmpp.xmlstream.matcher import StanzaPath
 
 log = logging.getLogger(__name__)
 
@@ -2526,13 +2527,34 @@ class Core(object):
         if not arg:
             return
 
+
         try:
-            StanzaBase(self.xmpp, xml=ET.fromstring(arg)).send()
+            stanza = StanzaBase(self.xmpp, xml=ET.fromstring(arg))
+            if stanza.xml.tag == 'iq' and \
+                    stanza.xml.attrib.get('type') == 'get' and \
+                    stanza.xml.attrib.get('id'):
+                iq_id = stanza.xml.attrib.get('id')
+
+                def iqfunc(iq):
+                    self.information('%s' % iq, 'Iq')
+                    self.xmpp.remove_handler('Iq %s' % iq_id)
+
+                self.xmpp.register_handler(
+                        Callback('Iq %s' % iq_id,
+                            StanzaPath('iq@id=%s' % iq_id),
+                            iqfunc
+                            )
+                        )
+                log.debug('handler')
+            log.debug('%s %s', stanza.xml.tag, stanza.xml.attrib)
+
+            stanza.send()
         except:
             self.information(_('Could not send custom stanza'), 'Error')
             log.debug('/rawxml: Could not send custom stanza (%s)',
                     repr(arg),
                     exc_info=True)
+
 
     def command_load(self, arg):
         """
