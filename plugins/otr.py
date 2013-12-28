@@ -401,7 +401,17 @@ class Plugin(BasePlugin):
             # ignore non-otr messages
             # if we expected an OTR message, we would have
             # got an UnencryptedMesssage
-            log.error('coucou %s', ctx.getPolicy('REQUIRE_ENCRYPTION'))
+            # but do an additional check because of a bug with py3k
+            if ctx.state != STATE_PLAINTEXT or ctx.getPolicy('REQUIRE_ENCRYPTION'):
+
+                tab.add_message('The following message from %s was not encrypted:\n%s' % (msg['from'], err.args[0].decode('utf-8')),
+                        jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
+                        typ=0)
+                del msg['body']
+                del msg['html']
+                hl(tab)
+                self.core.refresh_window()
+                return
             return
         except NotEncryptedError as err:
             tab.add_message('An encrypted message from %s was received but is '
@@ -424,6 +434,8 @@ class Plugin(BasePlugin):
             self.core.refresh_window()
             return
         except:
+            tab.add_message('An unspecified error occured')
+            log.error('Unspecified error in the OTR plugin', exc_info=True)
             return
 
         # remove xhtml
