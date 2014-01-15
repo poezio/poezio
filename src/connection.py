@@ -61,6 +61,9 @@ class Connection(sleekxmpp.ClientXMPP):
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.reconnect_max_attempts = 0
         self.auto_authorize = None
+        # prosody defaults, lowest is AES128-SHA, it should be a minimum
+        # for anything that came out after 2002
+        self.ciphers = config.get('ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL')
         self.ca_certs = config.get('ca_cert_path', '') or None
         interval = config.get('whitespace_interval', '300')
         if interval.isdecimal() and int(interval) > 0:

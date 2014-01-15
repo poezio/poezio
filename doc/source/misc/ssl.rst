@@ -1,5 +1,30 @@
-SSL Management
+TLS Management
 ==============
+
+Security of the connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _ciphers:
+
+Ciphers
+-------
+
+From the version 0.8, poezio offers the possibility to define your own set of
+ciphers.
+
+You can set this with the :term:`ciphers` option, the default for poezio being
+``HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL``.
+You can check what ciphers are enabled by that list by running the command
+``openssl ciphers -v 'cipher list'``. The default list prioritizes `Forward Secrecy`_
+and does not have any cipher suite providing less than 128 bits of security.
+
+You should change this if you either cannot connect to your server (but in this
+case, you should notify the administrator that his XMPP server configuration
+is probably not great), or if you want to be even more restrictive (only allowing
+256 bits of security *and* forward secrecy, for example).
+
+Cert valididty
+~~~~~~~~~~~~~~
 
 Starting from version 0.7.5, poezio offers some options to check the validity
 of a X.509 certificate.
@@ -38,10 +63,10 @@ endpoints, you might be bothered by having to validate the change each time,
 and you may want to check only if it the same authority delivered the
 certificate.
 
-You can then set the *ca_cert_path* option to the path of a file containing
-the validation chain in `PEM format`_ ; those certificates are usually in
-/usr/share/ca-certificates/ but it may vary depending of your distribution.
-
+You can then set the :term:`ca_cert_path` option to the path of a file
+containing the validation chain in `PEM format`_ ; those certificates are
+usually in /usr/share/ca-certificates/ but it may vary depending of your
+distribution.
 
 If the authority does not match when connecting, you should be disconnected.
 
@@ -50,11 +75,12 @@ None
 
 If you do not want to bother with certificate validation at all (which can be
 the case when you run poezio on the same computer as your jabber server), you
-can set the *ignore_certificate* value to true, and let the *ca_cert_path*
-option empty (or even remove it).
+can set the :term:`ignore_certificate` value to true, and let the
+:term:`ca_cert_path` option empty (or even remove it).
 
 .. warning:: Only do this if you know what you are doing, or you will be open
             to Man in The Middle attacks!
 
+.. _Forward Secrecy: https://en.wikipedia.org/wiki/Forward_secrecy
 .. _TOFU/TUFU: https://en.wikipedia.org/wiki/User:Dotdotike/Trust_Upon_First_Use
 .. _PEM format: https://tools.ietf.org/html/rfc1422.html

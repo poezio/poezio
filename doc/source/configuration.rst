@@ -111,6 +111,14 @@ section of this documentation.
         The fingerprint of the SSL certificate as a hexadecimal string, you should
         not touch it, except if know what you are doing.
 
+    ciphers
+
+        **Default value:** ``HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL``
+
+        The TLS cipher suites allowed, in `OpenSSL format`_. Modify this if
+        you know what you are doing, see the :ref:`ciphers` dedicated section
+        for more details.
+
     connection_check_interval
 
         **Default value:** ``60``
@@ -942,3 +950,5 @@ found.
         Only for MUC tabs: if true the tab will change its color to notify you when a new message is received.
         You will still be notified of highlights.  Set to ``false`` if you’re not interested in a room non-highlight notifications.
 
+
+.. _OpenSSL format: https://www.openssl.org/docs/apps/ciphers.html#CIPHER_LIST_FORMAT
