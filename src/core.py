@@ -3750,8 +3750,14 @@ class Core(object):
         if config.get('ignore_certificate', 'false').lower() == 'true':
             return
         cert = config.get('certificate', '')
+        # update the cert representation when it uses the old one
+        if cert and not ':' in cert:
+            cert = ':'.join(i + j for i, j in zip(cert[::2], cert[1::2])).upper()
+            config.set_and_save('certificate', cert)
+
         der = ssl.PEM_cert_to_DER_cert(pem)
-        found_cert = sha1(der).hexdigest()
+        digest = sha1(der).hexdigest().upper()
+        found_cert = ':'.join(i + j for i, j in zip(digest[::2], digest[1::2]))
         if cert:
             if found_cert == cert:
                 log.debug('Cert %s OK', found_cert)
