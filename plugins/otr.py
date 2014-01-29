@@ -62,7 +62,12 @@ Command added to Conversation Tabs and Private Tabs:
         - The ``ourfpr`` command gives you the fingerprint of your own key
         - The ``trust`` command marks the current remote key as trusted for the current remote JID
         - The ``untrust`` command removes that trust
-        - Finally, the ``drop`` command is used if you want to delete your private key (not recoverable)
+        - Finally, the ``drop`` command is used if you want to delete your private key (not recoverable).
+
+        .. warning::
+
+            With ``drop``, the private key is only removed from the filesystem, *NOT* with multiple rewrites in a secure
+            manner, you should do that yourself if you want to be sure.
 
 
 To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
@@ -131,7 +136,13 @@ Configuration
 
         Allow OTRv1
 
-The :term:`allow_v1` and :term:`allow_v2` configuration parameters are tab-specific.
+    log
+        **Default:** false
+
+        Log conversations (OTR start/end marker, and messages).
+
+The :term:`allow_v1`, :term:`allow_v2` and :term:`log` configuration
+parameters are tab-specific.
 
 Important details
 -----------------
@@ -214,24 +225,24 @@ class PoezioContext(Context):
                 log.debug('OTR conversation with %s refreshed', self.peer)
                 if tab:
                     if self.getCurrentTrust():
-                        tab.add_message('Refreshed \x19btrusted\x19o OTR conversation with %s' % self.peer)
+                        tab.add_message('Refreshed \x19btrusted\x19o OTR conversation with %s' % self.peer, typ=self.log)
                     else:
                         tab.add_message('Refreshed \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
-                                (self.peer, self.getCurrentKey()))
+                                (self.peer, self.getCurrentKey()), typ=self.log)
                     hl(tab)
             elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
                 log.debug('OTR conversation with %s finished', self.peer)
                 if tab:
-                    tab.add_message('Ended OTR conversation with %s' % self.peer)
+                    tab.add_message('Ended OTR conversation with %s' % self.peer, typ=self.log)
                     hl(tab)
         else:
             if newstate == STATE_ENCRYPTED:
                 if tab:
                     if self.getCurrentTrust():
-                        tab.add_message('Started \x19btrusted\x19o OTR conversation with %s' % self.peer)
+                        tab.add_message('Started \x19btrusted\x19o OTR conversation with %s' % self.peer, typ=self.log)
                     else:
                         tab.add_message('Started \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
-                                (self.peer, self.getCurrentKey()))
+                                (self.peer, self.getCurrentKey()), typ=self.log)
                     hl(tab)
 
         log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
@@ -367,11 +378,13 @@ class Plugin(BasePlugin):
         if not jid in self.contexts:
             flags = POLICY_FLAGS.copy()
             policy = self.config.get_by_tabname('encryption_policy', 'ondemand', jid).lower()
+            logging_policy = self.config.get_by_tabname('log', 'false', jid).lower()
             allow_v2 = self.config.get_by_tabname('allow_v2', 'true', jid).lower()
             flags['ALLOW_V2'] = (allow_v2 != 'false')
             allow_v1 = self.config.get_by_tabname('allow_v1', 'false', jid).lower()
             flags['ALLOW_V1'] = (allow_v1 == 'true')
             self.contexts[jid] = PoezioContext(self.account, jid, self.core.xmpp, self.core)
+            self.contexts[jid].log = 1 if logging_policy != 'false' else 0
             self.contexts[jid].flags = flags
         return self.contexts[jid]
 
@@ -406,7 +419,7 @@ class Plugin(BasePlugin):
 
                 tab.add_message('The following message from %s was not encrypted:\n%s' % (msg['from'], err.args[0].decode('utf-8')),
                         jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
-                        typ=0)
+                        typ=ctx.log)
                 del msg['body']
                 del msg['html']
                 hl(tab)
@@ -434,7 +447,7 @@ class Plugin(BasePlugin):
             self.core.refresh_window()
             return
         except:
-            tab.add_message('An unspecified error occured')
+            tab.add_message('An unspecified error in the OTR plugin occured', typ=0)
             log.error('Unspecified error in the OTR plugin', exc_info=True)
             return
 
@@ -451,7 +464,7 @@ class Plugin(BasePlugin):
 
         body = txt.decode()
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
-                forced_user=user, typ=0, nick_color=theming.get_theme().COLOR_REMOTE_USER)
+                forced_user=user, typ=ctx.log, nick_color=theming.get_theme().COLOR_REMOTE_USER)
         hl(tab)
         self.core.refresh_window()
         del msg['body']
@@ -469,6 +482,12 @@ class Plugin(BasePlugin):
         ctx = self.contexts.get(name)
         if ctx and ctx.state == STATE_ENCRYPTED:
             ctx.sendMessage(0, msg['body'].encode('utf-8'))
+            tab.add_message(msg['body'],
+                    nickname=self.core.own_nick or tab.own_nick,
+                    nick_color=theming.get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid,
+                    typ=0)
             # remove everything from the message so that it doesn’t get sent
             del msg['body']
             del msg['replace']

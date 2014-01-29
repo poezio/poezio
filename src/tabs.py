@@ -1975,14 +1975,6 @@ class PrivateTab(ChatTab):
                 except:
                     log.error('Unable to correct a message', exc_info=True)
 
-        if not replaced:
-            self.add_message(msg['body'],
-                    nickname=self.core.own_nick or self.own_nick,
-                    forced_user=user,
-                    nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid,
-                    typ=1)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -1998,6 +1990,15 @@ class PrivateTab(ChatTab):
             self.text_win.refresh()
             self.input.refresh()
             return
+        if not replaced:
+            self.add_message(msg['body'],
+                    nickname=self.core.own_nick or self.own_nick,
+                    forced_user=user,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid,
+                    typ=1)
+
         self.last_sent_message = msg
         msg.send()
         self.cancel_paused_delay()
@@ -3194,13 +3195,6 @@ class ConversationTab(ChatTab):
                     replaced = True
                 except:
                     log.error('Unable to correct a message', exc_info=True)
-        if not replaced:
-            self.add_message(msg['body'],
-                    nickname=self.core.own_nick,
-                    nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid,
-                    typ=1)
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
@@ -3216,6 +3210,14 @@ class ConversationTab(ChatTab):
             self.text_win.refresh()
             self.input.refresh()
             return
+        if not replaced:
+            self.add_message(msg['body'],
+                    nickname=self.core.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid,
+                    typ=1)
+
         self.last_sent_message = msg
         msg.send()
         self.cancel_paused_delay()
