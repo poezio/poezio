@@ -120,7 +120,13 @@ class Logger(object):
         # searching "\nM" nb times from the end of the file.  We use mmap to
         # do that efficiently, instead of seek()s and read()s which are costly.
         with fd:
-            m = mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ)
+            try:
+                m = mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ)
+            except Exception: # file probably empty
+                log.error('Unable to mmap the log file for (%s)',
+                        os.path.join(log_dir, jid),
+                        exc_info=True)
+                return
             pos = m.rfind(b"\nM") # start of messages begin with MI or MR,
                                   # after a \n
             # number of message found so far
