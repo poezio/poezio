@@ -2951,12 +2951,14 @@ class Core(object):
             if not remote_nick and config.get('enable_user_nick', 'true') != 'false':
                 if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                     remote_nick = message['nick']['nick']
+            own = False
         # we wrote the message (happens with carbons)
         elif message['from'].bare == self.xmpp.boundjid.bare:
             conv_jid = message['to']
             jid = self.xmpp.boundjid
             color = get_theme().COLOR_OWN_NICK
             remote_nick = self.own_nick
+            own = True
         # we are not part of that message, drop it
         else:
             return
@@ -2967,8 +2969,8 @@ class Core(object):
 
         if not remote_nick and conversation.nick:
             remote_nick = conversation.nick
-        elif not remote_nick:
-            remote_nick = jid.user
+        elif not remote_nick or own:
+            remote_nick = conv_jid.user
         conversation.nick = remote_nick
 
         self.events.trigger('conversation_msg', message, conversation)
