@@ -2684,7 +2684,7 @@ class RosterInfoTab(Tab):
 
     def command_remove(self, args):
         """
-        Remove the specified JID from the roster. i.e. : unsubscribe
+        Remove the specified JID from the roster. i.e.: unsubscribe
         from its presence, and cancel its subscription to our.
         """
         if args.strip():
@@ -3270,7 +3270,7 @@ class ConversationTab(ChatTab):
         else:
             resource = None
         if resource:
-            status = (_('Status : %s') % resource.status) if resource.status else ''
+            status = (_('Status: %s') % resource.status) if resource.status else ''
             self._text_buffer.add_message("\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
                 'show': resource.show or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True

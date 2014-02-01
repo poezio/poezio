@@ -1600,7 +1600,7 @@ class Core(object):
             pres = self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
             self.events.trigger('send_normal_presence', pres)
             pres.send()
-        except :
+        except:
             self.information(_('Could not send directed presence'), 'Error')
             log.debug('Could not send directed presence to %s', jid, exc_info=True)
             return
