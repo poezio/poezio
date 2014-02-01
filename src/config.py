@@ -302,7 +302,7 @@ LOGGING_CONFIG = {
     'disable_existing_loggers': True,
     'formatters': {
         'simple': {
-            'format': '%(levelname)s:%(module)s:%(message)s'
+            'format': '%(asctime)s %(levelname)s:%(module)s:%(message)s'
         }
     },
     'handlers': {
