@@ -576,11 +576,13 @@ class ChatTab(Tab):
         if not isinstance(self, MucTab) or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
-            msg = self.core.xmpp.make_message(self.get_dest_jid())
-            msg['type'] = self.message_type
-            msg['chat_state'] = state
-            self.chat_state = state
-            msg.send()
+            if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) and \
+                    self.remote_wants_chatstates is not False:
+                msg = self.core.xmpp.make_message(self.get_dest_jid())
+                msg['type'] = self.message_type
+                msg['chat_state'] = state
+                self.chat_state = state
+                msg.send()
 
     def send_composing_chat_state(self, empty_after):
         """

@@ -3272,6 +3272,7 @@ class Core(object):
                             identifier=message['id'],
                             jid=message['from'],
                             typ=1)
+
         if tab.remote_wants_chatstates is None:
             if message['chat_state']:
                 tab.remote_wants_chatstates = True
@@ -3317,6 +3318,7 @@ class Core(object):
         tab = self.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
+        tab.remote_wants_chatstates = True
         self.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
         if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
@@ -3333,6 +3335,7 @@ class Core(object):
         tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
+        tab.remote_wants_chatstates = True
         self.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.current_tab():
