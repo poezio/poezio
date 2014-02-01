@@ -51,7 +51,7 @@ import bookmark
 from plugin_manager import PluginManager
 
 from data_forms import DataFormsTab
-from config import config, firstrun
+from config import config, firstrun, options as config_opts
 from logger import logger
 from roster import roster
 from contact import Contact, Resource
@@ -2631,11 +2631,13 @@ class Core(object):
         show, message = status.show, status.message
         nick = self.own_nick
         jid = self.xmpp.boundjid.full
-        info = 'Your JID is %s\nYour current status is "%s" (%s)\nYour default nickname is %s' % (
+        info = ('Your JID is %s\nYour current status is "%s" (%s)'
+                '\nYour default nickname is %s\nYou are running poezio %s' % (
                 jid,
                 message if message else '',
                 show if show else 'available',
-                nick)
+                nick,
+                config_opts.version))
         self.information(info, 'Info')
 
     def register_initial_commands(self):
