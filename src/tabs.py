@@ -1965,11 +1965,11 @@ class PrivateTab(ChatTab):
             return
         user = self.parent_muc.get_user_by_name(self.own_nick)
         replaced = False
-        if correct:
+        if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'],
+                    self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'],
                             user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
                     replaced = True
                 except:
@@ -3186,11 +3186,11 @@ class ConversationTab(ChatTab):
             self.input.refresh()
             return
         replaced = False
-        if correct:
+        if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', 'true', self.get_name()).lower() != 'false':
                 try:
-                    self.modify_message(line, self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
+                    self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
                             nickname=self.core.own_nick)
                     replaced = True
                 except:
