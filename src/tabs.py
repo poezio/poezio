@@ -1974,6 +1974,8 @@ class PrivateTab(ChatTab):
                     replaced = True
                 except:
                     log.error('Unable to correct a message', exc_info=True)
+        else:
+            del msg['replace']
 
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
@@ -3195,6 +3197,8 @@ class ConversationTab(ChatTab):
                     replaced = True
                 except:
                     log.error('Unable to correct a message', exc_info=True)
+        else:
+            del msg['replace']
         if msg['body'].find('\x19') != -1:
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
