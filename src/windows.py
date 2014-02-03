@@ -967,7 +967,7 @@ class TextWin(Win):
                 else:
                     self.write_text(y,
                                     # Offset for the timestamp (if any) plus a space after it
-                                    (0 if not with_timestamps else (len(line.msg.str_time) + 1)) +
+                                    (0 if not with_timestamps else (len(line.msg.str_time) + (1 if line.msg.str_time else 0) )) +
                                     # Offset for the nickname (if any) plus a space and a > after it
                                     (0 if not line.msg.nickname else (poopt.wcswidth(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
                             line.prepend+line.msg.txt[line.start_pos:line.end_pos])

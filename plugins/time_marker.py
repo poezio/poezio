@@ -79,6 +79,6 @@ class Plugin(BasePlugin):
         if last_message_date:
             delta = datetime.now() - last_message_date
             if delta >= timedelta(0, self.config.get('delay', 900)):
-                tab.add_message("%s passed…" % (format_timedelta(delta),))
+                tab.add_message("%s passed…" % (format_timedelta(delta),), str_time='')
 
 
