@@ -487,7 +487,7 @@ class Plugin(BasePlugin):
                     nick_color=theming.get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'],
                     jid=self.core.xmpp.boundjid,
-                    typ=0)
+                    typ=ctx.log)
             # remove everything from the message so that it doesn’t get sent
             del msg['body']
             del msg['replace']
