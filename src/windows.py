@@ -43,7 +43,7 @@ from theming import get_theme, to_curses_attr, read_tuple, dump_tuple
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input, I
 # guess. But maybe we can find better chars that are even less reasky.
-format_chars = ['\x0E', '\x0F', '\x10', '\x11', '\x12','\x13', '\x14', '\x15','\x16', '\x17']
+format_chars = ['\x0E', '\x0F', '\x10', '\x11', '\x12','\x13', '\x14', '\x15','\x16', '\x17', '\x18']
 
 allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # msg is a reference to the corresponding Message tuple. text_start and text_end are the position
@@ -1602,7 +1602,7 @@ class Input(Win):
             self._win.erase()
             if self.color:
                 self._win.attron(to_curses_attr(self.color))
-            displayed_text = text[self.view_pos:self.view_pos+self.width-1]
+            displayed_text = text[self.view_pos:self.view_pos+self.width-1].replace('\t', '\x18')
             self._win.attrset(0)
             self.addstr_colored_lite(displayed_text)
             # Fill the rest of the line with the input color
@@ -1738,7 +1738,7 @@ class MessageInput(HistoryInput):
     Also letting the user enter colors or other text markups
     """
     history = list()            # The history is common to all MessageInput
-    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7']
+    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7', 't']
 
     def __init__(self):
         HistoryInput.__init__(self)
