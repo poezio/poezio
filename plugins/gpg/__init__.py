@@ -192,7 +192,7 @@ class Plugin(BasePlugin):
         that we cannot/do not want to encrypt/decrypt messages.
         """
         current_presence = self.core.get_status()
-        self.core.command_status('%s %s' % (current_presence.show or 'available', current_presence.message,))
+        self.core.command_status('%s %s' % (current_presence.show or 'available', current_presence.message or '',))
 
     def on_normal_presence(self, presence, resource):
         """
