@@ -1122,14 +1122,15 @@ class MucTab(ChatTab):
         users = self.users[:]
         users.sort(key=lambda x: x.nick.lower())
         for user in users:
+            color = aff.get(user.affiliation, get_theme().CHAR_AFFILIATION_NONE)
             if user.role == 'visitor':
-                visitors.append((user, aff[user.affiliation]))
+                visitors.append((user, color))
             elif user.role == 'participant':
-                participants.append((user, aff[user.affiliation]))
+                participants.append((user, color))
             elif user.role == 'moderator':
-                moderators.append((user, aff[user.affiliation]))
+                moderators.append((user, color))
             else:
-                others.append((user, aff[user.affiliation]))
+                others.append((user, color))
 
         buff = ['Users: %s \n' % len(self.users)]
         for moderator in moderators:
