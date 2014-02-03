@@ -1095,8 +1095,7 @@ class MucTab(ChatTab):
         if not arg.strip():
             self._text_buffer.add_message(_("\x19%s}The subject of the room is: %s") %
                     (dump_tuple(get_theme().COLOR_INFORMATION_TEXT), self.topic))
-            self.text_win.refresh()
-            self.input.refresh()
+            self.refresh()
             return
         subject = arg
         muc.change_subject(self.core.xmpp, self.name, subject)
