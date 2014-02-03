@@ -3443,7 +3443,7 @@ class Core(object):
         jid = presence['from']
         contact = roster[jid.bare]
         tab = self.get_conversation_by_jid(jid, create=False)
-        if isinstance(tab, tabs.DynamicConversationTab):
+        if isinstance(tab, tabs.DynamicConversationTab) and tab.get_dest_jid() != jid.full:
             tab.unlock()
         if contact is None:
             return
