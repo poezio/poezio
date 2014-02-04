@@ -2300,8 +2300,6 @@ class RosterInfoTab(Tab):
                     shortdesc=_('Show the blocked contacts.'))
             self.core.xmpp.del_event_handler('session_start', self.check_blocking)
             self.core.xmpp.add_event_handler('blocked_message', self.on_blocked_message)
-        else:
-            self.core.information('Simple blocking not supported by the server', 'Info')
 
     def on_blocked_message(self, message):
         """
