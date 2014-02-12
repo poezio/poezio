@@ -1,7 +1,7 @@
--e git://github.com/fritzy/SleekXMPP.git@develop#egg=SleekXMPP
 -e git://github.com/afflux/pure-python-otr.git#egg=potr
-dnspython3==1.10.0
-sphinx==1.2b1
+sleekxmpp==1.2
+dnspython3==1.11.1
+sphinx==1.2.1
 argparse
 pyinotify
 python-mpd2
