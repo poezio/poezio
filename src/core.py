@@ -3178,7 +3178,7 @@ class Core(object):
         """
         if message['subject']:
             return
-        room_from = message.getMucroom()
+        room_from = message['from'].bare
 
         if message['type'] == 'error': # Check if it's an error
             return self.room_error(message, room_from)
@@ -3237,6 +3237,9 @@ class Core(object):
         """
         jid = message['from']
         nick_from = jid.resource
+        if not nick_from:
+            return self.on_groupchat_message(message)
+
         room_from = jid.bare
         body = xhtml.get_body_from_message_stanza(message)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
