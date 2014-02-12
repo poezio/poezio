@@ -50,6 +50,13 @@ class Connection(sleekxmpp.ClientXMPP):
         # TODO: use the system language
         sleekxmpp.ClientXMPP.__init__(self, jid, password, lang=config.get('lang', 'en'))
 
+        force_encryption = config.get('force_encryption', 'true').lower() != 'false'
+        if force_encryption:
+            self['feature_mechanisms'].unencrypted_plain = False
+            self['feature_mechanisms'].unencrypted_digest = False
+            self['feature_mechanisms'].unencrypted_cram = False
+            self['feature_mechanisms'].unencrypted_scram = False
+
         self.core = None
         self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
         self.reconnect_max_attempts = 0

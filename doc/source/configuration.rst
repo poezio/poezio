@@ -167,6 +167,14 @@ section of this documentation.
         If set to true, notifications about the music your contacts listen to
         will be displayed in the info buffer as 'Tune' messages.
 
+    force_encryption
+
+        **Default value:** ``true``
+
+        If set to true, all connections will use TLS by default. Only turn this to
+        false if you cannot connect to your server, and do not care about your password
+        or the pricacy of your communications.
+
     display_mood_notifications
 
         **Default value:** ``false``
