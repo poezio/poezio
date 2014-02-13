@@ -1152,6 +1152,7 @@ class Core(object):
             self.current_tab_nb = len(self.tabs) - 1
         while not self.tabs[self.current_tab_nb]:
             self.current_tab_nb -= 1
+        self.current_tab().on_gain_focus()
         self.refresh_window()
         import gc
         gc.collect()
