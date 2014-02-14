@@ -14,7 +14,7 @@ The **9** here represents the number of times this message has been corrected.
 
 
 You can show the revisions of a message by loading the
-*display_corrections* plugin, and you
+:ref:`displaycorrections-plugin` plugin, and you
 can correct your own messages with the :term:`/correct` command.
 
 

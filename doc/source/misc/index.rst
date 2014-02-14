@@ -11,4 +11,5 @@ Contents:
     personal_events
     separate
     ssl
+    troubleshooting
 

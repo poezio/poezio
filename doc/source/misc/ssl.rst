@@ -1,8 +1,23 @@
-TLS Management
-==============
+TLS in poezio
+=============
+
+.. _security settings:
 
 Security of the connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enabling or disabling TLS
+-------------------------
+
+Starting from version 0.8, poezio is configured to reject unencrypted connections
+by default, in accordance to the `TLS manifesto`_. Users can still allow
+unencrypted connections by setting the :term:`force_encryption` option to false.
+
+If you cannot connect to your server, maybe it does not allow encrypted connections,
+in which case you should reconfigure it if it is yours, or contact your admin
+to let him know he should try to protect your privacy and credentials, at least
+a little.
+
 
 .. _ciphers:
 
@@ -23,8 +38,8 @@ case, you should notify the administrator that his XMPP server configuration
 is probably not great), or if you want to be even more restrictive (only allowing
 256 bits of security *and* forward secrecy, for example).
 
-Cert valididty
-~~~~~~~~~~~~~~
+Certificate validation
+~~~~~~~~~~~~~~~~~~~~~~
 
 Starting from version 0.7.5, poezio offers some options to check the validity
 of a X.509 certificate.
@@ -84,3 +99,4 @@ can set the :term:`ignore_certificate` value to true, and let the
 .. _Forward Secrecy: https://en.wikipedia.org/wiki/Forward_secrecy
 .. _TOFU/TUFU: https://en.wikipedia.org/wiki/User:Dotdotike/Trust_Upon_First_Use
 .. _PEM format: https://tools.ietf.org/html/rfc1422.html
+.. _TLS manifesto: https://github.com/stpeter/manifesto/blob/master/manifesto.txt
