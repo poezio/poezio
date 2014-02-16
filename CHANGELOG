@@ -3,6 +3,10 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8 - dev
+- Allow in-band password changing with /password
+- Force c2s encryption until configured otherwise
+- Allow users to set their cipher suites and ship one by default
+- Autocorrect plugin that sends sed-like corrections
 - /invite in a MUCTab now has the behavior one could expect
   (inviting a specific JID to this MUC)
 - Themes and plugins are now loaded using a set of paths instead
