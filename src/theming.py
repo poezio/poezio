@@ -21,41 +21,45 @@ A pair_color is a background-foreground pair. All possible pairs are not created
 at startup, because that would create 256*256 pairs, and almost all of them
 would never be used.
 
-A theme should define color tuples, like (200, -1), and when they are to
+A theme should define color tuples, like ``(200, -1)``, and when they are to
 be used by poezio's interface, they will be created once, and kept in a list for
 later usage.
-A color tuple is of the form (foreground, background, optional)
+A color tuple is of the form ``(foreground, background, optional)``
 A color of -1 means the default color. So if you do not want to have
-a background color, use (x, -1).
+a background color, use ``(x, -1)``.
 The optional third value of the tuple defines additional information. It
-is a string and can contain one or more of these characteres:
-'b': bold
-'u': underlined
-'x': blink
+is a string and can contain one or more of these characters:
 
-For example, (200, 208, 'bu') is bold, underlined and pink foreground on orange background.
+- ``b``: bold
+- ``u``: underlined
+- ``x``: blink
+
+For example, ``(200, 208, 'bu')`` is bold, underlined and pink foreground on
+orange background.
 
 A theme file is a python file containing one object named 'theme', which is an
 instance of a class (derived from the Theme class) defined in that same file.
 For example, in pinkytheme.py:
 
-import theming
-class PinkyTheme(theming.Theme):
-    COLOR_NORMAL_TEXT = (200, -1)
+.. code-block:: python
 
-theme = PinkyTheme()
+    import theming
+    class PinkyTheme(theming.Theme):
+        COLOR_NORMAL_TEXT = (200, -1)
+
+    theme = PinkyTheme()
 
 if the command '/theme pinkytheme' is issued, we import the pinkytheme.py file
 and set the global variable 'theme' to pinkytheme.theme.
 
-And in poezio's code we just use theme.COLOR_NORMAL_TEXT etc
+And in poezio's code we just use ``theme.COLOR_NORMAL_TEXT`` etc
 
 Since a theme inherites from the Theme class (defined here), if a color is not defined in a
 theme file, the color is the default one.
 
 Some values in that class are a list of color tuple.
-For example [(1, -1), (2, -1), (3, -1)]
-Such a list SHOULD contain at list one color tuple.
+For example ``[(1, -1), (2, -1), (3, -1)]``
+Such a list SHOULD contain at least one color tuple.
 It is used for example to define color gradient, etc.
 """
 

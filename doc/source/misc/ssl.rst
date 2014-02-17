@@ -59,7 +59,7 @@ connections.
 
 
 If you are paranoid (or run poezio for the first time in an unsafe
-environment), you can set the _certificate_ value of your config file yourself
+environment), you can set the :term:`certificate` value of your config file yourself
 (the hash, not colon-separated).
 
 
