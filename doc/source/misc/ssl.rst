@@ -38,6 +38,11 @@ case, you should notify the administrator that his XMPP server configuration
 is probably not great), or if you want to be even more restrictive (only allowing
 256 bits of security *and* forward secrecy, for example).
 
+For example, gmail.com (and subsequent XMPP services) only support RC4-MD5 and RC4-SHA,
+so you will want to set the option to ``RC4`` (or the default with ``:RC4`` appended,
+just in case they upgrade their service, though that is very unlikely). Please consider
+moving to a better XMPP service provider.
+
 Certificate validation
 ~~~~~~~~~~~~~~~~~~~~~~
 

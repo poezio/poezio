@@ -6,7 +6,7 @@ I cannot connect.
 
 1. Check that you are still connected to the internet.
 2. Double-check your credentials.
-3. Check the :ref:`security settings <security settings>`, maybe your server does not support encryption, or only with weak parameters.
+3. Check the :ref:`security settings <security settings>`, maybe your server does not support encryption, or only with weak parameters (like gmail).
 4. Maybe your DNS are wrong, try setting the :term:`custom_host` option with the server IP.
 5. Overzealous firewall?
 6. Running poezio with -d file.txt (debug mode) might reveal your issues.
