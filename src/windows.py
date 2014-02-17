@@ -1138,6 +1138,7 @@ class Input(Win):
     passing the list of items that can be used to complete. The completion can be used
     in a very flexible way.
     """
+    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7', 't']
     clipboard = '' # A common clipboard for all the inputs, this makes
     # it easy cut and paste text between various input
     def __init__(self):
@@ -1738,7 +1739,6 @@ class MessageInput(HistoryInput):
     Also letting the user enter colors or other text markups
     """
     history = list()            # The history is common to all MessageInput
-    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7', 't']
 
     def __init__(self):
         HistoryInput.__init__(self)
