@@ -58,7 +58,7 @@ Command added to Conversation Tabs and Private Tabs:
 
         - The ``start`` (or ``refresh``) command starts or refreshs a private OTR session
         - The ``end`` command ends a private OTR session
-        - The ``fpr`` command gives you the fingerprint of the key of the remove entity
+        - The ``fpr`` command gives you the fingerprint of the key of the remote entity
         - The ``ourfpr`` command gives you the fingerprint of your own key
         - The ``trust`` command marks the current remote key as trusted for the current remote JID
         - The ``untrust`` command removes that trust

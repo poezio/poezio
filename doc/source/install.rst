@@ -1,7 +1,6 @@
 Installing poezio
 =================
 
-
 .. important:: Python 3.2 or better is highly recommended, as we do not
     officially support python 3.1 (although we do try to keep things running).
 
@@ -16,87 +15,124 @@ using one of these.
     AUR wrapper to install them)
 - *Gentoo*: `Sekh’s overlay`_ contains everything required to build poezio
     (sleekxmpp, dnspython, and poezio)
+- *Fedora*: The poezio package was out of date for a long time in Fedora, but
+    now thanks to Casper, there is an `up-to-date package`_ in the repos since F19.
 - *Debian*: Use an other distro. (or make a package, we can provide help :) )
 
-(If an other distribution provides a poezio package, please tell us and we will
+(If another distribution provides a poezio package, please tell us and we will
 add it to the list)
 
 Install poezio from the sources
 -------------------------------
 
-You can download poezio's `stable sources`_, or fetch the development
-version (trunk), using git:
+.. note:: The ``make`` command is always required, because while we could provide
+    the compiled file into the archive, the ABI changes and platform variety would
+    make it sure that the list of archives is either incomplete or wrong.
+
+    Packagers are of course welcome to compile the file and include it in their
+    architecture-specific and fixed-python packages.
+
+
+Stable version
+~~~~~~~~~~~~~~
+
+`Stable version`_ packages are available. the ``python3-devel`` package or similar
+is required.
+
+If you take the standalone package with all the deps, you only need to run ``make``
+to have a working poezio install.
+
+If you don’t, please scroll down to the dependencies.
+
+
+Development version
+~~~~~~~~~~~~~~~~~~~
+
+The stable versions of poezio are more like snapshots of states of
+development we deem acceptable. There is always an incentive to
+use the development version, like new features, bug fixes, and more
+support. Therefore, you might want to use the git version.
 
 .. code-block:: bash
 
     git clone git://git.poez.io/poezio
+    cd poezio
+    make
 
-In order for poezio to correctly work, you need the libs SleekXMPP and
-dnspython. You can install them by downloading it from the `SleekXMPP`_
-page and the `dnspython`_ page , but you'll need the development
-version of SleekXMPP. Alternatively, you can download poezio's sources
-including SleekXMPP and dnspython, that's the easier way.
-
-""""""""""""
 Dependencies
-""""""""""""
+~~~~~~~~~~~~
 
-.. note:: If your python3 version is too old because of debian (e.g. < 3.2), you
-    should install the python3-argparse package if it exists, or use
-    pip3/virtualenvs to install it.
+"""""""
+General
+"""""""
 
-If you want to install SleekXMPP and dnspython by yourself, use the following
-instructions. Else, go to the :ref:`next section <poezio-install-label>` (recommended).
+Poezio is a python3-only application, so you will first need that, preferably
+in the latest available version, down to 3.2.
+
+.. note:: Python 3.1 is not officially supported and tested, but should
+    work (if it doesn’t, we can fix it if the fix does not require ugly
+    modifications). In this case, you will want to install the
+    python3-argparse package if it exists, or use pip3/virtualenvs to
+    install it.
+
+You will first need python3-devel, or whatever your distribution named it, along
+with standard utilities such as make.
+
+Poezio depends on two libraries:
+
+- DNSPython_ (the python3 version, often called dnspython3)
+- SleekXMPP_
+
+If you do not want to install those libraries, you can skip directly to
+the :ref:`installation part <poezio-install-label>`
 
 
-Download SleekXMPP
+"""""""""
+DNSPython
+"""""""""
+
+It should be available right now in most software repositories, under the name
+``python3-dnspython`` or ``python3-dnspython3``. Any stable version should fit.
+
+For a manual install:
 
 .. code-block:: bash
 
-    git clone git://github.com/fritzy/SleekXMPP.git
-
-Make sure you're using the develop branch by typing
-
-.. code-block:: bash
-
-    cd SleekXMPP
-    git checkout develop
-
-Install SleekXMPP with
-
-.. code-block:: bash
-
+    wget -O dnspython.tar.gz http://www.dnspython.org/kits3/1.11.1/dnspython3-1.11.1.tar.gz
+    tar xvf dnspython.tar.gz
+    cd dnspython3-1.11.1
     python3 setup.py build
-    su -c "python3 setup.py install"
+    python3 setup.py install --user
 
-Install the dnspython3 package on your distribution or install it manually:
+""""""
+SleekXMPP
+""""""
 
-.. code-block:: bash
-
-    wget -O dnspython.tgz http://www.dnspython.org/kits3/1.10.0/dnspython3-1.10.0.tar.gz
-    tar xvf dnspython.tgz
-    cd dnspython3-1.10.0
-
-And do the same again:
+Poezio now depends on SleekXMPP 1.2. if your distribution does not provide it yet,
+you can install it this way:
 
 .. code-block:: bash
 
+    wget https://github.com/fritzy/SleekXMPP/archive/1.2.0.tar.gz
+    tar xvf 1.2.0.tar.gz
+    SleekXMPP-1.2.0
     python3 setup.py build
-    su -c "python3 setup.py install"
+    python3 setup.py install --user
+
 
 .. _poezio-install-label:
 
-"""""""""""""""""""
-poezio installation
-"""""""""""""""""""
+Installation
+~~~~~~~~~~~~
 
 .. note::
 
     The update.sh + launch.sh method is the recommended way of using and upgrading
-    poezio.
+    the devel version of poezio. Installing should only be done with stable versions.
 
-If you skipped the installation of the dependencies and you only want to test
-poezio without a system-wide install, do, in the *poezio* directory:
+
+If you skipped the installation of the dependencies and you only want to run
+poezio without a system-wide install, do, in the :file:`poezio` directory:
 
 .. code-block:: bash
 
@@ -106,14 +142,14 @@ If you have git installed, it will download and update locally the
 libraries for you. (and if you don’t have git installed, install it)
 
 
-If you don't want to install poezio but just test it (or keep a development
-version), do:
+To run poezio directly from the directory, do:
 
 .. code-block:: bash
 
     ./launch.sh
 
-To install poezio, do, as root (or sudo with ubuntu or whatever):
+
+If you really want to install it, run as root (or sudo in ubuntu or whatever):
 
 .. code-block:: bash
 
@@ -128,6 +164,7 @@ And then start it with:
 .. _Sekh’s overlay: https://github.com/sekh/sekh_overlay
 .. _stable sources: https://dev.louiz.org/project/poezio/download
 .. _SleekXMPP: https://github.com/fritzy/SleekXMPP/
-.. _dnspython: http://www.dnspython.org/
+.. _DNSPython: http://www.dnspython.org/
 .. _poezio: https://aur.archlinux.org/packages/poezio/
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
+.. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
