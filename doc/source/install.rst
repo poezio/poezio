@@ -1,8 +1,9 @@
 Installing poezio
 =================
 
-.. important:: Python 3.2 or better is highly recommended, as we do not
-    officially support python 3.1 (although we do try to keep things running).
+.. important:: Python 3.3 or better is highly recommended, as we do not
+    officially support python 3.1 (although we do try to keep things running),
+    and python 3.2 has some unfixable issues.
 
 poezio in the GNU/Linux distributions
 -------------------------------------
@@ -22,8 +23,8 @@ using one of these.
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
 
-Install poezio from the sources
--------------------------------
+Install from source
+-------------------
 
 .. note:: The ``make`` command is always required, because while we could provide
     the compiled file into the archive, the ABI changes and platform variety would
@@ -36,13 +37,8 @@ Install poezio from the sources
 Stable version
 ~~~~~~~~~~~~~~
 
-`Stable version`_ packages are available. the ``python3-devel`` package or similar
-is required.
-
-If you take the standalone package with all the deps, you only need to run ``make``
-to have a working poezio install.
-
-If you don’t, please scroll down to the dependencies.
+`Stable version`_ packages are available in standalone (included dependencies)
+and poezio-only packages (both with prebuilt html doc for convenience).
 
 
 Development version
@@ -57,7 +53,6 @@ support. Therefore, you might want to use the git version.
 
     git clone git://git.poez.io/poezio
     cd poezio
-    make
 
 Dependencies
 ~~~~~~~~~~~~
@@ -76,7 +71,9 @@ in the latest available version, down to 3.2.
     install it.
 
 You will first need python3-devel, or whatever your distribution named it, along
-with standard utilities such as make.
+with standard utilities such as make. Once you have them, you can run ``make``
+to build the only part of poezio that needs it. If you downloaded the standalone
+stable package, you are finished here and can skip to :ref:`running poezio <poezio-run-label>`.
 
 Poezio depends on two libraries:
 
@@ -104,9 +101,9 @@ For a manual install:
     python3 setup.py build
     python3 setup.py install --user
 
-""""""
+"""""""""
 SleekXMPP
-""""""
+"""""""""
 
 Poezio now depends on SleekXMPP 1.2. if your distribution does not provide it yet,
 you can install it this way:
@@ -142,20 +139,27 @@ If you have git installed, it will download and update locally the
 libraries for you. (and if you don’t have git installed, install it)
 
 
-To run poezio directly from the directory, do:
-
-.. code-block:: bash
-
-    ./launch.sh
-
-
 If you really want to install it, run as root (or sudo in ubuntu or whatever):
 
 .. code-block:: bash
 
     make install
 
-And then start it with:
+
+.. _poezio-run-label:
+
+Running
+~~~~~~~
+
+If you didn’t install poezio, you can run it from the source directory
+with:
+
+.. code-block:: bash
+
+    ./launch.sh
+
+
+If you did, it should be in he ``$PATH`` as ``poezio``, so run:
 
 .. code-block:: bash
 
