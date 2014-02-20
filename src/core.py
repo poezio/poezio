@@ -2284,7 +2284,10 @@ class Core(object):
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
                 tab.joined = False
-                self.command_join('"%s/%s"' %(tab.get_name(), tab.own_nick))
+                if tab.get_name() == domain:
+                    self.command_join('"@%s/%s"' %(tab.get_name(), tab.own_nick))
+                else:
+                    self.command_join('"%s/%s"' %(tab.get_name(), tab.own_nick))
 
     def completion_server_cycle(self, the_input):
         """Completion for /server_cycle"""
