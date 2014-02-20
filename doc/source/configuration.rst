@@ -33,66 +33,18 @@ These options have a sense when they are in the global section. Some of
 them can also be in an optional configuration section, see the next
 section of this documentation.
 
+The options here are separated thematically for convenience but they all
+go into the main config section.
+
+
+Security
+~~~~~~~~
+
+Options pertaining to security, such as :ref:`TLS encryption <security settings>`
+and certificate validation.
+
 .. glossary::
     :sorted:
-
-    add_space_after_completion
-
-        **Default value:** ``true``
-
-        Whether or not to add a space after a completion in the middle of the
-        input (not at the start of it)
-
-    after_completion
-
-        **Default value:** ``,``
-
-        What will be put after the name, when using autocompletion at the
-        beginning of the input. A space will always be added after that
-
-    alternative_nickname
-
-        **Default value:** ``[empty]``
-
-        If you want poezio to join the room with an alternative nickname when
-        your nickname is already in use in the room you wanted to join, put
-        a non-empty value. If you don’t, poezio won't join the room
-        This value will be added to your nickname to create the alternative nickname.
-        For example, if you set "\_", and wanted to use the nickname "john",
-        your alternative nickname will be "john\_".
-
-    autorejoin
-
-        **Default value:** ``false``
-
-        Set to true if you want to automatically rejoin the room when you're kicked.
-
-    autorejoin_delay
-
-        **Default value:** ``5``
-
-        Set to the number of seconds before reconnecting after getting kicked.
-        0, a negative value, or no value means you reconnect instantly.
-        This option only works if autorejoin is enabled.
-
-    auto_reconnect
-
-        **Default value:** ``false``
-
-        Auto-reconnects you when you get disconnected. Should not be necessary, so
-        the default is false.
-
-    beep_on
-
-        **Default value:** ``highlight private``
-
-        The terminal can beep on various event. Put the event you want in a list
-        (separated by spaces).
-
-        The events can be
-        - ``highlight`` (when you are highlighted in a MUC)
-        - ``private`` (when a new private message is received, from your contacts or someone from a MUC)
-        - ``message`` (any message from a MUC)
 
     ca_cert_path
 
@@ -119,24 +71,41 @@ section of this documentation.
         you know what you are doing, see the :ref:`ciphers` dedicated section
         for more details.
 
-    connection_check_interval
+    force_encryption
 
-        **Default value:** ``60``
+        **Default value:** ``true``
 
-        A ping is sent to the server every N seconds, N being the value of
-        that option.  Change this to a low value if you want to know quickly
-        when you are disconnected, and to a very high value if bandwidth
-        matters so much that you can’t afford 100 bytes/minute, or if you
-        don’t want to waste your battery by waking up the TCP connection too
-        often.  Disable this ping altogether by setting this value to 0.
+        If set to true, all connections will use TLS by default. Only turn this to
+        false if you cannot connect to your server, and do not care about your password
+        or the pricacy of your communications.
 
-    connection_timeout_delay
+    ignore_certificate
 
-        **Default value:** ``10``
+        **Default value:** ``false``
 
-        The timeout delay of the ping referenced above, 10 should really be fine, but
-        if your network is really unstable, it can be set higher or lower, depending
-        of your preference.
+        Skip certificate validation on connection when ``true``. Useful when you are in
+        anonymous mode and changing servers often. Dangerous in other cases, from a
+        security perspective.
+
+
+
+Account
+~~~~~~~
+
+Options related to account configuration, nickname…
+
+.. glossary::
+    :sorted:
+
+    jid
+
+        **Default value:** ``[empty]``
+
+        Jabber identifier. Specify it only if you want to connect using an existing
+        account on a server. This is optional and useful only for some features,
+        like room administration or nickname registration.
+        The :term:`server` option will be ignored if you specify a JID (Jabber id)
+        It should be in the form nickname@server.tld
 
     custom_host
 
@@ -161,48 +130,141 @@ section of this documentation.
         the nick you will use when joining a room with no associated nick
         If this is empty, the $USER environnement variable will be used
 
-    display_gaming_notifications
+    server
+
+        **Default value:** ``anon.jeproteste.info``
+
+        The server to use for anonymous authentication;
+        make sure it supports anonymous authentification.
+
+        Note that this option doesn’t do anything at all if you’re using your own JID.
+
+    alternative_nickname
+
+        **Default value:** ``[empty]``
+
+        If you want poezio to join the room with an alternative nickname when
+        your nickname is already in use in the room you wanted to join, put
+        a non-empty value. If you don’t, poezio won't join the room
+        This value will be added to your nickname to create the alternative nickname.
+        For example, if you set "_", and wanted to use the nickname "john",
+        your alternative nickname will be "john\_".
+
+
+    resource
+
+        **Default value:** ``[empty]``
+
+        The resource you will use. If it's empty, your resource will be chosen
+        (most likely randomly) by the server. It is not recommended to use a
+        resource that is easy to guess, because it can lead to presence leak.
+
+    rooms
+
+        **Default value:** ``[empty]``
+
+        The rooms you will join automatically on startup, with associated
+        nickname or not.
+
+        Format : ``room@server.tld/nickname:room2@server.tld/nickname2``.
+
+        The :term:`default_nick` option will be used if "/nickname" is not specified.
+
+    password
+
+        **Default value:** ``[empty]``
+
+        A password is needed only if you specified a :term:`jid`. It will be ignored otherwise
+        If you leave this empty, the password will be asked at each startup, which is recommended.
+
+    status
+
+        **Default value:** ``[empty]``
+
+        The status (show) poezio will send when connecting. It can be available,
+        ``dnd``, ``chat``, ``xa`` or ``away``.
+
+        Nothing or an invalid value will mean available.
+
+    status_message
+
+        **Default value:** ``[empty]``
+
+        The status message poezio will send when connecting.
+
+
+
+
+Connectivity
+
+~~~~~~~~~~~~
+
+Options about general or chatroom connectivity. Reconnecting does not work very
+well, but you will at least want to know when you get disconnected.
+
+
+.. glossary::
+    :sorted:
+
+    auto_reconnect
 
         **Default value:** ``false``
 
-        If set to true, notifications about the games your are playing
-        will be displayed in the info buffer as 'Gaming' messages.
+        Auto-reconnects you when you get disconnected. Should not be necessary, so
+        the default is false.
 
-    display_tune_notifications
+    connection_check_interval
 
-        **Default value:** ``false``
+        **Default value:** ``60``
 
-        If set to true, notifications about the music your contacts listen to
-        will be displayed in the info buffer as 'Tune' messages.
+        A ping is sent to the server every N seconds, N being the value of
+        that option.  Change this to a low value if you want to know quickly
+        when you are disconnected, and to a very high value if bandwidth
+        matters so much that you can’t afford 100 bytes/minute, or if you
+        don’t want to waste your battery by waking up the TCP connection too
+        often.  Disable this ping altogether by setting this value to 0.
 
-    force_encryption
+    connection_timeout_delay
 
-        **Default value:** ``true``
+        **Default value:** ``10``
 
-        If set to true, all connections will use TLS by default. Only turn this to
-        false if you cannot connect to your server, and do not care about your password
-        or the pricacy of your communications.
+        The timeout delay of the ping referenced above, 10 should really be fine, but
+        if your network is really unstable, it can be set higher or lower, depending
+        of your preference.
 
-    display_mood_notifications
+    whitespace_interval
 
-        **Default value:** ``false``
+        **Default value:** ``300``
 
-        If set to true, notifications about the mood of your contacts
-        will be displayed in the info buffer as 'Mood' messages.
+        Interval of the whitespace keepalive sending to the server.
+        ``300`` should be fine, but change it if some services have a stricter policy
+        on client inactivity.
 
-    display_activity_notifications
-
-        **Default value:** ``false``
-
-        If set to true, notifications about the current activity of your contacts
-        will be displayed in the info buffer as 'Activity' messages.
-
-    display_user_color_in_join_part
+    autorejoin
 
         **Default value:** ``false``
 
-        If set to true, the color of the nick will be used in MUCs information
-        messages, instead of the default color from the theme.
+        Set to true if you want to automatically rejoin the room when you're kicked.
+
+    autorejoin_delay
+
+        **Default value:** ``5``
+
+        Set to the number of seconds before reconnecting after getting kicked.
+        0, a negative value, or no value means you reconnect instantly.
+        This option only works if autorejoin is enabled.
+
+
+XMPP features
+~~~~~~~~~~~~~
+
+These options enable, disable, or allow to configure the behavior
+of some non-essential XMPP features. There is a dedicated page
+to understand what is :ref:`carbons <carbons-details>` or
+:ref:`user activity/gaming/mood/tune <pep-details>`.
+
+.. glossary::
+    :sorted:
 
     enable_carbons
 
@@ -242,12 +304,55 @@ section of this documentation.
         If this is set to ``false``, you will no longer be subscribed to tune events,
         and the :term:`display_tune_notifications` option will be ignored.
 
-    enable_vertical_tab_list
+    use_bookmark_method
+
+        **Default value:** ``[empty]``
+
+        The method that poezio will use to store your bookmarks online.
+        Possible values are: ``privatexml``, ``pep``.
+        You should not have to edit this in a normal use case.
+
+    use_pep_nick
+
+        **Default value:** ``true``
+
+        Use the nickname broadcasted by the user if set to ``true``, and if none
+        has already been set manually.
+
+    use_remote_bookmarks
+
+        **Default value:** ``true``
+
+        Use this option to force the use of local bookmarks if needed.
+        Anything but "false" will be counted as true.
+
+    display_gaming_notifications
 
         **Default value:** ``false``
 
-        If ``true``, a vertical list of tabs, with their name, is displayed on the left of
-        the screen.
+        If set to true, notifications about the games your are playing
+        will be displayed in the info buffer as 'Gaming' messages.
+
+    display_tune_notifications
+
+        **Default value:** ``false``
+
+        If set to true, notifications about the music your contacts listen to
+        will be displayed in the info buffer as 'Tune' messages.
+
+    display_mood_notifications
+
+        **Default value:** ``false``
+
+        If set to true, notifications about the mood of your contacts
+        will be displayed in the info buffer as 'Mood' messages.
+
+    display_activity_notifications
+
+        **Default value:** ``false``
+
+        If set to true, notifications about the current activity of your contacts
+        will be displayed in the info buffer as 'Activity' messages.
 
     enable_xhtml_im
 
@@ -257,13 +362,102 @@ section of this documentation.
         XHTML and CSS formating. We can use this to make colored text for example.
         Set to ``true`` if you want to see colored (and otherwise formatted) messages.
 
-    exec_remote
+    send_chat_states
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        If this is set to ``true``, poezio will try to send the commands to a FIFO
-        instead of executing them locally. This is to be used in conjunction with
-        ssh and the daemon.py file. See the :term:`/link` documentation for details.
+        if ``true``, chat states will be sent to the people you are talking to.
+        Chat states are, for example, messages informing that you are composing
+        a message or that you closed the tab, etc.
+
+        Set to ``false`` if you don't want people to know these information
+        Note that you won’t receive the chat states of your contacts
+        if you don't send yours.
+
+
+    send_os_info
+
+        **Default value:** ``true``
+
+        If ``true``, information about the Operation System you're using
+        will be sent when requested by anyone
+        Set to ``false`` if you don't want people to know these informations.
+
+        Note that this information will not be sent if :term:`send_poezio_info` is False
+
+    send_poezio_info
+
+        **Default value:** ``true``
+
+        if true, information about the software (name and version)
+        will be sent if requested by anyone
+        Set to false if you don't want people to know these information
+
+    send_time
+
+        **Default value:** ``true``
+
+        If ``true``, your current time will be sent if asked
+        Set to ``false`` if you don't want people to know that information
+
+Visual interface
+~~~~~~~~~~~~~~~~
+
+All these options will change how poezio looks, either by removing
+parts of the interface, adding them, changing the ordering of stuff,
+or the way messages are displayed.
+
+
+.. glossary::
+    :sorted:
+
+    use_tab_nicks
+
+        **Default value:** ``true``
+
+        The tabs have a name, and a nick, which is, for a contact, its name in the
+        roster, or for a private conversation, the nickname in the MUC. Set this to
+        ``true`` if you want to have them shown instead of the jid of the contact.
+
+    theme
+
+        **Default value:** ``[empty]``
+
+        The name of the theme file (without the .py extension) that will be used.
+        The file should be located in the :term:`themes_dir` directory.
+
+        If the file is not found (or no filename is specified) the default
+        theme will be used instead
+
+    themes_dir
+
+        **Default value:** ``[empty]``
+
+        If :term:`themes_dir` is not set, themes will searched for in
+        ``$XDG_DATA_HOME/poezio/themes``, i.e. in ``~/.local/share/poezio/themes/``.
+        So you should specify the directory you want to use instead.
+
+        This directory will be created at startup if it doesn't exist
+
+    user_list_sort
+
+        **Default value:** ``desc``
+
+        If set to ``desc``, the MUC users will be displayed from top to bottom in the list,
+        if set to ``asc``, they will be displayed from bottom to top.
+
+    vertical_tab_list_size
+
+        **Default value:** ``20``
+
+        Size of the vertical tab list.
+
+    vertical_tab_list_sort
+
+        **Default value:** ``desc``
+
+        If set to ``desc``, the tabs will be displayed from top to bottom in the list,
+        if set to ``asc``, they will be displayed from bottom to top.
 
     filter_info_messages
 
@@ -318,14 +512,6 @@ section of this documentation.
         a list of words (separated by a colon (:)) that will be
         highlighted if said by someone on a room
 
-    ignore_certificate
-
-        **Default value:** ``false``
-
-        Skip certificate validation on connection when ``true``. Useful when you are in
-        anonymous mode and changing servers often. Dangerous in other cases, from a
-        security perspective.
-
     information_buffer_popup_on
 
         **Default value:** ``error roster warning help info``
@@ -338,68 +524,19 @@ section of this documentation.
         A list of message types that should make the information buffer grow
         Possible values: ``error``, ``roster``, ``warning``, ``info``, ``help``
 
-    jid
+    display_user_color_in_join_part
 
-        **Default value:** ``[empty]``
+        **Default value:** ``false``
 
-        Jabber identifiant. Specify it only if you want to connect using an existing
-        account on a server. This is optional and useful only for some features,
-        like room administration or nickname registration.
-        The :term:`server` option will be ignored if you specify a JID (Jabber id)
-        It should be in the form nickname@server.tld
+        If set to true, the color of the nick will be used in MUCs information
+        messages, instead of the default color from the theme.
 
-    lang
+    enable_vertical_tab_list
 
-        **Default value:** ``en``
+        **Default value:** ``false``
 
-        The lang some automated entities will use when replying to you.
-
-    lazy_resize
-
-        **Default value:** ``true``
-
-        Defines if all tabs are resized at the same time (if set to ``false``)
-        or if they are really resized only when needed (if set to ``true``).
-        ``true`` should be the most comfortable value
-
-    load_log
-
-        **Default value:** ``10``
-
-        The number of line to preload in a chat buffer when it opens. The lines are
-        loaded from the log files.
-        ``0`` or a negative value here disable that option.
-
-    log_dir
-
-        **Default value:** ``[empty]``
-
-        If :term:`log_dir` is not set, logs will be saved in ``$XDG_DATA_HOME/poezio/logs``,
-        i.e. in ``~/.local/share/poezio/logs/``. So, you should specify the directory
-        you want to use instead. This directory will be created if it doesn't exist
-
-    log_errors
-
-        **Default value:** ``true``
-
-        Logs all the tracebacks or poezio/sleekxmpp in :term:`log_dir`/errors.log by
-        default. ``false`` disables this option.
-
-    max_lines_in_memory
-
-        **Default value:** ``2048``
-
-        Configure the number of maximum lines (for each tab) that
-        can be kept in memory. If poezio consumes too much memory, lower these
-        values
-
-    max_messages_in_memory
-
-        **Default value:** ``2048``
-
-        Configure the number of maximum messages (for each tab) that
-        can be kept in memory. If poezio consumes too much memory, lower these
-        values
+        If ``true``, a vertical list of tabs, with their name, is displayed on the left of
+        the screen.
 
     max_nick_length
 
@@ -408,88 +545,6 @@ section of this documentation.
         The maximum length of the nickname that will be displayed in the
         conversation window. Nicks that are too long will be truncated and have
         a ``…`` appened to them.
-
-    muc_history_length
-
-        **Default value:** ``50``
-
-        Limit the number of messages you want to receive when the
-        multiuserchat rooms send you recent history
-
-        ``0``: You won't receive any
-
-        ``-1``: You will receive the maximum
-
-        ``n``: You will receive at most n messages
-
-        Note that if you set a huge number (like the default value), you
-        may not receive that much messages. The server has its own
-        maximum too.
-
-    password
-
-        **Default value:** ``[empty]``
-
-        A password is needed only if you specified a :term:`jid`. It will be ignored otherwise
-        If you leave this empty, the password will be asked at each startup, which is recommended.
-
-    plugins_autoload
-
-        **Default value:** ``[empty]``
-
-        Colon-separated list of plugins to load on startup.
-
-    plugins_conf_dir
-
-        **Default value:** ``[empty]``
-
-        If plugins_conf_dir is not set, plugin configs will be loaded from
-        ``$XDG_CONFIG_HOME/poezio/plugins``.
-        You can specify another directory to use, it will be created if it
-        does not exist.
-
-    plugins_dir
-
-        **Default value:** ``[empty]``
-
-        If plugins_dir is not set, plugins will be loaded from
-        ``$XDG_DATA_HOME/poezio/plugins``.
-        You can specify another directory to use. It will be created if it
-        does not exist.
-
-    popup_time
-
-        **Default value:** ``4``
-
-        The time the message will be visible in the information buffer when it
-        pops up.
-        If the message takes more than one line, the popup will stay visible
-        two more second per additional lines.
-
-    remote_fifo_path
-
-        **Default value:** ``./poezio.fifo``
-
-        The path of the FIFO used to send the commands (see the :term:`exec_remote` option).
-
-    resource
-
-        **Default value:** ``[empty]``
-
-        The resource you will use. If it's empty, your resource will be chosen
-        (most likely randomly) by the server. It is not recommended to use a
-        resource that is easy to guess, because it can lead to presence leak.
-
-    rooms
-
-        **Default value:** ``[empty]``
-
-        The rooms you will join automatically on startup, with associated
-        nickname or not.
-
-        Format : ``room@server.tld/nickname:room2@server.tld/nickname2``.
-
-        The :term:`default_nick` option will be used if "/nickname" is not specified.
 
     roster_group_sort
 
@@ -532,73 +587,6 @@ section of this documentation.
         Those methods can be arranged however you like, and they have to be
         separated by colons (":"). If there are more than 3 or 4 chained
         sorting methods, your sorting is most likely inefficient.
-
-    save_status
-
-        **Default value:** ``true``
-
-        Save the status automatically in the :term:`status` and :term:`status_message` options.
-
-    send_chat_states
-
-        **Default value:** ``true``
-
-        if ``true``, chat states will be sent to the people you are talking to.
-        Chat states are, for example, messages informing that you are composing
-        a message or that you closed the tab, etc.
-
-        Set to ``false`` if you don't want people to know these information
-        Note that you won’t receive the chat states of your contacts
-        if you don't send yours.
-
-    send_initial_presence
-
-        **Default value:** ``true``
-
-        Send initial presence (normal behaviour). If ``false``, you will not send nor
-        receive any presence that is not directed (through :term:`/presence`) or sent by a
-        MUC.
-
-    send_os_info
-
-        **Default value:** ``true``
-
-        If ``true``, information about the Operation System you're using
-        will be sent when requested by anyone
-        Set to ``false`` if you don't want people to know these informations.
-
-        Note that this information will not be sent if :term:`send_poezio_info` is False
-
-    send_poezio_info
-
-        **Default value:** ``true``
-
-        if true, information about the software (name and version)
-        will be sent if requested by anyone
-        Set to false if you don't want people to know these information
-
-    send_time
-
-        **Default value:** ``true``
-
-        If ``true``, your current time will be sent if asked
-        Set to ``false`` if you don't want people to know that information
-
-    separate_history
-
-        **Default value:** ``false``
-
-        If true, the history of inputs of the same nature won’t be shared
-        between tabs (as in weechat).
-
-    server
-
-        **Default value:** ``anon.jeproteste.info``
-
-        The server to use for anonymous authentication;
-        make sure it supports anonymous authentification.
-
-        Note that this option doesn’t do anything at all if you’re using your own JID.
 
     show_inactive_tabs
 
@@ -660,105 +648,56 @@ section of this documentation.
 
         Whether or not to display a timestamp before each message.
 
-    status
+    popup_time
 
-        **Default value:** ``[empty]``
+        **Default value:** ``4``
 
-        The status (show) poezio will send when connecting. It can be available,
-        ``dnd``, ``chat``, ``xa`` or ``away``.
+        The time the message will be visible in the information buffer when it
+        pops up.
+        If the message takes more than one line, the popup will stay visible
+        two more second per additional lines.
 
-        Nothing or an invalid value will mean available.
+User Interaction
+~~~~~~~~~~~~~~~~
 
-    status_message
+Options that change the behavior of poezio in a non-visual manner.
 
-        **Default value:** ``[empty]``
+.. glossary::
+    :sorted:
 
-        The status message poezio will send when connecting.
-
-    use_bookmark_method
-
-        **Default value:** ``[empty]``
-
-        The method that poezio will use to store your bookmarks online.
-        Possible values are: ``privatexml``, ``pep``.
-        You should not have to edit this in a normal use case.
-
-    use_log
+    add_space_after_completion
 
         **Default value:** ``true``
 
-        Set to ``false`` if you don’t want to save logs of all the messages
-        in files.
+        Whether or not to add a space after a completion in the middle of the
+        input (not at the start of it)
 
-    use_pep_nick
+    after_completion
 
-        **Default value:** ``true``
+        **Default value:** ``,``
 
-        Use the nickname broadcasted by the user if set to ``true``, and if none
-        has already been set manually.
+        What will be put after the name, when using autocompletion at the
+        beginning of the input. A space will always be added after that
 
-    use_remote_bookmarks
 
-        **Default value:** ``true``
+    beep_on
 
-        Use this option to force the use of local bookmarks if needed.
-        Anything but "false" will be counted as true.
+        **Default value:** ``highlight private``
 
-    use_tab_nicks
+        The terminal can beep on various event. Put the event you want in a list
+        (separated by spaces).
 
-        **Default value:** ``true``
+        The events can be
+        - ``highlight`` (when you are highlighted in a MUC)
+        - ``private`` (when a new private message is received, from your contacts or someone from a MUC)
+        - ``message`` (any message from a MUC)
 
-        The tabs have a name, and a nick, which is, for a contact, its name in the
-        roster, or for a private conversation, the nickname in the MUC. Set this to
-        ``true`` if you want to have them shown instead of the jid of the contact.
+    separate_history
 
-    theme
+        **Default value:** ``false``
 
-        **Default value:** ``[empty]``
-
-        The name of the theme file (without the .py extension) that will be used.
-        The file should be located in the :term:`themes_dir` directory.
-
-        If the file is not found (or no filename is specified) the default
-        theme will be used instead
-
-    themes_dir
-
-        **Default value:** ``[empty]``
-
-        If :term:`themes_dir` is not set, themes will searched for in
-        ``$XDG_DATA_HOME/poezio/themes``, i.e. in ``~/.local/share/poezio/themes/``.
-        So you should specify the directory you want to use instead.
-
-        This directory will be created at startup if it doesn't exist
-
-    user_list_sort
-
-        **Default value:** ``desc``
-
-        If set to ``desc``, the MUC users will be displayed from top to bottom in the list,
-        if set to ``asc``, they will be displayed from bottom to top.
-
-    vertical_tab_list_size
-
-        **Default value:** ``20``
-
-        Size of the vertical tab list.
-
-    vertical_tab_list_sort
-
-        **Default value:** ``desc``
-
-        If set to ``desc``, the tabs will be displayed from top to bottom in the list,
-        if set to ``asc``, they will be displayed from bottom to top.
-
-    whitespace_interval
-
-        **Default value:** ``300``
-
-        Interval of the whitespace keepalive sending to the server.
-        ``300`` should be fine, but change it if some services have a stricter policy
-        on client inactivity.
+        If true, the history of inputs of the same nature won’t be shared
+        between tabs (as in weechat).
 
     words
 
@@ -768,6 +707,164 @@ section of this documentation.
         through recent words completion. They must be separated bu a colon (:). That
         completion will work in chatrooms, private conversations, and direct
         conversations.
+
+Logging
+~~~~~~~
+
+Options related to logging.
+
+.. glossary::
+    :sorted:
+
+    load_log
+
+        **Default value:** ``10``
+
+        The number of line to preload in a chat buffer when it opens. The lines are
+        loaded from the log files.
+        ``0`` or a negative value here disable that option.
+
+    log_dir
+
+        **Default value:** ``[empty]``
+
+        If :term:`log_dir` is not set, logs will be saved in ``$XDG_DATA_HOME/poezio/logs``,
+        i.e. in ``~/.local/share/poezio/logs/``. So, you should specify the directory
+        you want to use instead. This directory will be created if it doesn't exist.
+
+    log_errors
+
+        **Default value:** ``true``
+
+        Logs all the tracebacks and erors of poezio/sleekxmpp in
+        :term:`log_dir`/errors.log by default. ``false`` disables this option.
+
+    use_log
+
+        **Default value:** ``true``
+
+        Set to ``false`` if you don’t want to save logs of all the messages
+        in files.
+
+Plugins
+~~~~~~~
+
+This sections references the configuration of the plugin system; for
+more details, go to the :ref:`dedicated page<plugins-doc>`.
+
+.. glossary::
+    :sorted:
+
+    plugins_autoload
+
+        **Default value:** ``[empty]``
+
+        Colon-separated list of plugins to load on startup.
+
+    plugins_conf_dir
+
+        **Default value:** ``[empty]``
+
+        If plugins_conf_dir is not set, plugin configs will be loaded from
+        :file:`$XDG_CONFIG_HOME/poezio/plugins`.
+        You can specify another directory to use, it will be created if it
+        does not exist.
+
+    plugins_dir
+
+        **Default value:** ``[empty]``
+
+        If plugins_dir is not set, plugins will be loaded from
+        ``$XDG_DATA_HOME/poezio/plugins``.
+        You can specify another directory to use. It will be created if it
+        does not exist.
+
+
+
+Other
+~~~~~
+
+.. glossary::
+    :sorted:
+
+    exec_remote
+
+        **Default value:** ``false``
+
+        If this is set to ``true``, poezio will try to send the commands to a FIFO
+        instead of executing them locally. This is to be used in conjunction with
+        ssh and the daemon.py file. See the :term:`/link` documentation for details.
+
+
+    lang
+
+        **Default value:** ``en``
+
+        The lang some automated entities will use when replying to you.
+
+    muc_history_length
+
+        **Default value:** ``50``
+
+        Limit the number of messages you want to receive when the
+        multiuserchat rooms send you recent history
+
+        ``0``: You won't receive any
+
+        ``-1``: You will receive the maximum
+
+        ``n``: You will receive at most n messages
+
+        Note that if you set a huge number (like the default value), you
+        may not receive that much messages. The server has its own
+        maximum too.
+
+    remote_fifo_path
+
+        **Default value:** ``./poezio.fifo``
+
+        The path of the FIFO used to send the commands (see the :term:`exec_remote` option).
+
+    save_status
+
+        **Default value:** ``true``
+
+        Save the status automatically in the :term:`status` and :term:`status_message` options.
+
+    send_initial_presence
+
+        **Default value:** ``true``
+
+        Send initial presence (normal behaviour). If ``false``, you will not send nor
+        receive any presence that is not directed (through :term:`/presence`) or sent by a
+        MUC.
+
+    lazy_resize
+
+        **Default value:** ``true``
+
+        Defines if all tabs are resized at the same time (if set to ``false``)
+        or if they are really resized only when needed (if set to ``true``).
+        ``true`` should be the most comfortable value
+
+    max_lines_in_memory
+
+        **Default value:** ``2048``
+
+        Configure the number of maximum lines (for each tab) that
+        can be kept in memory. If poezio consumes too much memory, lower these
+        values
+
+    max_messages_in_memory
+
+        **Default value:** ``2048``
+
+        Configure the number of maximum messages (for each tab) that
+        can be kept in memory. If poezio consumes too much memory, lower these
+        values
+
+
+
 
 
 Optional section options

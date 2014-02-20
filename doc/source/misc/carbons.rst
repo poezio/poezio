@@ -1,3 +1,5 @@
+.. _carbons-details:
+
 Message Carbons
 ===============
 

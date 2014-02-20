@@ -1,3 +1,5 @@
+.. _pep-details:
+
 Personal Events
 ===============
 
