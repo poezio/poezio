@@ -16,14 +16,16 @@ import re
 import curses
 from sleekxmpp.xmlstream import ET
 
-import xml.sax.saxutils
-
-from sys import version_info
+from io import BytesIO
+from xml import sax
+from xml.sax import saxutils
 
 from config import config
 import logging
 
 digits = '0123456789' # never trust the modules
+
+XHTML_NS = 'http://www.w3.org/1999/xhtml'
 
 # HTML named colors
 colors = {
@@ -176,8 +178,6 @@ colors = {
     'yellowgreen': 149
 }
 
-log = logging.getLogger(__name__)
-
 whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
@@ -225,144 +225,177 @@ def ncurses_color_to_html(color):
         r = g = b = color / 24 * 6
     return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
 
+def parse_css(css):
+    def get_color(value):
+        if value[0] == '#':
+            value = value[1:]
+            length = len(value)
+            if length != 3 and length != 6:
+                return -1
+            value = int(value, 16)
+            if length == 6:
+                r = int(value >> 16)
+                g = int((value >> 8) & 0xff)
+                b = int(value & 0xff)
+                if r == g == b:
+                    return 232 + int(r/10.6251)
+                div = 42.51
+            else:
+                r = int(value >> 8)
+                g = int((value >> 4) & 0xf)
+                b = int(value & 0xf)
+                if r == g == b:
+                    return 232 + int(1.54*r)
+                div = 2.51
+            return 6*6*int(r/div) + 6*int(g/div) + int(b/div) + 16
+        if value in colors:
+            return colors[value]
+        return -1
+    shell = ''
+    rules = css.split(';')
+    for rule in rules:
+        if ':' not in rule:
+            continue
+        key, value = rule.split(':', 1)
+        key = key.strip()
+        value = value.strip()
+        if key == 'background-color':
+            pass#shell += '\x191'
+        elif key == 'color':
+            color = get_color(value)
+            if color != -1:
+                shell += '\x19%d}' % color
+        elif key == 'font-style':
+            shell += '\x19i'
+        elif key == 'font-weight':
+            shell += '\x19b'
+        elif key == 'margin-left':
+            shell += '    '
+        elif key == 'text-align':
+            pass
+        elif key == 'text-decoration':
+            if value == 'underline':
+                shell += '\x19u'
+            elif value == 'blink':
+                shell += '\x19a'
+    return shell
+
+def trim(string):
+    return re.sub(whitespace_re, ' ', string)
+
+class XHTMLHandler(sax.ContentHandler):
+    def __init__(self):
+        self.builder = []
+        self.formatting = []
+        self.attrs = []
+        self.list_state = []
+        self.is_pre = False
+
+    @property
+    def result(self):
+        return ''.join(self.builder).strip()
+
+    def append_formatting(self, formatting):
+        self.formatting.append(formatting)
+        self.builder.append(formatting)
+
+    def pop_formatting(self):
+        self.formatting.pop()
+        self.builder.append('\x19o' + ''.join(self.formatting))
+
+    def characters(self, characters):
+        self.builder.append(characters if self.is_pre else trim(characters))
+
+    def startElementNS(self, name, _, attrs):
+        if name[0] != XHTML_NS:
+            return
+
+        builder = self.builder
+        attrs = {name: value for ((ns, name), value) in attrs.items() if ns is None}
+        self.attrs.append(attrs)
+
+        if 'style' in attrs:
+            style = parse_css(attrs['style'])
+            self.append_formatting(style)
+
+        name = name[1]
+        if name == 'a':
+            self.append_formatting('\x19u')
+        elif name == 'blockquote':
+            builder.append('“')
+        elif name == 'br':
+            builder.append('\n')
+        elif name == 'cite':
+            self.append_formatting('\x19u')
+        elif name == 'em':
+            self.append_formatting('\x19i')
+        elif name == 'img':
+            builder.append(trim(attrs['src']))
+            if 'alt' in attrs:
+                builder.append(' (%s)' % trim(attrs['alt']))
+        elif name == 'ul':
+            self.list_state.append('ul')
+        elif name == 'ol':
+            self.list_state.append(1)
+        elif name == 'li':
+            try:
+                state = self.list_state[-1]
+            except IndexError:
+                state = 'ul'
+            if state == 'ul':
+                builder.append('\n• ')
+            else:
+                builder.append('\n%d) ' % state)
+                state += 1
+                self.list_state[-1] = state
+        elif name == 'p':
+            builder.append('\n')
+        elif name == 'pre':
+            builder.append('\n')
+            self.is_pre = True
+        elif name == 'strong':
+            self.append_formatting('\x19b')
+
+    def endElementNS(self, name, _):
+        if name[0] != XHTML_NS:
+            return
+
+        builder = self.builder
+        attrs = self.attrs.pop()
+        name = name[1]
+
+        if name == 'a':
+            self.pop_formatting()
+            if 'href' in attrs:
+                builder.append(' (%s)' % trim(attrs['href']))
+        elif name == 'blockquote':
+            builder.append('”')
+        elif name in ('cite', 'em', 'strong'):
+            self.pop_formatting()
+        elif name in ('ol', 'p', 'ul'):
+            builder.append('\n')
+        elif name == 'pre':
+            builder.append('\n')
+            self.is_pre = False
+
+        if 'style' in attrs:
+            self.pop_formatting()
+
+        if 'title' in attrs:
+            builder.append(' [' + attrs['title'] + ']')
+
 def xhtml_to_poezio_colors(xml):
     if isinstance(xml, str):
-        try:
-            xml = ET.fromstring(xml)
-        except:
-            log.error("Error decoding XML: [%s]", repr(xml), exc_info=True)
-            return ""
-    def parse_css(css):
-        def get_color(value):
-            if value[0] == '#':
-                value = value[1:]
-                length = len(value)
-                if length != 3 and length != 6:
-                    return -1
-                value = int(value, 16)
-                if length == 6:
-                    r = int(value >> 16)
-                    g = int((value >> 8) & 0xff)
-                    b = int(value & 0xff)
-                    if r == g == b:
-                        return 232 + int(r/10.6251)
-                    div = 42.51
-                else:
-                    r = int(value >> 8)
-                    g = int((value >> 4) & 0xf)
-                    b = int(value & 0xf)
-                    if r == g == b:
-                        return 232 + int(1.54*r)
-                    div = 2.51
-                return 6*6*int(r/div) + 6*int(g/div) + int(b/div) + 16
-            if value in colors:
-                return colors[value]
-            return -1
-        shell = ''
-        rules = css.split(';')
-        for rule in rules:
-            if ':' not in rule:
-                continue
-            key, value = rule.split(':', 1)
-            key = key.strip()
-            value = value.strip()
-            if key == 'background-color':
-                pass#shell += '\x191'
-            elif key == 'color':
-                color = get_color(value)
-                if color != -1:
-                    shell += '\x19%d}' % color
-            elif key == 'font-style':
-                shell += '\x19i'
-            elif key == 'font-weight':
-                shell += '\x19b'
-            elif key == 'margin-left':
-                shell += '    '
-            elif key == 'text-align':
-                pass
-            elif key == 'text-decoration':
-                if value == 'underline':
-                    shell += '\x19u'
-                elif value == 'blink':
-                    shell += '\x19a'
-        return shell
+        xml = xml.encode('utf8')
+    elif not isinstance(xml, bytes):
+        xml = ET.tostring(xml)
 
-    def trim(string):
-        return re.sub(whitespace_re, ' ', string)
-
-    builder = []
-
-    if version_info[1] < 2: #deprecated
-        elems = xml.getiterator()
-    else:
-        elems = xml.iter()
-
-    for elem in elems:
-        if elem.tag == '{http://www.w3.org/1999/xhtml}a':
-            if 'href' in elem.attrib and elem.attrib['href'] != elem.text:
-                builder.append('\x19u%s\x19o (%s)' % (trim(elem.attrib['href']), trim(elem.text if elem.text else "")))
-            else:
-                builder.append('\x19u' + (elem.text if elem.text else "") + '\x19o')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
-            builder.append('“')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}body':
-            pass
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}br':
-            builder.append('\n')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
-            builder.append('\x19u')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
-            builder.append('\x19i')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}img' and 'src' in elem.attrib:
-            if 'alt' in elem.attrib:
-                builder.append('%s (%s)' % (trim(elem.attrib['src']), trim(elem.attrib['alt'])))
-            else:
-                builder.append(elem.attrib['src'])
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}li':
-            pass
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}ol':
-            pass
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}p':
-            pass
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}span':
-            pass
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}strong':
-            builder.append('\x19b')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}ul':
-            pass
-
-        if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
-                                   and elem.tag != '{http://www.w3.org/1999/xhtml}em'
-                                   and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
-            builder.append(parse_css(elem.attrib['style']))
-
-        if (elem.text and elem.tag != '{http://www.w3.org/1999/xhtml}a'
-                      and elem.tag != '{http://www.w3.org/1999/xhtml}br'
-                      and elem.tag != '{http://www.w3.org/1999/xhtml}img'):
-            builder.append(trim(elem.text))
-
-        if ('style' in elem.attrib and elem.tag != '{http://www.w3.org/1999/xhtml}br'
-                                   and elem.tag != '{http://www.w3.org/1999/xhtml}em'
-                                   and elem.tag != '{http://www.w3.org/1999/xhtml}strong'):
-            builder.append('\x19o')
-
-        if elem.tag == '{http://www.w3.org/1999/xhtml}blockquote':
-            builder.append('”')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}cite':
-            builder.append('\x19o')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}em':
-            builder.append('\x19o')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}strong' or elem.tag == '{http://www.w3.org/1999/xhtml}b':
-            builder.append('\x19o')
-        elif elem.tag == '{http://www.w3.org/1999/xhtml}u':
-            builder.append('\x19o')
-
-        if 'title' in elem.attrib:
-            builder.append(' [' + elem.attrib['title'] + ']')
-
-        if elem.tail:
-            builder.append(trim(elem.tail))
-    return ''.join(builder)
+    handler = XHTMLHandler()
+    parser = sax.make_parser()
+    parser.setFeature(sax.handler.feature_namespaces, True)
+    parser.setContentHandler(handler)
+    parser.parse(BytesIO(xml))
+    return handler.result
 
 def clean_text(s):
     """
@@ -441,7 +474,7 @@ def poezio_colors_to_html(string):
             if current_attrs and not tag_open:
                 build.append('<span style="%s">' % format_inline_css(current_attrs))
                 tag_open = True
-            build.append(xml.sax.saxutils.escape(string[:next_attr_char]))
+            build.append(saxutils.escape(string[:next_attr_char]))
 
         if attr_char == 'o':
             if tag_open:
@@ -468,7 +501,7 @@ def poezio_colors_to_html(string):
     if current_attrs and not tag_open and string:
         build.append('<span style="%s">' % format_inline_css(current_attrs))
         tag_open = True
-    build.append(xml.sax.saxutils.escape(string))
+    build.append(saxutils.escape(string))
     if tag_open:
         build.append('</span>')
     build.append("</p></body>")
