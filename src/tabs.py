@@ -1636,7 +1636,7 @@ class MucTab(ChatTab):
         if reason is not None and reason.text:
             kick_msg += _('\x19%(info_col)s} Reason: \x196}%(reason)s\x19%(info_col)s}') % {
                     'reason': reason.text, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
-        self._text_buffer.add_message(kick_msg)
+        self.add_message(kick_msg, typ=2)
 
     def on_user_kicked(self, presence, user, from_nick):
         """
