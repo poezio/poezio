@@ -2941,7 +2941,8 @@ class Core(object):
         elif message['type'] == 'headline' and message['body']:
             return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
-        body = xhtml.get_body_from_message_stanza(message)
+        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         if not body:
             return
 
@@ -2983,7 +2984,7 @@ class Core(object):
         self.events.trigger('conversation_msg', message, conversation)
         if not message['body']:
             return
-        body = xhtml.get_body_from_message_stanza(message)
+        body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
@@ -3199,7 +3200,8 @@ class Core(object):
             return
 
         self.events.trigger('muc_msg', message, tab)
-        body = xhtml.get_body_from_message_stanza(message)
+        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         if not body:
             return
 
@@ -3246,7 +3248,8 @@ class Core(object):
             return self.on_groupchat_message(message)
 
         room_from = jid.bare
-        body = xhtml.get_body_from_message_stanza(message)
+        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
         ignore = config.get_by_tabname('ignore_private', 'false',
                 room_from).lower() == 'true'
@@ -3260,7 +3263,7 @@ class Core(object):
                 self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
             return
         self.events.trigger('private_msg', message, tab)
-        body = xhtml.get_body_from_message_stanza(message)
+        body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         if not body or not tab:
             return
         replaced_id = message['replace']['id']

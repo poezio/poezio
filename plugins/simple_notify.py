@@ -65,7 +65,7 @@ Options defined
 """
 
 from plugin import BasePlugin
-from xhtml import clean_text, get_body_from_message_stanza
+from xhtml import get_body_from_message_stanza
 from timed_events import DelayedEvent
 import shlex
 
@@ -88,7 +88,7 @@ class Plugin(BasePlugin):
         self.do_notify(message, fro)
 
     def do_notify(self, message, fro):
-        body = clean_text(get_body_from_message_stanza(message))
+        body = get_body_from_message_stanza(message, use_xhtml=False)
         if not body:
             return
         command_str = self.config.get('command', '').strip()

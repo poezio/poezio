@@ -20,9 +20,6 @@ from io import BytesIO
 from xml import sax
 from xml.sax import saxutils
 
-from config import config
-import logging
-
 digits = '0123456789' # never trust the modules
 
 XHTML_NS = 'http://www.w3.org/1999/xhtml'
@@ -184,13 +181,13 @@ xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
 
 xhtml_simple_attr_re = re.compile(r'\x19\d')
 
-def get_body_from_message_stanza(message):
+def get_body_from_message_stanza(message, use_xhtml=False):
     """
     Returns a string with xhtml markups converted to
     poezio colors if there's an xhtml_im element, or
     the body (without any color) otherwise
     """
-    if config.get('enable_xhtml_im', 'true') == 'true':
+    if use_xhtml:
         xhtml = message['html'].xml
         xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
         if xhtml_body:
