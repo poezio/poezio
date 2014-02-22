@@ -20,7 +20,7 @@ def parse_args(CONFIG_PATH=''):
         parser.add_option("-d", "--debug", dest="debug",
                             help="The file where debug will be written", metavar="DEBUG_FILE")
         parser.add_option("-v", "--version", dest="version",
-                            help=SUPPRESS, metavar="VERSION", default="0.8-dev")
+                            help=SUPPRESS, metavar="VERSION", default="0.8.3-dev")
         (options, args) = parser.parse_args()
     else:
         parser = ArgumentParser()

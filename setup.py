@@ -13,7 +13,7 @@ if not os.path.exists(os.path.join(current_dir, 'src', 'default_config.cfg')):
             os.path.join(current_dir, 'src',  'default_config.cfg'))
 
 setup(name="poezio",
-       version="0.8",
+       version="0.8.3-dev",
        description="A console XMPP client",
        long_description=
        """
@@ -30,7 +30,7 @@ setup(name="poezio",
        maintainer = 'Mathieu Pasquet',
        maintainer_email = 'mathieui@mathieui.net',
 
-       classifiers = ['Development Status :: 5 - Production/Stable',
+       classifiers = ['Development Status :: 2 - Pre-Alpha',
                        'Environment :: Console :: Curses',
                        'Intended Audience :: End Users/Desktop',
                        'License :: OSI Approved :: zlib/libpng License',
