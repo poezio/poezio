@@ -182,18 +182,40 @@ def datetime_tuple(timestamp):
     :return: The date.
     :rtype: :py:class:`datetime.datetime`
 
+    >>> time.timezone = 0; time.altzone = 0
     >>> datetime_tuple('20130226T06:23:12')
+    datetime.datetime(2013, 2, 26, 6, 23, 12)
+    >>> datetime_tuple('2013-02-26T06:23:12+02:00')
+    datetime.datetime(2013, 2, 26, 4, 23, 12)
+    >>> time.timezone = -3600; time.altzone = -3600
+    >>> datetime_tuple('20130226T07:23:12')
     datetime.datetime(2013, 2, 26, 8, 23, 12)
+    >>> datetime_tuple('2013-02-26T07:23:12+02:00')
+    datetime.datetime(2013, 2, 26, 6, 23, 12)
     """
-    timestamp = timestamp.split('.')[0]
-    timestamp = timestamp.replace('-', '')
+    timestamp = timestamp.replace('-', '', 2).replace(':', '')
+    date = timestamp[:15]
+    tz_msg = timestamp[15:]
     try:
-        ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%SZ')
-    except ValueError:      # Support the deprecated format, XEP 0091 :(
-        ret = datetime.strptime(timestamp, '%Y%m%dT%H:%M:%S')
+        ret = datetime.strptime(date, '%Y%m%dT%H%M%S')
+    except Exeception as e:
+        ret = datetime.now()
+    # add the message timezone if any
+    try:
+        if tz_msg and tz_msg != 'Z':
+            tz_mod = -1 if tz_msg[0] == '-' else 1
+            tz_msg = time.strptime(tz_msg[1:], '%H%M')
+            tz_msg = tz_msg.tm_hour * 3600 + tz_msg.tm_min * 60
+            tz_msg = timedelta(seconds=tz_mod * tz_msg)
+            ret -= tz_msg
+    except Exception as e:
+        pass # ignore if we got a badly-formatted offset
     # convert UTC to local time, with DST etc.
-    dst = timedelta(seconds=time.altzone)
-    ret -= dst
+    if time.daylight and time.localtime().tm_isdst:
+        tz = timedelta(seconds=-time.altzone)
+    else:
+        tz = timedelta(seconds=-time.timezone)
+    ret += tz
     return ret
 
 def find_delayed_tag(message):
