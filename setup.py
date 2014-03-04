@@ -43,7 +43,7 @@ setup(name="poezio",
        packages = ['poezio', 'poezio_plugins', 'poezio_plugins.gpg', 'poezio_themes'],
        package_dir = {'poezio': 'src', 'poezio_plugins': 'plugins', 'poezio_themes': 'data/themes'},
        package_data = {'poezio': ['default_config.cfg']},
-       scripts = ['scripts/poezio'],
+       scripts = ['scripts/poezio', 'scripts/poezio_gpg_export'],
        data_files = [('share/poezio/themes/', ['data/themes/dark.py']),
            ('share/man/man1/', ['data/poezio.1'])],
 )

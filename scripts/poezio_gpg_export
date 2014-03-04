@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+"""
+Parses the output of gpg into a list suitable for the poezio
+GPG plugin. Double-check the output and use at your own risk.
+"""
+
+import subprocess
+import pprint
+import re
+import os
+
+addr_re = re.compile(r'^uid\s+\[\s+full\s+\]\s.*<(.*@.*)>$')
+id_re = re.compile(r'^pub\s+.*/(........) .*')
+
+def extract_block(total):
+    """
+    GPG output blocks are separated by newlines
+    """
+    if '' in total:
+        index = total.index('')
+    else:
+        index = len(total)
+    block = total[:index]
+    total = total[index+1:]
+    return (block, total)
+
+def parse_block(blocks, block):
+    """
+    Keep the blocks with trusted keys
+    and extract addresses and UIDs
+    """
+
+    uid = ''
+    addrs = []
+    blocksize = len(block)
+
+    for i, line in enumerate(reversed(block)):
+        if line.startswith('uid'):
+            match = addr_re.match(line)
+            if match:
+                addr = match.groups()[0]
+                if addr not in addrs:
+                    addrs.append(addr)
+            else:
+                del block[blocksize-1-i]
+        elif line.startswith('pub'):
+            uid = id_re.match(line).groups()[0]
+
+    if addrs:
+        blocks[uid] = addrs
+
+def output(blocks):
+    print('[keys]')
+    for uid in blocks:
+        for addr in blocks[uid]:
+            print('%s = %s' % (addr, uid))
+
+def main():
+
+    os.putenv('LANG', 'en_US.UTF-8')
+
+    gpg_proc = subprocess.Popen(
+            [
+                "/usr/bin/gpg",
+                "--list-keys",
+                "--list-options",
+                "show-uid-validity"
+            ],
+            stdout=subprocess.PIPE)
+
+    result, _ = gpg_proc.communicate()
+    result = result.decode().strip().splitlines()[2:]
+    blocks = {}
+
+    while result:
+        block, result = extract_block(result)
+        parse_block(blocks, block)
+    output(blocks)
+
+if __name__ == '__main__':
+    main()
