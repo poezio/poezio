@@ -46,7 +46,10 @@ whenever you need it.
 
 The ``keys`` section contains your contact’s id keys. For each contact you want
 to have encrypted conversations with, add her/his JID associated with the keyid
-of his/her key.
+of his/her key. You can autogenerate a keys section based on the ones already
+in your trust chain by running the script ``poezio_gpg_export`` provided with
+poezio (in the :file:`scripts/` directory). Please double-check the section
+created this way.
 
 And that’s it, now you need to talk directly to the **full** jid of your
 contacts. Poezio doesn’t let you encrypt messages whom recipients is a bare

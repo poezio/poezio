@@ -2,8 +2,6 @@
 This plugin adds a command (that can be bound to a key) that adds a random
 number of dots in the input, making you look depressed, or overly thinking...
 
-.. note:: .......
-
 Installation
 ------------
 Load the plugin.::
