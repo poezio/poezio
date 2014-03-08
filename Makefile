@@ -1,4 +1,4 @@
-prefix=/usr/local
+prefix=/usr/local/
 LIBDIR=$(prefix)/lib
 BINDIR=$(prefix)/bin
 DATADIR=$(prefix)/share
@@ -24,7 +24,6 @@ install: all
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/poezio
-	rm -rf $(DESTDIR)$(DATADIR)/poezio
 	rm -rf $(DESTDIR)$(DOCDIR)/poezio/
 	rm -rf $(DESTDIR)$(MANDIR)/man1/poezio.1
 
