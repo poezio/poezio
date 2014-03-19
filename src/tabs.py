@@ -108,10 +108,7 @@ class Tab(object):
 
     def __init__(self):
         self.input = None
-        if isinstance(self, MucTab) and not self.joined:
-            self._state = 'disconnected'
-        else:
-            self._state = 'normal'
+        self._state = 'normal'
 
         self.need_resize = False
         self.need_resize = False
@@ -467,14 +464,18 @@ class ChatTab(Tab):
 
         # Get the logs
         log_nb = config.get('load_log', 10)
+        logs = self.load_logs(log_nb)
 
-        if isinstance(self, PrivateTab):
-            logs = logger.get_logs(safeJID(self.get_name()).full.replace('/', '\\'), log_nb)
-        else:
-            logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
         if logs:
             for message in logs:
                 self._text_buffer.add_message(**message)
+
+    @property
+    def is_muc(self):
+        return False
+
+    def load_logs(self, log_nb):
+        logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
@@ -535,6 +536,11 @@ class ChatTab(Tab):
         """"
         /xhtml <custom xhtml>
         """
+        message = self.generate_xhtml_message(arg)
+        if message:
+            message.send()
+
+    def generate_xhtml_message(self, arg):
         if not arg:
             return
         try:
@@ -551,12 +557,7 @@ class ChatTab(Tab):
         msg['body'] = body
         msg.enable('html')
         msg['html']['body'] = arg
-        if isinstance(self, MucTab):
-            msg['type'] = 'groupchat'
-        if isinstance(self, ConversationTab):
-            self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
-            self.refresh()
-        msg.send()
+        return msg
 
     def get_dest_jid(self):
         return self.get_name()
@@ -573,7 +574,7 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
-        if not isinstance(self, MucTab) or self.joined:
+        if not self.is_muc or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
             if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) and \
@@ -703,6 +704,8 @@ class MucTab(ChatTab):
     def __init__(self, jid, nick):
         self.joined = False
         ChatTab.__init__(self, jid)
+        if self.joined == False:
+            self._state = 'disconnected'
         self.own_nick = nick
         self.name = jid
         self.users = []
@@ -820,6 +823,10 @@ class MucTab(ChatTab):
     @property
     def general_jid(self):
         return self.get_name()
+
+    @property
+    def is_muc(self):
+        return True
 
     @property
     def last_connection(self):
@@ -1288,6 +1295,12 @@ class MucTab(ChatTab):
         msg.send()
         self.chat_state = needed
 
+    def command_xhtml(self, arg):
+        message = self.generate_xhtml_message(arg)
+        if message:
+            message['type'] = 'groupchat'
+            message.send()
+
     def command_ignore(self, arg):
         """
         /ignore <nick>
@@ -1575,10 +1588,8 @@ class MucTab(ChatTab):
         new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
         if user.nick == self.own_nick:
             self.own_nick = new_nick
-            # also change our nick in all private discussion of this room
-            for _tab in self.core.tabs:
-                if isinstance(_tab, PrivateTab) and safeJID(_tab.get_name()).bare == self.name:
-                    _tab.own_nick = new_nick
+            # also change our nick in all private discussions of this room
+            self.core.on_muc_own_nickchange(self)
         user.change_nick(new_nick)
         color = dump_tuple(user.color) if config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True) == 'true' else 3
         self.add_message('\x19%(color)s}%(old)s\x19%(info_col)s} is now known as \x19%(color)s}%(new)s' % {
@@ -1917,6 +1928,9 @@ class PrivateTab(ChatTab):
     @staticmethod
     def remove_information_element(plugin_name):
         del PrivateTab.additional_informations[plugin_name]
+
+    def load_logs(self, log_nb):
+        logs = logger.get_logs(safeJID(self.get_name()).full.replace('/', '\\'), log_nb)
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
@@ -3227,6 +3241,13 @@ class ConversationTab(ChatTab):
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
+
+    def command_xhtml(self, arg):
+        message = self.generate_xhtml_message(arg)
+        if message:
+            message.send()
+            self.core.add_message_to_text_buffer(self._text_buffer, body, None, self.core.own_nick)
+            self.refresh()
 
     def command_last_activity(self, arg):
         """

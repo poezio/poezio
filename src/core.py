@@ -732,9 +732,8 @@ class Core(object):
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         msg = msg or ''
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                tab.command_part(msg)
+        for tab in self.get_tabs(tabs.MucTab):
+            tab.command_part(msg)
         self.xmpp.disconnect()
         if reconnect:
             self.xmpp.start()
@@ -780,6 +779,10 @@ class Core(object):
 ####################### Tab logic-related things ##############################
 
     ### Tab getters ###
+
+    def get_tabs(self, cls=tabs.Tab):
+        "Get all the tabs of a type"
+        return filter(lambda tab: isinstance(tab, cls), self.tabs)
 
     def current_tab(self):
         """
@@ -1037,11 +1040,11 @@ class Core(object):
         Open a Private conversation in a MUC and focus if needed.
         """
         complete_jid = room_name+'/'+user_nick
-        for tab in self.tabs: # if the room exists, focus it and return
-            if isinstance(tab, tabs.PrivateTab):
-                if tab.get_name() == complete_jid:
-                    self.command_win('%s' % tab.nb)
-                    return tab
+        # if the room exists, focus it and return
+        for tab in self.get_tabs(tabs.PrivateTab):
+            if tab.get_name() == complete_jid:
+                self.command_win('%s' % tab.nb)
+                return tab
         # create the new tab
         tab = self.get_tab_by_name(room_name, tabs.MucTab)
         if not tab:
@@ -1105,16 +1108,16 @@ class Core(object):
         """
         Disable private tabs when leaving a room
         """
-        for tab in self.tabs:
-            if isinstance(tab, tabs.PrivateTab) and tab.get_name().startswith(room_name):
+        for tab in self.get_tabs(tabs.PrivateTab):
+            if tab.get_name().startswith(room_name):
                 tab.deactivate(reason=reason)
 
     def enable_private_tabs(self, room_name, reason='\x195}You joined the chatroom\x193}'):
         """
         Enable private tabs when joining a room
         """
-        for tab in self.tabs:
-            if tab.get_name().startswith(room_name) and isinstance(tab, tabs.PrivateTab):
+        for tab in self.get_tabs(tabs.PrivateTab):
+            if tab.get_name().startswith(room_name):
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid, msg):
@@ -1766,9 +1769,8 @@ class Core(object):
     def completion_list(self, the_input):
         """Completion for /list"""
         muc_serv_list = []
-        for tab in self.tabs:   # TODO, also from an history
-            if isinstance(tab, tabs.MucTab) and\
-                    tab.get_name() not in muc_serv_list:
+        for tab in self.get_tabs(tabs.MucTab):   # TODO, also from an history
+            if tab.get_name() not in muc_serv_list:
                 muc_serv_list.append(safeJID(tab.get_name()).server)
         if muc_serv_list:
             return the_input.new_completion(muc_serv_list, 1, quotify=False)
@@ -1925,11 +1927,10 @@ class Core(object):
         relevant_rooms = []
         relevant_rooms.extend(sorted(self.pending_invites.keys()))
         bookmarks = {str(elem.jid): False for elem in bookmark.bookmarks}
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                name = tab.get_name()
-                if name in bookmarks and not tab.joined:
-                    bookmarks[name] = True
+        for tab in self.get_tabs(tabs.MucTab):
+            name = tab.get_name()
+            if name in bookmarks and not tab.joined:
+                bookmarks[name] = True
         relevant_rooms.extend(sorted(room[0] for room in bookmarks.items() if room[1]))
 
         if the_input.last_completion:
@@ -1953,8 +1954,8 @@ class Core(object):
         elif jid.user:
             # we are writing the server: complete the server
             serv_list = []
-            for tab in self.tabs:
-                if isinstance(tab, tabs.MucTab) and tab.joined:
+            for tab in self.get_tabs(tabs.MucTab):
+                if tab.joined:
                     serv_list.append('%s@%s'% (jid.user, safeJID(tab.get_name()).host))
             serv_list.extend(relevant_rooms)
             return the_input.new_completion(serv_list, 1, quotify=True)
@@ -1980,14 +1981,13 @@ class Core(object):
             if tab.joined and tab.own_nick != self.own_nick:
                 nick = tab.own_nick
         elif args[0] == '*':
-            for tab in self.tabs:
-                if isinstance(tab, tabs.MucTab):
-                    b = bookmark.get_by_jid(tab.get_name())
-                    if not b:
-                        b = bookmark.Bookmark(tab.get_name(), autojoin=True, method="local")
-                        bookmark.bookmarks.append(b)
-                    else:
-                        b.method = "local"
+            for tab in self.get_tabs(tabs.MucTab):
+                b = bookmark.get_by_jid(tab.get_name())
+                if not b:
+                    b = bookmark.Bookmark(tab.get_name(), autojoin=True, method="local")
+                    bookmark.bookmarks.append(b)
+                else:
+                    b.method = "local"
             bookmark.save_local()
             bookmark.save_remote(self.xmpp)
             self.information('Bookmarks added and saved.', 'Info')
@@ -2044,7 +2044,7 @@ class Core(object):
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.new_completion(jids_list, 1, quotify=True)
-        muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list = [tab.get_name() for tab in self.get_tabs(tabs.MucTab)]
         muc_list.append('*')
         return the_input.new_completion(muc_list, 1, quotify=True)
 
@@ -2072,15 +2072,14 @@ class Core(object):
                 autojoin = False if args[1].lower() != 'true' else True
             else:
                 autojoin = True
-            for tab in self.tabs:
-                if isinstance(tab, tabs.MucTab):
-                    b = bookmark.get_by_jid(tab.get_name())
-                    if not b:
-                        b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
-                                method=bookmark.preferred)
-                        bookmark.bookmarks.append(b)
-                    else:
-                        b.method = bookmark.preferred
+            for tab in self.get_tabs(tabs.MucTab):
+                b = bookmark.get_by_jid(tab.get_name())
+                if not b:
+                    b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
+                            method=bookmark.preferred)
+                    bookmark.bookmarks.append(b)
+                else:
+                    b.method = bookmark.preferred
             if bookmark.save_remote(self.xmpp, self):
                 bookmark.save_local()
                 self.information("Bookmarks added.", "Info")
@@ -2146,7 +2145,7 @@ class Core(object):
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return the_input.new_completion(jids_list, 1, quotify=True)
-        muc_list = [tab.get_name() for tab in self.tabs if isinstance(tab, tabs.MucTab)]
+        muc_list = [tab.get_name() for tab in self.get_tabs(tabs.MucTab)]
         muc_list.sort()
         muc_list.append('*')
         return the_input.new_completion(muc_list, 1, quotify=True)
@@ -2279,8 +2278,8 @@ class Core(object):
             else:
                 self.information(_("No server specified"), "Error")
                 return
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab) and tab.get_name().endswith(domain):
+        for tab in self.get_tabs(tabs.MucTab):
+            if tab.get_name().endswith(domain):
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp, tab.get_name(), tab.own_nick, message)
                 tab.joined = False
@@ -2292,10 +2291,9 @@ class Core(object):
     def completion_server_cycle(self, the_input):
         """Completion for /server_cycle"""
         serv_list = set()
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                serv = safeJID(tab.get_name()).server
-                serv_list.add(serv)
+        for tab in self.get_tabs(tabs.MucTab):
+            serv = safeJID(tab.get_name()).server
+            serv_list.add(serv)
         return the_input.new_completion(sorted(serv_list), 1, ' ')
 
     def command_last_activity(self, arg):
@@ -2421,8 +2419,8 @@ class Core(object):
             return the_input.new_completion(sorted(jid for jid in roster.jids()), n, quotify=True)
         elif n == 2:
             rooms = []
-            for tab in self.tabs:
-                if isinstance(tab, tabs.MucTab) and tab.joined:
+            for tab in self.get_tabs(tabs.MucTab):
+                if tab.joined:
                     rooms.append(tab.get_name())
             rooms.sort()
             return the_input.new_completion(rooms, n, '', quotify=True)
@@ -2924,8 +2922,8 @@ class Core(object):
             return
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
-        for tab in self.tabs:
-            if tab.get_name() == jid_from.bare and isinstance(tab, tabs.MucTab):
+        for tab in self.get_tabs(tabs.MucTab):
+            if tab.get_name() == jid_from.bare:
                 if message['type'] == 'error':
                     return self.room_error(message, jid_from)
                 else:
@@ -3237,6 +3235,12 @@ class Core(object):
         if 'message' in config.get('beep_on', 'highlight private').split():
             if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
                 curses.beep()
+
+    def on_muc_own_nickchange(self, muc):
+        "We changed our nick in a MUC"
+        for tab in self.get_tabs(tabs.PrivateTab):
+            if tab.parent_muc == muc:
+                tab.own_nick = muc.own_nick
 
     def on_groupchat_private_message(self, message):
         """
@@ -3552,9 +3556,8 @@ class Core(object):
         When we are disconnected from remote server
         """
         roster.modified()
-        for tab in self.tabs:
-            if isinstance(tab, tabs.MucTab):
-                tab.disconnect()
+        for tab in self.get_tabs(tabs.MucTab):
+            tab.disconnect()
         self.information(_("Disconnected from server."))
 
     def on_failed_auth(self, event):
