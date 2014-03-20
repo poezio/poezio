@@ -2,6 +2,9 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
+* Poezio 0.8.1
+- Builds with python 3.4
+
 * Poezio 0.8
 - Allow in-band password changing with /password
 - Force c2s encryption until configured otherwise
