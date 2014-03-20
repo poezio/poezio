@@ -5,6 +5,7 @@ DATADIR=$(prefix)/share
 DOCDIR=$(DATADIR)/doc
 LOCALEDIR=$(DATADIR)/locale
 MANDIR=$(DATADIR)/man
+TMPDIR=/tmp/
 
 all: Makefile
 	python3 setup.py build_ext --inplace
@@ -31,5 +32,15 @@ doc:
 	make -C doc/ html
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
+
+release:
+	rm -fr $(TMPDIR)/poezio-$(version)
+	git clone $(PWD) $(TMPDIR)/poezio-$(version)
+	cd $(TMPDIR)/poezio-$(version) && \
+	 git checkout v$(version) && \
+	 make doc && \
+	 cd .. && \
+	 tar cJf poezio-$(version).tar.xz poezio-$(version) && \
+	 tar czf poezio-$(version).tar.gz poezio-$(version)
 
 .PHONY : doc
