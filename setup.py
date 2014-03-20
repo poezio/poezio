@@ -2,6 +2,7 @@ from distutils.core import setup, Extension
 import os, sys
 
 module_poopt = Extension('poezio.poopt',
+                    extra_compile_args=['-Wno-declaration-after-statement'],
                     sources = ['src/pooptmodule.c'])
 
 
