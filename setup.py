@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    from distutils.core import setup, Extension
+
 import os, sys
 
 module_poopt = Extension('poezio.poopt',
