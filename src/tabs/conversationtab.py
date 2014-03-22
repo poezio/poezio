@@ -393,14 +393,17 @@ class DynamicConversationTab(ConversationTab):
         self.unlock()
         self.refresh_info_header()
 
-    def unlock(self):
+    def unlock(self, from_=None):
         """
         Unlock the tab from a resource. It is now “associated” with the bare
         jid.
         """
         if self.locked_resource != None:
             self.locked_resource = None
-            self.add_message(_('Conversation unlocked.'), typ=0)
+            if from_:
+                self.add_message(_('Conversation unlocked (received activity from %s).') % from_, typ=0)
+            else:
+                self.add_message(_('Conversation unlocked.'), typ=0)
 
     def get_dest_jid(self):
         """

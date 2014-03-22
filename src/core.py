@@ -3459,7 +3459,7 @@ class Core(object):
         contact = roster[jid.bare]
         tab = self.get_conversation_by_jid(jid, create=False)
         if isinstance(tab, tabs.DynamicConversationTab) and tab.get_dest_jid() != jid.full:
-            tab.unlock()
+            tab.unlock(from_=jid.full)
         if contact is None:
             return
         roster.modified()
