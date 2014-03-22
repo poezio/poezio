@@ -385,7 +385,9 @@ class DynamicConversationTab(ConversationTab):
         Lock the tab to the resource.
         """
         assert(resource)
-        self.locked_resource = resource
+        if resource != self.locked_resource:
+            self.locked_resource = resource
+            self.add_message(_('Conversation locked to %s/%s.') % (self.name, resource), typ=0)
 
     def unlock_command(self, arg=None):
         self.unlock()
@@ -396,7 +398,9 @@ class DynamicConversationTab(ConversationTab):
         Unlock the tab from a resource. It is now “associated” with the bare
         jid.
         """
-        self.locked_resource = None
+        if self.locked_resource != None:
+            self.locked_resource = None
+            self.add_message(_('Conversation unlocked.'), typ=0)
 
     def get_dest_jid(self):
         """
