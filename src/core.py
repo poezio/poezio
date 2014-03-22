@@ -3817,7 +3817,6 @@ class Core(object):
 
 
 
-
 class KeyDict(dict):
     """
     A dict, with a wrapper for get() that will return a custom value

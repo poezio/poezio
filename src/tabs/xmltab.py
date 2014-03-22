@@ -1,3 +1,10 @@
+"""
+The XMLTab is here for debugging purposes, it shows the incoming and
+outgoing stanzas. It has a few useful functions that can filter stanzas
+in order to only show the relevant ones, and it can also be frozen or
+unfrozen on demand so that the relevant information is not drowned by
+the traffic.
+"""
 from gettext import gettext as _
 
 import logging
@@ -168,7 +175,7 @@ class XMLTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.text_win.refresh()
         self.info_header.refresh(self.filter_type, self.filter, self.text_win)
         self.refresh_tab_win()

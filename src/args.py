@@ -21,7 +21,7 @@ def parse_args(CONFIG_PATH=''):
                             help="The file where debug will be written", metavar="DEBUG_FILE")
         parser.add_option("-v", "--version", dest="version",
                             help=SUPPRESS, metavar="VERSION", default="0.8.3-dev")
-        (options, args) = parser.parse_args()
+        (options, _) = parser.parse_args()
     else:
         parser = ArgumentParser()
         parser.add_argument("-f", "--file", dest="filename", default=path.join(CONFIG_PATH, 'poezio.cfg'),

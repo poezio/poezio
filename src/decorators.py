@@ -29,7 +29,7 @@ class RefreshWrapper(object):
             return ret
         return wrap
 
-    def update(self, funct):
+    def update(self, func):
         """
         Decorator that only updates the screen
         """

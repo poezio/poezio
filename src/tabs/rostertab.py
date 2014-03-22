@@ -1,3 +1,10 @@
+"""
+The RosterInfoTab is the tab showing roster info, the list of contacts,
+half of it is dedicated to showing the information buffer, and a small
+rectangle shows the current contact info.
+
+This module also includes functions to match users in the roster.
+"""
 from gettext import gettext as _
 
 import logging
@@ -690,7 +697,7 @@ class RosterInfoTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.v_separator.refresh()
         self.roster_win.refresh(roster)
         self.contact_info_win.refresh(self.roster_win.get_selected_row())

@@ -1,9 +1,16 @@
 """
-A Tab object is a way to organize various Windows (see windows.py)
-around the screen at once.
-A tab is then composed of multiple Buffers.
-Each Tab object has different refresh() and resize() methods, defining how its
-Windows are displayed, resized, etc.
+Module for the base Tabs
+
+The root class Tab defines the generic interface and attributes of a
+tab. A tab organizes various Windows around the screen depending
+of the tab specificity. If the tab shows messages, it will also
+reference a buffer containing the messages.
+
+Each subclass should redefine its own refresh() and resize() method
+according to its windows.
+
+This module also defines ChatTabs, the parent class for all tabs
+revolving around chats.
 """
 
 from gettext import gettext as _
@@ -33,6 +40,7 @@ from theming import get_theme
 MIN_WIDTH = 42
 MIN_HEIGHT = 6
 
+# getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
         'scrolled': lambda: get_theme().COLOR_TAB_SCROLLED,
@@ -44,7 +52,6 @@ STATE_COLORS = {
         'current': lambda: get_theme().COLOR_TAB_CURRENT,
         'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
     }
-
 VERTICAL_STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
         'scrolled': lambda: get_theme().COLOR_VERTICAL_TAB_SCROLLED,
@@ -58,6 +65,8 @@ VERTICAL_STATE_COLORS = {
     }
 
 
+# priority of the different tab states when using Alt+e
+# higher means more priority, < 0 means not selectable
 STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
@@ -465,7 +474,7 @@ class ChatTab(Tab):
                 identifier=identifier,
                 jid=jid)
 
-    def modify_message(self, txt, old_id, new_id, user=None,jid=None, nickname=None):
+    def modify_message(self, txt, old_id, new_id, user=None, jid=None, nickname=None):
         self.log_message(txt, nickname, typ=1)
         message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user, jid=jid)
         if message:
@@ -662,5 +671,4 @@ class ChatTab(Tab):
     @refresh_wrapper.always
     def scroll_separator(self):
         self.text_win.scroll_to_separator()
-
 

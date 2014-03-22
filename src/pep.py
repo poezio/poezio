@@ -1,3 +1,8 @@
+"""
+Collection of mappings for PEP moods/activities
+extracted directly from the XEP
+"""
+
 from gettext import gettext as _
 
 MOODS = {
@@ -215,11 +220,4 @@ ACTIVITIES = {
             'other': _('Other'),
             }
         }
-
-
-
-
-
-
-
 

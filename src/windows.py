@@ -1168,13 +1168,13 @@ class Input(Win):
             }
         Win.__init__(self)
         self.text = ''
-        self.pos = 0     # The position of the “cursor” in the text
-                         # (not only in the view)
-        self.view_pos = 0       # The position (in the text) of the
-                                # first character displayed on the
-                                # screen
-        self.on_input = None    # callback called on any key pressed
-        self.color = None       # use this color on addstr
+        self.pos = 0       # The position of the “cursor” in the text
+                           # (not only in the view)
+        self.view_pos = 0  # The position (in the text) of the
+                           # first character displayed on the
+                           # screen
+        self.on_input = None # callback called on any key pressed
+        self.color = None    # use this color on addstr
 
     def on_delete(self):
         """

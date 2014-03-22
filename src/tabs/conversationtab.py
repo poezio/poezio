@@ -1,3 +1,16 @@
+"""
+Module for the ConversationTabs
+
+A ConversationTab is a direct chat between two JIDs, outside of a room.
+
+There are two different instances of a ConversationTab:
+- A DynamicConversationTab that implements XEP-0296 (best practices for
+    resource locking), which means it will switch the resource it is
+    focused on depending on the presences received. This is the default.
+- A StaticConversationTab that will stay focused on one resource all
+    the time.
+
+"""
 from gettext import gettext as _
 
 import logging
@@ -212,7 +225,10 @@ class ConversationTab(ChatTab):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
             self.core.information('Attention is supported', 'Info')
             self.remote_supports_attention = True
-            self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
+            self.commands['attention'] = (self.command_attention,
+                    _('Usage: /attention [message]\nAttention: Require'
+                      ' the attention of the contact. Can also send a '
+                      'message along with the attention.'), None)
         else:
             self.remote_supports_attention = False
 
@@ -238,7 +254,8 @@ class ConversationTab(ChatTab):
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
                 jid = resource.jid if resource else jid
-        fixes.get_version(self.core.xmpp, jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid,
+                callback=callback)
 
     def resize(self):
         if self.core.information_win_size >= self.height-3 or not self.visible:
@@ -253,7 +270,7 @@ class ConversationTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.text_win.refresh()
         self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
         self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_informations)
@@ -396,7 +413,7 @@ class DynamicConversationTab(ConversationTab):
         """
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.text_win.refresh()
         self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
         if self.locked_resource:

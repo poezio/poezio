@@ -198,7 +198,7 @@ def datetime_tuple(timestamp):
     tz_msg = timestamp[15:]
     try:
         ret = datetime.strptime(date, '%Y%m%dT%H%M%S')
-    except Exeception as e:
+    except Exception as e:
         ret = datetime.now()
     # add the message timezone if any
     try:

@@ -1,3 +1,13 @@
+"""
+Bookmarks module
+
+Therein the bookmark class is defined, representing one conference room.
+This object is used to generate elements for both local and remote
+bookmark storage. It can also parse xml Elements.
+
+This module also defines several functions for retrieving and updating
+bookmarks, both local and remote.
+"""
 import os
 import logging
 from sys import version_info
@@ -70,6 +80,7 @@ class Bookmark(object):
             config.set_and_save('password', self.password, section=self.jid)
         return local
 
+    @staticmethod
     def parse_from_element(el, method=None):
         """
         Generate a Bookmark object from a <conference/> element

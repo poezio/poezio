@@ -20,7 +20,7 @@ from io import StringIO
 
 __all__ = ["shlex", "split", "quote"]
 
-class shlex:
+class shlex(object):
     """
     A custom version of the shlex in the stdlib to yield more information
     """

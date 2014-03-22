@@ -19,7 +19,6 @@ from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 from os import path as p
 from datetime import datetime
 from common import safeJID
-from sleekxmpp import JID
 from sleekxmpp.exceptions import IqError, IqTimeout
 
 

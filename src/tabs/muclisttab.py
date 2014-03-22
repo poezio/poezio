@@ -1,3 +1,9 @@
+"""
+A MucListTab is a tab listing the rooms on a conference server.
+
+It has no functionnality except scrolling the list, and allowing the
+user to join the rooms.
+"""
 from gettext import gettext as _
 
 import logging
@@ -18,6 +24,7 @@ class MucListTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
+
     def __init__(self, server):
         Tab.__init__(self)
         self.state = 'normal'
@@ -47,7 +54,7 @@ class MucListTab(Tab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.info_header.refresh()
         self.info_win.refresh()
         self.refresh_tab_win()
@@ -61,7 +68,7 @@ class MucListTab(Tab):
             return
         self.need_resize = False
         self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-        column_size = {'node-part': int(self.width*2/8) ,
+        column_size = {'node-part': int(self.width*2/8),
                        'name': int(self.width*5/8),
                        'users': self.width-int(self.width*2/8)-int(self.width*5/8)}
         self.list_header.resize_columns(column_size)
@@ -105,7 +112,7 @@ class MucListTab(Tab):
             return
         items = [{'node-part': safeJID(item[0]).user if safeJID(item[0]).server == self.name else safeJID(item[0]).bare,
                   'jid': item[0],
-                  'name': item[2] or '' ,'users': ''} for item in iq['disco_items'].get_items()]
+                  'name': item[2] or '', 'users': ''} for item in iq['disco_items'].get_items()]
         self.listview.add_lines(items)
         self.info_header.message = _('Chatroom list on server %s') % self.name
         if self.core.current_tab() is self:
@@ -118,11 +125,15 @@ class MucListTab(Tab):
 
     def sort_by(self):
         if self.list_header.get_order():
-            self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=False)
+            self.listview.sort_by_column(
+                    col_name=self.list_header.get_sel_column(),
+                    asc=False)
             self.list_header.set_order(False)
             self.list_header.refresh()
         else:
-            self.listview.sort_by_column(col_name=self.list_header.get_sel_column(),asc=True)
+            self.listview.sort_by_column(
+                    col_name=self.list_header.get_sel_column(),
+                    asc=True)
             self.list_header.set_order(True)
             self.list_header.refresh()
         curses.doupdate()

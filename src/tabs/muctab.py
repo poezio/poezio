@@ -1,3 +1,12 @@
+"""
+Module for the MucTab
+
+A MucTab is a tab for multi-user chats as defined in XEP-0045.
+
+It keeps track of many things such as part/joins, maintains an
+user list, and updates private tabs when necessary.
+"""
+
 from gettext import gettext as _
 
 import logging
@@ -250,7 +259,7 @@ class MucTab(ChatTab):
             return the_input.new_completion(userlist, 1, '', quotify=True)
         elif n == 2:
             possible_affiliations = ['none', 'member', 'admin', 'owner', 'outcast']
-            return the_input.new_completion(possible_affiliations, 2,  '', quotify=True)
+            return the_input.new_completion(possible_affiliations, 2, '', quotify=True)
 
     def command_invite(self, args):
         """/invite <jid> [reason]"""
@@ -368,7 +377,6 @@ class MucTab(ChatTab):
                          res.get('version') or _('unknown'),
                          res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
-
         if not arg:
             return self.core.command_help('version')
         if arg in [user.nick for user in self.users]:
@@ -376,7 +384,8 @@ class MucTab(ChatTab):
             jid = safeJID(jid + '/' + arg)
         else:
             jid = safeJID(arg)
-        fixes.get_version(self.core.xmpp, jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid,
+                callback=callback)
 
     def command_nick(self, arg):
         """
@@ -404,13 +413,13 @@ class MucTab(ChatTab):
             if arg:
                 msg = _("\x195}You left the chatroom (\x19o%s\x195})\x193}" % arg)
             else:
-                msg =_("\x195}You left the chatroom\x193}")
+                msg = _("\x195}You left the chatroom\x193}")
             self.add_message(msg, typ=2)
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
         else:
-            msg =_("\x195}You left the chatroom\x193}")
+            msg = _("\x195}You left the chatroom\x193}")
         self.core.disable_private_tabs(self.name, reason=msg)
 
     def command_close(self, arg):
@@ -484,16 +493,16 @@ class MucTab(ChatTab):
         buff = ['Users: %s \n' % len(self.users)]
         for moderator in moderators:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_moderator,
-                    moderator[1],  dump_tuple(moderator[0].color), moderator[0].nick))
+                    moderator[1], dump_tuple(moderator[0].color), moderator[0].nick))
         for participant in participants:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_participant,
-                    participant[1],  dump_tuple(participant[0].color), participant[0].nick))
+                    participant[1], dump_tuple(participant[0].color), participant[0].nick))
         for visitor in visitors:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_visitor,
-                    visitor[1],  dump_tuple(visitor[0].color), visitor[0].nick))
+                    visitor[1], dump_tuple(visitor[0].color), visitor[0].nick))
         for other in others:
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (color_other,
-                    other[1],  dump_tuple(other[0].color), other[0].nick))
+                    other[1], dump_tuple(other[0].color), other[0].nick))
         buff.append('\n')
         message = ' '.join(buff)
 
@@ -563,7 +572,7 @@ class MucTab(ChatTab):
         if len(args) < 2:
             self.core.command_help('role')
             return
-        nick, role = args[0],args[1]
+        nick, role = args[0], args[1]
         if len(args) > 2:
             reason = ' '.join(args[2:])
         else:
@@ -704,7 +713,7 @@ class MucTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.topic_win.refresh(self.get_single_line_topic())
         self.text_win.refresh()
         if config.get("hide_user_list", "false") == "false":

@@ -1,3 +1,15 @@
+"""
+Module for the PrivateTab
+
+A PrivateTab is a private conversation opened with someone from a MUC
+(see muctab.py). The conversation happens with both JID being relative
+to the MUC (room@server/nick1 and room@server/nick2).
+
+This tab references his parent room, and is modified to keep track of
+both participant’s nicks. It also has slightly different features than
+the ConversationTab (such as tab-completion on nicks from the room).
+
+"""
 from gettext import gettext as _
 
 import logging
@@ -182,7 +194,12 @@ class PrivateTab(ChatTab):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
             self.core.information('Attention is supported', 'Info')
             self.remote_supports_attention = True
-            self.commands['attention'] =  (self.command_attention, _('Usage: /attention [message]\nAttention: Require the attention of the contact. Can also send a message along with the attention.'), None)
+            self.commands['attention'] = (
+                    self.command_attention,
+                    _('Usage: /attention [message]\nAttention:'
+                      'Require the attention of the contact. Can'
+                      ' also send a message along with the attention.'),
+                    None)
         else:
             self.remote_supports_attention = False
 
@@ -207,7 +224,8 @@ class PrivateTab(ChatTab):
         if arg:
             return self.core.command_version(arg)
         jid = safeJID(self.name)
-        fixes.get_version(self.core.xmpp, jid, callback=callback)
+        fixes.get_version(self.core.xmpp, jid,
+                callback=callback)
 
     def command_info(self, arg):
         """
@@ -231,7 +249,7 @@ class PrivateTab(ChatTab):
     def refresh(self):
         if self.need_resize:
             self.resize()
-        log.debug('  TAB   Refresh: %s',self.__class__.__name__)
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
         self.text_win.refresh()
         self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
         self.info_win.refresh()
