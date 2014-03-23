@@ -555,7 +555,7 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.jid, False):
+            if not self.get_conversation_by_jid(roster_row.jid, False, fallback_barejid=False):
                 self.open_conversation_window(roster_row.jid)
             else:
                 self.focus_tab_named(roster_row.jid)
