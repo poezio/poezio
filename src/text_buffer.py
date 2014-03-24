@@ -99,7 +99,7 @@ class TextBuffer(object):
         ret_val = None
         for window in self.windows: # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(msg, history=history, highlight=highlight, timestamp=config.get("show_timestamps", "true") != 'false')
+            nb = window.build_new_message(msg, history=history, highlight=highlight, timestamp=config.get("show_timestamps", True))
             if ret_val is None:
                 ret_val = nb
             if window.pos != 0:

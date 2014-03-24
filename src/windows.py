@@ -238,7 +238,7 @@ class UserList(Win):
 
     def refresh(self, users):
         log.debug('Refresh: %s',self.__class__.__name__)
-        if config.get("hide_user_list", "false") == "true":
+        if config.get("hide_user_list", False):
             return # do not refresh if this win is hidden.
         with g_lock:
             self._win.erase()
@@ -336,16 +336,16 @@ class GlobalInfoBar(Win):
             self._win.erase()
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-            create_gaps = config.getl('create_gaps', 'false') == 'true'
-            show_names = config.getl('show_tab_names', 'false') == 'true'
-            show_nums = config.getl('show_tab_numbers', 'true') != 'false'
-            use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
+            create_gaps = config.get('create_gaps', False)
+            show_names = config.get('show_tab_names', False)
+            show_nums = config.get('show_tab_numbers', True)
+            use_nicks = config.get('use_tab_nicks', True)
             # ignore any remaining gap tabs if the feature is not enabled
             sorted_tabs = [tab for tab in self.core.tabs if tab] if not create_gaps else self.core.tabs[:]
             for nb, tab in enumerate(sorted_tabs):
                 if not tab: continue
                 color = tab.color
-                if config.get('show_inactive_tabs', 'true') == 'false' and\
+                if not config.get('show_inactive_tabs', True) and\
                         color is get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
@@ -379,11 +379,11 @@ class VerticalGlobalInfoBar(Win):
             height, width = self._win.getmaxyx()
             self._win.erase()
             sorted_tabs = [tab for tab in self.core.tabs if tab]
-            if config.get('show_inactive_tabs', 'true') == 'false':
+            if not config.get('show_inactive_tabs', True):
                 sorted_tabs = [tab for tab in sorted_tabs if\
                                    tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
             nb_tabs = len(sorted_tabs)
-            use_nicks = config.getl('use_tab_nicks', 'true') != 'false'
+            use_nicks = config.get('use_tab_nicks', True)
             if nb_tabs >= height:
                 for y, tab in enumerate(sorted_tabs):
                     if tab.vertical_color == get_theme().COLOR_VERTICAL_TAB_CURRENT:
@@ -926,7 +926,7 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
-        with_timestamps = config.get("show_timestamps", 'true') != 'false'
+        with_timestamps = config.get("show_timestamps", True)
         with g_lock:
             self._win.move(0, 0)
             self._win.erase()
@@ -1030,7 +1030,7 @@ class TextWin(Win):
 
     def rebuild_everything(self, room):
         self.built_lines = []
-        with_timestamps = config.get("show_timestamps", 'true') != 'false'
+        with_timestamps = config.get("show_timestamps", True)
         for message in room.messages:
             self.build_new_message(message, clean=False, timestamp=with_timestamps)
             if self.separator_after is message:
@@ -1043,7 +1043,7 @@ class TextWin(Win):
         Find a message, and replace it with a new one
         (instead of rebuilding everything in order to correct a message)
         """
-        with_timestamps = config.get("show_timestamps", 'true') != 'false'
+        with_timestamps = config.get("show_timestamps", True)
         for i in range(len(self.built_lines)-1, -1, -1):
             if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i
@@ -1664,7 +1664,7 @@ class HistoryInput(Input):
         self.current_completed = ''
         self.key_func['^R'] = self.toggle_search
         self.search = False
-        if config.get('separate_history', 'false') == 'true':
+        if config.get('separate_history', False):
             self.history = list()
 
     def toggle_search(self):
@@ -1960,7 +1960,7 @@ class RosterWin(Win):
                     for contact in roster.get_contacts_sorted_filtered(sort):
                         self.roster_cache.append(contact)
                 else:
-                    show_offline = config.get('roster_show_offline', 'false') == 'true' or roster.contact_filter
+                    show_offline = config.get('roster_show_offline', False) or roster.contact_filter
                     sort = config.get('roster_sort', 'jid:show') or 'jid:show'
                     group_sort = config.get('roster_group_sort', 'name') or 'name'
                     self.roster_cache = []
@@ -2091,7 +2091,7 @@ class RosterWin(Win):
         self.addstr(y, 0, ' ')
         self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
 
-        show_roster_sub = config.getl('show_roster_subscriptions', '')
+        show_roster_sub = config.get('show_roster_subscriptions', '')
 
         self.addstr(' ')
         if resource:
@@ -2099,7 +2099,7 @@ class RosterWin(Win):
             added += 4
         if contact.ask:
             added += len(get_theme().CHAR_ROSTER_ASKED)
-        if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
+        if config.get('show_s2s_errors', True) and contact.error:
             added += len(get_theme().CHAR_ROSTER_ERROR)
         if contact.tune:
             added += len(get_theme().CHAR_ROSTER_TUNE)
@@ -2112,7 +2112,7 @@ class RosterWin(Win):
         if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both', 'none'):
             added += len(theme.char_subscription(contact.subscription, keep=show_roster_sub))
 
-        if config.getl('show_roster_jids', 'true') == 'false' and contact.name:
+        if not config.get('show_roster_jids', True) and contact.name:
             display_name = '%s' % contact.name
         elif contact.name and contact.name != contact.bare_jid:
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
@@ -2130,7 +2130,7 @@ class RosterWin(Win):
             self.addstr(theme.char_subscription(contact.subscription, keep=show_roster_sub), to_curses_attr(theme.COLOR_ROSTER_SUBSCRIPTION))
         if contact.ask:
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
-        if config.get('show_s2s_errors', 'true').lower() == 'true' and contact.error:
+        if config.get('show_s2s_errors', True) and contact.error:
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
         if contact.tune:
             self.addstr(get_theme().CHAR_ROSTER_TUNE, to_curses_attr(get_theme().COLOR_ROSTER_TUNE))

@@ -165,7 +165,7 @@ class Core(object):
         self.register_initial_commands()
 
         # We are invisible
-        if config.get('send_initial_presence', 'true').lower() == 'false':
+        if not config.get('send_initial_presence', True):
             del self.commands['status']
             del self.commands['show']
 
@@ -266,15 +266,15 @@ class Core(object):
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
         self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
         self.xmpp.register_handler(self.all_stanzas)
-        if config.get('enable_user_tune', 'true') != 'false':
+        if config.get('enable_user_tune', True):
             self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
-        if config.get('enable_user_nick', 'true') != 'false':
+        if config.get('enable_user_nick', True):
             self.xmpp.add_event_handler("user_nick_publish", self.on_nick_received)
-        if config.get('enable_user_mood', 'true') != 'false':
+        if config.get('enable_user_mood', True):
             self.xmpp.add_event_handler("user_mood_publish", self.on_mood_event)
-        if config.get('enable_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', True):
             self.xmpp.add_event_handler("user_activity_publish", self.on_activity_event)
-        if config.get('enable_user_gaming', 'true') != 'false':
+        if config.get('enable_user_gaming', True):
             self.xmpp.add_event_handler("user_gaming_publish", self.on_gaming_event)
 
         self.initial_joins = []
@@ -399,11 +399,11 @@ class Core(object):
         (and only roster UI things are not yet saved)
         """
         log.debug("Either SIGHUP or SIGTERM received. Exiting…")
-        if config.get('enable_user_mood', 'true') != 'false':
+        if config.get('enable_user_mood', True):
             self.xmpp.plugin['xep_0107'].stop(block=False)
-        if config.get('enable_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', True):
             self.xmpp.plugin['xep_0108'].stop(block=False)
-        if config.get('enable_user_gaming', 'true') != 'false':
+        if config.get('enable_user_gaming', True):
             self.xmpp.plugin['xep_0196'].stop(block=False)
         self.plugin_manager.disable_plugins()
         self.disconnect('')
@@ -627,7 +627,7 @@ class Core(object):
         work. If you try to do anything else, your |, [, <<, etc will be
         interpreted as normal command arguments, not shell special tokens.
         """
-        if config.get('exec_remote', 'false') == 'true':
+        if config.get('exec_remote', False):
             # We just write the command in the fifo
             if not self.remote_fifo:
                 try:
@@ -711,7 +711,7 @@ class Core(object):
         or to use it when joining a new muc)
         """
         self.status = Status(show=pres, message=msg)
-        if config.get('save_status', 'true').lower() != 'false':
+        if config.get('save_status', True):
             if not config.silent_set('status', pres if pres else '') or \
                     not config.silent_set('status_message', msg.replace('\n', '|') if msg else ''):
                 self.information(_('Unable to write in the config file'), 'Error')
@@ -916,7 +916,7 @@ class Core(object):
             return False
         elif not self.tabs[old_pos]:
             return False
-        if config.get('create_gaps', 'false').lower() == 'true':
+        if config.get('create_gaps', False):
             return self.insert_tab_gaps(old_pos, new_pos)
         return self.insert_tab_nogaps(old_pos, new_pos)
 
@@ -1136,7 +1136,7 @@ class Core(object):
         del tab.commands      # and make the object collectable
         tab.on_close()
         nb = tab.nb
-        if config.get('create_gaps', 'false').lower() == 'true':
+        if config.get('create_gaps', False):
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
                 nb -= 1
@@ -1370,8 +1370,8 @@ class Core(object):
         """
         Enable/disable the left panel.
         """
-        enabled = config.get('enable_vertical_tab_list', 'false')
-        if not config.silent_set('enable_vertical_tab_list', 'false' if enabled == 'true' else 'true'):
+        enabled = config.get('enable_vertical_tab_list', False)
+        if not config.silent_set('enable_vertical_tab_list', str(not enabled)):
             self.information(_('Unable to write in the config file'), 'Error')
         self.call_for_resize()
 
@@ -1389,7 +1389,7 @@ class Core(object):
         """
         with g_lock:
             self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
-            if config.get('enable_vertical_tab_list', 'false') == 'true':
+            if config.get('enable_vertical_tab_list', False):
                 height, width = self.stdscr.getmaxyx()
                 truncated_win = self.stdscr.subwin(height, config.get('vertical_tab_list_size', 20), 0, 0)
                 self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
@@ -1421,7 +1421,7 @@ class Core(object):
         # window to each Tab class, so the draw themself in the portion
         # of the screen that the can occupy, and we draw the tab list
         # on the left remaining space
-        if config.get('enable_vertical_tab_list', 'false') == 'true':
+        if config.get('enable_vertical_tab_list', False):
             with g_lock:
                 scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
         else:
@@ -1431,7 +1431,7 @@ class Core(object):
         self.resize_global_information_win()
         with g_lock:
             for tab in self.tabs:
-                if config.get('lazy_resize', 'true') == 'true':
+                if config.get('lazy_resize', True):
                     tab.need_resize = True
                 else:
                     tab.resize()
@@ -2053,7 +2053,7 @@ class Core(object):
         /bookmark [room][/nick] [autojoin] [password]
         """
 
-        if config.get('use_remote_bookmarks', 'true').lower() == 'false':
+        if not config.get('use_remote_bookmarks', True):
             self.command_bookmark_local(arg)
             return
         args = common.shell_split(arg)
@@ -2464,11 +2464,11 @@ class Core(object):
             msg = arg
         else:
             msg = None
-        if config.get('enable_user_mood', 'true') != 'false':
+        if config.get('enable_user_mood', True):
             self.xmpp.plugin['xep_0107'].stop(block=False)
-        if config.get('enable_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', True):
             self.xmpp.plugin['xep_0108'].stop(block=False)
-        if config.get('enable_user_gaming', 'true') != 'false':
+        if config.get('enable_user_gaming', True):
             self.xmpp.plugin['xep_0196'].stop(block=False)
         self.save_config()
         self.plugin_manager.disable_plugins()
@@ -2817,21 +2817,21 @@ class Core(object):
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.completion_last_activity)
 
-        if config.get('enable_user_mood', 'true') != 'false':
+        if config.get('enable_user_mood', True):
             self.register_command('activity', self.command_activity,
                     usage='[<general> [specific] [text]]',
                     desc=_('Send your current activity to your contacts (use the completion).'
                            ' Nothing means "stop broadcasting an activity".'),
                     shortdesc=_('Send your activity.'),
                     completion=self.completion_activity)
-        if config.get('enable_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', True):
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
                     desc=_('Send your current mood to your contacts (use the completion).'
                            ' Nothing means "stop broadcasting a mood".'),
                     shortdesc=_('Send your mood.'),
                     completion=self.completion_mood)
-        if config.get('enable_user_gaming', 'true') != 'false':
+        if config.get('enable_user_gaming', True):
             self.register_command('gaming', self.command_gaming,
                     usage='[<game name> [server address]]',
                     desc=_('Send your current gaming activity to your contacts.'
@@ -2851,7 +2851,7 @@ class Core(object):
             features = iq['disco_info']['features']
             rostertab = self.get_tab_by_name('Roster')
             rostertab.check_blocking(features)
-            if (config.get('enable_carbons', 'true').lower() != 'false' and
+            if (config.get('enable_carbons', True) and
                     'urn:xmpp:carbons:2' in features):
                 self.xmpp.plugin['xep_0280'].enable()
                 self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
@@ -2939,7 +2939,7 @@ class Core(object):
         elif message['type'] == 'headline' and message['body']:
             return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
-        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        use_xhtml = config.get('enable_xhtml_im', True)
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         if not body:
             return
@@ -2954,7 +2954,7 @@ class Core(object):
             if conv_jid.bare in roster:
                 remote_nick = roster[conv_jid.bare].name
             # check for a received nick
-            if not remote_nick and config.get('enable_user_nick', 'true') != 'false':
+            if not remote_nick and config.get('enable_user_nick', True):
                 if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                     remote_nick = message['nick']['nick']
             own = False
@@ -2988,7 +2988,7 @@ class Core(object):
         def try_modify():
             replaced_id = message['replace']['id']
             if replaced_id and (config.get_by_tabname('group_corrections',
-                'true', conv_jid.bare).lower() != 'false'):
+                True, conv_jid.bare)):
                 try:
                     conversation.modify_message(body, replaced_id, message['id'], jid=jid,
                             nickname=remote_nick)
@@ -3012,7 +3012,7 @@ class Core(object):
             else:
                 conversation.remote_wants_chatstates = False
         if 'private' in config.get('beep_on', 'highlight private').split():
-            if config.get_by_tabname('disable_beep', 'false', conv_jid.bare, False).lower() != 'true':
+            if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
                 curses.beep()
         if self.current_tab() is not conversation:
             conversation.state = 'private'
@@ -3062,7 +3062,7 @@ class Core(object):
         if contact.gaming:
             logger.log_roster_change(contact.bare_jid, 'is playing %s' % (common.format_gaming_string(contact.gaming)))
 
-        if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', 'false', contact.bare_jid) == 'true':
+        if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', False, contact.bare_jid):
             if contact.gaming:
                 self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
             else:
@@ -3095,7 +3095,7 @@ class Core(object):
         if contact.mood:
             logger.log_roster_change(contact.bare_jid, 'has now the mood: %s' % contact.mood)
 
-        if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', 'false', contact.bare_jid) == 'true':
+        if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', False, contact.bare_jid):
             if contact.mood:
                 self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
             else:
@@ -3134,7 +3134,7 @@ class Core(object):
         if contact.activity:
             logger.log_roster_change(contact.bare_jid, 'has now the activity %s' % contact.activity)
 
-        if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', 'false', contact.bare_jid) == 'true':
+        if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', False, contact.bare_jid):
             if contact.activity:
                 self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
             else:
@@ -3168,7 +3168,7 @@ class Core(object):
         if contact.tune:
             logger.log_roster_change(message['from'].bare, 'is now listening to %s' % common.format_tune_string(contact.tune))
 
-        if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', 'false', contact.bare_jid) == 'true':
+        if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', False, contact.bare_jid):
             if contact.tune:
                 self.information(
                         'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
@@ -3198,7 +3198,7 @@ class Core(object):
             return
 
         self.events.trigger('muc_msg', message, tab)
-        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        use_xhtml = config.get('enable_xhtml_im', True)
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         if not body:
             return
@@ -3208,7 +3208,7 @@ class Core(object):
         replaced_id = message['replace']['id']
         replaced = False
         if replaced_id is not '' and (config.get_by_tabname(
-            'group_corrections', 'true', message['from'].bare).lower() != 'false'):
+            'group_corrections', True, message['from'].bare)):
             try:
                 if tab.modify_message(body, replaced_id, message['id'], time=date,
                         nickname=nick_from, user=user):
@@ -3233,7 +3233,7 @@ class Core(object):
             self.doupdate()
 
         if 'message' in config.get('beep_on', 'highlight private').split():
-            if config.get_by_tabname('disable_beep', 'false', room_from, False).lower() != 'true':
+            if not config.get_by_tabname('disable_beep', False, room_from, False):
                 curses.beep()
 
     def on_muc_own_nickchange(self, muc):
@@ -3252,11 +3252,10 @@ class Core(object):
             return self.on_groupchat_message(message)
 
         room_from = jid.bare
-        use_xhtml = config.get('enable_xhtml_im', 'true') == 'true'
+        use_xhtml = config.get('enable_xhtml_im', True)
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
         tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
-        ignore = config.get_by_tabname('ignore_private', 'false',
-                room_from).lower() == 'true'
+        ignore = config.get_by_tabname('ignore_private', False, room_from)
         if not tab: # It's the first message we receive: create the tab
             if body and not ignore:
                 tab = self.open_private_window(room_from, nick_from, False)
@@ -3274,7 +3273,7 @@ class Core(object):
         replaced = False
         user = tab.parent_muc.get_user_by_name(nick_from)
         if replaced_id is not '' and (config.get_by_tabname(
-            'group_corrections', 'true', room_from).lower() != 'false'):
+            'group_corrections', True, room_from)):
             try:
                 tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
                         nickname=nick_from)
@@ -3294,7 +3293,7 @@ class Core(object):
             else:
                 tab.remote_wants_chatstates = False
         if 'private' in config.get('beep_on', 'highlight private').split():
-            if config.get_by_tabname('disable_beep', 'false', jid.full, False).lower() != 'true':
+            if not config.get_by_tabname('disable_beep', False, jid.full, False):
                 curses.beep()
         if tab is self.current_tab():
             self.refresh_window()
@@ -3591,14 +3590,14 @@ class Core(object):
             # request the roster
             self.xmpp.get_roster()
             # send initial presence
-            if config.get('send_initial_presence', 'true').lower() != 'false':
+            if config.get('send_initial_presence', True):
                 pres = self.xmpp.make_presence()
                 pres['show'] = self.status.show
                 pres['status'] = self.status.message
                 self.events.trigger('send_normal_presence', pres)
                 pres.send()
         bookmark.get_local()
-        if not self.xmpp.anon and not config.get('use_remote_bookmarks', 'true').lower() == 'false':
+        if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
             bookmark.get_remote(self.xmpp)
         for bm in bookmark.bookmarks:
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
@@ -3620,7 +3619,7 @@ class Core(object):
                         status=self.status.message,
                         show=self.status.show)
 
-        if config.get('enable_user_nick', 'true') != 'false':
+        if config.get('enable_user_nick', True):
             self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)
         self.xmpp.plugin['xep_0115'].update_caps()
 
@@ -3774,7 +3773,7 @@ class Core(object):
         """
         Check the server certificate using the sleekxmpp ssl_cert event
         """
-        if config.get('ignore_certificate', 'false').lower() == 'true':
+        if config.get('ignore_certificate', False):
             return
         cert = config.get('certificate', '')
         # update the cert representation when it uses the old one

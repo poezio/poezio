@@ -126,7 +126,7 @@ class Tab(object):
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
         """
-        if config.get('enable_vertical_tab_list', 'false') == 'true':
+        if config.get('enable_vertical_tab_list', False):
             return 0
         return 1
 
@@ -556,7 +556,7 @@ class ChatTab(Tab):
         if not self.is_muc or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
-            if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) and \
+            if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and \
                     self.remote_wants_chatstates is not False:
                 msg = self.core.xmpp.make_message(self.get_dest_jid())
                 msg['type'] = self.message_type
@@ -570,7 +570,7 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         name = self.general_jid
-        if config.get_by_tabname('send_chat_states', 'true', name, True) == 'true' and self.remote_wants_chatstates:
+        if config.get_by_tabname('send_chat_states', True, name, True) and self.remote_wants_chatstates:
             needed = 'inactive' if self.inactive else 'active'
             self.cancel_paused_delay()
             if not empty_after:
@@ -585,7 +585,7 @@ class ChatTab(Tab):
         we create a timed event that will put us to paused
         in a few seconds
         """
-        if config.get_by_tabname('send_chat_states', 'true', self.general_jid, True) != 'true':
+        if not config.get_by_tabname('send_chat_states', True, self.general_jid, True):
             return
         if self.timed_event_paused:
             # check the weakref

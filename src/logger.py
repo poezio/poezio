@@ -67,7 +67,7 @@ class Logger(object):
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if config.get_by_tabname('use_log', 'true', room) == 'false':
+        if not config.get_by_tabname('use_log', True, room):
             return
         try:
             makedirs(log_dir)
@@ -98,7 +98,7 @@ class Logger(object):
         if config.get_by_tabname('load_log', 10, jid) <= 0:
             return
 
-        if config.get_by_tabname('use_log', 'true', jid) == 'false':
+        if not config.get_by_tabname('use_log', True, jid):
             return
 
         if nb <= 0:
@@ -184,7 +184,7 @@ class Logger(object):
             return True
 
         jid = str(jid).replace('/', '\\')
-        if config.get_by_tabname('use_log', 'false', jid) != 'true':
+        if not config.get_by_tabname('use_log', False, jid):
             return True
         if jid in self.fds.keys():
             fd = self.fds[jid]
@@ -232,7 +232,7 @@ class Logger(object):
         """
         Log a roster change
         """
-        if config.get_by_tabname('use_log', 'false', jid) != 'true':
+        if not config.get_by_tabname('use_log', False, jid):
             return True
         self.check_and_create_log_dir('', open_fd=False)
         if not self.roster_logfile:

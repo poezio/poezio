@@ -50,7 +50,7 @@ class Connection(sleekxmpp.ClientXMPP):
         # TODO: use the system language
         sleekxmpp.ClientXMPP.__init__(self, jid, password, lang=config.get('lang', 'en'))
 
-        force_encryption = config.get('force_encryption', 'true').lower() != 'false'
+        force_encryption = config.get('force_encryption', True)
         if force_encryption:
             self['feature_mechanisms'].unencrypted_plain = False
             self['feature_mechanisms'].unencrypted_digest = False
@@ -58,7 +58,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self['feature_mechanisms'].unencrypted_scram = False
 
         self.core = None
-        self.auto_reconnect = True if config.get('auto_reconnect', 'false').lower() in ('true', '1') else False
+        self.auto_reconnect = config.get('auto_reconnect', False)
         self.reconnect_max_attempts = 0
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
@@ -88,32 +88,32 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0199')
         self.set_keepalive_values()
 
-        if config.get('enable_user_tune', 'true') != 'false':
+        if config.get('enable_user_tune', True):
             self.register_plugin('xep_0118')
 
-        if config.get('enable_user_nick', 'true') != 'false':
+        if config.get('enable_user_nick', True):
             self.register_plugin('xep_0172')
 
-        if config.get('enable_user_mood', 'true') != 'false':
+        if config.get('enable_user_mood', True):
             self.register_plugin('xep_0107')
 
-        if config.get('enable_user_activity', 'true') != 'false':
+        if config.get('enable_user_activity', True):
             self.register_plugin('xep_0108')
 
-        if config.get('enable_user_gaming', 'true') != 'false':
+        if config.get('enable_user_gaming', True):
             self.register_plugin('xep_0196')
 
-        if config.get('send_poezio_info', 'true') == 'true':
+        if config.get('send_poezio_info', True):
             info = {'name':'poezio',
                     'version': options.version}
-            if config.get('send_os_info', 'true') == 'true':
+            if config.get('send_os_info', True):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'Poezio')]))
         else:
             info = {'name': '', 'version': ''}
             self.plugin['xep_0030'].set_identities(identities=set([('client', 'pc', None,'')]))
         self.register_plugin('xep_0092', pconfig=info)
-        if config.get('send_time', 'true') == 'true':
+        if config.get('send_time', True):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
         self.register_plugin('xep_0280')

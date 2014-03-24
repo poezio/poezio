@@ -728,10 +728,8 @@ class RosterInfoTab(Tab):
         Show or hide offline contacts
         """
         option = 'roster_show_offline'
-        if config.get(option, 'false') == 'false':
-            success = config.silent_set(option, 'true')
-        else:
-            success = config.silent_set(option, 'false')
+        value = config.get(option, False)
+        success = config.silent_set(option, not value)
         roster.modified()
         if not success:
             self.core.information(_('Unable to write in the config file'), 'Error')

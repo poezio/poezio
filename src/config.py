@@ -24,7 +24,6 @@ from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
 
-
 class Config(RawConfigParser):
     """
     load/save the config to a file
@@ -62,15 +61,11 @@ class Config(RawConfigParser):
                 res = self.getboolean(option, section)
             else:
                 res = self.getstr(option, section)
-        except (NoOptionError, NoSectionError):
+        except (NoOptionError, NoSectionError, ValueError, AttributeError) as e:
+            return default
+        if res is None:
             return default
         return res
-
-    def getl(self, option, default, section=DEFSECTION):
-        """
-        get a value and return it lowercase
-        """
-        return self.get(option, default, section).lower()
 
     def get_by_tabname(self, option, default, tabname, fallback=True, fallback_server=True):
         """
@@ -104,11 +99,17 @@ class Config(RawConfigParser):
         return default
 
 
-    def __get(self, option, section=DEFSECTION):
+    def __get(self, option, section=DEFSECTION, **kwargs):
         """
         facility for RawConfigParser.get
         """
-        return RawConfigParser.get(self, section, option)
+        return RawConfigParser.get(self, section, option, **kwargs)
+
+    def _get(self, section, conv, option, **kwargs):
+        """
+        Redirects RawConfigParser._get
+        """
+        return conv(self.__get(option, section, **kwargs))
 
     def getstr(self, option, section=DEFSECTION):
         """
@@ -120,16 +121,13 @@ class Config(RawConfigParser):
         """
         get a value and returns it as an int
         """
-        try:
-            return int(self.__get(option, section))
-        except ValueError:
-            return -1
+        RawConfigParser.getint(self, section, option)
 
     def getfloat(self, option, section=DEFSECTION):
         """
         get a value and returns it as a float
         """
-        return float(self.__get(option, section))
+        return RawConfigParser.getfloat(self, section, option)
 
     def getboolean(self, option, section=DEFSECTION):
         """
@@ -209,12 +207,15 @@ class Config(RawConfigParser):
         # or it is not a bool.
         if value == "toggle":
             current = self.get(option, "", section)
-            if current.lower() == "false":
-                value = "true"
-            elif current.lower() == "true":
-                value = "false"
+            if isinstance(current, bool):
+                value = str(not current)
             else:
-                return (_("Could not toggle option: %s. Current value is %s.") % (option, current or _("empty")), 'Warning')
+                if current.lower() == "false":
+                    value = "true"
+                elif current.lower() == "true":
+                    value = "false"
+                else:
+                    return (_("Could not toggle option: %s. Current value is %s.") % (option, current or _("empty")), 'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
@@ -313,7 +314,7 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
     }
 }
-if config.get('log_errors', 'true').lower() != 'false':
+if config.get('log_errors', True):
     LOGGING_CONFIG['root']['handlers'].append('error')
     LOGGING_CONFIG['handlers']['error'] = {
             'level': 'ERROR',

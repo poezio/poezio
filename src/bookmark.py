@@ -157,7 +157,7 @@ def save_local():
 def save(xmpp, core=None):
     """Save all the bookmarks."""
     save_local()
-    if config.get('use_remote_bookmarks', 'true').lower() != 'false':
+    if config.get('use_remote_bookmarks', True):
         preferred = config.get('use_bookmarks_method', 'privatexml')
         if not save_remote(xmpp, method=preferred) and core:
             core.information('Could not save bookmarks.', 'Error')
