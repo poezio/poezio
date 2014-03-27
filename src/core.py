@@ -3457,8 +3457,11 @@ class Core(object):
         jid = presence['from']
         contact = roster[jid.bare]
         tab = self.get_conversation_by_jid(jid, create=False)
-        if isinstance(tab, tabs.DynamicConversationTab) and tab.get_dest_jid() != jid.full:
-            tab.unlock(from_=jid.full)
+        if isinstance(tab, tabs.DynamicConversationTab):
+            if tab.get_dest_jid() != jid.full:
+                tab.unlock(from_=jid.full)
+            elif presence['type'] == 'unavailable':
+                tab.unlock()
         if contact is None:
             return
         roster.modified()

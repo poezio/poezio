@@ -387,7 +387,12 @@ class DynamicConversationTab(ConversationTab):
         assert(resource)
         if resource != self.locked_resource:
             self.locked_resource = resource
-            self.add_message(_('Conversation locked to %s/%s.') % (self.name, resource), typ=0)
+
+            message = _('\x19%s}Conversation locked to %s/%s.') % (
+                    dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                    self.name,
+                    resource)
+            self.add_message(message, typ=0)
 
     def unlock_command(self, arg=None):
         self.unlock()
@@ -400,10 +405,17 @@ class DynamicConversationTab(ConversationTab):
         """
         if self.locked_resource != None:
             self.locked_resource = None
+
             if from_:
-                self.add_message(_('Conversation unlocked (received activity from %s).') % from_, typ=0)
+                message = _('\x19%s}Conversation unlocked '
+                            '(received activity from %s).') % (
+                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                        from_)
+                self.add_message(message, typ=0)
             else:
-                self.add_message(_('Conversation unlocked.'), typ=0)
+                message = _('\x19%s}Conversation unlocked.') % (
+                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT))
+                self.add_message(message, typ=0)
 
     def get_dest_jid(self):
         """
