@@ -121,7 +121,7 @@ class Config(RawConfigParser):
         """
         get a value and returns it as an int
         """
-        RawConfigParser.getint(self, section, option)
+        return RawConfigParser.getint(self, section, option)
 
     def getfloat(self, option, section=DEFSECTION):
         """
