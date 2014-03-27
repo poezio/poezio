@@ -224,6 +224,11 @@ Plugin index
 
         Add new ways to correct messages.
 
+    IRC
+        :ref:`Documentation <irc-plugin>`
+
+        Manage IRC gateways with biboumi more easily
+
 
 
 .. toctree::
@@ -261,3 +266,4 @@ Plugin index
     regex_admin
     pointpoint
     autocorrect
+    irc
