@@ -31,7 +31,7 @@ class PluginConfig(config.Config):
     def set(self, option, default, section=None):
         if not section:
             section = self.module_name
-        return config.Config.set(self, option, default, section)
+        return config.Config.set_and_save(self, option, default, section)
 
     def read(self):
         """Read the config file"""
