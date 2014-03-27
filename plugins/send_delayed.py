@@ -1,3 +1,23 @@
+"""
+Send a message after a certain delay.
+
+Usage
+-----
+
+This plugin adds a command to the chat tabs.
+
+.. glossary::
+
+    /send_delayed
+        **Usage:** ``/send_delayed <delay> <message>``
+
+        Send a message after a given delay to the current tab.
+        The delay can be either in seconds or in a classic XdXhXm format
+        (e.g. ``7h3m`` or ``1d``), some examples are given with the
+        autocompletion.
+
+
+"""
 from plugin import BasePlugin
 import tabs
 import common

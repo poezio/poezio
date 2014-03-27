@@ -12,15 +12,6 @@ passed between two messages, if the time is bigger than X minutes
 them, letting you understand more easily what is going on without any visual
 clutter.
 
-Installation
-------------
-
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load time_marker
-
 Configuration
 -------------
 

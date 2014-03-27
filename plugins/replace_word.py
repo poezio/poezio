@@ -1,15 +1,6 @@
 """
 Replace some word with some other word in a message before sending it.
 
-
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load replace_word
-
 Configuration example
 ---------------------
 .. code-block:: ini

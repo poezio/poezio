@@ -1,15 +1,6 @@
 """
 Replace some patterns in a message before sending it.
 
-
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load replace
-
 Usage
 -----
 Insert a pattern in the form

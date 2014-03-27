@@ -1,12 +1,4 @@
 """
-Installation
-------------
-You only have to load the plugin:
-
-.. code-block:: none
-
-    /load reminder
-
 Usage
 -----
 

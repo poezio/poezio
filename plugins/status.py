@@ -1,14 +1,6 @@
 """
 This plugin adds several aliases, to shorten status changes.
 
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load status
-
 Aliases
 -------
 

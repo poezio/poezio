@@ -1,8 +1,6 @@
 """
 This plugin is here to send what you are listening to in a chat tab.
 
-
-
 Installation
 ------------
 

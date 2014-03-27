@@ -1,13 +1,6 @@
 """
 This plugin lets you execute a system command through poezio.
 
-Installation
-------------
-
-You only have to load the plugin. ::
-
-    /load exec
-
 Usage
 -----
 

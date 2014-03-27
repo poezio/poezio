@@ -1,15 +1,6 @@
 """
 This plugin retrieves the uptime of a server.
 
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load uptime
-
-
 Command
 -------
 

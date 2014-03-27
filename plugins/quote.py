@@ -1,16 +1,8 @@
 """
 This plugin allows you to quote messages easily.
 
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load quote
-
 Usage
--------
+-----
 
 .. glossary::
 

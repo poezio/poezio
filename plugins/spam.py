@@ -1,20 +1,13 @@
 """
 Add a subtle little advertising in your messages.
 
-Installation
-------------
-
-You only have to load the plugin:
-
-.. code-block:: none
-
-    /load spam
-
-
 Configuration
 -------------
-[spam]
-ad = I’m a happy poezio user. Get it at http://poezio.eu
+
+.. code-block:: ini
+
+    [spam]
+    ad = I’m a happy poezio user. Get it at http://poezio.eu
 
 """
 

@@ -28,6 +28,8 @@ Command
     /pointpoint
         **Usage:** ``/pointpoint``
 
+        …
+
 
 """
 

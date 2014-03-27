@@ -2,13 +2,6 @@
 This plugins adds a :term:`/rkick` and a :term:`/rban` command,
 in order to kick/ban according to a regex on a nick.
 
-Installation
-------------
-
-You only have to load the plugin:
-
-``/load regex_admin``
-
 Commands
 --------
 

@@ -1,15 +1,6 @@
 """
 Repeats the last message in the conversation.
 
-Installation
-------------
-
-You only have to load the plugin:
-
-.. code-block:: none
-
-    /load mirror
-
 Command
 -------
 

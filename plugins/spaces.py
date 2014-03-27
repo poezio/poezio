@@ -1,14 +1,6 @@
 """
-Insert a space between each character, in messages that you send.
-
-Installation
-------------
-
-You only have to load the plugin:
-
-.. code-block:: none
-        /load spaces
-
+Insert a space between each character, in messages that you send, making
+them horrible to read.
 """
 from plugin import BasePlugin
 

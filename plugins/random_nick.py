@@ -1,12 +1,6 @@
 """
 This plugin makes you have a random nick when joining a MUC.
 
-Installation
-------------
-You only have to load the plugin.::
-
-    /load random_nick
-
 Usage
 -----
 

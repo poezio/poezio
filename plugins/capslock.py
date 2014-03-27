@@ -1,16 +1,5 @@
 """
-Shout
-
-Installation
-------------
-
-You only have to load the plugin:
-
-.. code-block:: none
-
-    /load capslock
-
-
+Once loaded, everything you will send will be IN CAPITAL LETTERS.
 """
 from plugin import BasePlugin
 

@@ -1,12 +1,6 @@
 """
 Lists old versions of a corrected message.
 
-Installation
-------------
-::
-
-    /load display_corrections
-
 Usage
 -----
 

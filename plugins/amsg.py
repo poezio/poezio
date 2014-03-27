@@ -4,12 +4,6 @@ This plugin broadcasts a message to all your joined rooms.
 .. note:: With great power comes great responsability.
           Use with moderation.
 
-Installation
-------------
-You only have to load the plugin.::
-
-    /load amsg
-
 Command
 -------
 
@@ -17,6 +11,8 @@ Command
 
     /amsg
         **Usage:** ``/amsg <message>``
+
+        Broadcast a message.
 
 
 """

@@ -2,13 +2,6 @@
 This plugin adds several convenient aliases, to shorten
 roles/affiliation management.
 
-Installation
-------------
-
-You only have to load the plugin:
-
-``/load admin``
-
 Aliases defined
 ---------------
 

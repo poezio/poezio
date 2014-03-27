@@ -2,13 +2,6 @@
 This plugin uses figlet to transform every message into a big ascii-art
 message.
 
-Installation
-------------
-You only have to load the plugin (and have :file:`figlet` installed, of course).
-::
-
-    /load figlet
-
 
 Usage
 -----

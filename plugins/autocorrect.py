@@ -1,13 +1,6 @@
 """
 This plugin lets you perform simple replacements on the last message.
 
-Installation
-------------
-
-Load the plugin::
-
-    /load autocorrect
-
 Usage
 -----
 

@@ -152,7 +152,12 @@ Plugin index
     Screen Detach
         :ref:`Documentation <screendetach-plugin>`
 
-        Changes your status to _away_ if the screen poezio is in is detached.
+        Changes your status to **away** if the screen poezio is in is detached.
+
+    Send Delayed
+        :ref:`Documentation <senddelayed-plugin>`
+
+        Program the sending of futur messages.
 
     Simple notify
         :ref:`Documentation <simplenotify-plugin>`

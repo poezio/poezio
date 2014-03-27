@@ -1,14 +1,6 @@
 """
 This plugin adds a :term:`/pacokick` command, which is a random kick.
 
-Installation
-------------
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load pacokick
-
 Usage
 -----
 

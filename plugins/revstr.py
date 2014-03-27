@@ -1,16 +1,6 @@
 """
-Reverse everything you say.
-
-Installation
-------------
-
-You only have to load the plugin:
-
-.. code-block:: none
-
-    /load revstr
-
-
+Reverse everything you say (``Je proteste énergiquement`` will become
+``tnemeuqigrené etsetorp eJ``)
 """
 from plugin import BasePlugin
 

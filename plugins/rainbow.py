@@ -1,15 +1,6 @@
 """
 This plugin colors each character of a message with a random color.
 
-Installation
-------------
-
-You only have to load the plugin.
-
-.. code-block:: none
-
-    /load rainbow
-
 Usage
 -----
 
