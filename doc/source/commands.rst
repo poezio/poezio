@@ -59,10 +59,15 @@ These commands work in *any* tab.
     /quit
         Just disconnect from the server and exit poezio.
 
-    /plugin
+    /load
         **Usage:** ``/load <plugin name>``
 
-        Load a plugin.
+        Load or reload a plugin.
+
+    /unload
+        **Usage:** ``/unload <plugin name>``
+
+        Unload a plugin.
 
     /plugins
         List the loaded plugins.

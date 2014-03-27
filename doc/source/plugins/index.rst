@@ -33,6 +33,12 @@ e.g.
 
     plugins_autoload = gpg:tell:exec
 
+Manual plugin load
+------------------
+
+Plugins can of course be loaded with the command :term:`/load` and unloaded
+with the command :term:`/unload`.
+
 .. _plugin-configuration:
 
 Plugin configuration

@@ -100,7 +100,7 @@ class Plugin(BasePlugin):
         sections = self.config.sections()
 
         for section in (s for s in sections if s != 'irc'):
-            server_suffix = '%%%s@%s' % (section, gateway)
+            server_suffix = '%{}@{}'.format(section, gateway)
 
             already_opened = False
             for tab in self.core.tabs:
