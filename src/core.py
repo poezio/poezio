@@ -1086,7 +1086,6 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick), tabs.PrivateTab)
         if tab:
             tab.rename_user(old_nick, new_nick)
-        self.on_user_rejoined_private_conversation(room_name, new_nick)
 
     def on_user_left_private_conversation(self, room_name, nick, status_message):
         """

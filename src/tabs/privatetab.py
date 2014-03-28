@@ -308,6 +308,7 @@ class PrivateTab(ChatTab):
     def get_text_window(self):
         return self.text_win
 
+    @refresh_wrapper.conditional
     def rename_user(self, old_nick, new_nick):
         """
         The user changed her nick in the corresponding muc: update the tab’s name and
@@ -316,6 +317,7 @@ class PrivateTab(ChatTab):
         self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         new_jid = safeJID(self.name).bare+'/'+new_nick
         self.name = new_jid
+        return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
     def user_left(self, status_message, from_nick):
