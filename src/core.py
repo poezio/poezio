@@ -3378,11 +3378,16 @@ class Core(object):
         The roster was received.
         """
         for item in iq['roster']:
-            jid = item['jid']
-            if item['subscription'] == 'remove':
-                del roster[jid]
+            try:
+                jid = item['jid']
+            except InvalidJID:
+                jid = item._get_attr('jid', '')
+                log.error('Invalid JID: "%s"', jid, exc_info=True)
             else:
-                roster.update_contact_groups(jid)
+                if item['subscription'] == 'remove':
+                    del roster[jid]
+                else:
+                    roster.update_contact_groups(jid)
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
 
