@@ -5,11 +5,13 @@
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
 
-from os import environ, makedirs
 import mmap
 import os
 import re
+from os import environ, makedirs
 from datetime import datetime
+
+import common
 from config import config
 from xhtml import clean_text
 from theming import dump_tuple, get_theme
@@ -155,7 +157,9 @@ class Logger(object):
                 log.debug('format? %s', tup)
                 continue
             time = [int(i) for index, i in enumerate(tup) if index < 6]
-            message = {'lines': [], 'history': True, 'time': datetime(*time)}
+            message = {'lines': [],
+                       'history': True,
+                       'time': common.get_local_time(datetime(*time))}
             size = int(tup[6])
             if len(tup) == 8: #info line
                 message['lines'].append(color+tup[7])
@@ -195,9 +199,9 @@ class Logger(object):
         try:
             msg = clean_text(msg)
             if date is None:
-                str_time = datetime.now().strftime('%Y%m%dT%H:%M:%SZ')
+                str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
             else:
-                str_time = date.strftime('%Y%m%dT%H:%M:%SZ')
+                str_time = common.get_utc_time(date).strftime('%Y%m%dT%H:%M:%SZ')
             if typ == 1:
                 prefix = 'MR'
             else:
@@ -244,7 +248,7 @@ class Logger(object):
                         exc_info=True)
                 return False
         try:
-            str_time = datetime.now().strftime('%Y%m%dT%H:%M:%SZ')
+            str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
             message = clean_text(message)
             lines = message.split('\n')
             first_line = lines.pop(0)

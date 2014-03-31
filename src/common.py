@@ -218,6 +218,53 @@ def datetime_tuple(timestamp):
     ret += tz
     return ret
 
+def get_utc_time(local_time=None):
+    """
+    Get the current time in UTC
+
+    :param datetime local_time: The current local time
+    :return: The current UTC time
+    >>> delta = timedelta(seconds=-3600)
+    >>> d = datetime.now()
+    >>> time.timezone = -3600; time.altzone = -3600
+    >>> get_utc_time(local_time=d) == d + delta
+    True
+    """
+    if local_time is None:
+        local_time = datetime.now()
+        isdst = time.localtime().tm_isdst
+    else:
+        isdst = time.localtime(int(local_time.timestamp())).tm_isdst
+
+    if time.daylight and isdst:
+        tz = timedelta(seconds=time.altzone)
+    else:
+        tz = timedelta(seconds=time.timezone)
+
+    utc_time = local_time + tz
+
+    return utc_time
+
+def get_local_time(utc_time):
+    """
+    Get the local time from an UTC time
+
+    >>> delta = timedelta(seconds=-3600)
+    >>> d = datetime.now()
+    >>> time.timezone = -3600; time.altzone = -3600
+    >>> get_local_time(d) == d - delta
+    True
+    """
+    isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
+    if time.daylight and isdst:
+        tz = timedelta(seconds=time.altzone)
+    else:
+        tz = timedelta(seconds=time.timezone)
+
+    local_time = utc_time - tz
+
+    return local_time
+
 def find_delayed_tag(message):
     """
     Check if a message is delayed or not.
