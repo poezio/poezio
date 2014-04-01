@@ -2,6 +2,7 @@
 Once loaded, everything you will send will be IN CAPITAL LETTERS.
 """
 from plugin import BasePlugin
+import xhtml
 
 class Plugin(BasePlugin):
     def init(self):
@@ -10,4 +11,4 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_say', self.caps)
 
     def caps(self, msg, tab):
-        msg['body'] = msg['body'].upper()
+        msg['body'] = xhtml.clean_text(msg['body']).upper()

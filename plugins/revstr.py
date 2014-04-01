@@ -3,6 +3,7 @@ Reverse everything you say (``Je proteste énergiquement`` will become
 ``tnemeuqigrené etsetorp eJ``)
 """
 from plugin import BasePlugin
+import xhtml
 
 class Plugin(BasePlugin):
     def init(self):
@@ -11,4 +12,4 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_say', self.revstr)
 
     def revstr(self, msg, tab):
-        msg['body'] = msg['body'][::-1]
+        msg['body'] = xhtml.clean_text(msg['body'])[::-1]

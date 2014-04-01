@@ -4,12 +4,13 @@ Shuffle the words in every message you send in a :ref:`muctab`
 """
 from plugin import BasePlugin
 from random import shuffle
+import xhtml
 
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.shuffle)
 
     def shuffle(self, msg, tab):
-        split = msg['body'].split()
+        split = xhtml.clean_text(msg['body']).split()
         shuffle(split)
         msg['body'] = ' '.join(split)
