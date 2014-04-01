@@ -2816,14 +2816,14 @@ class Core(object):
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.completion_last_activity)
 
-        if config.get('enable_user_mood', True):
+        if config.get('enable_user_activity', True):
             self.register_command('activity', self.command_activity,
                     usage='[<general> [specific] [text]]',
                     desc=_('Send your current activity to your contacts (use the completion).'
                            ' Nothing means "stop broadcasting an activity".'),
                     shortdesc=_('Send your activity.'),
                     completion=self.completion_activity)
-        if config.get('enable_user_activity', True):
+        if config.get('enable_user_mood', True):
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
                     desc=_('Send your current mood to your contacts (use the completion).'
