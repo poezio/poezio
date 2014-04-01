@@ -729,7 +729,7 @@ class RosterInfoTab(Tab):
         """
         option = 'roster_show_offline'
         value = config.get(option, False)
-        success = config.silent_set(option, not value)
+        success = config.silent_set(option, str(not value))
         roster.modified()
         if not success:
             self.core.information(_('Unable to write in the config file'), 'Error')
