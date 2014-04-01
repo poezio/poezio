@@ -505,6 +505,7 @@ class Core(object):
             return res
 
         while self.running:
+            self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
             big_char_list = [replace_key_with_bound(key)\
                              for key in self.read_keyboard()]
             # whether to refresh after ALL keys have been handled
@@ -2297,7 +2298,7 @@ class Core(object):
 
     def command_last_activity(self, arg):
         """
-        /activity <jid>
+        /last_activity <jid>
         """
         def callback(iq):
             if iq['type'] != 'result':
@@ -2325,7 +2326,14 @@ class Core(object):
         self.xmpp.plugin['xep_0012'].get_last_activity(jid, block=False, callback=callback)
 
     def completion_last_activity(self, the_input):
-            return the_input.new_completion([jid for jid in roster.jids()], 1, quotify=False)
+        """
+        Completion for /last_activity <jid>
+        """
+        n = the_input.get_argument_position(quoted=False)
+        if n >= 2:
+            return
+        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
+        return the_input.new_completion(sorted(comp), 1, '', quotify=False)
 
     def command_mood(self, arg):
         """
