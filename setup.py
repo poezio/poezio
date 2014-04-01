@@ -49,7 +49,7 @@ setup(name="poezio",
                        'Programming Language :: Python :: 3'
                     ],
        keywords = ['jabber', 'xmpp', 'client', 'chat', 'im', 'console'],
-       packages = ['poezio', 'poezio_plugins', 'poezio_plugins.gpg', 'poezio_themes'],
+       packages = ['poezio', 'poezio.tabs', 'poezio_plugins', 'poezio_plugins.gpg', 'poezio_themes'],
        package_dir = {'poezio': 'src', 'poezio_plugins': 'plugins', 'poezio_themes': 'data/themes'},
        package_data = {'poezio': ['default_config.cfg']},
        scripts = ['scripts/poezio', 'scripts/poezio_gpg_export'],
