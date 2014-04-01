@@ -9,8 +9,10 @@
 Various useful functions.
 """
 
+from sys import version_info
 from datetime import datetime, timedelta
 from sleekxmpp import JID, InvalidJID
+
 import base64
 import os
 import mimetypes
@@ -19,6 +21,11 @@ import subprocess
 import time
 import string
 import poezio_shlex as shlex
+
+
+# Needed to avoid datetime.datetime.timestamp()
+# on python < 3.3. Older versions do not get good dst detection.
+OLD_PYTHON = (version_info.major + version_info.minor/10) < 3.3
 
 ROOM_STATE_NONE = 11
 ROOM_STATE_CURRENT = 10
@@ -234,7 +241,10 @@ def get_utc_time(local_time=None):
         local_time = datetime.now()
         isdst = time.localtime().tm_isdst
     else:
-        isdst = time.localtime(int(local_time.timestamp())).tm_isdst
+        if OLD_PYTHON:
+            isdst = time.localtime().tm_isdst
+        else:
+            isdst = time.localtime(int(local_time.timestamp())).tm_isdst
 
     if time.daylight and isdst:
         tz = timedelta(seconds=time.altzone)
@@ -255,7 +265,10 @@ def get_local_time(utc_time):
     >>> get_local_time(d) == d - delta
     True
     """
-    isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
+    if OLD_PYTHON:
+        isdst = time.localtime().tm_isdst
+    else:
+        isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
     if time.daylight and isdst:
         tz = timedelta(seconds=time.altzone)
     else:
