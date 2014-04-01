@@ -1,9 +1,9 @@
 Installing poezio
 =================
 
-.. important:: Python 3.3 or better is highly recommended, as we do not
-    officially support python 3.1 (although we do try to keep things running),
-    and python 3.2 has some unfixable issues.
+.. important:: Python 3.3 or better is **required**, as we do not
+    officially support python 3.1 or 3.2 (although we do try to keep
+    things running), and python 3.2 has some unfixable issues.
 
 poezio in the GNU/Linux distributions
 -------------------------------------
@@ -62,7 +62,7 @@ General
 """""""
 
 Poezio is a python3-only application, so you will first need that, preferably
-in the latest available version, down to 3.2.
+in the latest available version, down to 3.3.
 
 .. note:: Python 3.1 is not officially supported and tested, but should
     work (if it doesn’t, we can fix it if the fix does not require ugly

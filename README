@@ -27,7 +27,7 @@ MUCs, especially XEP 0045.
     Install
 =======================
 
-You need python 3.1 or higher (preferably 3.3) and the associated devel
+You need python 3.3 or higher (preferably the latest) and the associated devel
 package, to build C modules, and the SleekXMPP python library (develop branch).
 You can optionally add dnspython if you want SRV record support.
 
