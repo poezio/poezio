@@ -315,7 +315,10 @@ class ConversationTab(ChatTab):
                 resource = contact.get_highest_priority_resource()
         else:
             resource = None
-        self.state = 'normal'
+        if self.input.text:
+            self.state = 'nonempty'
+        else:
+            self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and (not self.input.get_text() or not self.input.get_text().startswith('//')):

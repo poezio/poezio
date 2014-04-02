@@ -280,7 +280,11 @@ class PrivateTab(ChatTab):
         return False
 
     def on_lose_focus(self):
-        self.state = 'normal'
+        if self.input.text:
+            self.state = 'nonempty'
+        else:
+            self.state = 'normal'
+
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)

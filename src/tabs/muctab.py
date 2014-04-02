@@ -768,7 +768,10 @@ class MucTab(ChatTab):
 
     def on_lose_focus(self):
         if self.joined:
-            self.state = 'normal'
+            if self.input.text:
+                self.state = 'nonempty'
+            else:
+                self.state = 'normal'
         else:
             self.state = 'disconnected'
         self.text_win.remove_line_separator()

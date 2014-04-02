@@ -44,6 +44,7 @@ MIN_HEIGHT = 6
 STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
         'scrolled': lambda: get_theme().COLOR_TAB_SCROLLED,
+        'nonempty': lambda: get_theme().COLOR_TAB_NONEMPTY,
         'joined': lambda: get_theme().COLOR_TAB_JOINED,
         'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
@@ -55,6 +56,7 @@ STATE_COLORS = {
 VERTICAL_STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
         'scrolled': lambda: get_theme().COLOR_VERTICAL_TAB_SCROLLED,
+        'nonempty': lambda: get_theme().COLOR_VERTICAL_TAB_NONEMPTY,
         'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
         'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
         'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
@@ -71,6 +73,7 @@ STATE_PRIORITY = {
         'normal': -1,
         'current': -1,
         'disconnected': 0,
+        'nonempty': 0.1,
         'scrolled': 0.5,
         'message': 1,
         'joined': 1,
