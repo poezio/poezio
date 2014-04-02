@@ -242,7 +242,7 @@ def get_utc_time(local_time=None):
         isdst = time.localtime().tm_isdst
     else:
         if OLD_PYTHON:
-            isdst = time.localtime().tm_isdst
+            isdst = time.localtime(int(local_time.strftime("%s"))).tm_isdst
         else:
             isdst = time.localtime(int(local_time.timestamp())).tm_isdst
 
@@ -266,9 +266,10 @@ def get_local_time(utc_time):
     True
     """
     if OLD_PYTHON:
-        isdst = time.localtime().tm_isdst
+        isdst = time.localtime(int(utc_time.strftime("%s"))).tm_isdst
     else:
         isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
+
     if time.daylight and isdst:
         tz = timedelta(seconds=time.altzone)
     else:
