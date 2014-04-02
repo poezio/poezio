@@ -406,6 +406,7 @@ class DynamicConversationTab(ConversationTab):
         Unlock the tab from a resource. It is now “associated” with the bare
         jid.
         """
+        self.remote_wants_chatstates = None
         if self.locked_resource != None:
             self.locked_resource = None
 

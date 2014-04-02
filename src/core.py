@@ -3494,6 +3494,10 @@ class Core(object):
             return
         roster.modified()
         contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
+        # reset chat states status on presence error
+        tab = self.get_tab_by_name(jid.full, tabs.ConversationTab)
+        if tab:
+            tab.remote_wants_chatstates = None
 
     def on_got_offline(self, presence):
         """

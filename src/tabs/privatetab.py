@@ -357,6 +357,7 @@ class PrivateTab(ChatTab):
 
     def deactivate(self, reason=None):
         self.on = False
+        self.remote_wants_chatstates = None
         if reason:
             self.add_message(txt=reason, typ=2)
 
