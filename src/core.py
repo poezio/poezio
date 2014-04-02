@@ -3197,6 +3197,7 @@ class Core(object):
         tab = self.get_tab_by_name(room_from, tabs.MucTab)
         if not tab:
             self.information(_("message received for a non-existing room: %s") % (room_from))
+            muc.leave_groupchat(self.xmpp, room_from, self.own_nick, msg='')
             return
 
         nick_from = message['mucnick']
