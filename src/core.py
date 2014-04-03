@@ -3237,7 +3237,9 @@ class Core(object):
             self.doupdate()
         elif tab.state != old_state:
             self.refresh_tab_win()
-            self.current_tab().input.refresh()
+            current = self.current_tab()
+            if hasattr(current, 'input') and current.input:
+                current.input.refresh()
             self.doupdate()
 
         if 'message' in config.get('beep_on', 'highlight private').split():
