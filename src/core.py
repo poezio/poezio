@@ -3001,7 +3001,7 @@ class Core(object):
                             nickname=remote_nick)
                     return True
                 except CorrectionError:
-                    log.error('Unable to correct a message', exc_info=True)
+                    log.debug('Unable to correct a message', exc_info=True)
             return False
 
         if not try_modify():
@@ -3223,7 +3223,7 @@ class Core(object):
                     self.events.trigger('highlight', message, tab)
                 replaced = True
             except CorrectionError:
-                log.error('Unable to correct a message', exc_info=True)
+                log.debug('Unable to correct a message', exc_info=True)
         if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
             self.events.trigger('highlight', message, tab)
 
@@ -3287,7 +3287,7 @@ class Core(object):
                         nickname=nick_from)
                 replaced = True
             except CorrectionError:
-                log.error('Unable to correct a message', exc_info=True)
+                log.debug('Unable to correct a message', exc_info=True)
         if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=user,
