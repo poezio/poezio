@@ -12,7 +12,6 @@ automatically be changed to something random, for example: ::
 """
 
 from plugin import BasePlugin
-from tabs import MucTab
 from random import choice
 
 class Plugin(BasePlugin):

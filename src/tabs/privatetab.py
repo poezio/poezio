@@ -19,7 +19,6 @@ import curses
 
 from . import ChatTab, MucTab, Tab
 
-import common
 import fixes
 import windows
 import xhtml

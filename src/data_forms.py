@@ -11,7 +11,6 @@ Defines the data-forms Tab and all the Windows for it.
 
 import logging
 log = logging.getLogger(__name__)
-import curses
 
 from windows import g_lock
 import windows

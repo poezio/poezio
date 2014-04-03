@@ -12,7 +12,6 @@ Command
         Retrieve the uptime of the server of ``jid``.
 """
 from plugin import BasePlugin
-import tabs
 from common import parse_secs_to_str, safeJID
 from sleekxmpp.xmlstream import ET
 

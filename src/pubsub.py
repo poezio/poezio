@@ -20,7 +20,7 @@ import atom_parser
 from config import config
 
 from datetime import datetime
-from sleekxmpp.xmlstream import ElementBase, ET
+from sleekxmpp.xmlstream import ET
 
 ATOM_XMLNS = "http://www.w3.org/2005/Atom"
 

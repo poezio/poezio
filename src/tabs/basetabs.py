@@ -33,7 +33,7 @@ from common import safeJID
 from config import config
 from decorators import refresh_wrapper
 from logger import logger
-from text_buffer import TextBuffer, CorrectionError
+from text_buffer import TextBuffer
 from theming import get_theme
 
 

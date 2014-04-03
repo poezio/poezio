@@ -8,7 +8,6 @@ bookmark storage. It can also parse xml Elements.
 This module also defines several functions for retrieving and updating
 bookmarks, both local and remote.
 """
-import os
 import logging
 from sys import version_info
 

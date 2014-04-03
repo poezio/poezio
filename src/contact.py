@@ -13,7 +13,6 @@ the roster.
 import logging
 log = logging.getLogger(__name__)
 
-from sleekxmpp import JID
 from common import safeJID
 from collections import defaultdict
 

@@ -12,15 +12,11 @@ Defines the Connection class
 import logging
 log = logging.getLogger(__name__)
 
-from gettext import (bindtextdomain, textdomain, bind_textdomain_codeset,
-                     gettext as _)
 
 import getpass
-import sys
 import sleekxmpp
 
 from config import config, options
-from logger import logger
 import common
 from common import safeJID
 

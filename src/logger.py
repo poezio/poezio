@@ -8,7 +8,7 @@
 import mmap
 import os
 import re
-from os import environ, makedirs
+from os import makedirs
 from datetime import datetime
 
 import common

@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 import curses
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from . import ChatTab, Tab
 

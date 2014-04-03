@@ -17,7 +17,6 @@ Just use the word in a message. It will be replaced automatically.
 """
 
 from plugin import BasePlugin
-import tabs
 import re
 
 class Plugin(BasePlugin):

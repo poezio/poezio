@@ -7,10 +7,10 @@
 
 from gettext import gettext as _
 
+import curses
 import os
 import sys
 import time
-import curses
 import pipes
 import ssl
 
@@ -27,7 +27,7 @@ import logging
 import singleton
 import collections
 
-from sleekxmpp import JID, InvalidJID
+from sleekxmpp import InvalidJID
 from common import safeJID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 from sleekxmpp.xmlstream.handler import Callback

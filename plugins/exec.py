@@ -36,9 +36,7 @@ Usage
 """
 
 from plugin import BasePlugin
-import os
 import common
-import shlex
 import subprocess
 
 class Plugin(BasePlugin):

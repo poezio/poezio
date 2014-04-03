@@ -68,9 +68,8 @@ Example of the syntax:
 
 
 from plugin import BasePlugin
-import common
 from common import shell_split
-from functools import partial, wraps
+
 
 class Plugin(BasePlugin):
     def init(self):

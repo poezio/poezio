@@ -19,7 +19,6 @@ import logging.config
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import options
-from logger import logger
 import singleton
 import core
 

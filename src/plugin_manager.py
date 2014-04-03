@@ -8,7 +8,6 @@ plugin env.
 import imp
 import os
 from os import path
-import sys
 import logging
 from gettext import gettext as _
 from sys import version_info

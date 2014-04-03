@@ -4,7 +4,7 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
-import os, sys
+import os
 
 module_poopt = Extension('poezio.poopt',
                     extra_compile_args=['-Wno-declaration-after-statement'],

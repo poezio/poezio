@@ -25,7 +25,6 @@ Command
 from plugin import BasePlugin
 from roster import roster
 from common import safeJID
-import common
 import tabs
 import time
 

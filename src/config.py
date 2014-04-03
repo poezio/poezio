@@ -12,12 +12,9 @@ from/to the config file
 
 DEFSECTION = "Poezio"
 
-from gettext import gettext as _
-import sys
-import tempfile
-
-import os
 import logging
+import os
+import sys
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
