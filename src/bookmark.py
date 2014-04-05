@@ -133,7 +133,7 @@ def save_privatexml(xmpp):
 
 def save_remote(xmpp, method=preferred):
     """Save the remote bookmarks."""
-    method = "privatexml" if method != 'pep'  else 'pep'
+    method = 'privatexml' if method != 'pep' else 'pep'
 
     try:
         if method is 'privatexml':
@@ -144,7 +144,7 @@ def save_remote(xmpp, method=preferred):
                     method='xep_0223')
     except:
         import traceback
-        log.debug("Could not save the bookmarks:\n%s" % traceback.format_exc())
+        log.error("Could not save the bookmarks:\n%s" % traceback.format_exc())
         return False
     return True
 

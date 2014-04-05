@@ -1973,21 +1973,26 @@ class Core(object):
         args = common.shell_split(arg)
         nick = None
         password = None
-        if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.current_tab(), tabs.MucTab):
             return
-        if len(args) == 0:
+        if not args:
             tab = self.current_tab()
             roomname = tab.get_name()
             if tab.joined and tab.own_nick != self.own_nick:
                 nick = tab.own_nick
         elif args[0] == '*':
+            new_bookmarks = []
             for tab in self.get_tabs(tabs.MucTab):
                 b = bookmark.get_by_jid(tab.get_name())
                 if not b:
                     b = bookmark.Bookmark(tab.get_name(), autojoin=True, method="local")
-                    bookmark.bookmarks.append(b)
+                    new_bookmarks.append(b)
                 else:
                     b.method = "local"
+                    new_bookmarks.append(b)
+                    bookmark.bookmarks.remove(b)
+            new_bookmarks.extend(bookmark.bookmarks)
+            bookmark.bookmarks = new_bookmarks
             bookmark.save_local()
             bookmark.save_remote(self.xmpp)
             self.information('Bookmarks added and saved.', 'Info')
@@ -2058,9 +2063,9 @@ class Core(object):
             return
         args = common.shell_split(arg)
         nick = None
-        if len(args) == 0 and not isinstance(self.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.current_tab(), tabs.MucTab):
             return
-        if len(args) == 0:
+        if not args:
             tab = self.current_tab()
             roomname = tab.get_name()
             if tab.joined:
@@ -2072,15 +2077,21 @@ class Core(object):
                 autojoin = False if args[1].lower() != 'true' else True
             else:
                 autojoin = True
+            new_bookmarks = []
             for tab in self.get_tabs(tabs.MucTab):
                 b = bookmark.get_by_jid(tab.get_name())
                 if not b:
                     b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
                             method=bookmark.preferred)
-                    bookmark.bookmarks.append(b)
+                    new_bookmarks.append(b)
                 else:
                     b.method = bookmark.preferred
-            if bookmark.save_remote(self.xmpp, self):
+                    bookmark.bookmarks.remove(b)
+                    new_bookmarks.append(b)
+            new_bookmarks.extend(bookmark.bookmarks)
+            bookmark.bookmarks = new_bookmarks
+
+            if bookmark.save_remote(self.xmpp):
                 bookmark.save_local()
                 self.information("Bookmarks added.", "Info")
             else:
