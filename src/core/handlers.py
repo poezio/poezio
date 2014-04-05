@@ -1,0 +1,1022 @@
+"""
+XMPP-related handlers for the Core class
+"""
+
+import logging
+log = logging.getLogger(__name__)
+
+import curses
+import ssl
+import time
+from hashlib import sha1
+from gettext import gettext as _
+
+from sleekxmpp import InvalidJID
+from sleekxmpp.xmlstream.stanzabase import StanzaBase
+
+import common
+import xhtml
+import pep
+import tabs
+import bookmark
+import windows
+import multiuserchat as muc
+from common import safeJID
+from config import config
+from contact import Resource
+from logger import logger
+from roster import roster
+from text_buffer import CorrectionError
+from theming import dump_tuple, get_theme
+
+from . commands import dumb_callback
+
+def on_session_start_features(self, _):
+    """
+    Enable carbons & blocking on session start if wanted and possible
+    """
+    def callback(iq):
+        if not iq:
+            return
+        features = iq['disco_info']['features']
+        rostertab = self.get_tab_by_name('Roster')
+        rostertab.check_blocking(features)
+        if (config.get('enable_carbons', True) and
+                'urn:xmpp:carbons:2' in features):
+            self.xmpp.plugin['xep_0280'].enable()
+            self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
+            self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
+    features = self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain, callback=callback, block=False)
+
+def on_carbon_received(self, message):
+    recv = message['carbon_received']
+    if recv['from'].bare not in roster or roster[recv['from'].bare].subscription == 'none':
+        try:
+            if self.xmpp.plugin['xep_0030'].has_identity(jid=recv['from'].server, category="conference"):
+                return
+        except:
+            pass
+        else:
+            return
+    recv['to'] = self.xmpp.boundjid.full
+    self.on_normal_message(recv)
+
+def on_carbon_sent(self, message):
+    sent = message['carbon_sent']
+    if sent['to'].bare not in roster or roster[sent['to'].bare].subscription == 'none':
+        try:
+            if self.xmpp.plugin['xep_0030'].has_identity(jid=sent['to'].server, category="conference"):
+                return
+        except:
+            pass
+        else:
+            return
+    sent['from'] = self.xmpp.boundjid.full
+    self.on_normal_message(sent)
+
+### Invites ###
+
+def on_groupchat_invite(self, message):
+    jid = message['from']
+    if jid.bare in self.pending_invites:
+        return
+    # there are 2 'x' tags in the messages, making message['x'] useless
+    invite = StanzaBase(self.xmpp, xml=message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
+    inviter = invite['from']
+    reason = invite['reason']
+    password = invite['password']
+    msg = "You are invited to the room %s by %s" % (jid.full, inviter.full)
+    if reason:
+        msg += "because: %s" % reason
+    if password:
+        msg += ". The password is \"%s\"." % password
+    self.information(msg, 'Info')
+    if 'invite' in config.get('beep_on', 'invite').split():
+        curses.beep()
+    logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
+    self.pending_invites[jid.bare] = inviter.full
+
+def on_groupchat_decline(self, decline):
+    pass
+
+### "classic" messages ###
+
+def on_message(self, message):
+    """
+    When receiving private message from a muc OR a normal message
+    (from one of our contacts)
+    """
+    if message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') != None:
+        return
+    if message['type'] == 'groupchat':
+        return
+    # Differentiate both type of messages, and call the appropriate handler.
+    jid_from = message['from']
+    for tab in self.get_tabs(tabs.MucTab):
+        if tab.get_name() == jid_from.bare:
+            if message['type'] == 'error':
+                return self.room_error(message, jid_from)
+            else:
+                return self.on_groupchat_private_message(message)
+    return self.on_normal_message(message)
+
+def on_normal_message(self, message):
+    """
+    When receiving "normal" messages (from someone in our roster)
+    """
+    if message['type'] == 'error':
+        return self.information(self.get_error_message(message, deprecated=True), 'Error')
+    elif message['type'] == 'headline' and message['body']:
+        return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
+
+    use_xhtml = config.get('enable_xhtml_im', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    if not body:
+        return
+
+    remote_nick = ''
+    # normal message, we are the recipient
+    if message['to'].bare == self.xmpp.boundjid.bare:
+        conv_jid = message['from']
+        jid = conv_jid
+        color = get_theme().COLOR_REMOTE_USER
+        # check for a name
+        if conv_jid.bare in roster:
+            remote_nick = roster[conv_jid.bare].name
+        # check for a received nick
+        if not remote_nick and config.get('enable_user_nick', True):
+            if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
+                remote_nick = message['nick']['nick']
+        own = False
+    # we wrote the message (happens with carbons)
+    elif message['from'].bare == self.xmpp.boundjid.bare:
+        conv_jid = message['to']
+        jid = self.xmpp.boundjid
+        color = get_theme().COLOR_OWN_NICK
+        remote_nick = self.own_nick
+        own = True
+    # we are not part of that message, drop it
+    else:
+        return
+
+    conversation = self.get_conversation_by_jid(conv_jid, create=True)
+    if isinstance(conversation, tabs.DynamicConversationTab):
+        conversation.lock(conv_jid.resource)
+
+    if not remote_nick and conversation.nick:
+        remote_nick = conversation.nick
+    elif not remote_nick or own:
+        remote_nick = conv_jid.user
+    conversation.nick = remote_nick
+
+    self.events.trigger('conversation_msg', message, conversation)
+    if not message['body']:
+        return
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    delayed, date = common.find_delayed_tag(message)
+
+    def try_modify():
+        replaced_id = message['replace']['id']
+        if replaced_id and (config.get_by_tabname('group_corrections',
+            True, conv_jid.bare)):
+            try:
+                conversation.modify_message(body, replaced_id, message['id'], jid=jid,
+                        nickname=remote_nick)
+                return True
+            except CorrectionError:
+                log.debug('Unable to correct a message', exc_info=True)
+        return False
+
+    if not try_modify():
+        conversation.add_message(body, date,
+                nickname=remote_nick,
+                nick_color=color,
+                history=delayed,
+                identifier=message['id'],
+                jid=jid,
+                typ=1)
+
+    if conversation.remote_wants_chatstates is None and not delayed:
+        if message['chat_state']:
+            conversation.remote_wants_chatstates = True
+        else:
+            conversation.remote_wants_chatstates = False
+    if 'private' in config.get('beep_on', 'highlight private').split():
+        if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
+            curses.beep()
+    if self.current_tab() is not conversation:
+        conversation.state = 'private'
+        self.refresh_tab_win()
+    else:
+        self.refresh_window()
+
+def on_nick_received(self, message):
+    """
+    Called when a pep notification for an user nickname
+    is received
+    """
+    contact = roster[message['from'].bare]
+    if not contact:
+        return
+    item = message['pubsub_event']['items']['item']
+    if item.xml.find('{http://jabber.org/protocol/nick}nick'):
+        contact.name = item['nick']['nick']
+    else:
+        contact.name= ''
+
+def on_gaming_event(self, message):
+    """
+    Called when a pep notification for user gaming
+    is received
+    """
+    contact = roster[message['from'].bare]
+    if not contact:
+        return
+    item = message['pubsub_event']['items']['item']
+    old_gaming = contact.gaming
+    if item.xml.find('{urn:xmpp:gaming:0}gaming'):
+        item = item['gaming']
+        # only name and server_address are used for now
+        contact.gaming = {
+                'character_name': item['character_name'],
+                'character_profile': item['character_profile'],
+                'name': item['name'],
+                'level': item['level'],
+                'uri': item['uri'],
+                'server_name': item['server_name'],
+                'server_address': item['server_address'],
+            }
+    else:
+        contact.gaming = {}
+
+    if contact.gaming:
+        logger.log_roster_change(contact.bare_jid, 'is playing %s' % (common.format_gaming_string(contact.gaming)))
+
+    if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', False, contact.bare_jid):
+        if contact.gaming:
+            self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
+        else:
+            self.information(contact.bare_jid + ' stopped playing.', 'Gaming')
+
+def on_mood_event(self, message):
+    """
+    Called when a pep notification for an user mood
+    is received.
+    """
+    contact = roster[message['from'].bare]
+    if not contact:
+        return
+    roster.modified()
+    item = message['pubsub_event']['items']['item']
+    old_mood = contact.mood
+    if item.xml.find('{http://jabber.org/protocol/mood}mood'):
+        mood = item['mood']['value']
+        if mood:
+            mood = pep.MOODS.get(mood, mood)
+            text = item['mood']['text']
+            if text:
+                mood = '%s (%s)' % (mood, text)
+            contact.mood = mood
+        else:
+            contact.mood = ''
+    else:
+        contact.mood = ''
+
+    if contact.mood:
+        logger.log_roster_change(contact.bare_jid, 'has now the mood: %s' % contact.mood)
+
+    if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', False, contact.bare_jid):
+        if contact.mood:
+            self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
+        else:
+            self.information(contact.bare_jid + ' stopped having his/her mood.', 'Mood')
+
+def on_activity_event(self, message):
+    """
+    Called when a pep notification for an user activity
+    is received.
+    """
+    contact = roster[message['from'].bare]
+    if not contact:
+        return
+    roster.modified()
+    item = message['pubsub_event']['items']['item']
+    old_activity = contact.activity
+    if item.xml.find('{http://jabber.org/protocol/activity}activity'):
+        try:
+            activity = item['activity']['value']
+        except ValueError:
+            return
+        if activity[0]:
+            general = pep.ACTIVITIES.get(activity[0])
+            s = general['category']
+            if activity[1]:
+                s = s + '/' + general.get(activity[1], 'other')
+            text = item['activity']['text']
+            if text:
+                s = '%s (%s)' % (s, text)
+            contact.activity = s
+        else:
+            contact.activity = ''
+    else:
+        contact.activity = ''
+
+    if contact.activity:
+        logger.log_roster_change(contact.bare_jid, 'has now the activity %s' % contact.activity)
+
+    if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', False, contact.bare_jid):
+        if contact.activity:
+            self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
+        else:
+            self.information(contact.bare_jid + ' stopped doing his/her activity.', 'Activity')
+
+def on_tune_event(self, message):
+    """
+    Called when a pep notification for an user tune
+    is received
+    """
+    contact = roster[message['from'].bare]
+    if not contact:
+        return
+    roster.modified()
+    item = message['pubsub_event']['items']['item']
+    old_tune = contact.tune
+    if item.xml.find('{http://jabber.org/protocol/tune}tune'):
+        item = item['tune']
+        contact.tune =  {
+                'artist': item['artist'],
+                'length': item['length'],
+                'rating': item['rating'],
+                'source': item['source'],
+                'title': item['title'],
+                'track': item['track'],
+                'uri': item['uri']
+            }
+    else:
+        contact.tune = {}
+
+    if contact.tune:
+        logger.log_roster_change(message['from'].bare, 'is now listening to %s' % common.format_tune_string(contact.tune))
+
+    if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', False, contact.bare_jid):
+        if contact.tune:
+            self.information(
+                    'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
+                    'Tune')
+        else:
+            self.information(contact.bare_jid + ' stopped listening to music.', 'Tune')
+
+def on_groupchat_message(self, message):
+    """
+    Triggered whenever a message is received from a multi-user chat room.
+    """
+    if message['subject']:
+        return
+    room_from = message['from'].bare
+
+    if message['type'] == 'error': # Check if it's an error
+        return self.room_error(message, room_from)
+
+    tab = self.get_tab_by_name(room_from, tabs.MucTab)
+    if not tab:
+        self.information(_("message received for a non-existing room: %s") % (room_from))
+        muc.leave_groupchat(self.xmpp, room_from, self.own_nick, msg='')
+        return
+
+    nick_from = message['mucnick']
+    user = tab.get_user_by_name(nick_from)
+    if user and user in tab.ignores:
+        return
+
+    self.events.trigger('muc_msg', message, tab)
+    use_xhtml = config.get('enable_xhtml_im', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    if not body:
+        return
+
+    old_state = tab.state
+    delayed, date = common.find_delayed_tag(message)
+    replaced_id = message['replace']['id']
+    replaced = False
+    if replaced_id is not '' and (config.get_by_tabname(
+        'group_corrections', True, message['from'].bare)):
+        try:
+            if tab.modify_message(body, replaced_id, message['id'], time=date,
+                    nickname=nick_from, user=user):
+                self.events.trigger('highlight', message, tab)
+            replaced = True
+        except CorrectionError:
+            log.debug('Unable to correct a message', exc_info=True)
+    if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
+        self.events.trigger('highlight', message, tab)
+
+    if message['from'].resource == tab.own_nick:
+        tab.last_sent_message = message
+
+    if tab is self.current_tab():
+        tab.text_win.refresh()
+        tab.info_header.refresh(tab, tab.text_win)
+        tab.input.refresh()
+        self.doupdate()
+    elif tab.state != old_state:
+        self.refresh_tab_win()
+        current = self.current_tab()
+        if hasattr(current, 'input') and current.input:
+            current.input.refresh()
+        self.doupdate()
+
+    if 'message' in config.get('beep_on', 'highlight private').split():
+        if not config.get_by_tabname('disable_beep', False, room_from, False):
+            curses.beep()
+
+def on_muc_own_nickchange(self, muc):
+    "We changed our nick in a MUC"
+    for tab in self.get_tabs(tabs.PrivateTab):
+        if tab.parent_muc == muc:
+            tab.own_nick = muc.own_nick
+
+def on_groupchat_private_message(self, message):
+    """
+    We received a Private Message (from someone in a Muc)
+    """
+    jid = message['from']
+    nick_from = jid.resource
+    if not nick_from:
+        return self.on_groupchat_message(message)
+
+    room_from = jid.bare
+    use_xhtml = config.get('enable_xhtml_im', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
+    ignore = config.get_by_tabname('ignore_private', False, room_from)
+    if not tab: # It's the first message we receive: create the tab
+        if body and not ignore:
+            tab = self.open_private_window(room_from, nick_from, False)
+    if ignore:
+        self.events.trigger('ignored_private', message, tab)
+        msg = config.get_by_tabname('private_auto_response', None, room_from)
+        if msg and body:
+            self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
+        return
+    self.events.trigger('private_msg', message, tab)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    if not body or not tab:
+        return
+    replaced_id = message['replace']['id']
+    replaced = False
+    user = tab.parent_muc.get_user_by_name(nick_from)
+    if replaced_id is not '' and (config.get_by_tabname(
+        'group_corrections', True, room_from)):
+        try:
+            tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
+                    nickname=nick_from)
+            replaced = True
+        except CorrectionError:
+            log.debug('Unable to correct a message', exc_info=True)
+    if not replaced:
+        tab.add_message(body, time=None, nickname=nick_from,
+                        forced_user=user,
+                        identifier=message['id'],
+                        jid=message['from'],
+                        typ=1)
+
+    if tab.remote_wants_chatstates is None:
+        if message['chat_state']:
+            tab.remote_wants_chatstates = True
+        else:
+            tab.remote_wants_chatstates = False
+    if 'private' in config.get('beep_on', 'highlight private').split():
+        if not config.get_by_tabname('disable_beep', False, jid.full, False):
+            curses.beep()
+    if tab is self.current_tab():
+        self.refresh_window()
+    else:
+        tab.state = 'private'
+        self.refresh_tab_win()
+
+### Chatstates ###
+
+def on_chatstate_active(self, message):
+    self.on_chatstate(message, "active")
+
+def on_chatstate_inactive(self, message):
+    self.on_chatstate(message, "inactive")
+
+def on_chatstate_composing(self, message):
+    self.on_chatstate(message, "composing")
+
+def on_chatstate_paused(self, message):
+    self.on_chatstate(message, "paused")
+
+def on_chatstate_gone(self, message):
+    self.on_chatstate(message, "gone")
+
+def on_chatstate(self, message, state):
+    if message['type'] == 'chat':
+        if not self.on_chatstate_normal_conversation(message, state):
+            tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+            if not tab:
+                return
+            self.on_chatstate_private_conversation(message, state)
+    elif message['type'] == 'groupchat':
+        self.on_chatstate_groupchat_conversation(message, state)
+
+def on_chatstate_normal_conversation(self, message, state):
+    tab = self.get_conversation_by_jid(message['from'], False)
+    if not tab:
+        return False
+    tab.remote_wants_chatstates = True
+    self.events.trigger('normal_chatstate', message, tab)
+    tab.chatstate = state
+    if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
+        tab.unlock()
+    if tab == self.current_tab():
+        tab.refresh_info_header()
+        self.doupdate()
+    return True
+
+def on_chatstate_private_conversation(self, message, state):
+    """
+    Chatstate received in a private conversation from a MUC
+    """
+    tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+    if not tab:
+        return
+    tab.remote_wants_chatstates = True
+    self.events.trigger('private_chatstate', message, tab)
+    tab.chatstate = state
+    if tab == self.current_tab():
+        tab.refresh_info_header()
+        self.doupdate()
+    return True
+
+def on_chatstate_groupchat_conversation(self, message, state):
+    """
+    Chatstate received in a MUC
+    """
+    nick = message['mucnick']
+    room_from = message.getMucroom()
+    tab = self.get_tab_by_name(room_from, tabs.MucTab)
+    if tab and tab.get_user_by_name(nick):
+        self.events.trigger('muc_chatstate', message, tab)
+        tab.get_user_by_name(nick).chatstate = state
+    if tab == self.current_tab():
+        tab.user_win.refresh(tab.users)
+        tab.input.refresh()
+        self.doupdate()
+
+### subscription-related handlers ###
+
+def on_roster_update(self, iq):
+    """
+    The roster was received.
+    """
+    for item in iq['roster']:
+        try:
+            jid = item['jid']
+        except InvalidJID:
+            jid = item._get_attr('jid', '')
+            log.error('Invalid JID: "%s"', jid, exc_info=True)
+        else:
+            if item['subscription'] == 'remove':
+                del roster[jid]
+            else:
+                roster.update_contact_groups(jid)
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_subscription_request(self, presence):
+    """subscribe received"""
+    jid = presence['from'].bare
+    contact = roster[jid]
+    if contact and contact.subscription in ('from', 'both'):
+        return
+    elif contact and contact.subscription == 'to':
+        self.xmpp.sendPresence(pto=jid, ptype='subscribed')
+        self.xmpp.sendPresence(pto=jid)
+    else:
+        if not contact:
+            contact = roster.get_and_set(jid)
+        roster.update_contact_groups(contact)
+        contact.pending_in = True
+        self.information('%s wants to subscribe to your presence' % jid, 'Roster')
+        self.get_tab_by_number(0).state = 'highlight'
+        roster.modified()
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_subscription_authorized(self, presence):
+    """subscribed received"""
+    jid = presence['from'].bare
+    contact = roster[jid]
+    if contact.subscription not in ('both', 'from'):
+        self.information('%s accepted your contact proposal' % jid, 'Roster')
+    if contact.pending_out:
+        contact.pending_out = False
+
+    roster.modified()
+
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_subscription_remove(self, presence):
+    """unsubscribe received"""
+    jid = presence['from'].bare
+    contact = roster[jid]
+    if not contact:
+        return
+    roster.modified()
+    self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
+    self.get_tab_by_number(0).state = 'highlight'
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_subscription_removed(self, presence):
+    """unsubscribed received"""
+    jid = presence['from'].bare
+    contact = roster[jid]
+    if not contact:
+        return
+    roster.modified()
+    if contact.pending_out:
+        self.information('%s rejected your contact proposal' % jid, 'Roster')
+        contact.pending_out = False
+    else:
+        self.information('%s does not want you to receive his/her/its status anymore.'%jid, 'Roster')
+    self.get_tab_by_number(0).state = 'highlight'
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+### Presence-related handlers ###
+
+def on_presence(self, presence):
+    if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        return
+    jid = presence['from']
+    contact = roster[jid.bare]
+    tab = self.get_conversation_by_jid(jid, create=False)
+    if isinstance(tab, tabs.DynamicConversationTab):
+        if tab.get_dest_jid() != jid.full:
+            tab.unlock(from_=jid.full)
+        elif presence['type'] == 'unavailable':
+            tab.unlock()
+    if contact is None:
+        return
+    roster.modified()
+    contact.error = None
+    self.events.trigger('normal_presence', presence, contact[jid.full])
+    tab = self.get_conversation_by_jid(jid, create=False)
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+    elif self.current_tab() == tab:
+        tab.refresh()
+        self.doupdate()
+
+def on_presence_error(self, presence):
+    jid = presence['from']
+    contact = roster[jid.bare]
+    if not contact:
+        return
+    roster.modified()
+    contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
+    # reset chat states status on presence error
+    tab = self.get_tab_by_name(jid.full, tabs.ConversationTab)
+    if tab:
+        tab.remote_wants_chatstates = None
+
+def on_got_offline(self, presence):
+    """
+    A JID got offline
+    """
+    if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        return
+    jid = presence['from']
+    if not logger.log_roster_change(jid.bare, 'got offline'):
+        self.information(_('Unable to write in the log file'), 'Error')
+    # If a resource got offline, display the message in the conversation with this
+    # precise resource.
+    if jid.resource:
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
+    self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
+    self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
+    roster.modified()
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_got_online(self, presence):
+    """
+    A JID got online
+    """
+    if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        return
+    jid = presence['from']
+    contact = roster[jid.bare]
+    if contact is None:
+        # Todo, handle presence coming from contacts not in roster
+        return
+    roster.modified()
+    if not logger.log_roster_change(jid.bare, 'got online'):
+        self.information(_('Unable to write in the log file'), 'Error')
+    resource = Resource(jid.full, {
+        'priority': presence.get_priority() or 0,
+        'status': presence['status'],
+        'show': presence['show'],
+        })
+    self.events.trigger('normal_presence', presence, resource)
+    self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
+    if time.time() - self.connection_time > 10:
+        # We do not display messages if we recently logged in
+        if presence['status']:
+            self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (safeJID(resource.jid).bare, presence['status']), "Roster")
+        else:
+            self.information("\x193}%s \x195}is \x194}online\x195}" % safeJID(resource.jid).bare, "Roster")
+        self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
+    if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        self.refresh_window()
+
+def on_groupchat_presence(self, presence):
+    """
+    Triggered whenever a presence stanza is received from a user in a multi-user chat room.
+    Display the presence on the room window and update the
+    presence information of the concerned user
+    """
+    from_room = presence['from'].bare
+    tab = self.get_tab_by_name(from_room, tabs.MucTab)
+    if tab:
+        self.events.trigger('muc_presence', presence, tab)
+        tab.handle_presence(presence)
+
+
+### Connection-related handlers ###
+
+def on_failed_connection(self):
+    """
+    We cannot contact the remote server
+    """
+    self.information(_("Connection to remote server failed"))
+
+def on_disconnected(self, event):
+    """
+    When we are disconnected from remote server
+    """
+    roster.modified()
+    for tab in self.get_tabs(tabs.MucTab):
+        tab.disconnect()
+    self.information(_("Disconnected from server."))
+
+def on_failed_auth(self, event):
+    """
+    Authentication failed
+    """
+    self.information(_("Authentication failed (bad credentials?)."))
+
+def on_no_auth(self, event):
+    """
+    Authentication failed (no mech)
+    """
+    self.information(_("Authentication failed, no login method available."))
+
+def on_connected(self, event):
+    """
+    Remote host responded, but we are not yet authenticated
+    """
+    self.information(_("Connected to server."))
+
+def on_session_start(self, event):
+    """
+    Called when we are connected and authenticated
+    """
+    self.connection_time = time.time()
+    if not self.plugins_autoloaded: # Do not reload plugins on reconnection
+        self.autoload_plugins()
+    self.information(_("Authentication success."))
+    self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
+    if not self.xmpp.anon:
+        # request the roster
+        self.xmpp.get_roster()
+        # send initial presence
+        if config.get('send_initial_presence', True):
+            pres = self.xmpp.make_presence()
+            pres['show'] = self.status.show
+            pres['status'] = self.status.message
+            self.events.trigger('send_normal_presence', pres)
+            pres.send()
+    bookmark.get_local()
+    if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
+        bookmark.get_remote(self.xmpp)
+    for bm in bookmark.bookmarks:
+        tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+        nick = bm.nick if bm.nick else self.own_nick
+        if not tab:
+            self.open_new_room(bm.jid, nick, False)
+        self.initial_joins.append(bm.jid)
+        histo_length = config.get('muc_history_length', 20)
+        if histo_length == -1:
+            histo_length= None
+        if histo_length is not None:
+            histo_length= str(histo_length)
+        # do not join rooms that do not have autojoin
+        # but display them anyway
+        if bm.autojoin:
+            muc.join_groupchat(self, bm.jid, nick,
+                    passwd=bm.password,
+                    maxhistory=histo_length,
+                    status=self.status.message,
+                    show=self.status.show)
+
+    if config.get('enable_user_nick', True):
+        self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)
+    self.xmpp.plugin['xep_0115'].update_caps()
+
+### Other handlers ###
+
+def on_status_codes(self, message):
+    """
+    Handle groupchat messages with status codes.
+    Those are received when a room configuration change occurs.
+    """
+    room_from = message['from']
+    tab = self.get_tab_by_name(room_from, tabs.MucTab)
+    status_codes = set([s.attrib['code'] for s in message.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))])
+    if '101' in status_codes:
+        self.information('Your affiliation in the room %s changed' % room_from, 'Info')
+    elif tab and status_codes:
+        show_unavailable = '102' in status_codes
+        hide_unavailable = '103' in status_codes
+        non_priv = '104' in status_codes
+        logging_on = '170' in status_codes
+        logging_off= '171' in status_codes
+        non_anon = '172' in status_codes
+        semi_anon = '173' in status_codes
+        full_anon = '174' in status_codes
+        modif = False
+        if show_unavailable or hide_unavailable or non_priv or logging_off\
+                or non_anon or semi_anon or full_anon:
+            tab.add_message('\x19%(info_col)s}Info: A configuration change not privacy-related occured.' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+            modif = True
+        if show_unavailable:
+            tab.add_message('\x19%(info_col)s}Info: The unavailable members are now shown.' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        elif hide_unavailable:
+            tab.add_message('\x19%(info_col)s}Info: The unavailable members are now hidden.' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        if non_anon:
+            tab.add_message('\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        elif semi_anon:
+            tab.add_message('\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        elif full_anon:
+            tab.add_message('\x19%(info_col)s}Info: The room is now fully anonymous.' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        if logging_on:
+            tab.add_message('\x191}Warning: \x19%(info_col)s}This room is publicly logged' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        elif logging_off:
+            tab.add_message('\x19%(info_col)s}Info: This room is not logged anymore.' %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    typ=2)
+        if modif:
+            self.refresh_window()
+
+def on_groupchat_subject(self, message):
+    """
+    Triggered when the topic is changed.
+    """
+    nick_from = message['mucnick']
+    room_from = message.getMucroom()
+    tab = self.get_tab_by_name(room_from, tabs.MucTab)
+    subject = message['subject']
+    if not subject or not tab:
+        return
+    if nick_from:
+        tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+                {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
+                time=None,
+                typ=2)
+    else:
+        tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
+                {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                time=None,
+                typ=2)
+    tab.topic = subject
+    if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
+        self.refresh_window()
+
+def on_data_form(self, message):
+    """
+    When a data form is received
+    """
+    self.information('%s' % message)
+
+def on_attention(self, message):
+    """
+    Attention probe received.
+    """
+    jid_from = message['from']
+    self.information('%s requests your attention!' % jid_from, 'Info')
+    for tab in self.tabs:
+        if tab.get_name() == jid_from:
+            tab.state = 'attention'
+            self.refresh_tab_win()
+            return
+    for tab in self.tabs:
+        if tab.get_name() == jid_from.bare:
+            tab.state = 'attention'
+            self.refresh_tab_win()
+            return
+    self.information('%s tab not found.' % jid_from, 'Error')
+
+def room_error(self, error, room_name):
+    """
+    Display the error in the tab
+    """
+    tab = self.get_tab_by_name(room_name)
+    error_message = self.get_error_message(error)
+    tab.add_message(error_message, highlight=True, nickname='Error', nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+    code = error['error']['code']
+    if code == '401':
+        msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
+        tab.add_message(msg, typ=2)
+    if code == '409':
+        if config.get('alternative_nickname', '') != '':
+            self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
+        else:
+            if not tab.joined:
+                tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
+    self.refresh_window()
+
+def outgoing_stanza(self, stanza):
+    """
+    We are sending a new stanza, write it in the xml buffer if needed.
+    """
+    if self.xml_tab:
+        self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
+        if isinstance(self.current_tab(), tabs.XMLTab):
+            self.current_tab().refresh()
+            self.doupdate()
+
+def incoming_stanza(self, stanza):
+    """
+    We are receiving a new stanza, write it in the xml buffer if needed.
+    """
+    if self.xml_tab:
+        self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
+        if isinstance(self.current_tab(), tabs.XMLTab):
+            self.current_tab().refresh()
+            self.doupdate()
+
+def validate_ssl(self, pem):
+    """
+    Check the server certificate using the sleekxmpp ssl_cert event
+    """
+    if config.get('ignore_certificate', False):
+        return
+    cert = config.get('certificate', '')
+    # update the cert representation when it uses the old one
+    if cert and not ':' in cert:
+        cert = ':'.join(i + j for i, j in zip(cert[::2], cert[1::2])).upper()
+        config.set_and_save('certificate', cert)
+
+    der = ssl.PEM_cert_to_DER_cert(pem)
+    digest = sha1(der).hexdigest().upper()
+    found_cert = ':'.join(i + j for i, j in zip(digest[::2], digest[1::2]))
+    if cert:
+        if found_cert == cert:
+            log.debug('Cert %s OK', found_cert)
+            return
+        else:
+            saved_input = self.current_tab().input
+            log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, found_cert)
+            input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n) (%s)" % found_cert)
+            self.current_tab().input = input
+            input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
+            input.refresh()
+            self.doupdate()
+            self.paused = True
+            while input.value is None:
+                self.event.wait()
+            self.current_tab().input = saved_input
+            self.paused = False
+            if input.value:
+                self.information('Setting new certificate: old: %s, new: %s' % (cert, found_cert), 'Info')
+                log.debug('Setting certificate to %s', found_cert)
+                if not config.silent_set('certificate', found_cert):
+                    self.information(_('Unable to write in the config file'), 'Error')
+            else:
+                self.information('You refused to validate the certificate. You are now disconnected', 'Info')
+                self.xmpp.disconnect()
+    else:
+        log.debug('First time. Setting certificate to %s', found_cert)
+        if not config.silent_set('certificate', found_cert):
+            self.information(_('Unable to write in the config file'), 'Error')
+
+
