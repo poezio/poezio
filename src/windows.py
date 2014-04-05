@@ -491,7 +491,7 @@ class MucListInfoWin(InfoWin):
         InfoWin.__init__(self)
         self.message = message
 
-    def refresh(self, name=None):
+    def refresh(self, name=None, window=None):
         log.debug('Refresh: %s',self.__class__.__name__)
         with g_lock:
             self._win.erase()
@@ -499,6 +499,8 @@ class MucListInfoWin(InfoWin):
                 self.addstr(name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             else:
                 self.addstr(self.message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            if window:
+                self.print_scroll_position(window)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
 
@@ -2248,12 +2250,19 @@ class ListWin(Win):
     """
     def __init__(self, columns, with_headers=True):
         Win.__init__(self)
-        self._columns = columns # a tuple with the name of the columns
+        self._columns = columns # a dict {'column_name': tuple_index}
         self._columns_sizes = {} # a dict {'column_name': size}
         self.sorted_by = (None, None) # for example: ('name', '↑')
         self.lines = []         # a list of dicts
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
+
+    @property
+    def pos(self):
+        if len(self.lines) > self.height:
+            return len(self.lines)
+        else:
+            return 0
 
     def empty(self):
         """
@@ -2288,7 +2297,15 @@ class ListWin(Win):
         """
         if not lines:
             return
-        self.lines += lines
+        self.lines.extend(lines)
+
+    def set_lines(self, lines):
+        """
+        Set the lines to another list
+        """
+        if not lines:
+            return
+        self.lines = lines
 
     def get_selected_row(self):
         """
@@ -2305,12 +2322,12 @@ class ListWin(Win):
             lines = self.lines[self._starting_pos:self._starting_pos+self.height]
             for y, line in enumerate(lines):
                 x = 0
-                for col in self._columns:
+                for col in self._columns.items():
                     try:
-                        txt = line[col] or ''
-                    except (KeyError):
+                        txt = line[col[1]] or ''
+                    except KeyError:
                         txt = ''
-                    size = self._columns_sizes[col]
+                    size = self._columns_sizes[col[0]]
                     txt += ' ' * (size-len(txt))
                     if not txt:
                         continue

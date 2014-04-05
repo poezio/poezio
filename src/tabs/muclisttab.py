@@ -10,12 +10,17 @@ import logging
 log = logging.getLogger(__name__)
 
 import curses
+import collections
+from datetime import datetime
 
-from . import Tab
+from sleekxmpp.plugins.xep_0030.stanza.items import DiscoItem
 
 import windows
 from common import safeJID
 from decorators import refresh_wrapper
+
+from . import Tab
+
 
 class MucListTab(Tab):
     """
@@ -29,8 +34,11 @@ class MucListTab(Tab):
         Tab.__init__(self)
         self.state = 'normal'
         self.name = server
-        columns = ('node-part', 'name', 'users')
-        self.list_header = windows.ColumnHeaderWin(columns)
+        columns = collections.OrderedDict()
+        columns['node-part'] = 0
+        columns['name'] = 2
+        columns['users'] = 3
+        self.list_header = windows.ColumnHeaderWin(list(columns))
         self.listview = windows.ListWin(columns)
         self.info_header = windows.MucListInfoWin(_('Chatroom list on server %s (Loading)') % self.name)
         self.default_help_message = windows.HelpText("“j”: join room.")
@@ -55,7 +63,7 @@ class MucListTab(Tab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        self.info_header.refresh()
+        self.info_header.refresh(window=self.listview)
         self.info_win.refresh()
         self.refresh_tab_win()
         self.list_header.refresh()
@@ -110,18 +118,22 @@ class MucListTab(Tab):
         if iq['type'] == 'error':
             self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
             return
-        items = [{'node-part': safeJID(item[0]).user if safeJID(item[0]).server == self.name else safeJID(item[0]).bare,
-                  'jid': item[0],
-                  'name': item[2] or '', 'users': ''} for item in iq['disco_items'].get_items()]
-        self.listview.add_lines(items)
+        def get_items():
+            substanza = iq['disco_items']
+            for item in substanza['substanzas']:
+                if isinstance(item, DiscoItem):
+                    yield (item['jid'], item['node'], item['name'])
+        items = [ (item[0].split('@')[0],
+                  item[0],
+                  item[2] or '', '') for item in get_items()]
+        self.listview.set_lines(items)
         self.info_header.message = _('Chatroom list on server %s') % self.name
         if self.core.current_tab() is self:
-            self.listview.refresh()
-            self.info_header.refresh()
+            self.refresh()
         else:
             self.state = 'highlight'
             self.refresh_tab_win()
-        curses.doupdate()
+        self.core.doupdate()
 
     def sort_by(self):
         if self.list_header.get_order():
@@ -136,7 +148,7 @@ class MucListTab(Tab):
                     asc=True)
             self.list_header.set_order(True)
             self.list_header.refresh()
-        curses.doupdate()
+        self.core.doupdate()
 
     def join_selected(self):
         row = self.listview.get_selected_row()
