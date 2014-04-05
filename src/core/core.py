@@ -1681,7 +1681,6 @@ class Core(object):
     command_invitations = commands.command_invitations
     command_quit = commands.command_quit
     command_bind = commands.command_bind
-    command_pubsub = commands.command_pubsub
     command_rawxml = commands.command_rawxml
     command_load = commands.command_load
     command_unload = commands.command_unload
