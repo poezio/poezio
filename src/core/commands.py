@@ -20,6 +20,7 @@ import bookmark
 import common
 import fixes
 import pep
+import pubsub
 import tabs
 import theming
 from common import safeJID
@@ -762,6 +763,22 @@ def command_bind(self, arg):
         self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
     else:
         self.information('%s is now unbound' % args[0], 'Info')
+
+def command_pubsub(self, args):
+    """
+    Opens a pubsub browser on the given domain
+    """
+    args = common.shell_split(args)
+    if len(args) != 1:
+        return self.command_help('pubsub')
+    domain = args[0]
+    tab = self.get_tab_by_name('%s@@pubsubbrowser' % (domain,), pubsub.PubsubBrowserTab)
+    if tab:
+        self.command_win('%s' % tab.nb)
+    else:
+        new_tab = pubsub.PubsubBrowserTab(domain)
+        self.add_tab(new_tab, True)
+    self.refresh_window()
 
 def command_rawxml(self, arg):
     """
