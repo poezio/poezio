@@ -15,6 +15,7 @@ DEFSECTION = "Poezio"
 import logging
 import os
 import sys
+from gettext import gettext as _
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
