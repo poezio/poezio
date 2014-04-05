@@ -154,7 +154,7 @@ class MucListTab(Tab):
         row = self.listview.get_selected_row()
         if not row:
             return
-        self.core.command_join(row['jid'])
+        self.core.command_join(row[1])
 
     @refresh_wrapper.always
     def reset_help_message(self, _=None):
