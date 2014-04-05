@@ -180,9 +180,8 @@ class Keyboard(object):
             self.escape = False
         return ret_list
 
-keyboard = Keyboard()
-
 if __name__ == '__main__':
+    keyboard = Keyboard()
     s = curses.initscr()
     curses.noecho()
     curses.cbreak()

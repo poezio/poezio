@@ -37,7 +37,7 @@ from contact import Contact, Resource
 from daemon import Executor
 from data_forms import DataFormsTab
 from fifo import Fifo
-from keyboard import keyboard
+from keyboard import Keyboard
 from logger import logger
 from plugin_manager import PluginManager
 from roster import roster
@@ -69,6 +69,7 @@ class Core(object):
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
+        self.keyboard = Keyboard()
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.paused = False
@@ -1390,10 +1391,10 @@ class Core(object):
         occurs. In that case we do not return (we loop until we get
         a non-None value), but we check for timed events instead.
         """
-        res = keyboard.get_user_input(self.stdscr)
+        res = self.keyboard.get_user_input(self.stdscr)
         while res is None:
             self.check_timed_events()
-            res = keyboard.get_user_input(self.stdscr)
+            res = self.keyboard.get_user_input(self.stdscr)
         return res
 
     def escape_next_key(self):
