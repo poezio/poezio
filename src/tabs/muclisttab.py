@@ -123,7 +123,7 @@ class MucListTab(Tab):
             for item in substanza['substanzas']:
                 if isinstance(item, DiscoItem):
                     yield (item['jid'], item['node'], item['name'])
-        items = [ (item[0].split('@')[0],
+        items = [(item[0].split('@')[0],
                   item[0],
                   item[2] or '', '') for item in get_items()]
         self.listview.set_lines(items)

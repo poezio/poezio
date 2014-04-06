@@ -143,9 +143,6 @@ class Config(RawConfigParser):
         Our own way to save write the value in the file
         Just find the right section, and then find the
         right option, and edit it.
-
-        TODO: make it write also new values in the file, not just what did already
-        exist
         """
         if path.exists(self.file_name):
             df = open(self.file_name, 'r', encoding='utf-8')

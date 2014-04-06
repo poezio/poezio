@@ -110,7 +110,6 @@ def get_char_list_new(s):
                         pass
                     except ValueError: # invalid input
                         log.debug('Invalid character entered.')
-                        pass
                     else:
                         key = 'M-%s' % part
                     # and an even more special case for keys like
@@ -123,7 +122,6 @@ def get_char_list_new(s):
                             pass
                         except ValueError:
                             log.debug('Invalid character entered.')
-                            pass
                         else:
                             key = '%s-%s' % (key, part)
             if key == '\x7f' or key == '\x08':

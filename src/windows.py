@@ -38,14 +38,16 @@ import collections
 from theming import get_theme, to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'
-# These are non-printable chars, so they should never appear in the input, I
-# guess. But maybe we can find better chars that are even less reasky.
-format_chars = ['\x0E', '\x0F', '\x10', '\x11', '\x12','\x13', '\x14', '\x15','\x16', '\x17', '\x18']
+# These are non-printable chars, so they should never appear in the input,
+# I guess. But maybe we can find better chars that are even less risky.
+format_chars = ['\x0E', '\x0F', '\x10', '\x11', '\x12', '\x13',
+                '\x14', '\x15', '\x16', '\x17', '\x18']
 
+# different colors allowed in the input
 allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
-# msg is a reference to the corresponding Message tuple. text_start and text_end are the position
-# delimiting the text in this line.
-# first is a bool telling if this is the first line of the message.
+
+# msg is a reference to the corresponding Message tuple. text_start and
+# text_end are the position delimiting the text in this line.
 Line = collections.namedtuple('Line', 'msg start_pos end_pos prepend')
 
 g_lock = RLock()
@@ -133,6 +135,9 @@ class Win(object):
         try:
             self._win.addnstr(*args)
         except:
+            # this actually mostly returns ERR, but works.
+            # more specifically, when the added string reaches the end
+            # of the screen.
             pass
 
     def addstr(self, *args):
@@ -202,7 +207,7 @@ class Win(object):
         Write colored spaces until the end of line
         """
         (y, x) = self._win.getyx()
-        size = self.width-x
+        size = self.width - x
         if color:
             self.addnstr(' '*size, size, to_curses_attr(color))
         else:
@@ -234,7 +239,7 @@ class UserList(Win):
         self.addstr(y, self.width-2, '++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
     def refresh(self, users):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         if config.get("hide_user_list", False):
             return # do not refresh if this win is hidden.
         with g_lock:
@@ -254,7 +259,9 @@ class UserList(Win):
             for user in users[self.pos:]:
                 self.draw_role_affiliation(y, user)
                 self.draw_status_chatstate(y, user)
-                self.addstr(y, 2, poopt.cut_by_columns(user.nick, self.width-2), to_curses_attr(user.color))
+                self.addstr(y, 2,
+                        poopt.cut_by_columns(user.nick, self.width - 2),
+                        to_curses_attr(user.color))
                 if config.get('user_list_sort', 'desc').lower() == 'asc':
                     y -= 1
                 else:
@@ -294,10 +301,11 @@ class UserList(Win):
 
     def resize(self, height, width, y, x):
         with g_lock:
+            separator = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
             self._resize(height, width, y, x)
-            self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            self._win.attron(separator)
             self._win.vline(0, 0, curses.ACS_VLINE, self.height)
-            self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            self._win.attroff(separator)
 
 class Topic(Win):
     def __init__(self):
@@ -305,7 +313,7 @@ class Topic(Win):
         self._message = ''
 
     def refresh(self, topic=None):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if topic:
@@ -328,7 +336,7 @@ class GlobalInfoBar(Win):
         Win.__init__(self)
 
     def refresh(self):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
@@ -338,7 +346,11 @@ class GlobalInfoBar(Win):
             show_nums = config.get('show_tab_numbers', True)
             use_nicks = config.get('use_tab_nicks', True)
             # ignore any remaining gap tabs if the feature is not enabled
-            sorted_tabs = [tab for tab in self.core.tabs if tab] if not create_gaps else self.core.tabs[:]
+            if create_gaps:
+                sorted_tabs = self.core.tabs[:]
+            else:
+                sorted_tabs = [tab for tab in self.core.tabs if tab]
+
             for nb, tab in enumerate(sorted_tabs):
                 if not tab: continue
                 color = tab.color
@@ -395,15 +407,20 @@ class VerticalGlobalInfoBar(Win):
                     sorted_tabs = sorted_tabs[pos-height//2 : pos+height//2]
             for y, tab in enumerate(sorted_tabs):
                 color = tab.vertical_color
-                self.addstr(y if config.get('vertical_tab_list_sort', 'desc') != 'asc' else height - y - 1, 0, "%2d" % tab.nb, to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
+
+                if not config.get('vertical_tab_list_sort', 'desc') != 'asc':
+                    y = height - y - 1
+                self.addstr(y, 0, "%2d" % tab.nb,
+                        to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))
                 self.addstr('.')
                 if use_nicks:
                     self.addnstr("%s" % tab.get_nick(), width - 4, to_curses_attr(color))
                 else:
                     self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
-            self._win.attron(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            separator = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
+            self._win.attron(separator)
             self._win.vline(0, width-1, curses.ACS_VLINE, height)
-            self._win.attroff(to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+            self._win.attroff(separator)
             self._refresh()
 
 class InfoWin(Win):
@@ -435,11 +452,12 @@ class XMLInfoWin(InfoWin):
         log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
+            bar = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
             if not filter_t:
-                self.addstr('[No filter]', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                self.addstr('[No filter]', bar)
             else:
                 info = '[%s] %s' % (filter_t, filter)
-                self.addstr(info, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                self.addstr(info, bar)
             self.print_scroll_position(window)
             self.finish_line(get_theme().COLOR_INFORMATION_BAR)
             self._refresh()
@@ -453,7 +471,7 @@ class PrivateInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, name, window, chatstate, informations):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(name)
@@ -492,7 +510,7 @@ class MucListInfoWin(InfoWin):
         self.message = message
 
     def refresh(self, name=None, window=None):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if name:
@@ -517,7 +535,7 @@ class ConversationInfoWin(InfoWin):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         jid = safeJID(jid)
         if contact:
             if jid.resource:
@@ -526,8 +544,8 @@ class ConversationInfoWin(InfoWin):
                 resource = contact.get_highest_priority_resource()
         else:
             resource = None
-        # if contact is None, then resource is None too: user is not in the roster
-        # so we know almost nothing about it
+        # if contact is None, then resource is None too:
+        # user is not in the roster so we know almost nothing about it
         # If contact is a Contact, then
         # resource can now be a Resource: user is in the roster and online
         # or resource is None: user is in the roster but offline
@@ -548,7 +566,8 @@ class ConversationInfoWin(InfoWin):
         value returned by the callbacks.
         """
         for key in informations:
-            self.addstr(informations[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(informations[key](jid),
+                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_resource_information(self, resource):
         """
@@ -591,7 +610,8 @@ class DynamicConversationInfoWin(ConversationInfoWin):
         """
         Just displays the resource in an other color
         """
-        log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s" % jid.resource)
+        log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s",
+                jid.resource)
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(jid.bare, to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
         if jid.resource:
@@ -606,7 +626,7 @@ class ConversationStatusMessageWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, jid, contact):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         jid = safeJID(jid)
         if contact:
             if jid.resource:
@@ -634,7 +654,7 @@ class MucInfoWin(InfoWin):
         InfoWin.__init__(self)
 
     def refresh(self, room, window=None):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             self.write_room_name(room)
@@ -748,7 +768,7 @@ class TextWin(Win):
             self.hl_pos += 1
         else:
             self.hl_pos = hl_size
-        log.debug("self.hl_pos = %s" % self.hl_pos)
+        log.debug("self.hl_pos = %s", self.hl_pos)
         hl = self.highlights[self.hl_pos]
         pos = None
         while not pos:
@@ -761,7 +781,7 @@ class TextWin(Win):
                     self.pos = 0
                     return
                 hl = self.highlights[0]
-        self.pos =  len(self.built_lines) - pos - self.height
+        self.pos = len(self.built_lines) - pos - self.height
         if self.pos < 0 or self.pos >= len(self.built_lines):
             self.pos = 0
 
@@ -775,13 +795,13 @@ class TextWin(Win):
         log.debug('Going to the previous highlight…')
         if not self.highlights or self.hl_pos <= 0:
             self.hl_pos = float('nan')
-            self.pos =  0
+            self.pos = 0
             return
         if self.hl_pos != self.hl_pos:
             self.hl_pos = len(self.highlights) - 1
         elif self.hl_pos > 0:
             self.hl_pos -= 1
-        log.debug("self.hl_pos = %s" % self.hl_pos)
+        log.debug("self.hl_pos = %s", self.hl_pos)
         hl = self.highlights[self.hl_pos]
         pos = None
         while not pos:
@@ -831,7 +851,7 @@ class TextWin(Win):
         # review all the highlights since the separator was placed, in
         # the correct order.
         self.hl_pos = len(self.highlights) - self.nb_of_highlights_after_separator - 1
-        log.debug("self.hl_pos = %s" % self.hl_pos)
+        log.debug("self.hl_pos = %s", self.hl_pos)
 
     def remove_line_separator(self):
         """
@@ -871,7 +891,7 @@ class TextWin(Win):
         if highlight:
             self.highlights.append(lines[0])
             self.nb_of_highlights_after_separator += 1
-            log.debug("Number of highlights after separator is now %s" % \
+            log.debug("Number of highlights after separator is now %s",
                           self.nb_of_highlights_after_separator)
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
@@ -1053,7 +1073,7 @@ class TextWin(Win):
                 lines = self.build_message(message, timestamp=with_timestamps)
                 for line in lines:
                     self.built_lines.insert(index, line)
-                    index +=1
+                    index += 1
                 break
 
     def __del__(self):
@@ -1071,7 +1091,7 @@ class HelpText(Win):
         self.txt = text
 
     def refresh(self, txt=None):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         if txt:
             self.txt = txt
         with g_lock:
@@ -1104,7 +1124,7 @@ class YesNoInput(Win):
         self.value = False
 
     def refresh(self, txt=None):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         if txt:
             self.txt = txt
         with g_lock:
@@ -1195,7 +1215,7 @@ class Input(Win):
         """
         Whether or not the cursor is at the end of the text.
         """
-        assert(len(self.text) >= self.pos)
+        assert len(self.text) >= self.pos
         if len(self.text) == self.pos:
             return True
         return False
@@ -1308,7 +1328,7 @@ class Input(Win):
         if reset:
             self.reset_completion()
         self.pos = len(self.text)
-        assert(self.is_cursor_at_end())
+        assert self.is_cursor_at_end()
         self.rewrite_text()
         return True
 
@@ -1491,7 +1511,6 @@ class Input(Win):
         """
         Normal completion
         """
-        (y, x) = self._win.getyx()
         pos = self.pos
         if pos < len(self.text) and after.endswith(' ') and self.text[pos] == ' ':
             after = after[:-1]  # remove the last space if we are already on a space
@@ -1520,12 +1539,12 @@ class Input(Win):
         pos -= end
         hit = self.hit_list[0] # take the first hit
         self.text = self.text[:pos] + hit + after + self.text[pos:]
-        for i in range(end):
+        for _ in range(end):
             try:
                 self.key_left(reset=False)
             except:
                 pass
-        for i in range(len(hit + after)):
+        for _ in range(len(hit) + len(after)):
             self.key_right(reset=False)
 
         self.rewrite_text()
@@ -1607,10 +1626,11 @@ class Input(Win):
             self.addstr_colored_lite(displayed_text)
             # Fill the rest of the line with the input color
             if self.color:
-                (y, x) = self._win.getyx()
-                size = self.width-x
-                self.addnstr(' '*size, size, to_curses_attr(self.color))
-            self.addstr(0, poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
+                (_, x) = self._win.getyx()
+                size = self.width - x
+                self.addnstr(' ' * size, size, to_curses_attr(self.color))
+            self.addstr(0,
+                    poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
             if self.color:
                 self._win.attroff(to_curses_attr(self.color))
             curses.curs_set(1)
@@ -1631,14 +1651,14 @@ class Input(Win):
             else:
                 self.view_pos = self.pos - 25
         if self.pos >= self.view_pos + self.width - 1:
-                self.view_pos = self.pos - self.width + 12
+            self.view_pos = self.pos - self.width + 12
         if self.view_pos < 0:
             self.view_pos = 0
         assert(self.pos > self.view_pos and
                self.pos < self.view_pos + self.width)
 
     def refresh(self):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         self.rewrite_text()
 
     def clear_text(self):
@@ -1745,7 +1765,7 @@ class MessageInput(HistoryInput):
         self.last_completion = None
         self.histo_pos = -1
         self.key_func["KEY_UP"] = self.key_up
-        self.key_func["M-A"] =  self.key_up
+        self.key_func["M-A"] = self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
         self.key_func['^C'] = self.enter_attrib
@@ -1794,7 +1814,7 @@ class CommandInput(HistoryInput):
         self.key_func['^G'] = self.abort
         self.key_func['^C'] = self.abort
         self.key_func["KEY_UP"] = self.key_up
-        self.key_func["M-A"] =  self.key_up
+        self.key_func["M-A"] = self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
         self.histo_pos = -1
@@ -1816,7 +1836,7 @@ class CommandInput(HistoryInput):
 
     @property
     def history_disabled(self):
-        return ('KEY_UP' not in self.key_func and 'KEY_DOWN' not in self.key_func)
+        return 'KEY_UP' not in self.key_func and 'KEY_DOWN' not in self.key_func
 
     def success(self):
         """
@@ -1874,7 +1894,7 @@ class VerticalSeparator(Win):
             self._refresh()
 
     def refresh(self):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         self.rewrite_line()
 
 class RosterWin(Win):
@@ -1989,7 +2009,7 @@ class RosterWin(Win):
         We display a number of lines from the roster cache
         (and rebuild it if needed)
         """
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         self.build_roster_cache(roster)
         with g_lock:
             # make sure we are within bounds
@@ -2009,7 +2029,7 @@ class RosterWin(Win):
 
             for item in roster_view:
                 draw_selected = False
-                if y -2 + self.start_pos  == self.pos:
+                if y -2 + self.start_pos == self.pos:
                     draw_selected = True
                     self.selected_row = item
 
@@ -2042,9 +2062,9 @@ class RosterWin(Win):
         The header at the top
         """
         self.addstr('Roster: %s/%s contacts' % (
-            roster.get_nb_connected_contacts(),
-            len(roster))
-            ,to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                roster.get_nb_connected_contacts(),
+                len(roster)),
+            to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
@@ -2086,7 +2106,7 @@ class RosterWin(Win):
             presence = resource.presence
             nb = ' (%s)' % len(contact)
         color = theme.color_show(presence)
-        added =  2 + len(theme.CHAR_STATUS) + len(nb)
+        added = 2 + len(theme.CHAR_STATUS) + len(nb)
 
         self.addstr(y, 0, ' ')
         self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
@@ -2233,7 +2253,7 @@ class ContactInfoWin(Win):
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             if isinstance(selected_row, RosterGroup):
@@ -2288,7 +2308,7 @@ class ListWin(Win):
         elif asc:
             self.lines.sort(key=lambda x: x[col_name])
         else:
-            self.lines.sort(key=lambda x: x[col_name],reverse=True)
+            self.lines.sort(key=lambda x: x[col_name], reverse=True)
         self.refresh()
         curses.doupdate()
 
@@ -2406,7 +2426,7 @@ class ColumnHeaderWin(Win):
         return self._columns
 
     def refresh(self):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             x = 0
@@ -2427,13 +2447,13 @@ class ColumnHeaderWin(Win):
                 x += size
             self._refresh()
 
-    def sel_column(self,dic):
+    def sel_column(self, dic):
         self._column_sel = dic
 
     def get_sel_column(self):
         return self._column_sel
 
-    def set_order(self,order):
+    def set_order(self, order):
         self._column_order = self._column_sel
         self._column_order_asc = order
 
@@ -2492,7 +2512,7 @@ class SimpleTextWin(Win):
             self.built_lines.append(line)
 
     def refresh(self):
-        log.debug('Refresh: %s',self.__class__.__name__)
+        log.debug('Refresh: %s', self.__class__.__name__)
         with g_lock:
             self._win.erase()
             for y, line in enumerate(self.built_lines):

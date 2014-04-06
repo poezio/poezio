@@ -222,7 +222,7 @@ def on_nick_received(self, message):
     if item.xml.find('{http://jabber.org/protocol/nick}nick'):
         contact.name = item['nick']['nick']
     else:
-        contact.name= ''
+        contact.name = ''
 
 def on_gaming_event(self, message):
     """
@@ -343,7 +343,7 @@ def on_tune_event(self, message):
     old_tune = contact.tune
     if item.xml.find('{http://jabber.org/protocol/tune}tune'):
         item = item['tune']
-        contact.tune =  {
+        contact.tune = {
                 'artist': item['artist'],
                 'length': item['length'],
                 'rating': item['rating'],
@@ -812,9 +812,9 @@ def on_session_start(self, event):
         self.initial_joins.append(bm.jid)
         histo_length = config.get('muc_history_length', 20)
         if histo_length == -1:
-            histo_length= None
+            histo_length = None
         if histo_length is not None:
-            histo_length= str(histo_length)
+            histo_length = str(histo_length)
         # do not join rooms that do not have autojoin
         # but display them anyway
         if bm.autojoin:
@@ -845,7 +845,7 @@ def on_status_codes(self, message):
         hide_unavailable = '103' in status_codes
         non_priv = '104' in status_codes
         logging_on = '170' in status_codes
-        logging_off= '171' in status_codes
+        logging_off = '171' in status_codes
         non_anon = '172' in status_codes
         semi_anon = '173' in status_codes
         full_anon = '174' in status_codes

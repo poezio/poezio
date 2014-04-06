@@ -94,7 +94,7 @@ class shlex(object):
                 print("shlex: popping token " + repr(tok))
             return tok
         # No pushback.  Get a token.
-        start, end,  raw = self.read_token()
+        start, end, raw = self.read_token()
         return start, end, raw
 
     def read_token(self):

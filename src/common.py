@@ -205,7 +205,7 @@ def datetime_tuple(timestamp):
     tz_msg = timestamp[15:]
     try:
         ret = datetime.strptime(date, '%Y%m%dT%H%M%S')
-    except Exception as e:
+    except Exception:
         ret = datetime.now()
     # add the message timezone if any
     try:
@@ -215,7 +215,7 @@ def datetime_tuple(timestamp):
             tz_msg = tz_msg.tm_hour * 3600 + tz_msg.tm_min * 60
             tz_msg = timedelta(seconds=tz_mod * tz_msg)
             ret -= tz_msg
-    except Exception as e:
+    except Exception:
         pass # ignore if we got a badly-formatted offset
     # convert UTC to local time, with DST etc.
     if time.daylight and time.localtime().tm_isdst:

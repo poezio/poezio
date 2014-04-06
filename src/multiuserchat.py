@@ -91,7 +91,8 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
     try:
         xmpp.plugin['xep_0045'].leaveMUC(jid, own_nick, msg)
     except KeyError:
-        log.debug("muc.leave_groupchat: could not leave the room %s" % jid)
+        log.debug("muc.leave_groupchat: could not leave the room %s",
+                jid, exc_info=True)
 
 def set_user_role(xmpp, jid, nick, reason, role, callback=None):
     """

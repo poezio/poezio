@@ -21,7 +21,8 @@ from theming import get_theme
 message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions jid'
 Message = collections.namedtuple('Message', message_fields)
 
-class CorrectionError(Exception): pass
+class CorrectionError(Exception):
+    pass
 
 def other_elems(self):
     acc = ['Message(']
@@ -29,16 +30,16 @@ def other_elems(self):
     fields.remove('old_message')
     for field in fields:
         acc.append('%s=%s' % (field, repr(getattr(self, field))))
-    return (', '.join(acc) + ', old_message=')
+    return ', '.join(acc) + ', old_message='
 
 def repr_message(self):
     init = other_elems(self)
     acc = [init]
-    next = self.old_message
+    next_message = self.old_message
     rev = 1
-    while next:
-        acc.append(other_elems(next))
-        next = next.old_message
+    while next_message:
+        acc.append(other_elems(next_message))
+        next_message = next_message.old_message
         rev += 1
     acc.append('None')
     while rev:
@@ -69,7 +70,8 @@ class TextBuffer(object):
         return self.messages[-1] if self.messages else None
 
 
-    def make_message(self, txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None, revisions=0, jid=None):
+    @staticmethod
+    def make_message(txt, time, nickname, nick_color, history, user, identifier, str_time=None, highlight=False, old_message=None, revisions=0, jid=None):
         time = time or datetime.now()
         me = False
         if txt.startswith('/me '):

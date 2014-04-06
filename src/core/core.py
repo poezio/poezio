@@ -175,7 +175,7 @@ class Core(object):
             '_dnd': lambda: self.command_status('dnd'),
             '_xa': lambda: self.command_status('xa'),
         ##### Custom actions ########
-            '_exc_': lambda arg: self.try_execute(arg),
+            '_exc_': self.try_execute,
         }
         self.key_func.update(key_func)
 
@@ -193,8 +193,8 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_config_status", self.on_status_codes)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
-        self.xmpp.add_event_handler("got_online" , self.on_got_online)
-        self.xmpp.add_event_handler("got_offline" , self.on_got_offline)
+        self.xmpp.add_event_handler("got_online", self.on_got_online)
+        self.xmpp.add_event_handler("got_offline", self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
         self.xmpp.add_event_handler("presence_error", self.on_presence_error)
@@ -429,7 +429,7 @@ class Core(object):
             res = []
             current = []
             for char in char_list:
-                assert(len(char) > 0)
+                assert len(char) > 0
                 # Transform that stupid char into what we actually meant
                 if char == '\x1f':
                     char = '^/'
@@ -859,7 +859,7 @@ class Core(object):
             return False
         elif new_pos <= 0:
             return False
-        elif new_pos ==old_pos:
+        elif new_pos == old_pos:
             return False
         elif not self.tabs[old_pos]:
             return False

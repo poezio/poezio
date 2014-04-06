@@ -76,8 +76,7 @@ class Roster(object):
                 self.__node[jid].send_presence(ptype='unavailable')
                 self.__node.remove(jid)
             except (IqError, IqTimeout):
-                import traceback
-                log.debug('IqError when removing %s:\n%s', jid, traceback.format_exc())
+                log.debug('IqError when removing %s:', jid, exc_info=True)
 
     def __delitem__(self, jid):
         """Remove a contact from the roster view"""
@@ -120,10 +119,7 @@ class Roster(object):
     def get_groups(self, sort=''):
         """Return a list of the RosterGroups"""
         group_list = sorted(
-                filter(
-                    lambda x: bool(x),
-                    self.groups.values()
-                ),
+                (group for group in self.groups.values() if group),
                 key=lambda x: x.name.lower() if x.name else ''
             )
 
@@ -189,7 +185,7 @@ class Roster(object):
         """
         folded_groups = ':'.join([group.name for group in self.groups.values()\
                                       if group.folded])
-        log.debug('folded:%s\n' %folded_groups)
+        log.debug('folded:%s\n', folded_groups)
         return config.silent_set('folded_roster_groups', folded_groups, 'var')
 
     def get_nb_connected_contacts(self):

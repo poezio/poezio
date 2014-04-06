@@ -11,13 +11,13 @@ bookmarks, both local and remote.
 import logging
 from sys import version_info
 
-from sleekxmpp.plugins.xep_0048 import *
+from sleekxmpp.plugins.xep_0048 import Bookmarks, Conference
 from common import safeJID
 from config import config
 
 log = logging.getLogger(__name__)
 
-def iter(xml, tag=''):
+def xml_iter(xml, tag=''):
     if version_info[1] >= 2:
         return xml.iter(tag)
     else:
@@ -88,10 +88,10 @@ class Bookmark(object):
         name = el.get('name')
         autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
         nick = None
-        for n in iter(el, 'nick'):
-            nick = nick.text
+        for n in xml_iter(el, 'nick'):
+            nick = n.text
         password = None
-        for p in iter(el, 'password'):
+        for p in xml_iter(el, 'password'):
             password = p.text
 
         return Bookmark(jid, name, autojoin, nick, password, method)
@@ -117,7 +117,7 @@ def remove(value):
 def stanza_storage(method):
     """Generate a <storage/> stanza with the conference elements."""
     storage = Bookmarks()
-    for b in filter(lambda b: b.method == method, bookmarks):
+    for b in (b for bookmark in bookmark if b.method == method):
         storage.append(b.stanza())
     return storage
 
@@ -142,16 +142,15 @@ def save_remote(xmpp, method=preferred):
         else:
             xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'),
                     method='xep_0223')
-    except:
-        import traceback
-        log.error("Could not save the bookmarks:\n%s" % traceback.format_exc())
+    except Exception:
+        log.error("Could not save the bookmarks:", exc_info=True)
         return False
     return True
 
 def save_local():
     """Save the local bookmarks."""
-    all = ''.join(bookmark.local() for bookmark in bookmarks if bookmark.method is 'local')
-    config.set_and_save('rooms', all)
+    local = ''.join(bookmark.local() for bookmark in bookmarks if bookmark.method is 'local')
+    config.set_and_save('rooms', local)
 
 def save(xmpp, core=None):
     """Save all the bookmarks."""
@@ -171,7 +170,7 @@ def get_pep(xmpp):
         iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223', block=True)
     except:
         return False
-    for conf in iter(iq.xml, '{storage:bookmarks}conference'):
+    for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
         b = Bookmark.parse_from_element(conf, method='pep')
         if not get_by_jid(b.jid):
             bookmarks.append(b)
@@ -183,7 +182,7 @@ def get_privatexml(xmpp):
         iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049', block=True)
     except:
         return False
-    for conf in iter(iq.xml, '{storage:bookmarks}conference'):
+    for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
         b = Bookmark.parse_from_element(conf, method='privatexml')
         if not get_by_jid(b.jid):
             bookmarks.append(b)

@@ -50,22 +50,22 @@ class Executor(threading.Thread):
                 command.pop(-1)
 
     def run(self):
-        log.info('executing %s' % (self.command,))
+        log.debug('executing %s', self.command)
         stdout = None
         if self.filename:
             try:
                 stdout = open(self.filename, self.redirection_mode)
-            except (OSError, IOError) as e:
-                log.error('Could not open redirection file: %s (%s)' % (self.filename, e,))
+            except (OSError, IOError):
+                log.error('Could not open redirection file: %s', self.filename, exc_info=True)
                 return
         try:
             subprocess.call(self.command, stdout=stdout)
         except:
-            import traceback
             if self.remote:
+                import traceback
                 print(traceback.format_exc())
             else:
-                log.error('Could not execute %s:\n%s', self.command, traceback.format_exc())
+                log.error('Could not execute %s:', self.command, exc_info=True)
 
 def main():
     while True:

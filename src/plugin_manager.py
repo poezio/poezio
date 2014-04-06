@@ -290,7 +290,7 @@ class PluginManager(object):
         else:
             self.core.xmpp.del_event_handler(event_name, handler)
         eh = self.event_handlers[module_name]
-        eh = list(filter(lambda e : e != (event_name, handler), eh))
+        eh = list(filter(lambda e: e != (event_name, handler), eh))
 
     def completion_load(self, the_input):
         """
