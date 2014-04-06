@@ -12,22 +12,32 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import sys
 import os
-
 import signal
-import logging.config
+import logging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import options
 import singleton
-import core
-
-log = logging.getLogger('')
 
 def main():
     """
     Enter point
     """
+    import config
+    config_path = config.check_create_config_dir()
+    config.run_cmdline_args(config_path)
+    config.create_global_config()
+    config.check_create_log_dir()
+    config.setup_logging()
+    config.post_logging_setup()
+
+    from config import options
+
+
+    import core
+
+    log = logging.getLogger('')
+
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
     cocore = singleton.Singleton(core.Core)
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler) # reload the config

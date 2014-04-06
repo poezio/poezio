@@ -7,12 +7,16 @@
 
 """
 Defines the global config instance, used to get or set (and save) values
-from/to the config file
+from/to the config file.
+
+This module has the particularity that some imports and global variables
+are delayed because it would mean doing an incomplete setup of the python
+loggers.
 """
 
 DEFSECTION = "Poezio"
 
-import logging
+import logging.config
 import os
 import sys
 from gettext import gettext as _
@@ -21,6 +25,7 @@ from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
+
 
 class Config(RawConfigParser):
     """
@@ -59,7 +64,7 @@ class Config(RawConfigParser):
                 res = self.getboolean(option, section)
             else:
                 res = self.getstr(option, section)
-        except (NoOptionError, NoSectionError, ValueError, AttributeError) as e:
+        except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return default
         if res is None:
             return default
@@ -254,47 +259,107 @@ class Config(RawConfigParser):
                 res[section][option] = self.get(option, "", section)
         return res
 
-firstrun = False
 
-# creates the configuration directory if it doesn't exist
-# and copy the default config in it
-CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
-if not CONFIG_HOME:
-    CONFIG_HOME = path.join(environ.get('HOME'), '.config')
-CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
+def check_create_config_dir():
+    """
+    create the configuration directory if it doesn't exist
+    and copy the default config in it
+    """
+    CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
+    if not CONFIG_HOME:
+        CONFIG_HOME = path.join(environ.get('HOME'), '.config')
+    CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
 
-try:
-    makedirs(CONFIG_PATH)
-except OSError:
-    pass
+    try:
+        makedirs(CONFIG_PATH)
+    except OSError:
+        pass
+    return CONFIG_PATH
 
-options = parse_args(CONFIG_PATH)
+def run_cmdline_args(CONFIG_PATH):
+    "Parse the command line arguments"
+    global options
+    options = parse_args(CONFIG_PATH)
 
-# Copy a default file if none exists
-if not path.isfile(options.filename):
-    default = path.join(path.dirname(__file__), '../data/default_config.cfg')
-    other = path.join(path.dirname(__file__), 'default_config.cfg')
-    if path.isfile(default):
-        copy2(default, options.filename)
-    elif path.isfile(other):
-        copy2(other, options.filename)
-    firstrun = True
+    # Copy a default file if none exists
+    if not path.isfile(options.filename):
+        default = path.join(path.dirname(__file__), '../data/default_config.cfg')
+        other = path.join(path.dirname(__file__), 'default_config.cfg')
+        if path.isfile(default):
+            copy2(default, options.filename)
+        elif path.isfile(other):
+            copy2(other, options.filename)
+        global firstrun
+        firstrun = True
 
-try:
-    config = Config(options.filename)
-except:
-    import traceback
-    sys.stderr.write('Poezio was unable to read or parse the config file.\n')
-    traceback.print_exc(limit=0)
-    sys.exit(1)
+def create_global_config():
+    "Create the global config object, or crash"
+    try:
+        global config
+        config = Config(options.filename)
+    except:
+        import traceback
+        sys.stderr.write('Poezio was unable to read or'
+                         ' parse the config file.\n')
+        traceback.print_exc(limit=0)
+        sys.exit(1)
 
-LOG_DIR = config.get('log_dir', '') or path.join(environ.get('XDG_DATA_HOME') or path.join(environ.get('HOME'), '.local', 'share'), 'poezio')
-LOG_DIR = path.expanduser(LOG_DIR)
+def check_create_log_dir():
+    "Create the poezio logging directory if it doesn’t exist"
+    global LOG_DIR
+    LOG_DIR = config.get('log_dir', '')
 
-try:
-    makedirs(LOG_DIR)
-except:
-    pass
+    if not LOG_DIR:
+
+        data_dir = environ.get('XDG_DATA_HOME')
+        if not data_dir:
+            home = environ.get('HOME')
+            data_dir = path.join(home, '.local', 'share')
+
+        LOG_DIR = path.join(data_dir, 'poezio')
+
+    LOG_DIR = path.expanduser(LOG_DIR)
+
+    try:
+        makedirs(LOG_DIR)
+    except:
+        pass
+
+def setup_logging():
+    "Change the logging config according to the cmdline options and config"
+    if config.get('log_errors', True):
+        LOGGING_CONFIG['root']['handlers'].append('error')
+        LOGGING_CONFIG['handlers']['error'] = {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': path.join(LOG_DIR, 'errors.log'),
+                'formatter': 'simple',
+            }
+
+    if options.debug:
+        LOGGING_CONFIG['root']['handlers'].append('debug')
+        LOGGING_CONFIG['handlers']['debug'] = {
+                'level':'DEBUG',
+                'class':'logging.FileHandler',
+                'filename': options.debug,
+                'formatter': 'simple',
+            }
+
+
+    if LOGGING_CONFIG['root']['handlers']:
+        logging.config.dictConfig(LOGGING_CONFIG)
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
+
+    global log
+    log = logging.getLogger(__name__)
+
+def post_logging_setup():
+    # common imports sleekxmpp, which creates then its loggers, so
+    # it needs to be after logger configuration
+    from common import safeJID as JID
+    global safeJID
+    safeJID = JID
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -312,33 +377,22 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
     }
 }
-if config.get('log_errors', True):
-    LOGGING_CONFIG['root']['handlers'].append('error')
-    LOGGING_CONFIG['handlers']['error'] = {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': path.join(LOG_DIR, 'errors.log'),
-            'formatter': 'simple',
-        }
 
-if options.debug:
-    LOGGING_CONFIG['root']['handlers'].append('debug')
-    LOGGING_CONFIG['handlers']['debug'] = {
-            'level':'DEBUG',
-            'class':'logging.FileHandler',
-            'filename': options.debug,
-            'formatter': 'simple',
-        }
+# True if this is the first run, in this case we will display
+# some help in the info buffer
+firstrun = False
 
+# Global config object. Is setup in poezio.py
+config = None
 
-if LOGGING_CONFIG['root']['handlers']:
-    logging.config.dictConfig(LOGGING_CONFIG)
-else:
-    logging.basicConfig(level=logging.CRITICAL)
+# The logger object for this module
+log = None
 
-# common import sleekxmpp, which creates then its loggers, so
-# it needs to be after logger configuration
-from common import safeJID
+# The command-line options
+options = None
 
-log = logging.getLogger(__name__)
+# delayed import from common.py
+safeJID = None
 
+# the global log dir
+LOG_DIR = ''
