@@ -117,7 +117,7 @@ def remove(value):
 def stanza_storage(method):
     """Generate a <storage/> stanza with the conference elements."""
     storage = Bookmarks()
-    for b in (b for bookmark in bookmark if b.method == method):
+    for b in (b for b in bookmark if b.method == method):
         storage.append(b.stanza())
     return storage
 
