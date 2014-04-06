@@ -36,6 +36,9 @@ def main():
     import logger
     logger.create_logger()
 
+    import roster
+    roster.create_roster()
+
     import core
 
     log = logging.getLogger('')

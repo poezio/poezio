@@ -327,5 +327,10 @@ class RosterGroup(object):
         """Return the number of connected contacts"""
         return len([1 for contact in self.contacts if len(contact)])
 
+def create_roster():
+    "Create the global roster object"
+    global roster
+    roster = Roster()
+
 # Shared roster object
-roster = Roster()
+roster = None
