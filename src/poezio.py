@@ -33,6 +33,8 @@ def main():
 
     from config import options
 
+    import logger
+    logger.create_logger()
 
     import core
 

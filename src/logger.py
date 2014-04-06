@@ -5,6 +5,11 @@
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
 
+"""
+The logger module that handles logging of the poezio
+conversations and roster changes
+"""
+
 import mmap
 import os
 import re
@@ -24,8 +29,12 @@ from config import LOG_DIR
 
 log_dir = os.path.join(LOG_DIR, 'logs')
 
-message_log_re = re.compile('MR (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) <([^ ]+)>  (.*)')
-info_log_re = re.compile('MI (\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})Z (\d+) (.*)')
+message_log_re = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
+                            r'(\d{2}):(\d{2}):(\d{2})Z '
+                            r'(\d+) <([^ ]+)>  (.*)')
+info_log_re = re.compile(r'MI (\d{4})(\d{2})(\d{2})T'
+                         r'(\d{2}):(\d{2}):(\d{2})Z '
+                         r'(\d+) (.*)')
 
 def parse_message_line(msg):
     if re.match(message_log_re, msg):
@@ -153,7 +162,7 @@ class Logger(object):
                 continue
             tup = parse_message_line(lines[idx])
             idx += 1
-            if not tup or 7 > len(tup) > 10  : # skip
+            if not tup or 7 > len(tup) > 10: # skip
                 log.debug('format? %s', tup)
                 continue
             time = [int(i) for index, i in enumerate(tup) if index < 6]
@@ -264,4 +273,9 @@ class Logger(object):
             return False
         return True
 
-logger = Logger()
+def create_logger():
+    "Create the global logger object"
+    global logger
+    logger = Logger()
+
+logger = None
