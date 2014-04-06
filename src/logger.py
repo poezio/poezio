@@ -151,7 +151,7 @@ class Logger(object):
             lines = m[pos-1:].decode(errors='replace').splitlines()
 
         messages = []
-        color = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        color = '\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG)
 
         # now convert that data into actual Message objects
         idx = 0

@@ -41,6 +41,7 @@ class DarkTheme(theming.Theme):
     COLOR_VERTICAL_TAB_DISCONNECTED = (13, -1)
 
     COLOR_INFORMATION_TEXT = (244, -1)
+    COLOR_LOG_MSG = (244, -1)
 
 
 theme = DarkTheme()

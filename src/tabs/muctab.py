@@ -1202,7 +1202,9 @@ class MucTab(ChatTab):
             if self.state != 'highlight' and\
                     config.get_by_tabname('notify_messages', True, self.get_name()):
                 self.state = 'message'
-        if (not nickname or time) and not txt.startswith('/me '):
+        if time:
+            txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': dump_tuple(get_theme().COLOR_LOG_MSG)}
+        elif (not nickname or time) and not txt.startswith('/me '):
             txt = '\x19%(info_col)s}%(txt)s' % {'txt':txt, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         elif not kwargs.get('highlight'):                   # TODO
             args['highlight'] = self.do_highlight(txt, time, nickname)

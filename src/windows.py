@@ -35,7 +35,7 @@ import core
 import singleton
 import collections
 
-from theming import get_theme, to_curses_attr, read_tuple
+from theming import get_theme, to_curses_attr, read_tuple, dump_tuple
 
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,
@@ -908,6 +908,11 @@ class TextWin(Win):
         txt = message.txt
         if not txt:
             return []
+        if len(message.str_time) > 8:
+            default_color = (FORMAT_CHAR + dump_tuple(get_theme().COLOR_LOG_MSG)
+                    + '}')
+        else:
+            default_color = None
         ret = []
         nick = truncate_nick(message.nickname)
         offset = 0
@@ -933,7 +938,10 @@ class TextWin(Win):
             if attrs:
                 prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
             else:
-                prepend = ''
+                if default_color:
+                    prepend = default_color
+                else:
+                    prepend = ''
             ret.append(saved)
         return ret
 

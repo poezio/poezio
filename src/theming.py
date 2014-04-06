@@ -267,6 +267,7 @@ class Theme(object):
     # This is your own nickname
     COLOR_OWN_NICK = (254, -1)
 
+    COLOR_LOG_MSG = (5, -1)
     # This is for in-tab error messages
     COLOR_ERROR_MSG = (9, 7, 'b')
     # Status color

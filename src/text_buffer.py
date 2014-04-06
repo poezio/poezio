@@ -16,7 +16,7 @@ import collections
 
 from datetime import datetime
 from config import config
-from theming import get_theme
+from theming import get_theme, dump_tuple
 
 message_fields = 'txt nick_color time str_time nickname user identifier highlight me old_message revisions jid'
 Message = collections.namedtuple('Message', message_fields)
@@ -77,6 +77,8 @@ class TextBuffer(object):
         if txt.startswith('/me '):
             me = True
             txt = '\x19%(info_col)s}' % {'info_col': get_theme().COLOR_ME_MESSAGE[0]} + txt[4:]
+        if history:
+            txt = txt.replace('\x19o', '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
         msg = Message(
                 txt='%s\x19o'%(txt.replace('\t', '    '),),
                 nick_color=nick_color,
