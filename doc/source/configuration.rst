@@ -526,7 +526,7 @@ or the way messages are displayed.
 
     display_user_color_in_join_part
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
         If set to true, the color of the nick will be used in MUCs information
         messages, instead of the default color from the theme.
