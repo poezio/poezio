@@ -1402,7 +1402,7 @@ class Core(object):
         Tell the Keyboard object that the next key pressed by the user
         should be escaped. See Keyboard.get_user_input
         """
-        keyboard.escape_next_key()
+        self.keyboard.escape_next_key()
 
 ####################### Commands and completions ##############################
 
