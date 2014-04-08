@@ -15,6 +15,7 @@ class DarkTheme(theming.Theme):
     COLOR_MORE_INDICATOR = (6, 4)
 
     COLOR_TAB_NORMAL = (-1, 236)
+    COLOR_TAB_NONEMPTY = (-1, 236)
     COLOR_TAB_CURRENT = (-1, 16)
     COLOR_TAB_NEW_MESSAGE = (3, 236)
     COLOR_TAB_HIGHLIGHT = (1, 236)
