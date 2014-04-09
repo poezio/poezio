@@ -250,6 +250,7 @@ class Core(object):
         self.add_configuration_handler("connection_timeout_delay", self.xmpp.set_keepalive_values)
         self.add_configuration_handler("connection_check_interval", self.xmpp.set_keepalive_values)
         self.add_configuration_handler("themes_dir", theming.update_themes_dir)
+        self.add_configuration_handler("theme", self.on_theme_config_change)
         self.add_configuration_handler("", self.on_any_config_change)
 
     def on_any_config_change(self, option, value):
@@ -304,6 +305,15 @@ class Core(object):
         """
         path = os.path.expanduser(value)
         self.plugin_manager.on_plugins_conf_dir_change(path)
+
+    def on_theme_config_change(self, option, value):
+        """
+        Called when the theme option is changed
+        """
+        error_msg = theming.reload_theme()
+        if error_msg:
+            self.information(error_msg, 'Warning')
+        self.refresh_window()
 
     def sigusr_handler(self, num, stack):
         """

@@ -173,10 +173,6 @@ def command_theme(self, arg=''):
     args = arg.split()
     if args:
         self.command_set('theme %s' % (args[0],))
-    warning = theming.reload_theme()
-    if warning:
-        self.information(warning, 'Warning')
-    self.refresh_window()
 
 def command_win(self, arg):
     """

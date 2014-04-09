@@ -491,7 +491,7 @@ def reload_theme():
         else:
             loader = finder.find_module(theme_name, load_path)
             if not loader:
-                return
+                return 'Failed to load the theme %s' % theme_name
             new_theme = loader.load_module()
     except Exception as e:
         log.error('Failed to load the theme %s', theme_name, exc_info=True)
