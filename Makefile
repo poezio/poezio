@@ -17,6 +17,7 @@ clean:
 	find ./ -name "#*#" -delete
 	rm -rf doc/build/
 	rm -rf build
+	rm -f src/*.so
 
 install: all
 	python3 setup.py install --root=$(DESTDIR) --optimize=1
