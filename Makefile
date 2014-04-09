@@ -15,7 +15,8 @@ clean:
 	find ./ -name \*.pyo -delete
 	find ./ -name \*~ -delete
 	find ./ -name "#*#" -delete
-	rm -r doc/build/
+	rm -rf doc/build/
+	rm -rf build
 
 install: all
 	python3 setup.py install --root=$(DESTDIR) --optimize=1
