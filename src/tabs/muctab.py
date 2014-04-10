@@ -16,6 +16,7 @@ import curses
 import os
 import random
 from datetime import datetime
+from functools import reduce
 
 from . import ChatTab, Tab
 
@@ -206,7 +207,11 @@ class MucTab(ChatTab):
         compare_users = lambda x: x.last_talked
         userlist = [user.nick for user in sorted(self.users, key=compare_users, reverse=True)\
                          if user.nick != self.own_nick]
-        return the_input.auto_completion(userlist, quotify=False)
+        comp = sorted(reduce(lambda x, y: x + [i.jid for i in y],
+            (roster[jid].resources for jid in roster.jids() if len(roster[jid])),
+            []))
+        userlist.extend(comp)
+        return the_input.new_completion(userlist, 1, quotify=False)
 
     def completion_info(self, the_input):
         """Completion for /info"""

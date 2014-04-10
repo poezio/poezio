@@ -24,6 +24,7 @@ def completion_help(self, the_input):
     commands = sorted(self.commands.keys()) + sorted(self.current_tab().commands.keys())
     return the_input.new_completion(commands, 1, quotify=False)
 
+
 def completion_status(self, the_input):
     """
     Completion of /status
@@ -41,6 +42,7 @@ def completion_presence(self, the_input):
         return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=True)
     elif arg == 2:
         return the_input.auto_completion([status for status in possible_show], '', quotify=True)
+
 
 def completion_theme(self, the_input):
     """ Completion for /theme"""
@@ -68,6 +70,7 @@ def completion_win(self, the_input):
         l.extend(tab.matching_names())
     l = [i[1] for i in l]
     return the_input.new_completion(l, 1, '', quotify=False)
+
 
 def completion_join(self, the_input):
     """
@@ -136,11 +139,8 @@ def completion_join(self, the_input):
 
 def completion_version(self, the_input):
     """Completion for /version"""
-    n = the_input.get_argument_position(quoted=True)
-    if n >= 2:
-        return
     comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
-    return the_input.new_completion(sorted(comp), 1, '', quotify=True)
+    return the_input.new_completion(sorted(comp), 1, quotify=False)
 
 
 def completion_list(self, the_input):
@@ -153,7 +153,6 @@ def completion_list(self, the_input):
         return the_input.new_completion(muc_serv_list, 1, quotify=False)
 
 
-
 def completion_move_tab(self, the_input):
     """Completion for /move_tab"""
     n = the_input.get_argument_position(quoted=True)
@@ -161,8 +160,6 @@ def completion_move_tab(self, the_input):
         nodes = [tab.get_name() for tab in self.tabs if tab]
         nodes.remove('Roster')
         return the_input.new_completion(nodes, 1, ' ', quotify=True)
-
-
 
 
 def completion_runkey(self, the_input):
@@ -207,15 +204,18 @@ def completion_bookmark(self, the_input):
     muc_list.append('*')
     return the_input.new_completion(muc_list, 1, quotify=True)
 
+
 def completion_remove_bookmark(self, the_input):
     """Completion for /remove_bookmark"""
     return the_input.new_completion([bm.jid for bm in bookmark.bookmarks], 1, quotify=False)
+
 
 def completion_decline(self, the_input):
     """Completion for /decline"""
     n = the_input.get_argument_position(quoted=True)
     if n == 1:
         return the_input.auto_completion(sorted(self.pending_invites.keys()), 1, '', quotify=True)
+
 
 def completion_bind(self, the_input):
     n = the_input.get_argument_position()
@@ -243,7 +243,6 @@ def completion_message(self, the_input):
     off = sorted(jid for jid in roster.jids() if jid not in bares)
     comp = bares + comp + off
     return the_input.new_completion(comp, 1, '', quotify=True)
-
 
 
 def completion_invite(self, the_input):
@@ -348,8 +347,6 @@ def completion_set(self, the_input):
     return the_input.new_completion(end_list, n, quotify=True)
 
 
-
-
 def completion_bookmark_local(self, the_input):
     """Completion for /bookmark_local"""
     n = the_input.get_argument_position(quoted=True)
@@ -377,5 +374,4 @@ def completion_bookmark_local(self, the_input):
     muc_list = [tab.get_name() for tab in self.get_tabs(tabs.MucTab)]
     muc_list.append('*')
     return the_input.new_completion(muc_list, 1, quotify=True)
-
 
