@@ -110,7 +110,7 @@ class PluginManager(object):
             else: # 3.3 & >
                 loader = finder.find_module(name, load_path)
                 if not loader:
-                    self.core.information('Could not find plugin')
+                    self.core.information('Could not find plugin: %s' % name)
                     return
                 module = loader.load_module()
 
@@ -311,13 +311,15 @@ class PluginManager(object):
         plugins_files = [name[:-3] for name in names if name.endswith('.py')
                 and name != '__init__.py' and not name.startswith('.')]
         plugins_files.sort()
-        return the_input.new_completion(plugins_files, 1, '', quotify=False)
+        position = the_input.get_argument_position(quoted=False)
+        return the_input.new_completion(plugins_files, position, '', quotify=False)
 
     def completion_unload(self, the_input):
         """
         completion function that completes the name of the plugins that are loaded
         """
-        return the_input.new_completion(sorted(self.plugins.keys()), 1, '', quotify=False)
+        position = the_input.get_argument_position(quoted=False)
+        return the_input.new_completion(sorted(self.plugins.keys()), position, '', quotify=False)
 
     def on_plugins_dir_change(self, new_value):
         global plugins_dir

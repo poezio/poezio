@@ -1542,19 +1542,19 @@ class Core(object):
                 shortdesc=_('Cycle a range of rooms'),
                 completion=self.completion_server_cycle)
         self.register_command('bind', self.command_bind,
-                usage=_(' <key> <equ>'),
+                usage=_('<key> <equ>'),
                 desc=_("Bind a key to another key or to a “command”. For "
                     "example \"/bind ^H KEY_UP\" makes Control + h do the"
                     " same same as the Up key."),
                 completion=self.completion_bind,
                 shortdesc=_('Bind a key to another key.'))
         self.register_command('load', self.command_load,
-                usage=_('<plugin>'),
-                shortdesc=_('Load the specified plugin'),
+                usage=_('<plugin> [<otherplugin> …]'),
+                shortdesc=_('Load the specified plugin(s)'),
                 completion=self.plugin_manager.completion_load)
         self.register_command('unload', self.command_unload,
-                usage=_('<plugin>'),
-                shortdesc=_('Unload the specified plugin'),
+                usage=_('<plugin> [<otherplugin> …]'),
+                shortdesc=_('Unload the specified plugin(s)'),
                 completion=self.plugin_manager.completion_unload)
         self.register_command('plugins', self.command_plugins,
                 shortdesc=_('Show the plugins in use.'))

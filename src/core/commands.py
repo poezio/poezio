@@ -797,25 +797,19 @@ def command_rawxml(self, arg):
 
 def command_load(self, arg):
     """
-    /load <plugin>
+    /load <plugin> [<otherplugin> …]
     """
     args = arg.split()
-    if len(args) != 1:
-        self.command_help('load')
-        return
-    filename = args[0]
-    self.plugin_manager.load(filename)
+    for plugin in args:
+        self.plugin_manager.load(plugin)
 
 def command_unload(self, arg):
     """
-    /unload <plugin>
+    /unload <plugin> [<otherplugin> …]
     """
     args = arg.split()
-    if len(args) != 1:
-        self.command_help('unload')
-        return
-    filename = args[0]
-    self.plugin_manager.unload(filename)
+    for plugin in args:
+        self.plugin_manager.unload(plugin)
 
 def command_plugins(self, arg=''):
     """

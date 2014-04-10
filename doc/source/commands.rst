@@ -60,14 +60,14 @@ These commands work in *any* tab.
         Just disconnect from the server and exit poezio.
 
     /load
-        **Usage:** ``/load <plugin name>``
+        **Usage:** ``/load <plugin name> [<other plugin> …]``
 
-        Load or reload a plugin.
+        Load or reload one or several plugins.
 
     /unload
-        **Usage:** ``/unload <plugin name>``
+        **Usage:** ``/unload <plugin name> [<other plugin> …]``
 
-        Unload a plugin.
+        Unload one or several plugins.
 
     /plugins
         List the loaded plugins.
