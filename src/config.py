@@ -144,10 +144,15 @@ class Config(RawConfigParser):
         Just find the right section, and then find the
         right option, and edit it.
         """
-        if path.exists(self.file_name):
-            df = open(self.file_name, 'r', encoding='utf-8')
-            lines_before = (line.strip() for line in df.readlines())
-            df.close()
+        if file_ok(self.file_name):
+            try:
+                with open(self.file_name, 'r', encoding='utf-8') as df:
+                    lines_before = (line.strip() for line in df.readlines())
+            except:
+                log.error('Unable to read the config file %s',
+                        self.file_name,
+                        exc_info=True)
+                return False
         else:
             lines_before = []
         result_lines = []
@@ -176,6 +181,7 @@ class Config(RawConfigParser):
             result_lines.append('%s = %s' % (option, value))
         elif not written:
             result_lines.append('%s = %s' % (option, value))
+
         try:
             prefix, file = path.split(self.file_name)
             filename = path.join(prefix, '.%s.tmp' % file)
@@ -256,6 +262,15 @@ class Config(RawConfigParser):
                 res[section][option] = self.get(option, "", section)
         return res
 
+
+def file_ok(filepath):
+    """
+    Returns True if the file exists and is readable and writeable,
+    False otherwise.
+    """
+    val = path.exists(filepath)
+    val &= os.access(filepath, os.R_OK | os.W_OK)
+    return bool(val)
 
 def check_create_config_dir():
     """
