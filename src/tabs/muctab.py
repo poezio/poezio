@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 import curses
 import os
 import random
+import re
 from datetime import datetime
 from functools import reduce
 
@@ -1158,7 +1159,8 @@ class MucTab(ChatTab):
         """
         highlighted = False
         if not time and nickname and nickname != self.own_nick and self.joined:
-            if self.own_nick.lower() in txt.lower():
+
+            if re.search(r'\b' + self.own_nick.lower() + r'\b', txt.lower()):
                 if self.state != 'current':
                     self.state = 'highlight'
                 highlighted = True
