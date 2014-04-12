@@ -1466,7 +1466,8 @@ class Core(object):
                     "<destination>. This will make the following tabs shift in"
                     " some cases (refer to the documentation). A tab can be "
                     "designated by its number or by the beginning of its "
-                    "address."),
+                    "address. You can use \".\" as a shortcut for the current "
+                    "tab."),
                 shortdesc=_('Move a tab.'),
                 completion=self.completion_move_tab)
         self.register_command('show', self.command_status,

@@ -218,6 +218,12 @@ def command_move_tab(self, arg):
     current_tab = self.current_tab()
     if len(args) != 2:
         return self.command_help('move_tab')
+
+    if args[0] == '.':
+        args[0] = current_tab.nb
+    if args[1] == '.':
+        args[1] = current_tab.nb
+
     def get_nb_from_value(value):
         ref = None
         try:

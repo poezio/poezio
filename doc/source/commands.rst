@@ -141,11 +141,13 @@ These commands work in *any* tab.
     /move_tab
         **Usage:** ``/move_tab <source> <destination>``
 
-        Move tab <source> to <destination>. If
-        the create_gaps option is true, then it will leave a gap at the <source>
-        position, leading to usual behaviour. If create_gaps is not enabled, then the
-        tabs will number from 0 to your actual tab number, without gaps (which means
+        Move tab <source> to <destination>. If the :term:`create_gaps` option
+        is true, then it will leave a gap at the <source> position, leading
+        to usual behaviour. If create_gaps is not enabled, then the tabs will
+        number from 0 to your actual tab number, without gaps (which means
         their number will change if you close a tab on the left of the list).
+
+        A value of ``.`` for a parameter means the current tab.
 
     /theme
         **Usage:** ``/theme [theme_name]``
