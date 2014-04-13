@@ -49,7 +49,7 @@ class PluginManager(object):
     def disable_plugins(self):
         for plugin in set(self.plugins.keys()):
             try:
-                self.unload(plugin)
+                self.unload(plugin, notify=False)
             except:
                 pass
 
