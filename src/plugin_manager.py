@@ -92,10 +92,17 @@ class PluginManager(object):
         self.tab_keys[name] = {}
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
-        self.plugins[name] = module.Plugin(self.plugin_api, self.core, self.plugins_conf_dir)
-
-        if notify:
-            self.core.information('Plugin %s loaded' % name, 'Info')
+        try:
+            self.plugins[name] = None
+            self.plugins[name] = module.Plugin(self.plugin_api, self.core, self.plugins_conf_dir)
+        except Exception as e:
+            log.error('Error while loading the plugin %s', name, exc_info=True)
+            if notify:
+                self.core.information('Unable to load the plugin %s: %s' % (name, e), 'Error')
+            self.unload(name, notify=False)
+        else:
+            if notify:
+                self.core.information('Plugin %s loaded' % name, 'Info')
 
     def unload(self, name, notify=True):
         if name in self.plugins:
@@ -115,7 +122,8 @@ class PluginManager(object):
                 for event_name, handler in self.event_handlers[name][:]:
                     self.del_event_handler(name, event_name, handler)
 
-                self.plugins[name].unload()
+                if self.plugins[name] is not None:
+                    self.plugins[name].unload()
                 del self.plugins[name]
                 del self.commands[name]
                 del self.keys[name]

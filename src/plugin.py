@@ -10,6 +10,8 @@ from timed_events import TimedEvent, DelayedEvent
 import config
 import inspect
 import traceback
+import logging
+log = logging.getLogger(__name__)
 
 class PluginConfig(config.Config):
     """
@@ -81,7 +83,8 @@ class SafetyMetaclass(type):
     def __new__(meta, name, bases, class_dict):
         for k, v in class_dict.items():
             if inspect.isfunction(v):
-                class_dict[k] = SafetyMetaclass.safe_func(v)
+                if k != '__init__' and k != 'init':
+                    class_dict[k] = SafetyMetaclass.safe_func(v)
         return type.__new__(meta, name, bases, class_dict)
 
 class PluginWrap(object):
