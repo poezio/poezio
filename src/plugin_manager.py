@@ -19,52 +19,6 @@ from config import config
 
 log = logging.getLogger(__name__)
 
-load_path = []
-
-plugins_dir = config.get('plugins_dir', '')
-plugins_dir = plugins_dir or\
-    os.path.join(os.environ.get('XDG_DATA_HOME') or\
-                     os.path.join(os.environ.get('HOME'), '.local', 'share'),
-                 'poezio', 'plugins')
-plugins_dir = os.path.expanduser(plugins_dir)
-
-plugins_conf_dir = config.get('plugins_conf_dir', '')
-if not plugins_conf_dir:
-    config_home = os.environ.get('XDG_CONFIG_HOME')
-    if not config_home:
-        config_home = os.path.join(os.environ.get('HOME'), '.config')
-    plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
-plugins_conf_dir = os.path.expanduser(plugins_conf_dir)
-
-try:
-    os.makedirs(plugins_dir)
-except OSError:
-    pass
-else:
-    load_path.append(plugins_dir)
-
-try:
-    os.makedirs(plugins_conf_dir)
-except OSError:
-    pass
-
-default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
-
-if os.path.exists(default_plugin_path):
-    load_path.append(default_plugin_path)
-
-try:
-    import poezio_plugins
-except:
-    pass
-else:
-    if poezio_plugins.__path__:
-        load_path.append(list(poezio_plugins.__path__)[0])
-
-if version_info[1] >= 3: # 3.3 & >
-    from importlib import machinery
-    finder = machinery.PathFinder()
-
 class PluginManager(object):
     """
     Plugin Manager
@@ -81,6 +35,15 @@ class PluginManager(object):
         self.keys = {} # module name → dict of keys/handlers loaded for the module
         self.tab_keys = {} #module name → dict of tab types; tab type → list of keybinds (tuples)
         self.roster_elements = {}
+
+        if version_info[1] >= 3: # 3.3 & >
+            from importlib import machinery
+            self.finder = machinery.PathFinder()
+
+        self.initial_set_plugins_dir()
+        self.initial_set_plugins_conf_dir()
+        self.fill_load_path()
+
         self.plugin_api = PluginAPI(core, self)
 
     def disable_plugins(self):
@@ -104,19 +67,18 @@ class PluginManager(object):
                     imp.acquire_lock()
                     module = imp.reload(self.modules[name])
                 else:
-                    file, filename, info = imp.find_module(name, load_path)
+                    file, filename, info = imp.find_module(name, self.load_path)
                     imp.acquire_lock()
                     module = imp.load_module(name, file, filename, info)
             else: # 3.3 & >
-                loader = finder.find_module(name, load_path)
+                loader = self.finder.find_module(name, self.load_path)
                 if not loader:
                     self.core.information('Could not find plugin: %s' % name)
                     return
                 module = loader.load_module()
 
         except Exception as e:
-            import traceback
-            log.debug("Could not load plugin %s: \n%s", name, traceback.format_exc())
+            log.debug("Could not load plugin %s", name, exc_info=True)
             self.core.information("Could not load plugin %s: %s" % (name, e), 'Error')
         finally:
             if version_info[1] < 3 and imp.lock_held():
@@ -130,7 +92,8 @@ class PluginManager(object):
         self.tab_keys[name] = {}
         self.tab_commands[name] = {}
         self.event_handlers[name] = []
-        self.plugins[name] = module.Plugin(self.plugin_api, self.core, plugins_conf_dir)
+        self.plugins[name] = module.Plugin(self.plugin_api, self.core, self.plugins_conf_dir)
+
         if notify:
             self.core.information('Plugin %s loaded' % name, 'Info')
 
@@ -161,9 +124,8 @@ class PluginManager(object):
                 if notify:
                     self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
-                import traceback
-                log.debug("Could not unload plugin: \n%s", traceback.format_exc())
-                self.core.information("Could not unload plugin: %s" % e, 'Error')
+                log.debug("Could not unload plugin %s", name, exc_info=True)
+                self.core.information("Could not unload plugin %s: %s" % (name, e), 'Error')
 
     def add_command(self, module_name, name, handler, help, completion=None, short='', usage=''):
         """
@@ -299,7 +261,7 @@ class PluginManager(object):
         """
         try:
             names = set()
-            for path in load_path:
+            for path in self.load_path:
                 try:
                     add = set(os.listdir(path))
                     names |= add
@@ -322,12 +284,87 @@ class PluginManager(object):
         return the_input.new_completion(sorted(self.plugins.keys()), position, '', quotify=False)
 
     def on_plugins_dir_change(self, new_value):
-        global plugins_dir
-        if plugins_dir in load_path:
-            load_path.remove(plugins_dir)
-        load_path.insert(0, new_value)
-        plugins_dir = new_value
+        self.plugins_dir = new_value
+        self.check_create_plugins_dir()
+        self.fill_load_path()
 
     def on_plugins_conf_dir_change(self, new_value):
-        global plugins_conf_dir
-        plugins_conf_dir = new_value
+        self.plugins_conf_dir = new_value
+        self.check_create_plugins_conf_dir()
+
+    def initial_set_plugins_conf_dir(self):
+        """
+        Create the plugins_conf_dir
+        """
+        plugins_conf_dir = config.get('plugins_conf_dir', '')
+        if not plugins_conf_dir:
+            config_home = os.environ.get('XDG_CONFIG_HOME')
+            if not config_home:
+                config_home = os.path.join(os.environ.get('HOME'), '.config')
+            plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
+        self.plugins_conf_dir = os.path.expanduser(plugins_conf_dir)
+        self.check_create_plugins_conf_dir()
+
+    def check_create_plugins_conf_dir(self):
+        """
+        Create the plugins config directory if it does not exist.
+        Returns True on success, False on failure.
+        """
+        if not os.access(self.plugins_conf_dir, os.R_OK | os.X_OK):
+            try:
+                os.makedirs(self.plugins_conf_dir)
+            except OSError:
+                log.error('Unable to create the plugin conf dir: %s',
+                        plugins_conf_dir, exc_info=True)
+                return False
+        return True
+
+    def initial_set_plugins_dir(self):
+        """
+        Set the plugins_dir on start
+        """
+        plugins_dir = config.get('plugins_dir', '')
+        plugins_dir = plugins_dir or\
+            os.path.join(os.environ.get('XDG_DATA_HOME') or\
+                             os.path.join(os.environ.get('HOME'), '.local', 'share'),
+                         'poezio', 'plugins')
+        self.plugins_dir = os.path.expanduser(plugins_dir)
+        self.check_create_plugins_dir()
+
+    def check_create_plugins_dir(self):
+        """
+        Create the plugins directory if it does not exist.
+        Returns True on success, False on failure.
+        """
+        if not os.access(self.plugins_dir, os.R_OK | os.X_OK):
+            try:
+                os.makedirs(self.plugins_dir, exist_ok=True)
+            except OSError:
+                log.error('Unable to create the plugins dir: %s',
+                        self.plugins_dir, exc_info=True)
+                return False
+        return True
+
+    def fill_load_path(self):
+        """
+        Append the global packages and the source directory if available
+        """
+
+        self.load_path = []
+
+        default_plugin_path = path.join(path.dirname(path.dirname(__file__)), 'plugins')
+
+        if os.access(default_plugin_path, os.R_OK | os.X_OK):
+            self.load_path.insert(0, default_plugin_path)
+
+        if os.access(self.plugins_dir, os.R_OK | os.X_OK):
+            self.load_path.append(self.plugins_dir)
+
+        try:
+            import poezio_plugins
+        except:
+            pass
+        else:
+            if poezio_plugins.__path__:
+                self.load_path.append(list(poezio_plugins.__path__)[0])
+
