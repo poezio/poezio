@@ -1648,20 +1648,23 @@ class Input(Win):
         cursor moved and would now be out of the view, we adapt the
         view_pos so that we can always see our cursor)
         """
+        # start of the input
         if self.pos == 0:
             self.view_pos = 0
             return
+        # cursor outside of the screen (left)
         if self.pos < self.view_pos:
-            if self.width <= 25:
-                self.view_pos = self.pos - self.width
-            else:
-                self.view_pos = self.pos - 25
-        if self.pos >= self.view_pos + self.width - 1:
-            self.view_pos = self.pos - self.width + 12
+            self.view_pos = self.pos - max(1 * self.width // 3, 1)
+        # cursor outside of the screen (right)
+        elif self.pos >= self.view_pos + self.width - 1:
+            self.view_pos = self.pos - max(2 * self.width // 3, 2)
+
         if self.view_pos < 0:
             self.view_pos = 0
+
+
         assert(self.pos > self.view_pos and
-               self.pos < self.view_pos + self.width)
+               self.pos < self.view_pos + max(self.width, 3))
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
