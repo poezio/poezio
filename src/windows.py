@@ -12,30 +12,28 @@ the text window, the roster window, etc.
 A Tab (see tab.py) is composed of multiple Windows
 """
 
-
 import logging
 log = logging.getLogger(__name__)
 
+import collections
 import curses
 import string
 from datetime import datetime
 from math import ceil, log10
-from config import config
-
 from threading import RLock
 
+
+import common
+import core
+import poopt
+import singleton
+from common import safeJID
+from config import config
 from contact import Contact, Resource
 from roster import RosterGroup
-import poopt
-
-from common import safeJID
-import common
-
-import core
-import singleton
-import collections
-
 from theming import get_theme, to_curses_attr, read_tuple, dump_tuple
+from user import ROLE_DICT
+
 
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,
@@ -247,7 +245,7 @@ class UserList(Win):
             if config.get('user_list_sort', 'desc').lower() == 'asc':
                 y, x = self._win.getmaxyx()
                 y -= 1
-                users = sorted(users, reverse=True)
+                users = sorted(users)
             else:
                 y = 0
                 users = sorted(users)
