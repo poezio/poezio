@@ -115,6 +115,7 @@ class Connection(sleekxmpp.ClientXMPP):
         if config.get('send_time', True):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
+        self.register_plugin('xep_0249')
         self.register_plugin('xep_0280')
         self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')

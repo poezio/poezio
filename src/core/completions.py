@@ -249,7 +249,12 @@ def completion_invite(self, the_input):
     """Completion for /invite"""
     n = the_input.get_argument_position(quoted=True)
     if n == 1:
-        return the_input.new_completion(sorted(jid for jid in roster.jids()), n, quotify=True)
+        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
+        comp = sorted(comp)
+        bares = sorted(roster[contact].bare_jid for contact in roster.jids() if len(roster[contact]))
+        off = sorted(jid for jid in roster.jids() if jid not in bares)
+        comp = comp + bares + off
+        return the_input.new_completion(comp, n, quotify=True)
     elif n == 2:
         rooms = []
         for tab in self.get_tabs(tabs.MucTab):

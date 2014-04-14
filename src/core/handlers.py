@@ -76,7 +76,10 @@ def on_carbon_sent(self, message):
 
 ### Invites ###
 
-def on_groupchat_invite(self, message):
+def on_groupchat_invitation(self, message):
+    """
+    Mediated invitation received
+    """
     jid = message['from']
     if jid.bare in self.pending_invites:
         return
@@ -97,7 +100,36 @@ def on_groupchat_invite(self, message):
     self.pending_invites[jid.bare] = inviter.full
 
 def on_groupchat_decline(self, decline):
+    "Mediated invitation declined; skip for now"
     pass
+
+def on_groupchat_direct_invitation(self, message):
+    """
+    Direct invitation received
+    """
+    room = safeJID(message['groupchat_invite']['jid'])
+    if room.bare in self.pending_invites:
+        return
+
+    inviter = message['from']
+    reason = message['groupchat_invite']['reason']
+    password = message['groupchat_invite']['password']
+    continue_ = message['groupchat_invite']['continue']
+    msg = "You are invited to the room %s by %s" % (room, inviter.full)
+
+    if password:
+        msg += ' (password: "%s")' % password
+    if continue_:
+        msg += '\nto continue the discussion'
+    if reason:
+        msg += "\nreason: %s" % reason
+
+    self.information(msg, 'Info')
+    if 'invite' in config.get('beep_on', 'invite').split():
+        curses.beep()
+
+    self.pending_invites[room.bare] = inviter.full
+    logger.log_roster_change(inviter.full, 'invited you to %s' % room.bare)
 
 ### "classic" messages ###
 

@@ -698,10 +698,10 @@ def command_invite(self, arg):
     args = common.shell_split(arg)
     if len(args) < 2:
         return
-    reason = args[2] if len(args) > 2 else ''
+    reason = args[2] if len(args) > 2 else None
     to = safeJID(args[0])
-    room = safeJID(args[1])
-    self.xmpp.plugin['xep_0045'].invite(room, str(to), reason)
+    room = safeJID(args[1]).bare
+    self.invite(to.full, room, reason=reason)
 
 def command_decline(self, arg):
     """/decline <room@server.tld> [reason]"""

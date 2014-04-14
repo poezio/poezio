@@ -188,7 +188,8 @@ class Core(object):
         self.xmpp.add_event_handler("session_start", self.on_session_start_features)
         self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
-        self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invite)
+        self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invitation)
+        self.xmpp.add_event_handler("groupchat_direct_invite", self.on_groupchat_direct_invitation)
         self.xmpp.add_event_handler("groupchat_decline", self.on_groupchat_decline)
         self.xmpp.add_event_handler("groupchat_config_status", self.on_status_codes)
         self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
@@ -704,6 +705,27 @@ class Core(object):
             return False
         self.current_tab().command_say(msg)
         return True
+
+    def invite(self, jid, room, reason=None):
+        """
+        Checks if the sender supports XEP-0249, then send an invitation,
+        or a mediated one if it does not.
+        TODO: allow passwords
+        """
+        def callback(iq):
+            if not iq:
+                return
+            if 'jabber:x:conference' in iq['disco_info'].get_features():
+                self.xmpp.plugin['xep_0249'].send_invitation(
+                        jid,
+                        room,
+                        reason=reason)
+            else: # fallback
+                self.xmpp.plugin['xep_0045'].invite(room, jid,
+                        reason=reason or '')
+
+        self.xmpp.plugin['xep_0030'].get_info(jid=jid, block=False,
+                timeout=5, callback=callback)
 
     def get_error_message(self, stanza, deprecated=False):
         """
@@ -1422,6 +1444,7 @@ class Core(object):
         if not desc and shortdesc:
             desc = shortdesc
         self.commands[name] = Command(func, desc, completion, shortdesc, usage)
+
     def register_initial_commands(self):
         """
         Register the commands when poezio starts
@@ -1623,7 +1646,8 @@ class Core(object):
     on_session_start_features = handlers.on_session_start_features
     on_carbon_received = handlers.on_carbon_received
     on_carbon_sent = handlers.on_carbon_sent
-    on_groupchat_invite = handlers.on_groupchat_invite
+    on_groupchat_invitation = handlers.on_groupchat_invitation
+    on_groupchat_direct_invitation = handlers.on_groupchat_direct_invitation
     on_groupchat_decline = handlers.on_groupchat_decline
     on_message = handlers.on_message
     on_normal_message = handlers.on_normal_message
