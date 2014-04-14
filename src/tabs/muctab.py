@@ -413,20 +413,21 @@ class MucTab(ChatTab):
         """
         arg = arg.strip()
         msg = None
+        info_col = get_theme().COLOR_INFORMATION_TEXT
         if self.joined:
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             if arg:
-                msg = _("\x195}You left the chatroom (\x19o%s\x195})\x193}" % arg)
+                msg = _("\x19%(info_col)s}You left the chatroom (\x19o%(reason)s\x19%(info_col)s})" %
+                        {'info_col': dump_tuple(info_col), 'reason': arg })
             else:
-                msg = _("\x195}You left the chatroom\x193}")
+                msg = _("\x19%(info_col)s}You left the chatroom" %
+                        {'info_col': dump_tuple(info_col) })
             self.add_message(msg, typ=2)
+            self.core.disable_private_tabs(self.name, reason=msg)
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
-        else:
-            msg = _("\x195}You left the chatroom\x193}")
-        self.core.disable_private_tabs(self.name, reason=msg)
 
     def command_close(self, arg):
         """
