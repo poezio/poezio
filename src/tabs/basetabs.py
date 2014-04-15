@@ -47,6 +47,7 @@ STATE_COLORS = {
         'nonempty': lambda: get_theme().COLOR_TAB_NONEMPTY,
         'joined': lambda: get_theme().COLOR_TAB_JOINED,
         'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
+        'composing': lambda: get_theme().COLOR_TAB_COMPOSING,
         'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
         'private': lambda: get_theme().COLOR_TAB_PRIVATE,
         'normal': lambda: get_theme().COLOR_TAB_NORMAL,
@@ -59,6 +60,7 @@ VERTICAL_STATE_COLORS = {
         'nonempty': lambda: get_theme().COLOR_VERTICAL_TAB_NONEMPTY,
         'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
         'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
+        'composing': lambda: get_theme().COLOR_VERTICAL_TAB_COMPOSING,
         'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
         'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
         'normal': lambda: get_theme().COLOR_VERTICAL_TAB_NORMAL,
@@ -75,6 +77,7 @@ STATE_PRIORITY = {
         'disconnected': 0,
         'nonempty': 0.1,
         'scrolled': 0.5,
+        'composing': 0.9,
         'message': 1,
         'joined': 1,
         'highlight': 2,
@@ -90,8 +93,8 @@ class Tab(object):
     def __init__(self):
         self.input = None
         self._state = 'normal'
+        self._prev_state = None
 
-        self.need_resize = False
         self.need_resize = False
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
@@ -161,6 +164,19 @@ class Tab(object):
             log.debug('Did not set state because disconnected tabs remain visible')
         else:
             self._state = value
+            if self._state == 'current':
+                self._prev_state = None
+
+    def save_state(self):
+        if self._state != 'composing':
+            self._prev_state = self._state
+
+    def restore_state(self):
+        if self.state == 'composing' and self._prev_state:
+            self._state = self._prev_state
+            self._prev_state = None
+        elif not self._prev_state:
+            self._state = 'normal'
 
     @staticmethod
     def resize(scr):

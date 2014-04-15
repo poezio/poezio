@@ -439,6 +439,22 @@ or the way messages are displayed.
 
         This directory will be created at startup if it doesn't exist
 
+    show_composing_tabs
+
+        **Default value:** ``direct``
+
+        Highlight tabs where the last activity was a "composing" chat state,
+        which means the contact is currently typing.
+
+        Possible values are:
+
+        - ``direct``: highlight only in one-to-one chats (equiv. of private & conversation)
+        - ``private``: highlight only in private chats inside chatrooms
+        - ``conversation``: highlight only in chats with contacts or direct JIDs
+        - ``muc``: highlight only in chatrooms
+        - ``true``: highlight all possible tabs (equiv. of muc & private & conversation)
+        - ``false`` or any other value: don’t highlight anything
+
     user_list_sort
 
         **Default value:** ``desc``

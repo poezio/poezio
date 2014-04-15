@@ -1228,6 +1228,13 @@ class Core(object):
         Refresh the window containing the tab list
         """
         self.current_tab().refresh_tab_win()
+        self.refresh_input()
+        self.doupdate()
+
+    def refresh_input(self):
+        """
+        Refresh the input if it exists
+        """
         if self.current_tab().input:
             self.current_tab().input.refresh()
         self.doupdate()

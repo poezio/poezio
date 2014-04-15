@@ -565,6 +565,9 @@ def on_chatstate_normal_conversation(self, message, state):
     if tab == self.current_tab():
         tab.refresh_info_header()
         self.doupdate()
+    else:
+        composing_tab_state(tab, state)
+        self.refresh_tab_win()
     return True
 
 def on_chatstate_private_conversation(self, message, state):
@@ -580,6 +583,9 @@ def on_chatstate_private_conversation(self, message, state):
     if tab == self.current_tab():
         tab.refresh_info_header()
         self.doupdate()
+    else:
+        composing_tab_state(tab, state)
+        self.refresh_tab_win()
     return True
 
 def on_chatstate_groupchat_conversation(self, message, state):
@@ -596,6 +602,9 @@ def on_chatstate_groupchat_conversation(self, message, state):
         tab.user_win.refresh(tab.users)
         tab.input.refresh()
         self.doupdate()
+    else:
+        composing_tab_state(tab, state)
+        self.refresh_tab_win()
 
 ### subscription-related handlers ###
 
@@ -1051,4 +1060,30 @@ def validate_ssl(self, pem):
         if not config.silent_set('certificate', found_cert):
             self.information(_('Unable to write in the config file'), 'Error')
 
+
+def composing_tab_state(tab, state):
+    """
+    Set a tab state to or from the "composing" state
+    according to the config and the current tab state
+    """
+    if isinstance(tab, tabs.MucTab):
+        values = ('true', 'muc')
+    elif isinstance(tab, tabs.PrivateTab):
+        values = ('true', 'direct', 'private')
+    elif isinstance(tab, tabs.ConversationTab):
+        values = ('true', 'direct', 'conversation')
+    else:
+        return # should not happen
+
+    show = config.get('show_composing_tabs', 'direct')
+    show = show in values
+
+    if tab.state != 'composing' and state == 'composing':
+        if show:
+            if tabs.STATE_PRIORITY[tab.state] > tabs.STATE_PRIORITY[state]:
+                return
+            tab.save_state()
+            tab.state = 'composing'
+    elif tab.state == 'composing' and state != 'composing':
+        tab.restore_state()
 
