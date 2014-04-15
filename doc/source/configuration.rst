@@ -664,6 +664,14 @@ or the way messages are displayed.
 
         Whether or not to display a timestamp before each message.
 
+    create_gaps
+
+        **Default:** ``false``
+
+        Create gaps when moving a tab or closing it. Enabling this option
+        will help you keep the tabs at the same place during the execution of
+        poezio. (gaps are not created when the closed tab is the last one)
+
     popup_time
 
         **Default value:** ``4``
