@@ -340,12 +340,11 @@ class MucTab(ChatTab):
 
     def command_cycle(self, arg):
         """/cycle [reason]"""
-        if self.joined:
-            muc.leave_groupchat(self.core.xmpp, self.get_name(), self.own_nick, arg)
+        self.command_part(arg)
         self.disconnect()
+        self.user_win.pos = 0
         self.core.disable_private_tabs(self.name)
         self.core.command_join('"/%s"' % self.own_nick)
-        self.user_win.pos = 0
 
     def command_recolor(self, arg):
         """
@@ -414,8 +413,6 @@ class MucTab(ChatTab):
         arg = arg.strip()
         msg = None
         if self.joined:
-            self.disconnect()
-            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             char_quit = get_theme().CHAR_QUIT
             spec_col = dump_tuple(get_theme().COLOR_QUIT_CHAR)
@@ -447,6 +444,8 @@ class MucTab(ChatTab):
                         }
 
             self.add_message(msg, typ=2)
+            self.disconnect()
+            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
             self.core.disable_private_tabs(self.name, reason=msg)
             if self == self.core.current_tab():
                 self.refresh()

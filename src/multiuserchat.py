@@ -64,7 +64,7 @@ def change_nick(core, jid, nick, status=None, show=None):
     core.events.trigger('changing_nick', presence)
     presence.send()
 
-def join_groupchat(core, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=0):
+def join_groupchat(core, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=None):
     xmpp = core.xmpp
     stanza = xmpp.makePresence(pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
     x = ET.Element('{http://jabber.org/protocol/muc}x')
@@ -72,7 +72,7 @@ def join_groupchat(core, jid, nick, passwd='', maxhistory=None, status=None, sho
         passelement = ET.Element('password')
         passelement.text = passwd
         x.append(passelement)
-    if seconds:
+    if seconds is not None:
         history = ET.Element('{http://jabber.org/protocol/muc}history')
         history.attrib['seconds'] = str(seconds)
         x.append(history)
