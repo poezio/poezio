@@ -139,6 +139,7 @@ class Theme(object):
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)
     COLOR_INFORMATION_TEXT = (5, -1) # TODO
+    COLOR_WARNING_TEXT = (1, -1)
 
     # Color of the commands in the help message
     COLOR_HELP_COMMANDS = (208, -1)
