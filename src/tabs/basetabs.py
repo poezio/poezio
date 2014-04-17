@@ -583,6 +583,7 @@ class ChatTab(Tab):
                 msg['chat_state'] = state
                 self.chat_state = state
                 msg.send()
+                return True
 
     def send_composing_chat_state(self, empty_after):
         """

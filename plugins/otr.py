@@ -482,6 +482,9 @@ class Plugin(BasePlugin):
         ctx = self.contexts.get(name)
         if ctx and ctx.state == STATE_ENCRYPTED:
             ctx.sendMessage(0, msg['body'].encode('utf-8'))
+            if not tab.send_chat_state('active'):
+                tab.send_chat_state('inactive', always_send=True)
+
             tab.add_message(msg['body'],
                     nickname=self.core.own_nick or tab.own_nick,
                     nick_color=theming.get_theme().COLOR_OWN_NICK,
