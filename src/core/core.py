@@ -62,6 +62,7 @@ class Core(object):
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
         self.connection_time = time.time()
+        self.stdscr = None
         status = config.get('status', None)
         status = possible_show.get(status, None)
         self.status = Status(show=status,
@@ -83,9 +84,10 @@ class Core(object):
         self.information_win_size = config.get('info_win_height', 2, 'var')
         self.information_win = windows.TextWin(300)
         self.information_buffer.add_window(self.information_win)
+        self.left_tab_win = None
 
         self.tab_win = windows.GlobalInfoBar()
-        # Number of xml tabs opened, used to avoid useless memory consumption
+        # Whether the XML tab is opened
         self.xml_tab = False
         self.xml_buffer = TextBuffer()
 
@@ -93,7 +95,11 @@ class Core(object):
         self._current_tab_nb = 0
         self.previous_tab_nb = 0
 
-        self.own_nick = config.get('default_nick', '') or self.xmpp.boundjid.user or os.environ.get('USER') or 'poezio'
+        own_nick = config.get('default_nick', '')
+        own_nick = own_nick or self.xmpp.boundjid.user
+        own_nick = own_nick or os.environ.get('USER')
+        own_nick = own_nick or 'poezio'
+        self.own_nick = own_nick
 
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
@@ -185,44 +191,68 @@ class Core(object):
         self.xmpp.add_event_handler('failed_auth', self.on_failed_auth)
         self.xmpp.add_event_handler('no_auth', self.on_no_auth)
         self.xmpp.add_event_handler("session_start", self.on_session_start)
-        self.xmpp.add_event_handler("session_start", self.on_session_start_features)
-        self.xmpp.add_event_handler("groupchat_presence", self.on_groupchat_presence)
-        self.xmpp.add_event_handler("groupchat_message", self.on_groupchat_message)
-        self.xmpp.add_event_handler("groupchat_invite", self.on_groupchat_invitation)
-        self.xmpp.add_event_handler("groupchat_direct_invite", self.on_groupchat_direct_invitation)
-        self.xmpp.add_event_handler("groupchat_decline", self.on_groupchat_decline)
-        self.xmpp.add_event_handler("groupchat_config_status", self.on_status_codes)
-        self.xmpp.add_event_handler("groupchat_subject", self.on_groupchat_subject)
+        self.xmpp.add_event_handler("session_start",
+                                    self.on_session_start_features)
+        self.xmpp.add_event_handler("groupchat_presence",
+                                    self.on_groupchat_presence)
+        self.xmpp.add_event_handler("groupchat_message",
+                                    self.on_groupchat_message)
+        self.xmpp.add_event_handler("groupchat_invite",
+                                    self.on_groupchat_invitation)
+        self.xmpp.add_event_handler("groupchat_direct_invite",
+                                    self.on_groupchat_direct_invitation)
+        self.xmpp.add_event_handler("groupchat_decline",
+                                    self.on_groupchat_decline)
+        self.xmpp.add_event_handler("groupchat_config_status",
+                                    self.on_status_codes)
+        self.xmpp.add_event_handler("groupchat_subject",
+                                    self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
         self.xmpp.add_event_handler("got_online", self.on_got_online)
         self.xmpp.add_event_handler("got_offline", self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.on_presence)
         self.xmpp.add_event_handler("presence_error", self.on_presence_error)
-        self.xmpp.add_event_handler("roster_subscription_request", self.on_subscription_request)
-        self.xmpp.add_event_handler("roster_subscription_authorized", self.on_subscription_authorized)
-        self.xmpp.add_event_handler("roster_subscription_remove", self.on_subscription_remove)
-        self.xmpp.add_event_handler("roster_subscription_removed", self.on_subscription_removed)
+        self.xmpp.add_event_handler("roster_subscription_request",
+                                    self.on_subscription_request)
+        self.xmpp.add_event_handler("roster_subscription_authorized",
+                                    self.on_subscription_authorized)
+        self.xmpp.add_event_handler("roster_subscription_remove",
+                                    self.on_subscription_remove)
+        self.xmpp.add_event_handler("roster_subscription_removed",
+                                    self.on_subscription_removed)
         self.xmpp.add_event_handler("message_xform", self.on_data_form)
-        self.xmpp.add_event_handler("chatstate_active", self.on_chatstate_active)
-        self.xmpp.add_event_handler("chatstate_composing", self.on_chatstate_composing)
-        self.xmpp.add_event_handler("chatstate_paused", self.on_chatstate_paused)
-        self.xmpp.add_event_handler("chatstate_gone", self.on_chatstate_gone)
-        self.xmpp.add_event_handler("chatstate_inactive", self.on_chatstate_inactive)
+        self.xmpp.add_event_handler("chatstate_active",
+                                    self.on_chatstate_active)
+        self.xmpp.add_event_handler("chatstate_composing",
+                                    self.on_chatstate_composing)
+        self.xmpp.add_event_handler("chatstate_paused",
+                                    self.on_chatstate_paused)
+        self.xmpp.add_event_handler("chatstate_gone",
+                                    self.on_chatstate_gone)
+        self.xmpp.add_event_handler("chatstate_inactive",
+                                    self.on_chatstate_inactive)
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
-        self.all_stanzas = Callback('custom matcher', connection.MatchAll(None), self.incoming_stanza)
+        self.all_stanzas = Callback('custom matcher',
+                                    connection.MatchAll(None),
+                                    self.incoming_stanza)
         self.xmpp.register_handler(self.all_stanzas)
         if config.get('enable_user_tune', True):
-            self.xmpp.add_event_handler("user_tune_publish", self.on_tune_event)
+            self.xmpp.add_event_handler("user_tune_publish",
+                                        self.on_tune_event)
         if config.get('enable_user_nick', True):
-            self.xmpp.add_event_handler("user_nick_publish", self.on_nick_received)
+            self.xmpp.add_event_handler("user_nick_publish",
+                                        self.on_nick_received)
         if config.get('enable_user_mood', True):
-            self.xmpp.add_event_handler("user_mood_publish", self.on_mood_event)
+            self.xmpp.add_event_handler("user_mood_publish",
+                                        self.on_mood_event)
         if config.get('enable_user_activity', True):
-            self.xmpp.add_event_handler("user_activity_publish", self.on_activity_event)
+            self.xmpp.add_event_handler("user_activity_publish",
+                                        self.on_activity_event)
         if config.get('enable_user_gaming', True):
-            self.xmpp.add_event_handler("user_gaming_publish", self.on_gaming_event)
+            self.xmpp.add_event_handler("user_gaming_publish",
+                                        self.on_gaming_event)
 
         self.initial_joins = []
 
@@ -238,20 +268,28 @@ class Core(object):
         # callbacks are triggered.
         # Use Core.add_configuration_handler("option", callback) to add a
         # handler
-        # Note that the callback will be called when it’s changed in the global section, OR
-        # in a special section.
+        # Note that the callback will be called when it’s changed in the
+        # global section, OR in a special section.
         # As a special case, handlers can be associated with the empty
         # string option (""), they will be called for every option change
         # The callback takes two argument: the config option, and the new
         # value
         self.configuration_change_handlers = {"": []}
-        self.add_configuration_handler("create_gaps", self.on_gaps_config_change)
-        self.add_configuration_handler("plugins_dir", self.on_plugins_dir_config_change)
-        self.add_configuration_handler("plugins_conf_dir", self.on_plugins_conf_dir_config_change)
-        self.add_configuration_handler("connection_timeout_delay", self.xmpp.set_keepalive_values)
-        self.add_configuration_handler("connection_check_interval", self.xmpp.set_keepalive_values)
-        self.add_configuration_handler("themes_dir", theming.update_themes_dir)
-        self.add_configuration_handler("theme", self.on_theme_config_change)
+        self.add_configuration_handler("create_gaps",
+                                       self.on_gaps_config_change)
+        self.add_configuration_handler("plugins_dir",
+                                       self.on_plugins_dir_config_change)
+        self.add_configuration_handler("plugins_conf_dir",
+                                       self.on_plugins_conf_dir_config_change)
+        self.add_configuration_handler("connection_timeout_delay",
+                                       self.xmpp.set_keepalive_values)
+        self.add_configuration_handler("connection_check_interval",
+                                       self.xmpp.set_keepalive_values)
+        self.add_configuration_handler("themes_dir",
+                                       theming.update_themes_dir)
+        self.add_configuration_handler("theme",
+                                       self.on_theme_config_change)
+
         self.add_configuration_handler("", self.on_any_config_change)
 
     def on_any_config_change(self, option, value):
@@ -291,7 +329,7 @@ class Core(object):
         Remove all gaptabs if switching from gaps to nogaps.
         """
         if value.lower() == "false":
-            self.tabs = list(filter(lambda x: bool(x), self.tabs))
+            self.tabs = list(tab for tab in self.tabs if tab)
 
     def on_plugins_dir_config_change(self, option, value):
         """
@@ -398,10 +436,11 @@ class Core(object):
         if firstrun:
             self.information(_(
                 'It seems that it is the first time you start poezio.\n'
-                'The online help is here http://poezio.eu/doc/en/\n'
-                'No room is joined by default, but you can join poezio’s chatroom '
-                '(with /join poezio@muc.poezio.eu), where you can ask for help or tell us how great it is.'
-            ), 'Help')
+                'The online help is here http://doc.poez.io/\n'
+                'No room is joined by default, but you can join poezio’s'
+                'chatroom (with /join poezio@muc.poez.io), where you can'
+                ' ask for help or tell us how great it is.'),
+                _('Help'))
         self.refresh_window()
 
     def on_exception(self, typ, value, trace):
@@ -420,6 +459,7 @@ class Core(object):
         main loop waiting for the user to press a key
         """
         def replace_line_breaks(key):
+            "replace ^J with \n"
             if key == '^J':
                 return '\n'
             return key
@@ -490,7 +530,7 @@ class Core(object):
                     if func:
                         func()
                     else:
-                        res = self.do_command(replace_line_breaks(char), False)
+                        self.do_command(replace_line_breaks(char), False)
                 else:
                     self.do_command(''.join(char_list), True)
             self.doupdate()
@@ -499,9 +539,14 @@ class Core(object):
         """
         Save config in the file just before exit
         """
-        if not roster.save_to_config_file() or \
-                not config.silent_set('info_win_height', self.information_win_size, 'var'):
-            self.information(_('Unable to write in the config file'), 'Error')
+        ok = roster.save_to_config_file()
+        ok = ok and config.silent_set('info_win_height',
+                                      self.information_win_size,
+                                      'var')
+        if not ok:
+            self.information(_('Unable to save runtime preferences'
+                               ' in the config file'),
+                             _('Error'))
 
     def on_roster_enter_key(self, roster_row):
         """
@@ -513,7 +558,9 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.jid, False, fallback_barejid=False):
+            if not self.get_conversation_by_jid(roster_row.jid,
+                                                False,
+                                                fallback_barejid=False):
                 self.open_conversation_window(roster_row.jid)
             else:
                 self.focus_tab_named(roster_row.jid)
@@ -555,7 +602,8 @@ class Core(object):
                 func(arg)
                 return
             else:
-                self.information(_("Unknown command (%s)") % (command), _('Error'))
+                self.information(_("Unknown command (%s)") % (command),
+                                 _('Error'))
 
     def exec_command(self, command):
         """
@@ -587,35 +635,48 @@ class Core(object):
         """
         if config.get('exec_remote', False):
             # We just write the command in the fifo
+            fifo_path = config.get('remote_fifo_path', './')
             if not self.remote_fifo:
                 try:
-                    self.remote_fifo = Fifo(os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'), 'w')
-                except (OSError, IOError) as e:
+                    self.remote_fifo = Fifo(os.path.join(fifo_path,
+                                                         'poezio.fifo'),
+                                            'w')
+                except (OSError, IOError) as exc:
                     log.error('Could not open the fifo for writing (%s)',
-                            os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'),
-                            exc_info=True)
-                    self.information('Could not open fifo file for writing: %s' % (e,), 'Error')
+                               os.path.join(fifo_path, './', 'poezio.fifo'),
+                               exc_info=True)
+                    self.information('Could not open the fifo '
+                                     'file for writing: %s' % exc,
+                                     'Error')
                     return
-            command_str = ' '.join([pipes.quote(arg.replace('\n', ' ')) for arg in command]) + '\n'
+
+            args = (pipes.quote(arg.replace('\n', ' ')) for arg in command)
+            command_str = ' '.join(args) + '\n'
             try:
                 self.remote_fifo.write(command_str)
-            except (IOError) as e:
+            except (IOError) as exc:
                 log.error('Could not write in the fifo (%s): %s',
-                            os.path.join(config.get('remote_fifo_path', './'), 'poezio.fifo'),
+                            os.path.join(fifo_path, './', 'poezio.fifo'),
                             repr(command),
                             exc_info=True)
-                self.information('Could not execute %s: %s' % (command, e,), 'Error')
+                self.information('Could not execute %s: %s' % (command, exc),
+                                 'Error')
                 self.remote_fifo = None
         else:
-            e = Executor(command)
+            executor = Executor(command)
             try:
-                e.start()
-            except ValueError as e:
-                log.error('Could not execute command (%s)', repr(command), exc_info=True)
-                self.information('%s' % (e,), 'Error')
+                executor.start()
+            except ValueError as exc:
+                log.error('Could not execute command (%s)',
+                          repr(command),
+                          exc_info=True)
+                self.information('%s' % exc, 'Error')
 
 
     def do_command(self, key, raw):
+        """
+        Execute the action associated with a key
+        """
         if not key:
             return
         return self.current_tab().on_input(key, raw)
@@ -670,9 +731,12 @@ class Core(object):
         """
         self.status = Status(show=pres, message=msg)
         if config.get('save_status', True):
-            if not config.silent_set('status', pres if pres else '') or \
-                    not config.silent_set('status_message', msg.replace('\n', '|') if msg else ''):
-                self.information(_('Unable to write in the config file'), 'Error')
+            ok = config.silent_set('status', pres if pres else '')
+            msg = msg.replace('\n', '|') if msg else ''
+            ok = ok and config.silent_set('status_message', msg)
+            if not ok:
+                self.information(_('Unable to save the status in '
+                                   'the config file'), 'Error')
 
     def get_bookmark_nickname(self, room_name):
         """
@@ -698,7 +762,8 @@ class Core(object):
 
     def send_message(self, msg):
         """
-        Function to use in plugins to send a message in the current conversation.
+        Function to use in plugins to send a message in the current
+        conversation.
         Returns False if the current tab is not a conversation tab
         """
         if not isinstance(self.current_tab(), tabs.ChatTab):
@@ -749,9 +814,11 @@ class Core(object):
                 else:
                     body = condition or _('Unknown error')
         if code:
-            message = _('%(from)s: %(code)s - %(msg)s: %(body)s') % {'from':sender, 'msg':msg, 'body':body, 'code':code}
+            message = _('%(from)s: %(code)s - %(msg)s: %(body)s') % {
+                    'from': sender, 'msg': msg, 'body': body, 'code': code}
         else:
-            message = _('%(from)s: %(msg)s: %(body)s') % {'from':sender, 'msg':msg, 'body':body}
+            message = _('%(from)s: %(msg)s: %(body)s') % {
+                    'from': sender, 'msg': msg, 'body': body}
         return message
 
 
@@ -780,20 +847,25 @@ class Core(object):
         tabs with the same barejid, instead of searching only by fulljid.
         """
         jid = safeJID(jid)
-        # We first check if we have a static conversation opened with this precise resource
-        conversation = self.get_tab_by_name(jid.full, tabs.StaticConversationTab)
+        # We first check if we have a static conversation opened
+        # with this precise resource
+        conversation = self.get_tab_by_name(jid.full,
+                                            tabs.StaticConversationTab)
         if jid.bare == jid.full and not conversation:
-            conversation = self.get_tab_by_name(jid.full, tabs.DynamicConversationTab)
+            conversation = self.get_tab_by_name(jid.full,
+                                                tabs.DynamicConversationTab)
 
         if not conversation and fallback_barejid:
             # If not, we search for a conversation with the bare jid
-            conversation = self.get_tab_by_name(jid.bare, tabs.DynamicConversationTab)
+            conversation = self.get_tab_by_name(jid.bare,
+                                                tabs.DynamicConversationTab)
             if not conversation:
                 if create:
                     # We create a dynamic conversation with the bare Jid if
                     # nothing was found (and we lock it to the resource
                     # later)
-                    conversation = self.open_conversation_window(jid.bare, False)
+                    conversation = self.open_conversation_window(jid.bare,
+                                                                 False)
                 else:
                     conversation = None
         return conversation
@@ -851,7 +923,8 @@ class Core(object):
         target = None if new_pos >= len(self.tabs) else self.tabs[new_pos]
         if not target:
             if new_pos < len(self.tabs):
-                self.tabs[new_pos], self.tabs[old_pos] = self.tabs[old_pos], tabs.GapTab()
+                old_tab = self.tabs[old_pos]
+                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab()
             else:
                 self.tabs.append(self.tabs[old_pos])
                 self.tabs[old_pos] = tabs.GapTab()
@@ -941,9 +1014,11 @@ class Core(object):
         self.command_win('%s%s' % (nb1, nb2))
 
     def go_to_roster(self):
+        "Select the roster as the current tab"
         self.command_win('0')
 
     def go_to_previous_tab(self):
+        "Go to the previous tab"
         self.command_win('%s' % (self.previous_tab_nb,))
 
     def go_to_important_room(self):
@@ -963,12 +1038,15 @@ class Core(object):
             else:
                 tab_refs[tab.state].append(tab)
         # sort the state by priority and remove those with negative priority
-        states = sorted(tab_refs.keys(), key=(lambda x: priority.get(x, 0)), reverse=True)
+        states = sorted(tab_refs.keys(),
+                        key=(lambda x: priority.get(x, 0)),
+                        reverse=True)
         states = [state for state in states if priority.get(state, -1) >= 0]
 
         for state in states:
             for tab in tab_refs[state]:
-                if tab.nb < self.current_tab_nb and tab_refs[state][-1].nb > self.current_tab_nb:
+                if (tab.nb < self.current_tab_nb and
+                    tab_refs[state][-1].nb > self.current_tab_nb):
                     continue
                 self.command_win('%s' % tab.nb)
                 return
@@ -985,10 +1063,15 @@ class Core(object):
 
     @property
     def current_tab_nb(self):
+        """Wrapper for the current tab number"""
         return self._current_tab_nb
 
     @current_tab_nb.setter
     def current_tab_nb(self, value):
+        """
+        Prevents the tab number from going over the total number of opened
+        tabs, or under 0
+        """
         if value >= len(self.tabs):
             self._current_tab_nb = 0
         elif value < 0:
@@ -1057,18 +1140,22 @@ class Core(object):
         self.add_tab(form_tab, True)
 
     ### Modifying actions ###
+
     def rename_private_tabs(self, room_name, old_nick, new_nick):
         """
-        Call this method when someone changes his/her nick in a MUC, this updates
-        the name of all the opened private conversations with him/her
+        Call this method when someone changes his/her nick in a MUC,
+        this updates the name of all the opened private conversations
+        with him/her
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick), tabs.PrivateTab)
+        tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick),
+                                   tabs.PrivateTab)
         if tab:
             tab.rename_user(old_nick, new_nick)
 
     def on_user_left_private_conversation(self, room_name, nick, status_message):
         """
-        The user left the MUC: add a message in the associated private conversation
+        The user left the MUC: add a message in the associated
+        private conversation
         """
         tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
         if tab:
@@ -1076,24 +1163,29 @@ class Core(object):
 
     def on_user_rejoined_private_conversation(self, room_name, nick):
         """
-        The user joined a MUC: add a message in the associated private conversation
+        The user joined a MUC: add a message in the associated
+        private conversation
         """
         tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
         if tab:
             tab.user_rejoined(nick)
 
-    def disable_private_tabs(self, room_name, reason='\x195}You left the chatroom\x193}'):
+    def disable_private_tabs(self, room_name, reason=None):
         """
         Disable private tabs when leaving a room
         """
+        if reason is None:
+            reason = _('\x195}You left the chatroom\x193}')
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.get_name().startswith(room_name):
                 tab.deactivate(reason=reason)
 
-    def enable_private_tabs(self, room_name, reason='\x195}You joined the chatroom\x193}'):
+    def enable_private_tabs(self, room_name, reason=None):
         """
         Enable private tabs when joining a room
         """
+        if reason is None:
+            reason = _('\x195}You joined the chatroom\x193}')
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.get_name().startswith(room_name):
                 tab.activate(reason=reason)
@@ -1137,13 +1229,14 @@ class Core(object):
         self.refresh_window()
         import gc
         gc.collect()
-        log.debug('___ Referrers of closing tab:\n%s\n______', gc.get_referrers(tab))
+        log.debug('___ Referrers of closing tab:\n%s\n______',
+                  gc.get_referrers(tab))
         del tab
 
     def add_information_message_to_conversation_tab(self, jid, msg):
         """
-        Search for a ConversationTab with the given jid (full or bare), if yes, add
-        the given message to it
+        Search for a ConversationTab with the given jid (full or bare),
+        if yes, add the given message to it
         """
         tab = self.get_tab_by_name(jid, tabs.ConversationTab)
         if tab:
@@ -1155,7 +1248,8 @@ class Core(object):
 ####################### Curses and ui-related stuff ###########################
 
     def doupdate(self):
-        if not self.running or self.background is True:
+        "Do a curses update"
+        if not self.running:
             return
         curses.doupdate()
 
@@ -1170,11 +1264,14 @@ class Core(object):
                 return False
         colors = get_theme().INFO_COLORS
         color = colors.get(typ.lower(), colors.get('default', None))
-        nb_lines = self.information_buffer.add_message(msg, nickname=typ, nick_color=color)
+        nb_lines = self.information_buffer.add_message(msg,
+                                                       nickname=typ,
+                                                       nick_color=color)
+        popup_on = config.get('information_buffer_popup_on',
+                              'error roster warning help info').split()
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
-        elif typ != '' and typ.lower() in config.get('information_buffer_popup_on',
-                                           'error roster warning help info').split():
+        elif typ != '' and typ.lower() in popup_on:
             popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
         else:
@@ -1187,8 +1284,6 @@ class Core(object):
         """
         ncurses initialization
         """
-        self.background = False  # Bool to know if curses can draw
-        # or be quiet while an other console app is running.
         curses.curs_set(1)
         curses.noecho()
         curses.nonl()
@@ -1294,6 +1389,9 @@ class Core(object):
             return True
 
     def grow_information_win(self, nb=1):
+        """
+        Expand the information win a number of lines
+        """
         if self.information_win_size >= self.current_tab().height -5 or \
                 self.information_win_size+nb >= self.current_tab().height-4:
             return 0
@@ -1310,6 +1408,9 @@ class Core(object):
         return nb
 
     def shrink_information_win(self, nb=1):
+        """
+        Reduce the size of the information win
+        """
         if self.information_win_size == 0:
             return
         self.information_win_size -= nb
@@ -1321,6 +1422,9 @@ class Core(object):
         self.refresh_window()
 
     def scroll_info_up(self):
+        """
+        Scroll the information buffer up
+        """
         self.information_win.scroll_up(self.information_win.height)
         if not isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.information_win.refresh()
@@ -1330,6 +1434,9 @@ class Core(object):
             self.refresh_window()
 
     def scroll_info_down(self):
+        """
+        Scroll the information buffer down
+        """
         self.information_win.scroll_down(self.information_win.height)
         if not isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.information_win.refresh()
@@ -1347,7 +1454,9 @@ class Core(object):
         if time <= 0 or size <= 0:
             return
         result = self.grow_information_win(size)
-        timed_event = timed_events.DelayedEvent(time, self.shrink_information_win, result)
+        timed_event = timed_events.DelayedEvent(time,
+                        self.shrink_information_win,
+                        result)
         self.add_timed_event(timed_event)
         self.refresh_window()
 
@@ -1365,8 +1474,12 @@ class Core(object):
         Resize the global_information_win only once at each resize.
         """
         with g_lock:
-            self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                        tabs.Tab.height - 1 - self.information_win_size - tabs.Tab.tab_win_height(), 0)
+            height = (tabs.Tab.height - 1 - self.information_win_size
+                        - tabs.Tab.tab_win_height())
+            self.information_win.resize(self.information_win_size,
+                                        tabs.Tab.width,
+                                        height,
+                                        0)
 
     def resize_global_info_bar(self):
         """
@@ -1387,7 +1500,8 @@ class Core(object):
             else:
                 self.left_tab_win = None
 
-    def add_message_to_text_buffer(self, buff, txt, time=None, nickname=None, history=None):
+    def add_message_to_text_buffer(self, buff, txt,
+                                   time=None, nickname=None, history=None):
         """
         Add the message to the room if possible, else, add it to the Info window
         (in the Info tab of the info window in the RosterTab)
@@ -1456,7 +1570,14 @@ class Core(object):
 
 ####################### Commands and completions ##############################
 
-    def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
+    def register_command(self, name, func, **kwargs):
+        """
+        Add a command
+        """
+        desc = kwargs.get('desc', '')
+        shortdesc = kwargs.get('shortdesc', '')
+        completion = kwargs.get('completion')
+        usage = kwargs.get('usage', '')
         if name in self.commands:
             return
         if not desc and shortdesc:
@@ -1469,7 +1590,7 @@ class Core(object):
         """
         self.register_command('help', self.command_help,
                 usage=_('[command]'),
-                shortdesc='\_o< KOIN KOIN KOIN',
+                shortdesc='\\_o< KOIN KOIN KOIN',
                 completion=self.completion_help)
         self.register_command('join', self.command_join,
                 usage=_("[room_name][@server][/nick] [password]"),
@@ -1641,22 +1762,25 @@ class Core(object):
         if config.get('enable_user_activity', True):
             self.register_command('activity', self.command_activity,
                     usage='[<general> [specific] [text]]',
-                    desc=_('Send your current activity to your contacts (use the completion).'
-                           ' Nothing means "stop broadcasting an activity".'),
+                    desc=_('Send your current activity to your contacts '
+                           '(use the completion). Nothing means '
+                           '"stop broadcasting an activity".'),
                     shortdesc=_('Send your activity.'),
                     completion=self.completion_activity)
         if config.get('enable_user_mood', True):
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
-                    desc=_('Send your current mood to your contacts (use the completion).'
-                           ' Nothing means "stop broadcasting a mood".'),
+                    desc=_('Send your current mood to your contacts '
+                           '(use the completion). Nothing means '
+                           '"stop broadcasting a mood".'),
                     shortdesc=_('Send your mood.'),
                     completion=self.completion_mood)
         if config.get('enable_user_gaming', True):
             self.register_command('gaming', self.command_gaming,
                     usage='[<game name> [server address]]',
-                    desc=_('Send your current gaming activity to your contacts.'
-                           ' Nothing means "stop broadcasting a gaming activity".'),
+                    desc=_('Send your current gaming activity to '
+                           'your contacts. Nothing means "stop '
+                           'broadcasting a gaming activity".'),
                     shortdesc=_('Send your gaming activity.'),
                     completion=None)
 
@@ -1684,8 +1808,10 @@ class Core(object):
     on_chatstate_gone = handlers.on_chatstate_gone
     on_chatstate = handlers.on_chatstate
     on_chatstate_normal_conversation = handlers.on_chatstate_normal_conversation
-    on_chatstate_private_conversation = handlers.on_chatstate_private_conversation
-    on_chatstate_groupchat_conversation = handlers.on_chatstate_groupchat_conversation
+    on_chatstate_private_conversation = \
+            handlers.on_chatstate_private_conversation
+    on_chatstate_groupchat_conversation = \
+            handlers.on_chatstate_groupchat_conversation
     on_roster_update = handlers.on_roster_update
     on_subscription_request = handlers.on_subscription_request
     on_subscription_authorized = handlers.on_subscription_authorized
@@ -1778,6 +1904,10 @@ class KeyDict(dict):
         return dict.get(self, k, d)
 
 def replace_key_with_bound(key):
+    """
+    Replace an inputted key with the one defined as its replacement
+    in the config
+    """
     bind = config.get(key, key, 'bindings')
     if not bind:
         bind = key
