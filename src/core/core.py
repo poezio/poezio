@@ -1375,8 +1375,14 @@ class Core(object):
         with g_lock:
             self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
             if config.get('enable_vertical_tab_list', False):
-                height, width = self.stdscr.getmaxyx()
-                truncated_win = self.stdscr.subwin(height, config.get('vertical_tab_list_size', 20), 0, 0)
+                try:
+                    height, _ = self.stdscr.getmaxyx()
+                    truncated_win = self.stdscr.subwin(height,
+                            config.get('vertical_tab_list_size', 20),
+                            0, 0)
+                except:
+                    log.error('Curses error on infobar resize', exc_info=True)
+                    return
                 self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
             else:
                 self.left_tab_win = None
@@ -1408,7 +1414,12 @@ class Core(object):
         # on the left remaining space
         if config.get('enable_vertical_tab_list', False):
             with g_lock:
-                scr = self.stdscr.subwin(0, config.get('vertical_tab_list_size', 20))
+                try:
+                    scr = self.stdscr.subwin(0,
+                            config.get('vertical_tab_list_size', 20))
+                except:
+                    log.error('Curses error on resize', exc_info=True)
+                    return
         else:
             scr = self.stdscr
         tabs.Tab.resize(scr)
