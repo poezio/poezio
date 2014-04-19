@@ -30,9 +30,10 @@ class OpenTrick(threading.Thread):
     def __init__(self, path):
         threading.Thread.__init__(self)
         self.path = path
+        self.fd = None
 
     def run(self):
-        open(self.path, 'r', encoding='utf-8').close()
+        self.fd = open(self.path, 'r', encoding='utf-8')
 
 
 class Fifo(object):
