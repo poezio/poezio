@@ -388,12 +388,19 @@ class Core(object):
 
     def exit_from_signal(self, *args, **kwargs):
         """
-        Quit when receiving SIGHUP or SIGTERM
+        Quit when receiving SIGHUP or SIGTERM or SIGPIPE
 
         do not save the config because it is not a normal exit
         (and only roster UI things are not yet saved)
         """
-        log.debug("Either SIGHUP or SIGTERM received. Exiting…")
+        sig = args[0]
+        signals = {
+                1: 'SIGHUP',
+                13: 'SIGPIPE',
+                15: 'SIGTERM',
+                }
+
+        log.error("%s received. Exiting…", signals[sig])
         if config.get('enable_user_mood', True):
             self.xmpp.plugin['xep_0107'].stop(block=False)
         if config.get('enable_user_activity', True):
