@@ -91,7 +91,8 @@ class Plugin(BasePlugin):
         """
         for alias in self.config.options():
             full = self.config.get(alias, '')
-            self.command_alias(alias + ' ' + full)
+            if full:
+                self.command_alias(alias + ' ' + full)
 
     def command_alias(self, line):
         """
@@ -128,6 +129,8 @@ class Plugin(BasePlugin):
         if alias in self.commands:
             del self.commands[alias]
             self.api.del_command(alias)
+            self.config.set(alias, '')
+            self.config.write()
             self.api.information('Alias /%s successfuly deleted' % alias, 'Info')
 
     def completion_unalias(self, the_input):
