@@ -26,7 +26,6 @@ from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
 
-
 class Config(RawConfigParser):
     """
     load/save the config to a file
@@ -35,14 +34,14 @@ class Config(RawConfigParser):
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
         self.optionxform = str
-        self.read_file(file_name)
-
-    def read_file(self, file_name):
         self.file_name = file_name
+        self.read_file()
+
+    def read_file(self):
         try:
-            RawConfigParser.read(self, file_name, encoding='utf-8')
+            RawConfigParser.read(self, self.file_name, encoding='utf-8')
         except TypeError: # python < 3.2 sucks
-            RawConfigParser.read(self, file_name)
+            RawConfigParser.read(self, self.file_name)
         # Check config integrity and fix it if it’s wrong
         for section in ('bindings', 'var'):
             if not self.has_section(section):
@@ -70,7 +69,9 @@ class Config(RawConfigParser):
             return default
         return res
 
-    def get_by_tabname(self, option, default, tabname, fallback=True, fallback_server=True):
+    def get_by_tabname(
+            self, option, default, tabname,
+            fallback=True, fallback_server=True):
         """
         Try to get the value for the option. First we look in
         a section named `tabname`, if the option is not present
@@ -144,44 +145,36 @@ class Config(RawConfigParser):
         Just find the right section, and then find the
         right option, and edit it.
         """
-        if file_ok(self.file_name):
-            try:
-                with open(self.file_name, 'r', encoding='utf-8') as df:
-                    lines_before = (line.strip() for line in df.readlines())
-            except:
-                log.error('Unable to read the config file %s',
-                        self.file_name,
-                        exc_info=True)
-                return False
+        result = self._parse_file()
+        if not result:
+            return False
         else:
-            lines_before = []
-        result_lines = []
-        we_are_in_the_right_section = False
-        written = False
-        section_found = False
-        for line in lines_before:
-            if line.startswith('['): # check the section
-                if we_are_in_the_right_section and not written:
-                    result_lines.append('%s = %s' % (option, value))
-                    written = True
-                if line == '[%s]' % section:
-                    we_are_in_the_right_section = True
-                    section_found = True
-                else:
-                    we_are_in_the_right_section = False
-            if (line.startswith('%s ' % (option,)) or
-                line.startswith('%s=' % (option,)) or
-                line.startswith('%s = ' % (option,))) and we_are_in_the_right_section:
-                line = '%s = %s' % (option, value)
-                written = True
-            result_lines.append(line)
+            sections, result_lines = result
 
-        if not section_found:
+        if not section in sections:
             result_lines.append('[%s]' % section)
             result_lines.append('%s = %s' % (option, value))
-        elif not written:
-            result_lines.append('%s = %s' % (option, value))
+        else:
+            begin, end = sections[section]
+            added = False
+            for line in result_lines[begin:end]:
+                if (line.startswith('%s ' % option) or
+                        line.startswith('%s=' % option)):
+                    pos = result_lines.index(line)
+                    result_lines[pos] = '%s = %s' % (option, value)
+                    added = True
+                    break
 
+            if not added:
+                result_lines.insert(end, '%s = %s' % (option, value))
+
+        return self._write_file(result_lines)
+
+    def _write_file(self, lines):
+        """
+        Write the config file, write to a temporary file
+        before copying it to the final destination
+        """
         try:
             prefix, file = path.split(self.file_name)
             filename = path.join(prefix, '.%s.tmp' % file)
@@ -191,7 +184,7 @@ class Config(RawConfigParser):
                         os.O_WRONLY | os.O_CREAT,
                         0o600),
                     'w')
-            for line in result_lines:
+            for line in lines:
                 fd.write('%s\n' % line)
             fd.close()
             copy2(filename, self.file_name)
@@ -202,6 +195,55 @@ class Config(RawConfigParser):
         else:
             success = True
         return success
+
+    def _parse_file(self):
+        """
+        Parse the config file and return the list of sections with
+        their start and end positions, and the lines in the file.
+
+        Duplicate sections are preserved but ignored for the parsing.
+
+        Returns an empty tuple if reading fails
+        """
+        if file_ok(self.file_name):
+            try:
+                with open(self.file_name, 'r', encoding='utf-8') as df:
+                    lines_before = [line.strip() for line in df]
+            except:
+                log.error('Unable to read the config file %s',
+                        self.file_name,
+                        exc_info=True)
+                return tuple()
+        else:
+            lines_before = []
+
+        sections = {}
+        result_lines = []
+        duplicate_section = False
+        current_section = ''
+        current_line = 0
+
+        for line in lines_before:
+            if line.startswith('['):
+                if not duplicate_section and current_section:
+                    sections[current_section][1] = current_line
+
+                duplicate_section = False
+                current_section = line[1:-1]
+
+                if current_section in sections:
+                    log.error('Error while reading the configuration file,'
+                              ' skipping until next section')
+                    duplicate_section = True
+                else:
+                    sections[current_section] = [current_line, current_line]
+
+            result_lines.append(line)
+            current_line += 1
+        if not duplicate_section:
+            sections[current_section][1] = current_line
+
+        return (sections, result_lines)
 
     def set_and_save(self, option, value, section=DEFSECTION):
         """
@@ -221,7 +263,10 @@ class Config(RawConfigParser):
                 elif current.lower() == "true":
                     value = "false"
                 else:
-                    return (_("Could not toggle option: %s. Current value is %s.") % (option, current or _("empty")), 'Warning')
+                    return (_('Could not toggle option: %s.'
+                              ' Current value is %s.') %
+                                  (option, current or _("empty")),
+                            'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
@@ -295,7 +340,8 @@ def run_cmdline_args(CONFIG_PATH):
 
     # Copy a default file if none exists
     if not path.isfile(options.filename):
-        default = path.join(path.dirname(__file__), '../data/default_config.cfg')
+        default = path.join(path.dirname(__file__),
+                            '../data/default_config.cfg')
         other = path.join(path.dirname(__file__), 'default_config.cfg')
         if path.isfile(default):
             copy2(default, options.filename)
