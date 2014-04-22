@@ -1,10 +1,3 @@
-# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
-#
-# This file is part of Poezio.
-#
-# Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the global config instance, used to get or set (and save) values
 from/to the config file.
@@ -12,6 +5,9 @@ from/to the config file.
 This module has the particularity that some imports and global variables
 are delayed because it would mean doing an incomplete setup of the python
 loggers.
+
+TODO: get http://bugs.python.org/issue1410680 fixed, one day, in order
+to remove our ugly custom I/O methods.
 """
 
 DEFSECTION = "Poezio"
@@ -156,17 +152,39 @@ class Config(RawConfigParser):
             result_lines.append('%s = %s' % (option, value))
         else:
             begin, end = sections[section]
-            added = False
-            for line in result_lines[begin:end]:
-                if (line.startswith('%s ' % option) or
-                        line.startswith('%s=' % option)):
-                    pos = result_lines.index(line)
-                    result_lines[pos] = '%s = %s' % (option, value)
-                    added = True
-                    break
+            pos = find_line(result_lines, begin, end, option)
 
-            if not added:
+            if pos is -1:
                 result_lines.insert(end, '%s = %s' % (option, value))
+            else:
+                result_lines[pos] = '%s = %s' % (option, value)
+
+        return self._write_file(result_lines)
+
+    def remove_in_file(self, section, option):
+        """
+        Our own way to remove an option from the file.
+        """
+        result = self._parse_file()
+        if not result:
+            return False
+        else:
+            sections, result_lines = result
+
+        if not section in sections:
+            log.error('Tried to remove the option %s from a non-'
+                      'existing section (%s)', option, section)
+            return True
+        else:
+            begin, end = sections[section]
+            pos = find_line(result_lines, begin, end, option)
+
+            if pos is -1:
+                log.error('Tried to remove a non-existing option %s'
+                          ' from section %s', option, section)
+                return True
+            else:
+                del result_lines[pos]
 
         return self._write_file(result_lines)
 
@@ -218,7 +236,6 @@ class Config(RawConfigParser):
             lines_before = []
 
         sections = {}
-        result_lines = []
         duplicate_section = False
         current_section = ''
         current_line = 0
@@ -238,12 +255,11 @@ class Config(RawConfigParser):
                 else:
                     sections[current_section] = [current_line, current_line]
 
-            result_lines.append(line)
             current_line += 1
         if not duplicate_section:
             sections[current_section][1] = current_line
 
-        return (sections, result_lines)
+        return (sections, lines_before)
 
     def set_and_save(self, option, value, section=DEFSECTION):
         """
@@ -276,6 +292,16 @@ class Config(RawConfigParser):
             return (_('Unable to write in the config file'), 'Error')
         return ("%s=%s" % (option, value), 'Info')
 
+    def remove_and_save(self, option, section=DEFSECTION):
+        """
+        Remove an option and then save it the config file
+        """
+        if self.has_section(section):
+            RawConfigParser.remove_option(self, section, option)
+        if not self.remove_in_file(section, option):
+            return (_('Unable to save the config file'), 'Error')
+        return (_('Option %s deleted') % option, 'Info')
+
     def silent_set(self, option, value, section=DEFSECTION):
         """
         Set a value, save, and return True on success and False on failure
@@ -307,6 +333,21 @@ class Config(RawConfigParser):
                 res[section][option] = self.get(option, "", section)
         return res
 
+
+def find_line(lines, start, end, option):
+    """
+    Get the number of the line containing the option in the
+    relevant part of the config file.
+
+    Returns -1 if the option isn’t found
+    """
+    current = start
+    for line in lines[start:end]:
+        if (line.startswith('%s ' % option) or
+                line.startswith('%s=' % option)):
+            return current
+        current += 1
+    return -1
 
 def file_ok(filepath):
     """
