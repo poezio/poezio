@@ -29,9 +29,10 @@ class Connection(sleekxmpp.ClientXMPP):
     def __init__(self):
         resource = config.get('resource', '')
         if config.get('jid', ''):
-            self.anon = False # Field used to know if we are anonymous or not.
-            # many features will be handled diferently
+            # Field used to know if we are anonymous or not.
+            # many features will be handled differently
             # depending on this setting
+            self.anon = False
             jid = '%s' % config.get('jid', '')
             if resource:
                 jid = '%s/%s'% (jid, resource)
@@ -44,7 +45,8 @@ class Connection(sleekxmpp.ClientXMPP):
             password = None
         jid = safeJID(jid)
         # TODO: use the system language
-        sleekxmpp.ClientXMPP.__init__(self, jid, password, lang=config.get('lang', 'en'))
+        sleekxmpp.ClientXMPP.__init__(self, jid, password,
+                                      lang=config.get('lang', 'en'))
 
         force_encryption = config.get('force_encryption', True)
         if force_encryption:
@@ -59,7 +61,9 @@ class Connection(sleekxmpp.ClientXMPP):
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
         # for anything that came out after 2002
-        self.ciphers = config.get('ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL')
+        self.ciphers = config.get('ciphers',
+                                  'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
+                                    ':!SRP:!3DES:!aNULL')
         self.ca_certs = config.get('ca_cert_path', '') or None
         interval = config.get('whitespace_interval', '300')
         if interval.isdecimal() and int(interval) > 0:
@@ -138,12 +142,15 @@ class Connection(sleekxmpp.ClientXMPP):
         self.plugin['xep_0199'].disable_keepalive()
         # If the ping_interval is 0 or less, we just disable the keepalive
         if ping_interval > 0:
-            self.plugin['xep_0199'].enable_keepalive(ping_interval, timeout_delay)
+            self.plugin['xep_0199'].enable_keepalive(ping_interval,
+                                                     timeout_delay)
 
     def start(self):
-        # TODO, try multiple servers
-        # With anon auth.
-        # (domain, config.get('port', 5222))
+        """
+        Connect and process events.
+
+        TODO: try multiple servers with anon auth.
+        """
         custom_host = config.get('custom_host', '')
         custom_port = config.get('custom_port', 5222)
         if custom_port == -1:
@@ -151,7 +158,8 @@ class Connection(sleekxmpp.ClientXMPP):
         if custom_host:
             res = self.connect((custom_host, custom_port), reattempt=True)
         elif custom_port != 5222 and custom_port != -1:
-            res = self.connect((self.boundjid.host, custom_port), reattempt=True)
+            res = self.connect((self.boundjid.host, custom_port),
+                               reattempt=True)
         else:
             res = self.connect(reattempt=True)
         if not res:
@@ -172,4 +180,5 @@ class MatchAll(sleekxmpp.xmlstream.matcher.base.MatcherBase):
     Callback to retrieve all the stanzas for the XML tab
     """
     def match(self, xml):
+        "match everything"
         return True
