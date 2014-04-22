@@ -1,12 +1,8 @@
-# Copyright 2011 Florent Le Coz <louiz@louiz.org>
-#
-# This file is part of Poezio.
-#
-# Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the Fifo class
+
+This fifo allows simple communication between a remote poezio
+and a local computer, with ssh+cat.
 """
 
 import logging
@@ -20,12 +16,11 @@ class OpenTrick(threading.Thread):
     A threaded trick to make the open for writing succeed.
     A fifo cannot be opened for writing if it has not been
     yet opened by the other hand for reading.
-    So, we just open the fifo for reading and close it
-    immediately afterwards.
-    Once that is done, we can freely keep the fifo open for
-    writing and write things in it. The writing can fail if
-    there’s still nothing reading that fifo, but we just yell
-    an error in that case.
+    So, we just open the fifo for reading and we do not close
+    it afterwards, because if the other reader disconnects,
+    we will receive a SIGPIPE. And we do not want that.
+
+    (we never read anything from it, obviously)
     """
     def __init__(self, path):
         threading.Thread.__init__(self)
@@ -62,10 +57,15 @@ class Fifo(object):
         self.fd.flush()
 
     def readline(self):
+        "Read a line from the fifo"
         return self.fd.readline()
 
     def __del__(self):
+        "Close opened fds"
         try:
             self.fd.close()
+            if self.trick:
+                self.trick.fd.close()
         except:
-            pass
+            log.error('Unable to close descriptors for the fifo',
+                      exc_info=True)
