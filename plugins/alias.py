@@ -92,35 +92,42 @@ class Plugin(BasePlugin):
         for alias in self.config.options():
             full = self.config.get(alias, '')
             if full:
-                self.command_alias(alias + ' ' + full)
+                self.command_alias(alias + ' ' + full, silent=True)
 
-    def command_alias(self, line):
+    def command_alias(self, line, silent=False):
         """
         /alias <alias> <command> [args]
         """
         arg = split_args(line)
         if not arg:
-            self.api.information('Alias: Not enough parameters', 'Error')
+            if not silent:
+                self.api.information('Alias: Not enough parameters', 'Error')
             return
         alias, command, args = arg
 
         if alias in self.commands:
             update = True
         elif alias in self.core.commands:
-            self.api.information('Alias: command already exists', 'Error')
+            if not silent:
+                self.api.information('Alias: command already exists', 'Error')
             return
         else:
             update = False
 
         self.config.set(alias, command + ' ' + args)
-        self.commands[alias] = command_wrapper(generic_command, lambda: self.get_command(command), args)
+        self.commands[alias] = command_wrapper(
+                generic_command, lambda: self.get_command(command), args)
         self.api.del_command(alias)
-        self.api.add_command(alias, self.commands[alias], 'This command is an alias for /%s %s' %(alias, command))
+        self.api.add_command(alias, self.commands[alias],
+                             'This command is an alias for /%s %s' %
+                                (alias, command))
 
-        if update:
-            self.api.information('Alias /%s updated' % alias, 'Info')
-        else:
-            self.api.information('Alias /%s successfuly created' % alias, 'Info')
+        if not silent:
+            if update:
+                self.api.information('Alias /%s updated' % alias, 'Info')
+            else:
+                self.api.information('Alias /%s successfuly created' % alias,
+                                 'Info')
 
     def command_unalias(self, alias):
         """
@@ -129,8 +136,7 @@ class Plugin(BasePlugin):
         if alias in self.commands:
             del self.commands[alias]
             self.api.del_command(alias)
-            self.config.set(alias, '')
-            self.config.write()
+            self.config.remove(alias)
             self.api.information('Alias /%s successfuly deleted' % alias, 'Info')
 
     def completion_unalias(self, the_input):
@@ -161,8 +167,12 @@ def split_args(line):
     alias = line[:alias_pos]
     end = line[alias_pos+1:]
     args_pos = end.find(' ')
-    command = end[:args_pos]
-    args = end[args_pos+1:]
+    if args_pos == -1:
+        command = end
+        args = ''
+    else:
+        command = end[:args_pos]
+        args = end[args_pos+1:]
     return (alias, command, args)
 
 def generic_command(command, extra_args, args):
