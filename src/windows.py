@@ -1053,6 +1053,15 @@ class TextWin(Win):
             if room and self.width != old_width:
                 self.rebuild_everything(room)
 
+            # reposition the scrolling after resize
+            # (see #2450)
+            buf_size = len(self.built_lines)
+            if buf_size - self.pos < self.height:
+                self.pos = buf_size - self.height
+                if self.pos < 0:
+                    self.pos = 0
+
+
     def rebuild_everything(self, room):
         self.built_lines = []
         with_timestamps = config.get("show_timestamps", True)
