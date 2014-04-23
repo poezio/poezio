@@ -35,6 +35,7 @@ from decorators import refresh_wrapper
 from logger import logger
 from text_buffer import TextBuffer
 from theming import get_theme
+from windows import g_lock
 
 
 MIN_WIDTH = 42
@@ -180,7 +181,8 @@ class Tab(object):
 
     @staticmethod
     def resize(scr):
-        Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
+        with g_lock:
+            Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
         if Tab.height < MIN_HEIGHT or Tab.width < MIN_WIDTH:
             Tab.visible = False
         else:
