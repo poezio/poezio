@@ -33,8 +33,8 @@ Create a theme
 --------------
 
 To create a theme named foo, create a file named foo.py into the theme
-directory (by default it’s _~/.local/share/poezio/themes/_) and insert
-into it:
+directory (by default it’s :file:`~/.local/share/poezio/themes/`) and
+add:
 
 .. code-block:: python
 
@@ -58,16 +58,16 @@ one will just have the default value (from the default theme).
 Colors and attributes
 ~~~~~~~~~~~~~~~~~~~~~
 A color pair defines how the text will be displayed on the screen. It
-has a *foreground color* (fg_color), a *background color* (bg_color)
-and an **optional** *attribute* (opt_attr).
+has a **foreground color** (``fg_color``), a **background color**
+(``bg_color``) and an **optional attribute** (``opt_attr``).
 
 Colors
 ^^^^^^
-A color is a number between -1 and 255. If it -1, this is the default
-color defined by your terminal (for example if your terminal displays
-text white on black by default, a fg_color of -1 is white, and a bg_color
-of -1 is black). If it’s between 0 and 256 it represents one of the colors
-on the image:
+A color is a number between ``-1`` and ``255``. If it is ``-1``, this is
+the default color defined by your terminal (for example if your terminal
+displays white text on black by default, a ``fg_color`` of ``-1`` is white,
+and a ``bg_color`` of ``-1`` is black). If it’s between 0 and 256 it
+represents one of the colors on this image:
 
 .. figure:: ./images/theme_256_colors.png
     :alt: The list of all 256 colors
@@ -77,25 +77,27 @@ on the image:
 Attributes
 ^^^^^^^^^^
 An attribute is a python string (so, it has to be surrounded by
-*" "* or *' '*). It can be one of the following:
+simple or double quotes). It can be one of the following:
 
-- *'b'*: bold text
-- *'u'*: underlined text
+- ``'b'``: bold text
+- ``'u'``: underlined text
 
 Use a theme
 -----------
-To use a theme, just define the **theme** option into the
-*configuration file* to the name of the theme you want
+To use a theme, just define the :term:`theme` option into the
+:ref:`configuration file <config>` to the name of the theme you want
 to use. If that theme is not found, the default theme will be used instead.
+
 Note that the default theme is defined directly into poezio’s source code,
 and not in a theme file.
 
 Change the theme directory
 --------------------------
-To change the default theme directory (**~/.local/share/poezio/themes/** by
-default), you have to change the *themes_dir* option in the
-*configuration file* to the directory that contains your
-theme files.
+To change the default theme directory
+(:file:`~/.local/share/poezio/themes/` by default),
+you have to change the :term:`themes_dir` option in the
+:ref:`configuration file <config>` to the directory that
+contains your theme files.
 
 .. _available-options:
 
@@ -106,3 +108,7 @@ Available options
 
 All available options can be found into the default theme, which is into the
 **theming.py** file from the poezio’s source code.
+
+
+.. autoclass:: theming.Theme
+

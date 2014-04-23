@@ -194,9 +194,9 @@ status message of the contact. Plugins may add some elements to the status line.
 Dataforms tab
 ~~~~~~~~~~~~~
 
-This tab lets you view a form receive from a remote entity, edit the values and
-send everything back. It is mostly used to configure MUCs with the :term:`/configure`
-command but can actually be used for almost anything.
+This tab lets you view a form received from a remote entity, edit the values and
+send everything back. It is mostly used to configure MUCs with the
+:term:`/configure` command but can actually be used for almost anything.
 
 .. figure:: ./images/data_forms.png
     :alt: The dataform tab
@@ -211,8 +211,9 @@ You can then send the completed form using ``Ctrl+y`` or cancel using ``Ctrl+g``
 List tab
 ~~~~~~~~
 
-This tab lists all public rooms on a MUC service. It is currently very limited
-but will be improved in the future. There currently is no way to search a room.
+This tab lists all public rooms on a MUC service (with the :term:`/list` command).
+It is currently very limited but will be improved in the future. There currently
+is no way to search a room.
 
 .. figure:: ./images/list.png
     :alt: The list tab
