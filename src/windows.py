@@ -2324,9 +2324,10 @@ class ListWin(Win):
         if not col_name:
             return
         elif asc:
-            self.lines.sort(key=lambda x: x[col_name])
+            self.lines.sort(key=lambda x: x[self._columns[col_name]])
         else:
-            self.lines.sort(key=lambda x: x[col_name], reverse=True)
+            self.lines.sort(key=lambda x: x[self._columns[col_name]],
+                            reverse=True)
         self.refresh()
         curses.doupdate()
 
