@@ -511,8 +511,6 @@ def reload_theme():
     else:
         return 'No theme present in the theme file'
 
-update_themes_dir()
-
 if __name__ == '__main__':
     # Display some nice text with nice colors
     s = curses.initscr()

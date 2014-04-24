@@ -33,6 +33,9 @@ def main():
 
     from config import options
 
+    import theming
+    theming.update_themes_dir()
+
     import logger
     logger.create_logger()
 
