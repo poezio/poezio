@@ -516,7 +516,16 @@ if __name__ == '__main__':
     s = curses.initscr()
     curses.start_color()
     curses.use_default_colors()
-    s.addstr('%s' % curses.COLORS, to_curses_attr((3, -1, 'a')))
+    s.addstr('%s colors detected\n\n' % curses.COLORS, to_curses_attr((3, -1)))
+    for i in range(curses.COLORS):
+        s.addstr('%s ' % i, to_curses_attr((i, -1)))
+    s.addstr('\n')
     s.refresh()
-    s.getkey()
-    curses.endwin()
+    try:
+        s.getkey()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        curses.endwin()
+        print()
+
