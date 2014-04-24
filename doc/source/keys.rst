@@ -135,7 +135,7 @@ These keys work only in the MultiUserChat tab.
 
 MultiUserChat List tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-These keys work only in the MultiUserChat List tab (obtained with /list <server>).
+These keys work only in the MultiUserChat List tab (obtained with :term:`/list`).
 
 **Up**: Go up one row.
 
@@ -143,13 +143,13 @@ These keys work only in the MultiUserChat List tab (obtained with /list <server>
 
 **j**: Join the MultiUserChat currently selected.
 
-**J**: Join the MultiUserChat currently selected, without giving focus to iuts tab.
+**J**: Join the MultiUserChat currently selected, without giving focus to its tab.
 
-**Ctrl-M**: Join the MultiUserChat currently selected (same as "j").
+**Ctrl-M**: Join the MultiUserChat currently selected (same as ``j``.
 
 **PageUp**: Scroll a page of chats up.
 
-**PageDown**: Scroll a page of messages down.
+**PageDown**: Scroll a page of chats down.
 
 
 Roster tab input keys
@@ -199,23 +199,6 @@ tab.
  list-multi, list-single or text-multi field.
 
 **Space**: Select that option
-
-
-MultiUserChat List tab input keys
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-These keys work only in the MultiUserChat List tab (obtained with :term:`/list`).
-
-**Up**: Go up one row.
-
-**Down**: Go down one row.
-
-**j**: Join the MultiUserChat currently selected.
-
-**J**: Join the MultiUserChat currently selected, without giving focus to
-its tab.
-
-**Ctrl-M**: Join the MultiUserChat currently selected (same as ``j``).
-
 
 XML tab input keys
 ~~~~~~~~~~~~~~~~~~
