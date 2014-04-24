@@ -256,7 +256,7 @@ class Config(RawConfigParser):
                     sections[current_section] = [current_line, current_line]
 
             current_line += 1
-        if not duplicate_section:
+        if not duplicate_section and current_section:
             sections[current_section][1] = current_line
 
         return (sections, lines_before)
