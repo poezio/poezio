@@ -179,13 +179,36 @@ class Keyboard(object):
         return ret_list
 
 if __name__ == '__main__':
+    import sys
     keyboard = Keyboard()
     s = curses.initscr()
     curses.noecho()
     curses.cbreak()
     s.keypad(1)
+    curses.start_color()
+    curses.use_default_colors()
+    curses.init_pair(1, 2, -1)
+    s.attron(curses.A_BOLD | curses.color_pair(1))
+    s.addstr('Type Ctrl-c to close\n')
+    s.attroff(curses.A_BOLD | curses.color_pair(1))
 
+    pressed_chars = []
     while True:
-        chars = keyboard.get_user_input(s)
-        for char in chars if chars else '':
-            s.addstr('%s ' % (char))
+
+        try:
+            chars = keyboard.get_user_input(s)
+            for char in chars if chars else '':
+                s.addstr('%s ' % (char))
+            pressed_chars.append(chars)
+
+        except KeyboardInterrupt:
+            break
+    curses.echo()
+    curses.cbreak()
+    curses.curs_set(1)
+    curses.endwin()
+    for char_list in pressed_chars:
+        if char_list:
+            print(' '.join((char for char in char_list)), end=' ')
+    print()
+    sys.exit(0)
