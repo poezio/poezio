@@ -179,6 +179,8 @@ def on_normal_message(self, message):
         if not remote_nick and config.get('enable_user_nick', True):
             if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                 remote_nick = message['nick']['nick']
+        if not remote_nick:
+            remote_nick = conv_jid.user
         own = False
     # we wrote the message (happens with carbons)
     elif message['from'].bare == self.xmpp.boundjid.bare:
@@ -195,11 +197,10 @@ def on_normal_message(self, message):
     if isinstance(conversation, tabs.DynamicConversationTab):
         conversation.lock(conv_jid.resource)
 
-    if not remote_nick and conversation.nick:
+    if not own and not conversation.nick:
+        conversation.nick = remote_nick
+    elif not own: # keep a fixed nick during the whole conversation
         remote_nick = conversation.nick
-    elif not remote_nick or own:
-        remote_nick = conv_jid.user
-    conversation.nick = remote_nick
 
     self.events.trigger('conversation_msg', message, conversation)
     if not message['body']:
