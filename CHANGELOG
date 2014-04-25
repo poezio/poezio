@@ -3,6 +3,30 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8.3 - dev
+- better setup scripts (use setuptools)
+- Better timezone handling
+- Better alias plugin, with permanent alias storage
+- poezio_gpg_export script to generate a config for the gpg plugin
+- improvements to dynamic tabs, information about jid lock/unlock
+- irc plugin to use with biboumi
+- implementation of XEP-0012 (last activity)
+- errors.log contains a lot less stuff
+- tabs where the input is not empty will not be considered as "normal"
+- /bookmark * now preserves the order of the tabs
+- /list on big servers should be much faster
+- muc logs containing xhtml are colored properly
+- /load and /unload can handle several plugins at once
+- nicks are no longer highlighted if they are inside another word
+- /invite will now use the “direct” invitations of XEP-0249 when supported
+- tabs where the other party is currently composing will have a particular
+  state
+- the OTR plugin will not stay in the composing state after sending a message
+- running theming.py and keyboard.py will be nicer and not pollute the output
+  afterwards
+- bugfixes
+
+* Poezio 0.8.1
+- fix compilation with python 3.4
 
 * Poezio 0.8
 - Allow in-band password changing with /password
