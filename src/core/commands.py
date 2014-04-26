@@ -620,6 +620,15 @@ def command_set(self, arg):
     self.call_for_resize()
     self.information(*info)
 
+def command_toggle(self, arg):
+    """
+    /toggle <option>
+    shortcut for /set <option> toggle
+    """
+    arg = arg.split()
+    if arg and arg[0]:
+        self.command_set('%s toggle' % arg[0])
+
 def command_server_cycle(self, arg=''):
     """
     Do a /cycle on each room of the given server.

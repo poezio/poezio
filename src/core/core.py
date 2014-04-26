@@ -1688,6 +1688,11 @@ class Core(object):
                     "used as a special value to toggle a boolean option."),
                 shortdesc=_("Set the value of an option"),
                 completion=self.completion_set)
+        self.register_command('toggle', self.command_toggle,
+                usage=_('<option>'),
+                desc=_('Shortcut for /set <option> toggle'),
+                shortdesc=_('Toggle an option'),
+                completion=self.completion_toggle)
         self.register_command('theme', self.command_theme,
                 usage=_('[theme name]'),
                 desc=_("Reload the theme defined in the config file. If theme"
@@ -1866,6 +1871,7 @@ class Core(object):
     command_destroy_room = commands.command_destroy_room
     command_remove_bookmark = commands.command_remove_bookmark
     command_set = commands.command_set
+    command_toggle = commands.command_toggle
     command_server_cycle = commands.command_server_cycle
     command_last_activity = commands.command_last_activity
     command_mood = commands.command_mood
@@ -1904,6 +1910,7 @@ class Core(object):
     completion_last_activity = completions.completion_last_activity
     completion_server_cycle = completions.completion_server_cycle
     completion_set = completions.completion_set
+    completion_toggle = completions.completion_toggle
     completion_bookmark_local = completions.completion_bookmark_local
 
 

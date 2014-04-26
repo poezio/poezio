@@ -146,6 +146,11 @@ These commands work in *any* tab.
         just set the option to true if it’s currently false, and to false if it’s
         currently true.
 
+    /toggle
+        **Usage:** ``/toggle <option>``
+
+        Toggle an option, shortcut for :term:`/set` <option> toggle.
+
     /move_tab
         **Usage:** ``/move_tab <source> <destination>``
 

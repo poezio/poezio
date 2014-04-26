@@ -351,6 +351,10 @@ def completion_set(self, the_input):
         return
     return the_input.new_completion(end_list, n, quotify=True)
 
+def completion_toggle(self, the_input):
+    "Completion for /toggle"
+    return the_input.new_completion(config.options('Poezio'), 1, quotify=False)
+
 
 def completion_bookmark_local(self, the_input):
     """Completion for /bookmark_local"""
