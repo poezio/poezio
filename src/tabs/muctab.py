@@ -138,7 +138,12 @@ class MucTab(ChatTab):
                 shortdesc=_('Change your nickname.'),
                 completion=self.completion_nick)
         self.register_command('recolor', self.command_recolor,
-                desc=_('Re-assign a color to all participants of the current room, based on the last time they talked. Use this if the participants currently talking have too many identical colors.'),
+                usage=_('[random]'),
+                desc=_('Re-assign a color to all participants of the'
+                       ' current room, based on the last time they talked.'
+                       ' Use this if the participants currently talking '
+                       'have too many identical colors. Use /recolor random'
+                       ' for a non-deterministic result.'),
                 shortdesc=_('Change the nicks colors.'),
                 completion=self.completion_recolor)
         self.register_command('cycle', self.command_cycle,
