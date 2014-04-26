@@ -11,6 +11,7 @@ Add some facilities that are not available on the XEP_0045
 sleek plugin
 """
 
+from gettext import gettext as _
 from xml.etree import cElementTree as ET
 
 from common import safeJID
@@ -18,6 +19,36 @@ import logging
 log = logging.getLogger(__name__)
 
 NS_MUC_ADMIN = 'http://jabber.org/protocol/muc#admin'
+NS_MUC_OWNER = 'http://jabber.org/protocol/muc#owner'
+
+
+def destroy_room(xmpp, room, reason='', altroom=''):
+    """
+    destroy a room
+    """
+    room = safeJID(room)
+    if not room:
+        return False
+    iq = xmpp.make_iq_set()
+    iq['to'] = room
+    query = ET.Element('{%s}query' % NS_MUC_OWNER)
+    destroy = ET.Element('{%s}destroy' % NS_MUC_OWNER)
+    if altroom:
+        destroy.attrib['jid'] = altroom
+    if reason:
+        xreason = ET.Element('{%s}reason' % NS_MUC_OWNER)
+        xreason.text = reason
+        destroy.append(xreason)
+    query.append(destroy)
+    iq.append(query)
+    def callback(iq):
+        if not iq or iq['type'] == 'error':
+            xmpp.core.information(_('Unable to destroy room %s') % room,
+                                  _('Info'))
+        else:
+            xmpp.core.information(_('Room %s destroyed') % room, _('Info'))
+    iq.send(block=False, callback=callback)
+    return True
 
 def send_private_message(xmpp, jid, line):
     """

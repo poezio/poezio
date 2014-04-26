@@ -815,6 +815,18 @@ def command_quit(self, arg=''):
     self.reset_curses()
     sys.exit()
 
+def command_destroy_room(self, arg=''):
+    """
+    /destroy_room [JID]
+    """
+    room = safeJID(arg).bare
+    if room:
+        muc.destroy_room(self.xmpp, room)
+    elif isinstance(self.current_tab(), tabs.MucTab) and not arg:
+        muc.destroy_room(self.xmpp, self.current_tab().general_jid)
+    else:
+        self.information(_('Invalid JID: "%s"') % arg, _('Error'))
+
 def command_bind(self, arg):
     """
     Bind a key.

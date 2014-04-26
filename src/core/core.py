@@ -1639,6 +1639,13 @@ class Core(object):
                     "tab."),
                 shortdesc=_('Move a tab.'),
                 completion=self.completion_move_tab)
+        self.register_command('destroy_room', self.command_destroy_room,
+                usage=_('[room JID]'),
+                desc=_('Try to destroy the room [room JID], or the current'
+                       ' tab if it is a multi-user chat and [room JID] is '
+                       'not given.'),
+                shortdesc=_('Destroy a room.'),
+                completion=None)
         self.register_command('show', self.command_status,
                 usage=_('<availability> [status message]'),
                 desc=_("Sets your availability and (optionally) your status "
@@ -1856,6 +1863,7 @@ class Core(object):
     command_bookmark_local = commands.command_bookmark_local
     command_bookmark = commands.command_bookmark
     command_bookmarks = commands.command_bookmarks
+    command_destroy_room = commands.command_destroy_room
     command_remove_bookmark = commands.command_remove_bookmark
     command_set = commands.command_set
     command_server_cycle = commands.command_server_cycle

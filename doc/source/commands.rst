@@ -55,6 +55,14 @@ These commands work in *any* tab.
         - ``/join room@server.tld/my_nick password``
         - ``/join / password``
 
+    /destroy_room
+        **Usage:** ``/destroy_room [room JID]``
+
+        Try to destroy the room given as a parameter, or the current room
+        is not parameter is given and the current tab is a chatroom.
+
+        You need to be the owner of a room or a server admin to destroy it.
+
     /exit
     /quit
         Just disconnect from the server and exit poezio.
