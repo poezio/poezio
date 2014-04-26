@@ -276,6 +276,7 @@ class RosterInfoTab(Tab):
         self.roster_win.resize(self.height-1 - Tab.tab_win_height(), roster_width, 0, 0)
         self.contact_info_win.resize(5 - Tab.tab_win_height(), info_width, self.height-2-4, roster_width+1)
         self.input.resize(1, self.width, self.height-1, 0)
+        self.default_help_message.resize(1, self.width, self.height-1, 0)
 
     def completion(self):
         # Check if we are entering a command (with the '/' key)
