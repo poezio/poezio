@@ -85,7 +85,6 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
         self.register_plugin('xep_0191')
-        self.register_plugin('xep_0198')
         self.register_plugin('xep_0199')
         self.set_keepalive_values()
 
