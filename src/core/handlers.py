@@ -181,6 +181,8 @@ def on_normal_message(self, message):
                 remote_nick = message['nick']['nick']
         if not remote_nick:
             remote_nick = conv_jid.user
+            if not remote_nick:
+                remote_nick = conv_jid.full
         own = False
     # we wrote the message (happens with carbons)
     elif message['from'].bare == self.xmpp.boundjid.bare:
