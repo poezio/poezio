@@ -1,4 +1,3 @@
-from sleekxmpp.xmlstream import ET
 """
 Module used to provide fixes for sleekxmpp functions not yet fixed
 upstream.
@@ -6,6 +5,20 @@ upstream.
 TODO: Check that they are fixed and remove those hacks
 """
 
+
+from sleekxmpp.xmlstream import ET
+import logging
+
+log = logging.getLogger(__name__)
+
+def has_identity(xmpp, jid, identity):
+    try:
+        iq = xmpp.plugin['xep_0030'].get_info(jid=jid, block=True, timeout=1)
+        ident = lambda x: x[0]
+        return identity in map(ident, iq['disco_info']['identities'])
+    except:
+        log.debug('Traceback while retrieving identity', exc_info=True)
+    return False
 
 def get_version(xmpp, jid, callback=None, **kwargs):
     def handle_result(res):

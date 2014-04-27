@@ -14,12 +14,13 @@ from gettext import gettext as _
 from sleekxmpp import InvalidJID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 
+import bookmark
 import common
-import xhtml
+import fixes
 import pep
 import tabs
-import bookmark
 import windows
+import xhtml
 import multiuserchat as muc
 from common import safeJID
 from config import config
@@ -49,30 +50,42 @@ def on_session_start_features(self, _):
     features = self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain, callback=callback, block=False)
 
 def on_carbon_received(self, message):
+    """
+    Carbon <received/> received
+    """
     recv = message['carbon_received']
-    if recv['from'].bare not in roster or roster[recv['from'].bare].subscription == 'none':
+    if (recv['from'].bare not in roster or
+            roster[recv['from'].bare].subscription == 'none'):
         try:
-            if self.xmpp.plugin['xep_0030'].has_identity(jid=recv['from'].server, category="conference"):
+            if fixes.has_identity(self.xmpp, recv['from'].server,
+                                  identity='conference'):
+                log.debug('%s has category conference, ignoring carbon',
+                          recv['from'].server)
                 return
         except:
-            pass
-        else:
-            return
+            log.debug('Traceback when getting the identity of a server:',
+                      exc_info=True)
     recv['to'] = self.xmpp.boundjid.full
     if recv['receipt']:
         return self.on_receipt(recv)
     self.on_normal_message(recv)
 
 def on_carbon_sent(self, message):
+    """
+    Carbon <sent/> received
+    """
     sent = message['carbon_sent']
-    if sent['to'].bare not in roster or roster[sent['to'].bare].subscription == 'none':
+    if (sent['to'].bare not in roster or
+            roster[sent['to'].bare].subscription == 'none'):
         try:
-            if self.xmpp.plugin['xep_0030'].has_identity(jid=sent['to'].server, category="conference"):
+            if fixes.has_identity(self.xmpp, sent['to'].server,
+                                  identity='conference'):
+                log.debug('%s has category conference, ignoring carbon',
+                          sent['to'].server)
                 return
         except:
-            pass
-        else:
-            return
+            log.debug('Traceback when getting the identity of a server:',
+                      exc_info=True)
     sent['from'] = self.xmpp.boundjid.full
     self.on_normal_message(sent)
 
