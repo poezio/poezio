@@ -63,6 +63,8 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
 {
     /* The list of tuples that we return */
     PyObject* retlist = PyList_New(0);
+    /* The temporary name for the tuples */
+    PyObject* tmp;
 
     /* Get the python arguments */
     const size_t width;
@@ -146,8 +148,13 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         if (wc == (wchar_t)'\n')
         {
             spos++;
-            if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
+            tmp = Py_BuildValue("II", start_pos, spos);
+            if (PyList_Append(retlist, tmp) == -1)
+            {
+                Py_XDECREF(tmp);
                 return NULL;
+            }
+            Py_XDECREF(tmp);
             /* And then initiate a new line */
             start_pos = spos;
             last_space = -1;
@@ -164,8 +171,13 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         {   /* If possible, cut on a space */
             if (last_space != -1)
             {
-                if (PyList_Append(retlist, Py_BuildValue("II", start_pos, last_space)) == -1)
+                tmp = Py_BuildValue("II", start_pos, last_space);
+                if (PyList_Append(retlist, tmp) == -1)
+                {
+                    Py_XDECREF(tmp);
                     return NULL;
+                }
+                Py_XDECREF(tmp);
                 start_pos = last_space + 1;
                 last_space = -1;
                 columns -= (cols_until_space + 1);
@@ -173,8 +185,13 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
             else
             {
                 /* Otherwise, cut in the middle of a word */
-                if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
+                tmp = Py_BuildValue("II", start_pos, spos);
+                if (PyList_Append(retlist, tmp) == -1)
+                {
+                    Py_XDECREF(tmp);
                     return NULL;
+                }
+                Py_XDECREF(tmp);
                 start_pos = spos;
                 columns = 0;
             }
@@ -194,8 +211,13 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
         spos++;
     }
     /* We are at the end of the string, append the last line, not finished */
-    if (PyList_Append(retlist, Py_BuildValue("II", start_pos, spos)) == -1)
+    tmp = Py_BuildValue("II", start_pos, spos);
+    if (PyList_Append(retlist, tmp) == -1)
+    {
+        Py_XDECREF(tmp);
         return NULL;
+    }
+    Py_XDECREF(tmp);
     return retlist;
 }
 
