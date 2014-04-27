@@ -1240,7 +1240,7 @@ class Input(Win):
         Move the cursor one word to the left
         """
         if self.pos == 0:
-            return
+            return True
         separators = string.punctuation+' '
         while self.pos > 0 and self.text[self.pos-1] in separators:
             self.key_left()
@@ -1253,7 +1253,7 @@ class Input(Win):
         Move the cursor one word to the right
         """
         if self.is_cursor_at_end():
-            return False
+            return True
         separators = string.punctuation+' '
         while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_right()
@@ -1299,7 +1299,7 @@ class Input(Win):
         Cut the text from cursor to the begining of line
         """
         if self.pos == 0:
-            return
+            return True
         Input.clipboard = self.text[:self.pos]
         self.text = self.text[self.pos:]
         self.key_home()
@@ -1310,7 +1310,7 @@ class Input(Win):
         Insert what is in the clipboard at the cursor position
         """
         if not Input.clipboard:
-            return
+            return True
         for letter in Input.clipboard:
             self.do_command(letter, False)
         self.rewrite_text()
@@ -1322,7 +1322,7 @@ class Input(Win):
         """
         self.reset_completion()
         if self.is_cursor_at_end():
-            return              # end of line, nothing to delete
+            return True         # end of line, nothing to delete
         self.text = self.text[:self.pos]+self.text[self.pos+1:]
         self.rewrite_text()
         return True
@@ -1354,7 +1354,7 @@ class Input(Win):
         if reset:
             self.reset_completion()
         if self.pos == 0:
-            return
+            return True
         self.pos -= 1
         if reset:
             self.rewrite_text()
@@ -1367,7 +1367,7 @@ class Input(Win):
         if reset:
             self.reset_completion()
         if self.is_cursor_at_end():
-            return
+            return True
         self.pos += 1
         if reset:
             self.rewrite_text()
@@ -1753,6 +1753,7 @@ class HistoryInput(Input):
             self.histo_pos += 1
             self.text = self.history[self.histo_pos]
         self.key_end()
+        return True
 
     def key_down(self):
         """
@@ -1769,6 +1770,7 @@ class HistoryInput(Input):
             self.text = ''
             self.histo_pos = -1
         self.key_end()
+        return True
 
 class MessageInput(HistoryInput):
     """
