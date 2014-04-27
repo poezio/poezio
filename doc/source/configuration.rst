@@ -364,6 +364,19 @@ to understand what is :ref:`carbons <carbons-details>` or
         XHTML and CSS formating. We can use this to make colored text for example.
         Set to ``true`` if you want to see colored (and otherwise formatted) messages.
 
+    request_message_receipts
+
+        **Default value:** ``true``
+
+        Request message receipts when sending messages (except in groupchats).
+
+    ack_message_receipts
+
+        **Default value:** ``true``
+
+        Acknowledge message receipts requested by the other party.
+
+
     send_chat_states
 
         **Default value:** ``true``

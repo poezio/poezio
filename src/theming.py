@@ -301,6 +301,7 @@ class Theme(object):
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
     CHAR_NEW_TEXT_SEPARATOR = '- '
+    CHAR_ACK_RECEIVED = '✔'
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC = ' ▼'
     CHAR_ROSTER_ERROR = '✖'
@@ -313,6 +314,8 @@ class Theme(object):
     CHAR_ROSTER_BOTH = '↔'
     CHAR_ROSTER_TO = '→'
     CHAR_ROSTER_NONE = '⇹'
+
+    COLOR_CHAR_ACK = (2, -1)
 
     COLOR_ROSTER_GAMING = (6, -1)
     COLOR_ROSTER_MOOD = (2, -1)

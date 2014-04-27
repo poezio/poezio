@@ -84,6 +84,13 @@ class Connection(sleekxmpp.ClientXMPP):
         self.plugin['xep_0077'].create_account = False
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
+
+        self.register_plugin('xep_0184')
+        self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts',
+                                                      True)
+        self.plugin['xep_0184'].auto_request = config.get(
+                'request_message_receipts', True)
+
         self.register_plugin('xep_0191')
         self.register_plugin('xep_0199')
         self.set_keepalive_values()

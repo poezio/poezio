@@ -208,6 +208,7 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_subject",
                                     self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
+        self.xmpp.add_event_handler("receipt_received", self.on_receipt)
         self.xmpp.add_event_handler("got_online", self.on_got_online)
         self.xmpp.add_event_handler("got_offline", self.on_got_offline)
         self.xmpp.add_event_handler("roster_update", self.on_roster_update)
@@ -277,6 +278,10 @@ class Core(object):
         self.configuration_change_handlers = {"": []}
         self.add_configuration_handler("create_gaps",
                                        self.on_gaps_config_change)
+        self.add_configuration_handler("request_message_receipts",
+                                       self.on_request_receipts_config_change)
+        self.add_configuration_handler("ack_message_receipts",
+                                       self.on_ack_receipts_config_change)
         self.add_configuration_handler("plugins_dir",
                                        self.on_plugins_dir_config_change)
         self.add_configuration_handler("plugins_conf_dir",
@@ -330,6 +335,18 @@ class Core(object):
         """
         if value.lower() == "false":
             self.tabs = list(tab for tab in self.tabs if tab)
+
+    def on_request_receipts_config_change(self, option, value):
+        """
+        Called when the request_message_receipts option changes
+        """
+        self.xmpp.plugin['xep_0184'].auto_request = config.get(option, True)
+
+    def on_ack_receipts_config_change(self, option, value):
+        """
+        Called when the ack_message_receipts option changes
+        """
+        self.xmpp.plugin['xep_0184'].auto_ack = config.get(option, True)
 
     def on_plugins_dir_config_change(self, option, value):
         """
@@ -1850,6 +1867,7 @@ class Core(object):
     on_status_codes = handlers.on_status_codes
     on_groupchat_subject = handlers.on_groupchat_subject
     on_data_form = handlers.on_data_form
+    on_receipt = handlers.on_receipt
     on_attention = handlers.on_attention
     room_error = handlers.room_error
     outgoing_stanza = handlers.outgoing_stanza

@@ -18,7 +18,7 @@ from config import config
 from theming import get_theme, dump_tuple
 
 message_fields = ('txt nick_color time str_time nickname user identifier'
-                  ' highlight me old_message revisions jid')
+                  ' highlight me old_message revisions jid ack')
 Message = collections.namedtuple('Message', message_fields)
 
 class CorrectionError(Exception):
@@ -84,7 +84,7 @@ class TextBuffer(object):
     @staticmethod
     def make_message(txt, time, nickname, nick_color, history, user,
                      identifier, str_time=None, highlight=False,
-                     old_message=None, revisions=0, jid=None):
+                     old_message=None, revisions=0, jid=None, ack=None):
         """
         Create a new Message object with parameters, check for /me messages,
         and delayed messages
@@ -118,19 +118,20 @@ class TextBuffer(object):
                 me=me,
                 old_message=old_message,
                 revisions=revisions,
-                jid=jid)
+                jid=jid,
+                ack=ack)
         log.debug('Set message %s with %s.', identifier, msg)
         return msg
 
     def add_message(self, txt, time=None, nickname=None,
                     nick_color=None, history=None, user=None, highlight=False,
-                    identifier=None, str_time=None, jid=None):
+                    identifier=None, str_time=None, jid=None, ack=None):
         """
         Create a message and add it to the text buffer
         """
         msg = self.make_message(txt, time, nickname, nick_color, history,
                                 user, identifier, str_time=str_time,
-                                highlight=highlight, jid=jid)
+                                highlight=highlight, jid=jid, ack=ack)
         self.messages.append(msg)
 
         while len(self.messages) > self.messages_nb_limit:
@@ -150,42 +151,68 @@ class TextBuffer(object):
 
         return ret_val or 1
 
+    def _find_message(self, old_id):
+        """
+        Find a message in the text buffer from its message id
+        """
+        for i in range(len(self.messages) -1, -1, -1):
+            msg = self.messages[i]
+            if msg.identifier == old_id:
+                return i
+        return -1
+
+    def ack_message(self, old_id):
+        """
+        Ack a message
+        """
+        i = self._find_message(old_id)
+        if i == -1:
+            return
+        msg = self.messages[i]
+        new_msg = list(msg)
+        new_msg[12] = True
+        new_msg = Message(*new_msg)
+        self.messages[i] = new_msg
+        return new_msg
+
     def modify_message(self, txt, old_id, new_id, highlight=False,
                        time=None, user=None, jid=None):
         """
         Correct a message in a text buffer.
         """
 
-        for i in range(len(self.messages) -1, -1, -1):
-            msg = self.messages[i]
+        i = self._find_message(old_id)
 
-            if msg.identifier == old_id:
-                if msg.user and msg.user is not user:
-                    raise CorrectionError("Different users")
-                elif len(msg.str_time) > 8: # ugly
-                    raise CorrectionError("Delayed message")
-                elif not msg.user and (msg.jid is None or jid is None):
-                    raise CorrectionError('Could not check the '
-                                          'identity of the sender')
-                elif not msg.user and msg.jid != jid:
-                    raise CorrectionError('Messages %s and %s have not been '
-                                          'sent by the same fullJID' %
-                                              (old_id, new_id))
+        if i == -1:
+            log.debug('Message %s not found in text_buffer, abort replacement.',
+                      old_id)
+            raise CorrectionError("nothing to replace")
 
-                if not time:
-                    time = msg.time
-                message = self.make_message(txt, time, msg.nickname,
-                                            msg.nick_color, None, msg.user,
-                                            new_id, highlight=highlight,
-                                            old_message=msg,
-                                            revisions=msg.revisions + 1,
-                                            jid=jid)
-                self.messages[i] = message
-                log.debug('Replacing message %s with %s.', old_id, new_id)
-                return message
-        log.debug('Message %s not found in text_buffer, abort replacement.',
-                  old_id)
-        raise CorrectionError("nothing to replace")
+        msg = self.messages[i]
+
+        if msg.user and msg.user is not user:
+            raise CorrectionError("Different users")
+        elif len(msg.str_time) > 8: # ugly
+            raise CorrectionError("Delayed message")
+        elif not msg.user and (msg.jid is None or jid is None):
+            raise CorrectionError('Could not check the '
+                                  'identity of the sender')
+        elif not msg.user and msg.jid != jid:
+            raise CorrectionError('Messages %s and %s have not been '
+                                  'sent by the same fullJID' %
+                                      (old_id, new_id))
+
+        if not time:
+            time = msg.time
+        message = self.make_message(txt, time, msg.nickname,
+                                    msg.nick_color, None, msg.user,
+                                    new_id, highlight=highlight,
+                                    old_message=msg,
+                                    revisions=msg.revisions + 1,
+                                    jid=jid)
+        self.messages[i] = message
+        log.debug('Replacing message %s with %s.', old_id, new_id)
+        return message
 
     def del_window(self, win):
         self.windows.remove(win)

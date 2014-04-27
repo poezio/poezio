@@ -496,6 +496,15 @@ class ChatTab(Tab):
                 identifier=identifier,
                 jid=jid)
 
+    def ack_message(self, msg_id):
+        """
+        Ack a message
+        """
+        new_msg = self._text_buffer.ack_message(msg_id)
+        if new_msg:
+            self.text_win.modify_message(msg_id, new_msg)
+            self.core.refresh_window()
+
     def modify_message(self, txt, old_id, new_id, user=None, jid=None, nickname=None):
         self.log_message(txt, nickname, typ=1)
         message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user, jid=jid)

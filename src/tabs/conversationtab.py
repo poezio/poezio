@@ -219,7 +219,9 @@ class ConversationTab(ChatTab):
             msg.send()
 
     def check_attention(self):
-        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_dest_jid(), block=False, timeout=5, callback=self.on_attention_checked)
+        self.core.xmpp.plugin['xep_0030'].get_info(
+                jid=self.get_dest_jid(), block=False, timeout=5,
+                callback=self.on_attention_checked)
 
     def on_attention_checked(self, iq):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():

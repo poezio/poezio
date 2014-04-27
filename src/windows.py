@@ -914,6 +914,8 @@ class TextWin(Win):
         ret = []
         nick = truncate_nick(message.nickname)
         offset = 0
+        if message.ack:
+            offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
         if nick:
             offset += poopt.wcswidth(nick) + 2 # + nick + '> ' length
         if message.revisions > 0:
@@ -967,6 +969,8 @@ class TextWin(Win):
                             color = None
                         if with_timestamps:
                             self.write_time(msg.str_time)
+                        if msg.ack:
+                            self.write_ack()
                         if msg.me:
                             self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
                             self.addstr('* ')
@@ -990,11 +994,29 @@ class TextWin(Win):
                 if not line:
                     self.write_line_separator(y)
                 else:
-                    self.write_text(y,
-                                    # Offset for the timestamp (if any) plus a space after it
-                                    (0 if not with_timestamps else (len(line.msg.str_time) + (1 if line.msg.str_time else 0) )) +
-                                    # Offset for the nickname (if any) plus a space and a > after it
-                                    (0 if not line.msg.nickname else (poopt.wcswidth(truncate_nick(line.msg.nickname)) + (3 if line.msg.me else 2) + ceil(log10(line.msg.revisions + 1)))),
+                    offset = 0
+                    # Offset for the timestamp (if any) plus a space after it
+                    if with_timestamps:
+                        offset += len(line.msg.str_time)
+                        if offset:
+                            offset += 1
+
+                    # Offset for the nickname (if any)
+                    # plus a space and a > after it
+                    if line.msg.nickname:
+                        offset += poopt.wcswidth(
+                                    truncate_nick(line.msg.nickname))
+                        if line.msg.me:
+                            offset += 3
+                        else:
+                            offset += 2
+                        offset += ceil(log10(line.msg.revisions + 1))
+
+                        if line.msg.ack:
+                            offset += 1 + poopt.wcswidth(
+                                        get_theme().CHAR_ACK_RECEIVED)
+
+                    self.write_text(y, offset,
                             line.prepend+line.msg.txt[line.start_pos:line.end_pos])
                 if y != self.height-1:
                     self.addstr('\n')
@@ -1013,6 +1035,13 @@ class TextWin(Win):
         write the text of a line.
         """
         self.addstr_colored(txt, y, x)
+
+    def write_ack(self):
+        color = get_theme().COLOR_CHAR_ACK
+        self._win.attron(to_curses_attr(color))
+        self.addstr(get_theme().CHAR_ACK_RECEIVED)
+        self._win.attroff(to_curses_attr(color))
+        self.addstr(' ')
 
     def write_nickname(self, nickname, color, highlight=False):
         """

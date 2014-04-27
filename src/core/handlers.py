@@ -59,6 +59,8 @@ def on_carbon_received(self, message):
         else:
             return
     recv['to'] = self.xmpp.boundjid.full
+    if recv['receipt']:
+        return self.on_receipt(recv)
     self.on_normal_message(recv)
 
 def on_carbon_sent(self, message):
@@ -954,6 +956,22 @@ def on_groupchat_subject(self, message):
     tab.topic = subject
     if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
         self.refresh_window()
+
+def on_receipt(self, message):
+    """
+    When a delivery receipt is received (XEP-0184)
+    """
+    jid = message['from']
+    msg_id = message['receipt']
+    if not msg_id:
+        return
+
+    conversation = self.get_tab_by_name(jid)
+    conversation = conversation or self.get_tab_by_name(jid.bare)
+    if not conversation:
+        return
+
+    conversation.ack_message(msg_id)
 
 def on_data_form(self, message):
     """
