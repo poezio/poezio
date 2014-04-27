@@ -102,6 +102,7 @@ class shlex(object):
         escapedstate = ' '
         token_start = 0
         token_end = -1
+        # read one char from the stream at once
         while True:
             nextchar = self.instream.read(1)
             if nextchar == '\n':
@@ -126,13 +127,6 @@ class shlex(object):
                         break   # emit current token
                     else:
                         continue
-                elif nextchar in self.commenters:
-                    self.instream.readline()
-                    self.lineno = self.lineno + 1
-                elif self.posix and nextchar in self.escape:
-                    token_start = self.instream.tell() - 1
-                    escapedstate = 'a'
-                    self.state = nextchar
                 elif nextchar in self.wordchars:
                     token_start = self.instream.tell() - 1
                     self.token = nextchar
@@ -181,10 +175,8 @@ class shlex(object):
                     # XXX what error should be raised here?
                     token_end = self.instream.tell()
                     break
-                # In posix shells, only the quote itself or the escape
-                # character may be escaped within quotes.
-                if escapedstate in self.quotes and \
-                   nextchar != self.state and nextchar != escapedstate:
+                # only the quote may be escaped
+                if escapedstate in self.quotes and nextchar != escapedstate:
                     self.token = self.token + self.state
                 self.token = self.token + nextchar
                 self.state = escapedstate
@@ -202,13 +194,8 @@ class shlex(object):
                         break   # emit current token
                     else:
                         continue
-                elif self.posix and nextchar in self.quotes:
-                    self.state = nextchar
-                elif self.posix and nextchar in self.escape:
-                    escapedstate = 'a'
-                    self.state = nextchar
                 elif nextchar in self.wordchars or nextchar in self.quotes \
-                    or self.whitespace_split:
+                        or self.whitespace_split:
                     self.token = self.token + nextchar
                 else:
                     self.pushback.appendleft(nextchar)

@@ -319,6 +319,8 @@ def shell_split(st):
     ['toto', 'titi']
     >>> shell_split('toto ""')
     ['toto', '']
+    >>> shell_split('to"to titi "a" b')
+    ['to"to', 'titi', 'a', 'b']
     >>> shell_split('"toto titi" toto ""')
     ['toto titi', 'toto', '']
     >>> shell_split('toto "titi')
