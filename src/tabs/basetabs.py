@@ -38,9 +38,6 @@ from theming import get_theme
 from windows import g_lock
 
 
-MIN_WIDTH = 42
-MIN_HEIGHT = 6
-
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
         'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
@@ -88,6 +85,7 @@ STATE_PRIORITY = {
 
 class Tab(object):
     tab_core = None
+    size_manager = None
 
     plugin_commands = {}
     plugin_keys = {}
@@ -101,6 +99,12 @@ class Tab(object):
                                 # and use them in on_input
         self.commands = {}      # and their own commands
 
+
+    @property
+    def size(self):
+        if not Tab.size_manager:
+            Tab.size_manager = self.core.size
+        return Tab.size_manager
 
     @property
     def core(self):
@@ -182,11 +186,7 @@ class Tab(object):
     @staticmethod
     def resize(scr):
         with g_lock:
-            Tab.size = (Tab.height, Tab.width) = scr.getmaxyx()
-        if Tab.height < MIN_HEIGHT or Tab.width < MIN_WIDTH:
-            Tab.visible = False
-        else:
-            Tab.visible = True
+            Tab.height, Tab.width = scr.getmaxyx()
         windows.Win._tab_win = scr
 
     def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
@@ -283,9 +283,9 @@ class Tab(object):
             return False
 
     def refresh_tab_win(self):
-        if self.left_tab_win:
+        if self.left_tab_win and not self.size.core_degrade_x:
             self.left_tab_win.refresh()
-        else:
+        elif not self.size.core_degrade_y:
             self.tab_win.refresh()
 
     def refresh(self):

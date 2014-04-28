@@ -617,7 +617,8 @@ def on_chatstate_groupchat_conversation(self, message, state):
         self.events.trigger('muc_chatstate', message, tab)
         tab.get_user_by_name(nick).chatstate = state
     if tab == self.current_tab():
-        tab.user_win.refresh(tab.users)
+        if not self.size.tab_degrade_x:
+            tab.user_win.refresh(tab.users)
         tab.input.refresh()
         self.doupdate()
     else:

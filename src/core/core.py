@@ -41,6 +41,7 @@ from keyboard import Keyboard
 from logger import logger
 from plugin_manager import PluginManager
 from roster import roster
+from size_manager import SizeManager
 from text_buffer import TextBuffer
 from theming import get_theme
 from windows import g_lock
@@ -105,6 +106,7 @@ class Core(object):
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
 
+        self.size = SizeManager(self, windows.Win)
 
         # global commands, available from all tabs
         # a command is tuple of the form:
@@ -1498,20 +1500,25 @@ class Core(object):
         Resize the global_information_win only once at each resize.
         """
         with g_lock:
-            height = (tabs.Tab.height - 1 - self.information_win_size
-                        - tabs.Tab.tab_win_height())
-            self.information_win.resize(self.information_win_size,
-                                        tabs.Tab.width,
-                                        height,
-                                        0)
+            height = min(tabs.Tab.height - 1 - self.information_win_size
+                            - tabs.Tab.tab_win_height(),
+                         tabs.Tab.height - 5)
+            if not self.size.core_degrade_y:
+                self.information_win.resize(self.information_win_size,
+                                            tabs.Tab.width,
+                                            height,
+                                            0)
 
     def resize_global_info_bar(self):
         """
         Resize the GlobalInfoBar only once at each resize
         """
         with g_lock:
-            self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
-            if config.get('enable_vertical_tab_list', False):
+            height, width = self.stdscr.getmaxyx()
+            if not self.size.core_degrade_y:
+                self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
+            if (config.get('enable_vertical_tab_list', False)
+                    and not self.size.core_degrade_x):
                 try:
                     height, _ = self.stdscr.getmaxyx()
                     truncated_win = self.stdscr.subwin(height,
@@ -1550,7 +1557,10 @@ class Core(object):
         # window to each Tab class, so the draw themself in the portion
         # of the screen that the can occupy, and we draw the tab list
         # on the left remaining space
-        if config.get('enable_vertical_tab_list', False):
+        with g_lock:
+            height, width = self.stdscr.getmaxyx()
+        if (config.get('enable_vertical_tab_list', False) and
+                not self.size.core_degrade_x):
             with g_lock:
                 try:
                     scr = self.stdscr.subwin(0,

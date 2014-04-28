@@ -52,6 +52,16 @@ g_lock = RLock()
 
 LINES_NB_LIMIT = 4096
 
+class DummyWin(object):
+    def __getattribute__(self, name):
+        if name != '__bool__':
+            return lambda *args, **kwargs: (0, 0)
+        else:
+            return object.__getattribute__(self, name)
+
+    def __bool__(self):
+        return False
+
 def find_first_format_char(text):
     pos = -1
     for char in format_chars:
@@ -103,6 +113,7 @@ class Win(object):
     _tab_win = None
     def __init__(self):
         self._win = None
+        self.height, self.width = 0, 0
 
     def _resize(self, height, width, y, x):
         if height == 0 or width == 0:
@@ -113,8 +124,8 @@ class Win(object):
             self._win = Win._tab_win.derwin(height, width, y, x)
         except:
             log.debug('DEBUG: mvwin returned ERR. Please investigate')
-
-        # If this ever fail, uncomment that ^
+            if self._win is None:
+                self._win = DummyWin()
 
     def resize(self, height, width, y, x):
         """

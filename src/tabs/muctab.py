@@ -796,29 +796,42 @@ class MucTab(ChatTab):
         """
         Resize the whole window. i.e. all its sub-windows
         """
-        if not self.visible:
-            return
         self.need_resize = False
-        if config.get("hide_user_list", False):
+        if config.get("hide_user_list", False) or self.size.tab_degrade_x:
+            display_user_list = False
             text_width = self.width
         else:
-            text_width = (self.width//10)*9
-        self.user_win.resize(self.height - 3 - self.core.information_win_size
-                                - Tab.tab_win_height(),
-                             self.width - (self.width // 10) * 9 - 1,
-                             1,
-                             (self.width // 10) * 9 + 1)
+            display_user_list = True
+            text_width = (self.width // 10) * 9
+
+        if self.size.tab_degrade_y:
+            display_info_win = False
+            tab_win_height = 0
+            info_win_height = 0
+        else:
+            display_info_win = True
+            tab_win_height = Tab.tab_win_height()
+            info_win_height = self.core.information_win_size
+
+
+        if display_user_list:
+            self.user_win.resize(self.height - 3 - info_win_height
+                                    - tab_win_height,
+                                 self.width - (self.width // 10) * 9 - 1,
+                                 1,
+                                 (self.width // 10) * 9 + 1)
+            self.v_separator.resize(self.height - 2 - tab_win_height,
+                                    1, 1, 9 * (self.width // 10))
+
         self.topic_win.resize(1, self.width, 0, 0)
-        self.v_separator.resize(self.height - 2 - Tab.tab_win_height(),
-                                1, 1, 9 * (self.width // 10))
-        self.text_win.resize(self.height - 3 - self.core.information_win_size
-                                - Tab.tab_win_height(),
-                                text_width, 1, 0)
+
+        self.text_win.resize(self.height - 3 - info_win_height
+                                - tab_win_height,
+                             text_width, 1, 0)
         self.text_win.rebuild_everything(self._text_buffer)
         self.info_header.resize(1, self.width,
-                                self.height - 2
-                                    - self.core.information_win_size
-                                    - Tab.tab_win_height(),
+                                self.height - 2 - info_win_height
+                                    - tab_win_height,
                                 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
@@ -826,14 +839,21 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        if config.get("hide_user_list", False) or self.size.tab_degrade_x:
+            display_user_list = False
+        else:
+            display_user_list = True
+        display_info_win = not self.size.tab.degrade_y
+
         self.topic_win.refresh(self.get_single_line_topic())
         self.text_win.refresh()
-        if not config.get("hide_user_list", False):
+        if display_user_list:
             self.v_separator.refresh()
             self.user_win.refresh(self.users)
         self.info_header.refresh(self, self.text_win)
         self.refresh_tab_win()
-        self.info_win.refresh()
+        if display_info_win:
+            self.info_win.refresh()
         self.input.refresh()
 
     def on_input(self, key, raw):

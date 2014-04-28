@@ -237,21 +237,36 @@ class PrivateTab(ChatTab):
             self.parent_muc.command_info(user)
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3 or not self.visible:
-            return
         self.need_resize = False
-        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
+
+        if self.size.tab_degrade_y:
+            info_win_height = 0
+            tab_win_height = 0
+        else:
+            info_win_height = self.core.information_win_size
+            tab_win_height = Tab.tab_win_height()
+
+        self.text_win.resize(self.height - 2 - info_win_height - tab_win_height,
+                             self.width, 0, 0)
         self.text_win.rebuild_everything(self._text_buffer)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.info_header.resize(1, self.width,
+                                self.height - 2 - info_win_height
+                                    - tab_win_height,
+                                0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        display_info_win = not self.size.tab_degrade_y
+
         self.text_win.refresh()
-        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
-        self.info_win.refresh()
+        self.info_header.refresh(self.name, self.text_win, self.chatstate,
+                                 PrivateTab.additional_informations)
+        if display_info_win:
+            self.info_win.refresh()
+
         self.refresh_tab_win()
         self.input.refresh()
 

@@ -63,26 +63,41 @@ class MucListTab(Tab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        if self.size.tab_degrade_y:
+            display_info_win = False
+        else:
+            display_info_win = True
+
         self.info_header.refresh(window=self.listview)
-        self.info_win.refresh()
+        if display_info_win:
+            self.info_win.refresh()
         self.refresh_tab_win()
         self.list_header.refresh()
         self.listview.refresh()
         self.input.refresh()
-        self.update_commands()
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3 or not self.visible:
-            return
         self.need_resize = False
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-        column_size = {'node-part': int(self.width*2/8),
-                       'name': int(self.width*5/8),
-                       'users': self.width-int(self.width*2/8)-int(self.width*5/8)}
+        if self.size.tab_degrade_y:
+            info_win_height = 0
+            tab_win_height = 0
+        else:
+            info_win_height = self.core.information_win_size
+            tab_win_height = Tab.tab_win_height()
+
+        self.info_header.resize(1, self.width,
+                                self.height - 2 - info_win_height
+                                    - tab_win_height,
+                                0)
+        column_size = {'node-part': int(self.width*  2 / 8),
+                       'name': int(self.width * 5 / 8),
+                       'users': self.width - int(self.width * 2 / 8)
+                                - int(self.width * 5 / 8)}
         self.list_header.resize_columns(column_size)
         self.list_header.resize(1, self.width, 0, 0)
         self.listview.resize_columns(column_size)
-        self.listview.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
+        self.listview.resize(self.height - 3 - info_win_height - tab_win_height,
+                             self.width, 1, 0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def on_slash(self):

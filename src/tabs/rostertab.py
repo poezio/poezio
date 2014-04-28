@@ -266,15 +266,40 @@ class RosterInfoTab(Tab):
         self.core.command_last_activity(jid)
 
     def resize(self):
-        if not self.visible:
-            return
         self.need_resize = False
-        roster_width = self.width//2
-        info_width = self.width-roster_width-1
-        self.v_separator.resize(self.height-1 - Tab.tab_win_height(), 1, 0, roster_width)
-        self.information_win.resize(self.height-2-4, info_width, 0, roster_width+1, self.core.information_buffer)
-        self.roster_win.resize(self.height-1 - Tab.tab_win_height(), roster_width, 0, 0)
-        self.contact_info_win.resize(5 - Tab.tab_win_height(), info_width, self.height-2-4, roster_width+1)
+        if self.size.tab_degrade_x:
+            display_info = False
+            roster_width = self.width
+        else:
+            display_info = True
+            roster_width = self.width // 2
+            if self.size.tab_degrade_y:
+                display_contact_win = False
+                contact_win_h = 0
+            else:
+                display_contact_win = True
+                contact_win_h = 5
+        if self.size.tab_degrade_y:
+            tab_win_height = 0
+        else:
+            tab_win_height = Tab.tab_win_height()
+
+        info_width = self.width - roster_width - 1
+        if display_info:
+            self.v_separator.resize(self.height - 1 - tab_win_height,
+                                    1, 0, roster_width)
+            self.information_win.resize(self.height - 1 - tab_win_height
+                                            - contact_win_h,
+                                        info_width, 0, roster_width + 1,
+                                        self.core.information_buffer)
+            if display_contact_win:
+                self.contact_info_win.resize(contact_win_h - tab_win_height,
+                                             info_width,
+                                             self.height - tab_win_height
+                                                - contact_win_h - 1,
+                                             roster_width + 1)
+        self.roster_win.resize(self.height - 1 - Tab.tab_win_height(),
+                               roster_width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
         self.default_help_message.resize(1, self.width, self.height-1, 0)
 
@@ -699,10 +724,17 @@ class RosterInfoTab(Tab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        self.v_separator.refresh()
+
+        display_info = not self.size.tab_degrade_x
+        display_contact_win = not self.size.tab_degrade_y
+
         self.roster_win.refresh(roster)
-        self.contact_info_win.refresh(self.roster_win.get_selected_row())
-        self.information_win.refresh()
+        if display_info:
+            self.v_separator.refresh()
+            self.information_win.refresh()
+            if display_contact_win:
+                self.contact_info_win.refresh(
+                        self.roster_win.get_selected_row())
         self.refresh_tab_win()
         self.input.refresh()
 

@@ -163,23 +163,38 @@ class XMLTab(Tab):
         self.core.close_tab()
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3 or not self.visible:
-            return
         self.need_resize = False
-        min = 1 if self.left_tab_win else 2
-        self.text_win.resize(self.height-self.core.information_win_size - Tab.tab_win_height() - 2, self.width, 0, 0)
+        if self.size.tab_degrade_y:
+            info_win_size = 0
+            tab_win_height = 0
+        else:
+            info_win_size = self.core.information_win_size
+            tab_win_height = Tab.tab_win_height()
+
+        self.text_win.resize(self.height - info_win_size - tab_win_height - 2,
+                             self.width, 0, 0)
         self.text_win.rebuild_everything(self.core.xml_buffer)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.info_header.resize(1, self.width,
+                                self.height - 2 - info_win_size
+                                    - tab_win_height,
+                                0)
         self.input.resize(1, self.width, self.height-1, 0)
 
     def refresh(self):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+
+        if self.size.tab_degrade_y:
+            display_info_win = False
+        else:
+            display_info_win = True
+
         self.text_win.refresh()
         self.info_header.refresh(self.filter_type, self.filter, self.text_win)
         self.refresh_tab_win()
-        self.info_win.refresh()
+        if display_info_win:
+            self.info_win.refresh()
         self.input.refresh()
 
     def on_lose_focus(self):

@@ -260,23 +260,44 @@ class ConversationTab(ChatTab):
                 callback=callback)
 
     def resize(self):
-        if self.core.information_win_size >= self.height-3 or not self.visible:
-            return
         self.need_resize = False
-        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
+        if self.size.tab_degrade_y:
+            display_bar = False
+            info_win_height = 0
+            tab_win_height = 0
+            bar_height = 0
+        else:
+            display_bar = True
+            info_win_height = self.core.information_win_size
+            tab_win_height = Tab.tab_win_height()
+            bar_height = 1
+
+        self.text_win.resize(self.height - 2 - bar_height - info_win_height
+                                - tab_win_height,
+                             self.width, bar_height, 0)
         self.text_win.rebuild_everything(self._text_buffer)
-        self.upper_bar.resize(1, self.width, 0, 0)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-        self.input.resize(1, self.width, self.height-1, 0)
+        if display_bar:
+            self.upper_bar.resize(1, self.width, 0, 0)
+        self.info_header.resize(1, self.width,
+                                self.height - 2 - bar_height  - info_win_height
+                                    - tab_win_height,
+                                0)
+        self.input.resize(1, self.width, self.height - 1, 0)
 
     def refresh(self):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        display_bar = display_info_win = not self.size.tab_degrade_y
+
         self.text_win.refresh()
-        self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
+
+        if display_bar:
+            self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
         self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_informations)
-        self.info_win.refresh()
+
+        if display_info_win:
+            self.info_win.refresh()
         self.refresh_tab_win()
         self.input.refresh()
 
@@ -439,14 +460,21 @@ class DynamicConversationTab(ConversationTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        display_bar = display_info_win = not self.size.tab_degrade_y
+
         self.text_win.refresh()
-        self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
+        if display_bar:
+            self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
         if self.locked_resource:
             displayed_jid = "%s/%s" % (self.get_name(), self.locked_resource)
         else:
             displayed_jid = self.get_name()
-        self.info_header.refresh(displayed_jid, roster[self.get_name()], self.text_win, self.chatstate, ConversationTab.additional_informations)
-        self.info_win.refresh()
+        self.info_header.refresh(displayed_jid, roster[self.get_name()],
+                                 self.text_win, self.chatstate,
+                                 ConversationTab.additional_informations)
+        if display_info_win:
+            self.info_win.refresh()
+
         self.refresh_tab_win()
         self.input.refresh()
 
