@@ -843,7 +843,7 @@ class MucTab(ChatTab):
             display_user_list = False
         else:
             display_user_list = True
-        display_info_win = not self.size.tab.degrade_y
+        display_info_win = not self.size.tab_degrade_y
 
         self.topic_win.refresh(self.get_single_line_topic())
         self.text_win.refresh()
