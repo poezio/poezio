@@ -121,6 +121,11 @@ Configuration
 .. glossary::
     :sorted:
 
+    decode_xhtml
+        **Default:** ``true``
+
+        Decode embedded XHTML.
+
     keys_dir
         **Default:** ``$XDG_DATA_HOME/poezio/otr``
 
@@ -141,8 +146,8 @@ Configuration
 
         Log conversations (OTR start/end marker, and messages).
 
-The :term:`allow_v1`, :term:`allow_v2` and :term:`log` configuration
-parameters are tab-specific.
+The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_html`
+and :term:`log` configuration parameters are tab-specific.
 
 Important details
 -----------------
@@ -166,6 +171,7 @@ import curses
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
+import xhtml
 from plugin import BasePlugin
 from tabs import ConversationTab, DynamicConversationTab, PrivateTab
 from common import safeJID
@@ -463,8 +469,14 @@ class Plugin(BasePlugin):
             user = None
 
         body = txt.decode()
+        if self.config.get_by_tabname('decode_xhtml', True, msg['from'].bare):
+            try:
+                body = xhtml.xhtml_to_poezio_colors(body, force=True)
+            except:
+                pass
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
-                forced_user=user, typ=ctx.log, nick_color=theming.get_theme().COLOR_REMOTE_USER)
+                        forced_user=user, typ=ctx.log,
+                        nick_color=theming.get_theme().COLOR_REMOTE_USER)
         hl(tab)
         self.core.refresh_window()
         del msg['body']

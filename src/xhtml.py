@@ -281,13 +281,15 @@ def trim(string):
     return re.sub(whitespace_re, ' ', string)
 
 class XHTMLHandler(sax.ContentHandler):
-    def __init__(self):
+    def __init__(self, force_ns=False):
         self.builder = []
         self.formatting = []
         self.attrs = []
         self.list_state = []
         self.is_pre = False
         self.a_start = 0
+        # do not care about xhtml-in namespace
+        self.force_ns = force_ns
 
     @property
     def result(self):
@@ -305,7 +307,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.builder.append(characters if self.is_pre else trim(characters))
 
     def startElementNS(self, name, _, attrs):
-        if name[0] != XHTML_NS:
+        if name[0] != XHTML_NS and not self.force_ns:
             return
 
         builder = self.builder
@@ -356,7 +358,7 @@ class XHTMLHandler(sax.ContentHandler):
             self.append_formatting('\x19b')
 
     def endElementNS(self, name, _):
-        if name[0] != XHTML_NS:
+        if name[0] != XHTML_NS and not self.force_ns:
             return
 
         builder = self.builder
@@ -387,13 +389,13 @@ class XHTMLHandler(sax.ContentHandler):
         if 'title' in attrs:
             builder.append(' [' + attrs['title'] + ']')
 
-def xhtml_to_poezio_colors(xml):
+def xhtml_to_poezio_colors(xml, force=False):
     if isinstance(xml, str):
         xml = xml.encode('utf8')
     elif not isinstance(xml, bytes):
         xml = ET.tostring(xml)
 
-    handler = XHTMLHandler()
+    handler = XHTMLHandler(force_ns=force)
     parser = sax.make_parser()
     parser.setFeature(sax.handler.feature_namespaces, True)
     parser.setContentHandler(handler)
