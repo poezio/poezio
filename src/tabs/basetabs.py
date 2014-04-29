@@ -187,7 +187,7 @@ class Tab(object):
     def resize(scr):
         with g_lock:
             Tab.height, Tab.width = scr.getmaxyx()
-        windows.Win._tab_win = scr
+            windows.Win._tab_win = scr
 
     def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
         """
@@ -283,8 +283,9 @@ class Tab(object):
             return False
 
     def refresh_tab_win(self):
-        if self.left_tab_win and not self.size.core_degrade_x:
-            self.left_tab_win.refresh()
+        if config.get('enable_vertical_tab_list', False):
+            if self.left_tab_win and not self.size.core_degrade_x:
+                self.left_tab_win.refresh()
         elif not self.size.core_degrade_y:
             self.tab_win.refresh()
 

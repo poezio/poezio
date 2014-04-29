@@ -458,7 +458,7 @@ class Core(object):
         default_tab = tabs.RosterInfoTab()
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
-        self.information(_('Welcome to poezio!'))
+        self.information(_('Welcome to poezio!'), _('Info'))
         if firstrun:
             self.information(_(
                 'It seems that it is the first time you start poezio.\n'
@@ -1419,7 +1419,8 @@ class Core(object):
         Expand the information win a number of lines
         """
         if self.information_win_size >= self.current_tab().height -5 or \
-                self.information_win_size+nb >= self.current_tab().height-4:
+                self.information_win_size+nb >= self.current_tab().height-4 or\
+                self.size.core_degrade_y:
             return 0
         if self.information_win_size == 14:
             return 0
@@ -1437,7 +1438,7 @@ class Core(object):
         """
         Reduce the size of the information win
         """
-        if self.information_win_size == 0:
+        if self.information_win_size == 0 or self.size.core_degrade_y:
             return
         self.information_win_size -= nb
         if self.information_win_size < 0:
@@ -1500,14 +1501,16 @@ class Core(object):
         Resize the global_information_win only once at each resize.
         """
         with g_lock:
-            height = min(tabs.Tab.height - 1 - self.information_win_size
-                            - tabs.Tab.tab_win_height(),
-                         tabs.Tab.height - 5)
-            if not self.size.core_degrade_y:
-                self.information_win.resize(self.information_win_size,
-                                            tabs.Tab.width,
-                                            height,
-                                            0)
+            if self.information_win_size > tabs.Tab.height - 6:
+                self.information_win_size = tabs.Tab.height - 6
+            if tabs.Tab.height < 6:
+                self.information_win_size = 0
+            height = (tabs.Tab.height - 1 - self.information_win_size
+                            - tabs.Tab.tab_win_height())
+            self.information_win.resize(self.information_win_size,
+                                        tabs.Tab.width,
+                                        height,
+                                        0)
 
     def resize_global_info_bar(self):
         """
@@ -1515,10 +1518,10 @@ class Core(object):
         """
         with g_lock:
             height, width = self.stdscr.getmaxyx()
-            if not self.size.core_degrade_y:
-                self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
-            if (config.get('enable_vertical_tab_list', False)
-                    and not self.size.core_degrade_x):
+            if config.get('enable_vertical_tab_list', False):
+
+                if self.size.core_degrade_x:
+                    return
                 try:
                     height, _ = self.stdscr.getmaxyx()
                     truncated_win = self.stdscr.subwin(height,
@@ -1528,8 +1531,10 @@ class Core(object):
                     log.error('Curses error on infobar resize', exc_info=True)
                     return
                 self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
-            else:
-                self.left_tab_win = None
+            elif not self.size.core_degrade_y:
+                    self.tab_win.resize(1, tabs.Tab.width,
+                                        tabs.Tab.height - 2, 0)
+                    self.left_tab_win = None
 
     def add_message_to_text_buffer(self, buff, txt,
                                    time=None, nickname=None, history=None):

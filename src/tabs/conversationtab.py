@@ -279,7 +279,7 @@ class ConversationTab(ChatTab):
         if display_bar:
             self.upper_bar.resize(1, self.width, 0, 0)
         self.info_header.resize(1, self.width,
-                                self.height - 2 - bar_height  - info_win_height
+                                self.height - 2 - info_win_height
                                     - tab_win_height,
                                 0)
         self.input.resize(1, self.width, self.height - 1, 0)

@@ -814,14 +814,13 @@ class MucTab(ChatTab):
             info_win_height = self.core.information_win_size
 
 
-        if display_user_list:
-            self.user_win.resize(self.height - 3 - info_win_height
-                                    - tab_win_height,
-                                 self.width - (self.width // 10) * 9 - 1,
-                                 1,
-                                 (self.width // 10) * 9 + 1)
-            self.v_separator.resize(self.height - 2 - tab_win_height,
-                                    1, 1, 9 * (self.width // 10))
+        self.user_win.resize(self.height - 3 - info_win_height
+                                - tab_win_height,
+                             self.width - (self.width // 10) * 9 - 1,
+                             1,
+                             (self.width // 10) * 9 + 1)
+        self.v_separator.resize(self.height - 3 - info_win_height - tab_win_height,
+                                1, 1, 9 * (self.width // 10))
 
         self.topic_win.resize(1, self.width, 0, 0)
 
@@ -949,6 +948,8 @@ class MucTab(ChatTab):
                              self.width - (self.width // 10) * 9 - 1,
                              1,
                              (self.width // 10) * 9 + 1)
+        self.v_separator.resize(self.height - 3 - self.core.information_win_size - Tab.tab_win_height(),
+                                1, 1, 9 * (self.width // 10))
         self.text_win.resize(self.height - 3 - self.core.information_win_size
                                 - Tab.tab_win_height(),
                              text_width, 1, 0)

@@ -813,7 +813,7 @@ def on_failed_connection(self):
     """
     We cannot contact the remote server
     """
-    self.information(_("Connection to remote server failed"))
+    self.information(_("Connection to remote server failed"), _('Error'))
 
 def on_disconnected(self, event):
     """
@@ -822,25 +822,27 @@ def on_disconnected(self, event):
     roster.modified()
     for tab in self.get_tabs(tabs.MucTab):
         tab.disconnect()
-    self.information(_("Disconnected from server."))
+    self.information(_("Disconnected from server."), _('Error'))
 
 def on_failed_auth(self, event):
     """
     Authentication failed
     """
-    self.information(_("Authentication failed (bad credentials?)."))
+    self.information(_("Authentication failed (bad credentials?)."),
+                     _('Error'))
 
 def on_no_auth(self, event):
     """
     Authentication failed (no mech)
     """
-    self.information(_("Authentication failed, no login method available."))
+    self.information(_("Authentication failed, no login method available."),
+                     _('Error'))
 
 def on_connected(self, event):
     """
     Remote host responded, but we are not yet authenticated
     """
-    self.information(_("Connected to server."))
+    self.information(_("Connected to server."), 'Info')
 
 def on_session_start(self, event):
     """
@@ -849,8 +851,8 @@ def on_session_start(self, event):
     self.connection_time = time.time()
     if not self.plugins_autoloaded: # Do not reload plugins on reconnection
         self.autoload_plugins()
-    self.information(_("Authentication success."))
-    self.information(_("Your JID is %s") % self.xmpp.boundjid.full)
+    self.information(_("Authentication success."), 'Info')
+    self.information(_("Your JID is %s") % self.xmpp.boundjid.full, 'Info')
     if not self.xmpp.anon:
         # request the roster
         self.xmpp.get_roster()
