@@ -12,6 +12,7 @@ from hashlib import sha1
 from gettext import gettext as _
 
 from sleekxmpp import InvalidJID
+from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream.stanzabase import StanzaBase
 
 import bookmark
@@ -584,7 +585,7 @@ def on_chatstate_normal_conversation(self, message, state):
         tab.refresh_info_header()
         self.doupdate()
     else:
-        composing_tab_state(tab, state)
+        _composing_tab_state(tab, state)
         self.refresh_tab_win()
     return True
 
@@ -602,7 +603,7 @@ def on_chatstate_private_conversation(self, message, state):
         tab.refresh_info_header()
         self.doupdate()
     else:
-        composing_tab_state(tab, state)
+        _composing_tab_state(tab, state)
         self.refresh_tab_win()
     return True
 
@@ -622,7 +623,7 @@ def on_chatstate_groupchat_conversation(self, message, state):
         tab.input.refresh()
         self.doupdate()
     else:
-        composing_tab_state(tab, state)
+        _composing_tab_state(tab, state)
         self.refresh_tab_win()
 
 ### subscription-related handlers ###
@@ -1098,7 +1099,7 @@ def validate_ssl(self, pem):
             self.information(_('Unable to write in the config file'), 'Error')
 
 
-def composing_tab_state(tab, state):
+def _composing_tab_state(tab, state):
     """
     Set a tab state to or from the "composing" state
     according to the config and the current tab state
@@ -1123,4 +1124,5 @@ def composing_tab_state(tab, state):
             tab.state = 'composing'
     elif tab.state == 'composing' and state != 'composing':
         tab.restore_state()
+
 

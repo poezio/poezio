@@ -15,10 +15,12 @@ log = logging.getLogger(__name__)
 
 import getpass
 import sleekxmpp
+from sleekxmpp.plugins.xep_0184 import XEP_0184
 
-from config import config, options
 import common
+import fixes
 from common import safeJID
+from config import config, options
 
 class Connection(sleekxmpp.ClientXMPP):
     """
@@ -85,6 +87,9 @@ class Connection(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
 
+        # monkey-patch xep_0184 to avoid requesting receipts for messages
+        # without a body
+        XEP_0184._filter_add_receipt_request = fixes._filter_add_receipt_request
         self.register_plugin('xep_0184')
         self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts',
                                                       True)
