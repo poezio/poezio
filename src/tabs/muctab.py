@@ -534,8 +534,8 @@ class MucTab(ChatTab):
         if not arg.strip():
             self._text_buffer.add_message(
                     _("\x19%s}The subject of the room is: %s") %
-                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT,
-                    self.topic))
+                        (dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                         self.topic))
             self.refresh()
             return
         subject = arg
