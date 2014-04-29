@@ -556,8 +556,6 @@ class ChatTab(Tab):
             return
         try:
             body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg))
-            # The <body /> element is the only allowable child of the <xhtm-im>
-            arg = "<body xmlns='http://www.w3.org/1999/xhtml'>%s</body>" % (arg,)
             ET.fromstring(arg)
         except:
             self.core.information('Could not send custom xhtml', 'Error')

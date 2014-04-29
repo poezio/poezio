@@ -287,6 +287,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.attrs = []
         self.list_state = []
         self.is_pre = False
+        self.a_start = 0
 
     @property
     def result(self):
@@ -318,6 +319,7 @@ class XHTMLHandler(sax.ContentHandler):
         name = name[1]
         if name == 'a':
             self.append_formatting('\x19u')
+            self.a_start = len(self.builder)
         elif name == 'blockquote':
             builder.append('“')
         elif name == 'br':
@@ -363,7 +365,11 @@ class XHTMLHandler(sax.ContentHandler):
 
         if name == 'a':
             self.pop_formatting()
-            if 'href' in attrs:
+            # do not display the link twice
+            text_elements = filter(lambda x: not x.startswith('\x19'),
+                                   self.builder[self.a_start:])
+            link_text = ''.join(text_elements).strip()
+            if 'href' in attrs and attrs['href'] != link_text:
                 builder.append(' (%s)' % trim(attrs['href']))
         elif name == 'blockquote':
             builder.append('”')
