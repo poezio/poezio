@@ -45,6 +45,7 @@ class EventHandler(object):
             'muc_ban': [],
             'send_normal_presence': [],
             'ignored_private': [],
+            'tab_change': [],
             }
 
     def add_event_handler(self, name, callback, position=0):
@@ -72,6 +73,7 @@ class EventHandler(object):
         if callbacks is None:
             log.debug('%s: No such event.', name)
             return
+        log.debug('Event %s triggered, callbacks: %s', name, callbacks)
         for callback in callbacks:
             callback(*args, **kwargs)
 

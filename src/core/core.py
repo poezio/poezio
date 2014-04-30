@@ -1098,12 +1098,15 @@ class Core(object):
         Prevents the tab number from going over the total number of opened
         tabs, or under 0
         """
+        old = self._current_tab_nb
         if value >= len(self.tabs):
             self._current_tab_nb = 0
         elif value < 0:
             self._current_tab_nb = len(self.tabs) - 1
         else:
             self._current_tab_nb = value
+        if old != self._current_tab_nb:
+            self.events.trigger('tab_change', old, self._current_tab_nb)
 
     ### Opening actions ###
 

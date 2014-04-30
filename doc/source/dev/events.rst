@@ -7,6 +7,12 @@ The following events are poezio-only events, for SleekXMPP events, check out
 .. glossary::
     :sorted:
 
+    tab_change
+        - **old_tab_nb:** :py:class:`int` Old current tab number.
+        - **new_tab_nb:** :py:class:`int` New current tab number.
+
+        Triggered whenever the user switches between tabs.
+
     muc_say
         - **message:** :py:class:`~sleekxmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.MucTab` source
