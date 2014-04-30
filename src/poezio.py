@@ -23,6 +23,8 @@ def main():
     """
     Enter point
     """
+    sys.stdout.write("\x1b]0;poezio\x07")
+    sys.stdout.flush()
     import config
     config_path = config.check_create_config_dir()
     config.run_cmdline_args(config_path)
