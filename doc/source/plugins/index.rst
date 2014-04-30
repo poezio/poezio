@@ -235,6 +235,11 @@ Plugin index
 
         Manage IRC gateways with biboumi more easily
 
+    Title change
+        :ref:`Documentation <changetitle-plugin>`
+
+        Change the title of the terminal according to the name
+        of the current tab.
 
 
 .. toctree::
@@ -273,3 +278,4 @@ Plugin index
     pointpoint
     autocorrect
     irc
+    change_title
