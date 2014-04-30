@@ -98,7 +98,7 @@ def completion_join(self, the_input):
     relevant_rooms.extend(sorted(self.pending_invites.keys()))
     bookmarks = {str(elem.jid): False for elem in bookmark.bookmarks}
     for tab in self.get_tabs(tabs.MucTab):
-        name = tab.get_name()
+        name = tab.name
         if name in bookmarks and not tab.joined:
             bookmarks[name] = True
     relevant_rooms.extend(sorted(room[0] for room in bookmarks.items() if room[1]))
@@ -126,7 +126,7 @@ def completion_join(self, the_input):
         serv_list = []
         for tab in self.get_tabs(tabs.MucTab):
             if tab.joined:
-                serv_list.append('%s@%s'% (jid.user, safeJID(tab.get_name()).host))
+                serv_list.append('%s@%s'% (jid.user, safeJID(tab.name).host))
         serv_list.extend(relevant_rooms)
         return the_input.new_completion(serv_list, 1, quotify=True)
     elif args[1].startswith('/'):
@@ -147,8 +147,8 @@ def completion_list(self, the_input):
     """Completion for /list"""
     muc_serv_list = []
     for tab in self.get_tabs(tabs.MucTab):   # TODO, also from an history
-        if tab.get_name() not in muc_serv_list:
-            muc_serv_list.append(safeJID(tab.get_name()).server)
+        if tab.name not in muc_serv_list:
+            muc_serv_list.append(safeJID(tab.name).server)
     if muc_serv_list:
         return the_input.new_completion(muc_serv_list, 1, quotify=False)
 
@@ -157,7 +157,7 @@ def completion_move_tab(self, the_input):
     """Completion for /move_tab"""
     n = the_input.get_argument_position(quoted=True)
     if n == 1:
-        nodes = [tab.get_name() for tab in self.tabs if tab]
+        nodes = [tab.name for tab in self.tabs if tab]
         nodes.remove('Roster')
         return the_input.new_completion(nodes, 1, ' ', quotify=True)
 
@@ -199,7 +199,7 @@ def completion_bookmark(self, the_input):
                 nicks.append(nick)
         jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
         return the_input.new_completion(jids_list, 1, quotify=True)
-    muc_list = [tab.get_name() for tab in self.get_tabs(tabs.MucTab)]
+    muc_list = [tab.name for tab in self.get_tabs(tabs.MucTab)]
     muc_list.sort()
     muc_list.append('*')
     return the_input.new_completion(muc_list, 1, quotify=True)
@@ -259,7 +259,7 @@ def completion_invite(self, the_input):
         rooms = []
         for tab in self.get_tabs(tabs.MucTab):
             if tab.joined:
-                rooms.append(tab.get_name())
+                rooms.append(tab.name)
         rooms.sort()
         return the_input.new_completion(rooms, n, '', quotify=True)
 
@@ -300,7 +300,7 @@ def completion_server_cycle(self, the_input):
     """Completion for /server_cycle"""
     serv_list = set()
     for tab in self.get_tabs(tabs.MucTab):
-        serv = safeJID(tab.get_name()).server
+        serv = safeJID(tab.name).server
         serv_list.add(serv)
     return the_input.new_completion(sorted(serv_list), 1, ' ')
 
@@ -380,7 +380,7 @@ def completion_bookmark_local(self, the_input):
                 nicks.append(nick)
         jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
         return the_input.new_completion(jids_list, 1, quotify=True)
-    muc_list = [tab.get_name() for tab in self.get_tabs(tabs.MucTab)]
+    muc_list = [tab.name for tab in self.get_tabs(tabs.MucTab)]
     muc_list.append('*')
     return the_input.new_completion(muc_list, 1, quotify=True)
 

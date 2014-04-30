@@ -73,14 +73,14 @@ class Plugin(BasePlugin):
     def command_private_ping(self, arg):
         if arg:
             return self.command_ping(arg)
-        self.command_ping(self.api.current_tab().get_name())
+        self.command_ping(self.api.current_tab().name)
 
     def command_muc_ping(self, arg):
         if not arg.strip():
             return
         user = self.api.current_tab().get_user_by_name(arg)
         if user:
-            jid = safeJID(self.api.current_tab().get_name())
+            jid = safeJID(self.api.current_tab().name)
             jid.resource = user.nick
         else:
             jid = safeJID(arg)

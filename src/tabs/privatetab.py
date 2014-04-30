@@ -66,7 +66,7 @@ class PrivateTab(ChatTab):
 
     @property
     def general_jid(self):
-        return self.get_name()
+        return self.name
 
     @property
     def nick(self):
@@ -84,7 +84,7 @@ class PrivateTab(ChatTab):
         del PrivateTab.additional_informations[plugin_name]
 
     def load_logs(self, log_nb):
-        logs = logger.get_logs(safeJID(self.get_name()).full.replace('/', '\\'), log_nb)
+        logs = logger.get_logs(safeJID(self.name).full.replace('/', '\\'), log_nb)
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
@@ -121,7 +121,7 @@ class PrivateTab(ChatTab):
     def command_say(self, line, attention=False, correct=False):
         if not self.on:
             return
-        msg = self.core.xmpp.make_message(self.get_name())
+        msg = self.core.xmpp.make_message(self.name)
         msg['type'] = 'chat'
         msg['body'] = line
         # trigger the event BEFORE looking for colors.
@@ -137,7 +137,7 @@ class PrivateTab(ChatTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', True, self.get_name()):
+            if config.get_by_tabname('group_corrections', True, self.name):
                 try:
                     self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'],
                             user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
@@ -181,13 +181,13 @@ class PrivateTab(ChatTab):
         if message is not '':
             self.command_say(message, attention=True)
         else:
-            msg = self.core.xmpp.make_message(self.get_name())
+            msg = self.core.xmpp.make_message(self.name)
             msg['type'] = 'chat'
             msg['attention'] = True
             msg.send()
 
     def check_attention(self):
-        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.get_name(), block=False, timeout=5, callback=self.on_attention_checked)
+        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.name, block=False, timeout=5, callback=self.on_attention_checked)
 
     def on_attention_checked(self, iq):
         if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
@@ -273,9 +273,6 @@ class PrivateTab(ChatTab):
     def refresh_info_header(self):
         self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
         self.input.refresh()
-
-    def get_name(self):
-        return self.name
 
     def get_nick(self):
         return safeJID(self.name).resource
@@ -376,6 +373,6 @@ class PrivateTab(ChatTab):
             self.add_message(txt=reason, typ=2)
 
     def matching_names(self):
-        return [(3, safeJID(self.get_name()).resource), (4, self.get_name())]
+        return [(3, safeJID(self.name).resource), (4, self.name)]
 
 

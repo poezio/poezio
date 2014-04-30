@@ -184,9 +184,6 @@ class MucListTab(Tab):
             self.execute_command(txt)
         return self.reset_help_message()
 
-    def get_name(self):
-        return self.name
-
     def completion(self):
         if isinstance(self.input, windows.Input):
             self.complete_commands(self.input)

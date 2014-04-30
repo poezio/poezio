@@ -22,6 +22,7 @@ class XMLTab(Tab):
     def __init__(self):
         Tab.__init__(self)
         self.state = 'normal'
+        self.name = 'XMLTab'
         self.text_win = windows.TextWin()
         self.core.xml_buffer.add_window(self.text_win)
         self.info_header = windows.XMLInfoWin()

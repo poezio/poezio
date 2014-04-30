@@ -375,7 +375,7 @@ class GlobalInfoBar(Win):
                         if use_nicks:
                             self.addstr("%s" % str(tab.get_nick()), to_curses_attr(color))
                         else:
-                            self.addstr("%s" % str(tab.get_name()), to_curses_attr(color))
+                            self.addstr("%s" % tab.name, to_curses_attr(color))
                     self.addstr("|", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                 except:             # end of line
                     break
@@ -425,7 +425,7 @@ class VerticalGlobalInfoBar(Win):
                 if use_nicks:
                     self.addnstr("%s" % tab.get_nick(), width - 4, to_curses_attr(color))
                 else:
-                    self.addnstr("%s" % tab.get_name(), width - 4, to_curses_attr(color))
+                    self.addnstr("%s" % tab.name, width - 4, to_curses_attr(color))
             separator = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
             self._win.attron(separator)
             self._win.vline(0, width-1, curses.ACS_VLINE, height)

@@ -90,6 +90,7 @@ class Tab(object):
     plugin_commands = {}
     plugin_keys = {}
     def __init__(self):
+        self.name = self.__class__.__name__
         self.input = None
         self._state = 'normal'
         self._prev_state = None
@@ -299,13 +300,13 @@ class Tab(object):
         """
         get the name of the tab
         """
-        return self.__class__.__name__
+        return self.name
 
     def get_nick(self):
         """
         Get the nick of the tab (defaults to its name)
         """
-        return self.get_name()
+        return self.name
 
     def get_text_window(self):
         """
@@ -410,7 +411,8 @@ class GapTab(Tab):
     def __len__(self):
         return 0
 
-    def get_name(self):
+    @property
+    def name(self):
         return ''
 
     def refresh(self):
@@ -476,7 +478,7 @@ class ChatTab(Tab):
         return False
 
     def load_logs(self, log_nb):
-        logs = logger.get_logs(safeJID(self.get_name()).bare, log_nb)
+        logs = logger.get_logs(safeJID(self.name).bare, log_nb)
         return logs
 
     def log_message(self, txt, nickname, time=None, typ=1):
@@ -569,7 +571,7 @@ class ChatTab(Tab):
         return msg
 
     def get_dest_jid(self):
-        return self.get_name()
+        return self.name
 
     @refresh_wrapper.always
     def command_clear(self, args):

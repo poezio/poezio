@@ -902,7 +902,7 @@ class Core(object):
         If typ is provided, return a tab of this type only
         """
         for tab in self.tabs:
-            if tab.get_name() == name:
+            if tab.name == name:
                 if (typ and isinstance(tab, typ)) or\
                         not typ:
                     return tab
@@ -1081,7 +1081,7 @@ class Core(object):
     def focus_tab_named(self, tab_name, type_=None):
         """Returns True if it found a tab to focus on"""
         for tab in self.tabs:
-            if tab.get_name() == tab_name:
+            if tab.name == tab_name:
                 if (type_ and (isinstance(tab, type_))) or not type_:
                     self.command_win('%s' % (tab.nb,))
                 return True
@@ -1133,7 +1133,7 @@ class Core(object):
         complete_jid = room_name+'/'+user_nick
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
-            if tab.get_name() == complete_jid:
+            if tab.name == complete_jid:
                 self.command_win('%s' % tab.nb)
                 return tab
         # create the new tab
@@ -1206,7 +1206,7 @@ class Core(object):
         if reason is None:
             reason = _('\x195}You left the chatroom\x193}')
         for tab in self.get_tabs(tabs.PrivateTab):
-            if tab.get_name().startswith(room_name):
+            if tab.name.startswith(room_name):
                 tab.deactivate(reason=reason)
 
     def enable_private_tabs(self, room_name, reason=None):
@@ -1216,7 +1216,7 @@ class Core(object):
         if reason is None:
             reason = _('\x195}You joined the chatroom\x193}')
         for tab in self.get_tabs(tabs.PrivateTab):
-            if tab.get_name().startswith(room_name):
+            if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid, msg):
@@ -1246,10 +1246,10 @@ class Core(object):
                 self.tabs[nb] = tabs.GapTab()
         else:
             self.tabs.remove(tab)
-        if tab and tab.get_name() in logger.fds:
-            logger.fds[tab.get_name()].close()
-            log.debug("Log file for %s closed.", tab.get_name())
-            del logger.fds[tab.get_name()]
+        if tab and tab.name in logger.fds:
+            logger.fds[tab.name].close()
+            log.debug("Log file for %s closed.", tab.name)
+            del logger.fds[tab.name]
         if self.current_tab_nb >= len(self.tabs):
             self.current_tab_nb = len(self.tabs) - 1
         while not self.tabs[self.current_tab_nb]:

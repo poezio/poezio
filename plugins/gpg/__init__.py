@@ -291,7 +291,7 @@ class Plugin(BasePlugin):
             jid = JID(args[1])
         else:
             if isinstance(self.core.current_tab(), ConversationTab):
-                jid = JID(self.core.current_tab().get_name())
+                jid = JID(self.core.current_tab().name)
             else:
                 return
         command = args[0]

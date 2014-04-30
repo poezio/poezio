@@ -738,9 +738,6 @@ class RosterInfoTab(Tab):
         self.refresh_tab_win()
         self.input.refresh()
 
-    def get_name(self):
-        return self.name
-
     def on_input(self, key, raw):
         if key == '^M':
             selected_row = self.roster_win.get_selected_row()

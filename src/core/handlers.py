@@ -161,7 +161,7 @@ def on_message(self, message):
     # Differentiate both type of messages, and call the appropriate handler.
     jid_from = message['from']
     for tab in self.get_tabs(tabs.MucTab):
-        if tab.get_name() == jid_from.bare:
+        if tab.name == jid_from.bare:
             if message['type'] == 'error':
                 return self.room_error(message, jid_from)
             else:
@@ -1003,12 +1003,12 @@ def on_attention(self, message):
     jid_from = message['from']
     self.information('%s requests your attention!' % jid_from, 'Info')
     for tab in self.tabs:
-        if tab.get_name() == jid_from:
+        if tab.name == jid_from:
             tab.state = 'attention'
             self.refresh_tab_win()
             return
     for tab in self.tabs:
-        if tab.get_name() == jid_from.bare:
+        if tab.name == jid_from.bare:
             tab.state = 'attention'
             self.refresh_tab_win()
             return

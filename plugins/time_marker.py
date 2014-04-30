@@ -65,8 +65,8 @@ class Plugin(BasePlugin):
                 res += "%s seconds, " % seconds
             return res[:-2]
 
-        last_message_date = self.last_messages.get(tab.get_name())
-        self.last_messages[tab.get_name()] = datetime.now()
+        last_message_date = self.last_messages.get(tab.name)
+        self.last_messages[tab.name] = datetime.now()
         if last_message_date:
             delta = datetime.now() - last_message_date
             if delta >= timedelta(0, self.config.get('delay', 900)):

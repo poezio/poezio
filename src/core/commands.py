@@ -147,7 +147,7 @@ def command_presence(self, arg):
     else:
         return
     if jid == '.' and isinstance(self.current_tab(), tabs.ChatTab):
-        jid = self.current_tab().get_name()
+        jid = self.current_tab().name
     if type == 'available':
         type = None
     try:
@@ -238,7 +238,7 @@ def command_move_tab(self, arg):
         except ValueError:
             old_tab = None
             for tab in self.tabs:
-                if not old_tab and value == tab.get_name():
+                if not old_tab and value == tab.name:
                     old_tab = tab
             if not old_tab:
                 self.information("Tab %s does not exist" % args[0], "Error")
@@ -269,7 +269,7 @@ def command_list(self, arg):
     else:
         if not isinstance(self.current_tab(), tabs.MucTab):
             return self.information('Please provide a server', 'Error')
-        server = safeJID(self.current_tab().get_name()).server
+        server = safeJID(self.current_tab().name).server
     list_tab = tabs.MucListTab(server)
     self.add_tab(list_tab, True)
     cb = list_tab.on_muc_list_item_received
@@ -316,7 +316,7 @@ def command_join(self, arg, histo_length=None):
         tab = self.current_tab()
         if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
             return
-        room = safeJID(tab.get_name()).bare
+        room = safeJID(tab.name).bare
         nick = tab.own_nick
     else:
         if args[0].startswith('@'): # we try to join a server directly
@@ -335,7 +335,7 @@ def command_join(self, arg, histo_length=None):
             tab = self.current_tab()
             if not isinstance(tab, tabs.MucTab):
                 return
-            room = tab.get_name()
+            room = tab.name
             if nick == '':
                 nick = tab.own_nick
         else:
@@ -345,8 +345,8 @@ def command_join(self, arg, histo_length=None):
             # check if the current room's name has a server
             if room.find('@') == -1 and not server_root:
                 if isinstance(self.current_tab(), tabs.MucTab) and\
-                        self.current_tab().get_name().find('@') != -1:
-                    domain = safeJID(self.current_tab().get_name()).domain
+                        self.current_tab().name.find('@') != -1:
+                    domain = safeJID(self.current_tab().name).domain
                     room += '@%s' % domain
                 else:
                     room = args[0]
@@ -421,15 +421,15 @@ def command_bookmark_local(self, arg=''):
         return
     if not args:
         tab = self.current_tab()
-        roomname = tab.get_name()
+        roomname = tab.name
         if tab.joined and tab.own_nick != self.own_nick:
             nick = tab.own_nick
     elif args[0] == '*':
         new_bookmarks = []
         for tab in self.get_tabs(tabs.MucTab):
-            b = bookmark.get_by_jid(tab.get_name())
+            b = bookmark.get_by_jid(tab.name)
             if not b:
-                b = bookmark.Bookmark(tab.get_name(),
+                b = bookmark.Bookmark(tab.name,
                                       autojoin=True,
                                       method="local")
                 new_bookmarks.append(b)
@@ -451,7 +451,7 @@ def command_bookmark_local(self, arg=''):
         if not roomname:
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return
-            roomname = self.current_tab().get_name()
+            roomname = self.current_tab().name
         if len(args) > 1:
             password = args[1]
 
@@ -485,7 +485,7 @@ def command_bookmark(self, arg=''):
         return
     if not args:
         tab = self.current_tab()
-        roomname = tab.get_name()
+        roomname = tab.name
         if tab.joined:
             nick = tab.own_nick
         autojoin = True
@@ -497,9 +497,9 @@ def command_bookmark(self, arg=''):
             autojoin = True
         new_bookmarks = []
         for tab in self.get_tabs(tabs.MucTab):
-            b = bookmark.get_by_jid(tab.get_name())
+            b = bookmark.get_by_jid(tab.name)
             if not b:
-                b = bookmark.Bookmark(tab.get_name(), autojoin=autojoin,
+                b = bookmark.Bookmark(tab.name, autojoin=autojoin,
                         method=bookmark.preferred)
                 new_bookmarks.append(b)
             else:
@@ -523,7 +523,7 @@ def command_bookmark(self, arg=''):
         if roomname == '':
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return
-            roomname = self.current_tab().get_name()
+            roomname = self.current_tab().name
         if len(args) > 1:
             autojoin = False if args[1].lower() != 'true' else True
         else:
@@ -571,8 +571,8 @@ def command_remove_bookmark(self, arg=''):
     args = common.shell_split(arg)
     if not args:
         tab = self.current_tab()
-        if isinstance(tab, tabs.MucTab) and bookmark.get_by_jid(tab.get_name()):
-            bookmark.remove(tab.get_name())
+        if isinstance(tab, tabs.MucTab) and bookmark.get_by_jid(tab.name):
+            bookmark.remove(tab.name)
             bookmark.save(self.xmpp)
             if bookmark.save(self.xmpp):
                 self.information('Bookmark deleted', 'Info')
@@ -643,22 +643,22 @@ def command_server_cycle(self, arg=''):
             message = args[1]
     else:
         if isinstance(tab, tabs.MucTab):
-            domain = safeJID(tab.get_name()).domain
+            domain = safeJID(tab.name).domain
         else:
             self.information(_("No server specified"), "Error")
             return
     for tab in self.get_tabs(tabs.MucTab):
-        if tab.get_name().endswith(domain):
+        if tab.name.endswith(domain):
             if tab.joined:
                 muc.leave_groupchat(tab.core.xmpp,
-                                    tab.get_name(),
+                                    tab.name,
                                     tab.own_nick,
                                     message)
             tab.joined = False
-            if tab.get_name() == domain:
-                self.command_join('"@%s/%s"' %(tab.get_name(), tab.own_nick))
+            if tab.name == domain:
+                self.command_join('"@%s/%s"' %(tab.name, tab.own_nick))
             else:
-                self.command_join('"%s/%s"' %(tab.get_name(), tab.own_nick))
+                self.command_join('"%s/%s"' %(tab.name, tab.own_nick))
 
 def command_last_activity(self, arg):
     """
@@ -928,7 +928,7 @@ def command_message(self, arg):
     if not tab:
         tab = self.open_conversation_window(jid.full, focus=True)
     else:
-        self.focus_tab_named(tab.get_name())
+        self.focus_tab_named(tab.name)
     if len(args) > 1:
         tab.command_say(args[1])
 

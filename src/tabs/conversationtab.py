@@ -73,7 +73,7 @@ class ConversationTab(ChatTab):
 
     @property
     def general_jid(self):
-        return safeJID(self.get_name()).bare
+        return safeJID(self.name).bare
 
     @staticmethod
     def add_information_element(plugin_name, callback):
@@ -109,7 +109,7 @@ class ConversationTab(ChatTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', True, self.get_name()):
+            if config.get_by_tabname('group_corrections', True, self.name):
                 try:
                     self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
                             nickname=self.core.own_nick)
@@ -306,9 +306,6 @@ class ConversationTab(ChatTab):
                 self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
-    def get_name(self):
-        return self.name
-
     def get_nick(self):
         jid = safeJID(self.name)
         contact = roster[jid.bare]
@@ -382,10 +379,10 @@ class ConversationTab(ChatTab):
 
     def matching_names(self):
         res = []
-        jid = safeJID(self.get_name())
+        jid = safeJID(self.name)
         res.append((2, jid.bare))
         res.append((1, jid.user))
-        contact = roster[self.get_name()]
+        contact = roster[self.name]
         if contact and contact.name:
             res.append((0, contact.name))
         return res
@@ -450,8 +447,8 @@ class DynamicConversationTab(ConversationTab):
         the conversation is not locked.
         """
         if self.locked_resource:
-            return "%s/%s" % (self.get_name(), self.locked_resource)
-        return self.get_name()
+            return "%s/%s" % (self.name, self.locked_resource)
+        return self.name
 
     def refresh(self):
         """
@@ -464,12 +461,12 @@ class DynamicConversationTab(ConversationTab):
 
         self.text_win.refresh()
         if display_bar:
-            self.upper_bar.refresh(self.get_name(), roster[self.get_name()])
+            self.upper_bar.refresh(self.name, roster[self.name])
         if self.locked_resource:
-            displayed_jid = "%s/%s" % (self.get_name(), self.locked_resource)
+            displayed_jid = "%s/%s" % (self.name, self.locked_resource)
         else:
-            displayed_jid = self.get_name()
-        self.info_header.refresh(displayed_jid, roster[self.get_name()],
+            displayed_jid = self.name
+        self.info_header.refresh(displayed_jid, roster[self.name],
                                  self.text_win, self.chatstate,
                                  ConversationTab.additional_informations)
         if display_info_win:
@@ -483,10 +480,10 @@ class DynamicConversationTab(ConversationTab):
         Different from the parent class only for the info_header object.
         """
         if self.locked_resource:
-            displayed_jid = "%s/%s" % (self.get_name(), self.locked_resource)
+            displayed_jid = "%s/%s" % (self.name, self.locked_resource)
         else:
-            displayed_jid = self.get_name()
-        self.info_header.refresh(displayed_jid, roster[self.get_name()],
+            displayed_jid = self.name
+        self.info_header.refresh(displayed_jid, roster[self.name],
                 self.text_win, self.chatstate, ConversationTab.additional_informations)
         self.input.refresh()
 
