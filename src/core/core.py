@@ -35,7 +35,6 @@ from common import safeJID
 from config import config, firstrun
 from contact import Contact, Resource
 from daemon import Executor
-from data_forms import DataFormsTab
 from fifo import Fifo
 from keyboard import Keyboard
 from logger import logger
@@ -1165,7 +1164,7 @@ class Core(object):
         The callback are called with the completed form as parameter in
         addition with kwargs
         """
-        form_tab = DataFormsTab(form, on_cancel, on_send, kwargs)
+        form_tab = tabs.DataFormsTab(form, on_cancel, on_send, kwargs)
         self.add_tab(form_tab, True)
 
     ### Modifying actions ###

@@ -7,3 +7,4 @@ from . conversationtab import ConversationTab, StaticConversationTab,\
         DynamicConversationTab
 from . xmltab import XMLTab
 from . muclisttab import MucListTab
+from . data_forms import DataFormsTab
