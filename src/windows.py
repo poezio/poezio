@@ -767,8 +767,8 @@ class TextWin(Win):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the next highlight…')
-        if not self.highlights or self.hl_pos != self.hl_pos or \
-                self.hl_pos == len(self.highlights)-1:
+        if (not self.highlights or self.hl_pos != self.hl_pos or
+                self.hl_pos >= len(self.highlights) - 1):
             self.hl_pos = float('nan')
             self.pos = 0
             return
@@ -789,6 +789,7 @@ class TextWin(Win):
                     self.hl_pos = float('nan')
                     self.pos = 0
                     return
+                self.hl_pos = 0
                 hl = self.highlights[0]
         self.pos = len(self.built_lines) - pos - self.height
         if self.pos < 0 or self.pos >= len(self.built_lines):
@@ -808,7 +809,7 @@ class TextWin(Win):
             return
         if self.hl_pos != self.hl_pos:
             self.hl_pos = len(self.highlights) - 1
-        elif self.hl_pos > 0:
+        else:
             self.hl_pos -= 1
         log.debug("self.hl_pos = %s", self.hl_pos)
         hl = self.highlights[self.hl_pos]
@@ -822,6 +823,7 @@ class TextWin(Win):
                     self.hl_pos = float('nan')
                     self.pos = 0
                     return
+                self.hl_pos = 0
                 hl = self.highlights[0]
         self.pos = len(self.built_lines) - pos - self.height
         if self.pos < 0 or self.pos >= len(self.built_lines):
