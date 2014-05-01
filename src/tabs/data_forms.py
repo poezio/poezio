@@ -435,6 +435,10 @@ class FormWin(object):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
+        # Adjust the scroll position, if resizing made the window too small
+        # for the cursor to be visible
+        while self.current_input - self.scroll_pos > self.height-1:
+            self.scroll_pos += 1
 
     def reply(self):
         """
