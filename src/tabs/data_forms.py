@@ -413,6 +413,7 @@ class FormWin(object):
     def __init__(self, form, height, width, y, x):
         self._form = form
         self._win = windows.Win._tab_win.derwin(height, width, y, x)
+        self.scroll_pos = 0
         self.current_input = 0
         self.inputs = []        # dict list
         for (name, field) in self._form.getFields().items():
@@ -434,8 +435,6 @@ class FormWin(object):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
-        if self.current_input >= self.height-2:
-            self.current_input = self.height-1
 
     def reply(self):
         """
@@ -453,7 +452,7 @@ class FormWin(object):
     def go_to_next_input(self):
         if not self.inputs:
             return
-        if self.current_input == len(self.inputs) - 1 or self.current_input >= self.height-1:
+        if self.current_input == len(self.inputs) - 1:
             return
         self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_NORMAL_TEXT)
         self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_NORMAL_TEXT)
@@ -464,6 +463,14 @@ class FormWin(object):
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
         self.current_input += jump
+        # If moving made the current input out of the visible screen, we
+        # adjust the scroll position and we redraw the whole thing. We don’t
+        # call refresh() if this is not the case, because
+        # refresh_current_input() is always called anyway, so this is not
+        # needed
+        if self.current_input - self.scroll_pos > self.height-1:
+            self.scroll_pos += 1
+            self.refresh()
         self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
         self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
 
@@ -480,6 +487,11 @@ class FormWin(object):
             jump += 1
         if self.inputs[self.current_input+jump]['input'].is_dummy():
             return
+        # Adjust the scroll position if the current_input would be outside
+        # of the visible area
+        if self.current_input < self.scroll_pos:
+            self.scroll_pos = self.current_input
+            self.refresh()
         self.current_input -= jump
         self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
         self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
@@ -492,7 +504,7 @@ class FormWin(object):
     def refresh(self):
         with g_lock:
             self._win.erase()
-            y = 0
+            y = -self.scroll_pos
             i = 0
             for name, field in self._form.getFields().items():
                 if field['type'] == 'hidden':
@@ -502,11 +514,11 @@ class FormWin(object):
                 # TODO: display the field description
                 y += 1
                 i += 1
-                if y >= self.height:
-                    break
             self._win.refresh()
         for i, inp in enumerate(self.inputs):
-            if i >= self.height:
+            if i < self.scroll_pos:
+                continue
+            if i >= self.height + self.scroll_pos:
                 break
             inp['label'].refresh()
             inp['input'].refresh()
