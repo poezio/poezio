@@ -64,9 +64,6 @@ Example of the syntax:
 
 """
 
-
-
-
 from plugin import BasePlugin
 from common import shell_split
 
@@ -150,7 +147,9 @@ class Plugin(BasePlugin):
         def dummy(args):
             """Dummy function called if the command doesn’t exist"""
             pass
-        if name in self.core.commands:
+        if name in self.commands:
+            return dummy
+        elif name in self.core.commands:
             return self.core.commands[name][0]
         elif name in self.api.current_tab().commands:
             return self.api.current_tab().commands[name][0]
