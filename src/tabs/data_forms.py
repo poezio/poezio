@@ -66,9 +66,11 @@ class DataFormsTab(Tab):
     def resize(self):
         self.need_resize = False
         self.topic_win.resize(1, self.width, 0, 0)
-        self.form_win.resize(self.height-3 - Tab.tab_win_height(), self.width, 1, 0)
-        self.help_win.resize(1, self.width, self.height-1, 0)
-        self.help_win_dyn.resize(1, self.width, self.height-2 - Tab.tab_win_height(), 0)
+        self.form_win.resize(self.height - 3 - Tab.tab_win_height(),
+                             self.width, 1, 0)
+        self.help_win.resize(1, self.width, self.height - 1, 0)
+        self.help_win_dyn.resize(1, self.width,
+                                 self.height - 2 - Tab.tab_win_height(), 0)
         self.lines = []
 
     def refresh(self):
@@ -412,7 +414,8 @@ class FormWin(object):
                      }
     def __init__(self, form, height, width, y, x):
         self._form = form
-        self._win = windows.Win._tab_win.derwin(height, width, y, x)
+        with g_lock:
+            self._win = windows.Win._tab_win.derwin(height, width, y, x)
         self.scroll_pos = 0
         self.current_input = 0
         self.inputs = []        # dict list
@@ -435,6 +438,8 @@ class FormWin(object):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
+        with g_lock:
+            self._win = windows.Win._tab_win.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
         while self.current_input - self.scroll_pos > self.height-1:
