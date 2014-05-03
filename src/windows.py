@@ -62,9 +62,11 @@ class DummyWin(object):
     def __bool__(self):
         return False
 
-def find_first_format_char(text):
+def find_first_format_char(text, chars=None):
+    if chars is None:
+        chars = format_chars
     pos = -1
-    for char in format_chars:
+    for char in chars:
         p = text.find(char)
         if p == -1:
             continue
@@ -1645,11 +1647,17 @@ class Input(Win):
         (\x0E to \x19 instead of \x19 + attr). We do not use any }
         char in this version
         """
+        chars = format_chars[:]
+        chars.append('\n')
         if y is not None and x is not None:
             self.move(y, x)
-        format_char = find_first_format_char(text)
+        format_char = find_first_format_char(text, chars)
         while format_char != -1:
-            attr_char = self.text_attributes[format_chars.index(text[format_char])]
+            if text[format_char] == '\n':
+                attr_char = '|'
+            else:
+                attr_char = self.text_attributes[
+                        format_chars.index(text[format_char])]
             self.addstr(text[:format_char])
             self.addstr(attr_char, curses.A_REVERSE)
             text = text[format_char+1:]
@@ -1661,7 +1669,7 @@ class Input(Win):
                 self._win.attron(curses.A_BOLD)
             elif attr_char in string.digits and attr_char != '':
                 self._win.attron(to_curses_attr((int(attr_char), -1)))
-            format_char = find_first_format_char(text)
+            format_char = find_first_format_char(text, chars)
         self.addstr(text)
 
     def rewrite_text(self):
@@ -1674,7 +1682,7 @@ class Input(Win):
         """
         self.adjust_view_pos()
         with g_lock:
-            text = self.text.replace('\n', '|')
+            text = self.text
             self._win.erase()
             if self.color:
                 self._win.attron(to_curses_attr(self.color))
