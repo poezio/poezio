@@ -64,7 +64,6 @@ class DataFormsTab(Tab):
             self.form_win.on_input(key)
 
     def resize(self):
-        self.need_resize = False
         self.topic_win.resize(1, self.width, 0, 0)
         self.form_win.resize(self.height - 3 - Tab.tab_win_height(),
                              self.width, 1, 0)
@@ -72,6 +71,7 @@ class DataFormsTab(Tab):
         self.help_win_dyn.resize(1, self.width,
                                  self.height - 2 - Tab.tab_win_height(), 0)
         self.lines = []
+        self.push_size()
 
     def refresh(self):
         if self.need_resize:

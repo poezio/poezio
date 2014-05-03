@@ -77,7 +77,6 @@ class MucListTab(Tab):
         self.input.refresh()
 
     def resize(self):
-        self.need_resize = False
         if self.size.tab_degrade_y:
             info_win_height = 0
             tab_win_height = 0
@@ -99,6 +98,7 @@ class MucListTab(Tab):
         self.listview.resize(self.height - 3 - info_win_height - tab_win_height,
                              self.width, 1, 0)
         self.input.resize(1, self.width, self.height-1, 0)
+        self.push_size()
 
     def on_slash(self):
         """
