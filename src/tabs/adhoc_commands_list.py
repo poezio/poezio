@@ -25,12 +25,14 @@ class AdhocCommandsListTab(ListTab):
         self.key_func['^M'] = self.execute_selected_command
 
     def execute_selected_command(self):
-        row = self.listview.get_selected_row()
-        log.debug("Executing command %s", row)
+        node, name, jid = self.listview.get_selected_row()
+        session = {'next': self.core.on_next_adhoc_step,
+                   'error': self.core.on_adhoc_error}
+        self.core.xmpp.plugin['xep_0050'].start_command(jid, node, session)
 
     def get_columns_sizes(self):
-        return {'Node': int(self.width * 2 / 8),
-                'Description': int(self.width * 6 / 8)}
+        return {'Node': int(self.width * 3 / 8),
+                'Description': int(self.width * 5 / 8)}
 
     def on_list_received(self, iq):
         """
@@ -39,14 +41,12 @@ class AdhocCommandsListTab(ListTab):
         if iq['type'] == 'error':
             self.set_error(iq['error']['type'], iq['error']['code'], iq['error']['text'])
             return
-        log.debug("iq: %s", iq)
         def get_items():
             substanza = iq['disco_items']
             for item in substanza['substanzas']:
                 if isinstance(item, DiscoItem):
                     yield item
         items = [(item['node'], item['name'] or '', item['jid']) for item in get_items()]
-        log.debug(items)
         self.listview.set_lines(items)
         self.info_header.message = _('Ad-hoc commands of JID %s') % self.name
         if self.core.current_tab() is self:

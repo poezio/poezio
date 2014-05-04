@@ -1891,6 +1891,11 @@ class Core(object):
     outgoing_stanza = handlers.outgoing_stanza
     incoming_stanza = handlers.incoming_stanza
     validate_ssl = handlers.validate_ssl
+    on_next_adhoc_step = handlers.on_next_adhoc_step
+    on_adhoc_error = handlers.on_adhoc_error
+    cancel_adhoc_command = handlers.cancel_adhoc_command
+    validate_adhoc_step = handlers.validate_adhoc_step
+    terminate_adhoc_command = handlers.terminate_adhoc_command
     command_help = commands.command_help
     command_runkey = commands.command_runkey
     command_status = commands.command_status

@@ -1098,7 +1098,6 @@ def validate_ssl(self, pem):
         if not config.silent_set('certificate', found_cert):
             self.information(_('Unable to write in the config file'), 'Error')
 
-
 def _composing_tab_state(tab, state):
     """
     Set a tab state to or from the "composing" state
@@ -1125,4 +1124,56 @@ def _composing_tab_state(tab, state):
     elif tab.state == 'composing' and state != 'composing':
         tab.restore_state()
 
+### Ad-hoc commands
 
+def on_next_adhoc_step(self, iq, adhoc_session):
+    status = iq['command']['status']
+    xform = iq.xml.find('{http://jabber.org/protocol/commands}command/{jabber:x:data}x')
+    if xform is not None:
+        form = self.xmpp.plugin['xep_0004'].buildForm(xform)
+    else:
+        form = None
+
+    if status == 'error':
+        return self.information("An error occured while executing the command")
+
+    if status == 'executing':
+        if not form:
+            self.information("Adhoc command step does not contain a data-form. Aborting the execution.", "Error")
+            return self.xmpp.plugin['xep_0050'].cancel_command(adhoc_session)
+        on_validate = self.validate_adhoc_step
+        on_cancel = self.cancel_adhoc_command
+    if status == 'completed':
+        on_validate = lambda form, session: self.close_tab()
+        on_cancel = lambda form, session: self.close_tab()
+
+    # If a form is available, use it, and add the Notes from the
+    # response to it, if any
+    if form:
+        for note in iq['command']['notes']:
+            form.add_field(type='fixed', label=note[1])
+        self.open_new_form(form, on_cancel, on_validate,
+                           session=adhoc_session)
+    else:                   # otherwise, just display an information
+                            # message
+        notes = '\n'.join([note[1] for note in iq['command']['notes']])
+        self.information("Adhoc command %s: %s" % (status, notes), "Info")
+
+def on_adhoc_error(self, iq, adhoc_session):
+    self.xmpp.plugin['xep_0050'].terminate_command(session)
+    error_message = self.get_error_message(iq)
+    self.information("An error occured while executing the command: %s" % (error_message),
+                     'Error')
+
+def cancel_adhoc_command(self, form, session):
+    self.xmpp.plugin['xep_0050'].cancel_command(session)
+    self.close_tab()
+
+def validate_adhoc_step(self, form, session):
+    session['payload'] = form
+    self.xmpp.plugin['xep_0050'].continue_command(session)
+    self.close_tab()
+
+def terminate_adhoc_command(self, form, session):
+    self.xmpp.plugin['xep_0050'].terminate_command(session)
+    self.close_tab()

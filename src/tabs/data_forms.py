@@ -44,13 +44,13 @@ class DataFormsTab(Tab):
         self.update_commands()
 
     def on_cancel(self):
-        self._on_cancel(self._form)
+        self._on_cancel(self._form, **self._kwargs)
         return True
 
     def on_send(self):
         self._form.reply()
         self.form_win.reply()
-        self._on_send(self._form)
+        self._on_send(self._form, **self._kwargs)
         return True
 
     def on_input(self, key, raw=False):
