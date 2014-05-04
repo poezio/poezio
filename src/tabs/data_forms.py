@@ -1,10 +1,3 @@
-# Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
-#
-# This file is part of Poezio.
-#
-# Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the data-forms Tab and all the Windows for it.
 """
