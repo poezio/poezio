@@ -90,7 +90,8 @@ class Tab(object):
     plugin_commands = {}
     plugin_keys = {}
     def __init__(self):
-        self.name = self.__class__.__name__
+        if not hasattr(self, 'name'):
+            self.name = self.__class__.__name__
         self.input = None
         self._state = 'normal'
         self._prev_state = None
