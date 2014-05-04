@@ -6,5 +6,6 @@ from . privatetab import PrivateTab
 from . conversationtab import ConversationTab, StaticConversationTab,\
         DynamicConversationTab
 from . xmltab import XMLTab
+from . listtab import ListTab
 from . muclisttab import MucListTab
 from . data_forms import DataFormsTab
