@@ -477,7 +477,8 @@ def on_groupchat_message(self, message):
         self.doupdate()
 
     if 'message' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, room_from, False):
+        if (not config.get_by_tabname('disable_beep', False, room_from, False)
+                and self.own_nick != message['from'].resource):
             curses.beep()
 
 def on_muc_own_nickchange(self, muc):
