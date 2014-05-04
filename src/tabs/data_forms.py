@@ -197,6 +197,7 @@ class TextMultiWin(FieldInput, windows.Win):
         FieldInput.__init__(self, field)
         windows.Win.__init__(self)
         self.options = field.getValue()
+        self.options = self.options.split('\n') if self.options else []
         self.val_pos = 0
         self.edition_input = None
         if not isinstance(self.options, list):
@@ -270,9 +271,9 @@ class ListMultiWin(FieldInput, windows.Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         windows.Win.__init__(self)
-        values = field.getValue()
+        values = field.getValue() or []
         self.options = [[option, True if option['value'] in values else False]\
-                            for option in field.getOptions()]
+                        for option in field.get_options()]
         self.val_pos = 0
 
     def do_command(self, key):
