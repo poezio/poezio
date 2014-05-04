@@ -512,8 +512,8 @@ class FormWin(object):
             for name, field in self._form.getFields().items():
                 if field['type'] == 'hidden':
                     continue
-                self.inputs[i]['label'].resize(1, self.width//3, y + 1, 0)
-                self.inputs[i]['input'].resize(1, self.width//3, y+1, 2*self.width//3)
+                self.inputs[i]['label'].resize(1, self.width//2, y + 1, 0)
+                self.inputs[i]['input'].resize(1, self.width//2, y+1, self.width//2)
                 # TODO: display the field description
                 y += 1
                 i += 1
