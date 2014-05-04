@@ -8,4 +8,5 @@ from . conversationtab import ConversationTab, StaticConversationTab,\
 from . xmltab import XMLTab
 from . listtab import ListTab
 from . muclisttab import MucListTab
+from . adhoc_commands_list import AdhocCommandsListTab
 from . data_forms import DataFormsTab

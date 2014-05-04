@@ -940,6 +940,22 @@ def command_xml_tab(self, arg=''):
         tab = tabs.XMLTab()
         self.add_tab(tab, True)
 
+def command_adhoc(self, arg):
+    arg = arg.split()
+    if len(arg) > 1:
+        return self.command_help('list')
+    elif arg:
+        jid = safeJID(arg[0]).server
+    else:
+        return self.information('Please provide a jid', 'Error')
+    list_tab = tabs.AdhocCommandsListTab(jid)
+    self.add_tab(list_tab, True)
+    cb = list_tab.on_list_received
+    self.xmpp.plugin['xep_0050'].get_commands(jid=jid,
+                                              local=False,
+                                              block=False,
+                                              callback=cb)
+
 def command_self(self, arg=None):
     """
     /self

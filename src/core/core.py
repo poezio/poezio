@@ -1809,6 +1809,9 @@ class Core(object):
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.completion_last_activity)
+        self.register_command('ad-hoc', self.command_adhoc,
+                usage='<jid>',
+                shortdesc=_('List available ad-hoc commands on the given jid'))
 
         if config.get('enable_user_activity', True):
             self.register_command('activity', self.command_activity,
@@ -1921,6 +1924,7 @@ class Core(object):
     command_plugins = commands.command_plugins
     command_message = commands.command_message
     command_xml_tab = commands.command_xml_tab
+    command_adhoc = commands.command_adhoc
     command_self = commands.command_self
     completion_help = completions.completion_help
     completion_status = completions.completion_status
