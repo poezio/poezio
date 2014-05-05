@@ -1161,7 +1161,7 @@ def on_next_adhoc_step(self, iq, adhoc_session):
         self.information("Adhoc command %s: %s" % (status, notes), "Info")
 
 def on_adhoc_error(self, iq, adhoc_session):
-    self.xmpp.plugin['xep_0050'].terminate_command(session)
+    self.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
     error_message = self.get_error_message(iq)
     self.information("An error occured while executing the command: %s" % (error_message),
                      'Error')
