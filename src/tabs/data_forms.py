@@ -1,5 +1,5 @@
 """
-Defines the data-forms Tab and all the Windows for it.
+Defines the data-forms Tab
 """
 
 import logging
