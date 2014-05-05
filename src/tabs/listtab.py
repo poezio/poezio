@@ -103,7 +103,6 @@ class ListTab(Tab):
         self.listview.resize(self.height - 3 - info_win_height - tab_win_height,
                              self.width, 1, 0)
         self.input.resize(1, self.width, self.height-1, 0)
-        self.push_size()
 
     def on_slash(self):
         """
