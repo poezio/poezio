@@ -175,3 +175,23 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
         import traceback
         log.debug('Error setting the affiliation: %s', traceback.format_exc())
         return False
+
+def cancel_config(xmpp, room):
+    query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+    x = ET.Element('{jabber:x:data}x', type='cancel')
+    query.append(x)
+    iq = xmpp.makeIqSet(query)
+    iq['to'] = room
+    iq.send(block=False)
+
+def configure_room(xmpp, room, form):
+    if form is None:
+        return
+    iq = xmpp.makeIqSet()
+    iq['to'] = room
+    query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+    form = form.getXML('submit')
+    query.append(form)
+    iq.append(query)
+    iq.send(block=False)
+

@@ -372,14 +372,14 @@ class MucTab(ChatTab):
         """
         The user do not want to send his/her config, send an iq cancel
         """
-        self.core.xmpp.plugin['xep_0045'].cancelConfig(self.name)
+        muc.cancel_config(self.core.xmpp, self.name)
         self.core.close_tab()
 
     def send_config(self, form):
         """
         The user sends his/her config to the server
         """
-        self.core.xmpp.plugin['xep_0045'].configureRoom(self.name, form)
+        muc.configure_room(self.core.xmpp, self.name, form)
         self.core.close_tab()
 
     def command_cycle(self, arg):
