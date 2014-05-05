@@ -344,7 +344,7 @@ class PluginManager(object):
                 os.makedirs(self.plugins_conf_dir)
             except OSError:
                 log.error('Unable to create the plugin conf dir: %s',
-                        plugins_conf_dir, exc_info=True)
+                        self.plugins_conf_dir, exc_info=True)
                 return False
         return True
 
