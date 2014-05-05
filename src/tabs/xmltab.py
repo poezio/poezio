@@ -164,6 +164,7 @@ class XMLTab(Tab):
         self.core.close_tab()
 
     def resize(self):
+        self.need_resize = False
         if self.size.tab_degrade_y:
             info_win_size = 0
             tab_win_height = 0
@@ -179,7 +180,6 @@ class XMLTab(Tab):
                                     - tab_win_height,
                                 0)
         self.input.resize(1, self.width, self.height-1, 0)
-        self.push_size()
 
     def refresh(self):
         if self.need_resize:

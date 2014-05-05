@@ -796,7 +796,7 @@ class MucTab(ChatTab):
         """
         Resize the whole window. i.e. all its sub-windows
         """
-        log.debug('RESIZE PLS')
+        self.need_resize = False
         if config.get("hide_user_list", False) or self.size.tab_degrade_x:
             display_user_list = False
             text_width = self.width
@@ -833,7 +833,6 @@ class MucTab(ChatTab):
                                     - tab_win_height,
                                 0)
         self.input.resize(1, self.width, self.height-1, 0)
-        self.push_size()
 
     def refresh(self):
         if self.need_resize:

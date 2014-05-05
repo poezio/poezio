@@ -96,10 +96,10 @@ class Tab(object):
         self._state = 'normal'
         self._prev_state = None
 
+        self.need_resize = False
         self.key_func = {}      # each tab should add their keys in there
                                 # and use them in on_input
         self.commands = {}      # and their own commands
-        self._saved_size = (-1, -1)
 
 
     @property
@@ -184,13 +184,6 @@ class Tab(object):
             self._prev_state = None
         elif not self._prev_state:
             self._state = 'normal'
-
-    def push_size(self):
-        self._saved_size = (self.height, self.width)
-
-    @property
-    def need_resize(self):
-        return self._saved_size != (self.height, self.width)
 
     @staticmethod
     def resize(scr):

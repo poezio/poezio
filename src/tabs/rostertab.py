@@ -266,6 +266,7 @@ class RosterInfoTab(Tab):
         self.core.command_last_activity(jid)
 
     def resize(self):
+        self.need_resize = False
         if self.size.tab_degrade_x:
             display_info = False
             roster_width = self.width
@@ -301,7 +302,6 @@ class RosterInfoTab(Tab):
                                roster_width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
         self.default_help_message.resize(1, self.width, self.height-1, 0)
-        self.push_size()
 
     def completion(self):
         # Check if we are entering a command (with the '/' key)

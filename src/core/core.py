@@ -1582,7 +1582,9 @@ class Core(object):
         self.resize_global_information_win()
         with g_lock:
             for tab in self.tabs:
-                if not config.get('lazy_resize', True):
+                if config.get('lazy_resize', True):
+                    tab.need_resize = True
+                else:
                     tab.resize()
             if self.tabs:
                 self.full_screen_redraw()

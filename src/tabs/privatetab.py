@@ -237,6 +237,8 @@ class PrivateTab(ChatTab):
             self.parent_muc.command_info(user)
 
     def resize(self):
+        self.need_resize = False
+
         if self.size.tab_degrade_y:
             info_win_height = 0
             tab_win_height = 0
@@ -252,7 +254,6 @@ class PrivateTab(ChatTab):
                                     - tab_win_height,
                                 0)
         self.input.resize(1, self.width, self.height-1, 0)
-        self.push_size()
 
     def refresh(self):
         if self.need_resize:
