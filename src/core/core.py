@@ -1234,6 +1234,9 @@ class Core(object):
         del tab.commands      # and make the object collectable
         tab.on_close()
         nb = tab.nb
+        if self.previous_tab_nb != nb:
+            self.current_tab_nb = self.previous_tab_nb
+            self.previous_tab_nb = 0
         if config.get('create_gaps', False):
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
