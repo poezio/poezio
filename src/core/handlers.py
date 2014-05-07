@@ -1021,7 +1021,8 @@ def room_error(self, error, room_name):
     """
     tab = self.get_tab_by_name(room_name)
     error_message = self.get_error_message(error)
-    tab.add_message(error_message, highlight=True, nickname='Error', nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+    tab.add_message(error_message, highlight=True, nickname='Error',
+                    nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
     code = error['error']['code']
     if code == '401':
         msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')

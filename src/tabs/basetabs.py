@@ -490,10 +490,13 @@ class ChatTab(Tab):
         if not logger.log_message(name, nickname, txt, date=time, typ=typ):
             self.core.information(_('Unable to write in the log file'), 'Error')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None, nick_color=None, identifier=None, jid=None, history=None, typ=1):
+    def add_message(self, txt, time=None, nickname=None, forced_user=None,
+                    nick_color=None, identifier=None, jid=None, history=None,
+                    typ=1, highlight=False):
         self.log_message(txt, nickname, time=time, typ=typ)
         self._text_buffer.add_message(txt, time=time,
                 nickname=nickname,
+                highlight=highlight,
                 nick_color=nick_color,
                 history=history,
                 user=forced_user,
