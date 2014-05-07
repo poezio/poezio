@@ -3,6 +3,8 @@ For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.8.3 - dev
+- make the data forms tab better
+- Implement ad-hoc commands
 - a change_title plugin changes the title of the terminal depending
   on the current tab. Also, poezio is now "poezio" and not "python3".
 - the OTR plugin now tries to interpret html by default
