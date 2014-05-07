@@ -16,11 +16,16 @@ log = logging.getLogger(__name__)
 import getpass
 import sleekxmpp
 from sleekxmpp.plugins.xep_0184 import XEP_0184
+from sleekxmpp.plugins.xep_0030 import StaticDisco
+from sleekxmpp.plugins.xep_0115 import StaticCaps
 
 import common
 import fixes
 from common import safeJID
 from config import config, options
+
+StaticDisco.supports = fixes.xep_30_supports
+StaticCaps.supports = fixes.xep_115_supports
 
 class Connection(sleekxmpp.ClientXMPP):
     """
@@ -72,8 +77,6 @@ class Connection(sleekxmpp.ClientXMPP):
             self.whitespace_keepalive_interval = int(interval)
         else:
             self.whitespace_keepalive_interval = 300
-        # Hack to check the sleekxmpp version
-        # TODO: Remove that when a sufficient time has passed since the move
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0012')
         self.register_plugin('xep_0030')
