@@ -16,16 +16,11 @@ log = logging.getLogger(__name__)
 import getpass
 import sleekxmpp
 from sleekxmpp.plugins.xep_0184 import XEP_0184
-from sleekxmpp.plugins.xep_0030 import StaticDisco
-from sleekxmpp.plugins.xep_0115 import StaticCaps
 
 import common
 import fixes
 from common import safeJID
 from config import config, options
-
-StaticDisco.supports = fixes.xep_30_supports
-StaticCaps.supports = fixes.xep_115_supports
 
 class Connection(sleekxmpp.ClientXMPP):
     """

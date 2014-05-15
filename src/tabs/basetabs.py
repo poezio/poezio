@@ -433,9 +433,6 @@ class ChatTab(Tab):
         self.name = jid
         self.text_win = None
         self._text_buffer = TextBuffer()
-        self.remote_wants_chatstates = None # change this to True or False when
-        # we know that the remote user wants chatstates, or not.
-        # None means we don’t know yet, and we send only "active" chatstates
         self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a weakref of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
@@ -443,7 +440,6 @@ class ChatTab(Tab):
         # if that’s None, then no paused chatstate was sent recently
         # if that’s a weakref returning None, then a paused chatstate was sent
         # since the last input
-        self.remote_supports_attention = False
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
         self.last_sent_message = None
         self.key_func['M-v'] = self.move_separator
@@ -502,15 +498,6 @@ class ChatTab(Tab):
                 user=forced_user,
                 identifier=identifier,
                 jid=jid)
-
-    def ack_message(self, msg_id):
-        """
-        Ack a message
-        """
-        new_msg = self._text_buffer.ack_message(msg_id)
-        if new_msg:
-            self.text_win.modify_message(msg_id, new_msg)
-            self.core.refresh_window()
 
     def modify_message(self, txt, old_id, new_id, user=None, jid=None, nickname=None):
         self.log_message(txt, nickname, typ=1)
@@ -708,4 +695,85 @@ class ChatTab(Tab):
     @refresh_wrapper.always
     def scroll_separator(self):
         self.text_win.scroll_to_separator()
+
+class OneToOneTab(ChatTab):
+
+    def __init__(self, jid=''):
+        ChatTab.__init__(self, jid)
+
+        # change this to True or False when
+        # we know that the remote user wants chatstates, or not.
+        # None means we don’t know yet, and we send only "active" chatstates
+        self.remote_wants_chatstates = None
+        self.remote_supports_attention = False
+        self.remote_supports_receipts = True
+        self.check_features()
+
+    def ack_message(self, msg_id):
+        """
+        Ack a message
+        """
+        new_msg = self._text_buffer.ack_message(msg_id)
+        if new_msg:
+            self.text_win.modify_message(msg_id, new_msg)
+            self.core.refresh_window()
+
+    def check_features(self):
+        "check the features supported by the other party"
+        self.core.xmpp.plugin['xep_0030'].get_info(
+                jid=self.get_dest_jid(), block=False, timeout=5,
+                callback=self.features_checked)
+
+    def command_attention(self, message=''):
+        "/attention [message]"
+        if message is not '':
+            self.command_say(message, attention=True)
+        else:
+            msg = self.core.xmpp.make_message(self.get_dest_jid())
+            msg['type'] = 'chat'
+            msg['attention'] = True
+            msg.send()
+
+    def command_say(self, line, correct=False, attention=False):
+        pass
+
+    def _feature_attention(self, features):
+        "Check for the 'attention' features"
+        if 'urn:xmpp:attention:0' in features:
+            self.remote_supports_attention = True
+            self.register_command('attention', self.command_attention,
+                                  usage=_('[message]'),
+                                  shortdesc=_('Request the attention.'),
+                                  desc=_('Attention: Request the attention of '
+                                         'the contact. Can also send a message'
+                                         ' along with the attention.'))
+        else:
+            self.remote_supports_attention = False
+
+    def _feature_correct(self, features):
+        "Check for the 'correction' feature"
+        if not 'urn:xmpp:message-correct:0' in features:
+            if 'correct' in self.commands:
+                del self.commands['correct']
+        elif not 'correct' in self.commands:
+            self.register_command('correct', self.command_correct,
+                    desc=_('Fix the last message with whatever you want.'),
+                    shortdesc=_('Correct the last message.'),
+                    completion=self.completion_correct)
+
+    def _feature_receipts(self, features):
+        "Check for the 'receipts' feature"
+        if 'urn:xmpp:receipts' in features:
+            self.remote_supports_receipts = True
+        else:
+            self.remote_supports_receipts = False
+
+    def features_checked(self, iq):
+        "Features check callback"
+        features = iq['disco_info'].get_features() or []
+        log.debug('\n\nFEATURES:\n%s\n\n%s\n\n', iq, features)
+        self._feature_correct(features)
+        self._feature_attention(features)
+        self._feature_receipts(features)
+
 

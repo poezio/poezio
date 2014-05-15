@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from . import ChatTab, Tab
+from . basetabs import OneToOneTab, Tab
 
 import common
 import fixes
@@ -30,7 +30,7 @@ from decorators import refresh_wrapper
 from roster import roster
 from theming import get_theme, dump_tuple
 
-class ConversationTab(ChatTab):
+class ConversationTab(OneToOneTab):
     """
     The tab containg a normal conversation (not from a MUC)
     Must not be instantiated, use Static or Dynamic version only.
@@ -40,7 +40,7 @@ class ConversationTab(ChatTab):
     additional_informations = {}
     message_type = 'chat'
     def __init__(self, jid):
-        ChatTab.__init__(self, jid)
+        OneToOneTab.__init__(self, jid)
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'
@@ -49,7 +49,6 @@ class ConversationTab(ChatTab):
         self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.input = windows.MessageInput()
-        self.check_attention()
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -142,6 +141,8 @@ class ConversationTab(ChatTab):
                     typ=1)
 
         self.last_sent_message = msg
+        if self.remote_supports_receipts:
+            msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
@@ -207,32 +208,6 @@ class ConversationTab(ChatTab):
         else:
             self._text_buffer.add_message("\x19%(info_col)s}No information available\x19o" % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
-
-
-    def command_attention(self, message=''):
-        if message is not '':
-            self.command_say(message, attention=True)
-        else:
-            msg = self.core.xmpp.make_message(self.get_dest_jid())
-            msg['type'] = 'chat'
-            msg['attention'] = True
-            msg.send()
-
-    def check_attention(self):
-        self.core.xmpp.plugin['xep_0030'].get_info(
-                jid=self.get_dest_jid(), block=False, timeout=5,
-                callback=self.on_attention_checked)
-
-    def on_attention_checked(self, iq):
-        if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
-            self.core.information('Attention is supported', 'Info')
-            self.remote_supports_attention = True
-            self.commands['attention'] = (self.command_attention,
-                    _('Usage: /attention [message]\nAttention: Require'
-                      ' the attention of the contact. Can also send a '
-                      'message along with the attention.'), None)
-        else:
-            self.remote_supports_attention = False
 
     def command_unquery(self, arg):
         self.core.close_tab()
@@ -416,6 +391,7 @@ class DynamicConversationTab(ConversationTab):
                     self.name,
                     resource)
             self.add_message(message, typ=0)
+            self.check_features()
 
     def unlock_command(self, arg=None):
         self.unlock()

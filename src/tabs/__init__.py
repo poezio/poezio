@@ -1,4 +1,4 @@
-from . basetabs import Tab, ChatTab, GapTab
+from . basetabs import Tab, ChatTab, GapTab, OneToOneTab
 from . basetabs import STATE_PRIORITY
 from . rostertab import RosterInfoTab
 from . muctab import MucTab, NS_MUC_USER

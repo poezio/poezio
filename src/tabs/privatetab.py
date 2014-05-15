@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from . import ChatTab, MucTab, Tab
+from . import OneToOneTab, MucTab, Tab
 
 import fixes
 import windows
@@ -28,7 +28,7 @@ from decorators import refresh_wrapper
 from logger import logger
 from theming import get_theme, dump_tuple
 
-class PrivateTab(ChatTab):
+class PrivateTab(OneToOneTab):
     """
     The tab containg a private conversation (someone from a MUC)
     """
@@ -37,14 +37,13 @@ class PrivateTab(ChatTab):
     additional_informations = {}
     plugin_keys = {}
     def __init__(self, name, nick):
-        ChatTab.__init__(self, name)
+        OneToOneTab.__init__(self, name)
         self.own_nick = nick
         self.name = name
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
-        self.check_attention()
         # keys
         self.key_func['^I'] = self.completion
         # commands
@@ -66,6 +65,9 @@ class PrivateTab(ChatTab):
 
     @property
     def general_jid(self):
+        return self.name
+
+    def get_dest_jid(self):
         return self.name
 
     @property
@@ -172,35 +174,12 @@ class PrivateTab(ChatTab):
                     typ=1)
 
         self.last_sent_message = msg
+        if self.remote_supports_receipts:
+            msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
-
-    def command_attention(self, message=''):
-        if message is not '':
-            self.command_say(message, attention=True)
-        else:
-            msg = self.core.xmpp.make_message(self.name)
-            msg['type'] = 'chat'
-            msg['attention'] = True
-            msg.send()
-
-    def check_attention(self):
-        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.name, block=False, timeout=5, callback=self.on_attention_checked)
-
-    def on_attention_checked(self, iq):
-        if 'urn:xmpp:attention:0' in iq['disco_info'].get_features():
-            self.core.information('Attention is supported', 'Info')
-            self.remote_supports_attention = True
-            self.commands['attention'] = (
-                    self.command_attention,
-                    _('Usage: /attention [message]\nAttention:'
-                      'Require the attention of the contact. Can'
-                      ' also send a message along with the attention.'),
-                    None)
-        else:
-            self.remote_supports_attention = False
 
     def command_unquery(self, arg):
         """

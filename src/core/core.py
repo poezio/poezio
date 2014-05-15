@@ -298,7 +298,6 @@ class Core(object):
                                        self.on_theme_config_change)
 
         self.add_configuration_handler("", self.on_any_config_change)
-        self.reset_iq_errors()
 
     def on_any_config_change(self, option, value):
         """
@@ -740,13 +739,6 @@ class Core(object):
                 if not res:
                     self.timed_events.remove(event)
                     break
-
-    def reset_iq_errors(self):
-        "Reset the iq error cache periodically"
-        fixes.reset_iq_errors()
-        self.add_timed_event(
-                timed_events.DelayedEvent(7200, self.reset_iq_errors))
-
 
 ####################### XMPP-related actions ##################################
 
