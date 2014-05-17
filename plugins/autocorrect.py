@@ -40,6 +40,8 @@ class Plugin(BasePlugin):
     def sed_fix(self, msg, tab):
         if not tab.last_sent_message:
             return
+        if 'correct' not in tab.commands:
+            return
         body = tab.last_sent_message['body']
         match = sed_re.match(msg['body'])
         if not match:
