@@ -34,7 +34,7 @@ from config import config
 from decorators import refresh_wrapper
 from logger import logger
 from text_buffer import TextBuffer
-from theming import get_theme
+from theming import get_theme, dump_tuple
 from windows import g_lock
 
 
@@ -191,6 +191,14 @@ class Tab(object):
             Tab.height, Tab.width = scr.getmaxyx()
             windows.Win._tab_win = scr
 
+    def missing_command_callback(self, command_name):
+        """
+        Callback executed when a command is not found.
+        Returns True if the callback took care of displaying
+        the error message, False otherwise.
+        """
+        return False
+
     def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
         """
         Add a command
@@ -273,7 +281,12 @@ class Tab(object):
                 elif low in self.core.commands:
                     func = self.core.commands[low][0]
                 else:
-                    self.core.information(_("Unknown command (%s)") % (command), _('Error'))
+                    if self.missing_command_callback is not None:
+                        error_handled = self.missing_command_callback(low)
+                    if not error_handled:
+                        self.core.information(_("Unknown command (%s)") %
+                                                (command),
+                                              _('Error'))
             if command in ('correct', 'say'): # hack
                 arg = xhtml.convert_simple_to_full_colors(arg)
             else:
@@ -705,7 +718,7 @@ class OneToOneTab(ChatTab):
         # we know that the remote user wants chatstates, or not.
         # None means we don’t know yet, and we send only "active" chatstates
         self.remote_wants_chatstates = None
-        self.remote_supports_attention = False
+        self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
 
@@ -720,9 +733,10 @@ class OneToOneTab(ChatTab):
 
     def check_features(self):
         "check the features supported by the other party"
-        self.core.xmpp.plugin['xep_0030'].get_info(
-                jid=self.get_dest_jid(), block=False, timeout=5,
-                callback=self.features_checked)
+        if safeJID(self.get_dest_jid()).resource:
+            self.core.xmpp.plugin['xep_0030'].get_info(
+                    jid=self.get_dest_jid(), block=False, timeout=5,
+                    callback=self.features_checked)
 
     def command_attention(self, message=''):
         "/attention [message]"
@@ -737,6 +751,20 @@ class OneToOneTab(ChatTab):
     def command_say(self, line, correct=False, attention=False):
         pass
 
+    def missing_command_callback(self, command_name):
+        if command_name not in ('correct', 'attention'):
+            return False
+
+        if command_name == 'correct':
+            feature = _('message correction')
+        elif command_name == 'attention':
+            feature = _('attention requests')
+        msg = _('%s does not support %s, therefore the /%s '
+                'command is currently disabled in this tab.')
+        msg = msg % (self.name, feature, command_name)
+        self.core.information(msg, 'Info')
+        return True
+
     def _feature_attention(self, features):
         "Check for the 'attention' features"
         if 'urn:xmpp:attention:0' in features:
@@ -749,6 +777,7 @@ class OneToOneTab(ChatTab):
                                          ' along with the attention.'))
         else:
             self.remote_supports_attention = False
+        return self.remote_supports_attention
 
     def _feature_correct(self, features):
         "Check for the 'correction' feature"
@@ -760,6 +789,7 @@ class OneToOneTab(ChatTab):
                     desc=_('Fix the last message with whatever you want.'),
                     shortdesc=_('Correct the last message.'),
                     completion=self.completion_correct)
+        return 'correct' in self.commands
 
     def _feature_receipts(self, features):
         "Check for the 'receipts' feature"
@@ -767,13 +797,34 @@ class OneToOneTab(ChatTab):
             self.remote_supports_receipts = True
         else:
             self.remote_supports_receipts = False
+        return self.remote_supports_receipts
 
     def features_checked(self, iq):
         "Features check callback"
         features = iq['disco_info'].get_features() or []
         log.debug('\n\nFEATURES:\n%s\n\n%s\n\n', iq, features)
-        self._feature_correct(features)
-        self._feature_attention(features)
-        self._feature_receipts(features)
+        correct = self._feature_correct(features)
+        attention = self._feature_attention(features)
+        receipts = self._feature_receipts(features)
+
+        features = []
+        if correct:
+            features.append(_('message correction (/correct)'))
+        if attention:
+            features.append(_('attention requests (/attention)'))
+        if receipts and config.get('request_message_receipts', True):
+            features.append(_('message delivery receipts'))
+        if len(features) > 1:
+            tail = features.pop()
+        else:
+            tail = None
+        features_str = ', '.join(features)
+        if tail:
+            features_str += _(' and %s') % tail
+
+        msg = _('\x19%s}This contact supports %s.')
+        color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        msg = msg % (color, features_str)
+        self.add_message(msg, typ=0)
 
 
