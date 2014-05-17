@@ -714,6 +714,8 @@ class OneToOneTab(ChatTab):
     def __init__(self, jid=''):
         ChatTab.__init__(self, jid)
 
+        # Set to true once the first disco is done
+        self.__initial_disco = False
         # change this to True or False when
         # we know that the remote user wants chatstates, or not.
         # None means we don’t know yet, and we send only "active" chatstates
@@ -803,9 +805,17 @@ class OneToOneTab(ChatTab):
         "Features check callback"
         features = iq['disco_info'].get_features() or []
         log.debug('\n\nFEATURES:\n%s\n\n%s\n\n', iq, features)
+        before = ('correct' in self.commands,
+                  self.remote_supports_attention,
+                  self.remote_supports_receipts)
         correct = self._feature_correct(features)
         attention = self._feature_attention(features)
         receipts = self._feature_receipts(features)
+
+        if (correct, attention, receipts) == before and self.__initial_disco:
+            return
+        else:
+            self.__initial_disco = True
 
         features = []
         if correct:
@@ -826,5 +836,6 @@ class OneToOneTab(ChatTab):
         color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         msg = msg % (color, features_str)
         self.add_message(msg, typ=0)
+        self.core.refresh_window()
 
 

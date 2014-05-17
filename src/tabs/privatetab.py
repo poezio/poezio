@@ -331,6 +331,7 @@ class PrivateTab(OneToOneTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
+        self.check_features()
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         color = 3
         if tab and config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True):
