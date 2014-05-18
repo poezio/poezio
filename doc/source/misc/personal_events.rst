@@ -10,6 +10,19 @@ Those extensions are standardized ways to broadcast informations that might be
 useful to your contacts (they will receive those informations only if they
 have indicated their interest in them).
 
+The events are also shown in the roster, next to the contact line:
+
+.. figure:: ../images/pep.png
+    :alt: Personal Events
+
+On the above figure, A stands for Activity, M for Mood, and G for Gaming.
+
+The details are shown with notifications if configured, and in the detailed
+contact information window, on the bottom left in the roster tab.
+
+.. figure:: ../images/pep_infos.png
+    :alt: Personal Events details
+
 You can see below the list of the related options and commands.
 
 .. note::
