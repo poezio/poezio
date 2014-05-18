@@ -66,8 +66,9 @@ Command added to Conversation Tabs and Private Tabs:
 
         .. warning::
 
-            With ``drop``, the private key is only removed from the filesystem, *NOT* with multiple rewrites in a secure
-            manner, you should do that yourself if you want to be sure.
+            With ``drop``, the private key is only removed from the filesystem,
+            *NOT* with multiple rewrites in a secure manner, you should do that
+            yourself if you want to be sure.
 
 
 To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
@@ -160,8 +161,8 @@ nick is used by different people).
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
 
 """
+from gettext import gettext as _
 import potr
-import theming
 import logging
 
 log = logging.getLogger(__name__)
@@ -172,10 +173,11 @@ from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, N
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
 import xhtml
-from plugin import BasePlugin
-from tabs import ConversationTab, DynamicConversationTab, PrivateTab
 from common import safeJID
 from config import config
+from plugin import BasePlugin
+from tabs import ConversationTab, DynamicConversationTab, PrivateTab
+from theming import get_theme, dump_tuple
 
 OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
         '~/.local/share', 'poezio', 'otr')
@@ -198,7 +200,7 @@ def hl(tab):
 
     conv_jid = safeJID(tab.name)
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if config.get_by_tabname('disable_beep', 'false', conv_jid.bare, False).lower() != 'true':
+        if config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
             curses.beep()
 
 class PoezioContext(Context):
@@ -216,14 +218,20 @@ class PoezioContext(Context):
             return False
 
     def inject(self, msg, appdata=None):
-        message = self.xmpp.make_message(mto=self.peer, mbody=msg.decode('ascii'), mtype='chat')
+        message = self.xmpp.make_message(mto=self.peer,
+                                         mbody=msg.decode('ascii'),
+                                         mtype='chat')
         message.enable('carbon_private')
         message.send()
 
     def setState(self, newstate):
+        color_jid = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
+        color_info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+
         tab = self.core.get_tab_by_name(self.peer)
         if not tab:
-            tab = self.core.get_tab_by_name(safeJID(self.peer).bare, DynamicConversationTab)
+            tab = self.core.get_tab_by_name(safeJID(self.peer).bare,
+                                            DynamicConversationTab)
             if not tab.locked_resource == safeJID(self.peer).resource:
                 tab = None
         if self.state == STATE_ENCRYPTED:
@@ -231,24 +239,50 @@ class PoezioContext(Context):
                 log.debug('OTR conversation with %s refreshed', self.peer)
                 if tab:
                     if self.getCurrentTrust():
-                        tab.add_message('Refreshed \x19btrusted\x19o OTR conversation with %s' % self.peer, typ=self.log)
+                        msg = _('%(info)sRefreshed \x19btrusted\x19o%(info)s'
+                                ' OTR conversation with %(jid_c)s%(jid)s') % {
+                                        'info': color_info,
+                                        'jid_c': color_jid,
+                                        'jid': self.peer
+                                        }
+                        tab.add_message(msg, typ=self.log)
                     else:
-                        tab.add_message('Refreshed \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
-                                (self.peer, self.getCurrentKey()), typ=self.log)
+                        msg = _('%(info)sRefreshed \x19buntrusted\x19o%(info)s'
+                                ' OTR conversation with %(jid_c)s%(jid)s'
+                                '%(info)s, key: \x19o%(key)s') % {
+                                   'jid': self.peer,
+                                   'key': self.getCurrentKey(),
+                                   'info': color_info,
+                                   'jid_c': color_jid}
+
+                        tab.add_message(msg, typ=self.log)
                     hl(tab)
             elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
                 log.debug('OTR conversation with %s finished', self.peer)
                 if tab:
-                    tab.add_message('Ended OTR conversation with %s' % self.peer, typ=self.log)
+                    tab.add_message('%sEnded OTR conversation with %s%s' % (
+                                        color_info, color_jid, self.peer),
+                                    typ=self.log)
                     hl(tab)
         else:
             if newstate == STATE_ENCRYPTED:
                 if tab:
                     if self.getCurrentTrust():
-                        tab.add_message('Started \x19btrusted\x19o OTR conversation with %s' % self.peer, typ=self.log)
+                        msg = _('%(info)sStarted a \x19btrusted\x19o%(info)s '
+                                'OTR conversation with %(jid_c)s%(jid)s') % {
+                                        'jid': self.peer,
+                                        'info': color_info,
+                                        'jid_c': color_jid}
+                        tab.add_message(msg, typ=self.log)
                     else:
-                        tab.add_message('Started \x19buntrusted\x19o OTR conversation with %s (key: %s)' %
-                                (self.peer, self.getCurrentKey()), typ=self.log)
+                        msg = _('%(info)sStarted an \x19buntrusted\x19o%(info)s'
+                                ' OTR conversation with %(jid_c)s%(jid)s'
+                                '%(info)s, key: \x19o%(key)s') % {
+                                        'jid': self.peer,
+                                        'key': self.getCurrentKey(),
+                                        'info': color_info,
+                                        'jid_c': color_jid}
+                        tab.add_message(msg, typ=self.log)
                     hl(tab)
 
         log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
@@ -325,10 +359,10 @@ class Plugin(BasePlugin):
 
     def init(self):
         # set the default values from the config
-        allow_v2 = self.config.get('allow_v2', 'true').lower()
-        POLICY_FLAGS['ALLOW_V2'] = (allow_v2 != 'false')
-        allow_v1 = self.config.get('allow_v1', 'false').lower()
-        POLICY_FLAGS['ALLOW_v1'] = (allow_v1 == 'true')
+        allow_v2 = self.config.get('allow_v2', True)
+        POLICY_FLAGS['ALLOW_V2'] = allow_v2
+        allow_v1 = self.config.get('allow_v1', False)
+        POLICY_FLAGS['ALLOW_v1'] = allow_v1
 
         global OTR_DIR
         OTR_DIR = os.path.expanduser(self.config.get('keys_dir', '') or OTR_DIR)
@@ -395,14 +429,23 @@ class Plugin(BasePlugin):
         return self.contexts[jid]
 
     def on_conversation_msg(self, msg, tab):
+        color_jid = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
+        color_info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         try:
             ctx = self.get_context(msg['from'])
             txt, tlvs = ctx.receiveMessage(msg["body"].encode('utf-8'))
         except UnencryptedMessage as err:
             # received an unencrypted message inside an OTR session
-            tab.add_message('The following message from %s was not encrypted:\n%s' % (msg['from'], err.args[0].decode('utf-8')),
-                    jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
-                    typ=0)
+            text = _('%(info)sThe following message from %(jid_c)s%(jid)s'
+                     '%(info)s was \x19bnot\x19o%(info)s encrypted:'
+                     '\x19o\n%(msg)s') % {
+                             'info': color_info,
+                             'jid_c': color_jid,
+                             'jid': msg['from'],
+                             'msg': err.args[0].decode('utf-8')}
+            tab.add_message(text, jid=msg['from'],
+                            nick_color=get_theme().COLOR_REMOTE_USER,
+                            typ=0)
             del msg['body']
             del msg['html']
             hl(tab)
@@ -410,7 +453,14 @@ class Plugin(BasePlugin):
             return
         except ErrorReceived as err:
             # Received an OTR error
-            tab.add_message('Received the following error from %s: %s' % (msg['from'], err.args[0]), typ=0)
+            text = _('%(info)sReceived the following error from '
+                     '%(jid_c)s%(jid)s%(info)s:\x19o %(err)s') % {
+                             'jid': msg['from'],
+                             'err': err.args[0],
+                             'info': color_info,
+                             'jid_c': color_jid}
+
+            tab.add_message(text, typ=0)
             del msg['body']
             del msg['html']
             hl(tab)
@@ -423,9 +473,16 @@ class Plugin(BasePlugin):
             # but do an additional check because of a bug with py3k
             if ctx.state != STATE_PLAINTEXT or ctx.getPolicy('REQUIRE_ENCRYPTION'):
 
-                tab.add_message('The following message from %s was not encrypted:\n%s' % (msg['from'], err.args[0].decode('utf-8')),
-                        jid=msg['from'], nick_color=theming.get_theme().COLOR_REMOTE_USER,
-                        typ=ctx.log)
+                text = _('%(info)sThe following message from '
+                         '%(jid_c)s%(jid)s%(info)s was \x19b'
+                         'not\x19o%(info)s encrypted:\x19o\n%(msg)s') % {
+                                 'jid': msg['from'],
+                                 'msg': err.args[0].decode('utf-8'),
+                                 'info': color_info,
+                                 'jid_c': color_jid}
+                tab.add_message(text, jid=msg['from'],
+                                nick_color=get_theme().COLOR_REMOTE_USER,
+                                typ=ctx.log)
                 del msg['body']
                 del msg['html']
                 hl(tab)
@@ -433,27 +490,34 @@ class Plugin(BasePlugin):
                 return
             return
         except NotEncryptedError as err:
-            tab.add_message('An encrypted message from %s was received but is '
-                    'unreadable, as you are not currently communicating'
-                    ' privately.' % msg['from'], jid=msg['from'],
-                    nick_color=theming.get_theme().COLOR_REMOTE_USER,
-                    typ=0)
+            text = _('%(info)sAn encrypted message from %(jid_c)s%(jid)s'
+                     '%(info)s was received but is unreadable, as you are'
+                     ' not currently communicating privately.') % {
+                             'info': color_info,
+                             'jid_c': color_jid,
+                             'jid': msg['from']}
+            tab.add_message(text, jid=msg['from'],
+                            nick_color=get_theme().COLOR_REMOTE_USER,
+                            typ=0)
             hl(tab)
             del msg['body']
             del msg['html']
             self.core.refresh_window()
             return
         except crypt.InvalidParameterError:
-            tab.add_message('The message from %s could not be decrypted' %
-                    msg['from'], jid=msg['from'], typ=0,
-                    nick_color=theming.get_theme().COLOR_REMOTE_USER)
+            tab.add_message('%sThe message from %s%s%s could not be decrypted.'
+                            % (color_info, color_jid, msg['from'], color_info),
+                            jid=msg['from'], typ=0,
+                            nick_color=get_theme().COLOR_REMOTE_USER)
             hl(tab)
             del msg['body']
             del msg['html']
             self.core.refresh_window()
             return
         except:
-            tab.add_message('An unspecified error in the OTR plugin occured', typ=0)
+            tab.add_message('%sAn unspecified error in the OTR plugin occured'
+                            % color_info,
+                            typ=0)
             log.error('Unspecified error in the OTR plugin', exc_info=True)
             return
 
@@ -476,7 +540,7 @@ class Plugin(BasePlugin):
                 pass
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
                         forced_user=user, typ=ctx.log,
-                        nick_color=theming.get_theme().COLOR_REMOTE_USER)
+                        nick_color=get_theme().COLOR_REMOTE_USER)
         hl(tab)
         self.core.refresh_window()
         del msg['body']
@@ -499,7 +563,7 @@ class Plugin(BasePlugin):
 
             tab.add_message(msg['body'],
                     nickname=self.core.own_nick or tab.own_nick,
-                    nick_color=theming.get_theme().COLOR_OWN_NICK,
+                    nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'],
                     jid=self.core.xmpp.boundjid,
                     typ=ctx.log)
@@ -520,6 +584,8 @@ class Plugin(BasePlugin):
         arg = arg.strip()
         tab = self.api.current_tab()
         name = tab.name
+        color_jid = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
+        color_info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
             name = safeJID(tab.name)
             name.resource = tab.locked_resource
@@ -544,7 +610,7 @@ class Plugin(BasePlugin):
                 if context.state not in (STATE_FINISHED, STATE_PLAINTEXT):
                     context.disconnect()
             self.account.drop_privkey()
-            tab.add_message('Private key dropped.', typ=0)
+            tab.add_message('%sPrivate key dropped.' % color_info, typ=0)
         elif arg == 'trust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -555,7 +621,13 @@ class Plugin(BasePlugin):
             if not ctx.getCurrentTrust():
                 ctx.setTrust(fpr, 'verified')
                 self.account.saveTrusts()
-                tab.add_message('You added \x19b%s\x19o with key %s to your trusted list.' % (ctx.trustName, key), typ=0)
+                text = _('%(info)sYou added %(jid_c)s%(jid)s%(info)s with key '
+                         '\x19o%(key)s%(info)s to your trusted list.') % {
+                                 'jid': ctx.trustName,
+                                 'key': key,
+                                 'info': color_info,
+                                 'jid_c': color_jid}
+                tab.add_message(text, typ=0)
         elif arg == 'untrust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -566,9 +638,17 @@ class Plugin(BasePlugin):
             if ctx.getCurrentTrust():
                 ctx.setTrust(fpr, '')
                 self.account.saveTrusts()
-                tab.add_message('You removed \x19b%s\x19o with key %s from your trusted list.' % (ctx.trustName, key), typ=0)
+                text = _('%(info)sYou removed %(jid_c)s%(jid)s%(info)s with '
+                         'key \x19o%(key)s%(info)s from your trusted list.') % {
+                                 'jid': ctx.trustName,
+                                 'key': key,
+                                 'info': color_info,
+                                 'jid_c': color_jid}
+
+                tab.add_message(text, typ=0)
         self.core.refresh_window()
 
     def completion_otr(self, the_input):
-        return the_input.new_completion(['start', 'fpr', 'ourfpr', 'refresh', 'end', 'trust', 'untrust'], 1, quotify=False)
+        comp = ['start', 'fpr', 'ourfpr', 'refresh', 'end', 'trust', 'untrust']
+        return the_input.new_completion(comp, 1, quotify=False)
 
