@@ -804,7 +804,6 @@ class OneToOneTab(ChatTab):
     def features_checked(self, iq):
         "Features check callback"
         features = iq['disco_info'].get_features() or []
-        log.debug('\n\nFEATURES:\n%s\n\n%s\n\n', iq, features)
         before = ('correct' in self.commands,
                   self.remote_supports_attention,
                   self.remote_supports_receipts)
@@ -817,22 +816,30 @@ class OneToOneTab(ChatTab):
         else:
             self.__initial_disco = True
 
+        empty = not any((correct, attention, receipts))
+
         features = []
-        if correct:
+        if correct or empty:
             features.append(_('message correction (/correct)'))
-        if attention:
+        if attention or empty:
             features.append(_('attention requests (/attention)'))
-        if receipts and config.get('request_message_receipts', True):
+        if (receipts or empty) \
+                and config.get('request_message_receipts', True):
             features.append(_('message delivery receipts'))
         if len(features) > 1:
             tail = features.pop()
         else:
             tail = None
         features_str = ', '.join(features)
-        if tail:
+        if tail and empty:
+            features_str += _(', or %s') % tail
+        elif tail:
             features_str += _(' and %s') % tail
 
-        msg = _('\x19%s}This contact supports %s.')
+        if empty:
+            msg = _('\x19%s}This contact does not support %s.')
+        else:
+            msg = _('\x19%s}This contact supports %s.')
         color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         msg = msg % (color, features_str)
         self.add_message(msg, typ=0)
