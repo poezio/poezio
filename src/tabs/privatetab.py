@@ -166,7 +166,7 @@ class PrivateTab(OneToOneTab):
             return
         if not replaced:
             self.add_message(msg['body'],
-                    nickname=self.core.own_nick or self.own_nick,
+                    nickname=self.own_nick or self.core.own_nick,
                     forced_user=user,
                     nick_color=get_theme().COLOR_OWN_NICK,
                     identifier=msg['id'],
