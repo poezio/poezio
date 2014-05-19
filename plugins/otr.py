@@ -410,6 +410,9 @@ class Plugin(BasePlugin):
                 completion=self.completion_otr)
 
     def cleanup(self):
+        for context in self.contexts.values():
+            context.disconnect()
+
         ConversationTab.remove_information_element('otr')
         PrivateTab.remove_information_element('otr')
 
