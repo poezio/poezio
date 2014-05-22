@@ -447,7 +447,6 @@ class Plugin(BasePlugin):
                              'jid': msg['from'],
                              'msg': err.args[0].decode('utf-8')}
             tab.add_message(text, jid=msg['from'],
-                            nick_color=get_theme().COLOR_REMOTE_USER,
                             typ=0)
             del msg['body']
             del msg['html']
@@ -484,7 +483,6 @@ class Plugin(BasePlugin):
                                  'info': color_info,
                                  'jid_c': color_jid}
                 tab.add_message(text, jid=msg['from'],
-                                nick_color=get_theme().COLOR_REMOTE_USER,
                                 typ=ctx.log)
                 del msg['body']
                 del msg['html']
@@ -500,7 +498,6 @@ class Plugin(BasePlugin):
                              'jid_c': color_jid,
                              'jid': msg['from']}
             tab.add_message(text, jid=msg['from'],
-                            nick_color=get_theme().COLOR_REMOTE_USER,
                             typ=0)
             hl(tab)
             del msg['body']
@@ -510,8 +507,7 @@ class Plugin(BasePlugin):
         except crypt.InvalidParameterError:
             tab.add_message('%sThe message from %s%s%s could not be decrypted.'
                             % (color_info, color_jid, msg['from'], color_info),
-                            jid=msg['from'], typ=0,
-                            nick_color=get_theme().COLOR_REMOTE_USER)
+                            jid=msg['from'], typ=0)
             hl(tab)
             del msg['body']
             del msg['html']
@@ -532,8 +528,10 @@ class Plugin(BasePlugin):
             return
         if isinstance(tab, PrivateTab):
             user = tab.parent_muc.get_user_by_name(msg['from'].resource)
+            nick_color = None
         else:
             user = None
+            nick_color = get_theme().COLOR_REMOTE_USER
 
         body = txt.decode()
         if self.config.get_by_tabname('decode_xhtml', True, msg['from'].bare):
@@ -543,7 +541,7 @@ class Plugin(BasePlugin):
                 pass
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
                         forced_user=user, typ=ctx.log,
-                        nick_color=get_theme().COLOR_REMOTE_USER)
+                        nick_color=nick_color)
         hl(tab)
         self.core.refresh_window()
         del msg['body']
