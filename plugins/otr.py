@@ -200,7 +200,7 @@ def hl(tab):
 
     conv_jid = safeJID(tab.name)
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
+        if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
             curses.beep()
 
 class PoezioContext(Context):
