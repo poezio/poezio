@@ -41,7 +41,7 @@ def on_session_start_features(self, _):
         if not iq:
             return
         features = iq['disco_info']['features']
-        rostertab = self.get_tab_by_name('Roster')
+        rostertab = self.get_tab_by_name('Roster', tabs.RosterInfoTab)
         rostertab.check_blocking(features)
         if (config.get('enable_carbons', True) and
                 'urn:xmpp:carbons:2' in features):
@@ -984,8 +984,8 @@ def on_receipt(self, message):
     if not msg_id:
         return
 
-    conversation = self.get_tab_by_name(jid)
-    conversation = conversation or self.get_tab_by_name(jid.bare)
+    conversation = self.get_tab_by_name(jid, tabs.ChatTab)
+    conversation = conversation or self.get_tab_by_name(jid.bare, tabs.ChatTab)
     if not conversation:
         return
 
@@ -1019,7 +1019,7 @@ def room_error(self, error, room_name):
     """
     Display the error in the tab
     """
-    tab = self.get_tab_by_name(room_name)
+    tab = self.get_tab_by_name(room_name, tabs.MucTab)
     error_message = self.get_error_message(error)
     tab.add_message(error_message, highlight=True, nickname='Error',
                     nick_color=get_theme().COLOR_ERROR_MSG, typ=2)

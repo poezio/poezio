@@ -1219,7 +1219,7 @@ class Core(object):
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid, msg):
-        tab = self.get_tab_by_name(jid)
+        tab = self.get_tab_by_name(jid, tabs.ChatTab)
         if tab: # display the message in private
             tab.add_message(msg, typ=2)
 
