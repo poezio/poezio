@@ -227,9 +227,10 @@ class ListMultiWin(FieldInput, Win):
                 self.addstr(0, 0, '←')
             if self.val_pos < len(self.options)-1:
                 self.addstr(0, self.width-1, '→')
-            option = self.options[self.val_pos]
-            self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
-            self.addstr(0, 2, '✔' if option[1] else '☐')
+            if self.options:
+                option = self.options[self.val_pos]
+                self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
+                self.addstr(0, 2, '✔' if option[1] else '☐')
             self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
@@ -274,8 +275,9 @@ class ListSingleWin(FieldInput, Win):
                 self.addstr(0, 0, '←')
             if self.val_pos < len(self.options)-1:
                 self.addstr(0, self.width-1, '→')
-            option = self.options[self.val_pos]['label']
-            self.addstr(0, self.width//2-len(option)//2, option)
+            if self.options:
+                option = self.options[self.val_pos]['label']
+                self.addstr(0, self.width//2-len(option)//2, option)
             self._win.attroff(to_curses_attr(self.color))
             self._refresh()
 
