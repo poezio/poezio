@@ -26,7 +26,8 @@ it is not pretty.
 Installation
 ------------
 
-To use the OTR plugin, you must first install pure-python-otr.
+To use the OTR plugin, you must first install pure-python-otr and pycrypto
+(for python3).
 
 You have to install it from the git because a few issues were
 found with the python3 compatibility while writing this plugin,
@@ -232,7 +233,7 @@ class PoezioContext(Context):
         if not tab:
             tab = self.core.get_tab_by_name(safeJID(self.peer).bare,
                                             DynamicConversationTab)
-            if not tab.locked_resource == safeJID(self.peer).resource:
+            if tab and not tab.locked_resource == safeJID(self.peer).resource:
                 tab = None
         if self.state == STATE_ENCRYPTED:
             if newstate == STATE_ENCRYPTED:
