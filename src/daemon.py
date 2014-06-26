@@ -25,6 +25,12 @@ import subprocess
 import shlex
 import logging
 
+try:
+    from subprocess import DEVNULL # Only in python >= 3.3
+except ImportError:
+    import os
+    DEVNULL = open(os.devnull, 'wb')
+
 log = logging.getLogger(__name__)
 
 class Executor(threading.Thread):
@@ -51,7 +57,7 @@ class Executor(threading.Thread):
 
     def run(self):
         log.debug('executing %s', self.command)
-        stdout = None
+        stdout = DEVNULL
         if self.filename:
             try:
                 stdout = open(self.filename, self.redirection_mode)
@@ -59,7 +65,7 @@ class Executor(threading.Thread):
                 log.error('Could not open redirection file: %s', self.filename, exc_info=True)
                 return
         try:
-            subprocess.call(self.command, stdout=stdout)
+            subprocess.call(self.command, stdout=stdout, stderr=DEVNULL)
         except:
             if self.remote:
                 import traceback
