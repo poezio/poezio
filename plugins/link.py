@@ -76,6 +76,7 @@ Options
 .. _daemon.py: http://dev.louiz.org/projects/poezio/repository/revisions/master/raw/src/daemon.py
 
 """
+import platform
 import re
 
 from plugin import BasePlugin
@@ -84,6 +85,10 @@ import common
 import tabs
 
 url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
+app_mapping = {
+    'Linux': 'xdg-open',
+    'Darwin': 'open',
+}
 
 class Plugin(BasePlugin):
     def init(self):
@@ -132,7 +137,8 @@ class Plugin(BasePlugin):
             link = self.find_link(nb)
             if not link:
                 return self.api.information('No URL found.', 'Warning')
-            self.core.exec_command([self.config.get('browser', 'firefox'), link])
+            default = app_mapping.get(platform.system(), 'firefox')
+            self.core.exec_command([self.config.get('browser', default), link])
 
     def cleanup(self):
         del self.config
