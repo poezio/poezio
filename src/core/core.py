@@ -391,7 +391,7 @@ class Core(object):
         log.debug("Reloading the config…")
         # Copy the old config in a dict
         old_config = config.to_dict()
-        config.read_file(config.file_name)
+        config.read_file()
         # Compare old and current config, to trigger the callbacks of all
         # modified options
         for section in config.sections():
