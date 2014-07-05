@@ -25,6 +25,8 @@ class AdhocCommandsListTab(ListTab):
         self.key_func['^M'] = self.execute_selected_command
 
     def execute_selected_command(self):
+        if not self.listview or not self.listview.get_selected_row():
+            return
         node, name, jid = self.listview.get_selected_row()
         session = {'next': self.core.on_next_adhoc_step,
                    'error': self.core.on_adhoc_error}
