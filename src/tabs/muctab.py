@@ -65,6 +65,7 @@ class MucTab(ChatTab):
         self.users = []
         self.privates = [] # private conversations
         self.topic = ''
+        self.topic_from = ''
         self.remote_wants_chatstates = True
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
@@ -533,9 +534,11 @@ class MucTab(ChatTab):
         """
         if not arg.strip():
             self._text_buffer.add_message(
-                    _("\x19%s}The subject of the room is: %s") %
+                    _("\x19%s}The subject of the room is: %s %s") %
                         (dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                         self.topic))
+                         self.topic,
+                         '(set by %s)' % self.topic_from if self.topic_from
+                                                         else ''))
             self.refresh()
             return
         subject = arg

@@ -972,6 +972,7 @@ def on_groupchat_subject(self, message):
                 time=None,
                 typ=2)
     tab.topic = subject
+    tab.topic_from = nick_from
     if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
         self.refresh_window()
 
