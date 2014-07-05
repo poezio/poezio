@@ -259,7 +259,7 @@ class RosterInfoTab(Tab):
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
-            jid = item.jid.bare
+            jid = item.jid
         else:
             self.core.information('No JID selected.', 'Error')
             return
