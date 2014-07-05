@@ -29,6 +29,7 @@ class Plugin(BasePlugin):
             raise TypeError
 
         thread = threading.Thread(target=self.main_loop)
+        thread.setDaemon(True)
         thread.start()
 
     def main_loop(self):
