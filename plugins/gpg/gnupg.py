@@ -561,27 +561,31 @@ class GPG(object):
         #
         # Calls methods on the response object for each valid token found,
         # with the arg being the remainder of the status line.
-        lines = []
-        while True:
-            line = stream.readline()
-            if len(line) == 0:
-                break
-            lines.append(line)
-            line = line.rstrip()
-            if self.verbose:
-                print(line)
-            logger.debug("%s", line)
-            if line[0:9] == '[GNUPG:] ':
-                # Chop off the prefix
-                line = line[9:]
-                L = line.split(None, 1)
-                keyword = L[0]
-                if len(L) > 1:
-                    value = L[1]
-                else:
-                    value = ""
-                result.handle_status(keyword, value)
-        result.stderr = ''.join(lines)
+        try:
+            lines = []
+            while True:
+                line = stream.readline()
+                if len(line) == 0:
+                    break
+                lines.append(line)
+                line = line.rstrip()
+                if self.verbose:
+                    print(line)
+                logger.debug("%s", line)
+                if line[0:9] == '[GNUPG:] ':
+                    # Chop off the prefix
+                    line = line[9:]
+                    L = line.split(None, 1)
+                    keyword = L[0]
+                    if len(L) > 1:
+                        value = L[1]
+                    else:
+                        value = ""
+                    result.handle_status(keyword, value)
+            result.stderr = ''.join(lines)
+        except:
+            import traceback
+            logger.error('Error in the GPG plugin:\n%s', traceback.format_exc())
 
     def _read_data(self, stream, result):
         # Read the contents of the file from GPG's stdout
