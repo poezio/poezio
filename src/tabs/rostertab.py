@@ -378,6 +378,8 @@ class RosterInfoTab(Tab):
         contact = roster[jid]
         if contact:
             contact.unauthorize()
+            self.core.information('Subscription to %s was revoked' % jid,
+                                  'Roster')
 
     def command_add(self, args):
         """
@@ -392,6 +394,7 @@ class RosterInfoTab(Tab):
             return self.core.information('Already subscribed.', 'Roster')
         roster.add(jid)
         roster.modified()
+        self.core.information('%s was added to the roster' % jid, 'Roster')
 
     def command_name(self, arg):
         """
@@ -719,6 +722,8 @@ class RosterInfoTab(Tab):
         self.core.xmpp.client_roster.send_last_presence()
         if contact.subscription in ('from', 'none') and not contact.pending_out:
             self.core.xmpp.send_presence(pto=jid, ptype='subscribe', pnick=self.core.own_nick)
+
+        self.core.information('%s is now authorized' % jid, 'Roster')
 
     def refresh(self):
         if self.need_resize:
