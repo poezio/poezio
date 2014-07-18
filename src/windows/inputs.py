@@ -534,9 +534,8 @@ class Input(Win):
         if self.view_pos < 0:
             self.view_pos = 0
 
-
-        assert(self.pos > self.view_pos and
-               self.pos < self.view_pos + max(self.width, 3))
+        assert(self.pos >= self.view_pos and
+               self.pos <= self.view_pos + max(self.width, 3))
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
