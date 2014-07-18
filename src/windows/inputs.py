@@ -525,7 +525,7 @@ class Input(Win):
             self.view_pos = 0
             return
         # cursor outside of the screen (left)
-        if self.pos < self.view_pos:
+        if self.pos <= self.view_pos:
             self.view_pos = self.pos - max(1 * self.width // 3, 1)
         # cursor outside of the screen (right)
         elif self.pos >= self.view_pos + self.width - 1:
