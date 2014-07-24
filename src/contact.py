@@ -175,7 +175,7 @@ class Contact(object):
         """Return the resource with the highest priority"""
         resources = self.get_resources()
         if resources:
-            return resources[-1]
+            return resources[0]
         return None
 
     def folded(self, group_name='none'):
