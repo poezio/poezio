@@ -106,7 +106,7 @@ to upload you public key on a public server.
 
 """
 from gpg import gnupg
-from sleekxmpp.xmlstream.stanzabase import JID
+from slixmpp.xmlstream.stanzabase import JID
 
 from xml.etree import cElementTree as ET
 import xml.sax.saxutils

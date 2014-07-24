@@ -19,18 +19,18 @@ from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 from os import path as p
 from datetime import datetime
 from common import safeJID
-from sleekxmpp.exceptions import IqError, IqTimeout
+from slixmpp.exceptions import IqError, IqTimeout
 
 
 class Roster(object):
     """
-    The proxy class to get the roster from SleekXMPP.
+    The proxy class to get the roster from slixmpp.
     Caches Contact and RosterGroup objects.
     """
 
     def __init__(self):
         """
-        node: the RosterSingle from SleekXMPP
+        node: the RosterSingle from slixmpp
         """
         self.__node = None
         self.contact_filter = None # A tuple(function, *args)
@@ -113,7 +113,7 @@ class Roster(object):
         return self.contacts[jid]
 
     def set_node(self, value):
-        """Set the SleekXMPP RosterSingle for our roster"""
+        """Set the slixmpp RosterSingle for our roster"""
         self.__node = value
 
     def get_groups(self, sort=''):

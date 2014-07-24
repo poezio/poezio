@@ -11,9 +11,9 @@ from datetime import datetime
 from gettext import gettext as _
 from xml.etree import cElementTree as ET
 
-from sleekxmpp.xmlstream.stanzabase import StanzaBase
-from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import StanzaPath
+from slixmpp.xmlstream.stanzabase import StanzaBase
+from slixmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream.matcher import StanzaPath
 
 import bookmark
 import common

@@ -14,15 +14,15 @@ log = logging.getLogger(__name__)
 
 
 import getpass
-import sleekxmpp
-from sleekxmpp.plugins.xep_0184 import XEP_0184
+import slixmpp
+from slixmpp.plugins.xep_0184 import XEP_0184
 
 import common
 import fixes
 from common import safeJID
 from config import config, options
 
-class Connection(sleekxmpp.ClientXMPP):
+class Connection(slixmpp.ClientXMPP):
     """
     Receives everything from Jabber and emits the
     appropriate signals
@@ -47,7 +47,7 @@ class Connection(sleekxmpp.ClientXMPP):
             password = None
         jid = safeJID(jid)
         # TODO: use the system language
-        sleekxmpp.ClientXMPP.__init__(self, jid, password,
+        slixmpp.ClientXMPP.__init__(self, jid, password,
                                       lang=config.get('lang', 'en'))
 
         force_encryption = config.get('force_encryption', True)
@@ -183,9 +183,9 @@ class Connection(sleekxmpp.ClientXMPP):
         """
         if self.core:
             self.core.outgoing_stanza(data)
-        sleekxmpp.ClientXMPP.send_raw(self, data, now, reconnect)
+        slixmpp.ClientXMPP.send_raw(self, data, now, reconnect)
 
-class MatchAll(sleekxmpp.xmlstream.matcher.base.MatcherBase):
+class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
     """
     Callback to retrieve all the stanzas for the XML tab
     """

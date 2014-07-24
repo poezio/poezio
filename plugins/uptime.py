@@ -13,7 +13,7 @@ Command
 """
 from plugin import BasePlugin
 from common import parse_secs_to_str, safeJID
-from sleekxmpp.xmlstream import ET
+from slixmpp.xmlstream import ET
 
 class Plugin(BasePlugin):
     def init(self):

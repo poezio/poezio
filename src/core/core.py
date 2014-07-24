@@ -19,7 +19,7 @@ from threading import Event
 from datetime import datetime
 from gettext import gettext as _
 
-from sleekxmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream.handler import Callback
 
 import bookmark
 import connection

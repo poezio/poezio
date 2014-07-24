@@ -11,7 +11,7 @@ Various useful functions.
 
 from sys import version_info
 from datetime import datetime, timedelta
-from sleekxmpp import JID, InvalidJID
+from slixmpp import JID, InvalidJID
 
 import base64
 import os
@@ -283,7 +283,7 @@ def find_delayed_tag(message):
     """
     Check if a message is delayed or not.
 
-    :param sleekxmpp.Message message: The message to check.
+    :param slixmpp.Message message: The message to check.
     :return: A tuple containing (True, the datetime) or (False, None)
     :rtype: :py:class:`tuple`
     """
@@ -521,7 +521,7 @@ def format_gaming_string(infos):
 
 def safeJID(*args, **kwargs):
     """
-    Construct a :py:class:`sleekxmpp.JID` object from a string.
+    Construct a :py:class:`slixmpp.JID` object from a string.
 
     Used to avoid tracebacks during is stringprep fails
     (fall back to a JID with an empty string).

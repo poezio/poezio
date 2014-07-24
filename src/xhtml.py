@@ -14,7 +14,7 @@ poezio colors to xhtml code
 
 import re
 import curses
-from sleekxmpp.xmlstream import ET
+from slixmpp.xmlstream import ET
 
 from io import BytesIO
 from xml import sax

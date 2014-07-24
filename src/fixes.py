@@ -1,12 +1,12 @@
 """
-Module used to provide fixes for sleekxmpp functions not yet fixed
+Module used to provide fixes for slixmpp functions not yet fixed
 upstream.
 
 TODO: Check that they are fixed and remove those hacks
 """
 
-from sleekxmpp.stanza import Message
-from sleekxmpp.xmlstream import ET
+from slixmpp.stanza import Message
+from slixmpp.xmlstream import ET
 
 import logging
 

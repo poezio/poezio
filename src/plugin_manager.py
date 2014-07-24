@@ -261,7 +261,7 @@ class PluginManager(object):
     def add_event_handler(self, module_name, event_name, handler, position=0):
         """
         Add an event handler. If event_name isn’t in the event list, assume
-        it is a sleekxmpp event.
+        it is a slixmpp event.
         """
         eh = self.event_handlers[module_name]
         eh.append((event_name, handler))

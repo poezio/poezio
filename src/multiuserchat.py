@@ -8,7 +8,7 @@
 """
 Implementation of the XEP-0045: Multi-User Chat.
 Add some facilities that are not available on the XEP_0045
-sleek plugin
+slix plugin
 """
 
 from gettext import gettext as _

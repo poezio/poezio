@@ -62,7 +62,7 @@ class Contact(object):
     """
     def __init__(self, item):
         """
-        item: a SleekXMPP RosterItem pointing to that contact
+        item: a slixmpp RosterItem pointing to that contact
         """
         self.__item = item
         self.folded_states = defaultdict(lambda: True)

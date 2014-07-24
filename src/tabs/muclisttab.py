@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 from . import ListTab
 
-from sleekxmpp.plugins.xep_0030.stanza.items import DiscoItem
+from slixmpp.plugins.xep_0030.stanza.items import DiscoItem
 
 class MucListTab(ListTab):
     """

@@ -11,9 +11,9 @@ import time
 from hashlib import sha1
 from gettext import gettext as _
 
-from sleekxmpp import InvalidJID
-from sleekxmpp.stanza import Message
-from sleekxmpp.xmlstream.stanzabase import StanzaBase
+from slixmpp import InvalidJID
+from slixmpp.stanza import Message
+from slixmpp.xmlstream.stanzabase import StanzaBase
 
 import bookmark
 import common
@@ -1058,7 +1058,7 @@ def incoming_stanza(self, stanza):
 
 def validate_ssl(self, pem):
     """
-    Check the server certificate using the sleekxmpp ssl_cert event
+    Check the server certificate using the slixmpp ssl_cert event
     """
     if config.get('ignore_certificate', False):
         return

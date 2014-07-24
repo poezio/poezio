@@ -3,8 +3,8 @@ Show the exchanged IQs (useful for debugging).
 
 """
 from plugin import BasePlugin
-from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream.matcher import StanzaPath
+from slixmpp.xmlstream.handler import Callback
 
 class Plugin(BasePlugin):
     def init(self):

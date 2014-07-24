@@ -58,7 +58,7 @@ import tabs
 import datetime
 import random
 import re
-from sleekxmpp.xmlstream.stanzabase import JID
+from slixmpp.xmlstream.stanzabase import JID
 
 class Plugin(BasePlugin):
     def init(self):

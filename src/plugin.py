@@ -339,21 +339,21 @@ class PluginAPI(object):
         """
         return self.plugin_manager.del_event_handler(module, *args, **kwargs)
 
-    def add_sleek_event_handler(self, module, event_name, handler):
+    def add_slix_event_handler(self, module, event_name, handler):
         """
-        Add an event handler for a sleekxmpp event.
+        Add an event handler for a slixmpp event.
 
         :param str event_name: The event name.
         :param function handler: The handler function.
 
-        A list of the SleekXMPP events can be found here
+        A list of the slixmpp events can be found here
         http://sleekxmpp.com/event_index.html
         """
         self.core.xmpp.add_event_handler(event_name, handler)
 
-    def del_sleek_event_handler(self, module, event_name, handler):
+    def del_slix_event_handler(self, module, event_name, handler):
         """
-        Remove a handler for a SleekXMPP event
+        Remove a handler for a slixmpp event
 
         :param str event_name: The name of the targeted event.
         :param function handler: The function to remove from the handlers.

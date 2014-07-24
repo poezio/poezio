@@ -11,8 +11,8 @@ import logging
 log = logging.getLogger(__name__)
 
 import curses
-from sleekxmpp.xmlstream import matcher
-from sleekxmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream import matcher
+from slixmpp.xmlstream.handler import Callback
 
 from . import Tab
 

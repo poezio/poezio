@@ -11,7 +11,7 @@ bookmarks, both local and remote.
 import logging
 from sys import version_info
 
-from sleekxmpp.plugins.xep_0048 import Bookmarks, Conference
+from slixmpp.plugins.xep_0048 import Bookmarks, Conference
 from common import safeJID
 from config import config
 

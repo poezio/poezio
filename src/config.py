@@ -454,7 +454,7 @@ def setup_logging():
     log = logging.getLogger(__name__)
 
 def post_logging_setup():
-    # common imports sleekxmpp, which creates then its loggers, so
+    # common imports slixmpp, which creates then its loggers, so
     # it needs to be after logger configuration
     from common import safeJID as JID
     global safeJID
