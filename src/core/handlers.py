@@ -170,7 +170,8 @@ def on_message(self, message):
 
 def on_normal_message(self, message):
     """
-    When receiving "normal" messages (from someone in our roster)
+    When receiving "normal" messages (not a private message from a
+    muc participant)
     """
     if message['type'] == 'error':
         return self.information(self.get_error_message(message, deprecated=True), 'Error')
@@ -889,7 +890,7 @@ def on_session_start(self, event):
                     show=self.status.show)
 
     if config.get('enable_user_nick', True):
-        self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)
+        self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)
     self.xmpp.plugin['xep_0115'].update_caps()
 
 ### Other handlers ###

@@ -133,6 +133,7 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0280')
         self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')
+        self.init_plugins()
 
     def set_keepalive_values(self, option=None, value=None):
         """
@@ -158,32 +159,25 @@ class Connection(slixmpp.ClientXMPP):
     def start(self):
         """
         Connect and process events.
-
-        TODO: try multiple servers with anon auth.
         """
         custom_host = config.get('custom_host', '')
         custom_port = config.get('custom_port', 5222)
         if custom_port == -1:
             custom_port = 5222
         if custom_host:
-            res = self.connect((custom_host, custom_port), reattempt=True)
+            self.connect((custom_host, custom_port))
         elif custom_port != 5222 and custom_port != -1:
-            res = self.connect((self.boundjid.host, custom_port),
-                               reattempt=True)
+            self.connect((self.boundjid.host, custom_port))
         else:
-            res = self.connect(reattempt=True)
-        if not res:
-            return False
-        self.process(threaded=True)
-        return True
+            self.connect()
 
-    def send_raw(self, data, now=False, reconnect=None):
+    def send_raw(self, data):
         """
         Overrides XMLStream.send_raw, with an event added
         """
         if self.core:
             self.core.outgoing_stanza(data)
-        slixmpp.ClientXMPP.send_raw(self, data, now, reconnect)
+        slixmpp.ClientXMPP.send_raw(self, data)
 
 class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
     """

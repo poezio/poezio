@@ -822,7 +822,6 @@ def command_quit(self, arg=''):
     self.disconnect(msg)
     self.running = False
     self.reset_curses()
-    sys.exit()
 
 def command_destroy_room(self, arg=''):
     """

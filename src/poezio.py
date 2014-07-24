@@ -12,6 +12,7 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import sys
 import os
+import asyncio
 import signal
 import logging
 

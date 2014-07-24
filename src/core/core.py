@@ -468,6 +468,7 @@ class Core(object):
                 ' ask for help or tell us how great it is.'),
                 _('Help'))
         self.refresh_window()
+        self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
 
     def on_exception(self, typ, value, trace):
         """
@@ -480,7 +481,7 @@ class Core(object):
             pass
         sys.__excepthook__(typ, value, trace)
 
-    def main_loop(self):
+    def on_input_readable(self):
         """
         main loop waiting for the user to press a key
         """
@@ -527,39 +528,41 @@ class Core(object):
                 res.append(current)
             return res
 
-        while self.running:
-            self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
-            big_char_list = [replace_key_with_bound(key)\
-                             for key in self.read_keyboard()]
-            # whether to refresh after ALL keys have been handled
-            for char_list in separate_chars_from_bindings(big_char_list):
-                if self.paused:
-                    self.current_tab().input.do_command(char_list[0])
-                    self.current_tab().input.prompt()
-                    self.event.set()
-                    continue
-                # Special case for M-x where x is a number
-                if len(char_list) == 1:
-                    char = char_list[0]
-                    if char.startswith('M-') and len(char) == 3:
-                        try:
-                            nb = int(char[2])
-                        except ValueError:
-                            pass
-                        else:
-                            if self.current_tab().nb == nb:
-                                self.go_to_previous_tab()
-                            else:
-                                self.command_win('%d' % nb)
-                        # search for keyboard shortcut
-                    func = self.key_func.get(char, None)
-                    if func:
-                        func()
+        log.debug("Input is readable.")
+        big_char_list = [replace_key_with_bound(key)\
+                         for key in self.read_keyboard()]
+        log.debug("Got from keyboard: %s", (big_char_list,))
+
+        # whether to refresh after ALL keys have been handled
+        for char_list in separate_chars_from_bindings(big_char_list):
+            if self.paused:
+                self.current_tab().input.do_command(char_list[0])
+                self.current_tab().input.prompt()
+                self.event.set()
+                continue
+            # Special case for M-x where x is a number
+            if len(char_list) == 1:
+                char = char_list[0]
+                if char.startswith('M-') and len(char) == 3:
+                    try:
+                        nb = int(char[2])
+                    except ValueError:
+                        pass
                     else:
-                        self.do_command(replace_line_breaks(char), False)
+                        if self.current_tab().nb == nb:
+                            self.go_to_previous_tab()
+                        else:
+                            self.command_win('%d' % nb)
+                # search for keyboard shortcut
+                func = self.key_func.get(char, None)
+                if func:
+                    func()
                 else:
-                    self.do_command(''.join(char_list), True)
-            self.doupdate()
+                    self.do_command(replace_line_breaks(char), False)
+            else:
+                self.do_command(''.join(char_list), True)
+        self.doupdate()
+        self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
 
     def save_config(self):
         """
