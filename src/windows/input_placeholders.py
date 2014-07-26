@@ -34,6 +34,9 @@ class HelpText(Win):
     def do_command(self, key, raw=False):
         return False
 
+    def on_delete(self):
+        return
+
 class YesNoInput(Win):
     """
     A Window just displaying a Yes/No input
@@ -75,4 +78,7 @@ class YesNoInput(Win):
             if len(cl) == 1 and cl[0] in self.key_func:
                 self.key_func[cl[0]]()
             cl = self.core.read_keyboard()
+
+    def on_delete(self):
+        return
 
