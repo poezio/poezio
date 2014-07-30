@@ -9,6 +9,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+import asyncio
 import collections
 import curses
 import os
@@ -189,6 +190,7 @@ class Core(object):
 
         # Add handlers
         self.xmpp.add_event_handler('connected', self.on_connected)
+        self.xmpp.add_event_handler('connection_failed', self.on_failed_connection)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
         self.xmpp.add_event_handler('failed_auth', self.on_failed_auth)
         self.xmpp.add_event_handler('no_auth', self.on_no_auth)
@@ -427,13 +429,8 @@ class Core(object):
         if config.get('enable_user_gaming', True):
             self.xmpp.plugin['xep_0196'].stop(block=False)
         self.plugin_manager.disable_plugins()
-        self.disconnect('')
-        self.running = False
-        try:
-            self.reset_curses()
-        except: # too bad
-            pass
-        sys.exit()
+        self.disconnect('%s received' % signals.get(sig))
+        self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)
 
     def autoload_plugins(self):
         """
@@ -469,6 +466,10 @@ class Core(object):
                 _('Help'))
         self.refresh_window()
         self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
+
+    def exit(self, event=None):
+        log.debug("exit(%s)" % (event,))
+        asyncio.get_event_loop().stop()
 
     def on_exception(self, typ, value, trace):
         """
@@ -786,7 +787,9 @@ class Core(object):
             tab.command_part(msg)
         self.xmpp.disconnect()
         if reconnect:
-            self.xmpp.start()
+            # Add a one-time event to reconnect as soon as we are
+            # effectively disconnected
+            self.xmpp.add_event_handler('disconnected', lambda event: self.xmpp.connect(), disposable=True)
 
     def send_message(self, msg):
         """

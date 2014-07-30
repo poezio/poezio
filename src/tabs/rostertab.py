@@ -241,7 +241,10 @@ class RosterInfoTab(Tab):
         """
         /reconnect
         """
-        self.core.disconnect(reconnect=True)
+        if self.core.xmpp.is_connected():
+            self.core.disconnect(reconnect=True)
+        else:
+            self.core.xmpp.connect()
 
     def command_disconnect(self, args=None):
         """

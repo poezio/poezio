@@ -807,6 +807,9 @@ def command_quit(self, arg=''):
     """
     /quit
     """
+    if not self.xmpp.is_connected():
+        self.exit()
+        return
     if len(arg.strip()) != 0:
         msg = arg
     else:
@@ -820,8 +823,7 @@ def command_quit(self, arg=''):
     self.save_config()
     self.plugin_manager.disable_plugins()
     self.disconnect(msg)
-    self.running = False
-    self.reset_curses()
+    self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)
 
 def command_destroy_room(self, arg=''):
     """

@@ -812,11 +812,11 @@ def on_groupchat_presence(self, presence):
 
 ### Connection-related handlers ###
 
-def on_failed_connection(self):
+def on_failed_connection(self, error):
     """
     We cannot contact the remote server
     """
-    self.information(_("Connection to remote server failed"), _('Error'))
+    self.information(_("Connection to remote server failed: %s" % (error,)), _('Error'))
 
 def on_disconnected(self, event):
     """
