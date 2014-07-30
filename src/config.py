@@ -65,9 +65,8 @@ class Config(RawConfigParser):
             return default
         return res
 
-    def get_by_tabname(
-            self, option, default, tabname,
-            fallback=True, fallback_server=True):
+    def get_by_tabname(self, option, default, tabname, fallback=True,
+                       fallback_server=True):
         """
         Try to get the value for the option. First we look in
         a section named `tabname`, if the option is not present
