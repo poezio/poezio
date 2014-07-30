@@ -13,7 +13,7 @@ error() {
 }
 
 echo 'Updating poezio'
-git pull origin master || error poezio
+git pull origin slix || error poezio
 
 make
 if [ $? -ne 0 ]
