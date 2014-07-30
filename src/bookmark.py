@@ -8,6 +8,8 @@ bookmark storage. It can also parse xml Elements.
 This module also defines several functions for retrieving and updating
 bookmarks, both local and remote.
 """
+
+import functools
 import logging
 from sys import version_info
 
@@ -26,7 +28,7 @@ def xml_iter(xml, tag=''):
 preferred = config.get('use_bookmarks_method', 'pep').lower()
 if preferred not in ('pep', 'privatexml'):
     preferred = 'privatexml'
-not_preferred = 'privatexml' if preferred == 'pep' else 'privatexml'
+not_preferred = 'privatexml' if preferred == 'pep' else 'pep'
 methods = ('local', preferred, not_preferred)
 
 
@@ -131,21 +133,18 @@ def save_privatexml(xmpp):
     xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('privatexml'),
             method='xep_0049')
 
-def save_remote(xmpp, method=preferred):
+def save_remote(xmpp, callback, method=preferred):
     """Save the remote bookmarks."""
     method = 'privatexml' if method != 'pep' else 'pep'
 
-    try:
-        if method is 'privatexml':
-            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('privatexml'),
-                    method='xep_0049')
-        else:
-            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'),
-                    method='xep_0223')
-    except Exception:
-        log.error("Could not save the bookmarks:", exc_info=True)
-        return False
-    return True
+    if method is 'privatexml':
+        xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('privatexml'),
+                                              method='xep_0049',
+                                              callback=callback)
+    else:
+        xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage('pep'),
+                                              method='xep_0223',
+                                              callback=callback)
 
 def save_local():
     """Save the local bookmarks."""
@@ -155,62 +154,81 @@ def save_local():
 def save(xmpp, core=None):
     """Save all the bookmarks."""
     save_local()
-    if config.get('use_remote_bookmarks', True):
-        preferred = config.get('use_bookmarks_method', 'privatexml')
-        if not save_remote(xmpp, method=preferred) and core:
+    def _cb(core, iq):
+        if iq["type"] == "error":
             core.information('Could not save bookmarks.', 'Error')
-            return False
         elif core:
             core.information('Bookmarks saved', 'Info')
-    return True
+    if config.get('use_remote_bookmarks', True):
+        preferred = config.get('use_bookmarks_method', 'privatexml')
+        cb = functools.partial(_cb, core)
+        save_remote(xmpp, cb, method=preferred)
 
-def get_pep(xmpp):
+def get_pep(xmpp, available_methods, callback):
     """Add the remotely stored bookmarks via pep to the list."""
-    try:
-        iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223', block=True)
-    except:
-        return False
-    for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
-        b = Bookmark.parse_from_element(conf, method='pep')
-        if not get_by_jid(b.jid):
-            bookmarks.append(b)
-    return True
+    def _cb(iq):
+        if iq["type"] == "error":
+            available_methods["pep"] = False
+        else:
+            available_methods["pep"] = True
+            for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
+                b = Bookmark.parse_from_element(conf, method='pep')
+                if not get_by_jid(b.jid):
+                    bookmarks.append(b)
+        if callback:
+            callback()
 
-def get_privatexml(xmpp):
-    """Add the remotely stored bookmarks via privatexml to the list."""
-    try:
-        iq = xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049', block=True)
-    except:
-        return False
-    for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
-        b = Bookmark.parse_from_element(conf, method='privatexml')
-        if not get_by_jid(b.jid):
-            bookmarks.append(b)
-    return True
+    xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223', callback=_cb)
 
-def get_remote(xmpp):
+def get_privatexml(xmpp, available_methods, callback):
+    """Add the remotely stored bookmarks via privatexml to the list.
+    If both is True, we want to have the result of both methods (privatexml and pep) before calling pep"""
+    def _cb(iq):
+        if iq["type"] == "error":
+            available_methods["privatexml"] = False
+        else:
+            available_methods["privatexml"] = True
+            for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
+                b = Bookmark.parse_from_element(conf, method='privatexml')
+                if not get_by_jid(b.jid):
+                    bookmarks.append(b)
+        if callback:
+            callback()
+
+    xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049', callback=_cb)
+
+def get_remote(xmpp, callback):
     """Add the remotely stored bookmarks to the list."""
     if xmpp.anon:
         return
     method = config.get('use_bookmarks_method', '')
     if not method:
-        pep, privatexml = True, True
+        available_methods = {}
+        def _save_and_call_callback():
+            # If both methods returned a result, we can now call the given callback
+            if callback and "privatexml" in available_methods and "pep" in available_methods:
+                save_bookmarks_method(available_methods)
+                if callback:
+                    callback()
         for method in methods[1:]:
             if method == 'pep':
-                pep = get_pep(xmpp)
+                get_pep(xmpp, available_methods, _save_and_call_callback)
             else:
-                privatexml = get_privatexml(xmpp)
-        if pep and not privatexml:
-            config.set_and_save('use_bookmarks_method', 'pep')
-        elif privatexml and not pep:
-            config.set_and_save('use_bookmarks_method', 'privatexml')
-        elif not pep and not privatexml:
-            config.set_and_save('use_bookmarks_method', '')
+                get_privatexml(xmpp, available_methods, _save_and_call_callback)
     else:
         if method == 'pep':
-            get_pep(xmpp)
+            get_pep(xmpp, {}, callback)
         else:
-            get_privatexml(xmpp)
+            get_privatexml(xmpp, {}, callback)
+
+def save_bookmarks_method(available_methods):
+    pep, privatexml = available_methods["pep"], available_methods["privatexml"]
+    if pep and not privatexml:
+        config.set_and_save('use_bookmarks_method', 'pep')
+    elif privatexml and not pep:
+        config.set_and_save('use_bookmarks_method', 'privatexml')
+    elif not pep and not privatexml:
+        config.set_and_save('use_bookmarks_method', '')
 
 def get_local():
     """Add the locally stored bookmarks to the list."""

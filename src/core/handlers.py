@@ -869,27 +869,35 @@ def on_session_start(self, event):
             self.events.trigger('send_normal_presence', pres)
             pres.send()
     bookmark.get_local()
+    def _join_initial_rooms(bookmarks):
+        """Join all rooms given in the iterator `bookmarks`"""
+        for bm in bookmarks:
+            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+            nick = bm.nick if bm.nick else self.own_nick
+            if not tab:
+                self.open_new_room(bm.jid, nick, False)
+            self.initial_joins.append(bm.jid)
+            histo_length = config.get('muc_history_length', 20)
+            if histo_length == -1:
+                histo_length = None
+            if histo_length is not None:
+                histo_length = str(histo_length)
+            # do not join rooms that do not have autojoin
+            # but display them anyway
+            if bm.autojoin:
+                muc.join_groupchat(self, bm.jid, nick,
+                        passwd=bm.password,
+                        maxhistory=histo_length,
+                        status=self.status.message,
+                        show=self.status.show)
+    def _join_remote_only():
+        remote_bookmarks = (bm for bm in bookmark.bookmarks if (bm.method in ("pep", "privatexml")))
+        _join_initial_rooms(remote_bookmarks)
     if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
-        bookmark.get_remote(self.xmpp)
-    for bm in bookmark.bookmarks:
-        tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-        nick = bm.nick if bm.nick else self.own_nick
-        if not tab:
-            self.open_new_room(bm.jid, nick, False)
-        self.initial_joins.append(bm.jid)
-        histo_length = config.get('muc_history_length', 20)
-        if histo_length == -1:
-            histo_length = None
-        if histo_length is not None:
-            histo_length = str(histo_length)
-        # do not join rooms that do not have autojoin
-        # but display them anyway
-        if bm.autojoin:
-            muc.join_groupchat(self, bm.jid, nick,
-                    passwd=bm.password,
-                    maxhistory=histo_length,
-                    status=self.status.message,
-                    show=self.status.show)
+        bookmark.get_remote(self.xmpp, _join_remote_only)
+    # join all the available bookmarks. As of yet, this is just the local
+    # ones
+    _join_initial_rooms(bookmark.bookmarks)
 
     if config.get('enable_user_nick', True):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)

@@ -6,6 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+import functools
 import sys
 from datetime import datetime
 from gettext import gettext as _
@@ -440,7 +441,7 @@ def command_bookmark_local(self, arg=''):
         new_bookmarks.extend(bookmark.bookmarks)
         bookmark.bookmarks = new_bookmarks
         bookmark.save_local()
-        bookmark.save_remote(self.xmpp)
+        bookmark.save_remote(self.xmpp, None)
         self.information('Bookmarks added and saved.', 'Info')
         return
     else:
@@ -508,12 +509,13 @@ def command_bookmark(self, arg=''):
                 new_bookmarks.append(b)
         new_bookmarks.extend(bookmark.bookmarks)
         bookmark.bookmarks = new_bookmarks
-
-        if bookmark.save_remote(self.xmpp):
-            bookmark.save_local()
-            self.information("Bookmarks added.", "Info")
-        else:
-            self.information("Could not add the bookmarks.", "Info")
+        def _cb(self, iq):
+            if iq["type"] != "error":
+                bookmark.save_local()
+                self.information("Bookmarks added.", "Info")
+            else:
+                self.information("Could not add the bookmarks.", "Info")
+        bookmark.save_remote(self.xmpp, functools.partial(_cb, self))
         return
     else:
         info = safeJID(args[0])
@@ -542,14 +544,16 @@ def command_bookmark(self, arg=''):
     if password:
         bm.password = password
     bm.autojoin = autojoin
-    if bookmark.save_remote(self.xmpp):
-        self.information('Bookmark added.', 'Info')
+    def _cb(self, iq):
+        if iq["type"] != "error":
+            self.information('Bookmark added.', 'Info')
+        else:
+            self.information("Could not add the bookmarks.", "Info")
+    bookmark.save_remote(self.xmpp, functools.partial(_cb, self))
     remote = []
     for each in bookmark.bookmarks:
         if each.method in ('pep', 'privatexml'):
             remote.append(each)
-    self.information(_('Your remote bookmarks are now: %s') % remote,
-                     _('Info'))
 
 def command_bookmarks(self, arg=''):
     """/bookmarks"""
