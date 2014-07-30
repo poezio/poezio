@@ -822,6 +822,8 @@ def on_disconnected(self, event):
     """
     When we are disconnected from remote server
     """
+    # Stop the ping plugin. It would try to send stanza on regular basis
+    self.xmpp.plugin['xep_0199'].disable_keepalive()
     roster.modified()
     for tab in self.get_tabs(tabs.MucTab):
         tab.disconnect()
@@ -892,6 +894,8 @@ def on_session_start(self, event):
     if config.get('enable_user_nick', True):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)
     self.xmpp.plugin['xep_0115'].update_caps()
+    # Start the ping's plugin regular event
+    self.xmpp.set_keepalive_values()
 
 ### Other handlers ###
 

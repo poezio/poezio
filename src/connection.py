@@ -97,7 +97,6 @@ class Connection(slixmpp.ClientXMPP):
 
         self.register_plugin('xep_0191')
         self.register_plugin('xep_0199')
-        self.set_keepalive_values()
 
         if config.get('enable_user_tune', True):
             self.register_plugin('xep_0118')
@@ -137,11 +136,14 @@ class Connection(slixmpp.ClientXMPP):
 
     def set_keepalive_values(self, option=None, value=None):
         """
-        Called at startup, or triggered when one of
+        Called after the XMPP session has been started, or triggered when one of
         "connection_timeout_delay" and "connection_check_interval" options
-        is changed.
-        Unload and reload the ping plugin, with the new values.
+        is changed.  Unload and reload the ping plugin, with the new values.
         """
+        if not self.is_connected():
+            # Happens when we change the value with /set while we are not
+            # connected. Do nothing in that case
+            return
         ping_interval = config.get('connection_check_interval', 60)
         timeout_delay = config.get('connection_timeout_delay', 10)
         if timeout_delay <= 0:
