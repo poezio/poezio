@@ -423,11 +423,11 @@ class Core(object):
 
         log.error("%s received. Exiting…", signals[sig])
         if config.get('enable_user_mood', True):
-            self.xmpp.plugin['xep_0107'].stop(block=False)
+            self.xmpp.plugin['xep_0107'].stop()
         if config.get('enable_user_activity', True):
-            self.xmpp.plugin['xep_0108'].stop(block=False)
+            self.xmpp.plugin['xep_0108'].stop()
         if config.get('enable_user_gaming', True):
-            self.xmpp.plugin['xep_0196'].stop(block=False)
+            self.xmpp.plugin['xep_0196'].stop()
         self.plugin_manager.disable_plugins()
         self.disconnect('%s received' % signals.get(sig))
         self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)

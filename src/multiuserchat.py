@@ -47,7 +47,7 @@ def destroy_room(xmpp, room, reason='', altroom=''):
                                   _('Info'))
         else:
             xmpp.core.information(_('Room %s destroyed') % room, _('Info'))
-    iq.send(block=False, callback=callback)
+    iq.send(callback=callback)
     return True
 
 def send_private_message(xmpp, jid, line):
@@ -142,7 +142,7 @@ def set_user_role(xmpp, jid, nick, reason, role, callback=None):
     iq.append(query)
     iq['to'] = jid
     if callback:
-        return iq.send(block=False, callback=callback)
+        return iq.send(callback=callback)
     try:
         return iq.send()
     except Exception as e:
@@ -168,7 +168,7 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
     iq = xmpp.makeIqSet(query)
     iq['to'] = muc_jid
     if callback:
-        return iq.send(block=False, callback=callback)
+        return iq.send(callback=callback)
     try:
         return xmpp.plugin['xep_0045'].setAffiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
     except:
@@ -182,7 +182,7 @@ def cancel_config(xmpp, room):
     query.append(x)
     iq = xmpp.makeIqSet(query)
     iq['to'] = room
-    iq.send(block=False)
+    iq.send()
 
 def configure_room(xmpp, room, form):
     if form is None:
@@ -193,5 +193,5 @@ def configure_room(xmpp, room, form):
     form = form.getXML('submit')
     query.append(form)
     iq.append(query)
-    iq.send(block=False)
+    iq.send()
 

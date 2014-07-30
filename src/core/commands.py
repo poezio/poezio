@@ -815,11 +815,11 @@ def command_quit(self, arg=''):
     else:
         msg = None
     if config.get('enable_user_mood', True):
-        self.xmpp.plugin['xep_0107'].stop(block=False)
+        self.xmpp.plugin['xep_0107'].stop()
     if config.get('enable_user_activity', True):
-        self.xmpp.plugin['xep_0108'].stop(block=False)
+        self.xmpp.plugin['xep_0108'].stop()
     if config.get('enable_user_gaming', True):
-        self.xmpp.plugin['xep_0196'].stop(block=False)
+        self.xmpp.plugin['xep_0196'].stop()
     self.save_config()
     self.plugin_manager.disable_plugins()
     self.disconnect(msg)
