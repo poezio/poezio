@@ -12,7 +12,6 @@ Starting point of poezio. Launches both the Connection and Gui
 
 import sys
 import os
-import asyncio
 import signal
 import logging
 
@@ -57,17 +56,19 @@ def main():
     if options.debug:
         cocore.debug = True
     cocore.start()
+
+    # Warning: asyncio must always be imported after the config. Otherwise
+    # the asyncio logger will not follow our configuration and won't write
+    # the tracebacks in the correct file, etc
+    import asyncio
+    asyncio.get_event_loop().add_reader(sys.stdin, cocore.on_input_readable)
+    cocore.xmpp.start()
+    asyncio.get_event_loop().run_forever()
+    # We reach this point only when loop.stop() is called
     try:
-        if not cocore.xmpp.start():  # Connect to remote server
-            cocore.on_failed_connection()
-    except:
-        cocore.running = False
         cocore.reset_curses()
-        print("Poezio could not start, maybe you tried aborting it while it was starting?\n"
-                "If you think it is abnormal, please run it with the -d option and report the bug.")
-    else:
-        log.error('------------------------ new poezio start ------------------------')
-        cocore.main_loop()    # Refresh the screen, wait for user events etc
+    except:
+        pass
 
 if __name__ == '__main__':
     main()
