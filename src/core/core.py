@@ -262,8 +262,6 @@ class Core(object):
 
         self.initial_joins = []
 
-        self.timed_events = set()
-
         self.connected_events = {}
 
         self.pending_invites = {}
@@ -749,22 +747,13 @@ class Core(object):
 
     def remove_timed_event(self, event):
         """Remove an existing timed event"""
-        if event and event in self.timed_events:
-            self.timed_events.remove(event)
+        event.handler.cancel()
 
     def add_timed_event(self, event):
         """Add a new timed event"""
-        self.timed_events.add(event)
-
-    def check_timed_events(self):
-        """Check for the execution of timed events"""
-        now = datetime.now()
-        for event in self.timed_events:
-            if event.has_timed_out(now):
-                res = event()
-                if not res:
-                    self.timed_events.remove(event)
-                    break
+        event.handler = asyncio.get_event_loop().call_later(event.delay,
+                                                            event.callback,
+                                                            *event.args)
 
 ####################### XMPP-related actions ##################################
 
@@ -1628,9 +1617,6 @@ class Core(object):
         a non-None value), but we check for timed events instead.
         """
         res = self.keyboard.get_user_input(self.stdscr)
-        while res is None:
-            self.check_timed_events()
-            res = self.keyboard.get_user_input(self.stdscr)
         return res
 
     def escape_next_key(self):

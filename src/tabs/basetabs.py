@@ -624,17 +624,12 @@ class ChatTab(Tab):
         """
         if not config.get_by_tabname('send_chat_states', True, self.general_jid, True):
             return
-        if self.timed_event_paused:
-            # check the weakref
-            event = self.timed_event_paused()
-            if event:
-                # the event already exists: we just update
-                # its date
-                event.change_date(datetime.now() + timedelta(seconds=4))
-                return
+        # First, cancel the delay if it already exists, before rescheduling
+        # it at a new date
+        self.cancel_paused_delay()
         new_event = timed_events.DelayedEvent(4, self.send_chat_state, 'paused')
         self.core.add_timed_event(new_event)
-        self.timed_event_paused = weakref.ref(new_event)
+        self.timed_event_paused = new_event
 
     def cancel_paused_delay(self):
         """
@@ -642,12 +637,9 @@ class ChatTab(Tab):
         Called for example when the input is emptied, or when the message
         is sent
         """
-        if self.timed_event_paused:
-            event = self.timed_event_paused()
-            if event:
-                self.core.remove_timed_event(event)
-                del event
-        self.timed_event_paused = None
+        if self.timed_event_paused is not None:
+            self.core.remove_timed_event(self.timed_event_paused)
+            self.timed_event_paused = None
 
     def command_correct(self, line):
         """
