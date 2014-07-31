@@ -61,7 +61,9 @@ def main():
     # the asyncio logger will not follow our configuration and won't write
     # the tracebacks in the correct file, etc
     import asyncio
+
     asyncio.get_event_loop().add_reader(sys.stdin, cocore.on_input_readable)
+    asyncio.get_event_loop().add_signal_handler(signal.SIGWINCH, cocore.sigwinch_handler)
     cocore.xmpp.start()
     asyncio.get_event_loop().run_forever()
     # We reach this point only when loop.stop() is called

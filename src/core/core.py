@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 import asyncio
 import collections
+import shutil
 import curses
 import os
 import pipes
@@ -482,6 +483,27 @@ class Core(object):
             pass
         sys.__excepthook__(typ, value, trace)
 
+    def sigwinch_handler(self):
+        """A work-around for ncurses resize stuff, which sucks. Normally, ncurses
+        catches SIGWINCH itself. In its signal handler, it updates the
+        windows structures (for example the size, etc) and it
+        ungetch(KEY_RESIZE). That way, the next time we call getch() we know
+        that a resize occured and we can act on it. BUT poezio doesn’t call
+        getch() until it knows it will return something. The problem is we
+        can’t know that, because stdin is not affected by this KEY_RESIZE
+        value (it is only inserted in a ncurses internal fifo that we can’t
+        access).
+
+        The (ugly) solution is to handle SIGWINCH ourself, trigger the
+        change of the internal windows sizes stored in ncurses module, using
+        sizes that we get using shutil, ungetch the KEY_RESIZE value and
+        then call getch to handle the resize on poezio’s side properly.
+        """
+        size = shutil.get_terminal_size()
+        curses.resizeterm(size.lines, size.columns)
+        curses.ungetch(curses.KEY_RESIZE)
+        self.on_input_readable()
+
     def on_input_readable(self):
         """
         main loop waiting for the user to press a key
@@ -562,8 +584,8 @@ class Core(object):
                     self.do_command(replace_line_breaks(char), False)
             else:
                 self.do_command(''.join(char_list), True)
-        self.doupdate()
         self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
+        self.doupdate()
 
     def save_config(self):
         """
