@@ -27,9 +27,7 @@ class Plugin(BasePlugin):
         msg = _("Day changed to %s") % (datetime.date.today().isoformat())
 
         for tab in self.core.tabs:
-            if (isinstance(tab, tabs.MucTab) or
-                isinstance(tab, tabs.PrivateTab) or
-                isinstance(tab, tabs.ConversationTab)):
+            if isinstance(tab, tabs.ChatTab):
                 tab.add_message(msg)
 
         self.core.refresh_window()
