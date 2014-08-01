@@ -305,6 +305,8 @@ class Core(object):
                                        theming.update_themes_dir)
         self.add_configuration_handler("theme",
                                        self.on_theme_config_change)
+        self.add_configuration_handler("password",
+                                       self.on_password_change)
 
         self.add_configuration_handler("", self.on_any_config_change)
 
@@ -381,6 +383,12 @@ class Core(object):
         if error_msg:
             self.information(error_msg, 'Warning')
         self.refresh_window()
+
+    def on_password_change(self, option, value):
+        """
+        Set the new password in the slixmpp.ClientXMPP object
+        """
+        self.xmpp.password = value
 
     def sigusr_handler(self, num, stack):
         """
