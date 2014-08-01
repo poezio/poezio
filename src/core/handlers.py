@@ -221,7 +221,7 @@ def on_normal_message(self, message):
         return
 
     conversation = self.get_conversation_by_jid(conv_jid, create=True)
-    if isinstance(conversation, tabs.DynamicConversationTab):
+    if isinstance(conversation, tabs.DynamicConversationTab) and conv_jid.resource:
         conversation.lock(conv_jid.resource)
 
     if not own and not conversation.nick:
