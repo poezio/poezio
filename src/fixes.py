@@ -37,20 +37,20 @@ def get_version(xmpp, jid, callback=None, **kwargs):
         return handle_result(result)
 
 
-def get_room_form(xmpp, room):
+def get_room_form(xmpp, room, callback):
+    def _cb(result):
+        if result["type"] == "error":
+            callback(None)
+        xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
+        if xform is None:
+            callback(None)
+        form = xmpp.plugin['xep_0004'].buildForm(xform)
+        callback(form)
+
     iq = xmpp.make_iq_get(ito=room)
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
     iq.append(query)
-    try:
-        result = iq.send()
-    except:
-        return False
-    xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
-    if xform is None:
-        return False
-    form = xmpp.plugin['xep_0004'].buildForm(xform)
-    return form
-
+    iq.send(callback=_cb)
 
 def _filter_add_receipt_request(self, stanza):
     """

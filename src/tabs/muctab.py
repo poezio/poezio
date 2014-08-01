@@ -361,13 +361,15 @@ class MucTab(ChatTab):
         """
         /configure
         """
-        form = fixes.get_room_form(self.core.xmpp, self.name)
-        if not form:
-            self.core.information(
+        def on_form_received(form):
+            if not form:
+                self.core.information(
                     _('Could not retrieve the configuration form'),
                     _('Error'))
-            return
-        self.core.open_new_form(form, self.cancel_config, self.send_config)
+                return
+            self.core.open_new_form(form, self.cancel_config, self.send_config)
+
+        form = fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
 
     def cancel_config(self, form):
         """
