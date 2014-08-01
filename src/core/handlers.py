@@ -828,6 +828,9 @@ def on_disconnected(self, event):
     for tab in self.get_tabs(tabs.MucTab):
         tab.disconnect()
     self.information(_("Disconnected from server."), _('Error'))
+    if not self.legitimate_disconnect and config.get('auto_reconnect', False):
+        self.information(_("Auto-reconnecting."), _('Info'))
+        self.xmpp.connect()
 
 def on_failed_all_auth(self, event):
     """
@@ -835,6 +838,7 @@ def on_failed_all_auth(self, event):
     """
     self.information(_("Authentication failed (bad credentials?)."),
                      _('Error'))
+    self.legitimate_disconnect = True
 
 def on_no_auth(self, event):
     """
@@ -842,12 +846,19 @@ def on_no_auth(self, event):
     """
     self.information(_("Authentication failed, no login method available."),
                      _('Error'))
+    self.legitimate_disconnect = True
 
 def on_connected(self, event):
     """
     Remote host responded, but we are not yet authenticated
     """
     self.information(_("Connected to server."), 'Info')
+
+def on_connecting(self, event):
+    """
+    Just before we try to connect to the server
+    """
+    self.legitimate_disconnect = False
 
 def on_session_start(self, event):
     """

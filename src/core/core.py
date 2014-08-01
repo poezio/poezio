@@ -110,6 +110,13 @@ class Core(object):
 
         self.size = SizeManager(self, windows.Win)
 
+        # Set to True whenever we consider that we have been disconnected
+        # from the server because of a legitimate reason (bad credentials,
+        # or explicit disconnect from the user for example), in that case we
+        # should not try to auto-reconnect, even if auto_reconnect is true
+        # in the user config.
+        self.legitimate_disconnect = False
+
         # global commands, available from all tabs
         # a command is tuple of the form:
         # (the function executing the command. Takes a string as argument,
@@ -190,6 +197,7 @@ class Core(object):
         self.key_func.update(key_func)
 
         # Add handlers
+        self.xmpp.add_event_handler('connecting', self.on_connecting)
         self.xmpp.add_event_handler('connected', self.on_connected)
         self.xmpp.add_event_handler('connection_failed', self.on_failed_connection)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
@@ -793,6 +801,7 @@ class Core(object):
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
+        self.legitimate_disconnect = True
         msg = msg or ''
         for tab in self.get_tabs(tabs.MucTab):
             tab.command_part(msg)
@@ -1900,6 +1909,7 @@ class Core(object):
     on_failed_all_auth = handlers.on_failed_all_auth
     on_no_auth = handlers.on_no_auth
     on_connected = handlers.on_connected
+    on_connecting = handlers.on_connecting
     on_session_start = handlers.on_session_start
     on_status_codes = handlers.on_status_codes
     on_groupchat_subject = handlers.on_groupchat_subject
