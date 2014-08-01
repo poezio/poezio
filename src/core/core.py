@@ -598,7 +598,8 @@ class Core(object):
                     self.do_command(replace_line_breaks(char), False)
             else:
                 self.do_command(''.join(char_list), True)
-        self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
+        if self.status.show not in ('xa', 'away'):
+            self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
         self.doupdate()
 
     def save_config(self):
