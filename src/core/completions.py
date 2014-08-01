@@ -106,22 +106,7 @@ def completion_join(self, the_input):
     if the_input.last_completion:
         return the_input.new_completion([], 1, quotify=True)
 
-    if jid.server and not jid.user:
-        # no room was given: complete the node
-        try:
-            response = self.xmpp.plugin['xep_0030'].get_items(jid=jid.server, block=True, timeout=1)
-        except:
-            log.error('/join completion: Unable to get the list of rooms for %s',
-                    jid.server,
-                    exc_info=True)
-            response = None
-        if response:
-            items = response['disco_items'].get_items()
-        else:
-            return True
-        items = sorted('%s/%s' % (tup[0], jid.resource) for tup in items)
-        return the_input.new_completion(items, 1, quotify=True, override=True)
-    elif jid.user:
+    if jid.user:
         # we are writing the server: complete the server
         serv_list = []
         for tab in self.get_tabs(tabs.MucTab):

@@ -726,7 +726,7 @@ class OneToOneTab(ChatTab):
         "check the features supported by the other party"
         if safeJID(self.get_dest_jid()).resource:
             self.core.xmpp.plugin['xep_0030'].get_info(
-                    jid=self.get_dest_jid(), block=False, timeout=5,
+                    jid=self.get_dest_jid(), timeout=5,
                     callback=self.features_checked)
 
     def command_attention(self, message=''):

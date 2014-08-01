@@ -12,14 +12,15 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def has_identity(xmpp, jid, identity):
-    try:
-        iq = xmpp.plugin['xep_0030'].get_info(jid=jid, block=True, timeout=1)
+def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
+    def _cb(iq):
         ident = lambda x: x[0]
-        return identity in map(ident, iq['disco_info']['identities'])
-    except:
-        log.debug('Traceback while retrieving identity', exc_info=True)
-    return False
+        res = identity in map(ident, iq['disco_info']['identities'])
+        if res and on_true is not None:
+            on_true()
+        if not res and on_false is not None:
+            on_false()
+    xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
 
 def get_version(xmpp, jid, callback=None, **kwargs):
     def handle_result(res):

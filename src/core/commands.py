@@ -275,7 +275,6 @@ def command_list(self, arg):
     self.add_tab(list_tab, True)
     cb = list_tab.on_muc_list_item_received
     self.xmpp.plugin['xep_0030'].get_items(jid=server,
-                                           block=False,
                                            callback=cb)
 
 def command_version(self, arg):
@@ -695,7 +694,6 @@ def command_last_activity(self, arg):
     if jid == '':
         return self.command_help('last_activity')
     self.xmpp.plugin['xep_0012'].get_last_activity(jid,
-                                                   block=False,
                                                    callback=callback)
 
 def command_mood(self, arg):
@@ -704,7 +702,8 @@ def command_mood(self, arg):
     """
     args = common.shell_split(arg)
     if not args:
-        return self.xmpp.plugin['xep_0107'].stop(block=False)
+        self.xmpp.plugin['xep_0107'].stop()
+        return
     mood = args[0]
     if mood not in pep.MOODS:
         return self.information(_('%s is not a correct value for a mood.')
@@ -714,10 +713,8 @@ def command_mood(self, arg):
         text = args[1]
     else:
         text = None
-    self.xmpp.plugin['xep_0107'].publish_mood(mood,
-                                              text,
-                                              callback=dumb_callback,
-                                              block=False)
+    self.xmpp.plugin['xep_0107'].publish_mood(mood, text,
+                                              callback=dumb_callback)
 
 def command_activity(self, arg):
     """
@@ -726,7 +723,8 @@ def command_activity(self, arg):
     args = common.shell_split(arg)
     length = len(args)
     if not length:
-        return self.xmpp.plugin['xep_0108'].stop(block=False)
+        self.xmpp.plugin['xep_0108'].stop()
+        return
     general = args[0]
     if general not in pep.ACTIVITIES:
         return self.information(_('%s is not a correct value for an activity')
@@ -746,11 +744,8 @@ def command_activity(self, arg):
         return self.information(_('%s is not a correct value '
                                   'for an activity') % specific,
                                 _('Error'))
-    self.xmpp.plugin['xep_0108'].publish_activity(general,
-                                                  specific,
-                                                  text,
-                                                  callback=dumb_callback,
-                                                  block=False)
+    self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
+                                                  callback=dumb_callback)
 
 def command_gaming(self, arg):
     """
@@ -758,7 +753,8 @@ def command_gaming(self, arg):
     """
     args = common.shell_split(arg)
     if not args:
-        return self.xmpp.plugin['xep_0196'].stop(block=False)
+        self.xmpp.plugin['xep_0196'].stop()
+        return
     name = args[0]
     if len(args) > 1:
         address = args[1]
@@ -766,8 +762,7 @@ def command_gaming(self, arg):
         address = None
     return self.xmpp.plugin['xep_0196'].publish_gaming(name=name,
                                                        server_address=address,
-                                                       callback=dumb_callback,
-                                                       block=False)
+                                                       callback=dumb_callback)
 
 def command_invite(self, arg):
     """/invite <to> <room> [reason]"""
@@ -956,9 +951,7 @@ def command_adhoc(self, arg):
     list_tab = tabs.AdhocCommandsListTab(jid)
     self.add_tab(list_tab, True)
     cb = list_tab.on_list_received
-    self.xmpp.plugin['xep_0050'].get_commands(jid=jid,
-                                              local=False,
-                                              block=False,
+    self.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
                                               callback=cb)
 
 def command_self(self, arg=None):

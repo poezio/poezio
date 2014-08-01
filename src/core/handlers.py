@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 import curses
 import ssl
 import time
+import functools
 from hashlib import sha1
 from gettext import gettext as _
 
@@ -48,47 +49,54 @@ def on_session_start_features(self, _):
             self.xmpp.plugin['xep_0280'].enable()
             self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
             self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
-    features = self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain, callback=callback, block=False)
+
+    self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain,
+                                          callback=callback)
 
 def on_carbon_received(self, message):
     """
     Carbon <received/> received
     """
+    def ignore_message(recv):
+        log.debug('%s has category conference, ignoring carbon',
+                  recv['from'].server)
+    def receive_message(recv):
+        recv['to'] = self.xmpp.boundjid.full
+        if recv['receipt']:
+            return self.on_receipt(recv)
+        self.on_normal_message(recv)
+
     recv = message['carbon_received']
     if (recv['from'].bare not in roster or
-            roster[recv['from'].bare].subscription == 'none'):
-        try:
-            if fixes.has_identity(self.xmpp, recv['from'].server,
-                                  identity='conference'):
-                log.debug('%s has category conference, ignoring carbon',
-                          recv['from'].server)
-                return
-        except:
-            log.debug('Traceback when getting the identity of a server:',
-                      exc_info=True)
-    recv['to'] = self.xmpp.boundjid.full
-    if recv['receipt']:
-        return self.on_receipt(recv)
-    self.on_normal_message(recv)
+        roster[recv['from'].bare].subscription == 'none'):
+        fixes.has_identity(self.xmpp, recv['from'].server,
+                           identity='conference',
+                           on_true=functools.partial(ignore_message, recv),
+                           on_false=functools.partial(receive_message, recv))
+        return
+    else:
+        receive_message(recv)
 
 def on_carbon_sent(self, message):
     """
     Carbon <sent/> received
     """
+    def ignore_message(sent):
+        log.debug('%s has category conference, ignoring carbon',
+                  sent['to'].server)
+    def send_message(sent):
+        sent['from'] = self.xmpp.boundjid.full
+        self.on_normal_message(sent)
+
     sent = message['carbon_sent']
     if (sent['to'].bare not in roster or
             roster[sent['to'].bare].subscription == 'none'):
-        try:
-            if fixes.has_identity(self.xmpp, sent['to'].server,
-                                  identity='conference'):
-                log.debug('%s has category conference, ignoring carbon',
-                          sent['to'].server)
-                return
-        except:
-            log.debug('Traceback when getting the identity of a server:',
-                      exc_info=True)
-    sent['from'] = self.xmpp.boundjid.full
-    self.on_normal_message(sent)
+        fixes.has_identity(self.xmpp, sent['to'].server,
+                           identity='conference',
+                           on_true=functools.partial(ignore_message, sent),
+                           on_false=functools.partial(send_message, sent))
+    else:
+        send_message(sent)
 
 ### Invites ###
 

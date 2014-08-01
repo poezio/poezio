@@ -187,7 +187,7 @@ class ConversationTab(OneToOneTab):
             self.add_message(msg)
             self.core.refresh_window()
 
-        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, block=False, callback=callback)
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, callback=callback)
 
     @refresh_wrapper.conditional
     def command_info(self, arg):

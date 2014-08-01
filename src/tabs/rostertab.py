@@ -175,7 +175,7 @@ class RosterInfoTab(Tab):
             jid = item.bare_jid
         elif isinstance(item, Resource):
             jid = item.jid.bare
-        self.core.xmpp.plugin['xep_0191'].block(jid, block=False, callback=callback)
+        self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
 
     def completion_block(self, the_input):
         """
@@ -202,22 +202,21 @@ class RosterInfoTab(Tab):
             jid = item.bare_jid
         elif isinstance(item, Resource):
             jid = item.jid.bare
-        self.core.xmpp.plugin['xep_0191'].unblock(jid, block=False, callback=callback)
+        self.core.xmpp.plugin['xep_0191'].unblock(jid, callback=callback)
 
     def completion_unblock(self, the_input):
         """
         Completion for /unblock
         """
+        def on_result(iq):
+            if iq['type'] == 'error':
+                return
+            l = sorted(str(item) for item in iq['blocklist']['items'])
+            return the_input.new_completion(l, 1, quotify=False)
+
         if the_input.get_argument_position():
-            try:
-                iq = self.core.xmpp.plugin['xep_0191'].get_blocked(block=True)
-            except Exception as e:
-                iq = e.iq
-            finally:
-                if iq['type'] == 'error':
-                    return
-                l = sorted(str(item) for item in iq['blocklist']['items'])
-                return the_input.new_completion(l, 1, quotify=False)
+            self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
+        return True
 
     def command_list_blocks(self, arg=None):
         """
@@ -235,7 +234,7 @@ class RosterInfoTab(Tab):
                 s = 'No blocked JIDs.'
             self.core.information(s, 'Info')
 
-        self.core.xmpp.plugin['xep_0191'].get_blocked(block=False, callback=callback)
+        self.core.xmpp.plugin['xep_0191'].get_blocked(callback=callback)
 
     def command_reconnect(self, args=None):
         """
@@ -422,8 +421,8 @@ class RosterInfoTab(Tab):
         if 'none' in groups:
             groups.remove('none')
         subscription = contact.subscription
-        self.core.xmpp.update_roster(jid, name=name, groups=groups, subscription=subscription,
-                callback=callback, block=False)
+        self.core.xmpp.update_roster(jid, name=name, groups=groups,
+                                     subscription=subscription, callback=callback)
 
     def command_groupadd(self, args):
         """
@@ -462,8 +461,8 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set.', 'Error')
                 log.debug('Error in groupadd:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
-                callback=callback, block=False)
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
+                                     subscription=subscription, callback=callback)
 
     def command_groupmove(self, arg):
         """
@@ -517,8 +516,8 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set')
                 log.debug('Error in groupmove:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
-                callback=callback, block=False)
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
+                                     subscription=subscription, callback=callback)
 
     def command_groupremove(self, args):
         """
@@ -557,8 +556,8 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set')
                 log.debug('Error in groupremove:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups, subscription=subscription,
-                callback=callback, block=False)
+        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
+                                     subscription=subscription, callback=callback)
 
     def command_remove(self, args):
         """

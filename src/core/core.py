@@ -849,8 +849,8 @@ class Core(object):
                 self.xmpp.plugin['xep_0045'].invite(room, jid,
                         reason=reason or '')
 
-        self.xmpp.plugin['xep_0030'].get_info(jid=jid, block=False,
-                timeout=5, callback=callback)
+        self.xmpp.plugin['xep_0030'].get_info(jid=jid, timeout=5,
+                                              callback=callback)
 
     def get_error_message(self, stanza, deprecated=False):
         """
