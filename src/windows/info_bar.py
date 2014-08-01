@@ -53,13 +53,13 @@ class GlobalInfoBar(Win):
                 self.addstr("|", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             except:             # end of line
                 break
-            (y, x) = self._win.getyx()
-            self.addstr(y, x-1, '] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            (y, x) = self._win.getyx()
-            remaining_size = self.width - x
-            self.addnstr(' '*remaining_size, remaining_size,
-                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            self._refresh()
+        (y, x) = self._win.getyx()
+        self.addstr(y, x-1, '] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        (y, x) = self._win.getyx()
+        remaining_size = self.width - x
+        self.addnstr(' '*remaining_size, remaining_size,
+                     to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self._refresh()
 
 class VerticalGlobalInfoBar(Win):
     def __init__(self, scr):
