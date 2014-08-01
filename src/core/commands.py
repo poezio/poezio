@@ -945,7 +945,7 @@ def command_adhoc(self, arg):
     if len(arg) > 1:
         return self.command_help('list')
     elif arg:
-        jid = safeJID(arg[0]).server
+        jid = safeJID(arg[0])
     else:
         return self.information('Please provide a jid', 'Error')
     list_tab = tabs.AdhocCommandsListTab(jid)
