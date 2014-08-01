@@ -447,12 +447,9 @@ class ChatTab(Tab):
         self.text_win = None
         self._text_buffer = TextBuffer()
         self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
-        # We keep a weakref of the event that will set our chatstate to "paused", so that
+        # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
         self.timed_event_paused = None
-        # if that’s None, then no paused chatstate was sent recently
-        # if that’s a weakref returning None, then a paused chatstate was sent
-        # since the last input
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
         self.last_sent_message = None
         self.key_func['M-v'] = self.move_separator

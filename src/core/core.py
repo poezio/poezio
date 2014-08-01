@@ -1599,9 +1599,9 @@ class Core(object):
         Called when we want to resize the screen
         """
         # If we have the tabs list on the left, we just give a truncated
-        # window to each Tab class, so the draw themself in the portion
-        # of the screen that the can occupy, and we draw the tab list
-        # on the left remaining space
+        # window to each Tab class, so they draw themself in the portion of
+        # the screen that they can occupy, and we draw the tab list on the
+        # remaining space, on the left
         with g_lock:
             height, width = self.stdscr.getmaxyx()
         if (config.get('enable_vertical_tab_list', False) and
