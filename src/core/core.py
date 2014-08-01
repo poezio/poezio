@@ -193,7 +193,7 @@ class Core(object):
         self.xmpp.add_event_handler('connected', self.on_connected)
         self.xmpp.add_event_handler('connection_failed', self.on_failed_connection)
         self.xmpp.add_event_handler('disconnected', self.on_disconnected)
-        self.xmpp.add_event_handler('failed_auth', self.on_failed_auth)
+        self.xmpp.add_event_handler('failed_all_auth', self.on_failed_all_auth)
         self.xmpp.add_event_handler('no_auth', self.on_no_auth)
         self.xmpp.add_event_handler("session_start", self.on_session_start)
         self.xmpp.add_event_handler("session_start",
@@ -1897,7 +1897,7 @@ class Core(object):
     on_groupchat_presence = handlers.on_groupchat_presence
     on_failed_connection = handlers.on_failed_connection
     on_disconnected = handlers.on_disconnected
-    on_failed_auth = handlers.on_failed_auth
+    on_failed_all_auth = handlers.on_failed_all_auth
     on_no_auth = handlers.on_no_auth
     on_connected = handlers.on_connected
     on_session_start = handlers.on_session_start

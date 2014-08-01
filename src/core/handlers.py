@@ -829,7 +829,7 @@ def on_disconnected(self, event):
         tab.disconnect()
     self.information(_("Disconnected from server."), _('Error'))
 
-def on_failed_auth(self, event):
+def on_failed_all_auth(self, event):
     """
     Authentication failed
     """
