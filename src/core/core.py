@@ -46,7 +46,6 @@ from roster import roster
 from size_manager import SizeManager
 from text_buffer import TextBuffer
 from theming import get_theme
-from windows import g_lock
 
 from . import completions
 from . import commands
@@ -1540,41 +1539,39 @@ class Core(object):
         """
         Resize the global_information_win only once at each resize.
         """
-        with g_lock:
-            if self.information_win_size > tabs.Tab.height - 6:
-                self.information_win_size = tabs.Tab.height - 6
-            if tabs.Tab.height < 6:
-                self.information_win_size = 0
-            height = (tabs.Tab.height - 1 - self.information_win_size
-                            - tabs.Tab.tab_win_height())
-            self.information_win.resize(self.information_win_size,
-                                        tabs.Tab.width,
-                                        height,
-                                        0)
+        if self.information_win_size > tabs.Tab.height - 6:
+            self.information_win_size = tabs.Tab.height - 6
+        if tabs.Tab.height < 6:
+            self.information_win_size = 0
+        height = (tabs.Tab.height - 1 - self.information_win_size
+                        - tabs.Tab.tab_win_height())
+        self.information_win.resize(self.information_win_size,
+                                    tabs.Tab.width,
+                                    height,
+                                    0)
 
     def resize_global_info_bar(self):
         """
         Resize the GlobalInfoBar only once at each resize
         """
-        with g_lock:
-            height, width = self.stdscr.getmaxyx()
-            if config.get('enable_vertical_tab_list', False):
+        height, width = self.stdscr.getmaxyx()
+        if config.get('enable_vertical_tab_list', False):
 
-                if self.size.core_degrade_x:
-                    return
-                try:
-                    height, _ = self.stdscr.getmaxyx()
-                    truncated_win = self.stdscr.subwin(height,
-                            config.get('vertical_tab_list_size', 20),
-                            0, 0)
-                except:
-                    log.error('Curses error on infobar resize', exc_info=True)
-                    return
-                self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
-            elif not self.size.core_degrade_y:
-                    self.tab_win.resize(1, tabs.Tab.width,
-                                        tabs.Tab.height - 2, 0)
-                    self.left_tab_win = None
+            if self.size.core_degrade_x:
+                return
+            try:
+                height, _ = self.stdscr.getmaxyx()
+                truncated_win = self.stdscr.subwin(height,
+                        config.get('vertical_tab_list_size', 20),
+                        0, 0)
+            except:
+                log.error('Curses error on infobar resize', exc_info=True)
+                return
+            self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
+        elif not self.size.core_degrade_y:
+                self.tab_win.resize(1, tabs.Tab.width,
+                                    tabs.Tab.height - 2, 0)
+                self.left_tab_win = None
 
     def add_message_to_text_buffer(self, buff, txt,
                                    time=None, nickname=None, history=None):
@@ -1602,30 +1599,27 @@ class Core(object):
         # window to each Tab class, so they draw themself in the portion of
         # the screen that they can occupy, and we draw the tab list on the
         # remaining space, on the left
-        with g_lock:
-            height, width = self.stdscr.getmaxyx()
+        height, width = self.stdscr.getmaxyx()
         if (config.get('enable_vertical_tab_list', False) and
                 not self.size.core_degrade_x):
-            with g_lock:
-                try:
-                    scr = self.stdscr.subwin(0,
-                            config.get('vertical_tab_list_size', 20))
-                except:
-                    log.error('Curses error on resize', exc_info=True)
-                    return
+            try:
+                scr = self.stdscr.subwin(0,
+                        config.get('vertical_tab_list_size', 20))
+            except:
+                log.error('Curses error on resize', exc_info=True)
+                return
         else:
             scr = self.stdscr
         tabs.Tab.resize(scr)
         self.resize_global_info_bar()
         self.resize_global_information_win()
-        with g_lock:
-            for tab in self.tabs:
-                if config.get('lazy_resize', True):
-                    tab.need_resize = True
-                else:
-                    tab.resize()
-            if self.tabs:
-                self.full_screen_redraw()
+        for tab in self.tabs:
+            if config.get('lazy_resize', True):
+                tab.need_resize = True
+            else:
+                tab.resize()
+        if self.tabs:
+            self.full_screen_redraw()
 
     def read_keyboard(self):
         """

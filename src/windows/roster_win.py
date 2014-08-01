@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 from datetime import datetime
 
-from . import Win, g_lock
+from . import Win
 
 import common
 from config import config
@@ -89,39 +89,39 @@ class RosterWin(Win):
         """
         Regenerates the roster cache if needed
         """
-        with g_lock:
-            if roster.needs_rebuild:
-                log.debug('The roster has changed, rebuilding the cache…')
-                # This is a search
-                if roster.contact_filter:
-                    self.roster_cache = []
-                    sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-                    for contact in roster.get_contacts_sorted_filtered(sort):
-                        self.roster_cache.append(contact)
-                else:
-                    show_offline = config.get('roster_show_offline', False) or roster.contact_filter
-                    sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-                    group_sort = config.get('roster_group_sort', 'name') or 'name'
-                    self.roster_cache = []
-                    # build the cache
-                    for group in roster.get_groups(group_sort):
-                        contacts_filtered = group.get_contacts(roster.contact_filter)
-                        if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
-                            continue    # Ignore empty groups
-                        self.roster_cache.append(group)
-                        if group.folded:
-                            continue # ignore folded groups
-                        for contact in group.get_contacts(roster.contact_filter, sort):
-                            if not show_offline and len(contact) == 0:
-                                continue # ignore offline contacts
-                            self.roster_cache.append(contact)
-                            if not contact.folded(group.name):
-                                for resource in contact.get_resources():
-                                    self.roster_cache.append(resource)
-                roster.last_built = datetime.now()
-                if self.selected_row in self.roster_cache:
-                    if self.pos < self.roster_len and self.roster_cache[self.pos] != self.selected_row:
-                        self.pos = self.roster_cache.index(self.selected_row)
+        if not roster.needs_rebuild:
+            return
+        log.debug('The roster has changed, rebuilding the cache…')
+        # This is a search
+        if roster.contact_filter:
+            self.roster_cache = []
+            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+            for contact in roster.get_contacts_sorted_filtered(sort):
+                self.roster_cache.append(contact)
+        else:
+            show_offline = config.get('roster_show_offline', False) or roster.contact_filter
+            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+            group_sort = config.get('roster_group_sort', 'name') or 'name'
+            self.roster_cache = []
+            # build the cache
+            for group in roster.get_groups(group_sort):
+                contacts_filtered = group.get_contacts(roster.contact_filter)
+                if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
+                    continue    # Ignore empty groups
+                self.roster_cache.append(group)
+                if group.folded:
+                    continue # ignore folded groups
+                for contact in group.get_contacts(roster.contact_filter, sort):
+                    if not show_offline and len(contact) == 0:
+                        continue # ignore offline contacts
+                    self.roster_cache.append(contact)
+                    if not contact.folded(group.name):
+                        for resource in contact.get_resources():
+                            self.roster_cache.append(resource)
+        roster.last_built = datetime.now()
+        if self.selected_row in self.roster_cache:
+            if self.pos < self.roster_len and self.roster_cache[self.pos] != self.selected_row:
+                self.pos = self.roster_cache.index(self.selected_row)
 
     def refresh(self, roster):
         """
@@ -130,43 +130,42 @@ class RosterWin(Win):
         """
         log.debug('Refresh: %s', self.__class__.__name__)
         self.build_roster_cache(roster)
-        with g_lock:
-            # make sure we are within bounds
-            self.move_cursor_up((self.roster_len + self.pos) if self.pos >= self.roster_len else 0)
-            if not self.roster_cache:
-                self.selected_row = None
-            self._win.erase()
-            self._win.move(0, 0)
-            self.draw_roster_information(roster)
-            y = 1
-            group = "none"
-            # scroll down if needed
-            if self.start_pos+self.height <= self.pos+2:
-                self.scroll_down(self.pos - self.start_pos - self.height + (self.height//2))
-            # draw the roster from the cache
-            roster_view = self.roster_cache[self.start_pos-1:self.start_pos+self.height]
+        # make sure we are within bounds
+        self.move_cursor_up((self.roster_len + self.pos) if self.pos >= self.roster_len else 0)
+        if not self.roster_cache:
+            self.selected_row = None
+        self._win.erase()
+        self._win.move(0, 0)
+        self.draw_roster_information(roster)
+        y = 1
+        group = "none"
+        # scroll down if needed
+        if self.start_pos+self.height <= self.pos+2:
+            self.scroll_down(self.pos - self.start_pos - self.height + (self.height//2))
+        # draw the roster from the cache
+        roster_view = self.roster_cache[self.start_pos-1:self.start_pos+self.height]
 
-            for item in roster_view:
-                draw_selected = False
-                if y -2 + self.start_pos == self.pos:
-                    draw_selected = True
-                    self.selected_row = item
+        for item in roster_view:
+            draw_selected = False
+            if y -2 + self.start_pos == self.pos:
+                draw_selected = True
+                self.selected_row = item
 
-                if isinstance(item, RosterGroup):
-                    self.draw_group(y, item, draw_selected)
-                    group = item.name
-                elif isinstance(item, Contact):
-                    self.draw_contact_line(y, item, draw_selected, group)
-                elif isinstance(item, Resource):
-                    self.draw_resource_line(y, item, draw_selected)
+            if isinstance(item, RosterGroup):
+                self.draw_group(y, item, draw_selected)
+                group = item.name
+            elif isinstance(item, Contact):
+                self.draw_contact_line(y, item, draw_selected, group)
+            elif isinstance(item, Resource):
+                self.draw_resource_line(y, item, draw_selected)
 
-                y += 1
+            y += 1
 
-            if self.start_pos > 1:
-                self.draw_plus(1)
-            if self.start_pos + self.height-2 < self.roster_len:
-                self.draw_plus(self.height-1)
-            self._refresh()
+        if self.start_pos > 1:
+            self.draw_plus(1)
+        if self.start_pos + self.height-2 < self.roster_len:
+            self.draw_plus(self.height-1)
+        self._refresh()
 
 
     def draw_plus(self, y):
@@ -373,13 +372,11 @@ class ContactInfoWin(Win):
 
     def refresh(self, selected_row):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            if isinstance(selected_row, RosterGroup):
-                self.draw_group_info(selected_row)
-            elif isinstance(selected_row, Contact):
-                self.draw_contact_info(selected_row)
-            # elif isinstance(selected_row, Resource):
-            #     self.draw_contact_info(None, selected_row)
-            self._refresh()
-
+        self._win.erase()
+        if isinstance(selected_row, RosterGroup):
+            self.draw_group_info(selected_row)
+        elif isinstance(selected_row, Contact):
+            self.draw_contact_info(selected_row)
+        # elif isinstance(selected_row, Resource):
+        #     self.draw_contact_info(None, selected_row)
+        self._refresh()

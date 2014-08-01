@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from . import Win, g_lock
+from . import Win
 from theming import to_curses_attr, get_theme
 
 
@@ -86,26 +86,26 @@ class ListWin(Win):
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            lines = self.lines[self._starting_pos:self._starting_pos+self.height]
-            for y, line in enumerate(lines):
-                x = 0
-                for col in self._columns.items():
-                    try:
-                        txt = line[col[1]] or ''
-                    except KeyError:
-                        txt = ''
-                    size = self._columns_sizes[col[0]]
-                    txt += ' ' * (size-len(txt))
-                    if not txt:
-                        continue
-                    if line is self.lines[self._selected_row]:
-                        self.addstr(y, x, txt[:size], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-                    else:
-                        self.addstr(y, x, txt[:size])
-                    x += size
-            self._refresh()
+        self._win.erase()
+        lines = self.lines[self._starting_pos:self._starting_pos+self.height]
+        for y, line in enumerate(lines):
+            x = 0
+            for col in self._columns.items():
+                try:
+                    txt = line[col[1]] or ''
+                except KeyError:
+                    txt = ''
+                size = self._columns_sizes[col[0]]
+                txt += ' ' * (size-len(txt))
+                if not txt:
+                    continue
+                if line is self.lines[self._selected_row]:
+                    self.addstr(y, x, txt[:size],
+                                to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                else:
+                    self.addstr(y, x, txt[:size])
+                x += size
+        self._refresh()
 
     def move_cursor_down(self):
         """
@@ -175,25 +175,24 @@ class ColumnHeaderWin(Win):
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            x = 0
-            for col in self._columns:
-                txt = col
-                if col in self._column_order:
-                    if self._column_order_asc:
-                        txt += get_theme().CHAR_COLUMN_ASC
-                    else:
-                        txt += get_theme().CHAR_COLUMN_DESC
-                #⇓⇑↑↓⇧⇩▲▼
-                size = self._columns_sizes[col]
-                txt += ' ' * (size-len(txt))
-                if col in self._column_sel:
-                    self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
+        self._win.erase()
+        x = 0
+        for col in self._columns:
+            txt = col
+            if col in self._column_order:
+                if self._column_order_asc:
+                    txt += get_theme().CHAR_COLUMN_ASC
                 else:
-                    self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
-                x += size
-            self._refresh()
+                    txt += get_theme().CHAR_COLUMN_DESC
+            #⇓⇑↑↓⇧⇩▲▼
+            size = self._columns_sizes[col]
+            txt += ' ' * (size-len(txt))
+            if col in self._column_sel:
+                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
+            else:
+                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
+            x += size
+        self._refresh()
 
     def sel_column(self, dic):
         self._column_sel = dic

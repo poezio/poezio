@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 from common import safeJID
 
-from . import Win, g_lock
+from . import Win
 from . funcs import truncate_nick
 from theming import get_theme, to_curses_attr
 
@@ -39,17 +39,16 @@ class XMLInfoWin(InfoWin):
 
     def refresh(self, filter_t='', filter='', window=None):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            bar = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
-            if not filter_t:
-                self.addstr('[No filter]', bar)
-            else:
-                info = '[%s] %s' % (filter_t, filter)
-                self.addstr(info, bar)
-            self.print_scroll_position(window)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        bar = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
+        if not filter_t:
+            self.addstr('[No filter]', bar)
+        else:
+            info = '[%s] %s' % (filter_t, filter)
+            self.addstr(info, bar)
+        self.print_scroll_position(window)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
 class PrivateInfoWin(InfoWin):
     """
@@ -61,14 +60,13 @@ class PrivateInfoWin(InfoWin):
 
     def refresh(self, name, window, chatstate, informations):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            self.write_room_name(name)
-            self.print_scroll_position(window)
-            self.write_chatstate(chatstate)
-            self.write_additional_informations(informations, name)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        self.write_room_name(name)
+        self.print_scroll_position(window)
+        self.write_chatstate(chatstate)
+        self.write_additional_informations(informations, name)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
     def write_additional_informations(self, informations, jid):
         """
@@ -100,16 +98,15 @@ class MucListInfoWin(InfoWin):
 
     def refresh(self, name=None, window=None):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            if name:
-                self.addstr(name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            else:
-                self.addstr(self.message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            if window:
-                self.print_scroll_position(window)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        if name:
+            self.addstr(name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        else:
+            self.addstr(self.message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        if window:
+            self.print_scroll_position(window)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
 class ConversationInfoWin(InfoWin):
     """
@@ -138,16 +135,15 @@ class ConversationInfoWin(InfoWin):
         # If contact is a Contact, then
         # resource can now be a Resource: user is in the roster and online
         # or resource is None: user is in the roster but offline
-        with g_lock:
-            self._win.erase()
-            self.write_contact_jid(jid)
-            self.write_contact_informations(contact)
-            self.write_resource_information(resource)
-            self.print_scroll_position(window)
-            self.write_chatstate(chatstate)
-            self.write_additional_informations(informations, jid)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        self.write_contact_jid(jid)
+        self.write_contact_informations(contact)
+        self.write_resource_information(resource)
+        self.print_scroll_position(window)
+        self.write_chatstate(chatstate)
+        self.write_additional_informations(informations, jid)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
     def write_additional_informations(self, informations, jid):
         """
@@ -217,17 +213,16 @@ class MucInfoWin(InfoWin):
 
     def refresh(self, room, window=None):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            self.write_room_name(room)
-            self.write_participants_number(room)
-            self.write_own_nick(room)
-            self.write_disconnected(room)
-            self.write_role(room)
-            if window:
-                self.print_scroll_position(window)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        self.write_room_name(room)
+        self.write_participants_number(room)
+        self.write_own_nick(room)
+        self.write_disconnected(room)
+        self.write_role(room)
+        if window:
+            self.print_scroll_position(window)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
     def write_room_name(self, room):
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
@@ -289,12 +284,11 @@ class ConversationStatusMessageWin(InfoWin):
                 resource = contact.get_highest_priority_resource()
         else:
             resource = None
-        with g_lock:
-            self._win.erase()
-            if resource:
-                self.write_status_message(resource)
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        if resource:
+            self.write_status_message(resource)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
     def write_status_message(self, resource):
         self.addstr(resource.status, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))

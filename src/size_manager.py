@@ -3,8 +3,6 @@ Size Manager:
     used to check size boundaries of the whole window and
     specific tabs
 """
-from windows import g_lock
-
 THRESHOLD_WIDTH_DEGRADE = 45
 THRESHOLD_HEIGHT_DEGRADE = 10
 
@@ -27,26 +25,22 @@ class SizeManager(object):
 
     @property
     def tab_degrade_x(self):
-        with g_lock:
-            _, x = self.tab_scr.getmaxyx()
+        _, x = self.tab_scr.getmaxyx()
         return x < THRESHOLD_WIDTH_DEGRADE
 
     @property
     def tab_degrade_y(self):
-        with g_lock:
-            y, x = self.tab_scr.getmaxyx()
+        y, x = self.tab_scr.getmaxyx()
         return y < THRESHOLD_HEIGHT_DEGRADE
 
     @property
     def core_degrade_x(self):
-        with g_lock:
-            y, x = self.core_scr.getmaxyx()
+        y, x = self.core_scr.getmaxyx()
         return x < FULL_WIDTH_DEGRADE
 
     @property
     def core_degrade_y(self):
-        with g_lock:
-            y, x = self.core_scr.getmaxyx()
+        y, x = self.core_scr.getmaxyx()
         return y < FULL_HEIGHT_DEGRADE
 
 

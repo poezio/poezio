@@ -2,7 +2,8 @@
 Module exporting all the Windows, which are wrappers around curses wins
 used to display information on the screen
 """
-from . base_wins import Win, g_lock
+
+from . base_wins import Win
 from . data_forms import FormWin
 from . info_bar import GlobalInfoBar, VerticalGlobalInfoBar
 from . info_wins import InfoWin, XMLInfoWin, PrivateInfoWin, MucListInfoWin, \

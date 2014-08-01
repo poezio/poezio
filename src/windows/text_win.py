@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 import curses
 from math import ceil, log10
 
-from . import Win, g_lock
+from . import Win
 from . base_wins import FORMAT_CHAR, Line
 from . funcs import truncate_nick, parse_attrs
 
@@ -266,74 +266,73 @@ class TextWin(Win):
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
         with_timestamps = config.get("show_timestamps", True)
-        with g_lock:
-            self._win.move(0, 0)
-            self._win.erase()
-            for y, line in enumerate(lines):
-                if line:
-                    msg = line.msg
-                    if line.start_pos == 0:
-                        if msg.nick_color:
-                            color = msg.nick_color
-                        elif msg.user:
-                            color = msg.user.color
-                        else:
-                            color = None
-                        if with_timestamps:
-                            self.write_time(msg.str_time)
-                        if msg.ack:
-                            self.write_ack()
-                        if msg.me:
-                            self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
-                            self.addstr('* ')
-                            self.write_nickname(msg.nickname, color, msg.highlight)
-                            if msg.revisions:
-                                self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
-                                self.addstr('%d' % msg.revisions)
-                                self._win.attrset(0)
-                            self.addstr(' ')
-                        else:
-                            self.write_nickname(msg.nickname, color, msg.highlight)
-                            if msg.revisions:
-                                self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
-                                self.addstr('%d' % msg.revisions)
-                                self._win.attrset(0)
-                            self.addstr('> ')
-                if y != self.height-1:
-                    self.addstr('\n')
-            self._win.attrset(0)
-            for y, line in enumerate(lines):
-                if not line:
-                    self.write_line_separator(y)
-                else:
-                    offset = 0
-                    # Offset for the timestamp (if any) plus a space after it
+        self._win.move(0, 0)
+        self._win.erase()
+        for y, line in enumerate(lines):
+            if line:
+                msg = line.msg
+                if line.start_pos == 0:
+                    if msg.nick_color:
+                        color = msg.nick_color
+                    elif msg.user:
+                        color = msg.user.color
+                    else:
+                        color = None
                     if with_timestamps:
-                        offset += len(line.msg.str_time)
-                        if offset:
-                            offset += 1
+                        self.write_time(msg.str_time)
+                    if msg.ack:
+                        self.write_ack()
+                    if msg.me:
+                        self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
+                        self.addstr('* ')
+                        self.write_nickname(msg.nickname, color, msg.highlight)
+                        if msg.revisions:
+                            self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
+                            self.addstr('%d' % msg.revisions)
+                            self._win.attrset(0)
+                        self.addstr(' ')
+                    else:
+                        self.write_nickname(msg.nickname, color, msg.highlight)
+                        if msg.revisions:
+                            self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
+                            self.addstr('%d' % msg.revisions)
+                            self._win.attrset(0)
+                        self.addstr('> ')
+            if y != self.height-1:
+                self.addstr('\n')
+        self._win.attrset(0)
+        for y, line in enumerate(lines):
+            if not line:
+                self.write_line_separator(y)
+            else:
+                offset = 0
+                # Offset for the timestamp (if any) plus a space after it
+                if with_timestamps:
+                    offset += len(line.msg.str_time)
+                    if offset:
+                        offset += 1
 
-                    # Offset for the nickname (if any)
-                    # plus a space and a > after it
-                    if line.msg.nickname:
-                        offset += poopt.wcswidth(
-                                    truncate_nick(line.msg.nickname))
-                        if line.msg.me:
-                            offset += 3
-                        else:
-                            offset += 2
-                        offset += ceil(log10(line.msg.revisions + 1))
+                # Offset for the nickname (if any)
+                # plus a space and a > after it
+                if line.msg.nickname:
+                    offset += poopt.wcswidth(
+                                truncate_nick(line.msg.nickname))
+                    if line.msg.me:
+                        offset += 3
+                    else:
+                        offset += 2
+                    offset += ceil(log10(line.msg.revisions + 1))
 
-                        if line.msg.ack:
-                            offset += 1 + poopt.wcswidth(
-                                        get_theme().CHAR_ACK_RECEIVED)
+                    if line.msg.ack:
+                        offset += 1 + poopt.wcswidth(
+                                    get_theme().CHAR_ACK_RECEIVED)
 
-                    self.write_text(y, offset,
-                            line.prepend+line.msg.txt[line.start_pos:line.end_pos])
-                if y != self.height-1:
-                    self.addstr('\n')
-            self._win.attrset(0)
-            self._refresh()
+                self.write_text(y, offset,
+                        line.prepend+line.msg.txt[line.start_pos:line.end_pos])
+            if y != self.height-1:
+                self.addstr('\n')
+        self._win.attrset(0)
+        self._refresh()
 
     def write_line_separator(self, y):
         char = get_theme().CHAR_NEW_TEXT_SEPARATOR
@@ -385,23 +384,21 @@ class TextWin(Win):
             self.addstr(' ')
 
     def resize(self, height, width, y, x, room=None):
-        with g_lock:
-            if hasattr(self, 'width'):
-                old_width = self.width
-            else:
-                old_width = None
-            self._resize(height, width, y, x)
-            if room and self.width != old_width:
-                self.rebuild_everything(room)
+        if hasattr(self, 'width'):
+            old_width = self.width
+        else:
+            old_width = None
+        self._resize(height, width, y, x)
+        if room and self.width != old_width:
+            self.rebuild_everything(room)
 
-            # reposition the scrolling after resize
-            # (see #2450)
-            buf_size = len(self.built_lines)
-            if buf_size - self.pos < self.height:
-                self.pos = buf_size - self.height
-                if self.pos < 0:
-                    self.pos = 0
-
+        # reposition the scrolling after resize
+        # (see #2450)
+        buf_size = len(self.built_lines)
+        if buf_size - self.pos < self.height:
+            self.pos = buf_size - self.height
+            if self.pos < 0:
+                self.pos = 0
 
     def rebuild_everything(self, room):
         self.built_lines = []

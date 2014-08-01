@@ -10,7 +10,7 @@ import string
 
 import common
 import poopt
-from . import Win, g_lock
+from . import Win
 from . base_wins import format_chars
 from . funcs import find_first_format_char
 from config import config
@@ -494,25 +494,24 @@ class Input(Win):
         length of text to display, and the position of the cursor.
         """
         self.adjust_view_pos()
-        with g_lock:
-            text = self.text
-            self._win.erase()
-            if self.color:
-                self._win.attron(to_curses_attr(self.color))
-            displayed_text = text[self.view_pos:self.view_pos+self.width-1].replace('\t', '\x18')
-            self._win.attrset(0)
-            self.addstr_colored_lite(displayed_text)
-            # Fill the rest of the line with the input color
-            if self.color:
-                (_, x) = self._win.getyx()
-                size = self.width - x
-                self.addnstr(' ' * size, size, to_curses_attr(self.color))
-            self.addstr(0,
-                    poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
-            if self.color:
-                self._win.attroff(to_curses_attr(self.color))
-            curses.curs_set(1)
-            self._refresh()
+        text = self.text
+        self._win.erase()
+        if self.color:
+            self._win.attron(to_curses_attr(self.color))
+        displayed_text = text[self.view_pos:self.view_pos+self.width-1].replace('\t', '\x18')
+        self._win.attrset(0)
+        self.addstr_colored_lite(displayed_text)
+        # Fill the rest of the line with the input color
+        if self.color:
+            (_, x) = self._win.getyx()
+            size = self.width - x
+            self.addnstr(' ' * size, size, to_curses_attr(self.color))
+        self.addstr(0,
+                poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
+        if self.color:
+            self._win.attroff(to_curses_attr(self.color))
+        curses.curs_set(1)
+        self._refresh()
 
     def adjust_view_pos(self):
         """

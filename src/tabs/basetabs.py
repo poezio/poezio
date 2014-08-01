@@ -35,7 +35,6 @@ from decorators import refresh_wrapper
 from logger import logger
 from text_buffer import TextBuffer
 from theming import get_theme, dump_tuple
-from windows import g_lock
 
 
 # getters for tab colors (lambdas, so that they are dynamic)
@@ -187,9 +186,8 @@ class Tab(object):
 
     @staticmethod
     def resize(scr):
-        with g_lock:
-            Tab.height, Tab.width = scr.getmaxyx()
-            windows.Win._tab_win = scr
+        Tab.height, Tab.width = scr.getmaxyx()
+        windows.Win._tab_win = scr
 
     def missing_command_callback(self, command_name):
         """

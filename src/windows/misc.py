@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from . import Win, g_lock
+from . import Win
 from theming import get_theme, to_curses_attr
 
 class VerticalSeparator(Win):
@@ -19,9 +19,9 @@ class VerticalSeparator(Win):
         Win.__init__(self)
 
     def rewrite_line(self):
-        with g_lock:
-            self._win.vline(0, 0, curses.ACS_VLINE, self.height, to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
-            self._refresh()
+        self._win.vline(0, 0, curses.ACS_VLINE, self.height,
+                        to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+        self._refresh()
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
@@ -53,9 +53,8 @@ class SimpleTextWin(Win):
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
-        with g_lock:
-            self._win.erase()
-            for y, line in enumerate(self.built_lines):
-                self.addstr_colored(line, y, 0)
-            self._refresh()
+        self._win.erase()
+        for y, line in enumerate(self.built_lines):
+            self.addstr_colored(line, y, 0)
+        self._refresh()
 

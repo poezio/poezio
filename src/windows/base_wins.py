@@ -32,8 +32,6 @@ allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 # text_end are the position delimiting the text in this line.
 Line = collections.namedtuple('Line', 'msg start_pos end_pos prepend')
 
-g_lock = RLock()
-
 LINES_NB_LIMIT = 4096
 
 class DummyWin(object):
@@ -69,8 +67,7 @@ class Win(object):
         """
         Override if something has to be done on resize
         """
-        with g_lock:
-            self._resize(height, width, y, x)
+        self._resize(height, width, y, x)
 
     def _refresh(self):
         self._win.noutrefresh()

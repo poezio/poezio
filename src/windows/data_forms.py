@@ -6,7 +6,7 @@ does not inherit from the Win base class), as it will create the
 others when needed.
 """
 
-from . import g_lock, Win
+from . import Win
 from . inputs import Input
 
 from theming import to_curses_attr, get_theme
@@ -61,12 +61,11 @@ class ColoredLabel(Win):
         self.refresh()
 
     def refresh(self):
-        with g_lock:
-            self._win.erase()
-            self._win.attron(to_curses_attr(self.color))
-            self.addstr(0, 0, self.text)
-            self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
+        self._win.erase()
+        self._win.attron(to_curses_attr(self.color))
+        self.addstr(0, 0, self.text)
+        self._win.attroff(to_curses_attr(self.color))
+        self._refresh()
 
 
 class DummyInput(FieldInput, Win):
@@ -100,19 +99,18 @@ class BooleanWin(FieldInput, Win):
         self.refresh()
 
     def refresh(self):
-        with g_lock:
-            self._win.erase()
-            self._win.attron(to_curses_attr(self.color))
-            self.addnstr(0, 0, ' '*(8), self.width)
-            self.addstr(0, 2, "%s"%self.value)
-            self.addstr(0, 8, '→')
-            self.addstr(0, 0, '←')
-            if self.last_key == 'KEY_RIGHT':
-                self.addstr(0, 8, '')
-            else:
-                self.addstr(0, 0, '')
-            self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
+        self._win.erase()
+        self._win.attron(to_curses_attr(self.color))
+        self.addnstr(0, 0, ' '*(8), self.width)
+        self.addstr(0, 2, "%s"%self.value)
+        self.addstr(0, 8, '→')
+        self.addstr(0, 0, '←')
+        if self.last_key == 'KEY_RIGHT':
+            self.addstr(0, 8, '')
+        else:
+            self.addstr(0, 0, '')
+        self._win.attroff(to_curses_attr(self.color))
+        self._refresh()
 
     def reply(self):
         self._field['label'] = ''
@@ -166,18 +164,17 @@ class TextMultiWin(FieldInput, Win):
 
     def refresh(self):
         if not self.edition_input:
-            with g_lock:
-                self._win.erase()
-                self._win.attron(to_curses_attr(self.color))
-                self.addnstr(0, 0, ' '*self.width, self.width)
-                option = self.options[self.val_pos]
-                self.addstr(0, self.width//2-len(option)//2, option)
-                if self.val_pos > 0:
-                    self.addstr(0, 0, '←')
-                if self.val_pos < len(self.options)-1:
-                    self.addstr(0, self.width-1, '→')
-                self._win.attroff(to_curses_attr(self.color))
-                self._refresh()
+            self._win.erase()
+            self._win.attron(to_curses_attr(self.color))
+            self.addnstr(0, 0, ' '*self.width, self.width)
+            option = self.options[self.val_pos]
+            self.addstr(0, self.width//2-len(option)//2, option)
+            if self.val_pos > 0:
+                self.addstr(0, 0, '←')
+            if self.val_pos < len(self.options)-1:
+                self.addstr(0, self.width-1, '→')
+            self._win.attroff(to_curses_attr(self.color))
+            self._refresh()
         else:
             self.edition_input.refresh()
 
@@ -219,20 +216,19 @@ class ListMultiWin(FieldInput, Win):
         self.refresh()
 
     def refresh(self):
-        with g_lock:
-            self._win.erase()
-            self._win.attron(to_curses_attr(self.color))
-            self.addnstr(0, 0, ' '*self.width, self.width)
-            if self.val_pos > 0:
-                self.addstr(0, 0, '←')
-            if self.val_pos < len(self.options)-1:
-                self.addstr(0, self.width-1, '→')
-            if self.options:
-                option = self.options[self.val_pos]
-                self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
-                self.addstr(0, 2, '✔' if option[1] else '☐')
-            self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
+        self._win.erase()
+        self._win.attron(to_curses_attr(self.color))
+        self.addnstr(0, 0, ' '*self.width, self.width)
+        if self.val_pos > 0:
+            self.addstr(0, 0, '←')
+        if self.val_pos < len(self.options)-1:
+            self.addstr(0, self.width-1, '→')
+        if self.options:
+            option = self.options[self.val_pos]
+            self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
+            self.addstr(0, 2, '✔' if option[1] else '☐')
+        self._win.attroff(to_curses_attr(self.color))
+        self._refresh()
 
     def reply(self):
         self._field['label'] = ''
@@ -267,19 +263,18 @@ class ListSingleWin(FieldInput, Win):
         self.refresh()
 
     def refresh(self):
-        with g_lock:
-            self._win.erase()
-            self._win.attron(to_curses_attr(self.color))
-            self.addnstr(0, 0, ' '*self.width, self.width)
-            if self.val_pos > 0:
-                self.addstr(0, 0, '←')
-            if self.val_pos < len(self.options)-1:
-                self.addstr(0, self.width-1, '→')
-            if self.options:
-                option = self.options[self.val_pos]['label']
-                self.addstr(0, self.width//2-len(option)//2, option)
-            self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
+        self._win.erase()
+        self._win.attron(to_curses_attr(self.color))
+        self.addnstr(0, 0, ' '*self.width, self.width)
+        if self.val_pos > 0:
+            self.addstr(0, 0, '←')
+        if self.val_pos < len(self.options)-1:
+            self.addstr(0, self.width-1, '→')
+        if self.options:
+            option = self.options[self.val_pos]['label']
+            self.addstr(0, self.width//2-len(option)//2, option)
+        self._win.attroff(to_curses_attr(self.color))
+        self._refresh()
 
     def reply(self):
         self._field['label'] = ''
@@ -310,19 +305,18 @@ class TextPrivateWin(TextSingleWin):
         TextSingleWin.__init__(self, field)
 
     def rewrite_text(self):
-        with g_lock:
-            self._win.erase()
-            if self.color:
-                self._win.attron(to_curses_attr(self.color))
-            self.addstr('*'*len(self.text[self.view_pos:self.view_pos+self.width-1]))
-            if self.color:
-                (y, x) = self._win.getyx()
-                size = self.width-x
-                self.addnstr(' '*size, size, to_curses_attr(self.color))
-            self.addstr(0, self.pos, '')
-            if self.color:
-                self._win.attroff(to_curses_attr(self.color))
-            self._refresh()
+        self._win.erase()
+        if self.color:
+            self._win.attron(to_curses_attr(self.color))
+        self.addstr('*'*len(self.text[self.view_pos:self.view_pos+self.width-1]))
+        if self.color:
+            (y, x) = self._win.getyx()
+            size = self.width-x
+            self.addnstr(' '*size, size, to_curses_attr(self.color))
+        self.addstr(0, self.pos, '')
+        if self.color:
+            self._win.attroff(to_curses_attr(self.color))
+        self._refresh()
 
     def get_help_message(self):
         return 'Edit the secret text'
@@ -346,8 +340,7 @@ class FormWin(object):
                      }
     def __init__(self, form, height, width, y, x):
         self._form = form
-        with g_lock:
-            self._win = Win._tab_win.derwin(height, width, y, x)
+        self._win = Win._tab_win.derwin(height, width, y, x)
         self.scroll_pos = 0
         self.current_input = 0
         self.inputs = []        # dict list
@@ -370,8 +363,7 @@ class FormWin(object):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
-        with g_lock:
-            self._win = Win._tab_win.derwin(height, width, y, x)
+        self._win = Win._tab_win.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
         while self.current_input - self.scroll_pos > self.height-1:
@@ -443,19 +435,18 @@ class FormWin(object):
         self.inputs[self.current_input]['input'].do_command(key)
 
     def refresh(self):
-        with g_lock:
-            self._win.erase()
-            y = -self.scroll_pos
-            i = 0
-            for name, field in self._form.getFields().items():
-                if field['type'] == 'hidden':
-                    continue
-                self.inputs[i]['label'].resize(1, self.width//2, y + 1, 0)
-                self.inputs[i]['input'].resize(1, self.width//2, y+1, self.width//2)
-                # TODO: display the field description
-                y += 1
-                i += 1
-            self._win.refresh()
+        self._win.erase()
+        y = -self.scroll_pos
+        i = 0
+        for name, field in self._form.getFields().items():
+            if field['type'] == 'hidden':
+                continue
+            self.inputs[i]['label'].resize(1, self.width//2, y + 1, 0)
+            self.inputs[i]['input'].resize(1, self.width//2, y+1, self.width//2)
+            # TODO: display the field description
+            y += 1
+            i += 1
+        self._win.refresh()
         for i, inp in enumerate(self.inputs):
             if i < self.scroll_pos:
                 continue

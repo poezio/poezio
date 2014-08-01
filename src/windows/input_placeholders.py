@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-from . import Win, g_lock
+from . import Win
 from theming import get_theme, to_curses_attr
 
 
@@ -25,11 +25,10 @@ class HelpText(Win):
         log.debug('Refresh: %s', self.__class__.__name__)
         if txt:
             self.txt = txt
-        with g_lock:
-            self._win.erase()
-            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-            self.finish_line(get_theme().COLOR_INFORMATION_BAR)
-            self._refresh()
+        self._win.erase()
+        self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
     def do_command(self, key, raw=False):
         return False
@@ -58,11 +57,10 @@ class YesNoInput(Win):
         log.debug('Refresh: %s', self.__class__.__name__)
         if txt:
             self.txt = txt
-        with g_lock:
-            self._win.erase()
-            self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_WARNING_PROMPT))
-            self.finish_line(get_theme().COLOR_WARNING_PROMPT)
-            self._refresh()
+        self._win.erase()
+        self.addstr(0, 0, self.txt[:self.width-1], to_curses_attr(get_theme().COLOR_WARNING_PROMPT))
+        self.finish_line(get_theme().COLOR_WARNING_PROMPT)
+        self._refresh()
 
     def do_command(self, key, raw=False):
         if key.lower() in self.key_func:
