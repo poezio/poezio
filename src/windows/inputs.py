@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
+import keyboard
 import common
 import poopt
 from . import Win
@@ -655,11 +656,12 @@ class MessageInput(HistoryInput):
         """
         Read one more char (c), add the corresponding char from formats_char to the text string
         """
-        attr_char = self.core.read_keyboard()[0]
-        if attr_char in self.text_attributes:
-            char = format_chars[self.text_attributes.index(attr_char)]
-            self.do_command(char, False)
-            self.rewrite_text()
+        def cb(attr_char):
+            if attr_char in self.text_attributes:
+                char = format_chars[self.text_attributes.index(attr_char)]
+                self.do_command(char, False)
+                self.rewrite_text()
+        keyboard.continuation_keys_callback = cb
 
     def key_enter(self):
         if self.history_enter():

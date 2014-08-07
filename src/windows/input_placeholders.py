@@ -68,9 +68,12 @@ class YesNoInput(Win):
 
     def prompt(self):
         """Monopolizes the input while waiting for a recognized keypress"""
-        cl = []
-        while self.value is None:
-            if len(cl) == 1 and cl[0] in self.key_func:
-                self.key_func[cl[0]]()
-            cl = self.core.read_keyboard()
+        def cb(key):
+            if key in self.key_func:
+                self.key_func[key]()
+            if self.value is None:
+                # We didn’t finish with this prompt, continue monopolizing
+                # it again until value is set
+                keyboard.continuation_keys_callback = cb
+        keyboard.continuation_keys_callback = cb
 

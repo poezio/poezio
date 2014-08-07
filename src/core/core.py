@@ -39,13 +39,13 @@ from config import config, firstrun
 from contact import Contact, Resource
 from daemon import Executor
 from fifo import Fifo
-from keyboard import Keyboard
 from logger import logger
 from plugin_manager import PluginManager
 from roster import roster
 from size_manager import SizeManager
 from text_buffer import TextBuffer
 from theming import get_theme
+import keyboard
 
 from . import completions
 from . import commands
@@ -72,7 +72,7 @@ class Core(object):
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
-        self.keyboard = Keyboard()
+        self.keyboard = keyboard.Keyboard()
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.paused = False
@@ -131,6 +131,11 @@ class Core(object):
             del self.commands['status']
             del self.commands['show']
 
+        # A list of integers. For example if the user presses Alt+j, 2, 1,
+        # we will insert 2, then 1 in that list, and we will finally build
+        # the number 21 and use it with command_win, before clearing the
+        # list.
+        self.room_number_jump = []
         self.key_func = KeyDict()
         # Key bindings associated with handlers
         # and pseudo-keys used to map actions below.
@@ -742,10 +747,21 @@ class Core(object):
     def do_command(self, key, raw):
         """
         Execute the action associated with a key
+
+        Or if keyboard.continuation_keys_callback is set, call it instead. See
+        the comment of this variable.
         """
         if not key:
             return
-        return self.current_tab().on_input(key, raw)
+        if keyboard.continuation_keys_callback is not None:
+            # Reset the callback to None BEFORE calling it, because this
+            # callback MAY set a new callback itself, and we don’t want to
+            # erase it in that case
+            cb = keyboard.continuation_keys_callback
+            keyboard.continuation_keys_callback = None
+            cb(key)
+        else:
+            self.current_tab().on_input(key, raw)
 
 
     def try_execute(self, line):
@@ -1060,17 +1076,24 @@ class Core(object):
         Read 2 more chars and go to the tab
         with the given number
         """
-        char = self.read_keyboard()[0]
-        try:
-            nb1 = int(char)
-        except ValueError:
-            return
-        char = self.read_keyboard()[0]
-        try:
-            nb2 = int(char)
-        except ValueError:
-            return
-        self.command_win('%s%s' % (nb1, nb2))
+        def read_next_digit(digit):
+            try:
+                nb = int(digit)
+            except ValueError:
+                # If it is not a number, we do nothing. If it was the first
+                # one, we do not wait for a second one by re-setting the
+                # callback
+                pass
+            else:
+                self.room_number_jump.append(digit)
+                if len(self.room_number_jump) == 2:
+                    arg = "".join(self.room_number_jump)
+                    self.room_number_jump.clear()
+                    self.command_win(arg)
+                else:
+                    # We need to read more digits
+                    keyboard.continuation_keys_callback = read_next_digit
+        keyboard.continuation_keys_callback = read_next_digit
 
     def go_to_roster(self):
         "Select the roster as the current tab"
@@ -1623,13 +1646,11 @@ class Core(object):
 
     def read_keyboard(self):
         """
-        Get the next keyboard key pressed and returns it.
-        get_user_input() has a timeout: it returns None when the timeout
-        occurs. In that case we do not return (we loop until we get
-        a non-None value), but we check for timed events instead.
+        Get the next keyboard key pressed and returns it.  It blocks until
+        something can be read on stdin, this function must be called only if
+        there is something to read. No timeout ever occurs.
         """
-        res = self.keyboard.get_user_input(self.stdscr)
-        return res
+        return self.keyboard.get_user_input(self.stdscr)
 
     def escape_next_key(self):
         """

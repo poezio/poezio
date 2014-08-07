@@ -18,6 +18,15 @@ import curses.ascii
 import logging
 log = logging.getLogger(__name__)
 
+# A callback that will handle the next key entered by the user. For
+# example if the user presses Ctrl+j, we set a callbacks, and the
+# next key pressed by the user will be passed to this callback
+# instead of the normal process of executing global keybard
+# shortcuts or inserting text in the current output.  The callback
+# is always reset to None afterwards (to resume the normal
+# processing of keys)
+continuation_keys_callback = None
+
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
