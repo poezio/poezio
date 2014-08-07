@@ -42,59 +42,7 @@ def get_next_byte(s):
         return (None, c)
     return (ord(c), c.encode('latin-1')) # returns a number and a bytes object
 
-def get_char_list_old(s):
-    """
-    Kept for compatibility for python versions without get_wchar()
-    (introduced in 3.3) Read one or more bytes, concatenate them to create a
-    unicode char. Also treat special bytes to create special chars (like
-    control, alt, etc), returns one or more utf-8 chars
-
-    see http://en.wikipedia.org/wiki/UTF-8#Description
-    """
-    ret_list = []
-    # The list of all chars. For example if you paste a text, the list the chars pasted
-    # so that they can be handled at once.
-    (first, char) = get_next_byte(s)
-    while first is not None or char is not None:
-        if not isinstance(first, int): # Keyboard special, like KEY_HOME etc
-            return [char]
-        if first == 127 or first == 8:
-            ret_list.append("KEY_BACKSPACE")
-            break
-        s.timeout(0)            # we are now getting the missing utf-8 bytes to get a whole char
-        if first < 127:  # ASCII char on one byte
-            if first <= 26:         # transform Ctrl+* keys
-                char = chr(first + 64)
-                ret_list.append("^"+char)
-                (first, char) = get_next_byte(s)
-                continue
-            if first == 27:
-                second = get_char_list_old(s)
-                if not second: # if escape was pressed, a second char
-                                   # has to be read. But it timed out.
-                    return []
-                res = 'M-%s' % (second[0],)
-                ret_list.append(res)
-                (first, char) = get_next_byte(s)
-                continue
-        if 194 <= first:
-            (code, c) = get_next_byte(s) # 2 bytes char
-            char += c
-        if 224 <= first:
-            (code, c) = get_next_byte(s) # 3 bytes char
-            char += c
-        if 240 <= first:
-            (code, c) = get_next_byte(s) # 4 bytes char
-            char += c
-        try:
-            ret_list.append(char.decode('utf-8')) # return all the concatened byte objets, decoded
-        except UnicodeDecodeError:
-            return None
-        # s.timeout(1)            # timeout to detect a paste of many chars
-        (first, char) = get_next_byte(s)
-    return ret_list
-
-def get_char_list_new(s):
+def get_char_list(s):
     ret_list = []
     while True:
         try:
@@ -105,6 +53,9 @@ def get_char_list_new(s):
         except ValueError: # invalid input
             log.debug('Invalid character entered.')
             return ret_list
+        # Set to non-blocking. We try to read more bytes. If there are no
+        # more data to read, it will immediately timeout and return with the
+        # data we have so far
         s.timeout(0)
         if isinstance(key, int):
             ret_list.append(curses.keyname(key).decode())
@@ -141,7 +92,6 @@ def get_char_list_new(s):
 
 class Keyboard(object):
     def __init__(self):
-        self.get_char_list = get_char_list_new
         self.escape = False
 
     def escape_next_key(self):
@@ -153,7 +103,7 @@ class Keyboard(object):
         """
         self.escape = True
 
-    def get_user_input(self, s, timeout=1000):
+    def get_user_input(self, s):
         """
         Returns a list of all the available characters to read (for example it
         may contain a whole text if there’s some lag, or the user pasted text,
@@ -162,19 +112,9 @@ class Keyboard(object):
         blocking, we need to get out of it every now and then even if nothing
         was entered).
         """
-        s.timeout(timeout) # The timeout for timed events to be checked every second
-        try:
-            ret_list = self.get_char_list(s)
-        except AttributeError:
-            # caught if screen.get_wch() does not exist. In that case we use the
-            # old version, so this exception is caught only once. No efficiency
-            # issue here.
-            log.debug("get_wch() missing, switching to old keyboard method")
-            self.get_char_list = get_char_list_old
-            ret_list = self.get_char_list(s)
-        if not ret_list:
-            # nothing at all was read, that’s a timed event timeout
-            return None
+        # Disable the timeout
+        s.timeout(-1)
+        ret_list = get_char_list(s)
         if len(ret_list) != 1:
             if ret_list[-1] == '^M':
                 ret_list.pop(-1)
