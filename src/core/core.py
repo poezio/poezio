@@ -1083,7 +1083,7 @@ class Core(object):
                 # If it is not a number, we do nothing. If it was the first
                 # one, we do not wait for a second one by re-setting the
                 # callback
-                pass
+                self.room_number_jump.clear()
             else:
                 self.room_number_jump.append(digit)
                 if len(self.room_number_jump) == 2:
