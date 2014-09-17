@@ -860,9 +860,11 @@ Other
 
     remote_fifo_path
 
-        **Default value:** ``./poezio.fifo``
+        **Default value:** ``./``
 
         The path of the FIFO used to send the commands (see the :term:`exec_remote` option).
+        Poezio will try to create a :file:`poezio.fifo` file in this directory.
+
 
     save_status
 
