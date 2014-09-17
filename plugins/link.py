@@ -43,11 +43,14 @@ Usage
 .. glossary::
 
     /link
-        **Usage:** ``/link [range]``
+        **Usage:** ``/link [range] [command]``
 
-        This plugin adds a :term:`/link` command that will open the links in ``firefox``. If
-        you want to use another browser, you can use the :term:`/set` command  to change the
-        :term:`browser` option.
+        This plugin adds a :term:`/link` command that will open the links in
+        ``firefox``. If you want to use another browser, or any other
+        command, you can use the :term:`/set` command to change the
+        :term:`browser` option. You can also specify the command to execute
+        directly in the arguments.  For example `/link "mpv %s"` will open
+        the first link found using mpv, instead of the configured browser.
 
 
         :term:`/link` without argument will open the last link found
@@ -94,8 +97,10 @@ class Plugin(BasePlugin):
     def init(self):
         for _class in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
             self.api.add_tab_command(_class, 'link', self.command_link,
-                    usage='[num]',
-                    help='Opens the last link from the conversation into a browser.\nIf [num] is given, then it will open the num-th link displayed.',
+                    usage='[num] [command]',
+                    help='Opens the last link from the conversation into a browser.\n\
+                    If [num] is given, then it will\open the num-th link displayed. \
+                    Use a [command] argument to override the configured browser value.',
                     short='Open links into a browser')
 
     def find_link(self, nb):
@@ -114,7 +119,13 @@ class Plugin(BasePlugin):
 
     def command_link(self, args):
         args = common.shell_split(args)
-        if len(args) == 1:
+        start = 1
+        end = 1
+        # With two arguments, the first is the range, the second is the command
+        # With only one argument, it is a range if it starts with a number
+        # or :, otherwise it is a command
+        if len(args) == 2 or\
+           len(args) == 1 and (args[0][0].isnumeric() or args[0][0] == ":"):
             if args[0].find(':') == -1:
                 try:
                     start = int(args[0])
@@ -130,15 +141,19 @@ class Plugin(BasePlugin):
                     end = int(end)
                 except ValueError:
                     return self.api.information('Invalid range: %s' % (args[0]), 'Error')
-        else:
-            start = 1
-            end = 1
+        command = None
+        if len(args) == 2:
+            command = args[1]
+        if len(args) == 1 and (not args[0][0].isnumeric() and args[0][0] != ":"):
+            command = args[0]
         for nb in range(start, end+1):
             link = self.find_link(nb)
             if not link:
                 return self.api.information('No URL found.', 'Warning')
             default = app_mapping.get(platform.system(), 'firefox')
-            self.core.exec_command([self.config.get('browser', default), link])
-
+            if command is None:
+                self.core.exec_command([self.config.get('browser', default), link])
+            else:
+                self.core.exec_command([command, link])
     def cleanup(self):
         del self.config
