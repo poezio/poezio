@@ -41,8 +41,8 @@ Install the python module:
     cd pure-python-otr
     python3 setup.py install --user
 
-You can also use pip with the requirements.txt at the root of
-the poezio directory.
+You can also use pip in a virtualenv (built-in as pyvenv_ with python since 3.3)
+with the requirements.txt at the root of the poezio directory.
 
 
 Usage
@@ -148,20 +148,22 @@ Configuration
 
         Log conversations (OTR start/end marker, and messages).
 
-The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_html`
+The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_xhtml`
 and :term:`log` configuration parameters are tab-specific.
 
 Important details
 -----------------
 
-The OTR session is considered for a full jid, but the trust is considered
-with a bare JID. This is important to know in the case of Private Chats, since
-you cannot always get the real the JID of your contact (or check if the same
-nick is used by different people).
+The OTR session is considered for a full JID (e.g. toto@example/**client1**),
+but the trust is set with a bare JID (e.g. toto@example). This is important
+in the case of Private Chats (in a chatroom), since you cannot always get the
+real JID of your contact (or check if the same nick is used by different people).
 
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
+.. _pyvenv: https://docs.python.org/3/using/scripts.html#pyvenv-creating-virtual-environments
 
 """
+
 from gettext import gettext as _
 import potr
 import logging
