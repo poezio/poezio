@@ -97,7 +97,7 @@ def change_nick(core, jid, nick, status=None, show=None):
 
 def join_groupchat(core, jid, nick, passwd='', maxhistory=None, status=None, show=None, seconds=None):
     xmpp = core.xmpp
-    stanza = xmpp.makePresence(pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
+    stanza = xmpp.make_presence(pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
     x = ET.Element('{http://jabber.org/protocol/muc}x')
     if passwd:
         passelement = ET.Element('password')
@@ -131,7 +131,7 @@ def set_user_role(xmpp, jid, nick, reason, role, callback=None):
     (role = 'none': eject user)
     """
     jid = safeJID(jid)
-    iq = xmpp.makeIqSet()
+    iq = xmpp.make_iq_set()
     query = ET.Element('{%s}query' % NS_MUC_ADMIN)
     item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick':nick, 'role':role})
     if reason:
@@ -165,7 +165,7 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
         item.append(reason_item)
 
     query.append(item)
-    iq = xmpp.makeIqSet(query)
+    iq = xmpp.make_iq_set(query)
     iq['to'] = muc_jid
     if callback:
         return iq.send(callback=callback)
@@ -180,14 +180,14 @@ def cancel_config(xmpp, room):
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
     x = ET.Element('{jabber:x:data}x', type='cancel')
     query.append(x)
-    iq = xmpp.makeIqSet(query)
+    iq = xmpp.make_iq_set(query)
     iq['to'] = room
     iq.send()
 
 def configure_room(xmpp, room, form):
     if form is None:
         return
-    iq = xmpp.makeIqSet()
+    iq = xmpp.make_iq_set()
     iq['to'] = room
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
     form = form.getXML('submit')
