@@ -622,7 +622,7 @@ def on_chatstate_groupchat_conversation(self, message, state):
     Chatstate received in a MUC
     """
     nick = message['mucnick']
-    room_from = message.getMucroom()
+    room_from = message.get_mucroom()
     tab = self.get_tab_by_name(room_from, tabs.MucTab)
     if tab and tab.get_user_by_name(nick):
         self.events.trigger('muc_chatstate', message, tab)
@@ -988,7 +988,7 @@ def on_groupchat_subject(self, message):
     Triggered when the topic is changed.
     """
     nick_from = message['mucnick']
-    room_from = message.getMucroom()
+    room_from = message.get_mucroom()
     tab = self.get_tab_by_name(room_from, tabs.MucTab)
     subject = message['subject']
     if not subject or not tab:
