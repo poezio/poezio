@@ -943,7 +943,7 @@ def command_xml_tab(self, arg=''):
 def command_adhoc(self, arg):
     arg = arg.split()
     if len(arg) > 1:
-        return self.command_help('list')
+        return self.command_help('ad-hoc')
     elif arg:
         jid = safeJID(arg[0]).server
     else:
