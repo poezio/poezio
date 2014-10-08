@@ -62,8 +62,11 @@ and certificate validation.
 
         **Default value:** ``[empty]``
 
-        The fingerprint of the SSL certificate as a hexadecimal string, you should
-        not touch it, except if know what you are doing.
+        The SHA-2 fingerprint of the SSL certificate as a hexadecimal string,
+        you should not touch it, except if know what you are doing.
+
+        .. note:: the fingerprint was previously stored in SHA-1, and has been
+                silently upgraded to SHA-2 if the SHA-1 still matched.
 
     ciphers
 
