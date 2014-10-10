@@ -1523,11 +1523,11 @@ class MucTab(ChatTab):
                     config.get_by_tabname('notify_messages',
                                           True, self.name)):
                 self.state = 'message'
-        if time:
+        if time and not txt.startswith('/me'):
             txt = '\x19%(info_col)s}%(txt)s' % {
                     'txt': txt,
                     'info_col': dump_tuple(get_theme().COLOR_LOG_MSG)}
-        elif (not nickname or time) and not txt.startswith('/me '):
+        elif not nickname:
             txt = '\x19%(info_col)s}%(txt)s' % {
                     'txt': txt,
                     'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
