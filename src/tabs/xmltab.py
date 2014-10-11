@@ -11,12 +11,14 @@ import logging
 log = logging.getLogger(__name__)
 
 import curses
+import os
 from sleekxmpp.xmlstream import matcher
 from sleekxmpp.xmlstream.handler import Callback
 
 from . import Tab
 
 import windows
+from xhtml import clean_text
 
 class XMLTab(Tab):
     def __init__(self):
@@ -45,6 +47,10 @@ class XMLTab(Tab):
                 usage=_('<xml mask>'),
                 desc=_('Show only the stanzas matching the given xml mask.'),
                 shortdesc=_('Filter by xml mask.'))
+        self.register_command('dump', self.command_dump,
+                usage=_('<filename>'),
+                desc=_('Writes the content of the XML buffer into a file.'),
+                shortdesc=_('Write in a file.'))
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
@@ -110,6 +116,17 @@ class XMLTab(Tab):
         self.filter_type = ''
         self.filter = ''
         self.refresh()
+
+    def command_dump(self, arg):
+        """/dump <filename>"""
+        xml = self.core.xml_buffer.messages[:]
+        text = '\n'.join(('%s %s' % (msg.str_time, clean_text(msg.txt)) for msg in xml))
+        filename = os.path.expandvars(os.path.expanduser(arg))
+        try:
+            with open(filename, 'w') as fd:
+                fd.write(text)
+        except Exception as e:
+            self.core.information('Could not write the XML dump: %s' % e, 'Error')
 
     def on_slash(self):
         """
