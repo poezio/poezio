@@ -869,24 +869,25 @@ def on_session_start(self, event):
     if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
         bookmark.get_remote(self.xmpp)
     for bm in bookmark.bookmarks:
-        tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-        nick = bm.nick if bm.nick else self.own_nick
-        if not tab:
-            self.open_new_room(bm.jid, nick, False)
-        self.initial_joins.append(bm.jid)
-        histo_length = config.get('muc_history_length', 20)
-        if histo_length == -1:
-            histo_length = None
-        if histo_length is not None:
-            histo_length = str(histo_length)
-        # do not join rooms that do not have autojoin
-        # but display them anyway
-        if bm.autojoin:
-            muc.join_groupchat(self, bm.jid, nick,
-                    passwd=bm.password,
-                    maxhistory=histo_length,
-                    status=self.status.message,
-                    show=self.status.show)
+        if bm.autojoin or config.get('open_all_bookmarks', False):
+            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+            nick = bm.nick if bm.nick else self.own_nick
+            if not tab:
+                self.open_new_room(bm.jid, nick, False)
+            self.initial_joins.append(bm.jid)
+            histo_length = config.get('muc_history_length', 20)
+            if histo_length == -1:
+                histo_length = None
+            if histo_length is not None:
+                histo_length = str(histo_length)
+            # do not join rooms that do not have autojoin
+            # but display them anyway
+            if bm.autojoin:
+                muc.join_groupchat(self, bm.jid, nick,
+                        passwd=bm.password,
+                        maxhistory=histo_length,
+                        status=self.status.message,
+                        show=self.status.show)
 
     if config.get('enable_user_nick', True):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)

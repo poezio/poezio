@@ -197,6 +197,13 @@ Options related to account configuration, nickname…
 
         The status message poezio will send when connecting.
 
+    open_all_bookmarks
+
+        **Default value:** ``false``
+
+        If this option is set to ``true``, all remote bookmarks, even
+        those that do not have autojoin, will be opened on startup.
+        (the tabs without autojoin will not be joined)
 
 
 
