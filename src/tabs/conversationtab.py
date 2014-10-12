@@ -385,11 +385,15 @@ class DynamicConversationTab(ConversationTab):
         assert(resource)
         if resource != self.locked_resource:
             self.locked_resource = resource
+            info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
 
-            message = _('\x19%s}Conversation locked to %s/%s.') % (
-                    dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                    self.name,
-                    resource)
+            message = _('%(info)sConversation locked to '
+                        '%(jid_c)s%(jid)s/%(resource)s%(info)s.') % {
+                            'info': info,
+                            'jid_c': jid_c,
+                            'jid': self.name,
+                            'resource': resource}
             self.add_message(message, typ=0)
             self.check_features()
 
@@ -405,16 +409,18 @@ class DynamicConversationTab(ConversationTab):
         self.remote_wants_chatstates = None
         if self.locked_resource != None:
             self.locked_resource = None
+            info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
 
             if from_:
-                message = _('\x19%s}Conversation unlocked '
-                            '(received activity from %s).') % (
-                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                        from_)
+                message = _('%(info)sConversation unlocked (received activity'
+                            ' from %(jid_c)s%(jid)s%(info)s).') % {
+                                'info': info,
+                                'jid_c': jid_c,
+                                'jid': from_}
                 self.add_message(message, typ=0)
             else:
-                message = _('\x19%s}Conversation unlocked.') % (
-                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT))
+                message = _('%sConversation unlocked.') % info
                 self.add_message(message, typ=0)
 
     def get_dest_jid(self):
