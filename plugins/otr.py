@@ -597,6 +597,7 @@ class Plugin(BasePlugin):
         name = tab.name
         color_jid = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
         color_info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        color_normal = '\x19%s}' % dump_tuple(get_theme().COLOR_NORMAL_TEXT)
         if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
             name = safeJID(tab.name)
             name.resource = tab.locked_resource
@@ -622,18 +623,38 @@ class Plugin(BasePlugin):
                 self.api.add_timed_event(event)
             self.core.xmpp.send_message(mto=name, mtype='chat',
                 mbody=self.contexts[name].sendMessage(0, b'?OTRv?').decode())
-            text = _('%(info)sOTR request to %(jid_c)s%(jid)s%(info)s sent') % {
+            text = _('%(info)sOTR request to %(jid_c)s%(jid)s%(info)s sent.') % {
                          'jid': tab.name,
                          'info': color_info,
                          'jid_c': color_jid}
             tab.add_message(text, typ=0)
         elif arg == 'ourfpr':
             fpr = self.account.getPrivkey()
-            self.api.information('Your OTR key fingerprint is %s' % fpr, 'OTR')
+            text = _('%(info)sYour OTR key fingerprint is %(norm)s%(fpr)s.') % {
+                         'jid': tab.name,
+                         'info': color_info,
+                         'norm': color_normal,
+                         'fpr': fpr}
+            tab.add_message(text, typ=0)
         elif arg == 'fpr':
             if name in self.contexts:
                 ctx = self.contexts[name]
-                self.api.information('The key fingerprint for %s is %s' % (name, ctx.getCurrentKey()) , 'OTR')
+                if ctx.getCurrentKey() is not None:
+                    text = _('%(info)sThe key fingerprint for %(jid_c)s'
+                             '%(jid)s%(info)s is %(norm)s%(fpr)s%(info)s.') % {
+                                 'jid': tab.name,
+                                 'info': color_info,
+                                 'norm': color_normal,
+                                 'jid_c': color_jid,
+                                 'fpr': ctx.getCurrentKey()}
+                    tab.add_message(text, typ=0)
+                else:
+                    text = _('%(jid_c)s%(jid)s%(info)s has no'
+                             ' key currently in use.') % {
+                                 'jid': tab.name,
+                                 'info': color_info,
+                                 'jid_c': color_jid}
+                    tab.add_message(text, typ=0)
         elif arg == 'drop':
             # drop the privkey (and obviously, end the current conversations before that)
             for context in self.contexts.values():
