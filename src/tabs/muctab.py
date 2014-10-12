@@ -355,7 +355,8 @@ class MucTab(ChatTab):
                         dump_tuple(theme.color_role(user.role)),
                         user.role or 'None',
                         '\n%s' % user.status if user.status else '')
-        self.core.information(info, 'Info')
+        self.add_message(info, typ=0)
+        self.core.refresh_window()
 
     def command_configure(self, arg):
         """
