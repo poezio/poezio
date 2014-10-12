@@ -143,6 +143,13 @@ Configuration
 
         Allow OTRv1
 
+    timeout
+        **Default:** ``3``
+
+        The number of seconds poezio will wait until notifying you
+        that the OTR session was not established. A negative or null
+        value will disable this notification.
+
     log
         **Default:** false
 
@@ -599,8 +606,27 @@ class Plugin(BasePlugin):
             context.disconnect()
         elif arg == 'start' or arg == 'refresh':
             otr = self.get_context(name)
+            secs = self.config.get('timeout', 3)
+            def notify_otr_timeout():
+                if otr.state != STATE_ENCRYPTED:
+                    text = _('%(jid_c)s%(jid)s%(info)s did not enable'
+                             ' OTR after %(sec)s seconds.') % {
+                                     'jid': tab.name,
+                                     'info': color_info,
+                                     'jid_c': color_jid,
+                                     'sec': secs}
+                    tab.add_message(text, typ=0)
+                    self.core.refresh_window()
+            if secs > 0:
+                event = self.api.create_delayed_event(secs, notify_otr_timeout)
+                self.api.add_timed_event(event)
             self.core.xmpp.send_message(mto=name, mtype='chat',
                 mbody=self.contexts[name].sendMessage(0, b'?OTRv?').decode())
+            text = _('%(info)sOTR request to %(jid_c)s%(jid)s%(info)s sent') % {
+                         'jid': tab.name,
+                         'info': color_info,
+                         'jid_c': color_jid}
+            tab.add_message(text, typ=0)
         elif arg == 'ourfpr':
             fpr = self.account.getPrivkey()
             self.api.information('Your OTR key fingerprint is %s' % fpr, 'OTR')
