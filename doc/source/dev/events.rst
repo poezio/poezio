@@ -112,6 +112,12 @@ The following events are poezio-only events, for SleekXMPP events, check out
 
         Triggered when joining a MUC. The presence can thus be modified before being sent.
 
+    changing_nick
+        - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
+
+        Triggered when the user changes his/her nickname on a MUC. The
+        presence can thus be modified before being sent.
+
     send_normal_presence
         - **presence:** :py:class:`~sleekxmpp.Presence` sent
 
