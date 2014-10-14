@@ -115,6 +115,8 @@ class Keyboard(object):
         # Disable the timeout
         s.timeout(-1)
         ret_list = get_char_list(s)
+        if not ret_list:
+            return ret_list
         if len(ret_list) != 1:
             if ret_list[-1] == '^M':
                 ret_list.pop(-1)
