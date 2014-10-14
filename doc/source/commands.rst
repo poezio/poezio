@@ -541,9 +541,15 @@ XML tab commands
 ~~~~~~~~~~~~~~~~
 
 .. glossary::
+    :sorted:
 
     /clear [XML tab version]
         Clear the current buffer.
+
+    /dump
+        **Usage:** ``/dump <filename>``
+
+        Write the content of the XML buffer into a file.
 
     /reset
         Reset the stanza filter.

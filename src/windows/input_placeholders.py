@@ -33,6 +33,9 @@ class HelpText(Win):
     def do_command(self, key, raw=False):
         return False
 
+    def on_delete(self):
+        return
+
 class YesNoInput(Win):
     """
     A Window just displaying a Yes/No input
@@ -76,4 +79,7 @@ class YesNoInput(Win):
                 # it again until value is set
                 keyboard.continuation_keys_callback = cb
         keyboard.continuation_keys_callback = cb
+
+    def on_delete(self):
+        return
 

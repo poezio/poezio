@@ -355,7 +355,8 @@ class MucTab(ChatTab):
                         dump_tuple(theme.color_role(user.role)),
                         user.role or 'None',
                         '\n%s' % user.status if user.status else '')
-        self.core.information(info, 'Info')
+        self.add_message(info, typ=0)
+        self.core.refresh_window()
 
     def command_configure(self, arg):
         """
@@ -1525,11 +1526,11 @@ class MucTab(ChatTab):
                     config.get_by_tabname('notify_messages',
                                           True, self.name)):
                 self.state = 'message'
-        if time:
+        if time and not txt.startswith('/me'):
             txt = '\x19%(info_col)s}%(txt)s' % {
                     'txt': txt,
                     'info_col': dump_tuple(get_theme().COLOR_LOG_MSG)}
-        elif (not nickname or time) and not txt.startswith('/me '):
+        elif not nickname:
             txt = '\x19%(info_col)s}%(txt)s' % {
                     'txt': txt,
                     'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}

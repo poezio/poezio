@@ -41,8 +41,8 @@ Install the python module:
     cd pure-python-otr
     python3 setup.py install --user
 
-You can also use pip with the requirements.txt at the root of
-the poezio directory.
+You can also use pip in a virtualenv (built-in as pyvenv_ with python since 3.3)
+with the requirements.txt at the root of the poezio directory.
 
 
 Usage
@@ -143,25 +143,34 @@ Configuration
 
         Allow OTRv1
 
+    timeout
+        **Default:** ``3``
+
+        The number of seconds poezio will wait until notifying you
+        that the OTR session was not established. A negative or null
+        value will disable this notification.
+
     log
         **Default:** false
 
         Log conversations (OTR start/end marker, and messages).
 
-The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_html`
+The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_xhtml`
 and :term:`log` configuration parameters are tab-specific.
 
 Important details
 -----------------
 
-The OTR session is considered for a full jid, but the trust is considered
-with a bare JID. This is important to know in the case of Private Chats, since
-you cannot always get the real the JID of your contact (or check if the same
-nick is used by different people).
+The OTR session is considered for a full JID (e.g. toto@example/**client1**),
+but the trust is set with a bare JID (e.g. toto@example). This is important
+in the case of Private Chats (in a chatroom), since you cannot always get the
+real JID of your contact (or check if the same nick is used by different people).
 
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
+.. _pyvenv: https://docs.python.org/3/using/scripts.html#pyvenv-creating-virtual-environments
 
 """
+
 from gettext import gettext as _
 import potr
 import logging
@@ -588,6 +597,7 @@ class Plugin(BasePlugin):
         name = tab.name
         color_jid = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
         color_info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        color_normal = '\x19%s}' % dump_tuple(get_theme().COLOR_NORMAL_TEXT)
         if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
             name = safeJID(tab.name)
             name.resource = tab.locked_resource
@@ -597,15 +607,54 @@ class Plugin(BasePlugin):
             context.disconnect()
         elif arg == 'start' or arg == 'refresh':
             otr = self.get_context(name)
+            secs = self.config.get('timeout', 3)
+            def notify_otr_timeout():
+                if otr.state != STATE_ENCRYPTED:
+                    text = _('%(jid_c)s%(jid)s%(info)s did not enable'
+                             ' OTR after %(sec)s seconds.') % {
+                                     'jid': tab.name,
+                                     'info': color_info,
+                                     'jid_c': color_jid,
+                                     'sec': secs}
+                    tab.add_message(text, typ=0)
+                    self.core.refresh_window()
+            if secs > 0:
+                event = self.api.create_delayed_event(secs, notify_otr_timeout)
+                self.api.add_timed_event(event)
             self.core.xmpp.send_message(mto=name, mtype='chat',
                 mbody=self.contexts[name].sendMessage(0, b'?OTRv?').decode())
+            text = _('%(info)sOTR request to %(jid_c)s%(jid)s%(info)s sent.') % {
+                         'jid': tab.name,
+                         'info': color_info,
+                         'jid_c': color_jid}
+            tab.add_message(text, typ=0)
         elif arg == 'ourfpr':
             fpr = self.account.getPrivkey()
-            self.api.information('Your OTR key fingerprint is %s' % fpr, 'OTR')
+            text = _('%(info)sYour OTR key fingerprint is %(norm)s%(fpr)s.') % {
+                         'jid': tab.name,
+                         'info': color_info,
+                         'norm': color_normal,
+                         'fpr': fpr}
+            tab.add_message(text, typ=0)
         elif arg == 'fpr':
             if name in self.contexts:
                 ctx = self.contexts[name]
-                self.api.information('The key fingerprint for %s is %s' % (name, ctx.getCurrentKey()) , 'OTR')
+                if ctx.getCurrentKey() is not None:
+                    text = _('%(info)sThe key fingerprint for %(jid_c)s'
+                             '%(jid)s%(info)s is %(norm)s%(fpr)s%(info)s.') % {
+                                 'jid': tab.name,
+                                 'info': color_info,
+                                 'norm': color_normal,
+                                 'jid_c': color_jid,
+                                 'fpr': ctx.getCurrentKey()}
+                    tab.add_message(text, typ=0)
+                else:
+                    text = _('%(jid_c)s%(jid)s%(info)s has no'
+                             ' key currently in use.') % {
+                                 'jid': tab.name,
+                                 'info': color_info,
+                                 'jid_c': color_jid}
+                    tab.add_message(text, typ=0)
         elif arg == 'drop':
             # drop the privkey (and obviously, end the current conversations before that)
             for context in self.contexts.values():

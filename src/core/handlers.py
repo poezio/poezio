@@ -9,7 +9,7 @@ import curses
 import ssl
 import time
 import functools
-from hashlib import sha1
+from hashlib import sha1, sha512
 from gettext import gettext as _
 
 from slixmpp import InvalidJID
@@ -891,24 +891,25 @@ def on_session_start(self, event):
     def _join_initial_rooms(bookmarks):
         """Join all rooms given in the iterator `bookmarks`"""
         for bm in bookmarks:
-            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-            nick = bm.nick if bm.nick else self.own_nick
-            if not tab:
-                self.open_new_room(bm.jid, nick, False)
-            self.initial_joins.append(bm.jid)
-            histo_length = config.get('muc_history_length', 20)
-            if histo_length == -1:
-                histo_length = None
-            if histo_length is not None:
-                histo_length = str(histo_length)
-            # do not join rooms that do not have autojoin
-            # but display them anyway
-            if bm.autojoin:
-                muc.join_groupchat(self, bm.jid, nick,
-                        passwd=bm.password,
-                        maxhistory=histo_length,
-                        status=self.status.message,
-                        show=self.status.show)
+            if bm.autojoin or config.get('open_all_bookmarks', False):
+                tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+                nick = bm.nick if bm.nick else self.own_nick
+                if not tab:
+                    self.open_new_room(bm.jid, nick, False)
+                self.initial_joins.append(bm.jid)
+                histo_length = config.get('muc_history_length', 20)
+                if histo_length == -1:
+                    histo_length = None
+                if histo_length is not None:
+                    histo_length = str(histo_length)
+                # do not join rooms that do not have autojoin
+                # but display them anyway
+                if bm.autojoin:
+                    muc.join_groupchat(self, bm.jid, nick,
+                            passwd=bm.password,
+                            maxhistory=histo_length,
+                            status=self.status.message,
+                            show=self.status.show)
     def _join_remote_only():
         remote_bookmarks = (bm for bm in bookmark.bookmarks if (bm.method in ("pep", "privatexml")))
         _join_initial_rooms(remote_bookmarks)
@@ -1101,16 +1102,27 @@ def validate_ssl(self, pem):
         config.set_and_save('certificate', cert)
 
     der = ssl.PEM_cert_to_DER_cert(pem)
-    digest = sha1(der).hexdigest().upper()
-    found_cert = ':'.join(i + j for i, j in zip(digest[::2], digest[1::2]))
+    sha1_digest = sha1(der).hexdigest().upper()
+    sha1_found_cert = ':'.join(i + j for i, j in zip(sha1_digest[::2], sha1_digest[1::2]))
+    sha2_digest = sha512(der).hexdigest().upper()
+    sha2_found_cert = ':'.join(i + j for i, j in zip(sha2_digest[::2], sha2_digest[1::2]))
     if cert:
-        if found_cert == cert:
-            log.debug('Cert %s OK', found_cert)
+        if sha1_found_cert == cert:
+            log.debug('Cert %s OK', sha1_found_cert)
+            log.debug('Current hash is SHA-1, moving to SHA-2 (%s)',
+                      sha2_found_cert)
+            config.set_and_save('certificate', sha2_found_cert)
+            return
+        elif sha2_found_cert == cert:
+            log.debug('Cert %s OK', sha2_found_cert)
             return
         else:
             saved_input = self.current_tab().input
-            log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, found_cert)
-            input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n) (%s)" % found_cert)
+            log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, sha2_found_cert)
+            self.information('New certificate found (sha-2 hash:'
+                             ' %s)\nPlease validate or abort' % sha2_found_cert,
+                             'Warning')
+            input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n)")
             self.current_tab().input = input
             input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
             input.refresh()
@@ -1121,16 +1133,16 @@ def validate_ssl(self, pem):
             self.current_tab().input = saved_input
             self.paused = False
             if input.value:
-                self.information('Setting new certificate: old: %s, new: %s' % (cert, found_cert), 'Info')
-                log.debug('Setting certificate to %s', found_cert)
-                if not config.silent_set('certificate', found_cert):
+                self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
+                log.debug('Setting certificate to %s', sha2_found_cert)
+                if not config.silent_set('certificate', sha2_found_cert):
                     self.information(_('Unable to write in the config file'), 'Error')
             else:
                 self.information('You refused to validate the certificate. You are now disconnected', 'Info')
                 self.xmpp.disconnect()
     else:
-        log.debug('First time. Setting certificate to %s', found_cert)
-        if not config.silent_set('certificate', found_cert):
+        log.debug('First time. Setting certificate to %s', sha2_found_cert)
+        if not config.silent_set('certificate', sha2_found_cert):
             self.information(_('Unable to write in the config file'), 'Error')
 
 def _composing_tab_state(tab, state):

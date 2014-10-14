@@ -19,6 +19,28 @@ Usage
 
         If there is a message at 21:12:23, it will be put in the input. If there
         isn’t, you will get a warning.
+
+Options
+-------
+
+.. glossary::
+    :sorted:
+
+    before_quote
+
+        **Default value:** ``[empty]``
+
+        Text to insert before the quote. ``%(nick)s`` and ``%(time)s`` can
+        be used to insert the nick of the user who sent the message or the
+        time of the message.
+
+    after_quote
+
+        **Default value:** ``[empty]``
+
+        Text to insert after the quote. ``%(nick)s`` and ``%(time)s`` can
+        be used to insert the nick of the user who sent the message or the
+        time of the message.
 """
 from plugin import BasePlugin
 from xhtml import clean_text

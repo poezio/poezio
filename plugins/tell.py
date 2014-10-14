@@ -61,7 +61,7 @@ class Plugin(BasePlugin):
         if not nick in self.tabs[tab]:
             self.tabs[tab][nick] = []
         self.tabs[tab][nick].append(msg)
-        self.api.information('Will tell %s' % nick, 'Info')
+        self.api.information('Message for %s queued' % nick, 'Info')
 
     def command_untell(self, args):
         """/untell <nick>"""
@@ -72,10 +72,11 @@ class Plugin(BasePlugin):
         if not nick in self.tabs[tab]:
             return
         del self.tabs[tab][nick]
+        self.api.information('Messages for %s unqueued' % nick, 'Info')
 
     def completion_untell(self, the_input):
         tab = self.api.current_tab()
         if not tab in self.tabs:
             return the_input.auto_completion([], '')
-        return the_input.auto_completion(list(self.tabs[tab]), '')
+        return the_input.auto_completion(list(self.tabs[tab]), '', quotify=False)
 

@@ -62,8 +62,11 @@ and certificate validation.
 
         **Default value:** ``[empty]``
 
-        The fingerprint of the SSL certificate as a hexadecimal string, you should
-        not touch it, except if know what you are doing.
+        The SHA-2 fingerprint of the SSL certificate as a hexadecimal string,
+        you should not touch it, except if know what you are doing.
+
+        .. note:: the fingerprint was previously stored in SHA-1, and has been
+                silently upgraded to SHA-2 if the SHA-1 still matched.
 
     ciphers
 
@@ -194,6 +197,13 @@ Options related to account configuration, nickname…
 
         The status message poezio will send when connecting.
 
+    open_all_bookmarks
+
+        **Default value:** ``false``
+
+        If this option is set to ``true``, all remote bookmarks, even
+        those that do not have autojoin, will be opened on startup.
+        (the tabs without autojoin will not be joined)
 
 
 
@@ -860,9 +870,11 @@ Other
 
     remote_fifo_path
 
-        **Default value:** ``./poezio.fifo``
+        **Default value:** ``./``
 
         The path of the FIFO used to send the commands (see the :term:`exec_remote` option).
+        Poezio will try to create a :file:`poezio.fifo` file in this directory.
+
 
     save_status
 

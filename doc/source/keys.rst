@@ -15,6 +15,8 @@ Key bindings listing
 --------------------
 Some key bindings are available only in some tabs, others are global.
 
+.. _global-keys:
+
 Global keys
 ~~~~~~~~~~~
 These keys work in **any** tab.
@@ -46,6 +48,8 @@ highlight > message > non-empty input).
 
 **Alt-C**: Scroll the information buffer down.
 
+.. _input-keys:
+
 Input keys
 ~~~~~~~~~~
 These keys concern only the inputs.
@@ -75,9 +79,11 @@ for example in conjunction with the bind command, to help you know how to
 bind something to a key combination without having to remember how to write
 them by hand.
 
+.. _chattab-keys:
 
 Chat tab input keys
 ~~~~~~~~~~~~~~~~~~~
+
 These keys work in any conversation tab (MultiUserChat, Private or
 Conversation tabs).
 
@@ -118,6 +124,8 @@ current conversation, if any.
         - u: Underlined
         - o: Stop formatting
 
+.. _muctab-keys:
+
 MultiUserChat tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -133,8 +141,11 @@ These keys work only in the MultiUserChat tab.
 
 **tabulation**: Complete a nick.
 
+.. _muclisttab-keys:
+
 MultiUserChat List tab input keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 These keys work only in the MultiUserChat List tab (obtained with :term:`/list`).
 
 **Up**: Go up one row.
@@ -151,6 +162,8 @@ These keys work only in the MultiUserChat List tab (obtained with :term:`/list`)
 
 **PageDown**: Scroll a page of chats down.
 
+
+.. _rostertab-keys:
 
 Roster tab input keys
 ~~~~~~~~~~~~~~~~~~~~~
@@ -184,8 +197,11 @@ These keys work only in the Roster tab (the tab number 0).
 
 **PageDown**: Scroll a page of contacts down.
 
+.. _forms-keys:
+
 Data Forms tab keys
 ~~~~~~~~~~~~~~~~~~~
+
 **Ctrl+y**: Validate the form, send it and close the tab.
 
 **Ctrl+g**: Cancel that form (do not send your changes) and close the

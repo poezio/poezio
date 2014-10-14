@@ -53,10 +53,11 @@ The following events are poezio-only events, for SleekXMPP events, check out
         - **message:** :py:class:`~sleekxmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.ConversationTab` source
 
-        Same thing than :term:`conversation_say`, but after XHTML generation of the body, if needed.
-        This means you must not insert any colors in the body in the handler, since
-        it may lead to send invalid XML. This hook is less safe than :term:`conversation_say` and
-        you should probably not need it.
+        Same thing than :term:`conversation_say`, but after XHTML generation
+        of the body, if needed.  This means you must not insert any colors
+        in the body in the handler, since it may lead to send
+        invalid XML. This hook is less safe than :term:`conversation_say`
+        and you should probably not need it.
 
     muc_msg
         - **message:** :py:class:`~sleekxmpp.Message` received
@@ -96,7 +97,7 @@ The following events are poezio-only events, for SleekXMPP events, check out
 
     normal_presence
         - **presence:** :py:class:`~sleekxmpp.Presence` received
-        - **resource:**  :py:class:`Resource <str>` that emitted the :py:class:`~sleekxmpp.Presence`
+        - **resource:** :py:class:`Resource <str>` that emitted the :py:class:`~sleekxmpp.Presence`
 
         Triggered when a presence is received from a contact.
 
@@ -104,18 +105,26 @@ The following events are poezio-only events, for SleekXMPP events, check out
         - **presence:** :py:class:`~sleekxmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
-        Triggered when a presence is received from someone in a :py:class:`~tabs.MucTab`.
+        Triggered when a presence is received from someone in a
+        :py:class:`~tabs.MucTab`.
 
     joining_muc
         - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
 
+        Triggered when joining a MUC. The presence can thus be modified
+        before being sent.
 
-        Triggered when joining a MUC. The presence can thus be modified before being sent.
+    changing_nick
+        - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
+
+        Triggered when the user changes his/her nickname on a MUC. The
+        presence can thus be modified before being sent.
 
     send_normal_presence
         - **presence:** :py:class:`~sleekxmpp.Presence` sent
 
-        Triggered when poezio sends a new :py:class:`~sleekxmpp.Presence` stanza. The presence can thus be modified before being sent.
+        Triggered when poezio sends a new :py:class:`~sleekxmpp.Presence`
+        stanza. The presence can thus be modified before being sent.
 
     muc_join
         - **presence:** :py:class:`~sleekxmpp.Presence` received
@@ -148,7 +157,8 @@ The following events are poezio-only events, for SleekXMPP events, check out
         - **message**:py:class:`~sleekxmpp.Message` received
         - **tab:** :py:class:`~tabs.PrivateTab` source
 
-        Triggered when a private message (that goes in a :py:class:`~tabs.PrivateTab`)
-        is ignored automatically by poezio.
+        Triggered when a private message (that goes in a
+        :py:class:`~tabs.PrivateTab`) is ignored automatically by poezio.
 
-        **tab** is always ``None``, except when a tab has already been opened.
+        **tab** is always ``None``, except when a tab has already been
+         opened.
