@@ -960,18 +960,21 @@ def on_groupchat_subject(self, message):
     room_from = message.getMucroom()
     tab = self.get_tab_by_name(room_from, tabs.MucTab)
     subject = message['subject']
-    if not subject or not tab:
+    if subject is None or not tab:
         return
-    if nick_from:
-        tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
-                {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
-                time=None,
-                typ=2)
-    else:
-        tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
-                {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                time=None,
-                typ=2)
+    if subject != tab.topic:
+        # Do not display the message if the subject did not change or if we
+        # receive an empty topic when joining the room.
+        if nick_from:
+            tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
+                    time=None,
+                    typ=2)
+        else:
+            tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
+                    {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    time=None,
+                    typ=2)
     tab.topic = subject
     tab.topic_from = nick_from
     if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
