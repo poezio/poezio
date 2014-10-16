@@ -361,7 +361,6 @@ def file_ok(filepath):
 def check_create_config_dir():
     """
     create the configuration directory if it doesn't exist
-    and copy the default config in it
     """
     CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
     if not CONFIG_HOME:
@@ -373,6 +372,23 @@ def check_create_config_dir():
     except OSError:
         pass
     return CONFIG_PATH
+
+def check_create_cache_dir():
+    """
+    create the cache directory if it doesn't exist
+    also create the subdirectories
+    """
+    global CACHE_DIR
+    CACHE_HOME = environ.get("XDG_CACHE_HOME")
+    if not CACHE_HOME:
+        CACHE_HOME = path.join(environ.get('HOME'), '.cache')
+    CACHE_DIR = path.join(CACHE_HOME, 'poezio')
+
+    try:
+        makedirs(CACHE_DIR)
+        makedirs(path.join(CACHE_DIR, 'images'))
+    except OSError:
+        pass
 
 def run_cmdline_args(CONFIG_PATH):
     "Parse the command line arguments"
@@ -495,3 +511,6 @@ safeJID = None
 
 # the global log dir
 LOG_DIR = ''
+
+# the global cache dir
+CACHE_DIR = ''

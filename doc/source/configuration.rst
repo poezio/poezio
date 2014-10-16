@@ -851,6 +851,25 @@ Other
 
         The lang some automated entities will use when replying to you.
 
+    extract_inline_images
+
+        **Default value:** ``true``
+
+        Some clients send inline images in base64 inside some messages, which results in
+        an useless wall of text. If this option is ``true``, then that base64 text will
+        be replaced with a :file:`file://` link to the image file extracted in
+        :term:`tmp_image_dir` or :file:`$XDG_CACHE_HOME/poezio/images` by default, which
+        is usually :file:`~/.cache/poezio/images`
+
+    tmp_image_dir
+
+        **Default value:** ``[empty]``
+
+        The directory where poezio will save the images received, if
+        :term:`extract_inline_images` is set to true. If unset, poezio
+        will default to :file:`$XDG_CACHE_HOME/poezio/images` which is
+        usually :file:`~/.cache/poezio/images`.
+
     muc_history_length
 
         **Default value:** ``50``

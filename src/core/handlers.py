@@ -10,6 +10,7 @@ import ssl
 import time
 from hashlib import sha1, sha512
 from gettext import gettext as _
+from os import path
 
 from sleekxmpp import InvalidJID
 from sleekxmpp.stanza import Message
@@ -24,7 +25,7 @@ import windows
 import xhtml
 import multiuserchat as muc
 from common import safeJID
-from config import config
+from config import config, CACHE_DIR
 from contact import Resource
 from logger import logger
 from roster import roster
@@ -178,7 +179,11 @@ def on_normal_message(self, message):
         return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
     use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body:
         return
 
@@ -223,7 +228,9 @@ def on_normal_message(self, message):
     self.events.trigger('conversation_msg', message, conversation)
     if not message['body']:
         return
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     delayed, date = common.find_delayed_tag(message)
 
     def try_modify():
@@ -441,7 +448,11 @@ def on_groupchat_message(self, message):
 
     self.events.trigger('muc_msg', message, tab)
     use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body:
         return
 
@@ -498,7 +509,11 @@ def on_groupchat_private_message(self, message):
 
     room_from = jid.bare
     use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images', True)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
     ignore = config.get_by_tabname('ignore_private', False, room_from)
     if not tab: # It's the first message we receive: create the tab
@@ -511,7 +526,9 @@ def on_groupchat_private_message(self, message):
             self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
         return
     self.events.trigger('private_msg', message, tab)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body or not tab:
         return
     replaced_id = message['replace']['id']
