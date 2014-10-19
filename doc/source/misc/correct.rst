@@ -1,3 +1,5 @@
+.. _correct-feature:
+
 Message Correction
 ==================
 

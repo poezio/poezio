@@ -316,6 +316,14 @@ to understand what is :ref:`carbons <carbons-details>` or
         If this is set to ``false``, you will no longer be subscribed to tune events,
         and the :term:`display_tune_notifications` option will be ignored.
 
+    group_corrections
+
+        **Default value:** ``true``
+
+        Enable a message to “correct” (replace) another message in the display if the
+        sender intended it as such. See :ref:`Message Correction <correct-feature>` for
+        more information.
+
     use_bookmark_method
 
         **Default value:** ``[empty]``
