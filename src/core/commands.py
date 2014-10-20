@@ -586,17 +586,36 @@ def command_remove_bookmark(self, arg=''):
 
 def command_set(self, arg):
     """
-    /set [module|][section] <option> <value>
+    /set [module|][section] <option> [value]
     """
     args = common.shell_split(arg)
-    if len(args) != 2 and len(args) != 3:
-        self.command_help('set')
-        return
-    if len(args) == 2:
+    if len(args) == 1:
         option = args[0]
-        value = args[1]
-        info = config.set_and_save(option, value)
-        self.trigger_configuration_change(option, value)
+        value = config.get(option)
+        info = ('%s=%s' % (option, value), 'Info')
+    elif len(args) == 2:
+        if '|' in args[0]:
+            plugin_name, section = args[0].split('|')[:2]
+            if not section:
+                section = plugin_name
+            option = args[1]
+            if not plugin_name in self.plugin_manager.plugins:
+                return
+            plugin = self.plugin_manager.plugins[plugin_name]
+            value = plugin.config.get(option, default='', section=section)
+            info = ('%s=%s' % (option, value), 'Info')
+        else:
+            possible_section = args[0]
+            if config.has_section(possible_section):
+                section = possible_section
+                option = args[1]
+                value = config.get(option, section=section)
+                info = ('%s=%s' % (option, value), 'Info')
+            else:
+                option = args[0]
+                value = args[1]
+                info = config.set_and_save(option, value)
+                self.trigger_configuration_change(option, value)
     elif len(args) == 3:
         if '|' in args[0]:
             plugin_name, section = args[0].split('|')[:2]
@@ -614,6 +633,9 @@ def command_set(self, arg):
             value = args[2]
             info = config.set_and_save(option, value, section)
             self.trigger_configuration_change(option, value)
+    else:
+        self.command_help('set')
+        return
     self.call_for_resize()
     self.information(*info)
 
