@@ -71,7 +71,7 @@ class Connection(sleekxmpp.ClientXMPP):
         if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
         else:
-            self.whitespace_keepalive_interval = 300
+            self.whitespace_keepalive = False
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0012')
         self.register_plugin('xep_0030')
