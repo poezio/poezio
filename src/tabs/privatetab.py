@@ -139,7 +139,7 @@ class PrivateTab(OneToOneTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', True, self.name):
+            if config.get_by_tabname('group_corrections', self.name):
                 try:
                     self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'],
                             user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
@@ -153,7 +153,8 @@ class PrivateTab(OneToOneTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and self.remote_wants_chatstates is not False:
+        if (config.get_by_tabname('send_chat_states', self.general_jid) and
+                self.remote_wants_chatstates is not False):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
@@ -278,9 +279,8 @@ class PrivateTab(OneToOneTab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname(
-                'send_chat_states', True, self.general_jid, True) and\
-                    not self.input.get_text() and self.on:
+        if tab and tab.joined and config.get_by_tabname('send_chat_states',
+                self.general_jid) and not self.input.get_text() and self.on:
             self.send_chat_state('inactive')
         self.check_scrolled()
 
@@ -288,9 +288,8 @@ class PrivateTab(OneToOneTab):
         self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname(
-                'send_chat_states', True, self.general_jid, True) and\
-                    not self.input.get_text() and self.on:
+        if tab and tab.joined and config.get_by_tabname('send_chat_states',
+                self.general_jid,) and not self.input.get_text() and self.on:
             self.send_chat_state('active')
 
     def on_info_win_size_changed(self):
@@ -334,7 +333,8 @@ class PrivateTab(OneToOneTab):
         self.check_features()
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         color = 3
-        if tab and config.get_by_tabname('display_user_color_in_join_part', '', self.general_jid, True):
+        if tab and config.get_by_tabname('display_user_color_in_join_part',
+                                         self.general_jid):
             user = tab.get_user_by_name(nick)
             if user:
                 color = dump_tuple(user.color)

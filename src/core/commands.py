@@ -375,10 +375,7 @@ def command_join(self, arg, histo_length=None):
     if histo_length is not None:
         histo_length = str(histo_length)
     if password is None: # try to use a saved password
-        password = config.get_by_tabname('password',
-                                         None,
-                                         room,
-                                         fallback=False)
+        password = config.get_by_tabname('password', room, fallback=False)
     if tab and not tab.joined:
         if tab.last_connection:
             if tab.last_connection is not None:

@@ -469,8 +469,8 @@ class MucTab(ChatTab):
             char_quit = get_theme().CHAR_QUIT
             spec_col = dump_tuple(get_theme().COLOR_QUIT_CHAR)
 
-            if config.get_by_tabname('display_user_color_in_join_part', True,
-                                     self.general_jid, True):
+            if config.get_by_tabname('display_user_color_in_join_part',
+                                     self.general_jid):
                 color = dump_tuple(get_theme().COLOR_OWN_NICK)
             else:
                 color = 3
@@ -735,8 +735,8 @@ class MucTab(ChatTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', True, self.general_jid,
-                True) and self.remote_wants_chatstates is not False):
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and self.remote_wants_chatstates is not False):
             msg['chat_state'] = needed
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']
@@ -922,8 +922,8 @@ class MucTab(ChatTab):
             self.state = 'disconnected'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        if config.get_by_tabname('send_chat_states', True,
-                self.general_jid, True) and not self.input.get_text():
+        if (config.get_by_tabname('send_chat_states', self.general_jid) and
+                not self.input.get_text()):
             self.send_chat_state('inactive')
         self.check_scrolled()
 
@@ -933,8 +933,8 @@ class MucTab(ChatTab):
                 and not config.get('show_useless_separator', False)):
             self.text_win.remove_line_separator()
         curses.curs_set(1)
-        if self.joined and config.get_by_tabname('send_chat_states', True,
-                self.general_jid, True) and not self.input.get_text():
+        if self.joined and config.get_by_tabname('send_chat_states',
+                self.general_jid) and not self.input.get_text():
             self.send_chat_state('active')
 
     def on_info_win_size_changed(self):
@@ -1001,7 +1001,7 @@ class MucTab(ChatTab):
                     new_user.color = get_theme().COLOR_OWN_NICK
 
                     if config.get_by_tabname('display_user_color_in_join_part',
-                                             True, self.general_jid, True):
+                                             self.general_jid):
                         color = dump_tuple(new_user.color)
                     else:
                         color = 3
@@ -1120,11 +1120,11 @@ class MucTab(ChatTab):
         user = User(from_nick, affiliation,
                     show, status, role, jid)
         self.users.append(user)
-        hide_exit_join = config.get_by_tabname('hide_exit_join', -1,
-                                               self.general_jid, True)
+        hide_exit_join = config.get_by_tabname('hide_exit_join',
+                                               self.general_jid)
         if hide_exit_join != 0:
-            if config.get_by_tabname('display_user_color_in_join_part', True,
-                    self.general_jid, True):
+            if config.get_by_tabname('display_user_color_in_join_part',
+                                     self.general_jid):
                 color = dump_tuple(user.color)
             else:
                 color = 3
@@ -1161,8 +1161,8 @@ class MucTab(ChatTab):
             self.core.on_muc_own_nickchange(self)
         user.change_nick(new_nick)
 
-        if config.get_by_tabname('display_user_color_in_join_part', True,
-                                 self.general_jid, True):
+        if config.get_by_tabname('display_user_color_in_join_part',
+                                 self.general_jid):
             color = dump_tuple(user.color)
         else:
             color = 3
@@ -1204,10 +1204,9 @@ class MucTab(ChatTab):
             self.refresh_tab_win()
             self.core.current_tab().input.refresh()
             self.core.doupdate()
-            if config.get_by_tabname('autorejoin', False,
-                                     self.general_jid, True):
-                delay = config.get_by_tabname('autorejoin_delay', '5',
-                                              self.general_jid, True)
+            if config.get_by_tabname('autorejoin', self.general_jid):
+                delay = config.get_by_tabname('autorejoin_delay',
+                                              self.general_jid)
                 delay = common.parse_str_to_secs(delay)
                 if delay <= 0:
                     muc.join_groupchat(self.core, self.name, self.own_nick)
@@ -1221,7 +1220,7 @@ class MucTab(ChatTab):
 
         else:
             if config.get_by_tabname('display_user_color_in_join_part',
-                                     True, self.general_jid, True):
+                                     self.general_jid):
                 color = dump_tuple(user.color)
             else:
                 color = 3
@@ -1276,10 +1275,9 @@ class MucTab(ChatTab):
             self.core.current_tab().input.refresh()
             self.core.doupdate()
             # try to auto-rejoin
-            if config.get_by_tabname('autorejoin', False,
-                                     self.general_jid, True):
-                delay = config.get_by_tabname('autorejoin_delay', "5",
-                                              self.general_jid, True)
+            if config.get_by_tabname('autorejoin', self.general_jid):
+                delay = config.get_by_tabname('autorejoin_delay',
+                                              self.general_jid)
                 delay = common.parse_str_to_secs(delay)
                 if delay <= 0:
                     muc.join_groupchat(self.core, self.name, self.own_nick)
@@ -1291,8 +1289,8 @@ class MucTab(ChatTab):
                         self.name,
                         self.own_nick))
         else:
-            if config.get_by_tabname('display_user_color_in_join_part', True,
-                                     self.general_jid, True):
+            if config.get_by_tabname('display_user_color_in_join_part',
+                                     self.general_jid):
                 color = dump_tuple(user.color)
             else:
                 color = 3
@@ -1325,13 +1323,12 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(from_room)
             self.refresh_tab_win()
 
-        hide_exit_join = max(config.get_by_tabname('hide_exit_join', -1,
-                                                   self.general_jid, True),
-                             -1)
+        hide_exit_join = config.get_by_tabname('hide_exit_join',
+                                               self.general_jid)
 
-        if hide_exit_join == -1 or user.has_talked_since(hide_exit_join):
-            if config.get_by_tabname('display_user_color_in_join_part', True,
-                    self.general_jid, True):
+        if hide_exit_join <= -1 or user.has_talked_since(hide_exit_join):
+            if config.get_by_tabname('display_user_color_in_join_part',
+                                     self.general_jid):
                 color = dump_tuple(user.color)
             else:
                 color = 3
@@ -1371,8 +1368,8 @@ class MucTab(ChatTab):
         # build the message
         display_message = False # flag to know if something significant enough
                                 # to be displayed has changed
-        if config.get_by_tabname('display_user_color_in_join_part', True,
-                self.general_jid, True):
+        if config.get_by_tabname('display_user_color_in_join_part',
+                                 self.general_jid):
             color = dump_tuple(user.color)
         else:
             color = 3
@@ -1408,8 +1405,8 @@ class MucTab(ChatTab):
         if not display_message:
             return
         msg = msg[:-2] # remove the last ", "
-        hide_status_change = config.get_by_tabname('hide_status_change', -1,
-                                                   self.general_jid, True)
+        hide_status_change = config.get_by_tabname('hide_status_change',
+                                                   self.general_jid)
         if hide_status_change < -1:
             hide_status_change = -1
         if ((hide_status_change == -1 or \
@@ -1469,9 +1466,9 @@ class MucTab(ChatTab):
                     self.state = 'highlight'
                 highlighted = True
             else:
-                highlight_words = config.get_by_tabname('highlight_on', '',
-                                                        self.general_jid,
-                                                        True).split(':')
+                highlight_words = config.get_by_tabname('highlight_on',
+                                                        self.general_jid)
+                highlight_words = highlight_words.split(':')
                 for word in highlight_words:
                     if word and word.lower() in txt.lower():
                         if self.state != 'current':
@@ -1481,8 +1478,7 @@ class MucTab(ChatTab):
         if highlighted:
             beep_on = config.get('beep_on', 'highlight private').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
-                if not config.get_by_tabname('disable_beep', False,
-                                             self.name, False):
+                if not config.get_by_tabname('disable_beep', self.name):
                     curses.beep()
         return highlighted
 
@@ -1521,8 +1517,7 @@ class MucTab(ChatTab):
         if (not time and nickname and nickname != self.own_nick
                     and self.state != 'current'):
             if (self.state != 'highlight' and
-                    config.get_by_tabname('notify_messages',
-                                          True, self.name)):
+                    config.get_by_tabname('notify_messages', self.name)):
                 self.state = 'message'
         if time and not txt.startswith('/me'):
             txt = '\x19%(info_col)s}%(txt)s' % {

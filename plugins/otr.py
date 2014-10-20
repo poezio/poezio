@@ -210,7 +210,7 @@ def hl(tab):
 
     conv_jid = safeJID(tab.name)
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
+        if not config.get_by_tabname('disable_beep', conv_jid.bare, default=False):
             curses.beep()
 
 class PoezioContext(Context):
@@ -430,11 +430,11 @@ class Plugin(BasePlugin):
         jid = safeJID(jid).full
         if not jid in self.contexts:
             flags = POLICY_FLAGS.copy()
-            policy = self.config.get_by_tabname('encryption_policy', 'ondemand', jid).lower()
-            logging_policy = self.config.get_by_tabname('log', 'false', jid).lower()
-            allow_v2 = self.config.get_by_tabname('allow_v2', 'true', jid).lower()
+            policy = self.config.get_by_tabname('encryption_policy', jid, default='ondemand').lower()
+            logging_policy = self.config.get_by_tabname('log', jid, default='false').lower()
+            allow_v2 = self.config.get_by_tabname('allow_v2', jid, default='true').lower()
             flags['ALLOW_V2'] = (allow_v2 != 'false')
-            allow_v1 = self.config.get_by_tabname('allow_v1', 'false', jid).lower()
+            allow_v1 = self.config.get_by_tabname('allow_v1', jid, default='false').lower()
             flags['ALLOW_V1'] = (allow_v1 == 'true')
             self.contexts[jid] = PoezioContext(self.account, jid, self.core.xmpp, self.core)
             self.contexts[jid].log = 1 if logging_policy != 'false' else 0
@@ -544,7 +544,7 @@ class Plugin(BasePlugin):
             nick_color = get_theme().COLOR_REMOTE_USER
 
         body = txt.decode()
-        if self.config.get_by_tabname('decode_xhtml', True, msg['from'].bare):
+        if self.config.get_by_tabname('decode_xhtml', msg['from'].bare, default=True):
             try:
                 body = xhtml.xhtml_to_poezio_colors(body, force=True)
             except:

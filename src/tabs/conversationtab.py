@@ -108,7 +108,7 @@ class ConversationTab(OneToOneTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', True, self.name):
+            if config.get_by_tabname('group_corrections', self.name):
                 try:
                     self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
                             nickname=self.core.own_nick)
@@ -121,7 +121,8 @@ class ConversationTab(OneToOneTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and self.remote_wants_chatstates is not False:
+        if (config.get_by_tabname('send_chat_states', self.general_jid) and
+                self.remote_wants_chatstates is not False):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
@@ -316,7 +317,9 @@ class ConversationTab(OneToOneTab):
             self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and (not self.input.get_text()
+                    or not self.input.get_text().startswith('//'))):
             if resource:
                 self.send_chat_state('inactive')
         self.check_scrolled()
@@ -334,7 +337,9 @@ class ConversationTab(OneToOneTab):
 
         self.state = 'current'
         curses.curs_set(1)
-        if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and (not self.input.get_text() or not self.input.get_text().startswith('//')):
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and (not self.input.get_text()
+                    or not self.input.get_text().startswith('//'))):
             if resource:
                 self.send_chat_state('active')
 
@@ -349,7 +354,7 @@ class ConversationTab(OneToOneTab):
 
     def on_close(self):
         Tab.on_close(self)
-        if config.get_by_tabname('send_chat_states', True, self.general_jid, True):
+        if config.get_by_tabname('send_chat_states', self.general_jid):
             self.send_chat_state('gone')
 
     def matching_names(self):

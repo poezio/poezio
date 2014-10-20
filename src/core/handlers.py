@@ -235,8 +235,8 @@ def on_normal_message(self, message):
 
     def try_modify():
         replaced_id = message['replace']['id']
-        if replaced_id and (config.get_by_tabname('group_corrections',
-            True, conv_jid.bare)):
+        if replaced_id and config.get_by_tabname('group_corrections',
+                                                 conv_jid.bare):
             try:
                 conversation.modify_message(body, replaced_id, message['id'], jid=jid,
                         nickname=remote_nick)
@@ -260,7 +260,7 @@ def on_normal_message(self, message):
         else:
             conversation.remote_wants_chatstates = False
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
+        if not config.get_by_tabname('disable_beep', conv_jid.bare):
             curses.beep()
     if self.current_tab() is not conversation:
         conversation.state = 'private'
@@ -310,7 +310,7 @@ def on_gaming_event(self, message):
     if contact.gaming:
         logger.log_roster_change(contact.bare_jid, 'is playing %s' % (common.format_gaming_string(contact.gaming)))
 
-    if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', False, contact.bare_jid):
+    if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', contact.bare_jid):
         if contact.gaming:
             self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
         else:
@@ -343,7 +343,7 @@ def on_mood_event(self, message):
     if contact.mood:
         logger.log_roster_change(contact.bare_jid, 'has now the mood: %s' % contact.mood)
 
-    if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', False, contact.bare_jid):
+    if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', contact.bare_jid):
         if contact.mood:
             self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
         else:
@@ -382,7 +382,7 @@ def on_activity_event(self, message):
     if contact.activity:
         logger.log_roster_change(contact.bare_jid, 'has now the activity %s' % contact.activity)
 
-    if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', False, contact.bare_jid):
+    if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', contact.bare_jid):
         if contact.activity:
             self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
         else:
@@ -416,7 +416,7 @@ def on_tune_event(self, message):
     if contact.tune:
         logger.log_roster_change(message['from'].bare, 'is now listening to %s' % common.format_tune_string(contact.tune))
 
-    if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', False, contact.bare_jid):
+    if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', contact.bare_jid):
         if contact.tune:
             self.information(
                     'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
@@ -460,8 +460,8 @@ def on_groupchat_message(self, message):
     delayed, date = common.find_delayed_tag(message)
     replaced_id = message['replace']['id']
     replaced = False
-    if replaced_id is not '' and (config.get_by_tabname(
-        'group_corrections', True, message['from'].bare)):
+    if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                       message['from'].bare):
         try:
             if tab.modify_message(body, replaced_id, message['id'], time=date,
                     nickname=nick_from, user=user):
@@ -488,7 +488,7 @@ def on_groupchat_message(self, message):
         self.doupdate()
 
     if 'message' in config.get('beep_on', 'highlight private').split():
-        if (not config.get_by_tabname('disable_beep', False, room_from, False)
+        if (not config.get_by_tabname('disable_beep', room_from)
                 and self.own_nick != message['from'].resource):
             curses.beep()
 
@@ -515,13 +515,13 @@ def on_groupchat_private_message(self, message):
                                               tmp_dir=tmp_dir,
                                               extract_images=extract_images)
     tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
-    ignore = config.get_by_tabname('ignore_private', False, room_from)
+    ignore = config.get_by_tabname('ignore_private', room_from)
     if not tab: # It's the first message we receive: create the tab
         if body and not ignore:
             tab = self.open_private_window(room_from, nick_from, False)
     if ignore:
         self.events.trigger('ignored_private', message, tab)
-        msg = config.get_by_tabname('private_auto_response', None, room_from)
+        msg = config.get_by_tabname('private_auto_response', room_from)
         if msg and body:
             self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
         return
@@ -534,8 +534,8 @@ def on_groupchat_private_message(self, message):
     replaced_id = message['replace']['id']
     replaced = False
     user = tab.parent_muc.get_user_by_name(nick_from)
-    if replaced_id is not '' and (config.get_by_tabname(
-        'group_corrections', True, room_from)):
+    if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                       room_from):
         try:
             tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
                     nickname=nick_from)
@@ -555,7 +555,7 @@ def on_groupchat_private_message(self, message):
         else:
             tab.remote_wants_chatstates = False
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, jid.full, False):
+        if not config.get_by_tabname('disable_beep', jid.full):
             curses.beep()
     if tab is self.current_tab():
         self.refresh_window()
@@ -1050,8 +1050,8 @@ def room_error(self, error, room_name):
         msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
         tab.add_message(msg, typ=2)
     if code == '409':
-        if config.get('alternative_nickname', '') != '':
-            self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
+        if config.get('alternative_nickname') != '':
+            self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
         else:
             if not tab.joined:
                 tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)

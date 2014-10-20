@@ -592,8 +592,8 @@ class ChatTab(Tab):
         if not self.is_muc or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
-            if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and \
-                    self.remote_wants_chatstates is not False:
+            if (config.get_by_tabname('send_chat_states', self.general_jid)
+                    and self.remote_wants_chatstates is not False):
                 msg = self.core.xmpp.make_message(self.get_dest_jid())
                 msg['type'] = self.message_type
                 msg['chat_state'] = state
@@ -607,7 +607,8 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         name = self.general_jid
-        if config.get_by_tabname('send_chat_states', True, name, True) and self.remote_wants_chatstates:
+        if (config.get_by_tabname('send_chat_states', name)
+                and self.remote_wants_chatstates):
             needed = 'inactive' if self.inactive else 'active'
             self.cancel_paused_delay()
             if not empty_after:
@@ -622,7 +623,7 @@ class ChatTab(Tab):
         we create a timed event that will put us to paused
         in a few seconds
         """
-        if not config.get_by_tabname('send_chat_states', True, self.general_jid, True):
+        if not config.get_by_tabname('send_chat_states', self.general_jid):
             return
         if self.timed_event_paused:
             # check the weakref

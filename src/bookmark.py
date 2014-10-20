@@ -226,7 +226,7 @@ def get_local():
             nick = jid.resource
         else:
             nick = None
-        passwd = config.get_by_tabname('password', '', jid.bare, fallback=False) or None
+        passwd = config.get_by_tabname('password', jid.bare, fallback=False) or None
         b = Bookmark(jid.bare, autojoin=True, nick=nick, password=passwd, method='local')
         if not get_by_jid(b.jid):
             bookmarks.append(b)
