@@ -19,7 +19,9 @@ from theming import to_curses_attr, get_theme, dump_tuple
 
 
 class TextWin(Win):
-    def __init__(self, lines_nb_limit=config.get('max_lines_in_memory')):
+    def __init__(self, lines_nb_limit=None):
+        if lines_nb_limit is None:
+            lines_nb_limit = config.get('max_lines_in_memory')
         Win.__init__(self)
         self.lines_nb_limit = lines_nb_limit
         self.pos = 0
