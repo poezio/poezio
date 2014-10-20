@@ -349,7 +349,7 @@ class RosterInfoTab(Tab):
         def callback(iq):
             if iq['type'] == 'result':
                 self.core.information('Password updated', 'Account')
-                if config.get('password', ''):
+                if config.get('password'):
                     config.silent_set('password', arg)
             else:
                 self.core.information('Unable to change the password', 'Account')
@@ -763,7 +763,7 @@ class RosterInfoTab(Tab):
         Show or hide offline contacts
         """
         option = 'roster_show_offline'
-        value = config.get(option, False)
+        value = config.get(option)
         success = config.silent_set(option, str(not value))
         roster.modified()
         if not success:

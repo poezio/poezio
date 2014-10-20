@@ -20,7 +20,7 @@ def find_first_format_char(text, chars=None):
     return pos
 
 def truncate_nick(nick, size=None):
-    size = size or config.get('max_nick_length', 25)
+    size = size or config.get('max_nick_length')
     if size < 1:
         size = 1
     if nick and len(nick) > size:

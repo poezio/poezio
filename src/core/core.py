@@ -64,10 +64,10 @@ class Core(object):
         sys.excepthook = self.on_exception
         self.connection_time = time.time()
         self.stdscr = None
-        status = config.get('status', None)
+        status = config.get('status')
         status = possible_show.get(status, None)
         self.status = Status(show=status,
-                message=config.get('status_message', ''))
+                message=config.get('status_message'))
         self.running = True
         self.xmpp = singleton.Singleton(connection.Connection)
         self.xmpp.core = self
@@ -82,7 +82,7 @@ class Core(object):
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
-        self.information_win_size = config.get('info_win_height', 2, 'var')
+        self.information_win_size = config.get('info_win_height', section='var')
         self.information_win = windows.TextWin(300)
         self.information_buffer.add_window(self.information_win)
         self.left_tab_win = None
@@ -96,7 +96,7 @@ class Core(object):
         self._current_tab_nb = 0
         self.previous_tab_nb = 0
 
-        own_nick = config.get('default_nick', '')
+        own_nick = config.get('default_nick')
         own_nick = own_nick or self.xmpp.boundjid.user
         own_nick = own_nick or os.environ.get('USER')
         own_nick = own_nick or 'poezio'
@@ -119,7 +119,7 @@ class Core(object):
         self.register_initial_commands()
 
         # We are invisible
-        if not config.get('send_initial_presence', True):
+        if not config.get('send_initial_presence'):
             del self.commands['status']
             del self.commands['show']
 
@@ -241,19 +241,19 @@ class Core(object):
                                     connection.MatchAll(None),
                                     self.incoming_stanza)
         self.xmpp.register_handler(self.all_stanzas)
-        if config.get('enable_user_tune', True):
+        if config.get('enable_user_tune'):
             self.xmpp.add_event_handler("user_tune_publish",
                                         self.on_tune_event)
-        if config.get('enable_user_nick', True):
+        if config.get('enable_user_nick'):
             self.xmpp.add_event_handler("user_nick_publish",
                                         self.on_nick_received)
-        if config.get('enable_user_mood', True):
+        if config.get('enable_user_mood'):
             self.xmpp.add_event_handler("user_mood_publish",
                                         self.on_mood_event)
-        if config.get('enable_user_activity', True):
+        if config.get('enable_user_activity'):
             self.xmpp.add_event_handler("user_activity_publish",
                                         self.on_activity_event)
-        if config.get('enable_user_gaming', True):
+        if config.get('enable_user_gaming'):
             self.xmpp.add_event_handler("user_gaming_publish",
                                         self.on_gaming_event)
 
@@ -342,13 +342,14 @@ class Core(object):
         """
         Called when the request_message_receipts option changes
         """
-        self.xmpp.plugin['xep_0184'].auto_request = config.get(option, True)
+        self.xmpp.plugin['xep_0184'].auto_request = config.get(option,
+                                                               default=True)
 
     def on_ack_receipts_config_change(self, option, value):
         """
         Called when the ack_message_receipts option changes
         """
-        self.xmpp.plugin['xep_0184'].auto_ack = config.get(option, True)
+        self.xmpp.plugin['xep_0184'].auto_ack = config.get(option, default=True)
 
     def on_plugins_dir_config_change(self, option, value):
         """
@@ -398,7 +399,7 @@ class Core(object):
             old_section = old_config.get(section, {})
             for option in config.options(section):
                 old_value = old_section.get(option)
-                new_value = config.get(option, "", section)
+                new_value = config.get(option, default="", section=section)
                 if new_value != old_value:
                     self.trigger_configuration_change(option, new_value)
         log.debug("Config reloaded.")
@@ -420,11 +421,11 @@ class Core(object):
                 }
 
         log.error("%s received. Exiting…", signals[sig])
-        if config.get('enable_user_mood', True):
+        if config.get('enable_user_mood'):
             self.xmpp.plugin['xep_0107'].stop(block=False)
-        if config.get('enable_user_activity', True):
+        if config.get('enable_user_activity'):
             self.xmpp.plugin['xep_0108'].stop(block=False)
-        if config.get('enable_user_gaming', True):
+        if config.get('enable_user_gaming'):
             self.xmpp.plugin['xep_0196'].stop(block=False)
         self.plugin_manager.disable_plugins()
         self.disconnect('')
@@ -439,7 +440,7 @@ class Core(object):
         """
         Load the plugins on startup.
         """
-        plugins = config.get('plugins_autoload', '')
+        plugins = config.get('plugins_autoload')
         if ':' in plugins:
             for plugin in plugins.split(':'):
                 self.plugin_manager.load(plugin)
@@ -659,9 +660,9 @@ class Core(object):
         work. If you try to do anything else, your |, [, <<, etc will be
         interpreted as normal command arguments, not shell special tokens.
         """
-        if config.get('exec_remote', False):
+        if config.get('exec_remote'):
             # We just write the command in the fifo
-            fifo_path = config.get('remote_fifo_path', './')
+            fifo_path = config.get('remote_fifo_path')
             if not self.remote_fifo:
                 try:
                     self.remote_fifo = Fifo(os.path.join(fifo_path,
@@ -755,7 +756,7 @@ class Core(object):
         or to use it when joining a new muc)
         """
         self.status = Status(show=pres, message=msg)
-        if config.get('save_status', True):
+        if config.get('save_status'):
             ok = config.silent_set('status', pres if pres else '')
             msg = msg.replace('\n', '|') if msg else ''
             ok = ok and config.silent_set('status_message', msg)
@@ -993,7 +994,7 @@ class Core(object):
             return False
         elif not self.tabs[old_pos]:
             return False
-        if config.get('create_gaps', False):
+        if config.get('create_gaps'):
             return self.insert_tab_gaps(old_pos, new_pos)
         return self.insert_tab_nogaps(old_pos, new_pos)
 
@@ -1237,7 +1238,7 @@ class Core(object):
         if self.previous_tab_nb != nb:
             self.current_tab_nb = self.previous_tab_nb
             self.previous_tab_nb = 0
-        if config.get('create_gaps', False):
+        if config.get('create_gaps'):
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
                 nb -= 1
@@ -1288,7 +1289,7 @@ class Core(object):
         """
         Displays an informational message in the "Info" buffer
         """
-        filter_messages = config.get('filter_info_messages', '').split(':')
+        filter_messages = config.get('filter_info_messages').split(':')
         for words in filter_messages:
             if words and words in msg:
                 log.debug('Did not show the message:\n\t%s> %s', typ, msg)
@@ -1298,12 +1299,11 @@ class Core(object):
         nb_lines = self.information_buffer.add_message(msg,
                                                        nickname=typ,
                                                        nick_color=color)
-        popup_on = config.get('information_buffer_popup_on',
-                              'error roster warning help info').split()
+        popup_on = config.get('information_buffer_popup_on').split()
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
         elif typ != '' and typ.lower() in popup_on:
-            popup_time = config.get('popup_time', 4) + (nb_lines - 1) * 2
+            popup_time = config.get('popup_time') + (nb_lines - 1) * 2
             self.pop_information_win_up(nb_lines, popup_time)
         else:
             if self.information_win_size != 0:
@@ -1496,7 +1496,7 @@ class Core(object):
         """
         Enable/disable the left panel.
         """
-        enabled = config.get('enable_vertical_tab_list', False)
+        enabled = config.get('enable_vertical_tab_list')
         if not config.silent_set('enable_vertical_tab_list', str(not enabled)):
             self.information(_('Unable to write in the config file'), 'Error')
         self.call_for_resize()
@@ -1523,14 +1523,14 @@ class Core(object):
         """
         with g_lock:
             height, width = self.stdscr.getmaxyx()
-            if config.get('enable_vertical_tab_list', False):
+            if config.get('enable_vertical_tab_list'):
 
                 if self.size.core_degrade_x:
                     return
                 try:
                     height, _ = self.stdscr.getmaxyx()
                     truncated_win = self.stdscr.subwin(height,
-                            config.get('vertical_tab_list_size', 20),
+                            config.get('vertical_tab_list_size'),
                             0, 0)
                 except:
                     log.error('Curses error on infobar resize', exc_info=True)
@@ -1569,12 +1569,12 @@ class Core(object):
         # on the left remaining space
         with g_lock:
             height, width = self.stdscr.getmaxyx()
-        if (config.get('enable_vertical_tab_list', False) and
+        if (config.get('enable_vertical_tab_list') and
                 not self.size.core_degrade_x):
             with g_lock:
                 try:
                     scr = self.stdscr.subwin(0,
-                            config.get('vertical_tab_list_size', 20))
+                            config.get('vertical_tab_list_size'))
                 except:
                     log.error('Curses error on resize', exc_info=True)
                     return
@@ -1585,7 +1585,7 @@ class Core(object):
         self.resize_global_information_win()
         with g_lock:
             for tab in self.tabs:
-                if config.get('lazy_resize', True):
+                if config.get('lazy_resize'):
                     tab.need_resize = True
                 else:
                     tab.resize()
@@ -1818,7 +1818,7 @@ class Core(object):
                 usage='<jid>',
                 shortdesc=_('List available ad-hoc commands on the given jid'))
 
-        if config.get('enable_user_activity', True):
+        if config.get('enable_user_activity'):
             self.register_command('activity', self.command_activity,
                     usage='[<general> [specific] [text]]',
                     desc=_('Send your current activity to your contacts '
@@ -1826,7 +1826,7 @@ class Core(object):
                            '"stop broadcasting an activity".'),
                     shortdesc=_('Send your activity.'),
                     completion=self.completion_activity)
-        if config.get('enable_user_mood', True):
+        if config.get('enable_user_mood'):
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
                     desc=_('Send your current mood to your contacts '
@@ -1834,7 +1834,7 @@ class Core(object):
                            '"stop broadcasting a mood".'),
                     shortdesc=_('Send your mood.'),
                     completion=self.completion_mood)
-        if config.get('enable_user_gaming', True):
+        if config.get('enable_user_gaming'):
             self.register_command('gaming', self.command_gaming,
                     usage='[<game name> [server address]]',
                     desc=_('Send your current gaming activity to '
@@ -1977,7 +1977,7 @@ def replace_key_with_bound(key):
     Replace an inputted key with the one defined as its replacement
     in the config
     """
-    bind = config.get(key, key, 'bindings')
+    bind = config.get(key, default=key, section='bindings')
     if not bind:
         bind = key
     return bind

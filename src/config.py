@@ -133,7 +133,6 @@ DEFAULT_CONFIG = {
     }
 }
 
-
 class Config(RawConfigParser):
     """
     load/save the config to a file
@@ -539,7 +538,7 @@ def create_global_config():
 def check_create_log_dir():
     "Create the poezio logging directory if it doesn’t exist"
     global LOG_DIR
-    LOG_DIR = config.get('log_dir', '')
+    LOG_DIR = config.get('log_dir')
 
     if not LOG_DIR:
 
@@ -559,7 +558,7 @@ def check_create_log_dir():
 
 def setup_logging():
     "Change the logging config according to the cmdline options and config"
-    if config.get('log_errors', True):
+    if config.get('log_errors'):
         LOGGING_CONFIG['root']['handlers'].append('error')
         LOGGING_CONFIG['handlers']['error'] = {
                 'level': 'ERROR',

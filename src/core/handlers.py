@@ -44,7 +44,7 @@ def on_session_start_features(self, _):
         features = iq['disco_info']['features']
         rostertab = self.get_tab_by_name('Roster', tabs.RosterInfoTab)
         rostertab.check_blocking(features)
-        if (config.get('enable_carbons', True) and
+        if (config.get('enable_carbons') and
                 'urn:xmpp:carbons:2' in features):
             self.xmpp.plugin['xep_0280'].enable()
             self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
@@ -111,7 +111,7 @@ def on_groupchat_invitation(self, message):
     if password:
         msg += ". The password is \"%s\"." % password
     self.information(msg, 'Info')
-    if 'invite' in config.get('beep_on', 'invite').split():
+    if 'invite' in config.get('beep_on').split():
         curses.beep()
     logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
     self.pending_invites[jid.bare] = inviter.full
@@ -142,7 +142,7 @@ def on_groupchat_direct_invitation(self, message):
         msg += "\nreason: %s" % reason
 
     self.information(msg, 'Info')
-    if 'invite' in config.get('beep_on', 'invite').split():
+    if 'invite' in config.get('beep_on').split():
         curses.beep()
 
     self.pending_invites[room.bare] = inviter.full
@@ -178,9 +178,9 @@ def on_normal_message(self, message):
     elif message['type'] == 'headline' and message['body']:
         return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
-    use_xhtml = config.get('enable_xhtml_im', True)
-    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
-    extract_images = config.get('extract_inline_images', True)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
     body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                               tmp_dir=tmp_dir,
                                               extract_images=extract_images)
@@ -197,7 +197,7 @@ def on_normal_message(self, message):
         if conv_jid.bare in roster:
             remote_nick = roster[conv_jid.bare].name
         # check for a received nick
-        if not remote_nick and config.get('enable_user_nick', True):
+        if not remote_nick and config.get('enable_user_nick'):
             if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                 remote_nick = message['nick']['nick']
         if not remote_nick:
@@ -259,7 +259,7 @@ def on_normal_message(self, message):
             conversation.remote_wants_chatstates = True
         else:
             conversation.remote_wants_chatstates = False
-    if 'private' in config.get('beep_on', 'highlight private').split():
+    if 'private' in config.get('beep_on').split():
         if not config.get_by_tabname('disable_beep', conv_jid.bare):
             curses.beep()
     if self.current_tab() is not conversation:
@@ -447,9 +447,9 @@ def on_groupchat_message(self, message):
         return
 
     self.events.trigger('muc_msg', message, tab)
-    use_xhtml = config.get('enable_xhtml_im', True)
-    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
-    extract_images = config.get('extract_inline_images', True)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
     body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                               tmp_dir=tmp_dir,
                                               extract_images=extract_images)
@@ -487,7 +487,7 @@ def on_groupchat_message(self, message):
             current.input.refresh()
         self.doupdate()
 
-    if 'message' in config.get('beep_on', 'highlight private').split():
+    if 'message' in config.get('beep_on').split():
         if (not config.get_by_tabname('disable_beep', room_from)
                 and self.own_nick != message['from'].resource):
             curses.beep()
@@ -508,9 +508,9 @@ def on_groupchat_private_message(self, message):
         return self.on_groupchat_message(message)
 
     room_from = jid.bare
-    use_xhtml = config.get('enable_xhtml_im', True)
-    tmp_dir = config.get('tmp_image_dir', '') or path.join(CACHE_DIR, 'images')
-    extract_images = config.get('extract_inline_images', True)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
     body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                               tmp_dir=tmp_dir,
                                               extract_images=extract_images)
@@ -554,7 +554,7 @@ def on_groupchat_private_message(self, message):
             tab.remote_wants_chatstates = True
         else:
             tab.remote_wants_chatstates = False
-    if 'private' in config.get('beep_on', 'highlight private').split():
+    if 'private' in config.get('beep_on').split():
         if not config.get_by_tabname('disable_beep', jid.full):
             curses.beep()
     if tab is self.current_tab():
@@ -876,23 +876,23 @@ def on_session_start(self, event):
         # request the roster
         self.xmpp.get_roster()
         # send initial presence
-        if config.get('send_initial_presence', True):
+        if config.get('send_initial_presence'):
             pres = self.xmpp.make_presence()
             pres['show'] = self.status.show
             pres['status'] = self.status.message
             self.events.trigger('send_normal_presence', pres)
             pres.send()
     bookmark.get_local()
-    if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
+    if not self.xmpp.anon and config.get('use_remote_bookmarks'):
         bookmark.get_remote(self.xmpp)
     for bm in bookmark.bookmarks:
-        if bm.autojoin or config.get('open_all_bookmarks', False):
+        if bm.autojoin or config.get('open_all_bookmarks'):
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
             nick = bm.nick if bm.nick else self.own_nick
             if not tab:
                 self.open_new_room(bm.jid, nick, False)
             self.initial_joins.append(bm.jid)
-            histo_length = config.get('muc_history_length', 20)
+            histo_length = config.get('muc_history_length')
             if histo_length == -1:
                 histo_length = None
             if histo_length is not None:
@@ -906,7 +906,7 @@ def on_session_start(self, event):
                         status=self.status.message,
                         show=self.status.show)
 
-    if config.get('enable_user_nick', True):
+    if config.get('enable_user_nick'):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback, block=False)
     self.xmpp.plugin['xep_0115'].update_caps()
 
@@ -1081,9 +1081,9 @@ def validate_ssl(self, pem):
     """
     Check the server certificate using the sleekxmpp ssl_cert event
     """
-    if config.get('ignore_certificate', False):
+    if config.get('ignore_certificate'):
         return
-    cert = config.get('certificate', '')
+    cert = config.get('certificate')
     # update the cert representation when it uses the old one
     if cert and not ':' in cert:
         cert = ':'.join(i + j for i, j in zip(cert[::2], cert[1::2])).upper()
@@ -1147,7 +1147,7 @@ def _composing_tab_state(tab, state):
     else:
         return # should not happen
 
-    show = config.get('show_composing_tabs', 'direct')
+    show = config.get('show_composing_tabs')
     show = show in values
 
     if tab.state != 'composing' and state == 'composing':

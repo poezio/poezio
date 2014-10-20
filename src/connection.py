@@ -29,28 +29,28 @@ class Connection(sleekxmpp.ClientXMPP):
     """
     __init = False
     def __init__(self):
-        resource = config.get('resource', '')
-        if config.get('jid', ''):
+        resource = config.get('resource')
+        if config.get('jid'):
             # Field used to know if we are anonymous or not.
             # many features will be handled differently
             # depending on this setting
             self.anon = False
-            jid = '%s' % config.get('jid', '')
+            jid = '%s' % config.get('jid')
             if resource:
                 jid = '%s/%s'% (jid, resource)
-            password = config.get('password', '') or getpass.getpass()
+            password = config.get('password') or getpass.getpass()
         else: # anonymous auth
             self.anon = True
-            jid = config.get('server', 'anon.jeproteste.info')
+            jid = config.get('server')
             if resource:
                 jid = '%s/%s' % (jid, resource)
             password = None
         jid = safeJID(jid)
         # TODO: use the system language
         sleekxmpp.ClientXMPP.__init__(self, jid, password,
-                                      lang=config.get('lang', 'en'))
+                                      lang=config.get('lang'))
 
-        force_encryption = config.get('force_encryption', True)
+        force_encryption = config.get('force_encryption')
         if force_encryption:
             self['feature_mechanisms'].unencrypted_plain = False
             self['feature_mechanisms'].unencrypted_digest = False
@@ -58,7 +58,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self['feature_mechanisms'].unencrypted_scram = False
 
         self.core = None
-        self.auto_reconnect = config.get('auto_reconnect', False)
+        self.auto_reconnect = config.get('auto_reconnect')
         self.reconnect_max_attempts = 0
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
@@ -66,9 +66,9 @@ class Connection(sleekxmpp.ClientXMPP):
         self.ciphers = config.get('ciphers',
                                   'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
                                     ':!SRP:!3DES:!aNULL')
-        self.ca_certs = config.get('ca_cert_path', '') or None
-        interval = config.get('whitespace_interval', '300')
-        if interval.isdecimal() and int(interval) > 0:
+        self.ca_certs = config.get('ca_cert_path') or None
+        interval = config.get('whitespace_interval')
+        if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
         else:
             self.whitespace_keepalive_interval = 300
@@ -90,34 +90,32 @@ class Connection(sleekxmpp.ClientXMPP):
         # without a body
         XEP_0184._filter_add_receipt_request = fixes._filter_add_receipt_request
         self.register_plugin('xep_0184')
-        self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts',
-                                                      True)
-        self.plugin['xep_0184'].auto_request = config.get(
-                'request_message_receipts', True)
+        self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts')
+        self.plugin['xep_0184'].auto_request = config.get('request_message_receipts')
 
         self.register_plugin('xep_0191')
         self.register_plugin('xep_0199')
         self.set_keepalive_values()
 
-        if config.get('enable_user_tune', True):
+        if config.get('enable_user_tune'):
             self.register_plugin('xep_0118')
 
-        if config.get('enable_user_nick', True):
+        if config.get('enable_user_nick'):
             self.register_plugin('xep_0172')
 
-        if config.get('enable_user_mood', True):
+        if config.get('enable_user_mood'):
             self.register_plugin('xep_0107')
 
-        if config.get('enable_user_activity', True):
+        if config.get('enable_user_activity'):
             self.register_plugin('xep_0108')
 
-        if config.get('enable_user_gaming', True):
+        if config.get('enable_user_gaming'):
             self.register_plugin('xep_0196')
 
-        if config.get('send_poezio_info', True):
+        if config.get('send_poezio_info'):
             info = {'name':'poezio',
                     'version': options.version}
-            if config.get('send_os_info', True):
+            if config.get('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(
                     identities=set([('client', 'pc', None, 'Poezio')]))
@@ -126,7 +124,7 @@ class Connection(sleekxmpp.ClientXMPP):
             self.plugin['xep_0030'].set_identities(
                     identities=set([('client', 'pc', None, '')]))
         self.register_plugin('xep_0092', pconfig=info)
-        if config.get('send_time', True):
+        if config.get('send_time'):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
         self.register_plugin('xep_0249')
@@ -141,8 +139,8 @@ class Connection(sleekxmpp.ClientXMPP):
         is changed.
         Unload and reload the ping plugin, with the new values.
         """
-        ping_interval = config.get('connection_check_interval', 60)
-        timeout_delay = config.get('connection_timeout_delay', 10)
+        ping_interval = config.get('connection_check_interval')
+        timeout_delay = config.get('connection_timeout_delay')
         if timeout_delay <= 0:
             # We help the stupid user (with a delay of 0, poezio will try to
             # reconnect immediately because the timeout is immediately
@@ -161,7 +159,7 @@ class Connection(sleekxmpp.ClientXMPP):
 
         TODO: try multiple servers with anon auth.
         """
-        custom_host = config.get('custom_host', '')
+        custom_host = config.get('custom_host')
         custom_port = config.get('custom_port', 5222)
         if custom_port == -1:
             custom_port = 5222

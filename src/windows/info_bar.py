@@ -25,10 +25,10 @@ class GlobalInfoBar(Win):
             self._win.erase()
             self.addstr(0, 0, "[", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-            create_gaps = config.get('create_gaps', False)
-            show_names = config.get('show_tab_names', False)
-            show_nums = config.get('show_tab_numbers', True)
-            use_nicks = config.get('use_tab_nicks', True)
+            create_gaps = config.get('create_gaps')
+            show_names = config.get('show_tab_names')
+            show_nums = config.get('show_tab_numbers')
+            use_nicks = config.get('use_tab_nicks')
             # ignore any remaining gap tabs if the feature is not enabled
             if create_gaps:
                 sorted_tabs = self.core.tabs[:]
@@ -38,7 +38,7 @@ class GlobalInfoBar(Win):
             for nb, tab in enumerate(sorted_tabs):
                 if not tab: continue
                 color = tab.color
-                if not config.get('show_inactive_tabs', True) and\
+                if not config.get('show_inactive_tabs') and\
                         color is get_theme().COLOR_TAB_NORMAL:
                     continue
                 try:
@@ -72,11 +72,11 @@ class VerticalGlobalInfoBar(Win):
             height, width = self._win.getmaxyx()
             self._win.erase()
             sorted_tabs = [tab for tab in self.core.tabs if tab]
-            if not config.get('show_inactive_tabs', True):
+            if not config.get('show_inactive_tabs'):
                 sorted_tabs = [tab for tab in sorted_tabs if\
                                    tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
             nb_tabs = len(sorted_tabs)
-            use_nicks = config.get('use_tab_nicks', True)
+            use_nicks = config.get('use_tab_nicks')
             if nb_tabs >= height:
                 for y, tab in enumerate(sorted_tabs):
                     if tab.vertical_color == get_theme().COLOR_VERTICAL_TAB_CURRENT:
@@ -92,7 +92,7 @@ class VerticalGlobalInfoBar(Win):
             for y, tab in enumerate(sorted_tabs):
                 color = tab.vertical_color
 
-                if not config.get('vertical_tab_list_sort', 'desc') != 'asc':
+                if not config.get('vertical_tab_list_sort') != 'asc':
                     y = height - y - 1
                 self.addstr(y, 0, "%2d" % tab.nb,
                         to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))

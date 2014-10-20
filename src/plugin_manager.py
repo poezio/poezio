@@ -325,7 +325,7 @@ class PluginManager(object):
         """
         Create the plugins_conf_dir
         """
-        plugins_conf_dir = config.get('plugins_conf_dir', '')
+        plugins_conf_dir = config.get('plugins_conf_dir')
         if not plugins_conf_dir:
             config_home = os.environ.get('XDG_CONFIG_HOME')
             if not config_home:
@@ -352,7 +352,7 @@ class PluginManager(object):
         """
         Set the plugins_dir on start
         """
-        plugins_dir = config.get('plugins_dir', '')
+        plugins_dir = config.get('plugins_dir')
         plugins_dir = plugins_dir or\
             os.path.join(os.environ.get('XDG_DATA_HOME') or\
                              os.path.join(os.environ.get('HOME'),

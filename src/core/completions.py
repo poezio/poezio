@@ -46,7 +46,7 @@ def completion_presence(self, the_input):
 
 def completion_theme(self, the_input):
     """ Completion for /theme"""
-    themes_dir = config.get('themes_dir', '')
+    themes_dir = config.get('themes_dir')
     themes_dir = themes_dir or\
     os.path.join(os.environ.get('XDG_DATA_HOME') or\
                      os.path.join(os.environ.get('HOME'), '.local', 'share'),
@@ -190,7 +190,7 @@ def completion_bookmark(self, the_input):
         tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
         nicks = [tab.own_nick] if tab else []
         default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-        nick = config.get('default_nick', '')
+        nick = config.get('default_nick')
         if not nick:
             if not default in nicks:
                 nicks.append(default)
@@ -371,7 +371,7 @@ def completion_bookmark_local(self, the_input):
         tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
         nicks = [tab.own_nick] if tab else []
         default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-        nick = config.get('default_nick', '')
+        nick = config.get('default_nick')
         if not nick:
             if not default in nicks:
                 nicks.append(default)

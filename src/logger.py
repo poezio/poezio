@@ -50,7 +50,7 @@ class Logger(object):
     and also log the conversations to logfiles
     """
     def __init__(self):
-        self.logfile = config.get('logfile', 'logs')
+        self.logfile = config.get('logfile')
         self.roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
         self.fds = dict()

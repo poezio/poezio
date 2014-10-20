@@ -139,7 +139,7 @@ class Tab(object):
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
         """
-        if config.get('enable_vertical_tab_list', False):
+        if config.get('enable_vertical_tab_list'):
             return 0
         return 1
 
@@ -298,7 +298,7 @@ class Tab(object):
             return False
 
     def refresh_tab_win(self):
-        if config.get('enable_vertical_tab_list', False):
+        if config.get('enable_vertical_tab_list'):
             if self.left_tab_win and not self.size.core_degrade_x:
                 self.left_tab_win.refresh()
         elif not self.size.core_degrade_y:
@@ -476,7 +476,7 @@ class ChatTab(Tab):
         self.update_keys()
 
         # Get the logs
-        log_nb = config.get('load_log', 10)
+        log_nb = config.get('load_log')
         logs = self.load_logs(log_nb)
 
         if logs:
@@ -537,7 +537,7 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        words.extend([word for word in config.get('words', '').split(':') if word])
+        words.extend([word for word in config.get('words').split(':') if word])
         self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
@@ -825,7 +825,7 @@ class OneToOneTab(ChatTab):
         if attention or empty:
             features.append(_('attention requests (/attention)'))
         if (receipts or empty) \
-                and config.get('request_message_receipts', True):
+                and config.get('request_message_receipts'):
             features.append(_('message delivery receipts'))
         if len(features) > 1:
             tail = features.pop()

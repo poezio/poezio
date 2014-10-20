@@ -455,7 +455,7 @@ def update_themes_dir(option=None, value=None):
     # import from the user-defined prefs
     themes_dir = path.expanduser(
             value or
-            config.get('themes_dir', '') or
+            config.get('themes_dir') or
             path.join(os.environ.get('XDG_DATA_HOME') or
                 path.join(os.environ.get('HOME'), '.local', 'share'),
                 'poezio', 'themes')
@@ -482,7 +482,7 @@ def update_themes_dir(option=None, value=None):
     log.debug('Theme load path: %s', load_path)
 
 def reload_theme():
-    theme_name = config.get('theme', 'default')
+    theme_name = config.get('theme')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()

@@ -23,7 +23,7 @@ def xml_iter(xml, tag=''):
     else:
         return xml.getiterator(tag)
 
-preferred = config.get('use_bookmarks_method', 'pep').lower()
+preferred = config.get('use_bookmarks_method').lower()
 if preferred not in ('pep', 'privatexml'):
     preferred = 'privatexml'
 not_preferred = 'privatexml' if preferred == 'pep' else 'privatexml'
@@ -155,8 +155,8 @@ def save_local():
 def save(xmpp, core=None):
     """Save all the bookmarks."""
     save_local()
-    if config.get('use_remote_bookmarks', True):
-        preferred = config.get('use_bookmarks_method', 'privatexml')
+    if config.get('use_remote_bookmarks'):
+        preferred = config.get('use_bookmarks_method')
         if not save_remote(xmpp, method=preferred) and core:
             core.information('Could not save bookmarks.', 'Error')
             return False
@@ -192,7 +192,7 @@ def get_remote(xmpp):
     """Add the remotely stored bookmarks to the list."""
     if xmpp.anon:
         return
-    method = config.get('use_bookmarks_method', '')
+    method = config.get('use_bookmarks_method')
     if not method:
         pep, privatexml = True, True
         for method in methods[1:]:
@@ -214,7 +214,7 @@ def get_remote(xmpp):
 
 def get_local():
     """Add the locally stored bookmarks to the list."""
-    rooms = config.get('rooms', '')
+    rooms = config.get('rooms')
     if not rooms:
         return
     rooms = rooms.split(':')

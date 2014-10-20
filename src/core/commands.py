@@ -369,7 +369,7 @@ def command_join(self, arg, histo_length=None):
         room = room[1:]
     current_status = self.get_status()
     if not histo_length:
-        histo_length = config.get('muc_history_length', 20)
+        histo_length = config.get('muc_history_length')
         if histo_length == -1:
             histo_length = None
     if histo_length is not None:
@@ -473,7 +473,7 @@ def command_bookmark(self, arg=''):
     /bookmark [room][/nick] [autojoin] [password]
     """
 
-    if not config.get('use_remote_bookmarks', True):
+    if not config.get('use_remote_bookmarks'):
         self.command_bookmark_local(arg)
         return
     args = common.shell_split(arg)
@@ -533,7 +533,7 @@ def command_bookmark(self, arg=''):
     if not bm:
         bm = bookmark.Bookmark(roomname)
         bookmark.bookmarks.append(bm)
-    bm.method = config.get('use_bookmarks_method', 'pep')
+    bm.method = config.get('use_bookmarks_method')
     if nick:
         bm.nick = nick
     if password:
@@ -808,11 +808,11 @@ def command_quit(self, arg=''):
         msg = arg
     else:
         msg = None
-    if config.get('enable_user_mood', True):
+    if config.get('enable_user_mood'):
         self.xmpp.plugin['xep_0107'].stop(block=False)
-    if config.get('enable_user_activity', True):
+    if config.get('enable_user_activity'):
         self.xmpp.plugin['xep_0108'].stop(block=False)
-    if config.get('enable_user_gaming', True):
+    if config.get('enable_user_gaming'):
         self.xmpp.plugin['xep_0196'].stop(block=False)
     self.save_config()
     self.plugin_manager.disable_plugins()

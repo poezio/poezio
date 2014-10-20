@@ -251,7 +251,7 @@ class MucTab(ChatTab):
     def completion_nick(self, the_input):
         """Completion for /nick"""
         nicks = [os.environ.get('USER'),
-                 config.get('default_nick', ''),
+                 config.get('default_nick'),
                  self.core.get_bookmark_nickname(self.name)]
         nicks = [i for i in nicks if i]
         return the_input.auto_completion(nicks, '', quotify=False)
@@ -801,7 +801,7 @@ class MucTab(ChatTab):
         Resize the whole window. i.e. all its sub-windows
         """
         self.need_resize = False
-        if config.get("hide_user_list", False) or self.size.tab_degrade_x:
+        if config.get('hide_user_list') or self.size.tab_degrade_x:
             display_user_list = False
             text_width = self.width
         else:
@@ -842,7 +842,7 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        if config.get("hide_user_list", False) or self.size.tab_degrade_x:
+        if config.get('hide_user_list') or self.size.tab_degrade_x:
             display_user_list = False
         else:
             display_user_list = True
@@ -885,7 +885,7 @@ class MucTab(ChatTab):
         for user in sorted(self.users, key=compare_users, reverse=True):
             if user.nick != self.own_nick:
                 word_list.append(user.nick)
-        after = config.get('after_completion', ',') + ' '
+        after = config.get('after_completion') + ' '
         input_pos = self.input.pos
         if ' ' not in self.input.get_text()[:input_pos] or (
                 self.input.last_completion and
@@ -893,7 +893,7 @@ class MucTab(ChatTab):
                     self.input.last_completion + after):
             add_after = after
         else:
-            if not config.get('add_space_after_completion', True):
+            if not config.get('add_space_after_completion'):
                 add_after = ''
             else:
                 add_after = ' '
@@ -905,7 +905,7 @@ class MucTab(ChatTab):
         self.send_composing_chat_state(empty_after)
 
     def get_nick(self):
-        if not config.get('show_muc_jid', True):
+        if not config.get('show_muc_jid'):
             return safeJID(self.name).user
         return self.name
 
@@ -930,7 +930,7 @@ class MucTab(ChatTab):
     def on_gain_focus(self):
         self.state = 'current'
         if (self.text_win.built_lines and self.text_win.built_lines[-1] is None
-                and not config.get('show_useless_separator', False)):
+                and not config.get('show_useless_separator')):
             self.text_win.remove_line_separator()
         curses.curs_set(1)
         if self.joined and config.get_by_tabname('send_chat_states',
@@ -940,7 +940,7 @@ class MucTab(ChatTab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height-3:
             return
-        if config.get("hide_user_list", False):
+        if config.get("hide_user_list"):
             text_width = self.width
         else:
             text_width = (self.width//10)*9
@@ -1476,7 +1476,7 @@ class MucTab(ChatTab):
                         highlighted = True
                         break
         if highlighted:
-            beep_on = config.get('beep_on', 'highlight private').split()
+            beep_on = config.get('beep_on').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if not config.get_by_tabname('disable_beep', self.name):
                     curses.beep()
