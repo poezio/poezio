@@ -22,16 +22,129 @@ from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
 
+DEFAULT_CONFIG = {
+    'Poezio': {
+        'ack_message_receipts': True,
+        'add_space_after_completion': True,
+        'after_completion': ',',
+        'alternative_nickname': '',
+        'auto_reconnect': False,
+        'autorejoin_delay': '5',
+        'autorejoin': False,
+        'beep_on': 'highlight private invite',
+        'ca_cert_path': '',
+        'certificate': '',
+        'ciphers': 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL',
+        'connection_check_interval': 60,
+        'connection_timeout_delay': 10,
+        'create_gaps': False,
+        'custom_host': '',
+        'custom_port': '',
+        'default_nick': '',
+        'display_activity_notifications': False,
+        'display_gaming_notifications': False,
+        'display_mood_notifications': False,
+        'display_tune_notifications': False,
+        'display_user_color_in_join_part': True,
+        'enable_carbons': False,
+        'enable_user_activity': True,
+        'enable_user_gaming': True,
+        'enable_user_mood': True,
+        'enable_user_nick': True,
+        'enable_user_tune': True,
+        'enable_vertical_tab_list': False,
+        'enable_xhtml_im': True,
+        'exec_remote': False,
+        'extract_inline_images': True,
+        'filter_info_messages': '',
+        'force_encryption': True,
+        'group_corrections': True,
+        'hide_exit_join': -1,
+        'hide_status_change': 120,
+        'hide_user_list': False,
+        'highlight_on': '',
+        'ignore_certificate': False,
+        'ignore_private': False,
+        'information_buffer_popup_on': 'error roster warning help info',
+        'jid': '',
+        'lang': 'en',
+        'lazy_resize': True,
+        'load_log': 10,
+        'log_dir': '',
+        'logfile': 'logs',
+        'log_errors': True,
+        'max_lines_in_memory': 2048,
+        'max_messages_in_memory': 2048,
+        'max_nick_length': 25,
+        'muc_history_length': 50,
+        'open_all_bookmarks': False,
+        'password': '',
+        'plugins_autoload': '',
+        'plugins_conf_dir': '',
+        'plugins_dir': '',
+        'popup_time': 4,
+        'private_auto_response': '',
+        'remote_fifo_path': './',
+        'request_message_receipts': True,
+        'resource': '',
+        'rooms': '',
+        'roster_group_sort': 'name',
+        'roster_show_offline': False,
+        'roster_sort': 'jid:show',
+        'save_status': True,
+        'send_chat_states': True,
+        'send_initial_presence': True,
+        'send_os_info': True,
+        'send_poezio_info': True,
+        'send_time': True,
+        'separate_history': False,
+        'server': 'anon.jeproteste.info',
+        'show_composing_tabs': 'direct',
+        'show_inactive_tabs': True,
+        'show_muc_jid': True,
+        'show_roster_jids': True,
+        'show_roster_subscriptions': '',
+        'show_s2s_errors': True,
+        'show_tab_names': False,
+        'show_tab_numbers': True,
+        'show_timestamps': True,
+        'show_useless_separator': False,
+        'status': '',
+        'status_message': '',
+        'theme': 'default',
+        'themes_dir': '',
+        'tmp_image_dir': '',
+        'use_bookmarks_method': '',
+        'use_log': False,
+        'use_remote_bookmarks': True,
+        'user_list_sort': 'desc',
+        'use_tab_nicks': True,
+        'vertical_tab_list_size': 20,
+        'vertical_tab_list_sort': 'desc',
+        'whitespace_interval': 300,
+        'words': ''
+    },
+    'bindings': {
+        'M-i': '^I'
+    },
+    'var': {
+        'folded_roster_groups': '',
+        'info_win_height': 2
+    }
+}
+
+
 class Config(RawConfigParser):
     """
     load/save the config to a file
     """
-    def __init__(self, file_name):
+    def __init__(self, file_name, default=None):
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
         self.optionxform = str
         self.file_name = file_name
         self.read_file()
+        self.default = default
 
     def read_file(self):
         try:
@@ -43,13 +156,16 @@ class Config(RawConfigParser):
             if not self.has_section(section):
                 self.add_section(section)
 
-    def get(self, option, default, section=DEFSECTION):
+    def get(self, option, default='', section=DEFSECTION):
         """
         get a value from the config but return
         a default value if it is not found
         The type of default defines the type
         returned
         """
+        if self.default and not default \
+                and self.default.get(section, {}).get(option) is not None:
+            default = self.default[section][option]
         try:
             if type(default) == int:
                 res = self.getint(option, section)
@@ -411,7 +527,7 @@ def create_global_config():
     "Create the global config object, or crash"
     try:
         global config
-        config = Config(options.filename)
+        config = Config(options.filename, DEFAULT_CONFIG)
     except:
         import traceback
         sys.stderr.write('Poezio was unable to read or'
