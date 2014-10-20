@@ -6,6 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+import os
 import sys
 from datetime import datetime
 from gettext import gettext as _
@@ -23,6 +24,7 @@ import tabs
 from common import safeJID
 from config import config, options as config_opts
 import multiuserchat as muc
+from plugin import PluginConfig
 from roster import roster
 from theming import dump_tuple, get_theme
 
@@ -600,9 +602,12 @@ def command_set(self, arg):
                 section = plugin_name
             option = args[1]
             if not plugin_name in self.plugin_manager.plugins:
-                return
-            plugin = self.plugin_manager.plugins[plugin_name]
-            value = plugin.config.get(option, default='', section=section)
+                file_name = self.plugin_manager.plugins_conf_dir
+                file_name = os.path.join(file_name, plugin_name + '.cfg')
+                plugin_config = PluginConfig(file_name, plugin_name)
+            else:
+                plugin_config = self.plugin_manager.plugins[plugin_name].config
+            value = plugin_config.get(option, default='', section=section)
             info = ('%s=%s' % (option, value), 'Info')
         else:
             possible_section = args[0]
@@ -624,9 +629,12 @@ def command_set(self, arg):
             option = args[1]
             value = args[2]
             if not plugin_name in self.plugin_manager.plugins:
-                return
-            plugin = self.plugin_manager.plugins[plugin_name]
-            info = plugin.config.set_and_save(option, value, section)
+                file_name = self.plugin_manager.plugins_conf_dir
+                file_name = os.path.join(file_name, plugin_name + '.cfg')
+                plugin_config = PluginConfig(file_name, plugin_name)
+            else:
+                plugin_config = self.plugin_manager.plugins[plugin_name].config
+            info = plugin_config.set_and_save(option, value, section)
         else:
             section = args[0]
             option = args[1]
