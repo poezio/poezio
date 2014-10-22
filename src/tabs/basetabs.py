@@ -833,7 +833,7 @@ class OneToOneTab(ChatTab):
             tail = None
         features_str = ', '.join(features)
         if tail and empty:
-            features_str += _(', or %s') % tail
+            features_str += _(', nor %s') % tail
         elif tail:
             features_str += _(' and %s') % tail
 
