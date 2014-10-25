@@ -817,32 +817,17 @@ class OneToOneTab(ChatTab):
         else:
             self.__initial_disco = True
 
-        empty = not any((correct, attention, receipts))
+        ok = get_theme().CHAR_OK
+        nope = get_theme().CHAR_ERROR
 
-        features = []
-        if correct or empty:
-            features.append(_('message correction (/correct)'))
-        if attention or empty:
-            features.append(_('attention requests (/attention)'))
-        if (receipts or empty) \
-                and config.get('request_message_receipts'):
-            features.append(_('message delivery receipts'))
-        if len(features) > 1:
-            tail = features.pop()
-        else:
-            tail = None
-        features_str = ', '.join(features)
-        if tail and empty:
-            features_str += _(', nor %s') % tail
-        elif tail:
-            features_str += _(' and %s') % tail
+        correct = ok if correct else nope
+        attention = ok if attention else nope
+        receipts = ok if receipts else nope
 
-        if empty:
-            msg = _('\x19%s}This contact does not support %s.')
-        else:
-            msg = _('\x19%s}This contact supports %s.')
+        msg = _('\x19%s}Contact supports: correction [%s], '
+                'attention [%s], receipts [%s].')
         color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-        msg = msg % (color, features_str)
+        msg = msg % (color, correct, attention, receipts)
         self.add_message(msg, typ=0)
         self.core.refresh_window()
 

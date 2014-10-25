@@ -301,10 +301,12 @@ class Theme(object):
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
     CHAR_NEW_TEXT_SEPARATOR = '- '
-    CHAR_ACK_RECEIVED = '✔'
+    CHAR_OK = '✔'
+    CHAR_ERROR = '✖'
+    CHAR_ACK_RECEIVED = CHAR_OK
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC = ' ▼'
-    CHAR_ROSTER_ERROR = '✖'
+    CHAR_ROSTER_ERROR = CHAR_ERROR
     CHAR_ROSTER_TUNE = '♪'
     CHAR_ROSTER_ASKED = '?'
     CHAR_ROSTER_ACTIVITY = 'A'
