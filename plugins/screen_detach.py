@@ -7,15 +7,14 @@ import os
 import stat
 import pyinotify
 
-SCREEN_DIR = '/var/run/screen/S-%s' % (os.getlogin(),)
-
 class Plugin(BasePlugin):
     def init(self):
+        screen_dir = '/var/run/screen/S-%s' % (os.getlogin(),)
         self.timed_event = None
         sock_path = None
         self.thread = None
-        for f in os.listdir(SCREEN_DIR):
-            path = os.path.join(SCREEN_DIR, f)
+        for f in os.listdir(screen_dir):
+            path = os.path.join(screen_dir, f)
             if screen_attached(path):
                 sock_path = path
                 self.attached = True
