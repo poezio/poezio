@@ -3,5 +3,5 @@ python:
     - "3.4"
 install:
     - pip install -r requirements.txt
-    - python setup.py -q build install
+    - python setup.py build
 script: make test
