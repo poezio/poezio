@@ -1,4 +1,4 @@
--e git://github.com/afflux/pure-python-otr.git#egg=potr
+git+git://github.com/afflux/pure-python-otr.git#egg=potr
 sleekxmpp==1.2
 dnspython3==1.11.1
 sphinx==1.2.1
