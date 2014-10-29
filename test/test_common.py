@@ -2,16 +2,17 @@
 Test the functions in the `common` module
 """
 
-import pytest
 import sys
 sys.path.append('src')
 
+import time
+import pytest
+import datetime
+from sleekxmpp import JID
+from datetime import timedelta
 from common import (datetime_tuple, get_utc_time, get_local_time, shell_split,
                     find_argument_quoted, find_argument_unquoted,
-                    parse_str_to_secs, parse_secs_to_str)
-import time
-from datetime import timedelta
-import datetime
+                    parse_str_to_secs, parse_secs_to_str, safeJID)
 
 def test_datetime_tuple():
     time.timezone = 0
@@ -38,8 +39,6 @@ def test_local_time():
     time.timezone = -3600
     time.altzone = -3600
     assert get_local_time(d) == d - delta
-
-#def find_delayed_tag(message):
 
 def test_shell_split():
     assert shell_split('"sdf 1" "toto 2"') == ['sdf 1', 'toto 2']
@@ -69,4 +68,12 @@ def test_parse_str_to_secs():
     assert parse_str_to_secs("1d3mfaiiiiil") == 0
 
 def test_parse_secs_to_str():
-    assert  parse_secs_to_str(3601) == '1h1s'
+    assert parse_secs_to_str(3601) == '1h1s'
+    assert parse_secs_to_str(0) == '0s'
+
+    with pytest.raises(TypeError):
+        parse_secs_to_str('toto')
+
+def test_safeJID():
+    assert safeJID('toto@titi/tata') == JID('toto@titi/tata')
+    assert safeJID('é_è') == JID('')

@@ -34,7 +34,7 @@ doc:
 	make -C doc/ html
 
 test:
-	py.test test/
+	py.test -v test/
 
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
