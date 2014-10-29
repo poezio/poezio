@@ -324,7 +324,7 @@ def completion_set(self, the_input):
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
             if not plugin_name in self.plugin_manager.plugins:
-                    return the_input.auto_completion([''], n, quotify=True)
+                    return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
             end_list = plugin.config.options(section or plugin_name)
         elif not config.has_option('Poezio', args[1]):
@@ -339,7 +339,7 @@ def completion_set(self, the_input):
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
             if not plugin_name in self.plugin_manager.plugins:
-                    return the_input.auto_completion([''], n, quotify=True)
+                    return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
             end_list = [plugin.config.get(args[2], '', section or plugin_name), '']
         else:
