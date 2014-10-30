@@ -5,10 +5,12 @@ XMPP-related handlers for the Core class
 import logging
 log = logging.getLogger(__name__)
 
+import asyncio
 import curses
-import ssl
-import time
 import functools
+import ssl
+import sys
+import time
 from hashlib import sha1, sha512
 from gettext import gettext as _
 
@@ -1127,19 +1129,31 @@ def validate_ssl(self, pem):
             input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
             input.refresh()
             self.doupdate()
-            self.paused = True
-            while input.value is None:
-                self.event.wait()
-            self.current_tab().input = saved_input
-            self.paused = False
-            if input.value:
-                self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
-                log.debug('Setting certificate to %s', sha2_found_cert)
-                if not config.silent_set('certificate', sha2_found_cert):
-                    self.information(_('Unable to write in the config file'), 'Error')
-            else:
-                self.information('You refused to validate the certificate. You are now disconnected', 'Info')
-                self.xmpp.disconnect()
+            old_loop = asyncio.get_event_loop()
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            new_loop.add_reader(sys.stdin, self.on_input_readable)
+            future = asyncio.Future()
+            @asyncio.coroutine
+            def check_input(future):
+                while input.value is None:
+                    yield from asyncio.sleep(0.01)
+                self.current_tab().input = saved_input
+                self.paused = False
+                if input.value:
+                    self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
+                    log.debug('Setting certificate to %s', sha2_found_cert)
+                    if not config.silent_set('certificate', sha2_found_cert):
+                        self.information(_('Unable to write in the config file'), 'Error')
+                else:
+                    self.information('You refused to validate the certificate. You are now disconnected', 'Info')
+                    self.xmpp.disconnect()
+                new_loop.stop()
+                asyncio.set_event_loop(old_loop)
+            asyncio.async(check_input(future))
+            new_loop.run_forever()
+
+
     else:
         log.debug('First time. Setting certificate to %s', sha2_found_cert)
         if not config.silent_set('certificate', sha2_found_cert):
