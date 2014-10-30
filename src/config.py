@@ -77,6 +77,7 @@ DEFAULT_CONFIG = {
         'max_messages_in_memory': 2048,
         'max_nick_length': 25,
         'muc_history_length': 50,
+        'notify_messages': True,
         'open_all_bookmarks': False,
         'password': '',
         'plugins_autoload': '',
