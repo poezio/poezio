@@ -303,6 +303,7 @@ class Theme(object):
     CHAR_NEW_TEXT_SEPARATOR = '- '
     CHAR_OK = '✔'
     CHAR_ERROR = '✖'
+    CHAR_EMPTY = ' '
     CHAR_ACK_RECEIVED = CHAR_OK
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC = ' ▼'
