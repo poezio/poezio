@@ -156,16 +156,19 @@ class Config(RawConfigParser):
             if not self.has_section(section):
                 self.add_section(section)
 
-    def get(self, option, default='', section=DEFSECTION):
+    def get(self, option, default=None, section=DEFSECTION):
         """
         get a value from the config but return
         a default value if it is not found
         The type of default defines the type
         returned
         """
-        if self.default and not default \
-                and self.default.get(section, {}).get(option) is not None:
-            default = self.default[section][option]
+        if default is None:
+            if self.default:
+                default = self.default.get(section, {}).get(option)
+            else:
+                default = ''
+
         try:
             if type(default) == int:
                 res = self.getint(option, section)
@@ -177,6 +180,7 @@ class Config(RawConfigParser):
                 res = self.getstr(option, section)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return default
+
         if res is None:
             return default
         return res
