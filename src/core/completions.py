@@ -334,19 +334,19 @@ def completion_set(self, the_input):
             else:
                 end_list = []
         else:
-            end_list = [config.get(args[1], ''), '']
+            end_list = [str(config.get(args[1], '')), '']
     elif n == 3:
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
             if not plugin_name in self.plugin_manager.plugins:
                     return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
-            end_list = [plugin.config.get(args[2], '', section or plugin_name), '']
+            end_list = [str(plugin.config.get(args[2], '', section or plugin_name)), '']
         else:
             if not config.has_section(args[1]):
                 end_list = ['']
             else:
-                end_list = [config.get(args[2], '', args[1]), '']
+                end_list = [str(config.get(args[2], '', args[1])), '']
     else:
         return
     return the_input.new_completion(end_list, n, quotify=True)
