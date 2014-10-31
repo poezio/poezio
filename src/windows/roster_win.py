@@ -99,9 +99,9 @@ class RosterWin(Win):
             for contact in roster.get_contacts_sorted_filtered(sort):
                 self.roster_cache.append(contact)
         else:
-            show_offline = config.get('roster_show_offline', False) or roster.contact_filter
-            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
-            group_sort = config.get('roster_group_sort', 'name') or 'name'
+            show_offline = config.get('roster_show_offline') or roster.contact_filter
+            sort = config.get('roster_sort') or 'jid:show'
+            group_sort = config.get('roster_group_sort') or 'name'
             self.roster_cache = []
             # build the cache
             for group in roster.get_groups(group_sort):
@@ -229,7 +229,7 @@ class RosterWin(Win):
         self.addstr(y, 0, ' ')
         self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
 
-        show_roster_sub = config.get('show_roster_subscriptions', '')
+        show_roster_sub = config.get('show_roster_subscriptions')
 
         self.addstr(' ')
         if resource:
@@ -237,7 +237,7 @@ class RosterWin(Win):
             added += 4
         if contact.ask:
             added += len(get_theme().CHAR_ROSTER_ASKED)
-        if config.get('show_s2s_errors', True) and contact.error:
+        if config.get('show_s2s_errors') and contact.error:
             added += len(get_theme().CHAR_ROSTER_ERROR)
         if contact.tune:
             added += len(get_theme().CHAR_ROSTER_TUNE)
@@ -250,7 +250,7 @@ class RosterWin(Win):
         if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both', 'none'):
             added += len(theme.char_subscription(contact.subscription, keep=show_roster_sub))
 
-        if not config.get('show_roster_jids', True) and contact.name:
+        if not config.get('show_roster_jids') and contact.name:
             display_name = '%s' % contact.name
         elif contact.name and contact.name != contact.bare_jid:
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
@@ -268,7 +268,7 @@ class RosterWin(Win):
             self.addstr(theme.char_subscription(contact.subscription, keep=show_roster_sub), to_curses_attr(theme.COLOR_ROSTER_SUBSCRIPTION))
         if contact.ask:
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
-        if config.get('show_s2s_errors', True) and contact.error:
+        if config.get('show_s2s_errors') and contact.error:
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
         if contact.tune:
             self.addstr(get_theme().CHAR_ROSTER_TUNE, to_curses_attr(get_theme().COLOR_ROSTER_TUNE))

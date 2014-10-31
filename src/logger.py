@@ -50,7 +50,7 @@ class Logger(object):
     and also log the conversations to logfiles
     """
     def __init__(self):
-        self.logfile = config.get('logfile', 'logs')
+        self.logfile = config.get('logfile')
         self.roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
         self.fds = dict()
@@ -78,7 +78,7 @@ class Logger(object):
         Check that the directory where we want to log the messages
         exists. if not, create it
         """
-        if not config.get_by_tabname('use_log', True, room):
+        if not config.get_by_tabname('use_log', room):
             return
         try:
             makedirs(log_dir)
@@ -106,10 +106,10 @@ class Logger(object):
         this function is a little bit more complicated than “read the last
         nb lines”.
         """
-        if config.get_by_tabname('load_log', 10, jid) <= 0:
+        if config.get_by_tabname('load_log', jid) <= 0:
             return
 
-        if not config.get_by_tabname('use_log', True, jid):
+        if not config.get_by_tabname('use_log', jid):
             return
 
         if nb <= 0:
@@ -197,7 +197,7 @@ class Logger(object):
             return True
 
         jid = str(jid).replace('/', '\\')
-        if not config.get_by_tabname('use_log', False, jid):
+        if not config.get_by_tabname('use_log', jid):
             return True
         if jid in self.fds.keys():
             fd = self.fds[jid]
@@ -245,7 +245,7 @@ class Logger(object):
         """
         Log a roster change
         """
-        if not config.get_by_tabname('use_log', False, jid):
+        if not config.get_by_tabname('use_log', jid):
             return True
         self.check_and_create_log_dir('', open_fd=False)
         if not self.roster_logfile:

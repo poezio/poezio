@@ -13,6 +13,7 @@ import sys
 import time
 from hashlib import sha1, sha512
 from gettext import gettext as _
+from os import path
 
 from slixmpp import InvalidJID
 from slixmpp.stanza import Message
@@ -27,7 +28,7 @@ import windows
 import xhtml
 import multiuserchat as muc
 from common import safeJID
-from config import config
+from config import config, CACHE_DIR
 from contact import Resource
 from logger import logger
 from roster import roster
@@ -46,7 +47,7 @@ def on_session_start_features(self, _):
         features = iq['disco_info']['features']
         rostertab = self.get_tab_by_name('Roster', tabs.RosterInfoTab)
         rostertab.check_blocking(features)
-        if (config.get('enable_carbons', True) and
+        if (config.get('enable_carbons') and
                 'urn:xmpp:carbons:2' in features):
             self.xmpp.plugin['xep_0280'].enable()
             self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
@@ -120,7 +121,7 @@ def on_groupchat_invitation(self, message):
     if password:
         msg += ". The password is \"%s\"." % password
     self.information(msg, 'Info')
-    if 'invite' in config.get('beep_on', 'invite').split():
+    if 'invite' in config.get('beep_on').split():
         curses.beep()
     logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
     self.pending_invites[jid.bare] = inviter.full
@@ -151,7 +152,7 @@ def on_groupchat_direct_invitation(self, message):
         msg += "\nreason: %s" % reason
 
     self.information(msg, 'Info')
-    if 'invite' in config.get('beep_on', 'invite').split():
+    if 'invite' in config.get('beep_on').split():
         curses.beep()
 
     self.pending_invites[room.bare] = inviter.full
@@ -188,8 +189,12 @@ def on_normal_message(self, message):
     elif message['type'] == 'headline' and message['body']:
         return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
-    use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body:
         return
 
@@ -203,7 +208,7 @@ def on_normal_message(self, message):
         if conv_jid.bare in roster:
             remote_nick = roster[conv_jid.bare].name
         # check for a received nick
-        if not remote_nick and config.get('enable_user_nick', True):
+        if not remote_nick and config.get('enable_user_nick'):
             if message.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
                 remote_nick = message['nick']['nick']
         if not remote_nick:
@@ -234,13 +239,15 @@ def on_normal_message(self, message):
     self.events.trigger('conversation_msg', message, conversation)
     if not message['body']:
         return
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     delayed, date = common.find_delayed_tag(message)
 
     def try_modify():
         replaced_id = message['replace']['id']
-        if replaced_id and (config.get_by_tabname('group_corrections',
-            True, conv_jid.bare)):
+        if replaced_id and config.get_by_tabname('group_corrections',
+                                                 conv_jid.bare):
             try:
                 conversation.modify_message(body, replaced_id, message['id'], jid=jid,
                         nickname=remote_nick)
@@ -263,8 +270,8 @@ def on_normal_message(self, message):
             conversation.remote_wants_chatstates = True
         else:
             conversation.remote_wants_chatstates = False
-    if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, conv_jid.bare, False):
+    if 'private' in config.get('beep_on').split():
+        if not config.get_by_tabname('disable_beep', conv_jid.bare):
             curses.beep()
     if self.current_tab() is not conversation:
         conversation.state = 'private'
@@ -314,7 +321,7 @@ def on_gaming_event(self, message):
     if contact.gaming:
         logger.log_roster_change(contact.bare_jid, 'is playing %s' % (common.format_gaming_string(contact.gaming)))
 
-    if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', False, contact.bare_jid):
+    if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', contact.bare_jid):
         if contact.gaming:
             self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
         else:
@@ -347,7 +354,7 @@ def on_mood_event(self, message):
     if contact.mood:
         logger.log_roster_change(contact.bare_jid, 'has now the mood: %s' % contact.mood)
 
-    if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', False, contact.bare_jid):
+    if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', contact.bare_jid):
         if contact.mood:
             self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
         else:
@@ -386,7 +393,7 @@ def on_activity_event(self, message):
     if contact.activity:
         logger.log_roster_change(contact.bare_jid, 'has now the activity %s' % contact.activity)
 
-    if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', False, contact.bare_jid):
+    if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', contact.bare_jid):
         if contact.activity:
             self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
         else:
@@ -420,7 +427,7 @@ def on_tune_event(self, message):
     if contact.tune:
         logger.log_roster_change(message['from'].bare, 'is now listening to %s' % common.format_tune_string(contact.tune))
 
-    if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', False, contact.bare_jid):
+    if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', contact.bare_jid):
         if contact.tune:
             self.information(
                     'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
@@ -451,8 +458,12 @@ def on_groupchat_message(self, message):
         return
 
     self.events.trigger('muc_msg', message, tab)
-    use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body:
         return
 
@@ -460,8 +471,8 @@ def on_groupchat_message(self, message):
     delayed, date = common.find_delayed_tag(message)
     replaced_id = message['replace']['id']
     replaced = False
-    if replaced_id is not '' and (config.get_by_tabname(
-        'group_corrections', True, message['from'].bare)):
+    if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                       message['from'].bare):
         try:
             if tab.modify_message(body, replaced_id, message['id'], time=date,
                     nickname=nick_from, user=user):
@@ -487,8 +498,8 @@ def on_groupchat_message(self, message):
             current.input.refresh()
         self.doupdate()
 
-    if 'message' in config.get('beep_on', 'highlight private').split():
-        if (not config.get_by_tabname('disable_beep', False, room_from, False)
+    if 'message' in config.get('beep_on').split():
+        if (not config.get_by_tabname('disable_beep', room_from)
                 and self.own_nick != message['from'].resource):
             curses.beep()
 
@@ -508,28 +519,34 @@ def on_groupchat_private_message(self, message):
         return self.on_groupchat_message(message)
 
     room_from = jid.bare
-    use_xhtml = config.get('enable_xhtml_im', True)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    use_xhtml = config.get('enable_xhtml_im')
+    tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+    extract_images = config.get('extract_inline_images')
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
-    ignore = config.get_by_tabname('ignore_private', False, room_from)
+    ignore = config.get_by_tabname('ignore_private', room_from)
     if not tab: # It's the first message we receive: create the tab
         if body and not ignore:
             tab = self.open_private_window(room_from, nick_from, False)
     if ignore:
         self.events.trigger('ignored_private', message, tab)
-        msg = config.get_by_tabname('private_auto_response', None, room_from)
+        msg = config.get_by_tabname('private_auto_response', room_from)
         if msg and body:
             self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
         return
     self.events.trigger('private_msg', message, tab)
-    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml)
+    body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
+                                              tmp_dir=tmp_dir,
+                                              extract_images=extract_images)
     if not body or not tab:
         return
     replaced_id = message['replace']['id']
     replaced = False
     user = tab.parent_muc.get_user_by_name(nick_from)
-    if replaced_id is not '' and (config.get_by_tabname(
-        'group_corrections', True, room_from)):
+    if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                       room_from):
         try:
             tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
                     nickname=nick_from)
@@ -548,8 +565,8 @@ def on_groupchat_private_message(self, message):
             tab.remote_wants_chatstates = True
         else:
             tab.remote_wants_chatstates = False
-    if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', False, jid.full, False):
+    if 'private' in config.get('beep_on').split():
+        if not config.get_by_tabname('disable_beep', jid.full):
             curses.beep()
     if tab is self.current_tab():
         self.refresh_window()
@@ -883,7 +900,7 @@ def on_session_start(self, event):
         # request the roster
         self.xmpp.get_roster()
         # send initial presence
-        if config.get('send_initial_presence', True):
+        if config.get('send_initial_presence'):
             pres = self.xmpp.make_presence()
             pres['show'] = self.status.show
             pres['status'] = self.status.message
@@ -893,13 +910,13 @@ def on_session_start(self, event):
     def _join_initial_rooms(bookmarks):
         """Join all rooms given in the iterator `bookmarks`"""
         for bm in bookmarks:
-            if bm.autojoin or config.get('open_all_bookmarks', False):
+            if bm.autojoin or config.get('open_all_bookmarks'):
                 tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
                 nick = bm.nick if bm.nick else self.own_nick
                 if not tab:
                     self.open_new_room(bm.jid, nick, False)
                 self.initial_joins.append(bm.jid)
-                histo_length = config.get('muc_history_length', 20)
+                histo_length = config.get('muc_history_length')
                 if histo_length == -1:
                     histo_length = None
                 if histo_length is not None:
@@ -915,13 +932,13 @@ def on_session_start(self, event):
     def _join_remote_only():
         remote_bookmarks = (bm for bm in bookmark.bookmarks if (bm.method in ("pep", "privatexml")))
         _join_initial_rooms(remote_bookmarks)
-    if not self.xmpp.anon and config.get('use_remote_bookmarks', True):
+    if not self.xmpp.anon and config.get('use_remote_bookmarks'):
         bookmark.get_remote(self.xmpp, _join_remote_only)
     # join all the available bookmarks. As of yet, this is just the local
     # ones
     _join_initial_rooms(bookmark.bookmarks)
 
-    if config.get('enable_user_nick', True):
+    if config.get('enable_user_nick'):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)
     self.xmpp.plugin['xep_0115'].update_caps()
     # Start the ping's plugin regular event
@@ -994,18 +1011,21 @@ def on_groupchat_subject(self, message):
     room_from = message.get_mucroom()
     tab = self.get_tab_by_name(room_from, tabs.MucTab)
     subject = message['subject']
-    if not subject or not tab:
+    if subject is None or not tab:
         return
-    if nick_from:
-        tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
-                {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
-                time=None,
-                typ=2)
-    else:
-        tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
-                {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                time=None,
-                typ=2)
+    if subject != tab.topic:
+        # Do not display the message if the subject did not change or if we
+        # receive an empty topic when joining the room.
+        if nick_from:
+            tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+                    {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
+                    time=None,
+                    typ=2)
+        else:
+            tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
+                    {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                    time=None,
+                    typ=2)
     tab.topic = subject
     tab.topic_from = nick_from
     if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
@@ -1064,8 +1084,8 @@ def room_error(self, error, room_name):
         msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
         tab.add_message(msg, typ=2)
     if code == '409':
-        if config.get('alternative_nickname', '') != '':
-            self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname', '')))
+        if config.get('alternative_nickname') != '':
+            self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
         else:
             if not tab.joined:
                 tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
@@ -1095,9 +1115,9 @@ def validate_ssl(self, pem):
     """
     Check the server certificate using the slixmpp ssl_cert event
     """
-    if config.get('ignore_certificate', False):
+    if config.get('ignore_certificate'):
         return
-    cert = config.get('certificate', '')
+    cert = config.get('certificate')
     # update the cert representation when it uses the old one
     if cert and not ':' in cert:
         cert = ':'.join(i + j for i, j in zip(cert[::2], cert[1::2])).upper()
@@ -1173,7 +1193,7 @@ def _composing_tab_state(tab, state):
     else:
         return # should not happen
 
-    show = config.get('show_composing_tabs', 'direct')
+    show = config.get('show_composing_tabs')
     show = show in values
 
     if tab.state != 'composing' and state == 'composing':

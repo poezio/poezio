@@ -138,7 +138,7 @@ class Tab(object):
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
         """
-        if config.get('enable_vertical_tab_list', False):
+        if config.get('enable_vertical_tab_list'):
             return 0
         return 1
 
@@ -296,7 +296,7 @@ class Tab(object):
             return False
 
     def refresh_tab_win(self):
-        if config.get('enable_vertical_tab_list', False):
+        if config.get('enable_vertical_tab_list'):
             if self.left_tab_win and not self.size.core_degrade_x:
                 self.left_tab_win.refresh()
         elif not self.size.core_degrade_y:
@@ -471,7 +471,7 @@ class ChatTab(Tab):
         self.update_keys()
 
         # Get the logs
-        log_nb = config.get('load_log', 10)
+        log_nb = config.get('load_log')
         logs = self.load_logs(log_nb)
 
         if logs:
@@ -532,7 +532,7 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        words.extend([word for word in config.get('words', '').split(':') if word])
+        words.extend([word for word in config.get('words').split(':') if word])
         self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
@@ -587,8 +587,8 @@ class ChatTab(Tab):
         if not self.is_muc or self.joined:
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
-            if config.get_by_tabname('send_chat_states', True, self.general_jid, True) and \
-                    self.remote_wants_chatstates is not False:
+            if (config.get_by_tabname('send_chat_states', self.general_jid)
+                    and self.remote_wants_chatstates is not False):
                 msg = self.core.xmpp.make_message(self.get_dest_jid())
                 msg['type'] = self.message_type
                 msg['chat_state'] = state
@@ -602,7 +602,8 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         name = self.general_jid
-        if config.get_by_tabname('send_chat_states', True, name, True) and self.remote_wants_chatstates:
+        if (config.get_by_tabname('send_chat_states', name)
+                and self.remote_wants_chatstates):
             needed = 'inactive' if self.inactive else 'active'
             self.cancel_paused_delay()
             if not empty_after:
@@ -617,7 +618,7 @@ class ChatTab(Tab):
         we create a timed event that will put us to paused
         in a few seconds
         """
-        if not config.get_by_tabname('send_chat_states', True, self.general_jid, True):
+        if not config.get_by_tabname('send_chat_states', self.general_jid):
             return
         # First, cancel the delay if it already exists, before rescheduling
         # it at a new date
@@ -803,32 +804,17 @@ class OneToOneTab(ChatTab):
         else:
             self.__initial_disco = True
 
-        empty = not any((correct, attention, receipts))
+        ok = get_theme().CHAR_OK
+        nope = get_theme().CHAR_EMPTY
 
-        features = []
-        if correct or empty:
-            features.append(_('message correction (/correct)'))
-        if attention or empty:
-            features.append(_('attention requests (/attention)'))
-        if (receipts or empty) \
-                and config.get('request_message_receipts', True):
-            features.append(_('message delivery receipts'))
-        if len(features) > 1:
-            tail = features.pop()
-        else:
-            tail = None
-        features_str = ', '.join(features)
-        if tail and empty:
-            features_str += _(', or %s') % tail
-        elif tail:
-            features_str += _(' and %s') % tail
+        correct = ok if correct else nope
+        attention = ok if attention else nope
+        receipts = ok if receipts else nope
 
-        if empty:
-            msg = _('\x19%s}This contact does not support %s.')
-        else:
-            msg = _('\x19%s}This contact supports %s.')
+        msg = _('\x19%s}Contact supports: correction [%s], '
+                'attention [%s], receipts [%s].')
         color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-        msg = msg % (color, features_str)
+        msg = msg % (color, correct, attention, receipts)
         self.add_message(msg, typ=0)
         self.core.refresh_window()
 

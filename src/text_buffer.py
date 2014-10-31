@@ -64,7 +64,7 @@ class TextBuffer(object):
     def __init__(self, messages_nb_limit=None):
 
         if messages_nb_limit is None:
-            messages_nb_limit = config.get('max_messages_in_memory', 2048)
+            messages_nb_limit = config.get('max_messages_in_memory')
         self.messages_nb_limit = messages_nb_limit
         # Message objects
         self.messages = []
@@ -138,7 +138,7 @@ class TextBuffer(object):
             self.messages.pop(0)
 
         ret_val = None
-        show_timestamps = config.get('show_timestamps', True)
+        show_timestamps = config.get('show_timestamps')
         for window in self.windows: # make the associated windows
                                     # build the lines from the new message
             nb = window.build_new_message(msg, history=history,

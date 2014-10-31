@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
+
 try:
     from setuptools import setup, Extension
 except ImportError:
+    print('Setuptools was not found.\n'
+          'This script will use distutils instead, which will NOT'
+          ' be able to install a `poezio` executable.\nIf you are '
+          'using it to build a package or install poezio, please '
+          'install setuptools.\n\nYou will also see a few warnings.\n')
     from distutils.core import setup, Extension
 
 import os
@@ -53,11 +59,12 @@ setup(name="poezio",
                    'poezio_plugins', 'poezio_plugins.gpg', 'poezio_themes'],
        package_dir = {'poezio': 'src', 'poezio_plugins': 'plugins', 'poezio_themes': 'data/themes'},
        package_data = {'poezio': ['default_config.cfg']},
-       scripts = ['scripts/poezio', 'scripts/poezio_gpg_export'],
+       scripts = ['scripts/poezio_gpg_export'],
+       entry_points={ 'console_scripts': [ 'poezio = poezio:main' ] },
        data_files = [('share/man/man1/', ['data/poezio.1'])],
 
-       install_requires = ['sleekxmpp==1.2.4',
-                           'dnspython3>=1.11.1'],
+       install_requires = ['sleekxmpp>=1.2.4',
+                           'dnspython3>=1.10.0'],
        extras_require = {'OTR plugin': 'python-potr>=1.0',
                          'Screen autoaway plugin': 'pyinotify==0.9.4'}
 )

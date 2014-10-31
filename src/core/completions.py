@@ -46,7 +46,7 @@ def completion_presence(self, the_input):
 
 def completion_theme(self, the_input):
     """ Completion for /theme"""
-    themes_dir = config.get('themes_dir', '')
+    themes_dir = config.get('themes_dir')
     themes_dir = themes_dir or\
     os.path.join(os.environ.get('XDG_DATA_HOME') or\
                      os.path.join(os.environ.get('HOME'), '.local', 'share'),
@@ -175,7 +175,7 @@ def completion_bookmark(self, the_input):
         tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
         nicks = [tab.own_nick] if tab else []
         default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-        nick = config.get('default_nick', '')
+        nick = config.get('default_nick')
         if not nick:
             if not default in nicks:
                 nicks.append(default)
@@ -309,7 +309,7 @@ def completion_set(self, the_input):
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
             if not plugin_name in self.plugin_manager.plugins:
-                    return the_input.auto_completion([''], n, quotify=True)
+                    return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
             end_list = plugin.config.options(section or plugin_name)
         elif not config.has_option('Poezio', args[1]):
@@ -319,19 +319,19 @@ def completion_set(self, the_input):
             else:
                 end_list = []
         else:
-            end_list = [config.get(args[1], ''), '']
+            end_list = [str(config.get(args[1], '')), '']
     elif n == 3:
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
             if not plugin_name in self.plugin_manager.plugins:
-                    return the_input.auto_completion([''], n, quotify=True)
+                    return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
-            end_list = [plugin.config.get(args[2], '', section or plugin_name), '']
+            end_list = [str(plugin.config.get(args[2], '', section or plugin_name)), '']
         else:
             if not config.has_section(args[1]):
                 end_list = ['']
             else:
-                end_list = [config.get(args[2], '', args[1]), '']
+                end_list = [str(config.get(args[2], '', args[1])), '']
     else:
         return
     return the_input.new_completion(end_list, n, quotify=True)
@@ -356,7 +356,7 @@ def completion_bookmark_local(self, the_input):
         tab = self.get_tab_by_name(jid.bare, tabs.MucTab)
         nicks = [tab.own_nick] if tab else []
         default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
-        nick = config.get('default_nick', '')
+        nick = config.get('default_nick')
         if not nick:
             if not default in nicks:
                 nicks.append(default)

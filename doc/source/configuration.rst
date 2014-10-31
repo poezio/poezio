@@ -316,6 +316,14 @@ to understand what is :ref:`carbons <carbons-details>` or
         If this is set to ``false``, you will no longer be subscribed to tune events,
         and the :term:`display_tune_notifications` option will be ignored.
 
+    group_corrections
+
+        **Default value:** ``true``
+
+        Enable a message to “correct” (replace) another message in the display if the
+        sender intended it as such. See :ref:`Message Correction <correct-feature>` for
+        more information.
+
     use_bookmark_method
 
         **Default value:** ``[empty]``
@@ -850,6 +858,25 @@ Other
         **Default value:** ``en``
 
         The lang some automated entities will use when replying to you.
+
+    extract_inline_images
+
+        **Default value:** ``true``
+
+        Some clients send inline images in base64 inside some messages, which results in
+        an useless wall of text. If this option is ``true``, then that base64 text will
+        be replaced with a :file:`file://` link to the image file extracted in
+        :term:`tmp_image_dir` or :file:`$XDG_CACHE_HOME/poezio/images` by default, which
+        is usually :file:`~/.cache/poezio/images`
+
+    tmp_image_dir
+
+        **Default value:** ``[empty]``
+
+        The directory where poezio will save the images received, if
+        :term:`extract_inline_images` is set to true. If unset, poezio
+        will default to :file:`$XDG_CACHE_HOME/poezio/images` which is
+        usually :file:`~/.cache/poezio/images`.
 
     muc_history_length
 

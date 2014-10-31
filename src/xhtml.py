@@ -12,9 +12,13 @@ xhtml code to shell colors,
 poezio colors to xhtml code
 """
 
-import re
+import base64
 import curses
+import hashlib
+import re
+from os import path
 from slixmpp.xmlstream import ET
+from urllib.parse import unquote
 
 from io import BytesIO
 from xml import sax
@@ -178,10 +182,12 @@ colors = {
 whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
+xhtml_data_re = re.compile(r'data:image/([a-z]+);base64,(.+)')
 
 xhtml_simple_attr_re = re.compile(r'\x19\d')
 
-def get_body_from_message_stanza(message, use_xhtml=False):
+def get_body_from_message_stanza(message, use_xhtml=False,
+                                 tmp_dir=None, extract_images=False):
     """
     Returns a string with xhtml markups converted to
     poezio colors if there's an xhtml_im element, or
@@ -191,7 +197,8 @@ def get_body_from_message_stanza(message, use_xhtml=False):
         xhtml = message['html'].xml
         xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
         if xhtml_body:
-            content = xhtml_to_poezio_colors(xhtml_body)
+            content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=tmp_dir,
+                                             extract_images=extract_images)
             content = content if content else message['body']
             return content or " "
     return message['body']
@@ -281,7 +288,7 @@ def trim(string):
     return re.sub(whitespace_re, ' ', string)
 
 class XHTMLHandler(sax.ContentHandler):
-    def __init__(self, force_ns=False):
+    def __init__(self, force_ns=False, tmp_dir=None, extract_images=False):
         self.builder = []
         self.formatting = []
         self.attrs = []
@@ -290,6 +297,9 @@ class XHTMLHandler(sax.ContentHandler):
         self.a_start = 0
         # do not care about xhtml-in namespace
         self.force_ns = force_ns
+
+        self.tmp_dir = tmp_dir
+        self.extract_images = extract_images
 
     @property
     def result(self):
@@ -331,7 +341,22 @@ class XHTMLHandler(sax.ContentHandler):
         elif name == 'em':
             self.append_formatting('\x19i')
         elif name == 'img':
-            builder.append(trim(attrs['src']))
+            if re.match(xhtml_data_re, attrs['src']) and self.extract_images:
+                type_, data = [i for i in re.split(xhtml_data_re, attrs['src']) if i]
+                bin_data = base64.b64decode(unquote(data))
+                filename = hashlib.sha1(bin_data).hexdigest() + '.' + type_
+                filepath = path.join(self.tmp_dir, filename)
+                if not path.exists(filepath):
+                    try:
+                        with open(filepath, 'wb') as fd:
+                            fd.write(bin_data)
+                        builder.append('file://%s' % filepath)
+                    except Exception as e:
+                        builder.append('[Error while saving image: %s]' % e)
+                else:
+                    builder.append('file://%s' % filepath)
+            else:
+                builder.append(trim(attrs['src']))
             if 'alt' in attrs:
                 builder.append(' (%s)' % trim(attrs['alt']))
         elif name == 'ul':
@@ -389,13 +414,14 @@ class XHTMLHandler(sax.ContentHandler):
         if 'title' in attrs:
             builder.append(' [' + attrs['title'] + ']')
 
-def xhtml_to_poezio_colors(xml, force=False):
+def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None, extract_images=None):
     if isinstance(xml, str):
         xml = xml.encode('utf8')
     elif not isinstance(xml, bytes):
         xml = ET.tostring(xml)
 
-    handler = XHTMLHandler(force_ns=force)
+    handler = XHTMLHandler(force_ns=force, tmp_dir=tmp_dir,
+                           extract_images=extract_images)
     parser = sax.make_parser()
     parser.setFeature(sax.handler.feature_namespaces, True)
     parser.setContentHandler(handler)

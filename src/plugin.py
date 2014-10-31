@@ -20,9 +20,8 @@ class PluginConfig(config.Config):
     and behave like the core Config object.
     """
     def __init__(self, filename, module_name):
-        self.file_name = filename
+        config.Config.__init__(self, filename)
         self.module_name = module_name
-        RawConfigParser.__init__(self, None)
         self.read()
 
     def get(self, option, default, section=None):

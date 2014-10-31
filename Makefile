@@ -32,6 +32,10 @@ uninstall:
 
 doc:
 	make -C doc/ html
+
+test:
+	py.test -v test/
+
 pot:
 	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
 
@@ -45,4 +49,4 @@ release:
 	 tar cJf poezio-$(version).tar.xz poezio-$(version) && \
 	 tar czf poezio-$(version).tar.gz poezio-$(version)
 
-.PHONY : doc
+.PHONY : doc test

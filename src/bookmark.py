@@ -25,7 +25,7 @@ def xml_iter(xml, tag=''):
     else:
         return xml.getiterator(tag)
 
-preferred = config.get('use_bookmarks_method', 'pep').lower()
+preferred = config.get('use_bookmarks_method').lower()
 if preferred not in ('pep', 'privatexml'):
     preferred = 'privatexml'
 not_preferred = 'privatexml' if preferred == 'pep' else 'pep'
@@ -159,8 +159,8 @@ def save(xmpp, core=None):
             core.information('Could not save bookmarks.', 'Error')
         elif core:
             core.information('Bookmarks saved', 'Info')
-    if config.get('use_remote_bookmarks', True):
-        preferred = config.get('use_bookmarks_method', 'privatexml')
+    if config.get('use_remote_bookmarks'):
+        preferred = config.get('use_bookmarks_method')
         cb = functools.partial(_cb, core)
         save_remote(xmpp, cb, method=preferred)
 
@@ -201,7 +201,7 @@ def get_remote(xmpp, callback):
     """Add the remotely stored bookmarks to the list."""
     if xmpp.anon:
         return
-    method = config.get('use_bookmarks_method', '')
+    method = config.get('use_bookmarks_method')
     if not method:
         available_methods = {}
         def _save_and_call_callback():
@@ -232,7 +232,7 @@ def save_bookmarks_method(available_methods):
 
 def get_local():
     """Add the locally stored bookmarks to the list."""
-    rooms = config.get('rooms', '')
+    rooms = config.get('rooms')
     if not rooms:
         return
     rooms = rooms.split(':')
@@ -244,7 +244,7 @@ def get_local():
             nick = jid.resource
         else:
             nick = None
-        passwd = config.get_by_tabname('password', '', jid.bare, fallback=False) or None
+        passwd = config.get_by_tabname('password', jid.bare, fallback=False) or None
         b = Bookmark(jid.bare, autojoin=True, nick=nick, password=passwd, method='local')
         if not get_by_jid(b.jid):
             bookmarks.append(b)

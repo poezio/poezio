@@ -80,6 +80,8 @@ Poezio depends on two libraries:
 - DNSPython_ (the python3 version, often called dnspython3)
 - SleekXMPP_
 
+Additionally, it needs *python3-setuptools* to install an executable file.
+
 If you do not want to install those libraries, you can skip directly to
 the :ref:`installation part <poezio-install-label>`
 
@@ -139,7 +141,8 @@ If you have git installed, it will download and update locally the
 libraries for you. (and if you don’t have git installed, install it)
 
 
-If you really want to install it, run as root (or sudo in ubuntu or whatever):
+If you really want to install it, first install the *python3-setuptools* package
+in your distribution, then run as root (or sudo in ubuntu or whatever):
 
 .. code-block:: bash
 

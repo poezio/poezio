@@ -188,17 +188,6 @@ def datetime_tuple(timestamp):
     :param str timestamp: The string containing the formatted date.
     :return: The date.
     :rtype: :py:class:`datetime.datetime`
-
-    >>> time.timezone = 0; time.altzone = 0
-    >>> datetime_tuple('20130226T06:23:12')
-    datetime.datetime(2013, 2, 26, 6, 23, 12)
-    >>> datetime_tuple('2013-02-26T06:23:12+02:00')
-    datetime.datetime(2013, 2, 26, 4, 23, 12)
-    >>> time.timezone = -3600; time.altzone = -3600
-    >>> datetime_tuple('20130226T07:23:12')
-    datetime.datetime(2013, 2, 26, 8, 23, 12)
-    >>> datetime_tuple('2013-02-26T07:23:12+02:00')
-    datetime.datetime(2013, 2, 26, 6, 23, 12)
     """
     timestamp = timestamp.replace('-', '', 2).replace(':', '')
     date = timestamp[:15]
@@ -227,15 +216,10 @@ def datetime_tuple(timestamp):
 
 def get_utc_time(local_time=None):
     """
-    Get the current time in UTC
+    Get the current UTC time
 
     :param datetime local_time: The current local time
     :return: The current UTC time
-    >>> delta = timedelta(seconds=-3600)
-    >>> d = datetime.now()
-    >>> time.timezone = -3600; time.altzone = -3600
-    >>> get_utc_time(local_time=d) == d + delta
-    True
     """
     if local_time is None:
         local_time = datetime.now()
@@ -258,12 +242,6 @@ def get_utc_time(local_time=None):
 def get_local_time(utc_time):
     """
     Get the local time from an UTC time
-
-    >>> delta = timedelta(seconds=-3600)
-    >>> d = datetime.now()
-    >>> time.timezone = -3600; time.altzone = -3600
-    >>> get_local_time(d) == d - delta
-    True
     """
     if OLD_PYTHON:
         isdst = time.localtime(int(utc_time.strftime("%s"))).tm_isdst
@@ -315,16 +293,6 @@ def shell_split(st):
 
     >>> shell_split('"sdf 1" "toto 2"')
     ['sdf 1', 'toto 2']
-    >>> shell_split('toto "titi"')
-    ['toto', 'titi']
-    >>> shell_split('toto ""')
-    ['toto', '']
-    >>> shell_split('to"to titi "a" b')
-    ['to"to', 'titi', 'a', 'b']
-    >>> shell_split('"toto titi" toto ""')
-    ['toto titi', 'toto', '']
-    >>> shell_split('toto "titi')
-    ['toto', 'titi']
     """
     sh = shlex.shlex(st)
     ret = []
@@ -358,18 +326,8 @@ def find_argument(pos, text, quoted=True):
 
 def find_argument_quoted(pos, text):
     """
-    >>> find_argument_quoted(4, 'toto titi tata')
-    3
-    >>> find_argument_quoted(4, '"toto titi" tata')
-    0
-    >>> find_argument_quoted(8, '"toto" "titi tata"')
-    1
-    >>> find_argument_quoted(8, '"toto" "titi tata')
-    1
-    >>> find_argument_quoted(3, '"toto" "titi tata')
-    0
-    >>> find_argument_quoted(18, '"toto" "titi tata" ')
-    2
+    Get the number of the argument at position pos in
+    a string with possibly quoted text.
     """
     sh = shlex.shlex(text)
     count = -1
@@ -384,16 +342,8 @@ def find_argument_quoted(pos, text):
 
 def find_argument_unquoted(pos, text):
     """
-    >>> find_argument_unquoted(2, 'toto titi tata')
-    0
-    >>> find_argument_unquoted(3, 'toto titi tata')
-    0
-    >>> find_argument_unquoted(6, 'toto titi tata')
-    1
-    >>> find_argument_unquoted(4, 'toto titi tata')
-    3
-    >>> find_argument_unquoted(25, 'toto titi tata')
-    3
+    Get the number of the argument at position pos in
+    a string without interpreting quotes.
     """
     ret = text.split()
     search = 0
@@ -531,7 +481,3 @@ def safeJID(*args, **kwargs):
     except InvalidJID:
         return JID('')
 
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

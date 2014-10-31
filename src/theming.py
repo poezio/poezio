@@ -301,10 +301,13 @@ class Theme(object):
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
     CHAR_NEW_TEXT_SEPARATOR = '- '
-    CHAR_ACK_RECEIVED = '✔'
+    CHAR_OK = '✔'
+    CHAR_ERROR = '✖'
+    CHAR_EMPTY = ' '
+    CHAR_ACK_RECEIVED = CHAR_OK
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC = ' ▼'
-    CHAR_ROSTER_ERROR = '✖'
+    CHAR_ROSTER_ERROR = CHAR_ERROR
     CHAR_ROSTER_TUNE = '♪'
     CHAR_ROSTER_ASKED = '?'
     CHAR_ROSTER_ACTIVITY = 'A'
@@ -455,7 +458,7 @@ def update_themes_dir(option=None, value=None):
     # import from the user-defined prefs
     themes_dir = path.expanduser(
             value or
-            config.get('themes_dir', '') or
+            config.get('themes_dir') or
             path.join(os.environ.get('XDG_DATA_HOME') or
                 path.join(os.environ.get('HOME'), '.local', 'share'),
                 'poezio', 'themes')
@@ -482,7 +485,7 @@ def update_themes_dir(option=None, value=None):
     log.debug('Theme load path: %s', load_path)
 
 def reload_theme():
-    theme_name = config.get('theme', 'default')
+    theme_name = config.get('theme')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()

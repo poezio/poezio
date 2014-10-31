@@ -19,7 +19,9 @@ from theming import to_curses_attr, get_theme, dump_tuple
 
 
 class TextWin(Win):
-    def __init__(self, lines_nb_limit=config.get('max_lines_in_memory', 2048)):
+    def __init__(self, lines_nb_limit=None):
+        if lines_nb_limit is None:
+            lines_nb_limit = config.get('max_lines_in_memory')
         Win.__init__(self)
         self.lines_nb_limit = lines_nb_limit
         self.pos = 0
@@ -265,7 +267,7 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
-        with_timestamps = config.get("show_timestamps", True)
+        with_timestamps = config.get("show_timestamps")
         self._win.move(0, 0)
         self._win.erase()
         for y, line in enumerate(lines):
@@ -402,7 +404,7 @@ class TextWin(Win):
 
     def rebuild_everything(self, room):
         self.built_lines = []
-        with_timestamps = config.get("show_timestamps", True)
+        with_timestamps = config.get('show_timestamps')
         for message in room.messages:
             self.build_new_message(message, clean=False, timestamp=with_timestamps)
             if self.separator_after is message:
@@ -415,7 +417,7 @@ class TextWin(Win):
         Find a message, and replace it with a new one
         (instead of rebuilding everything in order to correct a message)
         """
-        with_timestamps = config.get("show_timestamps", True)
+        with_timestamps = config.get('show_timestamps')
         for i in range(len(self.built_lines)-1, -1, -1):
             if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i

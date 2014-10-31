@@ -7,6 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import functools
+import os
 import sys
 from datetime import datetime
 from gettext import gettext as _
@@ -24,6 +25,7 @@ import tabs
 from common import safeJID
 from config import config, options as config_opts
 import multiuserchat as muc
+from plugin import PluginConfig
 from roster import roster
 from theming import dump_tuple, get_theme
 
@@ -369,16 +371,13 @@ def command_join(self, arg, histo_length=None):
         room = room[1:]
     current_status = self.get_status()
     if not histo_length:
-        histo_length = config.get('muc_history_length', 20)
+        histo_length = config.get('muc_history_length')
         if histo_length == -1:
             histo_length = None
     if histo_length is not None:
         histo_length = str(histo_length)
     if password is None: # try to use a saved password
-        password = config.get_by_tabname('password',
-                                         None,
-                                         room,
-                                         fallback=False)
+        password = config.get_by_tabname('password', room, fallback=False)
     if tab and not tab.joined:
         if tab.last_connection:
             if tab.last_connection is not None:
@@ -476,7 +475,7 @@ def command_bookmark(self, arg=''):
     /bookmark [room][/nick] [autojoin] [password]
     """
 
-    if not config.get('use_remote_bookmarks', True):
+    if not config.get('use_remote_bookmarks'):
         self.command_bookmark_local(arg)
         return
     args = common.shell_split(arg)
@@ -537,7 +536,7 @@ def command_bookmark(self, arg=''):
     if not bm:
         bm = bookmark.Bookmark(roomname)
         bookmark.bookmarks.append(bm)
-    bm.method = config.get('use_bookmarks_method', 'pep')
+    bm.method = config.get('use_bookmarks_method')
     if nick:
         bm.nick = nick
     if password:
@@ -592,17 +591,39 @@ def command_remove_bookmark(self, arg=''):
 
 def command_set(self, arg):
     """
-    /set [module|][section] <option> <value>
+    /set [module|][section] <option> [value]
     """
     args = common.shell_split(arg)
-    if len(args) != 2 and len(args) != 3:
-        self.command_help('set')
-        return
-    if len(args) == 2:
+    if len(args) == 1:
         option = args[0]
-        value = args[1]
-        info = config.set_and_save(option, value)
-        self.trigger_configuration_change(option, value)
+        value = config.get(option)
+        info = ('%s=%s' % (option, value), 'Info')
+    elif len(args) == 2:
+        if '|' in args[0]:
+            plugin_name, section = args[0].split('|')[:2]
+            if not section:
+                section = plugin_name
+            option = args[1]
+            if not plugin_name in self.plugin_manager.plugins:
+                file_name = self.plugin_manager.plugins_conf_dir
+                file_name = os.path.join(file_name, plugin_name + '.cfg')
+                plugin_config = PluginConfig(file_name, plugin_name)
+            else:
+                plugin_config = self.plugin_manager.plugins[plugin_name].config
+            value = plugin_config.get(option, default='', section=section)
+            info = ('%s=%s' % (option, value), 'Info')
+        else:
+            possible_section = args[0]
+            if config.has_section(possible_section):
+                section = possible_section
+                option = args[1]
+                value = config.get(option, section=section)
+                info = ('%s=%s' % (option, value), 'Info')
+            else:
+                option = args[0]
+                value = args[1]
+                info = config.set_and_save(option, value)
+                self.trigger_configuration_change(option, value)
     elif len(args) == 3:
         if '|' in args[0]:
             plugin_name, section = args[0].split('|')[:2]
@@ -611,15 +632,21 @@ def command_set(self, arg):
             option = args[1]
             value = args[2]
             if not plugin_name in self.plugin_manager.plugins:
-                return
-            plugin = self.plugin_manager.plugins[plugin_name]
-            info = plugin.config.set_and_save(option, value, section)
+                file_name = self.plugin_manager.plugins_conf_dir
+                file_name = os.path.join(file_name, plugin_name + '.cfg')
+                plugin_config = PluginConfig(file_name, plugin_name)
+            else:
+                plugin_config = self.plugin_manager.plugins[plugin_name].config
+            info = plugin_config.set_and_save(option, value, section)
         else:
             section = args[0]
             option = args[1]
             value = args[2]
             info = config.set_and_save(option, value, section)
             self.trigger_configuration_change(option, value)
+    else:
+        self.command_help('set')
+        return
     self.call_for_resize()
     self.information(*info)
 
@@ -813,11 +840,11 @@ def command_quit(self, arg=''):
         msg = arg
     else:
         msg = None
-    if config.get('enable_user_mood', True):
+    if config.get('enable_user_mood'):
         self.xmpp.plugin['xep_0107'].stop()
-    if config.get('enable_user_activity', True):
+    if config.get('enable_user_activity'):
         self.xmpp.plugin['xep_0108'].stop()
-    if config.get('enable_user_gaming', True):
+    if config.get('enable_user_gaming'):
         self.xmpp.plugin['xep_0196'].stop()
     self.save_config()
     self.plugin_manager.disable_plugins()

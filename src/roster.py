@@ -36,10 +36,8 @@ class Roster(object):
         self.contact_filter = None # A tuple(function, *args)
                                     # function to filter contacts,
                                     # on search, for example
-        self.folded_groups = set(config.get(
-                'folded_roster_groups',
-                '',
-                section='var').split(':'))
+        self.folded_groups = set(config.get('folded_roster_groups',
+                                            section='var').split(':'))
         self.groups = {}
         self.contacts = {}
 

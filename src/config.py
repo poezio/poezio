@@ -22,16 +22,129 @@ from os import environ, makedirs, path, remove
 from shutil import copy2
 from args import parse_args
 
+DEFAULT_CONFIG = {
+    'Poezio': {
+        'ack_message_receipts': True,
+        'add_space_after_completion': True,
+        'after_completion': ',',
+        'alternative_nickname': '',
+        'auto_reconnect': False,
+        'autorejoin_delay': '5',
+        'autorejoin': False,
+        'beep_on': 'highlight private invite',
+        'ca_cert_path': '',
+        'certificate': '',
+        'ciphers': 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL',
+        'connection_check_interval': 60,
+        'connection_timeout_delay': 10,
+        'create_gaps': False,
+        'custom_host': '',
+        'custom_port': '',
+        'default_nick': '',
+        'display_activity_notifications': False,
+        'display_gaming_notifications': False,
+        'display_mood_notifications': False,
+        'display_tune_notifications': False,
+        'display_user_color_in_join_part': True,
+        'enable_carbons': False,
+        'enable_user_activity': True,
+        'enable_user_gaming': True,
+        'enable_user_mood': True,
+        'enable_user_nick': True,
+        'enable_user_tune': True,
+        'enable_vertical_tab_list': False,
+        'enable_xhtml_im': True,
+        'exec_remote': False,
+        'extract_inline_images': True,
+        'filter_info_messages': '',
+        'force_encryption': True,
+        'group_corrections': True,
+        'hide_exit_join': -1,
+        'hide_status_change': 120,
+        'hide_user_list': False,
+        'highlight_on': '',
+        'ignore_certificate': False,
+        'ignore_private': False,
+        'information_buffer_popup_on': 'error roster warning help info',
+        'jid': '',
+        'lang': 'en',
+        'lazy_resize': True,
+        'load_log': 10,
+        'log_dir': '',
+        'logfile': 'logs',
+        'log_errors': True,
+        'max_lines_in_memory': 2048,
+        'max_messages_in_memory': 2048,
+        'max_nick_length': 25,
+        'muc_history_length': 50,
+        'notify_messages': True,
+        'open_all_bookmarks': False,
+        'password': '',
+        'plugins_autoload': '',
+        'plugins_conf_dir': '',
+        'plugins_dir': '',
+        'popup_time': 4,
+        'private_auto_response': '',
+        'remote_fifo_path': './',
+        'request_message_receipts': True,
+        'resource': '',
+        'rooms': '',
+        'roster_group_sort': 'name',
+        'roster_show_offline': False,
+        'roster_sort': 'jid:show',
+        'save_status': True,
+        'send_chat_states': True,
+        'send_initial_presence': True,
+        'send_os_info': True,
+        'send_poezio_info': True,
+        'send_time': True,
+        'separate_history': False,
+        'server': 'anon.jeproteste.info',
+        'show_composing_tabs': 'direct',
+        'show_inactive_tabs': True,
+        'show_muc_jid': True,
+        'show_roster_jids': True,
+        'show_roster_subscriptions': '',
+        'show_s2s_errors': True,
+        'show_tab_names': False,
+        'show_tab_numbers': True,
+        'show_timestamps': True,
+        'show_useless_separator': False,
+        'status': '',
+        'status_message': '',
+        'theme': 'default',
+        'themes_dir': '',
+        'tmp_image_dir': '',
+        'use_bookmarks_method': '',
+        'use_log': False,
+        'use_remote_bookmarks': True,
+        'user_list_sort': 'desc',
+        'use_tab_nicks': True,
+        'vertical_tab_list_size': 20,
+        'vertical_tab_list_sort': 'desc',
+        'whitespace_interval': 300,
+        'words': ''
+    },
+    'bindings': {
+        'M-i': '^I'
+    },
+    'var': {
+        'folded_roster_groups': '',
+        'info_win_height': 2
+    }
+}
+
 class Config(RawConfigParser):
     """
     load/save the config to a file
     """
-    def __init__(self, file_name):
+    def __init__(self, file_name, default=None):
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
         self.optionxform = str
         self.file_name = file_name
         self.read_file()
+        self.default = default
 
     def read_file(self):
         try:
@@ -43,13 +156,19 @@ class Config(RawConfigParser):
             if not self.has_section(section):
                 self.add_section(section)
 
-    def get(self, option, default, section=DEFSECTION):
+    def get(self, option, default=None, section=DEFSECTION):
         """
         get a value from the config but return
         a default value if it is not found
         The type of default defines the type
         returned
         """
+        if default is None:
+            if self.default:
+                default = self.default.get(section, {}).get(option)
+            else:
+                default = ''
+
         try:
             if type(default) == int:
                 res = self.getint(option, section)
@@ -61,18 +180,21 @@ class Config(RawConfigParser):
                 res = self.getstr(option, section)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return default
+
         if res is None:
             return default
         return res
 
-    def get_by_tabname(self, option, default, tabname, fallback=True,
-                       fallback_server=True):
+    def get_by_tabname(self, option, tabname,
+                       fallback=True, fallback_server=True, default=''):
         """
         Try to get the value for the option. First we look in
         a section named `tabname`, if the option is not present
         in the section, we search for the global option if fallback is
         True. And we return `default` as a fallback as a last resort.
         """
+        if self.default and (not default) and fallback:
+            default = self.default.get(DEFSECTION, {}).get(option, '')
         if tabname in self.sections():
             if option in self.options(tabname):
                 # We go the tab-specific option
@@ -360,7 +482,6 @@ def file_ok(filepath):
 def check_create_config_dir():
     """
     create the configuration directory if it doesn't exist
-    and copy the default config in it
     """
     CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
     if not CONFIG_HOME:
@@ -372,6 +493,23 @@ def check_create_config_dir():
     except OSError:
         pass
     return CONFIG_PATH
+
+def check_create_cache_dir():
+    """
+    create the cache directory if it doesn't exist
+    also create the subdirectories
+    """
+    global CACHE_DIR
+    CACHE_HOME = environ.get("XDG_CACHE_HOME")
+    if not CACHE_HOME:
+        CACHE_HOME = path.join(environ.get('HOME'), '.cache')
+    CACHE_DIR = path.join(CACHE_HOME, 'poezio')
+
+    try:
+        makedirs(CACHE_DIR)
+        makedirs(path.join(CACHE_DIR, 'images'))
+    except OSError:
+        pass
 
 def run_cmdline_args(CONFIG_PATH):
     "Parse the command line arguments"
@@ -394,7 +532,7 @@ def create_global_config():
     "Create the global config object, or crash"
     try:
         global config
-        config = Config(options.filename)
+        config = Config(options.filename, DEFAULT_CONFIG)
     except:
         import traceback
         sys.stderr.write('Poezio was unable to read or'
@@ -405,7 +543,7 @@ def create_global_config():
 def check_create_log_dir():
     "Create the poezio logging directory if it doesn’t exist"
     global LOG_DIR
-    LOG_DIR = config.get('log_dir', '')
+    LOG_DIR = config.get('log_dir')
 
     if not LOG_DIR:
 
@@ -425,7 +563,7 @@ def check_create_log_dir():
 
 def setup_logging():
     "Change the logging config according to the cmdline options and config"
-    if config.get('log_errors', True):
+    if config.get('log_errors'):
         LOGGING_CONFIG['root']['handlers'].append('error')
         LOGGING_CONFIG['handlers']['error'] = {
                 'level': 'ERROR',
@@ -494,3 +632,6 @@ safeJID = None
 
 # the global log dir
 LOG_DIR = ''
+
+# the global cache dir
+CACHE_DIR = ''

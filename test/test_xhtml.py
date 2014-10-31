@@ -1,0 +1,50 @@
+"""
+Test the functions in the `xhtml` module
+"""
+
+import pytest
+import sys
+import xml
+sys.path.append('src')
+
+from xhtml import (poezio_colors_to_html, xhtml_to_poezio_colors,
+                   parse_css, clean_text)
+
+def test_clean_text():
+    example_string = '\x191}Toto \x192,-1}titi\x19b Tata'
+    assert clean_text(example_string) == 'Toto titi Tata'
+
+    clean_string = 'toto titi tata'
+    assert clean_text(clean_string) == clean_string
+
+def test_poezio_colors_to_html():
+    base = "<body xmlns='http://www.w3.org/1999/xhtml'><p>"
+    end = "</p></body>"
+    text = '\x191}coucou'
+    assert poezio_colors_to_html(text) == base + '<span style="color: red;">coucou</span>' + end
+
+    text = '\x19bcoucou\x19o toto \x194}titi'
+    assert poezio_colors_to_html(text) == base + '<span style="font-weight: bold;">coucou</span> toto <span style="color: blue;">titi</span>' + end
+
+def test_xhtml_to_poezio_colors():
+    start = b'<body xmlns="http://www.w3.org/1999/xhtml"><p>'
+    end = b'</p></body>'
+    xhtml = start + b'test' + end
+    assert xhtml_to_poezio_colors(xhtml) == 'test'
+
+    xhtml = start + b'<a href="http://perdu.com">salut</a>' + end
+    assert xhtml_to_poezio_colors(xhtml) == '\x19usalut\x19o (http://perdu.com)'
+
+    xhtml = start + b'<a href="http://perdu.com">http://perdu.com</a>' + end
+    assert xhtml_to_poezio_colors(xhtml) == '\x19uhttp://perdu.com\x19o'
+
+    with pytest.raises(xml.sax._exceptions.SAXParseException):
+        xhtml_to_poezio_colors(b'<p>Invalid xml')
+
+def test_parse_css():
+    example_css = 'text-decoration: underline; color: red;'
+    assert parse_css(example_css) == '\x19u\x19196}'
+
+    example_css = 'text-decoration: underline coucou color: red;'
+    assert parse_css(example_css) == ''
+
