@@ -859,6 +859,13 @@ def on_disconnected(self, event):
         self.information(_("Auto-reconnecting."), _('Info'))
         self.xmpp.connect()
 
+def on_stream_error(self, event):
+    """
+    When we receive a stream error
+    """
+    if event and event['text']:
+        self.information(_('Stream error: %s') % event['text'], _('Error'))
+
 def on_failed_all_auth(self, event):
     """
     Authentication failed
