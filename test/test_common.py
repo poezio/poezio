@@ -8,7 +8,7 @@ sys.path.append('src')
 import time
 import pytest
 import datetime
-from sleekxmpp import JID
+from slixmpp import JID
 from datetime import timedelta
 from common import (datetime_tuple, get_utc_time, get_local_time, shell_split,
                     find_argument_quoted, find_argument_unquoted,
