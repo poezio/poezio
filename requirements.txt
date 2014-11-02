@@ -1,6 +1,6 @@
 git+git://github.com/afflux/pure-python-otr.git#egg=potr
-sleekxmpp==1.2
-dnspython3==1.11.1
+git+git://git.louiz.org/slixmpp#egg=slixmpp
+aiodns
 sphinx==1.2.1
 setuptools
 argparse
