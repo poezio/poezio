@@ -1,8 +1,3 @@
-git+git://github.com/afflux/pure-python-otr.git#egg=potr
-git+git://git.louiz.org/slixmpp#egg=slixmpp
-aiodns
-sphinx==1.2.1
 setuptools
-argparse
-pyinotify
-python-mpd2
+-e git+git://git.louiz.org/slixmpp#egg=slixmpp
+aiodns
