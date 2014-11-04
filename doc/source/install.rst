@@ -1,9 +1,7 @@
 Installing poezio
 =================
 
-.. important:: Python 3.3 or better is **required**, as we do not
-    officially support python 3.1 or 3.2 (although we do try to keep
-    things running), and python 3.2 has some unfixable issues.
+.. important:: Python 3.4 or above is **required**
 
 poezio in the GNU/Linux distributions
 -------------------------------------
@@ -26,20 +24,15 @@ add it to the list)
 Install from source
 -------------------
 
-.. note:: The ``make`` command is always required, because while we could provide
-    the compiled file into the archive, the ABI changes and platform variety would
-    make it sure that the list of archives is either incomplete or wrong.
-
-    Packagers are of course welcome to compile the file and include it in their
-    architecture-specific and fixed-python packages.
-
-
 Stable version
 ~~~~~~~~~~~~~~
 
-`Stable version`_ packages are available in standalone (included dependencies)
+`Stable version`_ packages are available in standalone (dependencies provided)
 and poezio-only packages (both with prebuilt html doc for convenience).
 
+Those versions are also available on pypi_ (using pip3, for example), and it is
+recommended to install them this way if you absolutely want to **install** poezio
+and your distribution provides no package.
 
 Development version
 ~~~~~~~~~~~~~~~~~~~
@@ -54,69 +47,62 @@ support. Therefore, you might want to use the git version.
     git clone git://git.poez.io/poezio
     cd poezio
 
-Dependencies
-~~~~~~~~~~~~
-
 """""""
 General
 """""""
 
-Poezio is a python3-only application, so you will first need that, preferably
-in the latest available version, down to 3.3.
+Poezio is a python3.4 (and above)-only application, so you will first need that.
 
-.. note:: Python 3.1 is not officially supported and tested, but should
-    work (if it doesn’t, we can fix it if the fix does not require ugly
-    modifications). In this case, you will want to install the
-    python3-argparse package if it exists, or use pip3/virtualenvs to
-    install it.
-
-You will first need python3-devel, or whatever your distribution named it, along
-with standard utilities such as make. Once you have them, you can run ``make``
-to build the only part of poezio that needs it. If you downloaded the standalone
-stable package, you are finished here and can skip to :ref:`running poezio <poezio-run-label>`.
+You will also need the python3-devel package or equivalent, and make, in order
+to compile the poezio C module. Then you can run ``make`` to build it.
+If you downloaded the standalone stable package, you are finished here and can skip
+to :ref:`running poezio <poezio-run-label>`.
 
 Poezio depends on two libraries:
 
-- DNSPython_ (the python3 version, often called dnspython3)
-- SleekXMPP_
+- aiodns_
+- slixmpp_
 
-Additionally, it needs *python3-setuptools* to install an executable file.
-
-If you do not want to install those libraries, you can skip directly to
-the :ref:`installation part <poezio-install-label>`
+.. versionchanged:: 0.9
 
 
-"""""""""
-DNSPython
-"""""""""
+Additionally, it needs *python3-setuptools*, which is required for proper python
+packaging management.
 
-It should be available right now in most software repositories, under the name
-``python3-dnspython`` or ``python3-dnspython3``. Any stable version should fit.
+.. note:: We provide a script ``update.sh`` that creates a virtualenv and
+          downloads all the required and optional dependencies inside it.
+          we recommend using it with the git version of poezio, in order
+          to keep everything up-to-date.
 
-For a manual install:
+If you don’t want to use the update script for whatever reason, install the
+following dependencies by hand; otherwise, skip to the
+`installation part <poezio-install-label>`.
 
-.. code-block:: bash
 
-    wget -O dnspython.tar.gz http://www.dnspython.org/kits3/1.11.1/dnspython3-1.11.1.tar.gz
-    tar xvf dnspython.tar.gz
-    cd dnspython3-1.11.1
-    python3 setup.py build
-    python3 setup.py install --user
+""""""""
+slixmpp
+""""""""
 
-"""""""""
-SleekXMPP
-"""""""""
-
-Poezio now depends on SleekXMPP 1.2. if your distribution does not provide it yet,
-you can install it this way:
+Poezio depends on slixmpp, a non-thread fork of the SleekXMPP library.
 
 .. code-block:: bash
 
-    wget https://github.com/fritzy/SleekXMPP/archive/1.2.0.tar.gz
-    tar xvf 1.2.0.tar.gz
-    SleekXMPP-1.2.0
-    python3 setup.py build
+    git clone git://git.louiz.org/slixmpp
     python3 setup.py install --user
+
+
+""""""
+aiodns
+""""""
+
+The aiodns is required in order to properly resolve XMPP domains (with SRV records).
+
+
+.. code-block:: bash
+
+    pip install --user aiodns
+
+This will also install pycares, which aiodns uses.
 
 
 .. _poezio-install-label:
@@ -128,6 +114,7 @@ Installation
 
     The update.sh + launch.sh method is the recommended way of using and upgrading
     the devel version of poezio. Installing should only be done with stable versions.
+    And preferably using your distribution’s package manager.
 
 
 If you skipped the installation of the dependencies and you only want to run
@@ -137,12 +124,8 @@ poezio without a system-wide install, do, in the :file:`poezio` directory:
 
     ./update.sh
 
-If you have git installed, it will download and update locally the
-libraries for you. (and if you don’t have git installed, install it)
 
-
-If you really want to install it, first install the *python3-setuptools* package
-in your distribution, then run as root (or sudo in ubuntu or whatever):
+If you really want to install it, run as root (or sudo in ubuntu or whatever):
 
 .. code-block:: bash
 
@@ -170,8 +153,9 @@ If you did, it should be in he ``$PATH`` as ``poezio``, so run:
 
 .. _Sekh’s overlay: https://github.com/sekh/sekh_overlay
 .. _stable sources: https://dev.louiz.org/project/poezio/download
-.. _SleekXMPP: https://github.com/fritzy/SleekXMPP/
-.. _DNSPython: http://www.dnspython.org/
+.. _slixmpp: https://dev.louiz.org/projects/slixmpp
+.. _aiodns: https://github.com/saghul/aiodns
 .. _poezio: https://aur.archlinux.org/packages/poezio/
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
+.. _pypi: https://pypi.python.org/pypi/poezio
