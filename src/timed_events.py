@@ -35,7 +35,6 @@ class DelayedEvent(object):
         """
         self.callback = callback
         self.args = args
-        self.repetive = False
         self.delay = delay
         # An asyncio handler, as returned by call_later() or call_at()
         self.handler = None
