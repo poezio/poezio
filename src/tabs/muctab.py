@@ -67,6 +67,8 @@ class MucTab(ChatTab):
         self.topic = ''
         self.topic_from = ''
         self.remote_wants_chatstates = True
+        # Self ping event, so we can cancel it when we leave the room
+        self.self_ping_event = None
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
         # that’s not our problem.
@@ -1049,6 +1051,9 @@ class MucTab(ChatTab):
                         self.core.current_tab().input.refresh()
                         self.core.doupdate()
                     self.core.enable_private_tabs(self.name)
+                    # Enable the self ping event, to regularly check if we
+                    # are still in the room.
+                    self.enable_self_ping_event()
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -1439,6 +1444,9 @@ class MucTab(ChatTab):
         if self is not self.core.current_tab():
             self.state = 'disconnected'
         self.joined = False
+        if self.self_ping_event is not None:
+            self.core.remove_timed_event(self.self_ping_event)
+            self.self_ping_event = None
 
     def get_single_line_topic(self):
         """
@@ -1552,4 +1560,27 @@ class MucTab(ChatTab):
     def matching_names(self):
         return [(1, safeJID(self.name).user), (3, self.name)]
 
+    def enable_self_ping_event(self):
+        delay = config.get_by_tabname("self_ping_delay", self.general_jid, default=60)
+        if delay <= 0:          # use 0 or some negative value to disable it
+            return
+        self.self_ping_event = timed_events.DelayedEvent(delay, self.send_self_ping)
+        self.core.add_timed_event(self.self_ping_event)
 
+    def send_self_ping(self):
+        to = self.name + "/" + self.own_nick
+        self.core.xmpp.plugin['xep_0199'].send_ping(jid=to,
+                                                    callback=self.on_self_ping_result,
+                                                    timeout_callback=self.on_self_ping_failed,
+                                                    timeout=10)
+
+    def on_self_ping_result(self, iq):
+        if iq["type"] == "error":
+            self.command_part(iq["error"]["text"] or "not in this room")
+            self.core.refresh_window()
+        else:                   # Re-send a self-ping in a few seconds
+            self.enable_self_ping_event()
+
+    def on_self_ping_failed(self, iq):
+        self.command_part("the MUC server is not responding")
+        self.core.refresh_window()
