@@ -63,8 +63,8 @@ setup(name="poezio",
        entry_points={ 'console_scripts': [ 'poezio = poezio:main' ] },
        data_files = [('share/man/man1/', ['data/poezio.1'])],
 
-       install_requires = ['sleekxmpp>=1.2.4',
-                           'dnspython3>=1.10.0'],
+       install_requires = ['slixmpp',
+                           'aiodns'],
        extras_require = {'OTR plugin': 'python-potr>=1.0',
                          'Screen autoaway plugin': 'pyinotify==0.9.4'}
 )
