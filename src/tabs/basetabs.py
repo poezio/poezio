@@ -817,6 +817,9 @@ class OneToOneTab(ChatTab):
         else:
             self.__initial_disco = True
 
+        if not (correct or attention or receipts):
+            return # don’t display anything
+
         ok = get_theme().CHAR_OK
         nope = get_theme().CHAR_EMPTY
 
