@@ -41,3 +41,13 @@ else
 fi
 
 make
+
+
+if [ -e src/slixmpp ]
+then
+    echo ""
+    echo "The update script detected a slixmpp link in src/."
+    echo "This is probably due to the old update script, you should delete it"
+    echo "so that poezio can use the up-to-date copy inside the poezio-venv directory."
+    echo ""
+fi
