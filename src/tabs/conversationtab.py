@@ -381,7 +381,7 @@ class DynamicConversationTab(ConversationTab):
         self.info_header = windows.DynamicConversationInfoWin()
         ConversationTab.__init__(self, jid)
         self.register_command('unlock', self.unlock_command,
-                shortdesc=_('Unlock the converstation from a particular resource.'))
+                shortdesc=_('Unlock the conversation from a particular resource.'))
 
     def lock(self, resource):
         """
