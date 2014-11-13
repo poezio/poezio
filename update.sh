@@ -8,6 +8,7 @@
 
 cd "$(dirname "$0")"
 VENV="poezio-venv"
+VENV_COMMAND="pyvenv"
 
 echo 'Updating poezio'
 git pull origin slix || {
@@ -19,18 +20,18 @@ if [ -e "$VENV" ]
 then
     # In case of a python version upgrade
     echo 'Trying to upgrade the virtualenv'
-    pyvenv --upgrade "$VENV"
+    $VENV_COMMAND --upgrade "$VENV"
 
-    source "$VENV/bin/activate"
+    . "$VENV/bin/activate"
     echo 'Updating the poezio dependencies'
     pip install -r requirements.txt --upgrade
     echo 'Updating the poezio plugin dependencies'
     pip install -r requirements-plugins.txt --upgrade
 else
     echo "Creating the $VENV virtualenv"
-    pyvenv "$VENV"
+    $VENV_COMMAND "$VENV"
 
-    source "$VENV/bin/activate"
+    . "$VENV/bin/activate"
     cd "$VENV" # needed to download slixmpp inside the venv
 
     echo 'Installing the poezio dependencies using pip'
