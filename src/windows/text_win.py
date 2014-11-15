@@ -244,7 +244,7 @@ class TextWin(Win):
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
         lines = poopt.cut_text(txt, self.width-offset-1)
-        prepend = ''
+        prepend = default_color if default_color else ''
         attrs = []
         for line in lines:
             saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
