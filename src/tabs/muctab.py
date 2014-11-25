@@ -515,7 +515,7 @@ class MucTab(ChatTab):
         """
         /close [msg]
         """
-        self.command_part(args)
+        self.command_part(msg)
         self.core.close_tab()
 
     @command_args_parser.quoted(1, 1)
