@@ -25,6 +25,7 @@ from contact import Contact, Resource
 from decorators import refresh_wrapper
 from roster import RosterGroup, roster
 from theming import get_theme, dump_tuple
+from decorators import command_args_parser
 
 class RosterInfoTab(Tab):
     """
@@ -158,7 +159,8 @@ class RosterInfoTab(Tab):
             }
         tab.add_message(message)
 
-    def command_block(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_block(self, args):
         """
         /block [jid]
         """
@@ -169,8 +171,8 @@ class RosterInfoTab(Tab):
                 return self.core.information('Contact blocked.', 'Info')
 
         item = self.roster_win.selected_row
-        if arg:
-            jid = safeJID(arg)
+        if args:
+            jid = safeJID(args[0])
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -185,7 +187,8 @@ class RosterInfoTab(Tab):
             jids = roster.jids()
             return the_input.new_completion(jids, 1, '', quotify=False)
 
-    def command_unblock(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_unblock(self, args):
         """
         /unblock [jid]
         """
@@ -196,8 +199,8 @@ class RosterInfoTab(Tab):
                 return self.core.information('Contact unblocked.', 'Info')
 
         item = self.roster_win.selected_row
-        if arg:
-            jid = safeJID(arg)
+        if args:
+            jid = safeJID(args[0])
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -218,7 +221,8 @@ class RosterInfoTab(Tab):
             self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
         return True
 
-    def command_list_blocks(self, arg=None):
+    @command_args_parser.ignored
+    def command_list_blocks(self):
         """
         /list_blocks
         """
@@ -236,7 +240,8 @@ class RosterInfoTab(Tab):
 
         self.core.xmpp.plugin['xep_0191'].get_blocked(callback=callback)
 
-    def command_reconnect(self, args=None):
+    @command_args_parser.ignored
+    def command_reconnect(self):
         """
         /reconnect
         """
@@ -245,19 +250,21 @@ class RosterInfoTab(Tab):
         else:
             self.core.xmpp.connect()
 
-    def command_disconnect(self, args=None):
+    @command_args_parser.ignored
+    def command_disconnect(self):
         """
         /disconnect
         """
         self.core.disconnect()
 
-    def command_last_activity(self, arg=None):
+    @command_args_parser.quoted(0, 1)
+    def command_last_activity(self, args):
         """
         /activity [jid]
         """
         item = self.roster_win.selected_row
-        if arg:
-            jid = arg
+        if args:
+            jid = args[0]
         elif isinstance(item, Contact):
             jid = item.bare_jid
         elif isinstance(item, Resource):
@@ -335,7 +342,8 @@ class RosterInfoTab(Tab):
 
             return the_input.auto_completion(end_list, '')
 
-    def command_clear(self, arg=''):
+    @command_args_parser.ignored
+    def command_clear(self):
         """
         /clear
         """
@@ -344,7 +352,8 @@ class RosterInfoTab(Tab):
         self.core.information_win.rebuild_everything(self.core.information_buffer)
         self.refresh()
 
-    def command_password(self, arg):
+    @command_args_parser.quoted(1)
+    def command_password(self, args):
         """
         /password <password>
         """
@@ -352,19 +361,18 @@ class RosterInfoTab(Tab):
             if iq['type'] == 'result':
                 self.core.information('Password updated', 'Account')
                 if config.get('password'):
-                    config.silent_set('password', arg)
+                    config.silent_set('password', args[0])
             else:
                 self.core.information('Unable to change the password', 'Account')
-        self.core.xmpp.plugin['xep_0077'].change_password(arg, callback=callback)
+        self.core.xmpp.plugin['xep_0077'].change_password(args[0], callback=callback)
 
-
-
-    def command_deny(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_deny(self, args):
         """
         /deny [jid]
         Denies a JID from our roster
         """
-        if not arg:
+        if not args:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
                 jid = item.bare_jid
@@ -372,7 +380,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to deny')
                 return
         else:
-            jid = safeJID(arg).bare
+            jid = safeJID(args[0]).bare
             if not jid in [jid for jid in roster.jids()]:
                 self.core.information('No subscription to deny')
                 return
@@ -383,12 +391,13 @@ class RosterInfoTab(Tab):
             self.core.information('Subscription to %s was revoked' % jid,
                                   'Roster')
 
+    @command_args_parser.quoted(1)
     def command_add(self, args):
         """
         Add the specified JID to the roster, and set automatically
         accept the reverse subscription
         """
-        jid = safeJID(safeJID(args.strip()).bare)
+        jid = safeJID(safeJID(args[0]).bare)
         if not jid:
             self.core.information(_('No JID specified'), 'Error')
             return
@@ -398,7 +407,8 @@ class RosterInfoTab(Tab):
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
 
-    def command_name(self, arg):
+    @command_args_parser.quoted(1)
+    def command_name(self, args):
         """
         Set a name for the specified JID in your roster
         """
@@ -406,7 +416,6 @@ class RosterInfoTab(Tab):
             if not iq:
                 self.core.information('The name could not be set.', 'Error')
                 log.debug('Error in /name:\n%s', iq)
-        args = common.shell_split(arg)
         if not args:
             return self.core.command_help('name')
         jid = safeJID(args[0]).bare
@@ -424,13 +433,13 @@ class RosterInfoTab(Tab):
         self.core.xmpp.update_roster(jid, name=name, groups=groups,
                                      subscription=subscription, callback=callback)
 
+    @command_args_parser.quoted(2)
     def command_groupadd(self, args):
         """
         Add the specified JID to the specified group
         """
-        args = common.shell_split(args)
-        if len(args) != 2:
-            return
+        if args is None:
+            return self.core.command_help('groupadd')
         jid = safeJID(args[0]).bare
         group = args[1]
 
@@ -464,12 +473,12 @@ class RosterInfoTab(Tab):
         self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
                                      subscription=subscription, callback=callback)
 
-    def command_groupmove(self, arg):
+    @command_args_parser.quoted(3)
+    def command_groupmove(self, args):
         """
         Remove the specified JID from the first specified group and add it to the second one
         """
-        args = common.shell_split(arg)
-        if len(args) != 3:
+        if args is None:
             return self.core.command_help('groupmove')
         jid = safeJID(args[0]).bare
         group_from = args[1]
@@ -519,13 +528,14 @@ class RosterInfoTab(Tab):
         self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
                                      subscription=subscription, callback=callback)
 
+    @command_args_parser.quoted(2)
     def command_groupremove(self, args):
         """
         Remove the specified JID from the specified group
         """
-        args = common.shell_split(args)
-        if len(args) != 2:
-            return
+        if args is None:
+            return self.core.command_help('groupremove')
+
         jid = safeJID(args[0]).bare
         group = args[1]
 
@@ -559,13 +569,14 @@ class RosterInfoTab(Tab):
         self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
                                      subscription=subscription, callback=callback)
 
+    @command_args_parser.quoted(0, 1)
     def command_remove(self, args):
         """
         Remove the specified JID from the roster. i.e.: unsubscribe
         from its presence, and cancel its subscription to our.
         """
-        if args.strip():
-            jid = safeJID(args.strip()).bare
+        if args:
+            jid = safeJID(args[0]).bare
         else:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
@@ -576,12 +587,12 @@ class RosterInfoTab(Tab):
         roster.remove(jid)
         del roster[jid]
 
-    def command_import(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_import(self, args):
         """
         Import the contacts
         """
-        args = common.shell_split(arg)
-        if len(args):
+        if args:
             if args[0].startswith('/'):
                 filepath = args[0]
             else:
@@ -603,12 +614,12 @@ class RosterInfoTab(Tab):
             self.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
-    def command_export(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_export(self, args):
         """
         Export the contacts
         """
-        args = common.shell_split(arg)
-        if len(args):
+        if args:
             if args[0].startswith('/'):
                 filepath = args[0]
             else:
@@ -697,11 +708,12 @@ class RosterInfoTab(Tab):
              if contact.pending_in)
         return the_input.new_completion(jids, 1, '', quotify=False)
 
-    def command_accept(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_accept(self, args):
         """
         Accept a JID from in roster. Authorize it AND subscribe to it
         """
-        if not arg:
+        if not args:
             item = self.roster_win.selected_row
             if isinstance(item, Contact):
                 jid = item.bare_jid
@@ -709,7 +721,7 @@ class RosterInfoTab(Tab):
                 self.core.information('No subscription to accept')
                 return
         else:
-            jid = safeJID(arg).bare
+            jid = safeJID(args[0]).bare
         nodepart = safeJID(jid).user
         jid = safeJID(jid)
         # crappy transports putting resources inside the node part

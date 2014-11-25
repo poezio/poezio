@@ -19,6 +19,7 @@ from . import Tab
 
 import windows
 from xhtml import clean_text
+from decorators import command_args_parser
 
 class XMLTab(Tab):
     def __init__(self):
@@ -70,46 +71,53 @@ class XMLTab(Tab):
         self.text_win.toggle_lock()
         self.refresh()
 
-    def command_filter_xmlmask(self, arg):
+    @command_args_parser.raw
+    def command_filter_xmlmask(self, mask):
         """/filter_xmlmask <xml mask>"""
         try:
-            handler = Callback('custom matcher', matcher.MatchXMLMask(arg),
+            handler = Callback('custom matcher', matcher.MatchXMLMask(mask),
                     self.core.incoming_stanza)
             self.core.xmpp.remove_handler('custom matcher')
             self.core.xmpp.register_handler(handler)
             self.filter_type = "XML Mask Filter"
-            self.filter = arg
+            self.filter = mask
             self.refresh()
         except:
             self.core.information('Invalid XML Mask', 'Error')
             self.command_reset('')
 
-    def command_filter_id(self, arg):
+    @command_args_parser.quoted(1)
+    def command_filter_id(self, args):
         """/filter_id <id>"""
+        if args is None:
+            return self.core.command_help('filter_id')
+
         self.core.xmpp.remove_handler('custom matcher')
         handler = Callback('custom matcher', matcher.MatcherId(arg),
                 self.core.incoming_stanza)
         self.core.xmpp.register_handler(handler)
         self.filter_type = "Id Filter"
-        self.filter = arg
+        self.filter = args[0]
         self.refresh()
 
-    def command_filter_xpath(self, arg):
+    @command_args_parser.raw
+    def command_filter_xpath(self, xpath):
         """/filter_xpath <xpath>"""
         try:
             handler = Callback('custom matcher', matcher.MatchXPath(
-                arg.replace('%n', self.core.xmpp.default_ns)),
+                xpath.replace('%n', self.core.xmpp.default_ns)),
                     self.core.incoming_stanza)
             self.core.xmpp.remove_handler('custom matcher')
             self.core.xmpp.register_handler(handler)
             self.filter_type = "XPath Filter"
-            self.filter = arg
+            self.filter = xpath
             self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
             self.command_reset('')
 
-    def command_reset(self, arg):
+    @command_args_parser.ignored
+    def command_reset(self):
         """/reset"""
         self.core.xmpp.remove_handler('custom matcher')
         self.core.xmpp.register_handler(self.core.all_stanzas)
@@ -117,11 +125,14 @@ class XMLTab(Tab):
         self.filter = ''
         self.refresh()
 
-    def command_dump(self, arg):
+    @command_args_parser.quoted(1)
+    def command_dump(self, args):
         """/dump <filename>"""
+        if args is None:
+            return self.core.command_help('dump')
         xml = self.core.xml_buffer.messages[:]
         text = '\n'.join(('%s %s' % (msg.str_time, clean_text(msg.txt)) for msg in xml))
-        filename = os.path.expandvars(os.path.expanduser(arg))
+        filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
             with open(filename, 'w') as fd:
                 fd.write(text)
@@ -151,7 +162,8 @@ class XMLTab(Tab):
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height-1)
 
-    def command_clear(self, args):
+    @command_args_parser.ignored
+    def command_clear(self):
         """
         /clear
         """

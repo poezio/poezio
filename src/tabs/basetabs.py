@@ -35,7 +35,7 @@ from decorators import refresh_wrapper
 from logger import logger
 from text_buffer import TextBuffer
 from theming import get_theme, dump_tuple
-
+from decorators import command_args_parser
 
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
@@ -544,11 +544,12 @@ class ChatTab(Tab):
                 self.command_say(xhtml.convert_simple_to_full_colors(txt))
         self.cancel_paused_delay()
 
-    def command_xhtml(self, arg):
+    @command_args_parser.raw
+    def command_xhtml(self, xhtml):
         """"
         /xhtml <custom xhtml>
         """
-        message = self.generate_xhtml_message(arg)
+        message = self.generate_xhtml_message(xhtml)
         if message:
             message.send()
 
@@ -573,7 +574,7 @@ class ChatTab(Tab):
         return self.name
 
     @refresh_wrapper.always
-    def command_clear(self, args):
+    def command_clear(self, ignored):
         """
         /clear
         """
@@ -637,6 +638,7 @@ class ChatTab(Tab):
             self.core.remove_timed_event(self.timed_event_paused)
             self.timed_event_paused = None
 
+    @command_args_parser.raw
     def command_correct(self, line):
         """
         /correct <fixed message>
@@ -672,6 +674,7 @@ class ChatTab(Tab):
         if self.text_win.pos != 0:
             self.state = 'scrolled'
 
+    @command_args_parser.raw
     def command_say(self, line, correct=False):
         pass
 
@@ -728,8 +731,9 @@ class OneToOneTab(ChatTab):
                     jid=self.get_dest_jid(), timeout=5,
                     callback=self.features_checked)
 
-    def command_attention(self, message=''):
-        "/attention [message]"
+    @command_args_parser.raw
+    def command_attention(self, message):
+        """/attention [message]"""
         if message is not '':
             self.command_say(message, attention=True)
         else:
@@ -738,6 +742,7 @@ class OneToOneTab(ChatTab):
             msg['attention'] = True
             msg.send()
 
+    @command_args_parser.raw
     def command_say(self, line, correct=False, attention=False):
         pass
 

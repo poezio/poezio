@@ -28,15 +28,16 @@ import multiuserchat as muc
 from plugin import PluginConfig
 from roster import roster
 from theming import dump_tuple, get_theme
+from decorators import command_args_parser
 
 from . structs import Command, possible_show
 
 
-def command_help(self, arg):
+@command_args_parser.quoted(0, 1)
+def command_help(self, args):
     """
-    /help <command_name>
+    /help [command_name]
     """
-    args = arg.split()
     if not args:
         color = dump_tuple(get_theme().COLOR_HELP_COMMANDS)
         acc = []
@@ -67,7 +68,7 @@ def command_help(self, arg):
 
         msg = '\n'.join(buff)
         msg += _("\nType /help <command_name> to know what each command does")
-    if args:
+    else:
         command = args[0].lstrip('/').strip()
 
         if command in self.current_tab().commands:
@@ -84,7 +85,8 @@ def command_help(self, arg):
             msg = tup[1]
     self.information(msg, 'Help')
 
-def command_runkey(self, arg):
+@command_args_parser.quoted(1)
+def command_runkey(self, args):
     """
     /runkey <key>
     """
@@ -93,7 +95,9 @@ def command_runkey(self, arg):
         if key == '^J':
             return '\n'
         return key
-    char = arg.strip()
+    if args is None:
+        return self.command_help('runkey')
+    char = args[0]
     func = self.key_func.get(char, None)
     if func:
         func()
@@ -102,21 +106,20 @@ def command_runkey(self, arg):
         if res:
             self.refresh_window()
 
-def command_status(self, arg):
+@command_args_parser.quoted(1, 1, [None])
+def command_status(self, args):
     """
     /status <status> [msg]
     """
-    args = common.shell_split(arg)
-    if len(args) < 1:
-        return
+    if args is None:
+        return self.command_help('status')
+
     if not args[0] in possible_show.keys():
-        self.command_help('status')
-        return
+        return self.command_help('status')
+
     show = possible_show[args[0]]
-    if len(args) == 2:
-        msg = args[1]
-    else:
-        msg = None
+    msg = args[1]
+
     pres = self.xmpp.make_presence()
     if msg:
         pres['status'] = msg
@@ -136,19 +139,15 @@ def command_status(self, arg):
     if is_muctab and current.joined and show not in ('away', 'xa'):
         current.send_chat_state('active')
 
-def command_presence(self, arg):
+@command_args_parser.quoted(1, 2, [None, None])
+def command_presence(self, args):
     """
     /presence <JID> [type] [status]
     """
-    args = common.shell_split(arg)
-    if len(args) == 1:
-        jid, type, status = args[0], None, None
-    elif len(args) == 2:
-        jid, type, status = args[0], args[1], None
-    elif len(args) == 3:
-        jid, type, status = args[0], args[1], args[2]
-    else:
-        return
+    if args is None:
+        return self.command_help('presence')
+
+    jid, type, status = args[0], args[1], args[2]
     if jid == '.' and isinstance(self.current_tab(), tabs.ChatTab):
         jid = self.current_tab().name
     if type == 'available':
@@ -177,24 +176,26 @@ def command_presence(self, arg):
             if self.current_tab() in tab.privates:
                 self.current_tab().send_chat_state(chatstate, True)
 
-def command_theme(self, arg=''):
+@command_args_parser.quoted(1)
+def command_theme(self, args=None):
     """/theme <theme name>"""
-    args = arg.split()
-    if args:
-        self.command_set('theme %s' % (args[0],))
+    if args is None:
+        return self.command_help('theme')
+    self.command_set('theme %s' % (args[0],))
 
-def command_win(self, arg):
+@command_args_parser.quoted(1)
+def command_win(self, args):
     """
     /win <number>
     """
-    arg = arg.strip()
-    if not arg:
-        self.command_help('win')
-        return
+    if args is None:
+        return self.command_help('win')
+
+    nb = args[0]
     try:
-        nb = int(arg.split()[0])
+        nb = int(nb)
     except ValueError:
-        nb = arg
+        pass
     if self.current_tab_nb == nb:
         return
     self.previous_tab_nb = self.current_tab_nb
@@ -219,15 +220,15 @@ def command_win(self, arg):
     self.current_tab().on_gain_focus()
     self.refresh_window()
 
-def command_move_tab(self, arg):
+@command_args_parser.quoted(2)
+def command_move_tab(self, args):
     """
     /move_tab old_pos new_pos
     """
-    args = common.shell_split(arg)
-    current_tab = self.current_tab()
-    if len(args) != 2:
+    if args is None:
         return self.command_help('move_tab')
 
+    current_tab = self.current_tab()
     if args[0] == '.':
         args[0] = current_tab.nb
     if args[1] == '.':
@@ -259,16 +260,16 @@ def command_move_tab(self, arg):
         self.current_tab_nb = self.tabs.index(current_tab)
     self.refresh_window()
 
-def command_list(self, arg):
+@command_args_parser.quoted(0, 1)
+def command_list(self, args):
     """
-    /list <server>
+    /list [server]
     Opens a MucListTab containing the list of the room in the specified server
     """
-    arg = arg.split()
-    if len(arg) > 1:
+    if args is None:
         return self.command_help('list')
-    elif arg:
-        server = safeJID(arg[0]).server
+    elif args:
+        server = safeJID(args[0]).server
     else:
         if not isinstance(self.current_tab(), tabs.MucTab):
             return self.information('Please provide a server', 'Error')
@@ -279,7 +280,8 @@ def command_list(self, arg):
     self.xmpp.plugin['xep_0030'].get_items(jid=server,
                                            callback=cb)
 
-def command_version(self, arg):
+@command_args_parser.quoted(1)
+def command_version(self, args):
     """
     /version <jid>
     """
@@ -296,9 +298,9 @@ def command_version(self, arg):
                         res.get('os') or _('an unknown platform'))
         self.information(version, 'Info')
 
-    args = common.shell_split(arg)
-    if len(args) < 1:
+    if args is None:
         return self.command_help('version')
+
     jid = safeJID(args[0])
     if jid.resource or jid not in roster:
         fixes.get_version(self.xmpp, jid, callback=callback)
@@ -308,11 +310,11 @@ def command_version(self, arg):
         else:
             fixes.get_version(self.xmpp, jid, callback=callback)
 
-def command_join(self, arg, histo_length=None):
+@command_args_parser.quoted(0, 2)
+def command_join(self, args, histo_length=None):
     """
     /join [room][/nick] [password]
     """
-    args = common.shell_split(arg)
     password = None
     if len(args) == 0:
         tab = self.current_tab()
@@ -409,11 +411,11 @@ def command_join(self, arg, histo_length=None):
             tab.refresh()
             self.doupdate()
 
-def command_bookmark_local(self, arg=''):
+@command_args_parser.quoted(0, 2)
+def command_bookmark_local(self, args):
     """
     /bookmark_local [room][/nick] [password]
     """
-    args = common.shell_split(arg)
     nick = None
     password = None
     if not args and not isinstance(self.current_tab(), tabs.MucTab):
@@ -470,15 +472,14 @@ def command_bookmark_local(self, arg=''):
     self.information(_('Your local bookmarks are now: %s') %
             [b for b in bookmark.bookmarks if b.method == 'local'], 'Info')
 
-def command_bookmark(self, arg=''):
+@command_args_parser.quoted(0, 3)
+def command_bookmark(self, args):
     """
     /bookmark [room][/nick] [autojoin] [password]
     """
-
     if not config.get('use_remote_bookmarks'):
-        self.command_bookmark_local(arg)
-        return
-    args = common.shell_split(arg)
+        return self.command_bookmark_local(" ".join(args))
+
     nick = None
     if not args and not isinstance(self.current_tab(), tabs.MucTab):
         return
@@ -553,7 +554,8 @@ def command_bookmark(self, arg=''):
         if each.method in ('pep', 'privatexml'):
             remote.append(each)
 
-def command_bookmarks(self, arg=''):
+@command_args_parser.ignored
+def command_bookmarks(self):
     """/bookmarks"""
     local = []
     remote = []
@@ -568,9 +570,10 @@ def command_bookmarks(self, arg=''):
     self.information(_('Your local bookmarks are: %s') % local,
                      _('Info'))
 
-def command_remove_bookmark(self, arg=''):
+@command_args_parser.quoted(0, 1)
+def command_remove_bookmark(self, args):
     """/remove_bookmark [jid]"""
-    args = common.shell_split(arg)
+
     if not args:
         tab = self.current_tab()
         if isinstance(tab, tabs.MucTab) and bookmark.get_by_jid(tab.name):
@@ -589,11 +592,11 @@ def command_remove_bookmark(self, arg=''):
         else:
             self.information('No bookmark to remove', 'Info')
 
-def command_set(self, arg):
+@command_args_parser.quoted(1, 2)
+def command_set(self, args):
     """
     /set [module|][section] <option> [value]
     """
-    args = common.shell_split(arg)
     if len(args) == 1:
         option = args[0]
         value = config.get(option)
@@ -650,33 +653,35 @@ def command_set(self, arg):
     self.call_for_resize()
     self.information(*info)
 
-def command_toggle(self, arg):
+@command_args_parser.quoted(1)
+def command_toggle(self, args):
     """
     /toggle <option>
     shortcut for /set <option> toggle
     """
-    arg = arg.split()
-    if arg and arg[0]:
+    if args is None:
+        return self.command_help('toggle')
+
+    if args[0]:
         self.command_set('%s toggle' % arg[0])
 
-def command_server_cycle(self, arg=''):
+@command_args_parser.quoted(1, 1)
+def command_server_cycle(self, args):
     """
     Do a /cycle on each room of the given server.
     If none, do it on the current tab
     """
-    args = common.shell_split(arg)
     tab = self.current_tab()
     message = ""
-    if len(args):
+    if args:
         domain = args[0]
-        if len(args) > 1:
+        if len(args) == 2:
             message = args[1]
     else:
         if isinstance(tab, tabs.MucTab):
             domain = safeJID(tab.name).domain
         else:
-            self.information(_("No server specified"), "Error")
-            return
+            return self.information(_("No server specified"), "Error")
     for tab in self.get_tabs(tabs.MucTab):
         if tab.name.endswith(domain):
             if tab.joined:
@@ -690,7 +695,8 @@ def command_server_cycle(self, arg=''):
             else:
                 self.command_join('"%s/%s"' %(tab.name, tab.own_nick))
 
-def command_last_activity(self, arg):
+@command_args_parser.quoted(1)
+def command_last_activity(self, args):
     """
     /last_activity <jid>
     """
@@ -717,41 +723,42 @@ def command_last_activity(self, arg):
                 common.parse_secs_to_str(seconds),
                 (' and his/her last status was %s' % status) if status else '')
         self.information(msg, 'Info')
-    jid = safeJID(arg)
-    if jid == '':
+
+    if args is None:
         return self.command_help('last_activity')
+    jid = safeJID(args[0])
     self.xmpp.plugin['xep_0012'].get_last_activity(jid,
                                                    callback=callback)
 
-def command_mood(self, arg):
+@command_args_parser.quoted(0, 2)
+def command_mood(self, args):
     """
     /mood [<mood> [text]]
     """
-    args = common.shell_split(arg)
     if not args:
-        self.xmpp.plugin['xep_0107'].stop()
-        return
+        return self.xmpp.plugin['xep_0107'].stop()
+
     mood = args[0]
     if mood not in pep.MOODS:
         return self.information(_('%s is not a correct value for a mood.')
-                                    % mood,
+                                % mood,
                                 _('Error'))
-    if len(args) > 1:
+    if len(args) == 2:
         text = args[1]
     else:
         text = None
     self.xmpp.plugin['xep_0107'].publish_mood(mood, text,
                                               callback=dumb_callback)
 
-def command_activity(self, arg):
+@command_args_parser.quoted(0, 3)
+def command_activity(self, args):
     """
     /activity [<general> [specific] [text]]
     """
-    args = common.shell_split(arg)
     length = len(args)
     if not length:
-        self.xmpp.plugin['xep_0108'].stop()
-        return
+        return self.xmpp.plugin['xep_0108'].stop()
+
     general = args[0]
     if general not in pep.ACTIVITIES:
         return self.information(_('%s is not a correct value for an activity')
@@ -774,14 +781,14 @@ def command_activity(self, arg):
     self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
                                                   callback=dumb_callback)
 
-def command_gaming(self, arg):
+@command_args_parser.quoted(0, 2)
+def command_gaming(self, args):
     """
     /gaming [<game name> [server address]]
     """
-    args = common.shell_split(arg)
     if not args:
-        self.xmpp.plugin['xep_0196'].stop()
-        return
+        return self.xmpp.plugin['xep_0196'].stop()
+
     name = args[0]
     if len(args) > 1:
         address = args[1]
@@ -791,25 +798,27 @@ def command_gaming(self, arg):
                                                        server_address=address,
                                                        callback=dumb_callback)
 
-def command_invite(self, arg):
+@command_args_parser.quoted(2, 1, [None])
+def command_invite(self, args):
     """/invite <to> <room> [reason]"""
-    args = common.shell_split(arg)
-    if len(args) < 2:
-        return
-    reason = args[2] if len(args) > 2 else None
+
+    if args is None:
+        return self.command_help('invite')
+
+    reason = args[2]
     to = safeJID(args[0])
     room = safeJID(args[1]).bare
     self.invite(to.full, room, reason=reason)
 
-def command_decline(self, arg):
+@command_args_parser.quoted(1, 1, [''])
+def command_decline(self, args):
     """/decline <room@server.tld> [reason]"""
-    args = common.shell_split(arg)
-    if not len(args):
-        return
+    if args is None:
+        return self.command_help('decline')
     jid = safeJID(args[0])
     if jid.bare not in self.pending_invites:
         return
-    reason = args[1] if len(args) > 1 else ''
+    reason = args[1]
     del self.pending_invites[jid.bare]
     self.xmpp.plugin['xep_0045'].decline_invite(jid.bare,
                                                 self.pending_invites[jid.bare],
@@ -817,7 +826,8 @@ def command_decline(self, arg):
 
 ### Commands without a completion in this class ###
 
-def command_invitations(self, arg=''):
+@command_args_parser.ignored
+def command_invitations(self):
     """/invitations"""
     build = ""
     for invite in self.pending_invites:
@@ -829,17 +839,16 @@ def command_invitations(self, arg=''):
         build = "You do not have any pending invitations."
     self.information(build, 'Info')
 
-def command_quit(self, arg=''):
+@command_args_parser.quoted(0, 1, [None])
+def command_quit(self, args):
     """
-    /quit
+    /quit [message]
     """
     if not self.xmpp.is_connected():
         self.exit()
         return
-    if len(arg.strip()) != 0:
-        msg = arg
-    else:
-        msg = None
+
+    msg = args[0]
     if config.get('enable_user_mood'):
         self.xmpp.plugin['xep_0107'].stop()
     if config.get('enable_user_activity'):
@@ -851,44 +860,47 @@ def command_quit(self, arg=''):
     self.disconnect(msg)
     self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)
 
-def command_destroy_room(self, arg=''):
+@command_args_parser.quoted(0, 1, [''])
+def command_destroy_room(self, args):
     """
     /destroy_room [JID]
     """
-    room = safeJID(arg).bare
+    room = safeJID(args[0]).bare
     if room:
         muc.destroy_room(self.xmpp, room)
     elif isinstance(self.current_tab(), tabs.MucTab) and not arg:
         muc.destroy_room(self.xmpp, self.current_tab().general_jid)
     else:
-        self.information(_('Invalid JID: "%s"') % arg, _('Error'))
+        self.information(_('Invalid JID: "%s"') % args[0], _('Error'))
 
-def command_bind(self, arg):
+@command_args_parser.quoted(1, 1, [''])
+def command_bind(self, args):
     """
     Bind a key.
     """
-    args = common.shell_split(arg)
-    if len(args) < 1:
+    if args is None:
         return self.command_help('bind')
-    elif len(args) < 2:
-        args.append("")
+
     if not config.silent_set(args[0], args[1], section='bindings'):
         self.information(_('Unable to write in the config file'), 'Error')
+
     if args[1]:
         self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
     else:
         self.information('%s is now unbound' % args[0], 'Info')
 
-def command_rawxml(self, arg):
+@command_args_parser.raw
+def command_rawxml(self, args):
     """
     /rawxml <xml stanza>
     """
-    if not arg:
+
+    if not args:
         return
 
-
+    stanza = args[0]
     try:
-        stanza = StanzaBase(self.xmpp, xml=ET.fromstring(arg))
+        stanza = StanzaBase(self.xmpp, xml=ET.fromstring(stanza))
         if stanza.xml.tag == 'iq' and \
                 stanza.xml.attrib.get('type') in ('get', 'set') and \
                 stanza.xml.attrib.get('id'):
@@ -912,27 +924,29 @@ def command_rawxml(self, arg):
     except:
         self.information(_('Could not send custom stanza'), 'Error')
         log.debug('/rawxml: Could not send custom stanza (%s)',
-                repr(arg),
+                repr(stanza),
                 exc_info=True)
 
 
-def command_load(self, arg):
+@command_args_parser.quoted(1, 256)
+def command_load(self, args):
     """
     /load <plugin> [<otherplugin> …]
+    # TODO: being able to load more than 256 plugins at once, hihi.
     """
-    args = arg.split()
     for plugin in args:
         self.plugin_manager.load(plugin)
 
-def command_unload(self, arg):
+@command_args_parser.quoted(1, 256)
+def command_unload(self, args):
     """
     /unload <plugin> [<otherplugin> …]
     """
-    args = arg.split()
     for plugin in args:
         self.plugin_manager.unload(plugin)
 
-def command_plugins(self, arg=''):
+@command_args_parser.ignored
+def command_plugins(self):
     """
     /plugins
     """
@@ -940,14 +954,13 @@ def command_plugins(self, arg=''):
                         repr(list(self.plugin_manager.plugins.keys())),
                      _('Info'))
 
-def command_message(self, arg):
+@command_args_parser.quoted(1, 1)
+def command_message(self, args):
     """
     /message <jid> [message]
     """
-    args = common.shell_split(arg)
-    if len(args) < 1:
-        self.command_help('message')
-        return
+    if args is None:
+        return self.command_help('message')
     jid = safeJID(args[0])
     if not jid.user and not jid.domain and not jid.resource:
         return self.information('Invalid JID.', 'Error')
@@ -956,10 +969,11 @@ def command_message(self, arg):
         tab = self.open_conversation_window(jid.full, focus=True)
     else:
         self.focus_tab_named(tab.name)
-    if len(args) > 1:
+    if len(args) == 2:
         tab.command_say(args[1])
 
-def command_xml_tab(self, arg=''):
+@command_args_parser.ignored
+def command_xml_tab(self):
     """/xml_tab"""
     self.xml_tab = True
     xml_tab = self.focus_tab_named('XMLTab', tabs.XMLTab)
@@ -967,21 +981,19 @@ def command_xml_tab(self, arg=''):
         tab = tabs.XMLTab()
         self.add_tab(tab, True)
 
-def command_adhoc(self, arg):
-    arg = arg.split()
-    if len(arg) > 1:
+@command_args_parser.quoted(1)
+def command_adhoc(self, args):
+    if not args:
         return self.command_help('ad-hoc')
-    elif arg:
-        jid = safeJID(arg[0])
-    else:
-        return self.information('Please provide a jid', 'Error')
+    jid = safeJID(args[0])
     list_tab = tabs.AdhocCommandsListTab(jid)
     self.add_tab(list_tab, True)
     cb = list_tab.on_list_received
     self.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
                                               callback=cb)
 
-def command_self(self, arg=None):
+@command_args_parser.ignored
+def command_self(self):
     """
     /self
     """

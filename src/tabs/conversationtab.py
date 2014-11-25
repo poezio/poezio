@@ -29,6 +29,7 @@ from config import config
 from decorators import refresh_wrapper
 from roster import roster
 from theming import get_theme, dump_tuple
+from decorators import command_args_parser
 
 class ConversationTab(OneToOneTab):
     """
@@ -88,6 +89,7 @@ class ConversationTab(OneToOneTab):
     def completion(self):
         self.complete_commands(self.input)
 
+    @command_args_parser.raw
     def command_say(self, line, attention=False, correct=False):
         msg = self.core.xmpp.make_message(self.get_dest_jid())
         msg['type'] = 'chat'
@@ -149,19 +151,21 @@ class ConversationTab(OneToOneTab):
         self.text_win.refresh()
         self.input.refresh()
 
-    def command_xhtml(self, arg):
-        message = self.generate_xhtml_message(arg)
+    @command_args_parser.raw
+    def command_xhtml(self, xhtml):
+        message = self.generate_xhtml_message(xhtml)
         if message:
             message.send()
             self.core.add_message_to_text_buffer(self._text_buffer, message['body'], None, self.core.own_nick)
             self.refresh()
 
-    def command_last_activity(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_last_activity(self, args):
         """
         /activity [jid]
         """
-        if arg.strip():
-            return self.core.command_last_activity(arg)
+        if args is not None:
+            return self.core.command_last_activity(arg[0])
 
         def callback(iq):
             if iq['type'] != 'result':
@@ -191,7 +195,8 @@ class ConversationTab(OneToOneTab):
         self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, callback=callback)
 
     @refresh_wrapper.conditional
-    def command_info(self, arg):
+    @command_args_parser.ignored
+    def command_info(self):
         contact = roster[self.get_dest_jid()]
         jid = safeJID(self.get_dest_jid())
         if contact:
@@ -210,12 +215,14 @@ class ConversationTab(OneToOneTab):
             self._text_buffer.add_message("\x19%(info_col)s}No information available\x19o" % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
 
-    def command_unquery(self, arg):
+    @command_args_parser.ignored
+    def command_unquery(self):
         self.core.close_tab()
 
-    def command_version(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_version(self, args):
         """
-        /version
+        /version [jid]
         """
         def callback(res):
             if not res:
@@ -225,8 +232,8 @@ class ConversationTab(OneToOneTab):
                                                              res.get('version') or _('unknown'),
                                                              res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
-        if arg:
-            return self.core.command_version(arg)
+        if args:
+            return self.core.command_version(args[0])
         jid = safeJID(self.name)
         if not jid.resource:
             if jid in roster:

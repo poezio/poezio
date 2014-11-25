@@ -29,7 +29,7 @@ import windows
 import xhtml
 from common import safeJID
 from config import config
-from decorators import refresh_wrapper
+from decorators import refresh_wrapper, command_args_parser
 from logger import logger
 from roster import roster
 from theming import get_theme, dump_tuple
@@ -300,15 +300,12 @@ class MucTab(ChatTab):
             return the_input.new_completion(possible_affiliations, 2, '',
                                             quotify=True)
 
+    @command_args_parser.quoted(1, 1, [''])
     def command_invite(self, args):
         """/invite <jid> [reason]"""
-        args = common.shell_split(args)
-        if len(args) == 1:
-            jid, reason = args[0], ''
-        elif len(args) == 2:
-            jid, reason = args
-        else:
+        if args is None:
             return self.core.command_help('invite')
+        jid, reason = args
         self.core.command_invite('%s %s "%s"' % (jid, self.name, reason))
 
     def completion_invite(self, the_input):
@@ -327,15 +324,17 @@ class MucTab(ChatTab):
         self.user_win.refresh(self.users)
         self.input.refresh()
 
-    def command_info(self, arg):
+    @command_args_parser.quoted(1)
+    def command_info(self, args):
         """
         /info <nick>
         """
-        if not arg:
+        if args is None:
             return self.core.command_help('info')
-        user = self.get_user_by_name(arg)
+        nick = args[0]
+        user = self.get_user_by_name(nick)
         if not user:
-            return self.core.information(_("Unknown user: %s") % arg)
+            return self.core.information(_("Unknown user: %s") % nick)
         theme = get_theme()
         if user.jid:
             user_jid = ' (\x19%s}%s\x19o)' % (
@@ -346,7 +345,7 @@ class MucTab(ChatTab):
         info = _('\x19%s}%s\x19o%s: show: \x19%s}%s\x19o, affiliation:'
                  ' \x19%s}%s\x19o, role: \x19%s}%s\x19o%s') % (
                         dump_tuple(user.color),
-                        arg,
+                        nick,
                         user_jid,
                         dump_tuple(theme.color_show(user.show)),
                         user.show or 'Available',
@@ -358,7 +357,8 @@ class MucTab(ChatTab):
         self.add_message(info, typ=0)
         self.core.refresh_window()
 
-    def command_configure(self, arg):
+    @command_args_parser.quoted(0)
+    def command_configure(self, ignored):
         """
         /configure
         """
@@ -386,20 +386,21 @@ class MucTab(ChatTab):
         muc.configure_room(self.core.xmpp, self.name, form)
         self.core.close_tab()
 
-    def command_cycle(self, arg):
+    @command_args_parser.raw
+    def command_cycle(self, msg):
         """/cycle [reason]"""
-        self.command_part(arg)
+        self.command_part(args)
         self.disconnect()
         self.user_win.pos = 0
         self.core.disable_private_tabs(self.name)
         self.core.command_join('"/%s"' % self.own_nick)
 
-    def command_recolor(self, arg):
+    @command_args_parser.quoted(0, 1, [''])
+    def command_recolor(self, args):
         """
         /recolor [random]
         Re-assign color to the participants of the room
         """
-        arg = arg.strip()
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
@@ -409,7 +410,7 @@ class MucTab(ChatTab):
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
         colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if arg and arg == 'random':
+        if args[0] == 'random':
             random.shuffle(colors)
         for i, user in enumerate(sorted_users):
             user.color = colors[i % len(colors)]
@@ -418,7 +419,8 @@ class MucTab(ChatTab):
         self.text_win.refresh()
         self.input.refresh()
 
-    def command_version(self, arg):
+    @command_args_parser.quoted(1)
+    def command_version(self, args):
         """
         /version <jid or nick>
         """
@@ -433,23 +435,25 @@ class MucTab(ChatTab):
                          res.get('version') or _('unknown'),
                          res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
-        if not arg:
+        if args is None:
             return self.core.command_help('version')
-        if arg in [user.nick for user in self.users]:
+        nick = args[0]
+        if nick in [user.nick for user in self.users]:
             jid = safeJID(self.name).bare
-            jid = safeJID(jid + '/' + arg)
+            jid = safeJID(jid + '/' + nick)
         else:
-            jid = safeJID(arg)
+            jid = safeJID(nick)
         fixes.get_version(self.core.xmpp, jid,
-                callback=callback)
+                          callback=callback)
 
-    def command_nick(self, arg):
+    @command_args_parser.quoted(1)
+    def command_nick(self, args):
         """
         /nick <nickname>
         """
-        if not arg:
+        if args is None:
             return self.core.command_help('nick')
-        nick = arg
+        nick = args[0]
         if not self.joined:
             return self.core.information(_('/nick only works in joined rooms'),
                                          _('Info'))
@@ -460,11 +464,12 @@ class MucTab(ChatTab):
                         current_status.message,
                         current_status.show)
 
-    def command_part(self, arg):
+    @command_args_parser.quoted(0, 1, [''])
+    def command_part(self, args):
         """
         /part [msg]
         """
-        arg = arg.strip()
+        arg = args[0]
         msg = None
         if self.joined:
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
@@ -505,37 +510,39 @@ class MucTab(ChatTab):
                 self.refresh()
             self.core.doupdate()
 
-    def command_close(self, arg):
+    @command_args_parser.raw
+    def command_close(self, msg):
         """
         /close [msg]
         """
-        self.command_part(arg)
+        self.command_part(args)
         self.core.close_tab()
 
-    def command_query(self, arg):
+    @command_args_parser.quoted(1, 1)
+    def command_query(self, args):
         """
         /query <nick> [message]
         """
-        args = common.shell_split(arg)
-        if len(args) < 1:
-            return
+        if args is None:
+            return  self.core.command_help('query')
         nick = args[0]
         r = None
         for user in self.users:
             if user.nick == nick:
                 r = self.core.open_private_window(self.name, user.nick)
-        if r and len(args) > 1:
+        if r and len(args) == 2:
             msg = args[1]
             self.core.current_tab().command_say(
                     xhtml.convert_simple_to_full_colors(msg))
         if not r:
             self.core.information(_("Cannot find user: %s" % nick), 'Error')
 
-    def command_topic(self, arg):
+    @command_args_parser.raw
+    def command_topic(self, subject):
         """
         /topic [new topic]
         """
-        if not arg.strip():
+        if not subject:
             self._text_buffer.add_message(
                     _("\x19%s}The subject of the room is: %s %s") %
                         (dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
@@ -544,10 +551,11 @@ class MucTab(ChatTab):
                                                          else ''))
             self.refresh()
             return
-        subject = arg
+
         muc.change_subject(self.core.xmpp, self.name, subject)
 
-    def command_names(self, arg=None):
+    @command_args_parser.quoted(0)
+    def command_names(self, args):
         """
         /names
         """
@@ -618,29 +626,28 @@ class MucTab(ChatTab):
 
             return the_input.new_completion(word_list, 1, quotify=True)
 
-    def command_kick(self, arg):
+    @command_args_parser.quoted(1, 1)
+    def command_kick(self, args):
         """
         /kick <nick> [reason]
         """
-        args = common.shell_split(arg)
-        if not args:
-            self.core.command_help('kick')
+        if args is None:
+            return self.core.command_help('kick')
+        if len(args) == 2:
+            msg = ' "%s"' % args[1]
         else:
-            if len(args) > 1:
-                msg = ' "%s"' % args[1]
-            else:
-                msg = ''
-            self.command_role('"'+args[0]+ '" none'+msg)
+            msg = ''
+        self.command_role('"'+args[0]+ '" none'+msg)
 
-    def command_ban(self, arg):
+    @command_args_parser.quoted(1, 1)
+    def command_ban(self, args):
         """
         /ban <nick> [reason]
         """
         def callback(iq):
             if iq['type'] == 'error':
                 self.core.room_error(iq, self.name)
-        args = common.shell_split(arg)
-        if not args:
+        if args is None:
             return self.core.command_help('ban')
         if len(args) > 1:
             msg = args[1]
@@ -659,7 +666,8 @@ class MucTab(ChatTab):
         if not res:
             self.core.information('Could not ban user', 'Error')
 
-    def command_role(self, arg):
+    @command_args_parser.quoted(2, 1, [''])
+    def command_role(self, args):
         """
         /role <nick> <role> [reason]
         Changes the role of an user
@@ -668,24 +676,25 @@ class MucTab(ChatTab):
         def callback(iq):
             if iq['type'] == 'error':
                 self.core.room_error(iq, self.name)
-        args = common.shell_split(arg)
-        if len(args) < 2:
-            self.core.command_help('role')
-            return
-        nick, role = args[0], args[1]
-        if len(args) > 2:
-            reason = ' '.join(args[2:])
-        else:
-            reason = ''
-        if not self.joined or \
-                not role in ('none', 'visitor', 'participant', 'moderator'):
-            return
+
+        if args is None:
+            return self.core.command_help('role')
+
+        nick, role, reason = args[0], args[1].lower(), args[2]
+
+        valid_roles = ('none', 'visitor', 'participant', 'moderator')
+
+        if not self.joined or role not in valid_roles:
+            return self.core.information(_('The role must be one of ' + ', '.join(valid_roles)),
+                                         _('Error'))
+
         if not safeJID(self.name + '/' + nick):
             return self.core('Invalid nick', 'Info')
         muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
                           callback=callback)
 
-    def command_affiliation(self, arg):
+    @command_args_parser.quoted(2)
+    def command_affiliation(self, args):
         """
         /affiliation <nick> <role>
         Changes the affiliation of an user
@@ -694,16 +703,20 @@ class MucTab(ChatTab):
         def callback(iq):
             if iq['type'] == 'error':
                 self.core.room_error(iq, self.name)
-        args = common.shell_split(arg)
-        if len(args) < 2:
-            self.core.command_help('affiliation')
-            return
+
+        if args is None:
+            return self.core.command_help('affiliation')
+
         nick, affiliation = args[0], args[1].lower()
+
         if not self.joined:
             return
-        if affiliation not in ('outcast', 'none', 'member', 'admin', 'owner'):
-            self.core.command_help('affiliation')
-            return
+
+        valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
+        if affiliation not in valid_affiliations:
+            return self.core.information(_('The affiliation must be one of ' + ', '.join(valid_affiliations)),
+                                         _('Error'))
+
         if nick in [user.nick for user in self.users]:
             res = muc.set_user_affiliation(self.core.xmpp, self.name,
                                            affiliation, nick=nick,
@@ -715,6 +728,7 @@ class MucTab(ChatTab):
         if not res:
             self.core.information(_('Could not set affiliation'), _('Error'))
 
+    @command_args_parser.raw
     def command_say(self, line, correct=False):
         """
         /say <message>
@@ -753,20 +767,22 @@ class MucTab(ChatTab):
         msg.send()
         self.chat_state = needed
 
-    def command_xhtml(self, arg):
-        message = self.generate_xhtml_message(arg)
+    @command_args_parser.raw
+    def command_xhtml(self, msg):
+        message = self.generate_xhtml_message(msg)
         if message:
             message['type'] = 'groupchat'
             message.send()
 
-    def command_ignore(self, arg):
+    @command_args_parser.quoted(1)
+    def command_ignore(self, args):
         """
         /ignore <nick>
         """
-        if not arg:
-            self.core.command_help('ignore')
-            return
-        nick = arg
+        if arg is None:
+            return self.core.command_help('ignore')
+
+        nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
@@ -776,14 +792,15 @@ class MucTab(ChatTab):
             self.ignores.append(user)
             self.core.information(_("%s is now ignored") % nick, 'info')
 
-    def command_unignore(self, arg):
+    @command_args_parser.quoted(1)
+    def command_unignore(self, args):
         """
         /unignore <nick>
         """
-        if not arg:
-            self.core.command_help('unignore')
-            return
-        nick = arg
+        if arg is None:
+            return self.core.command_help('unignore')
+
+        nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
             self.core.information(_('%s is not in the room') % nick)
@@ -1552,4 +1569,23 @@ class MucTab(ChatTab):
     def matching_names(self):
         return [(1, safeJID(self.name).user), (3, self.name)]
 
+    def enable_self_ping_event(self):
+        delay = config.get_by_tabname("self_ping_delay", self.general_jid, default=60)
+        if delay <= 0:          # use 0 or some negative value to disable it
+            return
+        self.self_ping_event = timed_events.DelayedEvent(delay, self.send_self_ping)
+        self.core.add_timed_event(self.self_ping_event)
 
+    def send_self_ping(self):
+        to = self.name + "/" + self.own_nick
+        self.core.xmpp.plugin['xep_0199'].send_ping(jid=to,
+                                                    callback=self.on_self_ping_result,
+                                                    timeout_callback=self.on_self_ping_failed,
+                                                    timeout=10)
+
+    def on_self_ping_result(self, iq):
+        if iq["type"] == "error":
+            self.command_part(iq["error"]["text"] or "not in this room")
+            self.core.refresh_window()
+        else:                   # Re-send a self-ping in a few seconds
+            self.enable_self_ping_event()

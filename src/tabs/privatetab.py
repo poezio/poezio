@@ -27,6 +27,7 @@ from config import config
 from decorators import refresh_wrapper
 from logger import logger
 from theming import get_theme, dump_tuple
+from decorators import command_args_parser
 
 class PrivateTab(OneToOneTab):
     """
@@ -120,6 +121,7 @@ class PrivateTab(OneToOneTab):
         empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
+    @command_args_parser.raw
     def command_say(self, line, attention=False, correct=False):
         if not self.on:
             return
@@ -182,13 +184,15 @@ class PrivateTab(OneToOneTab):
         self.text_win.refresh()
         self.input.refresh()
 
-    def command_unquery(self, arg):
+    @command_args_parser.ignored
+    def command_unquery(self):
         """
         /unquery
         """
         self.core.close_tab()
 
-    def command_version(self, arg):
+    @command_args_parser.quoted(0, 1)
+    def command_version(self, args):
         """
         /version
         """
@@ -200,18 +204,19 @@ class PrivateTab(OneToOneTab):
                                                              res.get('version') or _('unknown'),
                                                              res.get('os') or _('an unknown platform'))
             self.core.information(version, 'Info')
-        if arg:
-            return self.core.command_version(arg)
+        if args:
+            return self.core.command_version(args[0])
         jid = safeJID(self.name)
         fixes.get_version(self.core.xmpp, jid,
                 callback=callback)
 
+    @command_args_parser.quoted(0, 1)
     def command_info(self, arg):
         """
         /info
         """
-        if arg:
-            self.parent_muc.command_info(arg)
+        if args:
+            self.parent_muc.command_info(args[0])
         else:
             user = safeJID(self.name).resource
             self.parent_muc.command_info(user)

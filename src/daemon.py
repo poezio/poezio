@@ -56,6 +56,7 @@ class Executor(threading.Thread):
                 command.pop(-1)
 
     def run(self):
+        print("executing %s" % (self.command))
         log.debug('executing %s', self.command)
         stdout = DEVNULL
         if self.filename:
@@ -65,7 +66,7 @@ class Executor(threading.Thread):
                 log.error('Could not open redirection file: %s', self.filename, exc_info=True)
                 return
         try:
-            subprocess.call(self.command, stdout=stdout, stderr=DEVNULL)
+            subprocess.call(self.command)
         except:
             if self.remote:
                 import traceback
