@@ -6,10 +6,6 @@ Timed events documentation
 .. autoclass:: TimedEvent
 
     .. automethod:: __init__
-    .. automethod:: has_timed_out
-    .. automethod:: change_date
-    .. automethod:: add_delay
-
 
 .. autoclass:: DelayedEvent
 
