@@ -906,6 +906,7 @@ def on_session_start(self, event):
     if not self.xmpp.anon:
         # request the roster
         self.xmpp.get_roster()
+        roster.update_contact_groups(self.xmpp.boundjid.bare)
         # send initial presence
         if config.get('send_initial_presence'):
             pres = self.xmpp.make_presence()
