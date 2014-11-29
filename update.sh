@@ -11,7 +11,7 @@ VENV="poezio-venv"
 VENV_COMMAND="pyvenv"
 
 echo 'Updating poezio'
-git pull origin slix || {
+git checkout master && git pull origin master || {
     echo "The script failed to update poezio."
     exit 1
 }
