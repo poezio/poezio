@@ -9,6 +9,7 @@ Contents:
     carbons
     correct
     personal_events
+    pyenv
     separate
     ssl
     troubleshooting

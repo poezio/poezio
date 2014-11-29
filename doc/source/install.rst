@@ -1,7 +1,8 @@
 Installing poezio
 =================
 
-.. important:: Python 3.4 or above is **required**
+.. warning:: Python 3.4 or above is **required**.
+             To install it on a distribution that doesn't provide it, see :ref:`pyenv <pyenv-install>`.
 
 poezio in the GNU/Linux distributions
 -------------------------------------
@@ -76,7 +77,7 @@ packaging management.
 
 If you don’t want to use the update script for whatever reason, install the
 following dependencies by hand; otherwise, skip to the
-`installation part <poezio-install-label>`.
+:ref:`installation part <poezio-install-label>`.
 
 
 """"""""
@@ -87,7 +88,7 @@ Poezio depends on slixmpp, a non-thread fork of the SleekXMPP library.
 
 .. code-block:: bash
 
-    git clone git://git.louiz.org/slixmpp
+    git clone git://git.poez.io/slixmpp
     python3 setup.py install --user
 
 
@@ -159,3 +160,4 @@ If you did, it should be in he ``$PATH`` as ``poezio``, so run:
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
 .. _pypi: https://pypi.python.org/pypi/poezio
+
