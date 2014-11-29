@@ -407,7 +407,7 @@ class RosterInfoTab(Tab):
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
 
-    @command_args_parser.quoted(1)
+    @command_args_parser.quoted(2)
     def command_name(self, args):
         """
         Set a name for the specified JID in your roster
