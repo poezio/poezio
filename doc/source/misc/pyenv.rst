@@ -1,7 +1,7 @@
 .. _pyenv-install:
 
-Pyenv - Installing python 3.4 as an user
-========================================
+Pyenv - Installing python 3.4 as a user
+=======================================
 
 Pyenv_ is a useful script that allows you to install several python versions
 in your user directory, and lets you manage which one you want depending on
