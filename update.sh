@@ -6,6 +6,7 @@
 
 # Use launch.sh to start poezio directly from here
 
+python3 -c 'import sys;(print("Python 3.4 or newer is required") and exit(1)) if sys.version_info < (3, 4) else exit(0)' || exit 1
 cd "$(dirname "$0")"
 VENV="poezio-venv"
 VENV_COMMAND="pyvenv"
