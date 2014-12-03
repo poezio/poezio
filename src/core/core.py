@@ -1773,6 +1773,14 @@ class Core(object):
                     "used as a special value to toggle a boolean option."),
                 shortdesc=_("Set the value of an option"),
                 completion=self.completion_set)
+        self.register_command('set_default', self.command_set_default,
+                usage=_("[section] <option>"),
+                desc=_("Set the default value of an option. For example,"
+                       "`/set_default resource` will reset the default_resource"
+                       "option. You can also reset options in specific"
+                       "sections by doing `/set_default section option`."),
+                shortdesc=_("Set the default value of an option"),
+                completion=self.completion_set_default)
         self.register_command('toggle', self.command_toggle,
                 usage=_('<option>'),
                 desc=_('Shortcut for /set <option> toggle'),
@@ -1967,6 +1975,7 @@ class Core(object):
     command_destroy_room = commands.command_destroy_room
     command_remove_bookmark = commands.command_remove_bookmark
     command_set = commands.command_set
+    command_set_default = commands.command_set_default
     command_toggle = commands.command_toggle
     command_server_cycle = commands.command_server_cycle
     command_last_activity = commands.command_last_activity
@@ -2007,6 +2016,7 @@ class Core(object):
     completion_last_activity = completions.completion_last_activity
     completion_server_cycle = completions.completion_server_cycle
     completion_set = completions.completion_set
+    completion_set_default = completions.completion_set_default
     completion_toggle = completions.completion_toggle
     completion_bookmark_local = completions.completion_bookmark_local
 

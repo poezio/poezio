@@ -336,6 +336,19 @@ def completion_set(self, the_input):
         return
     return the_input.new_completion(end_list, n, quotify=True)
 
+
+def completion_set_default(self, the_input):
+    """ Completion for /set_default
+    """
+    args = common.shell_split(the_input.text)
+    n = the_input.get_argument_position(quoted=True)
+    if n >= len(args):
+        args.append('')
+    if n == 1 or (n == 2 and config.has_section(args[1])):
+        return self.completion_set(the_input)
+    return []
+
+
 def completion_toggle(self, the_input):
     "Completion for /toggle"
     return the_input.new_completion(config.options('Poezio'), 1, quotify=False)

@@ -23,7 +23,7 @@ import fixes
 import pep
 import tabs
 from common import safeJID
-from config import config, options as config_opts
+from config import config, DEFAULT_CONFIG, options as config_opts
 import multiuserchat as muc
 from plugin import PluginConfig
 from roster import roster
@@ -648,10 +648,29 @@ def command_set(self, args):
             info = config.set_and_save(option, value, section)
             self.trigger_configuration_change(option, value)
     else:
-        self.command_help('set')
-        return
+        return self.command_help('set')
     self.call_for_resize()
     self.information(*info)
+
+@command_args_parser.quoted(1, 2)
+def command_set_default(self, args):
+    """
+    /set_default [section] <option>
+    """
+    if len(args) == 1:
+        option = args[0]
+        section = 'Poezio'
+    elif len(args) == 2:
+        section = args[0]
+        option = args[1]
+    else:
+        return self.command_help('set_default')
+
+    default_config = DEFAULT_CONFIG.get(section, tuple())
+    if option not in default_config:
+        info = ("Option %s has no default value" % (option), "Error")
+        return self.information(*info)
+    self.command_set('%s %s %s' % (section, option, default_config[option]))
 
 @command_args_parser.quoted(1)
 def command_toggle(self, args):
