@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
         'add_space_after_completion': True,
         'after_completion': ',',
         'alternative_nickname': '',
-        'auto_reconnect': False,
+        'auto_reconnect': True,
         'autorejoin_delay': '5',
         'autorejoin': False,
         'beep_on': 'highlight private invite',

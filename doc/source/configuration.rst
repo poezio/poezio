@@ -220,10 +220,10 @@ well, but you will at least want to know when you get disconnected.
 
     auto_reconnect
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        Auto-reconnects you when you get disconnected. Should not be necessary, so
-        the default is false.
+        Auto-reconnects you when you get disconnected from the
+        server. Poezio will try to reconnect forever, until it succeeds.
 
     connection_check_interval
 
