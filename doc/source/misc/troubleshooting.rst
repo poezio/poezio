@@ -23,10 +23,6 @@ Poezio tracebacks with weird encoding errors
 --------------------------------------------
 Please check your locale for utf-8 compatibility.
 
-Reconnecting sucks
-------------------
-We know.
-
 Some weird graphical glitches appear once in a blue moon and go away after a refresh
 ------------------------------------------------------------------------------------
 We know.
