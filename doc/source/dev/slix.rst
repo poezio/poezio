@@ -1,7 +1,7 @@
 SleekXMPP classes
 =================
 
-.. module:: sleekxmpp
+.. module:: slixmpp
 
 .. autoclass:: Message
     :members:

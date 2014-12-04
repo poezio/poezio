@@ -1,8 +1,8 @@
 Event Index
 ===========
 
-The following events are poezio-only events, for SleekXMPP events, check out
-`their index <http://sleekxmpp.com/event_index.html>`_.
+The following events are poezio-only events, for Slixmpp events, check out
+`their index <http://slixmpp.com/event_index.html>`_.
 
 .. glossary::
     :sorted:
@@ -14,13 +14,13 @@ The following events are poezio-only events, for SleekXMPP events, check out
         Triggered whenever the user switches between tabs.
 
     muc_say
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered whenever the user sends a message to a :py:class:`~tabs.MucTab`.
 
     muc_say_after
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Same thing than :term:`muc_say`, but after XHTML generation of the body, if needed.
@@ -29,13 +29,13 @@ The following events are poezio-only events, for SleekXMPP events, check out
         you should probably not need it.
 
     private_say
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.PrivateTab` source
 
         Triggered whenever the user sends a message to a :py:class:`~tabs.PrivateTab`.
 
     private_say_after
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.PrivateTab` source
 
         Same thing than :term:`private_say`, but after XHTML generation of the body, if needed.
@@ -44,13 +44,13 @@ The following events are poezio-only events, for SleekXMPP events, check out
         you should probably not need it.
 
     conversation_say
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.ConversationTab` source
 
         Triggered whenever the user sends a message to a :py:class:`~tabs.ConversationTab`.
 
     conversation_say_after:
-        - **message:** :py:class:`~sleekxmpp.Message` that will be sent
+        - **message:** :py:class:`~slixmpp.Message` that will be sent
         - **tab:** :py:class:`~tabs.ConversationTab` source
 
         Same thing than :term:`conversation_say`, but after XHTML generation
@@ -60,101 +60,101 @@ The following events are poezio-only events, for SleekXMPP events, check out
         and you should probably not need it.
 
     muc_msg
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when a message is received in a :py:class:`~tabs.MucTab`.
 
     private_msg
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.PrivateTab` source
 
         Triggered when a message is received in a :py:class:`~tabs.PrivateTab`.
 
     conversation_msg
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.ConversationTab` source
 
         Triggered when a message is received in a :py:class:`~tabs.ConversationTab`.
 
     conversation_chatstate
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.ConversationTab` source
 
         Triggered when a chatstate is received in a :py:class:`~tabs.ConversationTab`.
 
     muc_chatstate
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when a chatstate is received in a :py:class:`~tabs.MucTab`.
 
     private_chatstate
-        - **message:** :py:class:`~sleekxmpp.Message` received
+        - **message:** :py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`PrivateTab <tabs.PrivateTab>` source
 
         Triggered when a chatstate is received in a :py:class:`~tabs.PrivateTab`.
 
     normal_presence
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
-        - **resource:** :py:class:`Resource <str>` that emitted the :py:class:`~sleekxmpp.Presence`
+        - **presence:** :py:class:`~slixmpp.Presence` received
+        - **resource:** :py:class:`Resource <str>` that emitted the :py:class:`~slixmpp.Presence`
 
         Triggered when a presence is received from a contact.
 
     muc_presence
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
+        - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when a presence is received from someone in a
         :py:class:`~tabs.MucTab`.
 
     joining_muc
-        - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
+        - **presence:** :py:class:`~~slixmpp.Presence` to be sent
 
         Triggered when joining a MUC. The presence can thus be modified
         before being sent.
 
     changing_nick
-        - **presence:** :py:class:`~~sleekxmpp.Presence` to be sent
+        - **presence:** :py:class:`~~slixmpp.Presence` to be sent
 
         Triggered when the user changes his/her nickname on a MUC. The
         presence can thus be modified before being sent.
 
     send_normal_presence
-        - **presence:** :py:class:`~sleekxmpp.Presence` sent
+        - **presence:** :py:class:`~slixmpp.Presence` sent
 
-        Triggered when poezio sends a new :py:class:`~sleekxmpp.Presence`
+        Triggered when poezio sends a new :py:class:`~slixmpp.Presence`
         stanza. The presence can thus be modified before being sent.
 
     muc_join
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
+        - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when an user joins a :py:class:`~tabs.MucTab`
 
     muc_ban
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
+        - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when an user from a :py:class:`~tabs.MucTab`
         gets banned.
 
     muc_kicked
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
+        - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when an user from a :py:class:`~tabs.MucTab`
         gets kicked.
 
     muc_nickchange
-        - **presence:** :py:class:`~sleekxmpp.Presence` received
+        - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
         Triggered when an user in a :py:class:`~tabs.MucTab` changes
         his nickname.
 
     ignored_private
-        - **message**:py:class:`~sleekxmpp.Message` received
+        - **message**:py:class:`~slixmpp.Message` received
         - **tab:** :py:class:`~tabs.PrivateTab` source
 
         Triggered when a private message (that goes in a

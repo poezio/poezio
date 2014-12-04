@@ -15,7 +15,7 @@ About plugins
 
    plugin
    events
-   sleek
+   slix
    xep
 
 About Poezio

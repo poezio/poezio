@@ -793,7 +793,7 @@ Options related to logging.
 
         **Default value:** ``true``
 
-        Logs all the tracebacks and erors of poezio/sleekxmpp in
+        Logs all the tracebacks and erors of poezio/slixmpp in
         :term:`log_dir`/errors.log by default. ``false`` disables this option.
 
     use_log
