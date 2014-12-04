@@ -22,7 +22,7 @@ A theme file is a python file (with the .py extension) containing a
 class, inheriting the *theming.Theme* class defined into the *theming*
 poezio module.
 
-To check how may colors your current terminal/$TERM supports, do:
+To check how many colors your current terminal/$TERM supports, do:
 
 .. code-block:: bash
 
