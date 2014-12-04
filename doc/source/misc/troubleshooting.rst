@@ -23,10 +23,6 @@ Poezio tracebacks with weird encoding errors
 --------------------------------------------
 Please check your locale for utf-8 compatibility.
 
-Some weird graphical glitches appear once in a blue moon and go away after a refresh
-------------------------------------------------------------------------------------
-We know.
-
 Python is too heavy
 -------------------
 We know. It’s too late to change that. If you are running your XMPP client on a toaster,
