@@ -146,6 +146,12 @@ These commands work in *any* tab.
         just set the option to true if it’s currently false, and to false if it’s
         currently true.
 
+    /set_default
+        **Usage:** ``/set_default [section] <option>``
+
+        Set the value of an option back to the default. For example,
+        ``/set_default resource`` will reset the ``resource`` option.
+
     /toggle
         **Usage:** ``/toggle <option>``
 

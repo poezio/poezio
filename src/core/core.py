@@ -1767,7 +1767,7 @@ class Core(object):
                 desc=_("Set the value of an option in your configuration file."
                     " You can, for example, change your default nickname by "
                     "doing `/set default_nick toto` or your resource with `/set"
-                    "resource blabla`. You can also set options in specific "
+                    " resource blabla`. You can also set options in specific "
                     "sections with `/set bindings M-i ^i` or in specific plugin"
                     " with `/set mpd_client| host 127.0.0.1`. `toggle` can be "
                     "used as a special value to toggle a boolean option."),
@@ -1775,9 +1775,9 @@ class Core(object):
                 completion=self.completion_set)
         self.register_command('set_default', self.command_set_default,
                 usage=_("[section] <option>"),
-                desc=_("Set the default value of an option. For example,"
-                       "`/set_default resource` will reset the default_resource"
-                       "option. You can also reset options in specific"
+                desc=_("Set the default value of an option. For example, "
+                       "`/set_default resource` will reset the resource "
+                       "option. You can also reset options in specific "
                        "sections by doing `/set_default section option`."),
                 shortdesc=_("Set the default value of an option"),
                 completion=self.completion_set_default)
