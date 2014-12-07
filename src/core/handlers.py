@@ -1117,7 +1117,7 @@ def outgoing_stanza(self, stanza):
     if self.xml_tab:
         if PYGMENTS:
             xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
-            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True).rstrip('\x19o').strip()
         else:
             poezio_colored = '%s' % stanza
         self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
@@ -1140,7 +1140,7 @@ def incoming_stanza(self, stanza):
     if self.xml_tab:
         if PYGMENTS:
             xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
-            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True).rstrip('\x19o').strip()
         else:
             poezio_colored = '%s' % stanza
         self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
