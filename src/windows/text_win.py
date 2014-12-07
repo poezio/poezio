@@ -18,7 +18,7 @@ from config import config
 from theming import to_curses_attr, get_theme, dump_tuple
 
 
-class TextWin(Win):
+class BaseTextWin(Win):
     def __init__(self, lines_nb_limit=None):
         if lines_nb_limit is None:
             lines_nb_limit = config.get('max_lines_in_memory')
@@ -30,19 +30,6 @@ class TextWin(Win):
 
         self.lock = False
         self.lock_buffer = []
-
-        # the Lines of the highlights in that buffer
-        self.highlights = []
-        # the current HL position in that list NaN means that we’re not on
-        # an hl. -1 is a valid position (it's before the first hl of the
-        # list. i.e the separator, in the case where there’s no hl before
-        # it.)
-        self.hl_pos = float('nan')
-
-        # Keep track of the number of hl after the separator.
-        # This is useful to make “go to next highlight“ work after a “move to separator”.
-        self.nb_of_highlights_after_separator = 0
-
         self.separator_after = None
 
     def toggle_lock(self):
@@ -59,6 +46,113 @@ class TextWin(Win):
         for line in self.lock_buffer:
             self.built_lines.append(line)
         self.lock = False
+
+    def scroll_up(self, dist=14):
+        pos = self.pos
+        self.pos += dist
+        if self.pos + self.height > len(self.built_lines):
+            self.pos = len(self.built_lines) - self.height
+            if self.pos < 0:
+                self.pos = 0
+        return self.pos != pos
+
+    def scroll_down(self, dist=14):
+        pos = self.pos
+        self.pos -= dist
+        if self.pos <= 0:
+            self.pos = 0
+        return self.pos != pos
+
+    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False):
+        """
+        Take one message, build it and add it to the list
+        Return the number of lines that are built for the given
+        message.
+        """
+        lines = self.build_message(message, timestamp=timestamp)
+        if self.lock:
+            self.lock_buffer.extend(lines)
+        else:
+            self.built_lines.extend(lines)
+        if not lines or not lines[0]:
+            return 0
+        if clean:
+            while len(self.built_lines) > self.lines_nb_limit:
+                self.built_lines.pop(0)
+        return len(lines)
+
+    def build_message(self, message, timestamp=False):
+        """
+        Build a list of lines from a message, without adding it
+        to a list
+        """
+        pass
+
+    def refresh(self):
+        pass
+
+    def write_text(self, y, x, txt):
+        """
+        write the text of a line.
+        """
+        self.addstr_colored(txt, y, x)
+
+    def write_time(self, time):
+        """
+        Write the date on the yth line of the window
+        """
+        if time:
+            self.addstr(time)
+            self.addstr(' ')
+
+    def resize(self, height, width, y, x, room=None):
+        if hasattr(self, 'width'):
+            old_width = self.width
+        else:
+            old_width = None
+        self._resize(height, width, y, x)
+        if room and self.width != old_width:
+            self.rebuild_everything(room)
+
+        # reposition the scrolling after resize
+        # (see #2450)
+        buf_size = len(self.built_lines)
+        if buf_size - self.pos < self.height:
+            self.pos = buf_size - self.height
+            if self.pos < 0:
+                self.pos = 0
+
+    def rebuild_everything(self, room):
+        self.built_lines = []
+        with_timestamps = config.get('show_timestamps')
+        for message in room.messages:
+            self.build_new_message(message, clean=False, timestamp=with_timestamps)
+            if self.separator_after is message:
+                self.build_new_message(None)
+        while len(self.built_lines) > self.lines_nb_limit:
+            self.built_lines.pop(0)
+
+    def __del__(self):
+        log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
+        del self.built_lines
+
+class TextWin(BaseTextWin):
+    def __init__(self, lines_nb_limit=None):
+        BaseTextWin.__init__(self, lines_nb_limit)
+
+        # the Lines of the highlights in that buffer
+        self.highlights = []
+        # the current HL position in that list NaN means that we’re not on
+        # an hl. -1 is a valid position (it's before the first hl of the
+        # list. i.e the separator, in the case where there’s no hl before
+        # it.)
+        self.hl_pos = float('nan')
+
+        # Keep track of the number of hl after the separator.
+        # This is useful to make “go to next highlight“ work after a “move to separator”.
+        self.nb_of_highlights_after_separator = 0
+
+        self.separator_after = None
 
     def next_highlight(self):
         """
@@ -129,22 +223,6 @@ class TextWin(Win):
         self.pos = len(self.built_lines) - pos - self.height
         if self.pos < 0 or self.pos >= len(self.built_lines):
             self.pos = 0
-
-    def scroll_up(self, dist=14):
-        pos = self.pos
-        self.pos += dist
-        if self.pos + self.height > len(self.built_lines):
-            self.pos = len(self.built_lines) - self.height
-            if self.pos < 0:
-                self.pos = 0
-        return self.pos != pos
-
-    def scroll_down(self, dist=14):
-        pos = self.pos
-        self.pos -= dist
-        if self.pos <= 0:
-            self.pos = 0
-        return self.pos != pos
 
     def scroll_to_separator(self):
         """
@@ -343,12 +421,6 @@ class TextWin(Win):
                 self.width,
                 to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
-    def write_text(self, y, x, txt):
-        """
-        write the text of a line.
-        """
-        self.addstr_colored(txt, y, x)
-
     def write_ack(self):
         color = get_theme().COLOR_CHAR_ACK
         self._win.attron(to_curses_attr(color))
@@ -377,41 +449,6 @@ class TextWin(Win):
         if highlight and hl_color == "reverse":
             self._win.attroff(curses.A_REVERSE)
 
-    def write_time(self, time):
-        """
-        Write the date on the yth line of the window
-        """
-        if time:
-            self.addstr(time)
-            self.addstr(' ')
-
-    def resize(self, height, width, y, x, room=None):
-        if hasattr(self, 'width'):
-            old_width = self.width
-        else:
-            old_width = None
-        self._resize(height, width, y, x)
-        if room and self.width != old_width:
-            self.rebuild_everything(room)
-
-        # reposition the scrolling after resize
-        # (see #2450)
-        buf_size = len(self.built_lines)
-        if buf_size - self.pos < self.height:
-            self.pos = buf_size - self.height
-            if self.pos < 0:
-                self.pos = 0
-
-    def rebuild_everything(self, room):
-        self.built_lines = []
-        with_timestamps = config.get('show_timestamps')
-        for message in room.messages:
-            self.build_new_message(message, clean=False, timestamp=with_timestamps)
-            if self.separator_after is message:
-                self.build_new_message(None)
-        while len(self.built_lines) > self.lines_nb_limit:
-            self.built_lines.pop(0)
-
     def modify_message(self, old_id, message):
         """
         Find a message, and replace it with a new one
@@ -434,4 +471,87 @@ class TextWin(Win):
     def __del__(self):
         log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
         del self.built_lines
+
+class XMLTextWin(BaseTextWin):
+    def __init__(self):
+        BaseTextWin.__init__(self)
+
+    def refresh(self):
+        log.debug('Refresh: %s', self.__class__.__name__)
+        theme = get_theme()
+        if self.height <= 0:
+            return
+        if self.pos == 0:
+            lines = self.built_lines[-self.height:]
+        else:
+            lines = self.built_lines[-self.height-self.pos:-self.pos]
+        self._win.move(0, 0)
+        self._win.erase()
+        for y, line in enumerate(lines):
+            if line:
+                msg = line.msg
+                if line.start_pos == 0:
+                    if msg.nickname == theme.CHAR_XML_OUT:
+                        color = theme.COLOR_XML_OUT
+                    elif msg.nickname == theme.CHAR_XML_IN:
+                        color = theme.COLOR_XML_IN
+                    self.write_time(msg.str_time)
+                    self.write_prefix(msg.nickname, color)
+                    self.addstr(' ')
+            if y != self.height-1:
+                self.addstr('\n')
+        self._win.attrset(0)
+        for y, line in enumerate(lines):
+            offset = 0
+            # Offset for the timestamp (if any) plus a space after it
+            offset += len(line.msg.str_time)
+            # space
+            offset += 1
+
+            # Offset for the prefix
+            offset += poopt.wcswidth(truncate_nick(line.msg.nickname))
+            # space
+            offset += 1
+
+            self.write_text(y, offset,
+                    line.prepend+line.msg.txt[line.start_pos:line.end_pos])
+            if y != self.height-1:
+                self.addstr('\n')
+        self._win.attrset(0)
+        self._refresh()
+
+    def build_message(self, message, timestamp=False):
+        txt = message.txt
+        ret = []
+        default_color = None
+        nick = truncate_nick(message.nickname)
+        offset = 0
+        if nick:
+            offset += poopt.wcswidth(nick) + 1 # + nick + ' ' length
+        if message.str_time:
+            offset += 1 + len(message.str_time)
+        if get_theme().CHAR_TIME_LEFT and message.str_time:
+            offset += 1
+        if get_theme().CHAR_TIME_RIGHT and message.str_time:
+            offset += 1
+        lines = poopt.cut_text(txt, self.width-offset-1)
+        prepend = default_color if default_color else ''
+        attrs = []
+        for line in lines:
+            saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
+            attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
+            if attrs:
+                prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
+            else:
+                if default_color:
+                    prepend = default_color
+                else:
+                    prepend = ''
+            ret.append(saved)
+        return ret
+
+    def write_prefix(self, nickname, color):
+        self._win.attron(to_curses_attr(color))
+        self.addstr(truncate_nick(nickname))
+        self._win.attroff(to_curses_attr(color))
 

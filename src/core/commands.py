@@ -994,11 +994,11 @@ def command_message(self, args):
 @command_args_parser.ignored
 def command_xml_tab(self):
     """/xml_tab"""
-    self.xml_tab = True
     xml_tab = self.focus_tab_named('XMLTab', tabs.XMLTab)
     if not xml_tab:
         tab = tabs.XMLTab()
         self.add_tab(tab, True)
+        self.xml_tab = tab
 
 @command_args_parser.quoted(1)
 def command_adhoc(self, args):

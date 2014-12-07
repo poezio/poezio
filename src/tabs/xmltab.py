@@ -13,23 +13,62 @@ log = logging.getLogger(__name__)
 import curses
 import os
 from slixmpp.xmlstream import matcher
-from slixmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream.stanzabase import ElementBase
+from xml.etree import ElementTree as ET
 
 from . import Tab
 
+import text_buffer
 import windows
 from xhtml import clean_text
 from decorators import command_args_parser
+from common import safeJID
+
+
+class MatchJID(object):
+
+    def __init__(self, jid, dest=''):
+        self.jid = jid
+        self.dest = dest
+
+    def match(self, xml):
+        from_ = safeJID(xml['from'])
+        to_ = safeJID(xml['to'])
+        if self.jid.full == self.jid.bare:
+            from_ = from_.bare
+            to_ = to_.bare
+
+        if self.dest == 'from':
+            return from_ == self.jid
+        elif self.dest == 'to':
+            return to_ == self.jid
+        return self.jid in (from_, to_)
+
+    def __repr__(self):
+        return '%s%s%s' % (self.dest, ': ' if self.dest else '', self.jid)
+
+MATCHERS_MAPPINGS = {
+        MatchJID: ('JID', lambda obj: repr(obj)),
+        matcher.MatcherId: ('ID', lambda obj: obj._criteria),
+        matcher.MatchXMLMask: ('XMLMask', lambda obj: obj._criteria),
+        matcher.MatchXPath: ('XPath', lambda obj: obj._criteria)
+}
 
 class XMLTab(Tab):
     def __init__(self):
         Tab.__init__(self)
         self.state = 'normal'
         self.name = 'XMLTab'
-        self.text_win = windows.TextWin()
-        self.core.xml_buffer.add_window(self.text_win)
+        self.filters = []
+
+        self.core_buffer = self.core.xml_buffer
+        self.filtered_buffer = text_buffer.TextBuffer()
+
         self.info_header = windows.XMLInfoWin()
+        self.text_win = windows.XMLTextWin()
+        self.core_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
+
         self.register_command('close', self.close,
                 shortdesc=_("Close this tab."))
         self.register_command('clear', self.command_clear,
@@ -42,8 +81,21 @@ class XMLTab(Tab):
                 shortdesc=_('Filter by id.'))
         self.register_command('filter_xpath', self.command_filter_xpath,
                 usage='<xpath>',
-                desc=_('Show only the stanzas matching the xpath <xpath>.'),
+                desc=_('Show only the stanzas matching the xpath <xpath>.'
+                       ' Any occurrences of %n will be replaced by jabber:client.'),
                 shortdesc=_('Filter by XPath.'))
+        self.register_command('filter_jid', self.command_filter_jid,
+                usage='<jid>',
+                desc=_('Show only the stanzas matching the jid <jid> in from= or to=.'),
+                shortdesc=_('Filter by JID.'))
+        self.register_command('filter_from', self.command_filter_from,
+                usage='<jid>',
+                desc=_('Show only the stanzas matching the jid <jid> in from=.'),
+                shortdesc=_('Filter by JID from.'))
+        self.register_command('filter_to', self.command_filter_to,
+                usage='<jid>',
+                desc=_('Show only the stanzas matching the jid <jid> in to=.'),
+                shortdesc=_('Filter by JID to.'))
         self.register_command('filter_xmlmask', self.command_filter_xmlmask,
                 usage=_('<xml mask>'),
                 desc=_('Show only the stanzas matching the given xml mask.'),
@@ -64,6 +116,34 @@ class XMLTab(Tab):
         self.filter_type = ''
         self.filter = ''
 
+    def gen_filter_repr(self):
+        if not self.filters:
+            self.filter_type = ''
+            self.filter = ''
+            return
+        filter_types = map(lambda x: MATCHERS_MAPPINGS[type(x)][0], self.filters)
+        filter_strings = map(lambda x: MATCHERS_MAPPINGS[type(x)][1](x), self.filters)
+        self.filter_type = ','.join(filter_types)
+        self.filter = ','.join(filter_strings)
+
+    def update_filters(self, matcher):
+        if not self.filters:
+            messages = self.core_buffer.messages[:]
+            self.filtered_buffer.messages = []
+            self.core_buffer.del_window(self.text_win)
+            self.filtered_buffer.add_window(self.text_win)
+        else:
+            messages = self.filtered_buffer.messages
+            self.filtered_buffer.messages = []
+        self.filters.append(matcher)
+        new_messages = []
+        for msg in messages:
+            if self.match_stanza(ElementBase(ET.fromstring(clean_text(msg.txt)))):
+                new_messages.append(msg)
+        self.filtered_buffer.messages = new_messages
+        self.text_win.rebuild_everything(self.filtered_buffer)
+        self.gen_filter_repr()
+
     def on_freeze(self):
         """
         Freeze the display.
@@ -71,20 +151,51 @@ class XMLTab(Tab):
         self.text_win.toggle_lock()
         self.refresh()
 
+    def match_stanza(self, stanza):
+        for matcher in self.filters:
+            if not matcher.match(stanza):
+                return False
+        return True
+
     @command_args_parser.raw
     def command_filter_xmlmask(self, mask):
         """/filter_xmlmask <xml mask>"""
         try:
-            handler = Callback('custom matcher', matcher.MatchXMLMask(mask),
-                    self.core.incoming_stanza)
-            self.core.xmpp.remove_handler('custom matcher')
-            self.core.xmpp.register_handler(handler)
-            self.filter_type = "XML Mask Filter"
-            self.filter = mask
+            self.update_filters(matcher.MatchXMLMask(mask))
             self.refresh()
         except:
             self.core.information('Invalid XML Mask', 'Error')
             self.command_reset('')
+
+    @command_args_parser.raw
+    def command_filter_to(self, jid):
+        """/filter_jid_to <jid>"""
+        jid_obj = safeJID(jid)
+        if not jid_obj:
+            return self.core.information('Invalid JID: %s' % jid, 'Error')
+
+        self.update_filters(MatchJID(jid_obj, dest='to'))
+        self.refresh()
+
+    @command_args_parser.raw
+    def command_filter_from(self, jid):
+        """/filter_jid_from <jid>"""
+        jid_obj = safeJID(jid)
+        if not jid_obj:
+            return self.core.information('Invalid JID: %s' % jid, 'Error')
+
+        self.update_filters(MatchJID(jid_obj, dest='from'))
+        self.refresh()
+
+    @command_args_parser.raw
+    def command_filter_jid(self, jid):
+        """/filter_jid <jid>"""
+        jid_obj = safeJID(jid)
+        if not jid_obj:
+            return self.core.information('Invalid JID: %s' % jid, 'Error')
+
+        self.update_filters(MatchJID(jid_obj))
+        self.refresh()
 
     @command_args_parser.quoted(1)
     def command_filter_id(self, args):
@@ -92,25 +203,14 @@ class XMLTab(Tab):
         if args is None:
             return self.core.command_help('filter_id')
 
-        self.core.xmpp.remove_handler('custom matcher')
-        handler = Callback('custom matcher', matcher.MatcherId(arg),
-                self.core.incoming_stanza)
-        self.core.xmpp.register_handler(handler)
-        self.filter_type = "Id Filter"
-        self.filter = args[0]
+        self.update_filters(matcher.MatcherId(args[0]))
         self.refresh()
 
     @command_args_parser.raw
     def command_filter_xpath(self, xpath):
         """/filter_xpath <xpath>"""
         try:
-            handler = Callback('custom matcher', matcher.MatchXPath(
-                xpath.replace('%n', self.core.xmpp.default_ns)),
-                    self.core.incoming_stanza)
-            self.core.xmpp.remove_handler('custom matcher')
-            self.core.xmpp.register_handler(handler)
-            self.filter_type = "XPath Filter"
-            self.filter = xpath
+            self.update_filters(matcher.MatchXPath(xpath.replace('%n', self.core.xmpp.default_ns)))
             self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
@@ -119,8 +219,11 @@ class XMLTab(Tab):
     @command_args_parser.ignored
     def command_reset(self):
         """/reset"""
-        self.core.xmpp.remove_handler('custom matcher')
-        self.core.xmpp.register_handler(self.core.all_stanzas)
+        if self.filters:
+            self.filters = []
+            self.filtered_buffer.del_window(self.text_win)
+            self.core_buffer.add_window(self.text_win)
+            self.text_win.rebuild_everything(self.core_buffer)
         self.filter_type = ''
         self.filter = ''
         self.refresh()
@@ -130,8 +233,11 @@ class XMLTab(Tab):
         """/dump <filename>"""
         if args is None:
             return self.core.command_help('dump')
-        xml = self.core.xml_buffer.messages[:]
-        text = '\n'.join(('%s %s' % (msg.str_time, clean_text(msg.txt)) for msg in xml))
+        if self.filters:
+            xml = self.filtered_buffer.messages[:]
+        else:
+            xml = self.core_buffer.messages[:]
+        text = '\n'.join(('%s %s %s' % (msg.str_time, msg.nickname, clean_text(msg.txt)) for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
             with open(filename, 'w') as fd:
@@ -167,8 +273,12 @@ class XMLTab(Tab):
         """
         /clear
         """
-        self.core.xml_buffer.messages = []
-        self.text_win.rebuild_everything(self.core.xml_buffer)
+        if self.filters:
+            buffer = self.core_buffer
+        else:
+            buffer = self.filtered_buffer
+        buffer.messages = []
+        self.text_win.rebuild_everything(buffer)
         self.refresh()
         self.core.doupdate()
 

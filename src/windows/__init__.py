@@ -15,5 +15,5 @@ from . list import ListWin, ColumnHeaderWin
 from . misc import VerticalSeparator
 from . muc import UserList, Topic
 from . roster_win import RosterWin, ContactInfoWin
-from . text_win import TextWin
+from . text_win import TextWin, XMLTextWin
 

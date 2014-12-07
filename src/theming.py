@@ -178,6 +178,13 @@ class Theme(object):
     CHAR_AFFILIATION_MEMBER = '+'
     CHAR_AFFILIATION_NONE = '-'
 
+
+    # XML Tab
+    CHAR_XML_IN = 'IN '
+    CHAR_XML_OUT = 'OUT'
+    COLOR_XML_IN = (1, -1)
+    COLOR_XML_OUT = (2, -1)
+
     # Color for the /me message
     COLOR_ME_MESSAGE = (6, -1)
 

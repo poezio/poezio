@@ -17,7 +17,8 @@ from os import path
 
 from slixmpp import InvalidJID
 from slixmpp.stanza import Message
-from slixmpp.xmlstream.stanzabase import StanzaBase
+from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
+from xml.etree import ElementTree as ET
 
 import bookmark
 import common
@@ -36,6 +37,18 @@ from text_buffer import CorrectionError
 from theming import dump_tuple, get_theme
 
 from . commands import dumb_callback
+
+try:
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import HtmlFormatter
+    LEXER = get_lexer_by_name('xml')
+    FORMATTER = HtmlFormatter(noclasses=True)
+except ImportError:
+    def highlight(text, *args, **kwargs):
+        return text
+    LEXER = None
+    FORMATTER = None
 
 def on_session_start_features(self, _):
     """
@@ -1104,7 +1117,17 @@ def outgoing_stanza(self, stanza):
     We are sending a new stanza, write it in the xml buffer if needed.
     """
     if self.xml_tab:
-        self.add_message_to_text_buffer(self.xml_buffer, '\x191}<--\x19o %s' % stanza)
+        xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+        poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
+                                        nickname=get_theme().CHAR_XML_OUT)
+        try:
+            if self.xml_tab.match_stanza(ElementBase(ET.fromstring(stanza))):
+                self.add_message_to_text_buffer(self.xml_tab.filtered_buffer, poezio_colored,
+                                                nickname=get_theme().CHAR_XML_OUT)
+        except:
+            log.debug('', exc_info=True)
+
         if isinstance(self.current_tab(), tabs.XMLTab):
             self.current_tab().refresh()
             self.doupdate()
@@ -1114,7 +1137,16 @@ def incoming_stanza(self, stanza):
     We are receiving a new stanza, write it in the xml buffer if needed.
     """
     if self.xml_tab:
-        self.add_message_to_text_buffer(self.xml_buffer, '\x192}-->\x19o %s' % stanza)
+        xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+        poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
+                                        nickname=get_theme().CHAR_XML_IN)
+        try:
+            if self.xml_tab.match_stanza(stanza):
+                self.add_message_to_text_buffer(self.xml_tab.filtered_buffer, poezio_colored,
+                                                nickname=get_theme().CHAR_XML_IN)
+        except:
+            log.debug('', exc_info=True)
         if isinstance(self.current_tab(), tabs.XMLTab):
             self.current_tab().refresh()
             self.doupdate()

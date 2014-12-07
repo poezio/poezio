@@ -90,7 +90,7 @@ class Core(object):
 
         self.tab_win = windows.GlobalInfoBar()
         # Whether the XML tab is opened
-        self.xml_tab = False
+        self.xml_tab = None
         self.xml_buffer = TextBuffer()
 
         self.tabs = []
