@@ -1,3 +1,4 @@
 setuptools
 -e git+git://git.louiz.org/slixmpp#egg=slixmpp
 aiodns
+pygments
