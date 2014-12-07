@@ -558,7 +558,7 @@ XML tab commands
         Write the content of the XML buffer into a file.
 
     /reset
-        Reset the stanza filter.
+        Reset the stanza filters.
 
     /filter_id
         **Usage:** ``/filter_id <id>``
@@ -574,3 +574,18 @@ XML tab commands
         **Usage:** ``/filter_xmlmask <xml mask>``
 
         Filter using an XML mask
+
+    /filter_jid
+        **Usage:** ``/filter_jid <jid>``
+
+        Filter by JID, both ``to`` and ``from``.
+
+    /filter_to
+        **Usage:** ``/filter_to <jid>``
+
+        Filter by JID for the ``to`` attribute.
+
+    /filter_from
+        **Usage:** ``/filter_from <jid>``
+
+        Filter by JID for ``from`` attribute.
