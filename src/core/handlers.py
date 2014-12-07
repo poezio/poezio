@@ -44,11 +44,9 @@ try:
     from pygments.formatters import HtmlFormatter
     LEXER = get_lexer_by_name('xml')
     FORMATTER = HtmlFormatter(noclasses=True)
+    PYGMENTS = True
 except ImportError:
-    def highlight(text, *args, **kwargs):
-        return text
-    LEXER = None
-    FORMATTER = None
+    PYGMENTS = False
 
 def on_session_start_features(self, _):
     """
@@ -1117,8 +1115,11 @@ def outgoing_stanza(self, stanza):
     We are sending a new stanza, write it in the xml buffer if needed.
     """
     if self.xml_tab:
-        xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
-        poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        if PYGMENTS:
+            xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        else:
+            poezio_colored = '%s' % stanza
         self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
                                         nickname=get_theme().CHAR_XML_OUT)
         try:
@@ -1137,8 +1138,11 @@ def incoming_stanza(self, stanza):
     We are receiving a new stanza, write it in the xml buffer if needed.
     """
     if self.xml_tab:
-        xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
-        poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        if PYGMENTS:
+            xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+            poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True)
+        else:
+            poezio_colored = '%s' % stanza
         self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
                                         nickname=get_theme().CHAR_XML_IN)
         try:
