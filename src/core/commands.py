@@ -917,7 +917,7 @@ def command_rawxml(self, args):
     if not args:
         return
 
-    stanza = args[0]
+    stanza = args
     try:
         stanza = StanzaBase(self.xmpp, xml=ET.fromstring(stanza))
         if stanza.xml.tag == 'iq' and \
