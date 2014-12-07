@@ -55,7 +55,7 @@ class Bookmark(object):
         self._method = value
 
     def __repr__(self):
-        return '<%s%s%s>' % (self.jid, ('/'+self.nick) if self.nick else '', '|autojoin' if self.autojoin else '')
+        return '<%s%s%s%s>' % (self.jid, ('/'+self.nick) if self.nick else '', '|autojoin' if self.autojoin else '', '|%s' % self.password if self.password else '')
 
     def stanza(self):
         """
@@ -82,10 +82,21 @@ class Bookmark(object):
         return local
 
     @staticmethod
+    def parse_from_stanza(el, method=None):
+        jid = el['jid']
+        autojoin = el['autojoin']
+        password = el['password']
+        nick = el['nick']
+        name = el['name']
+        return Bookmark(jid, name, autojoin, nick, password, method)
+
+    @staticmethod
     def parse_from_element(el, method=None):
         """
         Generate a Bookmark object from a <conference/> element
         """
+        if isinstance(el, Conference):
+            return Bookmark.parse_from_stanza(el, method)
         jid = el.get('jid')
         name = el.get('name')
         autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
@@ -171,7 +182,9 @@ def get_pep(xmpp, available_methods, callback):
             available_methods["pep"] = False
         else:
             available_methods["pep"] = True
-            for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
+            for conf in iq['pubsub']['items']['item']['bookmarks']['conferences']:
+                if isinstance(conf, URL):
+                    continue
                 b = Bookmark.parse_from_element(conf, method='pep')
                 if not get_by_jid(b.jid):
                     bookmarks.append(b)
@@ -188,7 +201,7 @@ def get_privatexml(xmpp, available_methods, callback):
             available_methods["privatexml"] = False
         else:
             available_methods["privatexml"] = True
-            for conf in xml_iter(iq.xml, '{storage:bookmarks}conference'):
+            for conf in iq['private']['bookmarks']['conferences']:
                 b = Bookmark.parse_from_element(conf, method='privatexml')
                 if not get_by_jid(b.jid):
                     bookmarks.append(b)
