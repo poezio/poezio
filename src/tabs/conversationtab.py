@@ -151,14 +151,6 @@ class ConversationTab(OneToOneTab):
         self.text_win.refresh()
         self.input.refresh()
 
-    @command_args_parser.raw
-    def command_xhtml(self, xhtml):
-        message = self.generate_xhtml_message(xhtml)
-        if message:
-            message.send()
-            self.core.add_message_to_text_buffer(self._text_buffer, message['body'], None, self.core.own_nick)
-            self.refresh()
-
     @command_args_parser.quoted(0, 1)
     def command_last_activity(self, args):
         """

@@ -746,6 +746,20 @@ class OneToOneTab(ChatTab):
             self.text_win.modify_message(msg_id, new_msg)
             self.core.refresh_window()
 
+    @command_args_parser.raw
+    def command_xhtml(self, xhtml_data):
+        message = self.generate_xhtml_message(xhtml_data)
+        if message:
+            if self.remote_supports_receipts:
+                message._add_receipt = True
+            if self.remote_wants_chatstates:
+                message['chat_sate'] = 'active'
+            message.send()
+            body = xhtml.xhtml_to_poezio_colors(xhtml_data, force=True)
+            self._text_buffer.add_message(body, nickname=self.core.own_nick,
+                                          identifier=message['id'],)
+            self.refresh()
+
     def check_features(self):
         "check the features supported by the other party"
         if safeJID(self.get_dest_jid()).resource:
