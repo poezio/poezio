@@ -556,17 +556,29 @@ class Plugin(BasePlugin):
         self.core.refresh_window()
         del msg['body']
 
+    def find_encrypted_context_with_matching(self, bare_jid):
+        for ctx in self.contexts:
+            if safeJID(ctx).bare == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
+                return self.contexts[ctx]
+        return None
+
     def on_conversation_say(self, msg, tab):
         """
         On message sent
         """
         if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-            name = safeJID(tab.name)
-            name.resource = tab.locked_resource
-            name = name.full
+            jid = safeJID(tab.name)
+            jid.resource = tab.locked_resource
+            name = jid.full
         else:
             name = tab.name
+            jid = safeJID(tab.name)
+
         ctx = self.contexts.get(name)
+        if isinstance(tab, DynamicConversationTab) and not tab.locked_resource:
+            log.debug('Unlocked tab %s found, falling back to the first encrypted chat we find.', name)
+            ctx = self.find_encrypted_context_with_matching(jid.bare)
+
         if ctx and ctx.state == STATE_ENCRYPTED:
             ctx.sendMessage(0, msg['body'].encode('utf-8'))
             if not tab.send_chat_state('active'):
@@ -585,6 +597,10 @@ class Plugin(BasePlugin):
 
     def display_encryption_status(self, jid):
         context = self.get_context(jid)
+        if safeJID(jid).bare == jid and context.state != STATE_ENCRYPTED:
+            ctx = self.find_encrypted_context_with_matching(jid)
+            if ctx:
+                context = ctx
         state = states[context.state]
         return ' OTR: %s' % state
 
@@ -605,10 +621,25 @@ class Plugin(BasePlugin):
         if arg == 'end': # close the session
             context = self.get_context(name)
             context.disconnect()
+            if isinstance(tab, DynamicConversationTab) and not tab.locked_resource:
+                ctx = self.find_encrypted_context_with_matching(safeJID(name).bare)
+                ctx.disconnect()
+
         elif arg == 'start' or arg == 'refresh':
             otr = self.get_context(name)
             secs = self.config.get('timeout', 3)
+            if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
+                was_locked = True
+            else:
+                was_locked = False
             def notify_otr_timeout():
+                nonlocal otr
+                if isinstance(tab, DynamicConversationTab) and not was_locked:
+                    if tab.locked_resource:
+                        name = safeJID(tab.name)
+                        name.resource = tab.locked_resource
+                        name = name.full
+                        otr = self.get_context(name)
                 if otr.state != STATE_ENCRYPTED:
                     text = _('%(jid_c)s%(jid)s%(info)s did not enable'
                              ' OTR after %(sec)s seconds.') % {
