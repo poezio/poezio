@@ -984,8 +984,15 @@ def command_message(self, args):
     if not jid.user and not jid.domain and not jid.resource:
         return self.information('Invalid JID.', 'Error')
     tab = self.get_conversation_by_jid(jid.full, False, fallback_barejid=False)
-    if not tab:
+    muc = self.get_tab_by_name(jid.bare, typ=tabs.MucTab)
+    if not tab and not muc:
         tab = self.open_conversation_window(jid.full, focus=True)
+    elif muc:
+        tab = self.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
+        if tab:
+            self.focus_tab_named(tab.name)
+        else:
+            tab = self.open_private_window(jid.bare, jid.resource)
     else:
         self.focus_tab_named(tab.name)
     if len(args) == 2:
