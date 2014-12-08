@@ -183,7 +183,8 @@ whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
 xhtml_data_re = re.compile(r'data:image/([a-z]+);base64,(.+)')
-poezio_colors_trim = re.compile(r'\x19o(\x19\d+}|\x19\d|\x19[buaio])*\x19o')
+poezio_color_double = re.compile(r'(?:\x19\d+}|\x19\d)+(\x19\d|\x19\d+})')
+poezio_format_trim = re.compile(r'(\x19\d+}|\x19\d|\x19[buaio]|\x19o)+\x19o')
 
 xhtml_simple_attr_re = re.compile(r'\x19\d')
 
@@ -304,7 +305,8 @@ class XHTMLHandler(sax.ContentHandler):
 
     @property
     def result(self):
-        return re.sub(poezio_colors_trim, '\x19o', ''.join(self.builder).strip())
+        sanitized = re.sub(poezio_color_double, r'\1', ''.join(self.builder).strip())
+        return re.sub(poezio_format_trim, '\x19o', sanitized)
 
     def append_formatting(self, formatting):
         self.formatting.append(formatting)

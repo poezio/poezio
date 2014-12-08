@@ -38,6 +38,14 @@ def test_xhtml_to_poezio_colors():
     xhtml = start + b'<a href="http://perdu.com">http://perdu.com</a>' + end
     assert xhtml_to_poezio_colors(xhtml) == '\x19uhttp://perdu.com\x19o'
 
+    xhtml = b'<div style="font-weight:bold">Allo <div style="color:red">test <div style="color: blue">test2</div></div></div>'
+    assert xhtml_to_poezio_colors(xhtml, force=True) == '\x19bAllo \x19196}test \x1921}test2\x19o'
+
+    xhtml = (b'<div style="color:blue"><div style="color:yellow">'
+             b'<div style="color:blue">Allo <div style="color:red">'
+             b'test <div style="color: blue">test2</div></div></div></div></div>')
+    assert xhtml_to_poezio_colors(xhtml, force=True) == '\x1921}Allo \x19196}test \x1921}test2\x19o'
+
     with pytest.raises(xml.sax._exceptions.SAXParseException):
         xhtml_to_poezio_colors(b'<p>Invalid xml')
 

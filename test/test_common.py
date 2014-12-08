@@ -14,19 +14,6 @@ from common import (datetime_tuple, get_utc_time, get_local_time, shell_split,
                     find_argument_quoted, find_argument_unquoted,
                     parse_str_to_secs, parse_secs_to_str, safeJID)
 
-def test_datetime_tuple():
-    time.timezone = 0
-    time.altzone = 0
-
-    assert datetime_tuple('20130226T06:23:12') == datetime.datetime(2013, 2, 26, 6, 23, 12)
-    assert datetime_tuple('2013-02-26T06:23:12+02:00') == datetime.datetime(2013, 2, 26, 4, 23, 12)
-
-    time.timezone = -3600
-    time.altzone = -3600
-
-    assert datetime_tuple('20130226T07:23:12') == datetime.datetime(2013, 2, 26, 8, 23, 12)
-    assert datetime_tuple('2013-02-26T07:23:12+02:00') == datetime.datetime(2013, 2, 26, 6, 23, 12)
-
 def test_utc_time():
     delta = timedelta(seconds=-3600)
     d = datetime.datetime.now()
