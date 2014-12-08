@@ -56,7 +56,6 @@ class Executor(threading.Thread):
                 command.pop(-1)
 
     def run(self):
-        print("executing %s" % (self.command))
         log.debug('executing %s', self.command)
         stdout = DEVNULL
         if self.filename:
