@@ -41,12 +41,12 @@ def get_version(xmpp, jid, callback=None, **kwargs):
 def get_room_form(xmpp, room, callback):
     def _cb(result):
         if result["type"] == "error":
-            callback(None)
+            return callback(None)
         xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
         if xform is None:
-            callback(None)
+            return callback(None)
         form = xmpp.plugin['xep_0004'].buildForm(xform)
-        callback(form)
+        return callback(form)
 
     iq = xmpp.make_iq_get(ito=room)
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
