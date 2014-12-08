@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 import curses
 import os
 from slixmpp.xmlstream import matcher
+from slixmpp.xmlstream.tostring import tostring
 from slixmpp.xmlstream.stanzabase import ElementBase
 from xml.etree import ElementTree as ET
 
@@ -50,7 +51,7 @@ class MatchJID(object):
 MATCHERS_MAPPINGS = {
         MatchJID: ('JID', lambda obj: repr(obj)),
         matcher.MatcherId: ('ID', lambda obj: obj._criteria),
-        matcher.MatchXMLMask: ('XMLMask', lambda obj: obj._criteria),
+        matcher.MatchXMLMask: ('XMLMask', lambda obj: tostring(obj._criteria)),
         matcher.MatchXPath: ('XPath', lambda obj: obj._criteria)
 }
 
@@ -163,8 +164,8 @@ class XMLTab(Tab):
         try:
             self.update_filters(matcher.MatchXMLMask(mask))
             self.refresh()
-        except:
-            self.core.information('Invalid XML Mask', 'Error')
+        except Exception as e:
+            self.core.information('Invalid XML Mask: %s' % e, 'Error')
             self.command_reset('')
 
     @command_args_parser.raw
