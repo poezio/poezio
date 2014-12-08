@@ -128,6 +128,13 @@ Configuration
 
         Decode embedded XHTML.
 
+    decode_entities
+        **Default:** ``false``
+
+        Decode XML and HTML entities (like ``&amp;``) even when the
+        document isn't valid (if it is valid, it will be decoded even
+        without this option).
+
     keys_dir
         **Default:** ``$XDG_DATA_HOME/poezio/otr``
 
@@ -155,7 +162,7 @@ Configuration
 
         Log conversations (OTR start/end marker, and messages).
 
-The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_xhtml`
+The :term:`allow_v1`, :term:`allow_v2`, :term:`decode_xhtml`, :term:`decode_entities`
 and :term:`log` configuration parameters are tab-specific.
 
 Important details
@@ -177,6 +184,7 @@ import logging
 
 log = logging.getLogger(__name__)
 import os
+import html
 import curses
 
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
@@ -544,11 +552,17 @@ class Plugin(BasePlugin):
             nick_color = get_theme().COLOR_REMOTE_USER
 
         body = txt.decode()
+        decode_entities = self.config.get_by_tabname('decode_entities',
+                                                     msg['from'].bare,
+                                                     default=False)
         if self.config.get_by_tabname('decode_xhtml', msg['from'].bare, default=True):
             try:
                 body = xhtml.xhtml_to_poezio_colors(body, force=True)
             except:
-                pass
+                if decode_entities:
+                    body = html.unescape(body)
+        elif decode_entities:
+            body = html.unescape(body)
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
                         forced_user=user, typ=ctx.log,
                         nick_color=nick_color)
