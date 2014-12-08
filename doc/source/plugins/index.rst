@@ -210,6 +210,11 @@ Plugin index
 
         Reverse everything you say.
 
+    Pipe Command
+        :ref:`Documentation <pipecmd-plugin>`
+
+        Send commands to poezio through a named pipe.
+
     Shuffle
         :ref:`Documentation <shuffle-plugin>`
 
@@ -279,3 +284,4 @@ Plugin index
     autocorrect
     irc
     change_title
+    pipe_cmd

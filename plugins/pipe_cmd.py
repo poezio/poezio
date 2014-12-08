@@ -2,6 +2,20 @@
 
 This plugins allows commands to be sent to poezio via a named pipe.
 
+You can run the same commands that you would in the poezio input
+(e.g. ``echo '/message toto@example.tld Hi' >> /tmp/poezio.fifo``).
+
+Configuration
+-------------
+
+.. glossary::
+    :sorted:
+
+    pipename
+        **Default:** :file:`/tmp/poezio.fifo`
+
+        The path to the fifo which will receive commands.
+
 """
 
 
