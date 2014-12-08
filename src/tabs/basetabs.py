@@ -710,10 +710,32 @@ class OneToOneTab(ChatTab):
         # change this to True or False when
         # we know that the remote user wants chatstates, or not.
         # None means we don’t know yet, and we send only "active" chatstates
-        self.remote_wants_chatstates = None
+        self._remote_wants_chatstates = None
         self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
+
+    @property
+    def remote_wants_chatstates(self):
+        return self._remote_wants_chatstates
+
+    @remote_wants_chatstates.setter
+    def remote_wants_chatstates(self, value):
+        old_value = self._remote_wants_chatstates
+        self._remote_wants_chatstates = value
+        if (old_value is None and value != None) or \
+                (old_value != value and value != None):
+            ok = get_theme().CHAR_OK
+            nope = get_theme().CHAR_EMPTY
+            support = ok if value else nope
+            if value:
+                msg = _('\x19%s}Contact supports chat states [%s].')
+            else:
+                msg = _('\x19%s}Contact does not support chat states [%s].')
+            color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            msg = msg % (color, support)
+            self.add_message(msg, typ=0)
+            self.core.refresh_window()
 
     def ack_message(self, msg_id):
         """
