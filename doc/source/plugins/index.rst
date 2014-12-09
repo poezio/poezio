@@ -82,6 +82,11 @@ Plugin index
         Allows a message to be broadcasted on all the rooms your are in.
         Caution: do not overuse.
 
+    Close all
+        :ref:`Documentation <closeall-plugin>`
+
+        Close all tabs except MUCs and the roster.
+
     Day Change
         :ref:`Documentation <daychange-plugin>`
 
@@ -285,3 +290,4 @@ Plugin index
     irc
     change_title
     pipe_cmd
+    close_all

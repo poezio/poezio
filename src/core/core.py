@@ -1286,6 +1286,7 @@ class Core(object):
         """
         Close the given tab. If None, close the current one
         """
+        was_current = tab is None
         tab = tab or self.current_tab()
         if isinstance(tab, tabs.RosterInfoTab):
             return              # The tab 0 should NEVER be closed
@@ -1293,9 +1294,10 @@ class Core(object):
         del tab.commands      # and make the object collectable
         tab.on_close()
         nb = tab.nb
-        if self.previous_tab_nb != nb:
-            self.current_tab_nb = self.previous_tab_nb
-            self.previous_tab_nb = 0
+        if was_current:
+            if self.previous_tab_nb != nb:
+                self.current_tab_nb = self.previous_tab_nb
+                self.previous_tab_nb = 0
         if config.get('create_gaps'):
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
@@ -1315,7 +1317,8 @@ class Core(object):
             self.current_tab_nb = len(self.tabs) - 1
         while not self.tabs[self.current_tab_nb]:
             self.current_tab_nb -= 1
-        self.current_tab().on_gain_focus()
+        if was_current:
+            self.current_tab().on_gain_focus()
         self.refresh_window()
         import gc
         gc.collect()
