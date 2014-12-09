@@ -304,7 +304,10 @@ def completion_set(self, the_input):
             plugin = self.plugin_manager.plugins[plugin_name]
             end_list = ['%s|%s' % (plugin_name, section) for section in plugin.config.sections()]
         else:
-            end_list = config.options('Poezio')
+            end_list = set(config.options('Poezio'))
+            end_list = end_list.union(set(config.default.get('Poezio', {})))
+            end_list = list(end_list)
+            end_list.sort()
     elif n == 2:
         if '|' in args[1]:
             plugin_name, section = args[1].split('|')[:2]
