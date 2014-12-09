@@ -4,15 +4,18 @@ This plugin lets you perform simple replacements on the last message.
 Usage
 -----
 
-.. note:: This plugin only performs *simple* replacements, not with
-    regular expressions, despite the syntax. Although it would be
-    possible, that would be even less useful.
+.. note:: the ``/``, ``#``, ``!``, ``:`` and ``;`` chars can be used as separators,
+         even if the examples only use ``/``
+
+
+Regex replacement
+~~~~~~~~~~~~~~~~~
 
 Once the plugin is loaded, any message matching the following regex::
 
     ^s/(.+?)/(.*?)(/|/g)?$
 
-will be interpreted as a replacement, and the substitution will be
+will be interpreted as a regex replacement, and the substitution will be
 applied to the last sent message.
 
 For example, if you sent the message::
@@ -24,12 +27,29 @@ And you now want to replace “MUC” with “multi-user chat”, you input::
     s/MUC/multi-user chat
 
 And poezio will correct the message for you.
+
+
+Raw string replacement
+~~~~~~~~~~~~~~~~~~~~~~
+
+Once the plugin is loaded, any message matching the following regex::
+
+    ^r/(.+?)/(.*?)(/|/g)?$
+
+will be interpreted as a replacement, and the substitution will be applied
+to the last send message.
+
+This variant is useful if you don’t want to care about regular expressions
+(and you do not want to have to escape stuff like space or backslashes).
+
+
 """
 
 from plugin import BasePlugin
 import re
 
-sed_re = re.compile('^s/(.+?)/(.*?)(/|/g)?$')
+allowed_separators = '/#!:;'
+sed_re = re.compile('^([sr])(?P<sep>[%s])(.+?)(?P=sep)(.*?)((?P=sep)|(?P=sep)g)?$' % allowed_separators)
 
 class Plugin(BasePlugin):
     def init(self):
@@ -46,16 +66,29 @@ class Plugin(BasePlugin):
         match = sed_re.match(msg['body'])
         if not match:
             return
-        remove, put, matchall = match.groups()
+        typ, sep, remove, put, matchall = match.groups()
 
         replace_all = False
-        if matchall == '/g':
+        if matchall == sep + 'g':
             replace_all = True
 
-        if replace_all:
-            new_body = body.replace(remove, put)
-        else:
-            new_body = body.replace(remove, put, 1)
+        if typ == 's':
+            try:
+                regex = re.compile(remove)
+
+                if replace_all:
+                    new_body = re.sub(remove, put, body)
+                else:
+                    new_body = re.sub(remove, put, body, count=1)
+            except Exception as e:
+                self.api.information('Invalid regex for the autocorrect '
+                                     'plugin: %s' % e, 'Error')
+                return
+        elif typ == 'r':
+            if replace_all:
+                new_body = body.replace(remove, put)
+            else:
+                new_body = body.replace(remove, put, 1)
 
         if body != new_body:
             msg['body'] = new_body
