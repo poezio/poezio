@@ -592,7 +592,7 @@ class Core(object):
                     except ValueError:
                         pass
                     else:
-                        if self.current_tab().nb == nb:
+                        if self.current_tab().nb == nb and config.get('go_to_previous_tab_on_alt_number'):
                             self.go_to_previous_tab()
                         else:
                             self.command_win('%d' % nb)

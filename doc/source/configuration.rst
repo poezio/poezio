@@ -316,6 +316,14 @@ to understand what is :ref:`carbons <carbons-details>` or
         If this is set to ``false``, you will no longer be subscribed to tune events,
         and the :term:`display_tune_notifications` option will be ignored.
 
+    go_to_previous_tab_on_alt_number
+
+       **Default value:** ``false``
+
+       If this is set to ``true``, when Alt+x is pressed, where x is a
+       number, if you are already on the tab number x, you will jump to the
+       previously selected tab. Otherwise you’ll stay on the same tab.
+
     group_corrections
 
         **Default value:** ``true``
