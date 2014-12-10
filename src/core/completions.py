@@ -57,7 +57,7 @@ def completion_theme(self, the_input):
     except OSError as e:
         log.error('Completion for /theme failed', exc_info=True)
         return
-    theme_files = [name[:-3] for name in names if name.endswith('.py')]
+    theme_files = [name[:-3] for name in names if name.endswith('.py') and name != '__init__.py']
     if not 'default' in theme_files:
         theme_files.append('default')
     return the_input.new_completion(theme_files, 1, '', quotify=False)
