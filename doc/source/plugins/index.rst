@@ -163,7 +163,7 @@ Plugin index
     Screen Detach
         :ref:`Documentation <screendetach-plugin>`
 
-        Changes your status to **away** if the screen poezio is in is detached.
+        Changes your status to **away** if the screen (or tmux) poezio is in gets detached.
 
     Send Delayed
         :ref:`Documentation <senddelayed-plugin>`

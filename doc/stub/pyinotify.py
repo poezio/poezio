@@ -1,3 +1,5 @@
+class Notifier:
+    pass
 class WatchManager:
     pass
 class EventsCodes:
