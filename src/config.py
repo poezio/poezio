@@ -153,9 +153,11 @@ class Config(RawConfigParser):
         except TypeError: # python < 3.2 sucks
             RawConfigParser.read(self, self.file_name)
         # Check config integrity and fix it if it’s wrong
-        for section in ('bindings', 'var'):
-            if not self.has_section(section):
-                self.add_section(section)
+        # only when the object is the main config
+        if self.__class__ is Config:
+            for section in ('bindings', 'var'):
+                if not self.has_section(section):
+                    self.add_section(section)
 
     def get(self, option, default=None, section=DEFSECTION):
         """

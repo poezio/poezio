@@ -305,7 +305,7 @@ def completion_set(self, the_input):
             end_list = ['%s|%s' % (plugin_name, section) for section in plugin.config.sections()]
         else:
             end_list = set(config.options('Poezio'))
-            end_list = end_list.union(set(config.default.get('Poezio', {})))
+            end_list.update(config.default.get('Poezio', {}))
             end_list = list(end_list)
             end_list.sort()
     elif n == 2:
@@ -314,7 +314,10 @@ def completion_set(self, the_input):
             if not plugin_name in self.plugin_manager.plugins:
                     return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
-            end_list = plugin.config.options(section or plugin_name)
+            end_list = set(plugin.config.options(section or plugin_name))
+            end_list.update(plugin.config.default.get(section or plugin_name, {}))
+            end_list = list(end_list)
+            end_list.sort()
         elif not config.has_option('Poezio', args[1]):
             if config.has_section(args[1]):
                 end_list = config.options(args[1])

@@ -19,12 +19,12 @@ class PluginConfig(config.Config):
     They are accessible inside the plugin with self.config
     and behave like the core Config object.
     """
-    def __init__(self, filename, module_name):
-        config.Config.__init__(self, filename)
+    def __init__(self, filename, module_name, default=None):
+        config.Config.__init__(self, filename, default=default)
         self.module_name = module_name
         self.read()
 
-    def get(self, option, default, section=None):
+    def get(self, option, default=None, section=None):
         if not section:
             section = self.module_name
         return config.Config.get(self, option, default, section)
@@ -364,12 +364,19 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     Class that all plugins derive from.
     """
 
+    default_config = None
+
     def __init__(self, plugin_api, core, plugins_conf_dir):
         self.core = core
         # More hack; luckily we'll never have more than one core object
         SafetyMetaclass.core = core
         conf = os.path.join(plugins_conf_dir, self.__module__+'.cfg')
-        self.config = PluginConfig(conf, self.__module__)
+        try:
+            self.config = PluginConfig(conf, self.__module__,
+                                       default=self.default_config)
+        except Exception:
+            log.debug('Error while creating the plugin config', exc_info=True)
+            self.config = PluginConfig(conf, self.__module__)
         self._api = plugin_api[self.name]
         self.init()
 
