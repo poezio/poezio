@@ -77,7 +77,7 @@ class RosterInfoTab(Tab):
                 desc=_('Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence.'),
                 shortdesc=_('Add an user to your roster.'))
         self.register_command('name', self.command_name,
-                usage=_('<jid> <name>'),
+                usage=_('<jid> [name]'),
                 shortdesc=_('Set the given JID\'s name.'),
                 completion=self.completion_name)
         self.register_command('groupadd', self.command_groupadd,
@@ -407,7 +407,7 @@ class RosterInfoTab(Tab):
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
 
-    @command_args_parser.quoted(2)
+    @command_args_parser.quoted(1, 1)
     def command_name(self, args):
         """
         Set a name for the specified JID in your roster
@@ -416,7 +416,7 @@ class RosterInfoTab(Tab):
             if not iq:
                 self.core.information('The name could not be set.', 'Error')
                 log.debug('Error in /name:\n%s', iq)
-        if not args:
+        if args is None:
             return self.core.command_help('name')
         jid = safeJID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
