@@ -58,6 +58,7 @@ def on_session_start_features(self, _):
         features = iq['disco_info']['features']
         rostertab = self.get_tab_by_name('Roster', tabs.RosterInfoTab)
         rostertab.check_blocking(features)
+        rostertab.check_saslexternal(features)
         if (config.get('enable_carbons') and
                 'urn:xmpp:carbons:2' in features):
             self.xmpp.plugin['xep_0280'].enable()

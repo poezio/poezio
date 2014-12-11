@@ -312,10 +312,10 @@ MultiUserChat tab commands
 .. glossary::
     :sorted:
 
-    /clear [RosterTab version]
+    /clear [MUCTab version]
         **Usage:** ``/clear``
 
-        Clear the information buffer. (was /clear_infos)
+        Clear the messages buffer.
 
     /ignore
         **Usage:** ``/ignore <nickname>``
@@ -502,8 +502,8 @@ Roster tab commands
         Disconnect from the remote server (if connected) and then
         connect to it again.
 
-.. note:: The following commands only exist if your server supports them. If it
-            does not, you will be notified when you start poezio.
+.. note:: The following commands only exist if your server announces it
+          supports them.
 
 .. glossary::
     :sorted:
@@ -522,6 +522,41 @@ Roster tab commands
 
     /list_blocks
         List the blocked JIDs.
+
+    /certs
+
+        List the remotely stored X.509 certificated allowed to connect
+        to your accounts.
+
+    /cert_add
+        **Usage:** ``/cert_add <name> <certificate file> [management]``
+
+        Add a client X.509 certificate to the list of the certificates
+        which grand access to your account. It must have an unique name
+        the file must be in PEM format. ``[management]`` is true by
+        default and specifies if the clients connecting with this
+        particular certificate will be able to manage the list of
+        authorized certificates.
+
+    /cert_disable
+        **Usage:** ``/cert_disable <name>``
+
+        Remove a certificate from the authorized list. Clients currently
+        connected with the certificate identified by ``<name>`` will
+        however **not** be disconnected.
+
+    /cert_revoke
+        **Usage:** ``/cert_revoke <name>``
+
+        Remove a certificate from the authorized list. Clients currently
+        connected with the certificate identified by ``<name>`` **will**
+        be disconnected.
+
+    /cert_fetch
+        **Usage:** ``/cert_fetch <name> <path>``
+
+        Download the public key of the authorized certificate identified by
+        ``name`` from the XMPP server, and store it in ``<path>``.
 
 .. note:: The following commands do not comply with any XEP or whatever, but they
  can still prove useful when you are migrating to an other JID.

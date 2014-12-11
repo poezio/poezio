@@ -30,6 +30,10 @@ class Connection(slixmpp.ClientXMPP):
     __init = False
     def __init__(self):
         resource = config.get('resource')
+
+        keyfile = config.get('keyfile')
+        certfile = config.get('certfile')
+
         if config.get('jid'):
             # Field used to know if we are anonymous or not.
             # many features will be handled differently
@@ -38,7 +42,9 @@ class Connection(slixmpp.ClientXMPP):
             jid = '%s' % config.get('jid')
             if resource:
                 jid = '%s/%s'% (jid, resource)
-            password = config.get('password') or getpass.getpass()
+            password = config.get('password')
+            if not password and not (keyfile and certfile):
+                password = getpass.getpass()
         else: # anonymous auth
             self.anon = True
             jid = config.get('server')
@@ -56,6 +62,13 @@ class Connection(slixmpp.ClientXMPP):
             self['feature_mechanisms'].unencrypted_digest = False
             self['feature_mechanisms'].unencrypted_cram = False
             self['feature_mechanisms'].unencrypted_scram = False
+
+        self.keyfile = config.get('keyfile')
+        self.certfile = config.get('certfile')
+        if keyfile and not certfile:
+            log.error('keyfile is present in configuration file without certfile')
+        elif certfile and not keyfile:
+            log.error('certfile is present in configuration file without keyfile')
 
         self.core = None
         self.auto_reconnect = config.get('auto_reconnect')
@@ -127,6 +140,7 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
         self.register_plugin('xep_0249')
+        self.register_plugin('xep_0257')
         self.register_plugin('xep_0280')
         self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')

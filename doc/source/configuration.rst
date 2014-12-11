@@ -156,6 +156,22 @@ Options related to account configuration, nickname…
         your alternative nickname will be "john\_".
 
 
+    keyfile
+
+        **Default value:** ``[empty]``
+
+        Path to a PEM private key file to use for certificate authentication
+        through SASL External. If set, :term:`certfile` **MUST** be set as well
+        in order to login.
+
+    certfile
+
+        **Default value:** ``[empty]``
+
+        Path to a PEM certificate file to use for certificate authentication
+        through SASL External. If set, :term:`keyfile` **MUST** be set as well
+        in order to login.
+
     resource
 
         **Default value:** ``[empty]``
