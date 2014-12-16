@@ -129,11 +129,19 @@ Configuration
         Decode embedded XHTML.
 
     decode_entities
-        **Default:** ``false``
+        **Default:** ``true``
 
         Decode XML and HTML entities (like ``&amp;``) even when the
         document isn't valid (if it is valid, it will be decoded even
         without this option).
+
+    decode_newlines
+        **Default:** ``true``
+
+        Decode ``<br/>`` and ``<br>`` tags even when the document
+        isn't valid (if it is valid, it will be decoded even
+        without this option for ``<br/>``, and ``<br>`` will make
+        the document invalid anyway).
 
     keys_dir
         **Default:** ``$XDG_DATA_HOME/poezio/otr``
@@ -554,15 +562,23 @@ class Plugin(BasePlugin):
         body = txt.decode()
         decode_entities = self.config.get_by_tabname('decode_entities',
                                                      msg['from'].bare,
-                                                     default=False)
+                                                     default=True)
+        decode_newlines = self.config.get_by_tabname('decode_newlines',
+                                                     msg['from'].bare,
+                                                     default=True)
         if self.config.get_by_tabname('decode_xhtml', msg['from'].bare, default=True):
             try:
                 body = xhtml.xhtml_to_poezio_colors(body, force=True)
-            except:
+            except Exception:
                 if decode_entities:
                     body = html.unescape(body)
-        elif decode_entities:
-            body = html.unescape(body)
+                if decode_newlines:
+                    body = body.replace('<br/>', '\n').replace('<br>', '\n')
+        else:
+            if decode_entities:
+                body = html.unescape(body)
+            if decode_newlines:
+                body = body.replace('<br/>', '\n').replace('<br>', '\n')
         tab.add_message(body, nickname=tab.nick, jid=msg['from'],
                         forced_user=user, typ=ctx.log,
                         nick_color=nick_color)
