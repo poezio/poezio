@@ -25,7 +25,7 @@ def parse_args(CONFIG_PATH=''):
                           metavar="DEBUG_FILE")
         parser.add_option("-v", "--version", dest="version",
                           help=SUPPRESS, metavar="VERSION",
-                          default="0.8.3-dev")
+                          default="0.9-dev")
         (options, __) = parser.parse_args()
     else:
         parser = ArgumentParser()
@@ -38,6 +38,6 @@ def parse_args(CONFIG_PATH=''):
                             metavar="DEBUG_FILE")
         parser.add_argument("-v", "--version", dest="version",
                             help=SUPPRESS, metavar="VERSION",
-                            default="0.8.3-dev")
+                            default="0.9-dev")
         options = parser.parse_args()
     return options

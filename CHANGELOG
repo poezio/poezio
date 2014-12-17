@@ -8,7 +8,11 @@ http://dev.louiz.org/projects/poezio/roadmap
 - Require python 3.4 for the input handling, event loop, xml parser, and ssl API
 
 - Due to the slixmpp move, /reconnect now works (ecf22cb)
+- Add a /closeall command with a plugin, to cleanup the open tabs (ed7fe69)
+- Add a /set_default command which sets the value of an option back to its default (9caa992)
 - The user’s JID is now shown in the roster (a0a00d5)
+- Improve the XML tab with coloration, better filters, and filter chaining (1cd0b4d)
+- Allow the use of client X.509 certificates for authentication (00396c1)
 - Stream errors are now displayed, which is more helpful to the user than 'connection failed' (5cd854f)
 - The (system-wide) launch script is now a setuptools entry point that checks dependencies (22f9b7a)
 - XHTML-IM base64 embedded images are now extracted by default (a9f642f)
