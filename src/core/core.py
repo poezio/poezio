@@ -253,6 +253,7 @@ class Core(object):
                                     self.on_chatstate_inactive)
         self.xmpp.add_event_handler("attention", self.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
+        self.xmpp.add_event_handler("ssl_invalid_chain", self.ssl_invalid_chain)
         self.all_stanzas = Callback('custom matcher',
                                     connection.MatchAll(None),
                                     self.incoming_stanza)
@@ -1957,6 +1958,7 @@ class Core(object):
     outgoing_stanza = handlers.outgoing_stanza
     incoming_stanza = handlers.incoming_stanza
     validate_ssl = handlers.validate_ssl
+    ssl_invalid_chain = handlers.ssl_invalid_chain
     on_next_adhoc_step = handlers.on_next_adhoc_step
     on_adhoc_error = handlers.on_adhoc_error
     cancel_adhoc_command = handlers.cancel_adhoc_command

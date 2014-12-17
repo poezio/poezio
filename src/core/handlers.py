@@ -1156,6 +1156,10 @@ def incoming_stanza(self, stanza):
             self.current_tab().refresh()
             self.doupdate()
 
+def ssl_invalid_chain(self, tb):
+    self.information('The certificate sent by the server is invalid.', 'Error')
+    self.disconnect()
+
 def validate_ssl(self, pem):
     """
     Check the server certificate using the slixmpp ssl_cert event
