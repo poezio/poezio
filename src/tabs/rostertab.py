@@ -16,6 +16,7 @@ import difflib
 import os
 import ssl
 from os import getenv, path
+from functools import partial
 
 from . import Tab
 
@@ -112,12 +113,12 @@ class RosterInfoTab(Tab):
                 usage=_('[/path/to/file]'),
                 desc=_('Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.'),
                 shortdesc=_('Export your roster to a file.'),
-                completion=self.completion_file)
+                completion=partial(self.completion_file, 1))
         self.register_command('import', self.command_import,
                 usage=_('[/path/to/file]'),
                 desc=_('Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.'),
                 shortdesc=_('Import your roster from a file.'),
-                completion=self.completion_file)
+                completion=partial(self.completion_file, 1))
         self.register_command('clear', self.command_clear,
                 shortdesc=_('Clear the info buffer.'))
         self.register_command('last_activity', self.command_last_activity,
@@ -484,29 +485,42 @@ class RosterInfoTab(Tab):
                 not self.input.help_message:
             self.complete_commands(self.input)
 
-    def completion_file(self, the_input):
+    def completion_file(self, complete_number, the_input):
         """
-        Completion for /import and /export
+        Generic quoted completion for files/paths
+        (use functools.partial to use directly as a completion
+        for a command)
         """
         text = the_input.get_text()
-        args = text.split()
-        n = len(args)
-        if n == 1:
-            home = os.getenv('HOME') or '/'
-            return the_input.auto_completion([home, '/tmp'], '')
-        else:
-            the_path = text[text.index(' ')+1:]
+        args = common.shell_split(text)
+        n = the_input.get_argument_position()
+        if n == complete_number:
+            if args[n-1] == '' or len(args) < n+1:
+                home = os.getenv('HOME') or '/'
+                return the_input.new_completion([home, '/tmp'], n, quotify=True)
+            path_ = args[n]
+            if path.isdir(path_):
+                dir_ = path_
+                base = ''
+            else:
+                dir_ = path.dirname(path_)
+                base = path.basename(path_)
             try:
-                names = os.listdir(the_path)
-            except:
+                names = os.listdir(dir_)
+            except OSError:
                 names = []
+            names_filtered = [name for name in names if name.startswith(base)]
+            if names_filtered:
+                names = names_filtered
+            if not names:
+                names = [path_]
             end_list = []
             for name in names:
-                value = os.path.join(the_path, name)
+                value = os.path.join(dir_, name)
                 if not name.startswith('.'):
                     end_list.append(value)
 
-            return the_input.auto_completion(end_list, '')
+            return the_input.new_completion(end_list, n, quotify=True)
 
     @command_args_parser.ignored
     def command_clear(self):
