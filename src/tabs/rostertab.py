@@ -162,7 +162,8 @@ class RosterInfoTab(Tab):
                                          ' if a client connected using this certificate can'
                                          ' manage the certificates itself.'),
                                   shortdesc=_('Add a client certificate.'),
-                                  usage='<name> <certificate path> [management]')
+                                  usage='<name> <certificate path> [management]',
+                                  completion=self.completion_cert_add)
             self.register_command('cert_disable', self.command_cert_disable,
                                   desc=_('Remove a certificate from the list '
                                          'of allowed ones. Clients currently '
@@ -181,7 +182,8 @@ class RosterInfoTab(Tab):
                                   desc=_('Retrieve a certificate with its '
                                          'name. It will be stored in <path>.'),
                                   shortdesc=_('Fetch a certificate'),
-                                  usage='<name> <path>')
+                                  usage='<name> <path>',
+                                  completion=self.completion_cert_fetch)
 
     @command_args_parser.ignored
     def command_certs(self):
@@ -244,6 +246,21 @@ class RosterInfoTab(Tab):
 
         self.core.xmpp.plugin['xep_0257'].add_cert(name, crt, callback=cb,
                                                    allow_management=management)
+
+    def completion_cert_add(self, the_input):
+        """
+        completion for /cert_add <name> <path> [management]
+        """
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = the_input.get_argument_position()
+        log.debug('%s %s %s', the_input.text, n, the_input.pos)
+        if n == 1:
+            return
+        elif n == 2:
+            return self.completion_file(2, the_input)
+        elif n == 3:
+            return the_input.new_completion(['true', 'false'], n)
 
     @command_args_parser.quoted(1)
     def command_cert_disable(self, args):
@@ -312,6 +329,19 @@ class RosterInfoTab(Tab):
         path = args[1]
 
         self.core.xmpp.plugin['xep_0257'].get_certs(callback=cb)
+
+    def completion_cert_fetch(self, the_input):
+        """
+        completion for /cert_fetch <name> <path>
+        """
+        text = the_input.get_text()
+        args = common.shell_split(text)
+        n = the_input.get_argument_position()
+        log.debug('%s %s %s', the_input.text, n, the_input.pos)
+        if n == 1:
+            return
+        elif n == 2:
+            return self.completion_file(2, the_input)
 
     def on_blocked_message(self, message):
         """
