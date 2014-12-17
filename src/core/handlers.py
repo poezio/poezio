@@ -1216,7 +1216,7 @@ def validate_ssl(self, pem):
                         self.information(_('Unable to write in the config file'), 'Error')
                 else:
                     self.information('You refused to validate the certificate. You are now disconnected', 'Info')
-                    self.xmpp.disconnect()
+                    self.disconnect()
                 new_loop.stop()
                 asyncio.set_event_loop(old_loop)
             asyncio.async(check_input(future))
