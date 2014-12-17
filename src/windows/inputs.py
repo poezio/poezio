@@ -534,6 +534,11 @@ class Input(Win):
         if self.view_pos < 0:
             self.view_pos = 0
 
+        # text small enough to fit inside the window entirely:
+        # remove scrolling if present
+        if poopt.wcswidth(self.text) < self.width:
+            self.view_pos = 0
+
         assert(self.pos >= self.view_pos and
                self.pos <= self.view_pos + max(self.width, 3))
 
