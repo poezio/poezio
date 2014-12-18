@@ -120,7 +120,11 @@ class CommandArgParser(object):
                 if len(args) < mandatory:
                     return func(self, None, *a, **kw)
                 res, args = args[:mandatory], args[mandatory:]
-                opt_args = args[:optional]
+                if optional == -1:
+                    opt_args = args[:]
+                else:
+                    opt_args = args[:optional]
+
                 if opt_args:
                     res += opt_args
                     args = args[len(opt_args):]
