@@ -315,7 +315,8 @@ def completion_set(self, the_input):
                     return the_input.new_completion([''], n, quotify=True)
             plugin = self.plugin_manager.plugins[plugin_name]
             end_list = set(plugin.config.options(section or plugin_name))
-            end_list.update(plugin.config.default.get(section or plugin_name, {}))
+            if plugin.config.default:
+                end_list.update(plugin.config.default.get(section or plugin_name, {}))
             end_list = list(end_list)
             end_list.sort()
         elif not config.has_option('Poezio', args[1]):
