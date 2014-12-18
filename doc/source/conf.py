@@ -53,9 +53,9 @@ copyright = '%s, Mathieu Pasquet - Florent Le Coz' % time.strftime('%Y')
 # built documents.
 #
 # The short X.Y version.
-version = '0.8.3'
+version = '0.9'
 # The full version, including alpha/beta/rc tags.
-release = '0.8.3-dev'
+release = '0.9-dev'
 
 add_function_parentheses = True
 
