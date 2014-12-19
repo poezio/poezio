@@ -779,7 +779,7 @@ class MucTab(ChatTab):
         """
         /ignore <nick>
         """
-        if arg is None:
+        if args is None:
             return self.core.command_help('ignore')
 
         nick = args[0]
@@ -797,7 +797,7 @@ class MucTab(ChatTab):
         """
         /unignore <nick>
         """
-        if arg is None:
+        if args is None:
             return self.core.command_help('unignore')
 
         nick = args[0]
