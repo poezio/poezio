@@ -682,7 +682,7 @@ def command_toggle(self, args):
         return self.command_help('toggle')
 
     if args[0]:
-        self.command_set('%s toggle' % arg[0])
+        self.command_set('%s toggle' % args[0])
 
 @command_args_parser.quoted(1, 1)
 def command_server_cycle(self, args):
