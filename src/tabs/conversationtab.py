@@ -154,10 +154,10 @@ class ConversationTab(OneToOneTab):
     @command_args_parser.quoted(0, 1)
     def command_last_activity(self, args):
         """
-        /activity [jid]
+        /last_activity [jid]
         """
-        if args is not None:
-            return self.core.command_last_activity(arg[0])
+        if args and args[0]:
+            return self.core.command_last_activity(args[0])
 
         def callback(iq):
             if iq['type'] != 'result':
@@ -184,7 +184,7 @@ class ConversationTab(OneToOneTab):
             self.add_message(msg)
             self.core.refresh_window()
 
-        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.general_jid, callback=callback)
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.get_dest_jid(), callback=callback)
 
     @refresh_wrapper.conditional
     @command_args_parser.ignored
