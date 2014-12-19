@@ -689,7 +689,7 @@ class MucTab(ChatTab):
                                          _('Error'))
 
         if not safeJID(self.name + '/' + nick):
-            return self.core('Invalid nick', 'Info')
+            return self.core.information('Invalid nick', 'Info')
         muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
                           callback=callback)
 
