@@ -69,17 +69,6 @@ class YesNoInput(Win):
         if key.lower() in self.key_func:
             self.key_func[key]()
 
-    def prompt(self):
-        """Monopolizes the input while waiting for a recognized keypress"""
-        def cb(key):
-            if key in self.key_func:
-                self.key_func[key]()
-            if self.value is None:
-                # We didn’t finish with this prompt, continue monopolizing
-                # it again until value is set
-                keyboard.continuation_keys_callback = cb
-        keyboard.continuation_keys_callback = cb
-
     def on_delete(self):
         return
 
