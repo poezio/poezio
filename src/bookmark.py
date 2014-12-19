@@ -13,7 +13,7 @@ import functools
 import logging
 from sys import version_info
 
-from slixmpp.plugins.xep_0048 import Bookmarks, Conference
+from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from common import safeJID
 from config import config
 
