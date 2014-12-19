@@ -887,7 +887,7 @@ def command_destroy_room(self, args):
     room = safeJID(args[0]).bare
     if room:
         muc.destroy_room(self.xmpp, room)
-    elif isinstance(self.current_tab(), tabs.MucTab) and not arg:
+    elif isinstance(self.current_tab(), tabs.MucTab) and not args[0]:
         muc.destroy_room(self.xmpp, self.current_tab().general_jid)
     else:
         self.information(_('Invalid JID: "%s"') % args[0], _('Error'))
