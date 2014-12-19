@@ -370,7 +370,7 @@ class MucTab(ChatTab):
                 return
             self.core.open_new_form(form, self.cancel_config, self.send_config)
 
-        form = fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
+        fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
 
     def cancel_config(self, form):
         """
