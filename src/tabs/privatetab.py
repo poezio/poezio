@@ -215,8 +215,8 @@ class PrivateTab(OneToOneTab):
         """
         /info
         """
-        if args:
-            self.parent_muc.command_info(args[0])
+        if arg and arg[0]:
+            self.parent_muc.command_info(arg[0])
         else:
             user = safeJID(self.name).resource
             self.parent_muc.command_info(user)
