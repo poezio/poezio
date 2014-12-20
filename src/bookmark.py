@@ -11,19 +11,12 @@ bookmarks, both local and remote.
 
 import functools
 import logging
-from sys import version_info
 
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from common import safeJID
 from config import config
 
 log = logging.getLogger(__name__)
-
-def xml_iter(xml, tag=''):
-    if version_info[1] >= 2:
-        return xml.iter(tag)
-    else:
-        return xml.getiterator(tag)
 
 preferred = config.get('use_bookmarks_method').lower()
 if preferred not in ('pep', 'privatexml'):
@@ -101,10 +94,10 @@ class Bookmark(object):
         name = el.get('name')
         autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
         nick = None
-        for n in xml_iter(el, 'nick'):
+        for n in xml.iter(el, 'nick'):
             nick = n.text
         password = None
-        for p in xml_iter(el, 'password'):
+        for p in xml.iter(el, 'password'):
             password = p.text
 
         return Bookmark(jid, name, autojoin, nick, password, method)

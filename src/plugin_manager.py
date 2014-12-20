@@ -5,12 +5,10 @@ the API together. Defines also a bunch of variables related to the
 plugin env.
 """
 
-import imp
 import os
 from os import path
 import logging
 from gettext import gettext as _
-from sys import version_info
 
 import core
 import tabs
@@ -44,9 +42,8 @@ class PluginManager(object):
         self.tab_keys = {}
         self.roster_elements = {}
 
-        if version_info[1] >= 3: # 3.3 & >
-            from importlib import machinery
-            self.finder = machinery.PathFinder()
+        from importlib import machinery
+        self.finder = machinery.PathFinder()
 
         self.initial_set_plugins_dir()
         self.initial_set_plugins_conf_dir()
@@ -70,29 +67,16 @@ class PluginManager(object):
 
         try:
             module = None
-            if version_info[1] < 3: # < 3.3
-                if name in self.modules:
-                    imp.acquire_lock()
-                    module = imp.reload(self.modules[name])
-                else:
-                    file, filename, info = imp.find_module(name,
-                                                           self.load_path)
-                    imp.acquire_lock()
-                    module = imp.load_module(name, file, filename, info)
-            else: # 3.3 & >
-                loader = self.finder.find_module(name, self.load_path)
-                if not loader:
-                    self.core.information('Could not find plugin: %s' % name)
-                    return
-                module = loader.load_module()
-
+            loader = self.finder.find_module(name, self.load_path)
+            if not loader:
+                self.core.information('Could not find plugin: %s' % name)
+                return
+            module = loader.load_module()
         except Exception as e:
             log.debug("Could not load plugin %s", name, exc_info=True)
             self.core.information("Could not load plugin %s: %s" % (name, e),
                                   'Error')
         finally:
-            if version_info[1] < 3 and imp.lock_held():
-                imp.release_lock()
             if not module:
                 return
 

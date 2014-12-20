@@ -69,14 +69,11 @@ log = logging.getLogger(__name__)
 from config import config
 
 import curses
-import imp
 import os
 from os import path
-from sys import version_info
 
-if version_info[1] >= 3:
-    from importlib import machinery
-    finder = machinery.PathFinder()
+from importlib import machinery
+finder = machinery.PathFinder()
 
 class Theme(object):
     """
@@ -500,21 +497,13 @@ def reload_theme():
     new_theme = None
     exc = None
     try:
-        if version_info[1] < 3:
-            file, filename, info = imp.find_module(theme_name, load_path)
-            imp.acquire_lock()
-            new_theme = imp.load_module(theme_name, file, filename, info)
-        else:
-            loader = finder.find_module(theme_name, load_path)
-            if not loader:
-                return 'Failed to load the theme %s' % theme_name
-            new_theme = loader.load_module()
+        loader = finder.find_module(theme_name, load_path)
+        if not loader:
+            return 'Failed to load the theme %s' % theme_name
+        new_theme = loader.load_module()
     except Exception as e:
         log.error('Failed to load the theme %s', theme_name, exc_info=True)
         exc = e
-    finally:
-        if version_info[1] < 3 and imp.lock_held():
-            imp.release_lock()
 
     if not new_theme:
         return 'Failed to load theme: %s' % exc
