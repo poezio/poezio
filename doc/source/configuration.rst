@@ -519,6 +519,15 @@ or the way messages are displayed.
         If set to ``desc``, the MUC users will be displayed from top to bottom in the list,
         if set to ``asc``, they will be displayed from bottom to top.
 
+    deterministic_nick_colors
+
+        **Default value:** ``true``
+
+        Use a deterministic algorithm to choose the user colors in chatrooms if
+        set to ``true``. Otherwise the colors will be picked randomly.
+
+        The value of this option affects the behavior of :term:`/recolor`.
+
     vertical_tab_list_size
 
         **Default value:** ``20``

@@ -12,6 +12,7 @@ An user is a MUC participant, not a roster contact (see contact.py)
 
 from random import choice
 from datetime import timedelta, datetime
+from hashlib import md5
 
 from theming import get_theme
 
@@ -27,13 +28,22 @@ class User(object):
     """
     keep trace of an user in a Room
     """
-    def __init__(self, nick, affiliation, show, status, role, jid):
+    def __init__(self, nick, affiliation, show, status, role, jid, deterministic=True):
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
+        if deterministic:
+            self.set_deterministic_color()
+        else:
+            self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
         self.jid = jid
         self.chatstate = None
+
+    def set_deterministic_color(self):
+        theme = get_theme()
+        mod = len(theme.LIST_COLOR_NICKNAMES)
+        nick_pos = int(md5(self.nick.encode('utf-8')).hexdigest(), 16) % mod
+        self.color = theme.LIST_COLOR_NICKNAMES[nick_pos]
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation

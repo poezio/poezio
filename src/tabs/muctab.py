@@ -401,6 +401,19 @@ class MucTab(ChatTab):
         /recolor [random]
         Re-assign color to the participants of the room
         """
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
+        if deterministic:
+            for user in self.users:
+                if user.nick == self.own_nick:
+                    continue
+                user.set_deterministic_color()
+            if args[0] == 'random':
+                self.core.information(_('"random" was provided, but poezio is '
+                                        'configured to use deterministic colors'),
+                                        'Warning')
+            self.user_win.refresh(self.users)
+            self.input.refresh()
+            return
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
@@ -995,12 +1008,13 @@ class MucTab(ChatTab):
         role = presence['muc']['role']
         jid = presence['muc']['jid']
         typ = presence['type']
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
         if not self.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if (from_nick not in [user.nick for user in self.users]
                     and typ != "unavailable"):
                 new_user = User(from_nick, affiliation, show,
-                                status, role, jid)
+                                status, role, jid, deterministic)
                 self.users.append(new_user)
                 self.core.events.trigger('muc_join', presence, self)
                 if '110' in status_codes or self.own_nick == from_nick:
@@ -1136,8 +1150,9 @@ class MucTab(ChatTab):
         """
         When a new user joins the groupchat
         """
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
         user = User(from_nick, affiliation,
-                    show, status, role, jid)
+                    show, status, role, jid, deterministic)
         self.users.append(user)
         hide_exit_join = config.get_by_tabname('hide_exit_join',
                                                self.general_jid)

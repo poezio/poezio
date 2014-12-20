@@ -42,6 +42,7 @@ DEFAULT_CONFIG = {
         'custom_host': '',
         'custom_port': '',
         'default_nick': '',
+        'deterministic_nick_colors': True,
         'display_activity_notifications': False,
         'display_gaming_notifications': False,
         'display_mood_notifications': False,
