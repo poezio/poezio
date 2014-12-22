@@ -158,6 +158,11 @@ class MucTab(ChatTab):
                        ' for a non-deterministic result.'),
                 shortdesc=_('Change the nicks colors.'),
                 completion=self.completion_recolor)
+        self.register_command('color', self.command_color,
+                usage=_('<nick> <color>'),
+                desc=_('Fix a color for a nick.'),
+                shortdesc=_('Fix a color for a nick.'),
+                completion=self.completion_color)
         self.register_command('cycle', self.command_cycle,
                 usage=_('[message]'),
                 desc=_('Leave the current room and rejoin it immediately.'),
@@ -260,6 +265,19 @@ class MucTab(ChatTab):
         if the_input.get_argument_position() == 1:
             return the_input.new_completion(['random'], 1, '', quotify=False)
         return True
+
+    def completion_color(self, the_input):
+        """Completion for /color"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            userlist = [user.nick for user in self.users]
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
+            return the_input.new_completion(userlist, 1, '', quotify=True)
+        elif n == 2:
+            colors = [i for i in xhtml.colors if i]
+            colors.sort()
+            return the_input.new_completion(colors, 2, '', quotify=False)
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
@@ -427,6 +445,31 @@ class MucTab(ChatTab):
             random.shuffle(colors)
         for i, user in enumerate(sorted_users):
             user.color = colors[i % len(colors)]
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.user_win.refresh(self.users)
+        self.text_win.refresh()
+        self.input.refresh()
+
+    @command_args_parser.quoted(2, 2, [''])
+    def command_color(self, args):
+        """
+        /color <nick> <color>
+        Fix a color for a nick.
+        """
+        if args is None:
+            return self.core.command_help('color')
+        nick = args[0]
+        color = args[1].lower()
+        user = self.get_user_by_name(nick)
+        if not user:
+            return self.core.information(_("Unknown user: %s") % nick)
+        if not color in xhtml.colors:
+            return self.core.information(_("Unknown color: %s") % color, 'Error')
+        if user.nick == self.own_nick:
+            return self.core.information(_("You cannot change the color of your"
+                                           " own nick.", 'Error'))
+        colors = list(get_theme().LIST_COLOR_NICKNAMES)
+        user.color = (xhtml.colors[color], -1)
         self.text_win.rebuild_everything(self._text_buffer)
         self.user_win.refresh(self.users)
         self.text_win.refresh()
