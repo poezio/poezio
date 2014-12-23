@@ -135,6 +135,8 @@ DEFAULT_CONFIG = {
     'var': {
         'folded_roster_groups': '',
         'info_win_height': 2
+    },
+    'muc_colors': {
     }
 }
 

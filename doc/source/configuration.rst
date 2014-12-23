@@ -747,6 +747,15 @@ or the way messages are displayed.
         If the message takes more than one line, the popup will stay visible
         two more second per additional lines.
 
+    muc_colors (section)
+
+        **Default:** ``[empty]``
+
+        Fix a color for a nick. Whenever such a nick appears in a MUC, it will
+	be displayed in that color. This color won't be changed by the recolor
+	command.
+
+
 User Interaction
 ~~~~~~~~~~~~~~~~
 
