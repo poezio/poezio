@@ -160,7 +160,8 @@ class MucTab(ChatTab):
                 completion=self.completion_recolor)
         self.register_command('color', self.command_color,
                 usage=_('<nick> <color>'),
-                desc=_('Fix a color for a nick.'),
+                desc=_('Fix a color for a nick. Use "unset" instead of a color'
+                       ' to remove the attribution'),
                 shortdesc=_('Fix a color for a nick.'),
                 completion=self.completion_color)
         self.register_command('cycle', self.command_cycle,
@@ -277,6 +278,7 @@ class MucTab(ChatTab):
         elif n == 2:
             colors = [i for i in xhtml.colors if i]
             colors.sort()
+            colors.append('unset')
             return the_input.new_completion(colors, 2, '', quotify=False)
 
     def completion_ignore(self, the_input):
@@ -464,6 +466,7 @@ class MucTab(ChatTab):
         """
         /color <nick> <color>
         Fix a color for a nick.
+        Use "unset" instead of a color to remove the attribution
         """
         if args is None:
             return self.core.command_help('color')
@@ -472,17 +475,21 @@ class MucTab(ChatTab):
         user = self.get_user_by_name(nick)
         if not user:
             return self.core.information(_("Unknown user: %s") % nick)
-        if not color in xhtml.colors:
+        if not color in xhtml.colors and color != 'unset':
             return self.core.information(_("Unknown color: %s") % color, 'Error')
         if user.nick == self.own_nick:
             return self.core.information(_("You cannot change the color of your"
                                            " own nick.", 'Error'))
-        user.change_color(color)
-        config.write_in_file('muc_colors', nick, color)
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.user_win.refresh(self.users)
-        self.text_win.refresh()
-        self.input.refresh()
+        if color == 'unset':
+            if config.remove_and_save(nick, 'muc_colors'):
+                self.core.information(_('Color for nick %s unset') % (nick))
+        else:
+            user.change_color(color)
+            config.set_and_save(nick, color, 'muc_colors')
+            self.text_win.rebuild_everything(self._text_buffer)
+            self.user_win.refresh(self.users)
+            self.text_win.refresh()
+            self.input.refresh()
 
     @command_args_parser.quoted(1)
     def command_version(self, args):
