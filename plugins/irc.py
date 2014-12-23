@@ -171,14 +171,16 @@ class Plugin(BasePlugin):
             login_nick = self.config.get_by_tabname('login_nick', section, default='')
             nick = self.config.get_by_tabname('nickname', section, default='') or self.core.own_nick
             if login_command and login_nick:
-                def login():
-                    dest = '{}!{}'.format(login_nick, room_suffix[1:])
-                    self.core.xmpp.send_message(mto=dest, mbody=login_command, mtype='chat')
-                    delayed = self.api.create_delayed_event(5, self.join, gateway, section)
+                def login(gw, sect, log_nick, log_cmd, room_suff):
+                    dest = '{}!{}'.format(log_nick, room_suff)
+                    self.core.xmpp.send_message(mto=dest, mbody=log_cmd, mtype='chat')
+                    delayed = self.api.create_delayed_event(5, self.join, gw, sect)
                     self.api.add_timed_event(delayed)
                 if not already_opened:
                     self.core.command_join(room_suffix + '/' + nick)
-                    delayed = self.api.create_delayed_event(3, login)
+                    delayed = self.api.create_delayed_event(5, login, gateway, section,
+                                                            login_nick, login_command,
+                                                            room_suffix[1:])
                     self.api.add_timed_event(delayed)
                 else:
                     login()
