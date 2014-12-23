@@ -426,7 +426,7 @@ class MucTab(ChatTab):
             for user in self.users:
                 if user.nick == self.own_nick:
                     continue
-                color = config.get_by_tabname(user.nick, 'muc_colors')
+                color = self.search_for_color(user.nick)
                 if color != '':
                     continue
                 user.set_deterministic_color()
@@ -444,7 +444,7 @@ class MucTab(ChatTab):
         # search our own user, to remove it from the list
         # Also remove users whose color is fixed
         for user in full_sorted_users:
-            color = config.get_by_tabname(user.nick, 'muc_colors')
+            color = self.search_for_color(user.nick)
             if user.nick == self.own_nick:
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
@@ -1068,7 +1068,7 @@ class MucTab(ChatTab):
         jid = presence['muc']['jid']
         typ = presence['type']
         deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
-        color = config.get_by_tabname(from_nick, 'muc_colors')
+        color = self.search_for_color(from_nick)
         if not self.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if (from_nick not in [user.nick for user in self.users]
@@ -1670,3 +1670,19 @@ class MucTab(ChatTab):
             self.core.refresh_window()
         else:                   # Re-send a self-ping in a few seconds
             self.enable_self_ping_event()
+
+    def search_for_color(self, nick):
+        """
+        Search for the color of a nick in the config file.
+        Also, look at the colors of its possible aliases if nick_color_aliases
+        is set.
+        """
+        color = config.get_by_tabname(nick, 'muc_colors')
+        if color != '':
+            return color
+        nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
+        if nick_color_aliases:
+            nick_alias = re.sub('^_*', '', nick)
+            nick_alias = re.sub('_*$', '', nick_alias)
+            color = config.get_by_tabname(nick_alias, 'muc_colors')
+        return color

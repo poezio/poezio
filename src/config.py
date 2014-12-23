@@ -43,6 +43,7 @@ DEFAULT_CONFIG = {
         'custom_port': '',
         'default_nick': '',
         'deterministic_nick_colors': True,
+        'nick_color_aliases': True,
         'display_activity_notifications': False,
         'display_gaming_notifications': False,
         'display_mood_notifications': False,
