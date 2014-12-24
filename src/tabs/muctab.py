@@ -158,6 +158,12 @@ class MucTab(ChatTab):
                        ' for a non-deterministic result.'),
                 shortdesc=_('Change the nicks colors.'),
                 completion=self.completion_recolor)
+        self.register_command('color', self.command_color,
+                usage=_('<nick> <color>'),
+                desc=_('Fix a color for a nick. Use "unset" instead of a color'
+                       ' to remove the attribution'),
+                shortdesc=_('Fix a color for a nick.'),
+                completion=self.completion_color)
         self.register_command('cycle', self.command_cycle,
                 usage=_('[message]'),
                 desc=_('Leave the current room and rejoin it immediately.'),
@@ -260,6 +266,20 @@ class MucTab(ChatTab):
         if the_input.get_argument_position() == 1:
             return the_input.new_completion(['random'], 1, '', quotify=False)
         return True
+
+    def completion_color(self, the_input):
+        """Completion for /color"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            userlist = [user.nick for user in self.users]
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
+            return the_input.new_completion(userlist, 1, '', quotify=True)
+        elif n == 2:
+            colors = [i for i in xhtml.colors if i]
+            colors.sort()
+            colors.append('unset')
+            return the_input.new_completion(colors, 2, '', quotify=False)
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
@@ -406,6 +426,9 @@ class MucTab(ChatTab):
             for user in self.users:
                 if user.nick == self.own_nick:
                     continue
+                color = self.search_for_color(user.nick)
+                if color != '':
+                    continue
                 user.set_deterministic_color()
             if args[0] == 'random':
                 self.core.information(_('"random" was provided, but poezio is '
@@ -417,11 +440,17 @@ class MucTab(ChatTab):
         compare_users = lambda x: x.last_talked
         users = list(self.users)
         sorted_users = sorted(users, key=compare_users, reverse=True)
+        full_sorted_users = sorted_users[:]
         # search our own user, to remove it from the list
-        for user in sorted_users:
+        # Also remove users whose color is fixed
+        for user in full_sorted_users:
+            color = self.search_for_color(user.nick)
             if user.nick == self.own_nick:
                 sorted_users.remove(user)
                 user.color = get_theme().COLOR_OWN_NICK
+            elif color != '':
+                sorted_users.remove(user)
+                user.change_color(color, deterministic)
         colors = list(get_theme().LIST_COLOR_NICKNAMES)
         if args[0] == 'random':
             random.shuffle(colors)
@@ -431,6 +460,44 @@ class MucTab(ChatTab):
         self.user_win.refresh(self.users)
         self.text_win.refresh()
         self.input.refresh()
+
+    @command_args_parser.quoted(2, 2, [''])
+    def command_color(self, args):
+        """
+        /color <nick> <color>
+        Fix a color for a nick.
+        Use "unset" instead of a color to remove the attribution
+        """
+        if args is None:
+            return self.core.command_help('color')
+        nick = args[0]
+        color = args[1].lower()
+        user = self.get_user_by_name(nick)
+        if not color in xhtml.colors and color != 'unset':
+            return self.core.information(_("Unknown color: %s") % color, 'Error')
+        if user and user.nick == self.own_nick:
+            return self.core.information(_("You cannot change the color of your"
+                                           " own nick.", 'Error'))
+        if color == 'unset':
+            if config.remove_and_save(nick, 'muc_colors'):
+                self.core.information(_('Color for nick %s unset') % (nick))
+        else:
+            if user:
+                user.change_color(color)
+            config.set_and_save(nick, color, 'muc_colors')
+            nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
+            if nick_color_aliases:
+                # if any user in the room has a nick which is an alias of the
+                # nick, update its color
+                for u in self.users:
+                    nick_alias = re.sub('^_*', '', u.nick)
+                    nick_alias = re.sub('_*$', '', nick_alias)
+                    if nick_alias == nick:
+                        u.change_color(color)
+            self.text_win.rebuild_everything(self._text_buffer)
+            self.user_win.refresh(self.users)
+            self.text_win.refresh()
+            self.input.refresh()
 
     @command_args_parser.quoted(1)
     def command_version(self, args):
@@ -1009,12 +1076,13 @@ class MucTab(ChatTab):
         jid = presence['muc']['jid']
         typ = presence['type']
         deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
+        color = self.search_for_color(from_nick)
         if not self.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if (from_nick not in [user.nick for user in self.users]
                     and typ != "unavailable"):
                 new_user = User(from_nick, affiliation, show,
-                                status, role, jid, deterministic)
+                                status, role, jid, deterministic, color)
                 self.users.append(new_user)
                 self.core.events.trigger('muc_join', presence, self)
                 if '110' in status_codes or self.own_nick == from_nick:
@@ -1091,7 +1159,7 @@ class MucTab(ChatTab):
             if not user:
                 self.core.events.trigger('muc_join', presence, self)
                 self.on_user_join(from_nick, affiliation, show, status, role,
-                                  jid)
+                                  jid, color)
             # nick change
             elif change_nick:
                 self.core.events.trigger('muc_nickchange', presence, self)
@@ -1146,13 +1214,13 @@ class MucTab(ChatTab):
             typ=2)
         self.disconnect()
 
-    def on_user_join(self, from_nick, affiliation, show, status, role, jid):
+    def on_user_join(self, from_nick, affiliation, show, status, role, jid, color):
         """
         When a new user joins the groupchat
         """
         deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
         user = User(from_nick, affiliation,
-                    show, status, role, jid, deterministic)
+                    show, status, role, jid, deterministic, color)
         self.users.append(user)
         hide_exit_join = config.get_by_tabname('hide_exit_join',
                                                self.general_jid)
@@ -1193,6 +1261,12 @@ class MucTab(ChatTab):
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
             self.core.on_muc_own_nickchange(self)
+        else:
+            color = config.get_by_tabname(new_nick, 'muc_colors')
+            if color != '':
+                deterministic = config.get_by_tabname('deterministic_nick_colors',
+                                                      self.name)
+                user.change_color(color, deterministic)
         user.change_nick(new_nick)
 
         if config.get_by_tabname('display_user_color_in_join_part',
@@ -1604,3 +1678,19 @@ class MucTab(ChatTab):
             self.core.refresh_window()
         else:                   # Re-send a self-ping in a few seconds
             self.enable_self_ping_event()
+
+    def search_for_color(self, nick):
+        """
+        Search for the color of a nick in the config file.
+        Also, look at the colors of its possible aliases if nick_color_aliases
+        is set.
+        """
+        color = config.get_by_tabname(nick, 'muc_colors')
+        if color != '':
+            return color
+        nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
+        if nick_color_aliases:
+            nick_alias = re.sub('^_*', '', nick)
+            nick_alias = re.sub('_*$', '', nick_alias)
+            color = config.get_by_tabname(nick_alias, 'muc_colors')
+        return color

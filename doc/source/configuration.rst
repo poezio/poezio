@@ -528,6 +528,15 @@ or the way messages are displayed.
 
         The value of this option affects the behavior of :term:`/recolor`.
 
+    nick_color_aliases
+
+        **Default value:** ``true``
+
+	Automatically search for color of nick aliases. For example, if nick is
+	set to red, _nick, nick_, _nick_, nick__ etc. will have the same color.
+	Aliases colors are checked first, so that it is still possible to have
+	different colors for nick_ and nick.
+
     vertical_tab_list_size
 
         **Default value:** ``20``
@@ -746,6 +755,14 @@ or the way messages are displayed.
         pops up.
         If the message takes more than one line, the popup will stay visible
         two more second per additional lines.
+
+    muc_colors (section)
+
+        **Default:** ``[empty]``
+
+        Fix a color for a nick. Whenever such a nick appears in a MUC, it will
+	be displayed in that color. This color won't be changed by the recolor
+	command.
 
 User Interaction
 ~~~~~~~~~~~~~~~~

@@ -13,8 +13,12 @@ An user is a MUC participant, not a roster contact (see contact.py)
 from random import choice
 from datetime import timedelta, datetime
 from hashlib import md5
+import xhtml
 
 from theming import get_theme
+
+import logging
+log = logging.getLogger(__name__)
 
 ROLE_DICT = {
     '':0,
@@ -28,14 +32,17 @@ class User(object):
     """
     keep trace of an user in a Room
     """
-    def __init__(self, nick, affiliation, show, status, role, jid, deterministic=True):
+    def __init__(self, nick, affiliation, show, status, role, jid, deterministic=True, color=''):
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        if deterministic:
-            self.set_deterministic_color()
+        if color != '':
+            self.change_color(color, deterministic)
         else:
-            self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
+            if deterministic:
+                self.set_deterministic_color()
+            else:
+                self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
         self.jid = jid
         self.chatstate = None
 
@@ -55,6 +62,17 @@ class User(object):
 
     def change_nick(self, nick):
         self.nick = nick
+
+    def change_color(self, color_name, deterministic=False):
+        color = xhtml.colors.get(color_name)
+        if color == None:
+            log.error('Unknown color "%s"' % color_name)
+            if deterministic:
+                self.set_deterministic_color()
+            else:
+                self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
+        else:
+            self.color = (color, -1)
 
     def set_last_talked(self, time):
         """
