@@ -489,11 +489,12 @@ class MucTab(ChatTab):
             if nick_color_aliases:
                 # if any user in the room has a nick which is an alias of the
                 # nick, update its color
-                for u in self.users:
-                    nick_alias = re.sub('^_*', '', u.nick)
-                    nick_alias = re.sub('_*$', '', nick_alias)
-                    if nick_alias == nick:
-                        u.change_color(color)
+                for tab in self.core.get_tabs(MucTab):
+                    for u in tab.users:
+                        nick_alias = re.sub('^_*', '', u.nick)
+                        nick_alias = re.sub('_*$', '', nick_alias)
+                        if nick_alias == nick:
+                            u.change_color(color)
             self.text_win.rebuild_everything(self._text_buffer)
             self.user_win.refresh(self.users)
             self.text_win.refresh()
