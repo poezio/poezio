@@ -117,6 +117,7 @@ log = logging.getLogger(__name__)
 from plugin import BasePlugin
 
 from tabs import ConversationTab
+from theming import get_theme
 
 NS_SIGNED = "jabber:x:signed"
 NS_ENCRYPTED = "jabber:x:encrypted"
@@ -127,7 +128,6 @@ Hash: %(hash)s
 
 %(clear)s
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG
 
 %(data)s
 -----END PGP SIGNATURE-----
@@ -135,7 +135,6 @@ Version: GnuPG
 
 
 ENCRYPTED_MESSAGE = """-----BEGIN PGP MESSAGE-----
-Version: GnuPG
 
 %(data)s
 -----END PGP MESSAGE-----"""
@@ -156,14 +155,14 @@ class Plugin(BasePlugin):
         self.keyid = self.config.get('keyid', '') or None
         self.passphrase = self.config.get('passphrase', '') or None
         if not self.keyid:
-            self.core.information('No GPG keyid provided in the configuration', 'Warning')
+            self.api.information('No GPG keyid provided in the configuration', 'Warning')
 
-        self.add_event_handler('send_normal_presence', self.sign_presence)
-        self.add_event_handler('normal_presence', self.on_normal_presence)
-        self.add_event_handler('conversation_say_after', self.on_conversation_say)
-        self.add_event_handler('conversation_msg', self.on_conversation_msg)
+        self.api.add_event_handler('send_normal_presence', self.sign_presence)
+        self.api.add_slix_event_handler('presence', self.on_normal_presence)
+        self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
+        self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
 
-        self.add_tab_command(ConversationTab, 'gpg', self.command_gpg,
+        self.api.add_tab_command(ConversationTab, 'gpg', self.command_gpg,
                 usage='<force|disable|setkey> [jid] [keyid]',
                 help='Force or disable gpg encryption with the fulljid of the current conversation. The setkey argument lets you associate a keyid with the given bare JID.',
                 short='Manage the GPG status',
@@ -197,7 +196,7 @@ class Plugin(BasePlugin):
         current_presence = self.core.get_status()
         self.core.command_status('%s %s' % (current_presence.show or 'available', current_presence.message or '',))
 
-    def on_normal_presence(self, presence, resource):
+    def on_normal_presence(self, presence):
         """
         Check if it’s signed, if it is and we can verify the signature,
         add 'valid' or 'invalid' into the dict. If it cannot be verified, just add
@@ -212,7 +211,7 @@ class Plugin(BasePlugin):
             return
         if self.config.has_section('keys') and bare in self.config.options('keys'):
             self.contacts[full] = 'invalid'
-            for hash_ in ('SHA1', 'SHA256'):
+            for hash_ in ('SHA1', 'SHA256', 'SHA512'):
                 to_verify = SIGNED_ATTACHED_MESSAGE % {'clear': presence['status'],
                                                        'data': signed.text,
                                                        'hash': hash_}
@@ -225,7 +224,7 @@ class Plugin(BasePlugin):
 
     def on_conversation_say(self, message, tab):
         """
-        Check if the contact has a signed AND veryfied signature.
+        Check if the contact has a signed AND verified signature.
         If yes, encrypt the message with her key.
         """
         to = message['to']
@@ -234,12 +233,13 @@ class Plugin(BasePlugin):
             return
         signed = to.full in self.contacts.keys()
         if signed:
-            veryfied = self.contacts[to.full] in ('valid', 'forced')
+            verified = self.contacts[to.full] in ('valid', 'forced')
         else:
-            veryfied = False
-        if veryfied:
+            verified = False
+        if verified:
             # remove the xhtm_im body if present, because that
             # cannot be encrypted.
+            body = message['body']
             del message['html']
             encrypted_element = ET.Element('{%s}x' % (NS_ENCRYPTED,))
             text = self.gpg.encrypt(message['body'], self.config.get(to.bare, '', section='keys'), always_trust=True)
@@ -251,6 +251,13 @@ class Plugin(BasePlugin):
             encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(text)))
             message.append(encrypted_element)
             message['body'] = 'This message has been encrypted using the GPG key with id: %s' % self.keyid
+            message.send()
+            del message['body']
+            tab.add_message(body, nickname=self.core.own_nick,
+                            nick_color=get_theme().COLOR_OWN_NICK,
+                            identifier=message['id'],
+                            jid=self.core.xmpp.boundjid,
+                            typ=0)
 
     def on_conversation_msg(self, message, tab):
         """
@@ -278,7 +285,7 @@ class Plugin(BasePlugin):
         if status in ('valid', 'invalid', 'signed'):
             return ' GPG Key: %s (%s)' % (status, 'encrypted' if status == 'valid' else 'NOT encrypted',)
         else:
-            return ' GPG:  Encryption %s' % (status,)
+            return ' GPG: Encryption %s' % (status,)
 
     def command_gpg(self, args):
         """
@@ -314,7 +321,8 @@ class Plugin(BasePlugin):
         self.core.refresh_window()
 
     def gpg_completion(self, the_input):
-        return the_input.auto_completion(['force', 'disable', 'setkey'], ' ')
+        if the_input.get_argument_position() == 1:
+            return the_input.new_completion(['force', 'disable', 'setkey'], 1, quotify=False)
 
     def remove_gpg_headers(self, text):
         lines = text.splitlines()
