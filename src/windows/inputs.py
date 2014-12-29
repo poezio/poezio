@@ -43,6 +43,8 @@ class Input(Win):
             '^D': self.key_dc,
             'M-b': self.jump_word_left,
             "M-[1;5D": self.jump_word_left,
+            "kRIT5": self.jump_word_right,
+            "kLFT5": self.jump_word_left,
             '^W': self.delete_word,
             'M-d': self.delete_next_word,
             '^K': self.delete_end_of_line,

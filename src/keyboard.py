@@ -66,6 +66,9 @@ def get_char_list(s):
                 if key == '^[':
                     try:
                         part = s.get_wch()
+                        if part == '[':
+                            # CTRL+arrow and meta+arrow keys have a long format
+                            part += s.get_wch() + s.get_wch() + s.get_wch() + s.get_wch()
                     except curses.error:
                         pass
                     except ValueError: # invalid input
