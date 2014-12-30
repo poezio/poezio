@@ -313,6 +313,8 @@ class Core(object):
                                        self.on_theme_config_change)
         self.add_configuration_handler("password",
                                        self.on_password_change)
+        self.add_configuration_handler("enable_vertical_tab_list",
+                                       self.on_vertical_tab_list_config_change)
 
         self.add_configuration_handler("", self.on_any_config_change)
 
@@ -374,6 +376,12 @@ class Core(object):
         """
         path = os.path.expanduser(value)
         self.plugin_manager.on_plugins_dir_change(path)
+
+    def on_vertical_tab_list_config_change(self, option, value):
+        """
+        Called when the enable_vertical_tab_list option is changed
+        """
+        self.call_for_resize()
 
     def on_plugins_conf_dir_config_change(self, option, value):
         """
