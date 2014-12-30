@@ -397,19 +397,14 @@ class Core(object):
         """
         self.xmpp.password = value
 
-    def sigusr_handler(self, num, stack):
-        """
-        Handle SIGUSR1 (10)
-        When caught, reload all the possible files.
-        """
-        log.debug("SIGUSR1 caught, reloading the files…")
+    def reload_config(self):
         # reload all log files
         log.debug("Reloading the log files…")
         logger.reload_all()
         log.debug("Log files reloaded.")
         # reload the theme
         log.debug("Reloading the theme…")
-        self.command_theme("")
+        theming.reload_theme()
         log.debug("Theme reloaded.")
         # reload the config from the disk
         log.debug("Reloading the config…")
@@ -428,6 +423,14 @@ class Core(object):
         log.debug("Config reloaded.")
         # in case some roster options have changed
         roster.modified()
+
+    def sigusr_handler(self, num, stack):
+        """
+        Handle SIGUSR1 (10)
+        When caught, reload all the possible files.
+        """
+        log.debug("SIGUSR1 caught, reloading the files…")
+        self.reload_config()
 
     def exit_from_signal(self, *args, **kwargs):
         """
@@ -1877,6 +1880,9 @@ class Core(object):
         self.register_command('ad-hoc', self.command_adhoc,
                 usage='<jid>',
                 shortdesc=_('List available ad-hoc commands on the given jid'))
+        self.register_command('reload', self.command_reload,
+                shortdesc=_('Reload the config. You can achieve the same by '
+                            'sending SIGUSR1 to poezio.'))
 
         if config.get('enable_user_activity'):
             self.register_command('activity', self.command_activity,
@@ -2000,6 +2006,7 @@ class Core(object):
     command_xml_tab = commands.command_xml_tab
     command_adhoc = commands.command_adhoc
     command_self = commands.command_self
+    command_reload = commands.command_reload
     completion_help = completions.completion_help
     completion_status = completions.completion_status
     completion_presence = completions.completion_presence

@@ -1036,5 +1036,14 @@ def command_self(self):
             config_opts.version))
     self.information(info, 'Info')
 
+
+@command_args_parser.ignored
+def command_reload(self):
+    """
+    /reload
+    """
+    self.reload_config()
+
 def dumb_callback(*args, **kwargs):
     "mock callback"
+

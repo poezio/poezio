@@ -265,6 +265,8 @@ These commands work in *any* tab.
     /self
         Reminds you of who you are and what your status is.
 
+    /reload
+        Reload the config. You can achieve the same by sending SIGUSR1 to poezio.
 
     /close
         Close the tab.
