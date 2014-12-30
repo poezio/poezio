@@ -33,7 +33,7 @@ from config import config, CACHE_DIR
 from contact import Resource
 from logger import logger
 from roster import roster
-from text_buffer import CorrectionError
+from text_buffer import CorrectionError, AckError
 from theming import dump_tuple, get_theme
 
 from . commands import dumb_callback
@@ -1065,7 +1065,10 @@ def on_receipt(self, message):
     if not conversation:
         return
 
-    conversation.ack_message(msg_id)
+    try:
+        conversation.ack_message(msg_id, self.xmpp.boundjid)
+    except AckError:
+        log.debug('Error while receiving an ack', exc_info=True)
 
 def on_data_form(self, message):
     """

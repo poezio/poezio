@@ -24,6 +24,9 @@ Message = collections.namedtuple('Message', message_fields)
 class CorrectionError(Exception):
     pass
 
+class AckError(Exception):
+    pass
+
 def other_elems(self):
     "Helper for the repr_message function"
     acc = ['Message(']
@@ -161,7 +164,7 @@ class TextBuffer(object):
                 return i
         return -1
 
-    def ack_message(self, old_id):
+    def ack_message(self, old_id, jid):
         """
         Ack a message
         """
@@ -169,6 +172,10 @@ class TextBuffer(object):
         if i == -1:
             return
         msg = self.messages[i]
+        if msg.jid != jid:
+            raise AckError('Wrong JID for message id %s (was %s, expected %s)' %
+                            (old_id, msg.jid, jid))
+
         new_msg = list(msg)
         new_msg[12] = True
         new_msg = Message(*new_msg)

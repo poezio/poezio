@@ -737,11 +737,11 @@ class OneToOneTab(ChatTab):
             self.add_message(msg, typ=0)
             self.core.refresh_window()
 
-    def ack_message(self, msg_id):
+    def ack_message(self, msg_id, msg_jid):
         """
         Ack a message
         """
-        new_msg = self._text_buffer.ack_message(msg_id)
+        new_msg = self._text_buffer.ack_message(msg_id, msg_jid)
         if new_msg:
             self.text_win.modify_message(msg_id, new_msg)
             self.core.refresh_window()
