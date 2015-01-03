@@ -210,6 +210,11 @@ Plugin index
 
         Display the time between two messages.
 
+    Reorder
+        :ref:`Documentation <reorder-plugin>`
+
+        Reorder the tabs according to a static layout.
+
     Revstr
         :ref:`Documentation <revstr-plugin>`
 
@@ -291,3 +296,4 @@ Plugin index
     change_title
     pipe_cmd
     close_all
+    reorder
