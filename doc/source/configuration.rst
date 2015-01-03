@@ -533,9 +533,9 @@ or the way messages are displayed.
         **Default value:** ``true``
 
 	Automatically search for color of nick aliases. For example, if nick is
-	set to red, _nick, nick_, _nick_, nick__ etc. will have the same color.
+	set to red, _nick, nick\_, _nick_, nick\__ etc. will have the same color.
 	Aliases colors are checked first, so that it is still possible to have
-	different colors for nick_ and nick.
+	different colors for nick\_ and nick.
 
     vertical_tab_list_size
 

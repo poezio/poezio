@@ -207,7 +207,7 @@ status message of the contact. Plugins may add some elements to the status line.
 Dataforms tab
 ~~~~~~~~~~~~~
 
-:ref:`Specific shortcuts <formtab-keys>`
+:ref:`Specific shortcuts <forms-keys>`
 
 This tab lets you view a form received from a remote entity, edit the values and
 send everything back. It is mostly used to configure MUCs with the
