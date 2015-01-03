@@ -243,7 +243,7 @@ Then use the command: /otr trust
 """)
 
 OTR_NOT_ENABLED = _('%(jid_c)s%(jid)s%(info)s did not enable '
-                    'OTR after %(sec)s seconds.')
+                    'OTR after %(secs)s seconds.')
 
 MESSAGE_NOT_SENT = _('%(info)sYour message to %(jid_c)s%(jid)s%(info)s was'
                      ' not sent because your configuration requires an '
@@ -419,7 +419,7 @@ class PoezioAccount(Account):
     """
 
     def __init__(self, jid, key_dir):
-        super(PoezioAccount, self).__init__(jid, 'xmpp', 1024)
+        super(PoezioAccount, self).__init__(jid, 'xmpp', 0)
         self.key_dir = os.path.join(key_dir, jid)
 
     def load_privkey(self):
