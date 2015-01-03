@@ -595,7 +595,7 @@ class Plugin(BasePlugin):
             return
         except ErrorReceived as err:
             # Received an OTR error
-            format_dict['err'] = err.args[0]
+            format_dict['err'] = bytes(err.args[0]).decode('utf-8')
             tab.add_message(OTR_ERROR % format_dict, typ=0)
             del msg['body']
             del msg['html']
@@ -791,7 +791,7 @@ class Plugin(BasePlugin):
             del msg['body']
             del msg['replace']
             del msg['html']
-        elif ctx.getPolicy('REQUIRE_ENCRYPTION'):
+        elif ctx and ctx.getPolicy('REQUIRE_ENCRYPTION'):
             tab.add_message(MESSAGE_NOT_SENT % format_dict, typ=0)
             del msg['body']
             del msg['replace']
