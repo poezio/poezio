@@ -48,77 +48,94 @@ class RosterInfoTab(Tab):
         self.input = self.default_help_message
         self.state = 'normal'
         self.key_func['^I'] = self.completion
-        self.key_func[' '] = self.on_space
         self.key_func["/"] = self.on_slash
-        self.key_func["KEY_UP"] = self.move_cursor_up
-        self.key_func["KEY_DOWN"] = self.move_cursor_down
-        self.key_func["M-u"] = self.move_cursor_to_next_contact
-        self.key_func["M-y"] = self.move_cursor_to_prev_contact
-        self.key_func["M-U"] = self.move_cursor_to_next_group
-        self.key_func["M-Y"] = self.move_cursor_to_prev_group
-        self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
-        self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
-        self.key_func["l"] = self.command_last_activity
-        self.key_func["o"] = self.toggle_offline_show
-        self.key_func["v"] = self.get_contact_version
-        self.key_func["i"] = self.show_contact_info
-        self.key_func["n"] = self.change_contact_name
-        self.key_func["s"] = self.start_search
-        self.key_func["S"] = self.start_search_slow
-        self.register_command('deny', self.command_deny,
-                usage=_('[jid]'),
-                desc=_('Deny your presence to the provided JID (or the selected contact in your roster), who is asking you to be in his/here roster.'),
-                shortdesc=_('Deny an user your presence.'),
-                completion=self.completion_deny)
-        self.register_command('accept', self.command_accept,
-                usage=_('[jid]'),
-                desc=_('Allow the provided JID (or the selected contact in your roster), to see your presence.'),
-                shortdesc=_('Allow an user your presence.'),
-                completion=self.completion_deny)
-        self.register_command('add', self.command_add,
-                usage=_('<jid>'),
-                desc=_('Add the specified JID to your roster, ask him to allow you to see his presence, and allow him to see your presence.'),
-                shortdesc=_('Add an user to your roster.'))
-        self.register_command('name', self.command_name,
-                usage=_('<jid> [name]'),
-                shortdesc=_('Set the given JID\'s name.'),
-                completion=self.completion_name)
-        self.register_command('groupadd', self.command_groupadd,
-                usage=_('<jid> <group>'),
-                desc=_('Add the given JID to the given group.'),
-                shortdesc=_('Add an user to a group'),
-                completion=self.completion_groupadd)
-        self.register_command('groupmove', self.command_groupmove,
-                usage=_('<jid> <old group> <new group>'),
-                desc=_('Move the given JID from the old group to the new group.'),
-                shortdesc=_('Move an user to another group.'),
-                completion=self.completion_groupmove)
-        self.register_command('groupremove', self.command_groupremove,
-                usage=_('<jid> <group>'),
-                desc=_('Remove the given JID from the given group.'),
-                shortdesc=_('Remove an user from a group.'),
-                completion=self.completion_groupremove)
-        self.register_command('remove', self.command_remove,
-                usage=_('[jid]'),
-                desc=_('Remove the specified JID from your roster. This wil unsubscribe you from its presence, cancel its subscription to yours, and remove the item from your roster.'),
-                shortdesc=_('Remove an user from your roster.'),
-                completion=self.completion_remove)
+        # disable most of the roster features when in anonymous mode
+        if not self.core.xmpp.anon:
+            self.key_func[' '] = self.on_space
+            self.key_func["KEY_UP"] = self.move_cursor_up
+            self.key_func["KEY_DOWN"] = self.move_cursor_down
+            self.key_func["M-u"] = self.move_cursor_to_next_contact
+            self.key_func["M-y"] = self.move_cursor_to_prev_contact
+            self.key_func["M-U"] = self.move_cursor_to_next_group
+            self.key_func["M-Y"] = self.move_cursor_to_prev_group
+            self.key_func["M-[1;5B"] = self.move_cursor_to_next_group
+            self.key_func["M-[1;5A"] = self.move_cursor_to_prev_group
+            self.key_func["l"] = self.command_last_activity
+            self.key_func["o"] = self.toggle_offline_show
+            self.key_func["v"] = self.get_contact_version
+            self.key_func["i"] = self.show_contact_info
+            self.key_func["s"] = self.start_search
+            self.key_func["S"] = self.start_search_slow
+            self.key_func["n"] = self.change_contact_name
+            self.register_command('deny', self.command_deny,
+                    usage=_('[jid]'),
+                    desc=_('Deny your presence to the provided JID (or the '
+                           'selected contact in your roster), who is asking'
+                           'you to be in his/here roster.'),
+                    shortdesc=_('Deny an user your presence.'),
+                    completion=self.completion_deny)
+            self.register_command('accept', self.command_accept,
+                    usage=_('[jid]'),
+                    desc=_('Allow the provided JID (or the selected contact '
+                           'in your roster), to see your presence.'),
+                    shortdesc=_('Allow an user your presence.'),
+                    completion=self.completion_deny)
+            self.register_command('add', self.command_add,
+                    usage=_('<jid>'),
+                    desc=_('Add the specified JID to your roster, ask him to'
+                           ' allow you to see his presence, and allow him to'
+                           ' see your presence.'),
+                    shortdesc=_('Add an user to your roster.'))
+            self.register_command('name', self.command_name,
+                    usage=_('<jid> [name]'),
+                    shortdesc=_('Set the given JID\'s name.'),
+                    completion=self.completion_name)
+            self.register_command('groupadd', self.command_groupadd,
+                    usage=_('<jid> <group>'),
+                    desc=_('Add the given JID to the given group.'),
+                    shortdesc=_('Add an user to a group'),
+                    completion=self.completion_groupadd)
+            self.register_command('groupmove', self.command_groupmove,
+                    usage=_('<jid> <old group> <new group>'),
+                    desc=_('Move the given JID from the old group to the new group.'),
+                    shortdesc=_('Move an user to another group.'),
+                    completion=self.completion_groupmove)
+            self.register_command('groupremove', self.command_groupremove,
+                    usage=_('<jid> <group>'),
+                    desc=_('Remove the given JID from the given group.'),
+                    shortdesc=_('Remove an user from a group.'),
+                    completion=self.completion_groupremove)
+            self.register_command('remove', self.command_remove,
+                    usage=_('[jid]'),
+                    desc=_('Remove the specified JID from your roster. This '
+                           'will unsubscribe you from its presence, cancel '
+                           'its subscription to yours, and remove the item '
+                           'from your roster.'),
+                    shortdesc=_('Remove an user from your roster.'),
+                    completion=self.completion_remove)
+            self.register_command('export', self.command_export,
+                    usage=_('[/path/to/file]'),
+                    desc=_('Export your contacts into /path/to/file if '
+                           'specified, or $HOME/poezio_contacts if not.'),
+                    shortdesc=_('Export your roster to a file.'),
+                    completion=partial(self.completion_file, 1))
+            self.register_command('import', self.command_import,
+                    usage=_('[/path/to/file]'),
+                    desc=_('Import your contacts from /path/to/file if '
+                           'specified, or $HOME/poezio_contacts if not.'),
+                    shortdesc=_('Import your roster from a file.'),
+                    completion=partial(self.completion_file, 1))
+            self.register_command('password', self.command_password,
+                    usage='<password>',
+                    shortdesc=_('Change your password'))
+
         self.register_command('reconnect', self.command_reconnect,
-                desc=_('Disconnect from the remote server if you are currently connected and then connect to it again.'),
+                desc=_('Disconnect from the remote server if you are '
+                       'currently connected and then connect to it again.'),
                 shortdesc=_('Disconnect and reconnect to the server.'))
         self.register_command('disconnect', self.command_disconnect,
                 desc=_('Disconnect from the remote server.'),
                 shortdesc=_('Disconnect from the server.'))
-        self.register_command('export', self.command_export,
-                usage=_('[/path/to/file]'),
-                desc=_('Export your contacts into /path/to/file if specified, or $HOME/poezio_contacts if not.'),
-                shortdesc=_('Export your roster to a file.'),
-                completion=partial(self.completion_file, 1))
-        self.register_command('import', self.command_import,
-                usage=_('[/path/to/file]'),
-                desc=_('Import your contacts from /path/to/file if specified, or $HOME/poezio_contacts if not.'),
-                shortdesc=_('Import your roster from a file.'),
-                completion=partial(self.completion_file, 1))
         self.register_command('clear', self.command_clear,
                 shortdesc=_('Clear the info buffer.'))
         self.register_command('last_activity', self.command_last_activity,
@@ -126,16 +143,13 @@ class RosterInfoTab(Tab):
                 desc=_('Informs you of the last activity of a JID.'),
                 shortdesc=_('Get the activity of someone.'),
                 completion=self.core.completion_last_activity)
-        self.register_command('password', self.command_password,
-                usage='<password>',
-                shortdesc=_('Change your password'))
 
         self.resize()
         self.update_commands()
         self.update_keys()
 
     def check_blocking(self, features):
-        if 'urn:xmpp:blocking' in features:
+        if 'urn:xmpp:blocking' in features and not self.core.xmpp.anon:
             self.register_command('block', self.command_block,
                     usage=_('[jid]'),
                     shortdesc=_('Prevent a JID from talking to you.'),
@@ -150,7 +164,7 @@ class RosterInfoTab(Tab):
             self.core.xmpp.add_event_handler('blocked_message', self.on_blocked_message)
 
     def check_saslexternal(self, features):
-        if 'urn:xmpp:saslcert:1' in features:
+        if 'urn:xmpp:saslcert:1' in features and not self.core.xmpp.anon:
             self.register_command('certs', self.command_certs,
                                   desc=_('List the fingerprints of certificates'
                                          ' which can connect to your account.'),
