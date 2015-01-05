@@ -43,7 +43,7 @@ except Exception:
     LOGIN = os.getenv('USER')
     LOGIN_TMUX = os.getuid()
 
-SCREEN_DIR = '/var/run/screen/S-%s' % LOGIN
+SCREEN_DIR = '/var/run/screens/S-%s' % LOGIN
 TMUX_DIR = '/tmp/tmux-%s' % LOGIN_TMUX
 
 def find_screen(path):
@@ -63,7 +63,7 @@ class Plugin(BasePlugin, pyinotify.Notifier):
         sock_path = None
         if self.config.get('use_tmux'):
             sock_path = find_screen(TMUX_DIR)
-        if sock_path is None and config.get('use_screen'):
+        if sock_path is None and self.config.get('use_screen'):
             sock_path = find_screen(SCREEN_DIR)
 
         # Only actually do something if we found an attached screen (assuming only one)
