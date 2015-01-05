@@ -818,7 +818,7 @@ class Plugin(BasePlugin):
         """
         args = common.shell_split(arg)
         if not args:
-            return self.api.core.command_help('otr')
+            return self.core.command_help('otr')
         action = args.pop(0)
         tab = self.api.current_tab()
         name = tab.name
