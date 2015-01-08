@@ -1490,10 +1490,6 @@ class MucTab(ChatTab):
             msg = _('\x19%(color)s}%(nick)s\x19%(info_col)s} changed: ') % {
                     'nick': from_nick, 'color': color,
                     'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
-        if show not in SHOW_NAME:
-            self.core.information(_("%s from room %s sent an invalid show: %s")
-                                    % (from_nick, from_room, show),
-                                  _("Warning"))
         if affiliation != user.affiliation:
             msg += _('affiliation: %s, ') % affiliation
             display_message = True
