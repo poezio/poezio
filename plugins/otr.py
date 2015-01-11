@@ -78,37 +78,21 @@ Command added to Conversation Tabs and Private Tabs:
 
         - The ``abort`` command aborts an ongoing verification
         - The ``ask`` command start a verification, with a question or not
-        - The ``answer`` command answers a verification and ends the smp session
+        - The ``answer`` command sends back the answer and finishes the verification
 
-To use OTR, make sure the plugin is loaded (if not, then do ``/load otr``).
+Managing trust
+--------------
 
-A simple workflow looks like this:
+An OTR conversation can be started with a simple ``/otr start`` and the
+conversation will be encrypted. However it is very often useful to check
+that your are talking to the right person.
 
-.. code-block:: none
+To this end, two actions are available, and a message explaining both
+will be prompted each time an **untrusted** conversation is started:
 
-    /otr start
-
-The status of the OTR encryption should appear in the bar between the chat and
-the input as ``OTR: encrypted``.
-
-Then you use ``fpr``/``ourfpr`` to check the fingerprints, and confirm your respective
-identities out-of-band.
-
-You can then use
-
-.. code-block:: none
-
-    /otr trust
-
-To set the key as trusted, which will be shown when you start or refresh a conversation
-(the trust status will be in a bold font and if the key is untrusted, the remote fingerprint
-will be shown).
-
-Once you’re done, end the OTR session with
-
-.. code-block:: none
-
-    /otr end
+- Checking the knowledge of a shared secret through the use of :term:`/otrsmp`
+- Exchanging fingerprints (``/otr fpr`` and ``/otr ourfpr``) out of band (in a secure channel) to check that both match,
+  then use ``/otr trust`` to add then to the list of trusted fingerprints for this JID.
 
 Files
 -----
@@ -582,7 +566,7 @@ class Plugin(BasePlugin):
         except UnencryptedMessage as err:
             # received an unencrypted message inside an OTR session
             self.unencrypted_message_received(err, ctx, msg, tab, format_dict)
-            self.command_otr('start')
+            self.otr_start(tab, tab.name, format_dict)
             return
         except NotOTRMessage as err:
             # ignore non-otr messages
@@ -591,7 +575,7 @@ class Plugin(BasePlugin):
             # but do an additional check because of a bug with potr and py3k
             if ctx.state != STATE_PLAINTEXT or ctx.getPolicy('REQUIRE_ENCRYPTION'):
                 self.unencrypted_message_received(err, ctx, msg, tab, format_dict)
-                self.command_otr('start')
+                self.otr_start(tab, tab.name, format_dict)
             return
         except ErrorReceived as err:
             # Received an OTR error
@@ -680,6 +664,7 @@ class Plugin(BasePlugin):
             else:
                 tab.add_message(SMP_FAIL % format_dict, typ=0)
             ctx.reset_smp()
+        hl(tab)
         self.core.refresh_window()
 
     def unencrypted_message_received(self, err, ctx, msg, tab, format_dict):
@@ -796,7 +781,7 @@ class Plugin(BasePlugin):
             del msg['body']
             del msg['replace']
             del msg['html']
-            self.command_otr('start')
+            self.otr_start(tab, name, format_dict)
 
     def display_encryption_status(self, jid):
         """
@@ -841,31 +826,7 @@ class Plugin(BasePlugin):
                 ctx = self.find_encrypted_context_with_matching(safeJID(name).bare)
                 ctx.disconnect()
         elif action == 'start' or action == 'refresh':
-            otr = self.get_context(name)
-            secs = self.config.get('timeout', 3)
-            if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-                was_locked = True
-            else:
-                was_locked = False
-            def notify_otr_timeout():
-                nonlocal otr
-                if isinstance(tab, DynamicConversationTab) and not was_locked:
-                    if tab.locked_resource:
-                        name = safeJID(tab.name)
-                        name.resource = tab.locked_resource
-                        name = name.full
-                        otr = self.get_context(name)
-                if otr.state != STATE_ENCRYPTED:
-                    format_dict['secs'] = secs
-                    text = OTR_NOT_ENABLED % format_dict
-                    tab.add_message(text, typ=0)
-                    self.core.refresh_window()
-            if secs > 0:
-                event = self.api.create_delayed_event(secs, notify_otr_timeout)
-                self.api.add_timed_event(event)
-            body = self.contexts[name].sendMessage(0, b'?OTRv?').decode()
-            self.core.xmpp.send_message(mto=name, mtype='chat', mbody=body)
-            tab.add_message(OTR_REQUEST % format_dict, typ=0)
+            self.otr_start(tab, name, format_dict)
         elif action == 'ourfpr':
             format_dict['fpr'] = self.account.getPrivkey()
             tab.add_message(OTR_OWN_FPR % format_dict, typ=0)
@@ -909,6 +870,36 @@ class Plugin(BasePlugin):
                 self.account.saveTrusts()
                 tab.add_message(TRUST_REMOVED % format_dict, typ=0)
         self.core.refresh_window()
+
+    def otr_start(self, tab, name, format_dict):
+        """
+        Start an otr conversation with a contact
+        """
+        otr = self.get_context(name)
+        secs = self.config.get('timeout', 3)
+        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
+            was_locked = True
+        else:
+            was_locked = False
+        def notify_otr_timeout():
+            otr = self.get_context(name)
+            if isinstance(tab, DynamicConversationTab) and not was_locked:
+                if tab.locked_resource:
+                    name = safeJID(tab.name)
+                    name.resource = tab.locked_resource
+                    name = name.full
+                    otr = self.get_context(name)
+            if otr.state != STATE_ENCRYPTED:
+                format_dict['secs'] = secs
+                text = OTR_NOT_ENABLED % format_dict
+                tab.add_message(text, typ=0)
+                self.core.refresh_window()
+        if secs > 0:
+            event = self.api.create_delayed_event(secs, notify_otr_timeout)
+            self.api.add_timed_event(event)
+        body = self.contexts[name].sendMessage(0, b'?OTRv?').decode()
+        self.core.xmpp.send_message(mto=name, mtype='chat', mbody=body)
+        tab.add_message(OTR_REQUEST % format_dict, typ=0)
 
     @staticmethod
     def completion_otr(the_input):
