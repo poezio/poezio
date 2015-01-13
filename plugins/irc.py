@@ -90,6 +90,15 @@ Commands
         will try to join all the rooms configured with autojoin on that
         server.
 
+    /irc_query
+        **Usage:** ``/irc_query <nickname> [message]``
+
+        Open a private conversation with the given nickname, on the same IRC
+        server as the current tab (can be a private conversation or a
+        chatroom).  Doing `/irc_query foo "hello there"` when the current
+        tab is #foo%irc.example.com@biboumi.example.com is equivalent to
+        `/message foo!irc.example.com@biboumi.example.com "hello there"`
+
 Example configuration
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -113,6 +122,7 @@ Example configuration
 
 
 .. _official website: http://biboumi.louiz.org/
+
 """
 
 from plugin import BasePlugin
@@ -144,6 +154,19 @@ class Plugin(BasePlugin):
                                    '<server> '),
                              short='Join irc rooms more easily',
                              completion=self.completion_irc_join)
+
+        self.api.add_command('irc_query', self.command_irc_query,
+                             usage='<nickname> [message]',
+                             help=('Open a private conversation with the '
+                                   'given <nickname>, on the current IRC '
+                                   'server.  Optionally immediately send '
+                                   'the given message. For example, if the '
+                                   'current tab is #foo%irc.example.com@'
+                                   'biboumi.example.com, doing `/irc_query '
+                                   'nick "hi there"` is equivalent to '
+                                   '`/message nick!irc.example.com@biboumi.'
+                                   'example.com "hi there"`'),
+                             short='Open a private conversation with an IRC user')
 
     def join(self, gateway, server):
         "Join irc rooms on a server"
@@ -260,6 +283,28 @@ class Plugin(BasePlugin):
         else:
             self.join_room(args[0])
 
+    @command_args_parser.quoted(1, 1)
+    def command_irc_query(self, args):
+        """
+        Open a private conversation with the given nickname, on the current IRC
+        server.
+        """
+        if args is None:
+            return self.core.command_help('irc_query')
+        current_tab_info = self.get_current_tab_irc_info()
+        if not current_tab_info:
+            return
+        server, gateway = current_tab_info
+        nickname = args[0]
+        message = None
+        if len(args) == 2:
+            message = args[1]
+        jid = '{}!{}@{}'.format(nickname, server, gateway)
+        if message:
+            self.core.command_message('{} "{}"'.format(jid, message))
+        else:
+            self.core.command_message('{}'.format(jid))
+
     def join_server_rooms(self, section):
         """
         Join all the rooms configured for a section
@@ -281,12 +326,29 @@ class Plugin(BasePlugin):
         """
         Join a room with only its name and the current tab
         """
+        current_tab_info = self.get_current_tab_irc_info()
+        if not current_tab_info:
+            return
+        server, gateway = current_tab_info
+
+        room = '{}%{}@{}'.format(name, server, gateway)
+        if self.config.get_by_tabname('nickname', server):
+            room += '/' + self.config.get_by_tabname('nickname', server)
+
+        self.core.command_join(room)
+
+    def get_current_tab_irc_info(self):
+        """
+        Return a tuple with the irc server and the gateway hostnames of the
+        current tab. If the current tab is not an IRC channel or private
+        conversation, a warning is displayed and None is returned
+        """
         gateway = self.config.get('gateway', 'irc.poez.io')
         current = self.core.current_tab()
         current_jid = common.safeJID(current.name)
         if not current_jid.server == gateway:
             self.api.information('The current tab does not appear to be an IRC one', 'Warning')
-            return
+            return None
         if isinstance(current, tabs.OneToOneTab):
             if not '!' in current_jid.node:
                 server = current_jid.node
@@ -299,13 +361,8 @@ class Plugin(BasePlugin):
                 ignored, server = current_jid.node.rsplit('%', 1)
         else:
             self.api.information('The current tab does not appear to be an IRC one', 'Warning')
-            return
-
-        room = '{}%{}@{}'.format(name, server, gateway)
-        if self.config.get_by_tabname('nickname', server):
-            room += '/' + self.config.get_by_tabname('nickname', server)
-
-        self.core.command_join(room)
+            return None
+        return server, gateway
 
     def completion_irc_join(self, the_input):
         """
