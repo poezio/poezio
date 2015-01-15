@@ -206,7 +206,7 @@ class Plugin(BasePlugin):
                                                             room_suffix[1:])
                     self.api.add_timed_event(delayed)
                 else:
-                    login()
+                    login(gateway, section, login_nick, login_command, room_suffix[1:])
             elif not already_opened:
                 self.join(gateway, section)
 
