@@ -1,6 +1,9 @@
 #!/bin/sh
 poezio_dir=$(dirname "$0")
-VENV="poezio-venv"
+if [ -z "$POEZIO_VENV" ]
+then
+    POEZIO_VENV="poezio-venv"
+fi
 
 if [ -d "$poezio_dir/.git" ]
 then
@@ -9,9 +12,9 @@ else
     args="0.9-dev"
 fi
 
-if [ -e "$poezio_dir/$VENV" ]
+if [ -e "$poezio_dir/$POEZIO_VENV" ]
 then
-    PYTHON3="$poezio_dir/$VENV/bin/python3"
+    PYTHON3="$poezio_dir/$POEZIO_VENV/bin/python3"
 else
     echo ""
     echo "WARNING: Not using the up-to-date launch format"
