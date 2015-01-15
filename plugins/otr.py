@@ -882,6 +882,7 @@ class Plugin(BasePlugin):
         else:
             was_locked = False
         def notify_otr_timeout():
+            nonlocal name
             otr = self.get_context(name)
             if isinstance(tab, DynamicConversationTab) and not was_locked:
                 if tab.locked_resource:
