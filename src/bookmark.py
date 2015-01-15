@@ -74,32 +74,36 @@ class Bookmark(object):
             config.set_and_save('password', self.password, section=self.jid)
         return local
 
+    @functools.singledispatch
     @staticmethod
+    def parse(el, method=None):
+        """
+        Generate a Bookmark object from a <conference/> element
+        (this is a fallback for raw XML Elements)
+        """
+        jid = el.get('jid')
+        name = el.get('name')
+        autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
+        nick = None
+        for n in el.iter('nick'):
+            nick = n.text
+        password = None
+        for p in el.iter('password'):
+            password = p.text
+
+        return Bookmark(jid, name, autojoin, nick, password, method)
+
+    @staticmethod
+    @parse.register(Conference)
     def parse_from_stanza(el, method=None):
+        """
+        Parse a Conference element into a Bookmark object
+        """
         jid = el['jid']
         autojoin = el['autojoin']
         password = el['password']
         nick = el['nick']
         name = el['name']
-        return Bookmark(jid, name, autojoin, nick, password, method)
-
-    @staticmethod
-    def parse_from_element(el, method=None):
-        """
-        Generate a Bookmark object from a <conference/> element
-        """
-        if isinstance(el, Conference):
-            return Bookmark.parse_from_stanza(el, method)
-        jid = el.get('jid')
-        name = el.get('name')
-        autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
-        nick = None
-        for n in xml.iter(el, 'nick'):
-            nick = n.text
-        password = None
-        for p in xml.iter(el, 'password'):
-            password = p.text
-
         return Bookmark(jid, name, autojoin, nick, password, method)
 
 bookmarks = []
@@ -178,7 +182,7 @@ def get_pep(xmpp, available_methods, callback):
             for conf in iq['pubsub']['items']['item']['bookmarks']['conferences']:
                 if isinstance(conf, URL):
                     continue
-                b = Bookmark.parse_from_element(conf, method='pep')
+                b = Bookmark.parse(conf, method='pep')
                 if not get_by_jid(b.jid):
                     bookmarks.append(b)
         if callback:
@@ -195,7 +199,7 @@ def get_privatexml(xmpp, available_methods, callback):
         else:
             available_methods["privatexml"] = True
             for conf in iq['private']['bookmarks']['conferences']:
-                b = Bookmark.parse_from_element(conf, method='privatexml')
+                b = Bookmark.parse(conf, method='privatexml')
                 if not get_by_jid(b.jid):
                     bookmarks.append(b)
         if callback:
