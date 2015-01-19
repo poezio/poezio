@@ -65,7 +65,7 @@ class Executor(threading.Thread):
                 log.error('Could not open redirection file: %s', self.filename, exc_info=True)
                 return
         try:
-            subprocess.call(self.command)
+            subprocess.call(self.command, stdout=stdout, stderr=DEVNULL)
         except:
             if self.remote:
                 import traceback
