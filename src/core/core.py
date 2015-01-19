@@ -494,6 +494,19 @@ class Core(object):
         Init curses, create the first tab, etc
         """
         self.stdscr = curses.initscr()
+        if not hasattr(self.stdscr, 'get_wch'):
+            curses.echo()
+            curses.endwin()
+            print('ERROR: The current python executable is linked with a '
+                  'ncurses version with no unicode capabilities.\nThis'
+                  ' means python was built on a system where readline'
+                  ' is linked against libncurses and not libncursesw.\n'
+                  'Please file a bug for your distribution or recompile'
+                  ' libreadline with -ltermcapw instead of -ltermcap, '
+                  'and then recompile python.\nPoezio is currently unable'
+                  ' to read your input or draw its interface properly, so'
+                  ' it will now exit.')
+            self.exit()
         self.init_curses(self.stdscr)
         self.call_for_resize()
         default_tab = tabs.RosterInfoTab()
