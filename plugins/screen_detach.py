@@ -27,10 +27,10 @@ import pyinotify
 import asyncio
 
 DEFAULT_CONFIG = {
-        'screen_detach': {
-            'use_tmux': True,
-            'use_screen': True
-        }
+    'screen_detach': {
+        'use_tmux': True,
+        'use_screen': True
+    }
 }
 
 
@@ -38,7 +38,7 @@ DEFAULT_CONFIG = {
 # is configured
 try:
     LOGIN = os.getlogin()
-    LOGIN_TMUX = LOGIN
+    LOGIN_TMUX = os.getuid()
 except Exception:
     LOGIN = os.getenv('USER')
     LOGIN_TMUX = os.getuid()
@@ -47,6 +47,8 @@ SCREEN_DIR = '/var/run/screens/S-%s' % LOGIN
 TMUX_DIR = '/tmp/tmux-%s' % LOGIN_TMUX
 
 def find_screen(path):
+    if not os.path.isdir(path):
+        return
     for f in os.listdir(path):
         path = os.path.join(path, f)
         if screen_attached(path):
@@ -73,6 +75,10 @@ class Plugin(BasePlugin, pyinotify.Notifier):
             wm.add_watch(sock_path, pyinotify.EventsCodes.ALL_FLAGS['IN_ATTRIB'])
             pyinotify.Notifier.__init__(self, wm, default_proc_fun=HandleScreen(plugin=self))
             asyncio.get_event_loop().add_reader(self._fd, self.process)
+        else:
+            self.api.information('screen_detach plugin: No tmux or screen found',
+                                 'Warning')
+            self.attached = False
 
     def process(self):
         self.read_events()
@@ -87,7 +93,6 @@ class Plugin(BasePlugin, pyinotify.Notifier):
             self.attached = attached
             status = 'available' if self.attached else 'away'
             self.core.command_status(status)
-
 
 class HandleScreen(pyinotify.ProcessEvent):
     def my_init(self, **kwargs):
