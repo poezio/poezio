@@ -24,15 +24,29 @@ if not os.path.exists(os.path.join(current_dir, 'src', 'default_config.cfg')):
     os.link(os.path.join(current_dir, 'data', 'default_config.cfg'),
             os.path.join(current_dir, 'src',  'default_config.cfg'))
 
+# identify the git version
+git_dir = os.path.join(current_dir, '.git')
+if os.path.exists(git_dir):
+    try:
+        import subprocess
+        result = subprocess.Popen(['git', '-C', git_dir, 'describe'],
+                                  stdout=subprocess.PIPE)
+        result.wait()
+        data = result.stdout.read().decode('utf-8', errors='ignore')
+        version = '.dev' + data.split('-')[1]
+    except:
+        version = '.dev1'
+else:
+    version = '.dev1'
+
 setup(name="poezio",
-       version="0.8.3-dev",
+       version="0.9" + version,
        description="A console XMPP client",
        long_description=
        "Poezio is a Free chat client aiming to reproduce the ease of use of most "
        "IRC clients (e.g. weechat, irssi) while using the XMPP network."
        "\n"
-       "Documentation is available at http://doc.poez.io/0.8.",
-
+       "Documentation is available at http://doc.poez.io/.",
 
        ext_modules = [module_poopt],
        url = 'http://poez.io/',
