@@ -579,7 +579,7 @@ class Plugin(BasePlugin):
             return
         except ErrorReceived as err:
             # Received an OTR error
-            format_dict['err'] = bytes(err.args[0]).decode('utf-8')
+            format_dict['err'] = err.args[0].error.decode('utf-8', errors='replace')
             tab.add_message(OTR_ERROR % format_dict, typ=0)
             del msg['body']
             del msg['html']
