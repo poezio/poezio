@@ -19,6 +19,29 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import singleton
 
+def test_curses():
+    """
+    Check if the system ncurses linked with python has unicode capabilities.
+    """
+    import curses
+    if hasattr(curses, 'unget_wch'):
+        return True
+    print("""\
+ERROR: The current python executable is linked with a ncurses version that \
+has no unicode capabilities.
+
+This could mean that:
+    - python was built on a system where readline is linked against \
+libncurses and not libncursesw
+    - python was built without ncursesw headers available
+
+Please file a bug for your distribution or fix that on your system and then \
+recompile python.
+Poezio is currently unable to read your input or draw its interface properly,\
+ so it will now exit.""")
+    return False
+
+
 def main():
     """
     Enter point
@@ -75,4 +98,7 @@ def main():
         pass
 
 if __name__ == '__main__':
-    main()
+    if test_curses():
+        main()
+    else:
+        sys.exit(1)
