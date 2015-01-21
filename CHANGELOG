@@ -8,11 +8,19 @@ http://dev.louiz.org/projects/poezio/roadmap
 - Require python 3.4 for the input handling, event loop, xml parser, and ssl API
 
 - Due to the slixmpp move, /reconnect now works (ecf22cb)
+- Add a check for broken python ncurses (1c5589b)
+- Add a /reload command to reload the config (71f3848)
+- Add a /color command to permanently set the color a nick (f7e7836)
 - Add a /closeall command with a plugin, to cleanup the open tabs (ed7fe69)
+- Add a /reorder command with a plugin to order the tabs based on a static layout (8afbb44)
 - Add a /set_default command which sets the value of an option back to its default (9caa992)
+- Use a deterministic algorithm to set the nickname colors by default (2452706)
 - The user’s JID is now shown in the roster (a0a00d5)
+- The screen_detach plugin now also detects tmux (21d8a3e)
+- The autocorrect plugin now supports regular expressions (067ad58)
 - Improve the XML tab with coloration, better filters, and filter chaining (1cd0b4d)
-- Allow the use of client X.509 certificates for authentication (00396c1)
+- Allow the use of client X.509 certificates for authentication, and add
+  /certs, /cert_{add,disable,revoke,fetch} commands (00396c1)
 - Stream errors are now displayed, which is more helpful to the user than 'connection failed' (5cd854f)
 - The (system-wide) launch script is now a setuptools entry point that checks dependencies (22f9b7a)
 - XHTML-IM base64 embedded images are now extracted by default (a9f642f)
@@ -24,6 +32,7 @@ http://dev.louiz.org/projects/poezio/roadmap
 - make the data forms tab better (3858273, 7378ea9)
 - Implement ad-hoc commands (bbc55fa)
 - a change_title plugin changes the title of the terminal depending on the current tab. Also, poezio is now "poezio" and not "python3" (c1d19fa, 48e59d3)
+- The OTR plugin now implements SMP (96442e9)
 - The OTR plugin now tries to interpret html by default (4e4ab56)
 - The OTR plugin also has nicer and more informative messages (71ae29df, f782516e, d7bbf339c, a0c5f95, 25e91b0)
 - The interface will adapt if the terminal is too small (0caf941)
