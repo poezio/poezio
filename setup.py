@@ -30,7 +30,7 @@ if os.path.exists(git_dir):
     try:
         import subprocess
         result = subprocess.Popen(['git', '--git-dir', git_dir, 'describe'],
-                                  stdout=subprocess.PIPE)
+                                  stdout=subprocess.PIPE,
                                   stderr=subprocess.DEVNULL)
         result.wait()
         data = result.stdout.read().decode('utf-8', errors='ignore')
