@@ -25,11 +25,7 @@ import subprocess
 import shlex
 import logging
 
-try:
-    from subprocess import DEVNULL # Only in python >= 3.3
-except ImportError:
-    import os
-    DEVNULL = open(os.devnull, 'wb')
+from subprocess import DEVNULL
 
 log = logging.getLogger(__name__)
 
