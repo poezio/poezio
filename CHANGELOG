@@ -5,54 +5,71 @@ http://dev.louiz.org/projects/poezio/roadmap
 * Poezio 0.9 - dev
 
 - Use slixmpp instead of sleekxmpp, remove threads and locks
-- Require python 3.4 for the input handling, event loop, xml parser, and ssl API
+- Require python 3.4 for the input handling, event loop, xml parser,
+  and ssl API
 
 - Due to the slixmpp move, /reconnect now works (ecf22cb)
 - Add a check for broken python ncurses (1c5589b)
 - Add a /reload command to reload the config (71f3848)
 - Add a /color command to permanently set the color a nick (f7e7836)
 - Add a /closeall command with a plugin, to cleanup the open tabs (ed7fe69)
-- Add a /reorder command with a plugin to order the tabs based on a static layout (8afbb44)
-- Add a /set_default command which sets the value of an option back to its default (9caa992)
+- Add a /reorder command with a plugin to order the tabs based on a static
+  layout (8afbb44)
+- Add a /set_default command which sets the value of an option back to its
+  default (9caa992)
 - Use a deterministic algorithm to set the nickname colors by default (2452706)
 - The user’s JID is now shown in the roster (a0a00d5)
 - The screen_detach plugin now also detects tmux (21d8a3e)
 - The autocorrect plugin now supports regular expressions (067ad58)
-- Improve the XML tab with coloration, better filters, and filter chaining (1cd0b4d)
+- Improve the XML tab with coloration, better filters, and filter chaining
+  (1cd0b4d)
 - Allow the use of client X.509 certificates for authentication, and add
   /certs, /cert_{add,disable,revoke,fetch} commands (00396c1)
-- Stream errors are now displayed, which is more helpful to the user than 'connection failed' (5cd854f)
-- The (system-wide) launch script is now a setuptools entry point that checks dependencies (22f9b7a)
+- Stream errors are now displayed, which is more helpful to the user than
+  'connection failed' (5cd854f)
+- The (system-wide) launch script is now a setuptools entry point that checks
+  dependencies (22f9b7a)
 - XHTML-IM base64 embedded images are now extracted by default (a9f642f)
-- New open_all_bookmarks option to let the user choose what to do with bookmarks without autojoin (5a5d581)
+- New open_all_bookmarks option to let the user choose what to do with
+  bookmarks without autojoin (5a5d581)
 - Store the server certificate fingerprint with SHA-512 (8d2408c)
-- pipe_cmd plugin that allows simple remote control of poezio (4b0d9a2, dc46286)
+- pipe_cmd plugin that allows simple remote control of poezio (4b0d9a2,
+  dc46286)
 - /link now uses xdg-open (ba32d74)
-- Display information about the XMPP features the contact supports (a1f86720, 2dafd6d5)
+- Display information about the XMPP features the contact supports (a1f86720,
+  2dafd6d5)
 - make the data forms tab better (3858273, 7378ea9)
 - Implement ad-hoc commands (bbc55fa)
-- a change_title plugin changes the title of the terminal depending on the current tab. Also, poezio is now "poezio" and not "python3" (c1d19fa, 48e59d3)
+- A change_title plugin changes the title of the terminal depending on the
+  current tab. Also, poezio is now "poezio" and not "python3" (c1d19fa,
+  48e59d3)
 - The OTR plugin now implements SMP (96442e9)
 - The OTR plugin now tries to interpret html by default (4e4ab56)
-- The OTR plugin also has nicer and more informative messages (71ae29df, f782516e, d7bbf339c, a0c5f95, 25e91b0)
+- The OTR plugin also has nicer and more informative messages (71ae29df,
+  f782516e, d7bbf339c, a0c5f95, 25e91b0)
 - The interface will adapt if the terminal is too small (0caf941)
 - Implement XEP-0184 (message delivery receipts) (5999b71)
 - Better timezone handling (02d9fd9)
 - Better alias plugin, with permanent alias storage (e80a90)
 - poezio_gpg_export script to generate a config for the gpg plugin (8ec5671)
-- improvements to dynamic tabs, information about jid lock/unlock (f7294b2, 5c9dd44, fba511e)
+- improvements to dynamic tabs, information about jid lock/unlock (f7294b2,
+  5c9dd44, fba511e)
 - irc plugin to use with biboumi (cf752c2)
 - implementation of XEP-0012 - last activity (65c2473)
 - errors.log contains a lot less stuff (695877b)
-- tabs where the input is not empty will not be considered as "normal" (52e6334, fe072a8)
+- tabs where the input is not empty will not be considered as "normal"
+  (52e6334, fe072a8)
 - /bookmark * now preserves the order of the tabs (38061a6)
 - /list on big servers should be much faster (7b446d9)
 - /load and /unload can handle several plugins at once (0847643)
 - nicks are no longer highlighted if they are inside another word (f58dfe2)
-- /invite will now use the “direct” invitations of XEP-0249 when supported (3221534)
-- tabs where the other party is currently composing will have a particular state (a784216)
+- /invite will now use the “direct” invitations of XEP-0249 when supported
+  (3221534)
+- tabs where the other party is currently composing will have a particular
+  state (a784216)
 - Implementation of room destruction (1f0ff4f)
-- running theming.py and keyboard.py will be nicer and not pollute the output afterwards (5012611, 1bd9f78)
+- running theming.py and keyboard.py will be nicer and not pollute the output
+  afterwards (5012611, 1bd9f78)
 - Bugfixes
 
 * Poezio 0.8.1
