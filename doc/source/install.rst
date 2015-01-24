@@ -126,6 +126,18 @@ poezio without a system-wide install, do, in the :file:`poezio` directory:
     ./update.sh
 
 
+.. note::
+
+    If you want to use a custom directory for the virtualenv used by poezio,
+    you can use the ``$POEZIO_VENV`` environment variable to set use
+    another path (the default is :file:`poezio-venv`).
+
+    If your distribution does not have a ``pyvenv`` symlink to the latest
+    pyvenv available, you will need to set ``$POEZIO_VENV_COMMAND`` to it.
+    For example, if you have python 3.4, you will need to set it to
+    ``pyvenv-3.4`` instead.
+
+
 If you really want to install it, run as root (or sudo in ubuntu or whatever):
 
 .. code-block:: bash
