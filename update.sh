@@ -16,6 +16,15 @@ if [ -z "$POEZIO_VENV_COMMAND" ]
 then
     POEZIO_VENV_COMMAND="pyvenv"
 fi
+command -v $POEZIO_VENV_COMMAND > /dev/null 2>&1 || {
+    echo "'$POEZIO_VENV_COMMAND' executable not found. Check that you have python (>= 3.4) installed,"
+    echo " and that \$POEZIO_VENV_COMMAND points to a valid virtualenv command."
+    if [ "$POEZIO_VENV_COMMAND" = 'pyvenv' ]; then
+        echo "If your distribution does not provide a 'pyvenv' command, maybe it has another name, like 'pyvenv-3.4'"
+        echo 'Set the $POEZIO_VENV_COMMAND env variable to the name of that executable and this script will use it.'
+    fi
+    exit 1
+}
 
 echo 'Updating poezio'
 git pull origin master || {
