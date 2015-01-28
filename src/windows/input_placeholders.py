@@ -41,7 +41,7 @@ class YesNoInput(Win):
     A Window just displaying a Yes/No input
     Used to ask a confirmation
     """
-    def __init__(self, text=''):
+    def __init__(self, text='', callback=None):
         Win.__init__(self)
         self.key_func = {
                 'y' : self.on_yes,
@@ -49,6 +49,7 @@ class YesNoInput(Win):
         }
         self.txt = text
         self.value = None
+        self.callback = callback
 
     def on_yes(self):
         self.value = True
@@ -68,6 +69,8 @@ class YesNoInput(Win):
     def do_command(self, key, raw=False):
         if key.lower() in self.key_func:
             self.key_func[key]()
+        if self.value is not None and self.callback is not None:
+            return self.callback()
 
     def on_delete(self):
         return

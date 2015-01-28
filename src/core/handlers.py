@@ -1196,20 +1196,7 @@ def validate_ssl(self, pem):
             self.information('New certificate found (sha-2 hash:'
                              ' %s)\nPlease validate or abort' % sha2_found_cert,
                              'Warning')
-            input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n)")
-            self.current_tab().input = input
-            input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
-            input.refresh()
-            self.doupdate()
-            old_loop = asyncio.get_event_loop()
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
-            new_loop.add_reader(sys.stdin, self.on_input_readable)
-            future = asyncio.Future()
-            @asyncio.coroutine
-            def check_input(future):
-                while input.value is None:
-                    yield from asyncio.sleep(0.01)
+            def check_input():
                 self.current_tab().input = saved_input
                 self.paused = False
                 if input.value:
@@ -1222,10 +1209,17 @@ def validate_ssl(self, pem):
                     self.disconnect()
                 new_loop.stop()
                 asyncio.set_event_loop(old_loop)
-            asyncio.async(check_input(future))
+            input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n)", callback=check_input)
+            self.current_tab().input = input
+            input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
+            input.refresh()
+            self.doupdate()
+            old_loop = asyncio.get_event_loop()
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            new_loop.add_reader(sys.stdin, self.on_input_readable)
+            curses.beep()
             new_loop.run_forever()
-
-
     else:
         log.debug('First time. Setting certificate to %s', sha2_found_cert)
         if not config.silent_set('certificate', sha2_found_cert):
