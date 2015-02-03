@@ -327,6 +327,7 @@ MultiUserChat tab commands
         Use the completion to get a list of all the available color values.
         Use the special color **unset** to remove the attributed color on
         this nick.
+        You can also use **random** to attribute a random color.
 
     /clear [MUCTab version]
         **Usage:** ``/clear``
