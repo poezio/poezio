@@ -1,3 +1,4 @@
+::
 
                           _
                          (_)
@@ -8,8 +9,9 @@
     | |
     |_|
 
-Homepage:	http://poez.io
-Forge Page:	http://dev.poez.io
+Homepage:      http://poez.io
+
+Forge Page:    http://dev.poez.io
 
 Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
 connections to simply let the user join MultiUserChats.  This way, the user
@@ -37,34 +39,32 @@ files in the doc/source/ directory or the generated documentation on the
 website.
 
 The simplest way to have up-to-date dependencies and to be able to test
-this developement version is to use the update.sh script that downloads
+this developement version is to use the ``update.sh`` script that downloads
 and places them in the right directory.
 
 You also need to compile some external C modules, to do this, just enter
 
-$ make
+::
+
+    $ make
 
 you can then launch poezio with
 
-$ ./launch.sh
+::
 
-or you can install it with (as root or with sudo)
+    $ ./launch.sh
 
-$ make install
-
-(`make uninstall' works, don't worry ;))
-you can now simply launch `poezio'
+you can now simply launch ``poezio``
 
 You can edit the configuration file which is located in
-~/.config/poezio/poezio.cfg by default, and you will have to edit
-data/default_config.cfg if you want to edit the config before the
-first launch.  The default config file is fully commented, but you can
+``~/.config/poezio/poezio.cfg`` by default, and you will have to copy
+and edit ``data/default_config.cfg`` if you want to edit the config before
+the first launch. The default config file is fully commented, but you can
 also read the “Configuration” documentation page which has links between
 options and longer descriptions.
 
 Please see the online documentation for more information on installing,
-configuring or using poezio:
-http://doc.poez.io/
+configuring or using poezio: http://doc.poez.io/
 
 If you still have questions, or if you're lost, don't hesitate to come
 talk to us directly on our Jabber chat room (see Contact section).
@@ -75,19 +75,22 @@ Please DO report any bug you encounter and ask for any feature you want
 =======================
     Authors
 =======================
-Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
-Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
 
+- Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
+- Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
 
 =======================
     Contact/support
 =======================
-Jabber ChatRoom:   poezio@muc.poezio.eu
+
+Jabber ChatRoom:   `poezio@muc.poez.io <xmpp:poezio@muc.poez.io?join>`_
+
 Report a bug:      http://dev.poez.io/new
 
 =======================
     License
 =======================
+
 Poezio is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
 
@@ -102,9 +105,11 @@ the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
        Hacking
 =======================
 
-If you want to contribute, you are invited on poezio@muc.poezio.eu to
-announce your ideas, what you are going to do, or to seek help if you
-have trouble understanding some of the code.
+If you want to contribute, you will be welcome on
+`poezio@muc.poez.io <xmpp:poezio@muc.poez.io?join>`_ to announce your
+ideas, what you are going to do, or to seek help if you have trouble
+understanding some of the code.
+
 The preferred way to submit changes is through a public git repository.
 But mercurial repositories or simple patches are also welcome.
 
@@ -121,6 +126,7 @@ branches (for example the “plugins” or the “opt” branches).
 If it’s a really long feature, merge the “master” branch in that feature branch
 from time to time, to avoid huge merges (and merge issues) when you’ll have to
 merge your feature back in “master”.
+
 Merge your work in master once it works and is usable, not necessarily when
 it’s 100% finished.  Polishing and last bug fixes can take place in “master”.
 
@@ -148,18 +154,19 @@ we merge it to “master” as well, of course).
     Thanks
 =======================
 
-= People =
- - Todd Eisenberger (todd@teisen.be) - Plugin system and OTR support
- - Jérôme Parment (Manfraid) - Code, testing
- - Link Mauve - Code, testing
- - Eijebong - Code
- - Gaëtan Ribémont (http://www.bonbref.com) - Logo design
- - Ovart - Testing
- - Koshie - Donation
- - Gapan - Makefile
- - FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
- - And all the people using and testing poezio, and especially the ones present
-   on the jabber chatroom doing bug reports and/or feature requests.
-= Project =
- Gajim - send_vcard method, common.py, and PEP listings
+- People:
+    - Todd Eisenberger - Plugin system and OTR support
+    - Jérôme Parment (Manfraid) - Code, testing
+    - Link Mauve - Code, testing
+    - Perdu - Code
+    - Eijebong - Code
+    - Gaëtan Ribémont (http://www.bonbref.com) - Logo design
+    - Ovart - Testing
+    - Koshie - Donation
+    - Gapan - Makefile
+    - FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
+    - And all the people using and testing poezio, and especially the ones present
+      on the jabber chatroom doing bug reports and/or feature requests.
+- Project
+    - Gajim - send_vcard method, common.py, and PEP listings
 
