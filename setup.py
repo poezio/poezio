@@ -3,12 +3,9 @@
 try:
     from setuptools import setup, Extension
 except ImportError:
-    print('Setuptools was not found.\n'
-          'This script will use distutils instead, which will NOT'
-          ' be able to install a `poezio` executable.\nIf you are '
-          'using it to build a package or install poezio, please '
-          'install setuptools.\n\nYou will also see a few warnings.\n')
-    from distutils.core import setup, Extension
+    print('\nSetuptools was not found. Install setuptools for python 3.\n')
+    import sys
+    sys.exit(1)
 
 import os
 
