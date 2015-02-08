@@ -26,8 +26,7 @@ dispatchs the I/O events (keypress) to the appropriate methods.
 
 But the main loop is not the most important thing in poezio; because it is an
 IM client, it is essentially event-driven. The event part is handled by
-SleekXMPP, which is the library we chose after moving away from xmpppy.
-
+slixmpp, which is our fork of sleekxmpp to use asyncio instead of threads.
 
 **Tabs** are the second layer of poezio, but the first dealing with the UI: each
 **Tab** is a layout of several **windows**, it contains tab-specific commands,
@@ -49,9 +48,9 @@ Event handlers
 --------------
 
 The events handlers are registered right at the start of poezio, and then
-when a matching stanza is received, the handler is called in a separate thread
-from the main loop. The handlers are in **Core**, and then they call the
-appropriate methods in the corresponding **tabs**.
+when a matching stanza is received, the handler is called. The handlers are
+in **Core**, and then they call the appropriate methods in the corresponding
+**tabs**.
 
 Example scenario: if a message is received from a MUC, then the **Core** handler
 will identify the **Tab**, and call the relevant handler from this **Tab**, this tab
@@ -86,14 +85,12 @@ There are utilities to deal with it (common.shell_split), but it is not always
 necessary. Commands are registered in the **commands** dictionnary of a tab
 structured as key (command name) -> tuple(command function, help string, completion).
 
-
 Completions are a bit tricky, but it’s easy once you get used to it:
 
 They take an **Input** (a _windows_ class) as a parameter, named the_input
 everywhere in the sources. To effectively have a completion, you have to call
-**the_input.auto_completion()** or **the_input.new_completion()** at the end
-of the function.
-
+**the_input.auto_completion()** or **the_input.new_completion()** with the relevant
+parameters before returning from the function.
 
 .. code-block:: python
 
@@ -105,13 +102,48 @@ of the function.
         def new_completion(completion_list, argument_position, after='', quotify=True):
             # …
 
-Set the input to iterate over _completion_list_ when the user hits tab, insert
+Set the input to iterate over **completion_list** when the user hits tab, to insert
 **after** after the completed item, and surround the item with double quotes or
 not.
 
 To find the current completed argument, use the **input.get_argument_position()**
-method. You can then use new_completion() to select the argument to be completed.
+method. You can then use **new_completion()** to select the argument to be completed.
 
 You can look for examples in the sources, all the possible cases are
 covered (single-argument, complex arguments with spaces, several arguments,
 etc…).
+
+.. note::
+    Only **new_completion()** used together with **get_argument_position()** allow
+    completing arguments that are not at the end of the command line, therefore it
+    is preferable to use that and not **auto_completion()**.
+
+
+Dealing with the command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For convenience’s sake, poezio includes a **decorators** module containing a
+**command_args_parser**, which can be used to filter the input easily.
+
+Examples:
+
+.. code-block:: python
+
+    from decorators import command_args_parser
+    class MyClass(object):
+
+        @command_args_parser.raw
+        def command_raw(self, raw):
+            # the "raw" parameter will be the raw input string
+
+        @command_args_parser.ignored
+        def command_ignored(self):
+            # no argument is given to that function
+
+        @command_args_parser.quoted(mandatory=1, optional=0)
+        def command_quoted_1(self, args):
+            # the "args" parameter will be a list containing one argument
+
+See the source of the CommandArgParser for more information.
+
+.. autoclass:: decorators.CommandArgParser
