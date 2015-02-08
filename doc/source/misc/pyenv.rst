@@ -3,6 +3,15 @@
 Installing python 3.4 as a user
 -------------------------------
 
+Building your own python 3
+==========================
+
+- Go to the `python download page`_
+- Select the “Latest Python 3 Release”
+- Download a tarball and extract it
+- Run ``./configure && make`` (takes only a few minutes even on old CPUs)
+- Edit the poezio launch.sh script to make it call your user-compiled python binary
+
 Pyenv (x86/x86_64 only)
 =======================
 
@@ -22,17 +31,17 @@ Then you only need to add a ``.python-version`` file containing ``3.4.2`` in
 your poezio directory to make the python version in that directory default to
 the python 3.4.2 installed with pyenv.
 
-Building your own python 3
-==========================
 
-- Go to the `python download page`_
-- Select the “Latest Python 3 Release”
-- Download a tarball and extract it
-- Run ``./configure && make`` (takes a few minutes even on old CPUs)
-- Edit the poezio launch.sh script to make it call your user-compiled python
+Other
+=====
+
+pythonz_ allows the same kind of version management as pyenv, but builds
+from source instead of fetching precompiled binaries, so it allows more
+control over what is going on.
 
 
 .. _Pyenv: https://github.com/yyuu/pyenv
 .. _installation tutorial: https://github.com/yyuu/pyenv#installation
 .. _automated installer: https://github.com/yyuu/pyenv-installer
 .. _python download page: https://www.python.org/downloads/source/
+.. _pythonz: https://github.com/saghul/pythonz
