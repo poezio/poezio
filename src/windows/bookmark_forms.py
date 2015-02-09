@@ -160,6 +160,7 @@ class BookmarksWin(Win):
                            BookmarkPasswordInput(bookmark),
                            BookmarkAutojoinWin(bookmark),
                            BookmarkMethodInput(bookmark)))
+        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
         self.current_horizontal_input = 0
         self.current_input = len(self.lines) - 1
         if self.current_input - self.scroll_pos > self.height-1:
