@@ -16,11 +16,9 @@ from gettext import gettext as _
 from os import path
 
 from slixmpp import InvalidJID
-from slixmpp.stanza import Message
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
-import bookmark
 import common
 import fixes
 import pep
@@ -48,6 +46,49 @@ try:
 except ImportError:
     PYGMENTS = False
 
+def _join_initial_rooms(self, bookmarks):
+    """Join all rooms given in the iterator `bookmarks`"""
+    for bm in bookmarks:
+        if not (bm.autojoin or config.get('open_all_bookmarks')):
+            continue
+        tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+        nick = bm.nick if bm.nick else self.own_nick
+        if not tab:
+            self.open_new_room(bm.jid, nick, False)
+        self.initial_joins.append(bm.jid)
+        histo_length = config.get('muc_history_length')
+        if histo_length == -1:
+            histo_length = None
+        if histo_length is not None:
+            histo_length = str(histo_length)
+        # do not join rooms that do not have autojoin
+        # but display them anyway
+        if bm.autojoin:
+            muc.join_groupchat(self, bm.jid, nick,
+                    passwd=bm.password,
+                    maxhistory=histo_length,
+                    status=self.status.message,
+                    show=self.status.show)
+
+def check_bookmark_storage(self, features):
+    private = 'jabber:iq:private' in features
+    pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
+    self.bookmarks.available_storage['private'] = private
+    self.bookmarks.available_storage['pep'] = pep_
+    def _join_remote_only(iq):
+        if iq['type'] == 'error':
+            type_ = iq['error']['type']
+            condition = iq['error']['condition']
+            if not (type_ == 'cancel' and condition == 'item-not-found'):
+                self.information(_('Unable to fetch the remote'
+                                   ' bookmarks; %s: %s') % (type_, condition),
+                                 'Error')
+            return
+        remote_bookmarks = self.bookmarks.remote()
+        _join_initial_rooms(self, remote_bookmarks)
+    if not self.xmpp.anon and config.get('use_remote_bookmarks'):
+        self.bookmarks.get_remote(self.xmpp, self.information, _join_remote_only)
+
 def on_session_start_features(self, _):
     """
     Enable carbons & blocking on session start if wanted and possible
@@ -64,6 +105,7 @@ def on_session_start_features(self, _):
             self.xmpp.plugin['xep_0280'].enable()
             self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
             self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
+        self.check_bookmark_storage(features)
 
     self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain,
                                           callback=callback)
@@ -926,37 +968,9 @@ def on_session_start(self, event):
             pres['status'] = self.status.message
             self.events.trigger('send_normal_presence', pres)
             pres.send()
-    bookmark.get_local()
-    def _join_initial_rooms(bookmarks):
-        """Join all rooms given in the iterator `bookmarks`"""
-        for bm in bookmarks:
-            if bm.autojoin or config.get('open_all_bookmarks'):
-                tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-                nick = bm.nick if bm.nick else self.own_nick
-                if not tab:
-                    self.open_new_room(bm.jid, nick, False)
-                self.initial_joins.append(bm.jid)
-                histo_length = config.get('muc_history_length')
-                if histo_length == -1:
-                    histo_length = None
-                if histo_length is not None:
-                    histo_length = str(histo_length)
-                # do not join rooms that do not have autojoin
-                # but display them anyway
-                if bm.autojoin:
-                    muc.join_groupchat(self, bm.jid, nick,
-                            passwd=bm.password,
-                            maxhistory=histo_length,
-                            status=self.status.message,
-                            show=self.status.show)
-    def _join_remote_only():
-        remote_bookmarks = (bm for bm in bookmark.bookmarks if (bm.method in ("pep", "privatexml")))
-        _join_initial_rooms(remote_bookmarks)
-    if not self.xmpp.anon and config.get('use_remote_bookmarks'):
-        bookmark.get_remote(self.xmpp, _join_remote_only)
-    # join all the available bookmarks. As of yet, this is just the local
-    # ones
-    _join_initial_rooms(bookmark.bookmarks)
+    self.bookmarks.get_local()
+    # join all the available bookmarks. As of yet, this is just the local ones
+    _join_initial_rooms(self, self.bookmarks)
 
     if config.get('enable_user_nick'):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)

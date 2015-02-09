@@ -10,7 +10,6 @@ import logging
 log = logging.getLogger(__name__)
 
 import asyncio
-import collections
 import shutil
 import curses
 import os
@@ -18,22 +17,20 @@ import pipes
 import sys
 import time
 from threading import Event
-from datetime import datetime
 from gettext import gettext as _
 
 from slixmpp.xmlstream.handler import Callback
 
-import bookmark
 import connection
 import decorators
 import events
-import fixes
 import singleton
 import tabs
 import theming
 import timed_events
 import windows
 
+from bookmarks import BookmarkList
 from common import safeJID
 from config import config, firstrun
 from contact import Contact, Resource
@@ -75,6 +72,7 @@ class Core(object):
         self.keyboard = keyboard.Keyboard()
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
+        self.bookmarks = BookmarkList()
         self.paused = False
         self.event = Event()
         self.debug = False
@@ -311,6 +309,8 @@ class Core(object):
                                        theming.update_themes_dir)
         self.add_configuration_handler("theme",
                                        self.on_theme_config_change)
+        self.add_configuration_handler("use_bookmarks_method",
+                                       self.on_bookmarks_method_config_change)
         self.add_configuration_handler("password",
                                        self.on_password_change)
         self.add_configuration_handler("enable_vertical_tab_list",
@@ -350,6 +350,14 @@ class Core(object):
             return
         for callback in self.configuration_change_handlers[option]:
             callback(option, value)
+
+    def on_bookmarks_method_config_change(self, option, value):
+        """
+        Called when the use_bookmarks_method option changes
+        """
+        if 'value' not in ('pep', 'privatexml'):
+            return
+        self.bookmarks.preferred = value
 
     def on_gaps_config_change(self, option, value):
         """
@@ -840,7 +848,7 @@ class Core(object):
         Returns the nickname associated with a bookmark
         or the default nickname
         """
-        bm = bookmark.get_by_jid(room_name)
+        bm = self.bookmarks[room_name]
         if bm:
             return bm.nick
         return self.own_nick
@@ -1980,6 +1988,7 @@ class Core(object):
     on_receipt = handlers.on_receipt
     on_attention = handlers.on_attention
     room_error = handlers.room_error
+    check_bookmark_storage = handlers.check_bookmark_storage
     outgoing_stanza = handlers.outgoing_stanza
     incoming_stanza = handlers.incoming_stanza
     validate_ssl = handlers.validate_ssl

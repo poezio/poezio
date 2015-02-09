@@ -8,7 +8,6 @@ log = logging.getLogger(__name__)
 import os
 from functools import reduce
 
-import bookmark
 import common
 import pep
 import tabs
@@ -96,7 +95,7 @@ def completion_join(self, the_input):
 
     relevant_rooms = []
     relevant_rooms.extend(sorted(self.pending_invites.keys()))
-    bookmarks = {str(elem.jid): False for elem in bookmark.bookmarks}
+    bookmarks = {str(elem.jid): False for elem in self.bookmarks}
     for tab in self.get_tabs(tabs.MucTab):
         name = tab.name
         if name in bookmarks and not tab.joined:
@@ -192,7 +191,7 @@ def completion_bookmark(self, the_input):
 
 def completion_remove_bookmark(self, the_input):
     """Completion for /remove_bookmark"""
-    return the_input.new_completion([bm.jid for bm in bookmark.bookmarks], 1, quotify=False)
+    return the_input.new_completion([bm.jid for bm in self.bookmarks], 1, quotify=False)
 
 
 def completion_decline(self, the_input):
