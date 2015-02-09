@@ -1437,9 +1437,11 @@ class Core(object):
         """
         Refresh everything
         """
+        nocursor = curses.curs_set(0)
         self.current_tab().state = 'current'
         self.current_tab().refresh()
         self.doupdate()
+        curses.curs_set(nocursor)
 
     def refresh_tab_win(self):
         """
