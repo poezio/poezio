@@ -293,3 +293,17 @@ class ConversationStatusMessageWin(InfoWin):
     def write_status_message(self, resource):
         self.addstr(resource.status, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
+class BookmarksInfoWin(InfoWin):
+    def __init__(self):
+        InfoWin.__init__(self)
+
+    def refresh(self, preferred):
+        log.debug('Refresh: %s', self.__class__.__name__)
+        self._win.erase()
+        self.write_remote_status(preferred)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
+
+    def write_remote_status(self, preferred):
+        self.addstr('Remote storage: %s' % preferred, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+

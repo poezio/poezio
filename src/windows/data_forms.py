@@ -469,4 +469,3 @@ class FormWin(object):
             return self.inputs[self.current_input]['input'].get_help_message()
         return ''
 
-

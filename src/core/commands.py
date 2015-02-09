@@ -501,12 +501,15 @@ def _add_wildcard_bookmarks(self, method):
 def command_bookmarks(self):
     """/bookmarks"""
     tab = self.get_tab_by_name('Bookmarks', tabs.BookmarksTab)
+    old_tab = self.current_tab()
     if tab:
         self.current_tab_nb = tab.nb
     else:
         tab = tabs.BookmarksTab(self.bookmarks)
         self.tabs.append(tab)
         self.current_tab_nb = tab.nb
+    old_tab.on_lose_focus()
+    tab.on_gain_focus()
     self.refresh_window()
 
 @command_args_parser.quoted(0, 1)
