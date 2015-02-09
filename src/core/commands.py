@@ -414,139 +414,88 @@ def command_bookmark_local(self, args):
     """
     /bookmark_local [room][/nick] [password]
     """
-    nick = None
-    password = None
     if not args and not isinstance(self.current_tab(), tabs.MucTab):
         return
-    if not args:
-        tab = self.current_tab()
-        roomname = tab.name
-        if tab.joined and tab.own_nick != self.own_nick:
-            nick = tab.own_nick
-    elif args[0] == '*':
-        new_bookmarks = []
-        for tab in self.get_tabs(tabs.MucTab):
-            b = self.bookmarks[tab.name]
-            if not b:
-                b = Bookmark(tab.name,
-                             autojoin=True,
-                             method="local")
-                new_bookmarks.append(b)
-            else:
-                b.method = "local"
-                new_bookmarks.append(b)
-                self.bookmarks.remove(b)
-        new_bookmarks.extend(self.bookmarks.bookmarks)
-        self.bookmarks.set(new_bookmarks)
-        self.bookmarks.save(self.xmpp)
-        self.information('Bookmarks added and saved.', 'Info')
-        return
-    else:
-        info = safeJID(args[0])
-        if info.resource != '':
-            nick = info.resource
-        roomname = info.bare
-        if not roomname:
-            if not isinstance(self.current_tab(), tabs.MucTab):
-                return
-            roomname = self.current_tab().name
-        if len(args) > 1:
-            password = args[1]
+    password = args[1] if len(args) > 1 else None
+    jid = args[0] if args else None
 
-    bm = self.bookmarks[roomname]
-    if not bm:
-        bm = Bookmark(jid=roomname)
-        self.bookmarks.append(bm)
-        self.information('Bookmark added.', 'Info')
-    else:
-        self.information('Bookmark updated.', 'Info')
-    if nick:
-        bm.nick = nick
-    bm.autojoin = True
-    bm.password = password
-    bm.method = "local"
-    self.bookmarks.save_local()
-    self.information(_('Your local bookmarks are now: %s') %
-                         self.bookmarks.local(),
-                     'Info')
+    _add_bookmark(self, jid, True, password, 'local')
 
 @command_args_parser.quoted(0, 3)
 def command_bookmark(self, args):
     """
     /bookmark [room][/nick] [autojoin] [password]
     """
-    if not config.get('use_remote_bookmarks'):
-        return self.command_bookmark_local(" ".join(args))
-
-    nick = None
     if not args and not isinstance(self.current_tab(), tabs.MucTab):
         return
-    if not args:
+    jid = args[0] if args else ''
+    password = args[2] if len(args) > 2 else None
+
+    if not config.get('use_remote_bookmarks'):
+        return _add_bookmark(self, jid, True, password, 'local')
+
+    if len(args) > 1:
+        autojoin = False if args[1].lower() != 'true' else True
+    else:
+        autojoin = True
+
+    _add_bookmark(self, jid, autojoin, password, 'remote')
+
+def _add_bookmark(self, jid, autojoin, password, method):
+    nick = None
+    if not jid:
         tab = self.current_tab()
         roomname = tab.name
-        if tab.joined:
+        if tab.joined and tab.own_nick != self.own_nick:
             nick = tab.own_nick
-        autojoin = True
-        password = None
-    elif args[0] == '*':
-        if len(args) > 1:
-            autojoin = False if args[1].lower() != 'true' else True
-        else:
-            autojoin = True
-        new_bookmarks = []
-        for tab in self.get_tabs(tabs.MucTab):
-            b = self.bookmarks[tab.name]
-            if not b:
-                b = Bookmark(tab.name, autojoin=autojoin,
-                             method='remote')
-                new_bookmarks.append(b)
-            else:
-                b.method = 'remote'
-                self.bookmarks.remove(b)
-                new_bookmarks.append(b)
-        new_bookmarks.extend(self.bookmarks.bookmarks)
-        self.bookmarks.set(new_bookmarks)
-        def _cb(iq):
-            if iq["type"] != "error":
-                self.bookmarks.save_local()
-                self.information("Bookmarks added.", "Info")
-            else:
-                self.information("Could not add the bookmarks.", "Info")
-        self.bookmarks.save_remote(self.xmpp, _cb)
-        return
+    elif jid == '*':
+        return _add_wildcard_bookmarks(self, method)
     else:
-        info = safeJID(args[0])
-        if info.resource != '':
-            nick = info.resource
-        roomname = info.bare
+        info = safeJID(jid)
+        roomname, nick = info.resource = info.bare, info.resource
         if roomname == '':
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return
             roomname = self.current_tab().name
-        if len(args) > 1:
-            autojoin = False if args[1].lower() != 'true' else True
-        else:
-            autojoin = True
-        if len(args) > 2:
-            password = args[2]
-        else:
-            password = None
-    bm = self.bookmarks[roomname]
-    if not bm:
-        bm = Bookmark(roomname)
-        self.bookmarks.append(bm)
-    bm.method = 'remote'
+    bookmark = self.bookmarks[roomname]
+    if bookmark is None:
+        bookmark = Bookmark(roomname)
+        self.bookmarks.append(bookmark)
+    bookmark.method = method
+    bookmark.autojoin = autojoin
     if nick:
-        bm.nick = nick
+        bookmark.nick = nick
     if password:
-        bm.password = password
-    bm.autojoin = autojoin
-    def __cb(iq):
+        bookmark.password = password
+    def callback(iq):
         if iq["type"] != "error":
             self.information('Bookmark added.', 'Info')
         else:
             self.information("Could not add the bookmarks.", "Info")
-    self.bookmarks.save_remote(self.xmpp, __cb)
+    self.bookmarks.save_local()
+    self.bookmarks.save_remote(self.xmpp, callback)
+
+def _add_wildcard_bookmarks(self, method):
+    new_bookmarks = []
+    for tab in self.get_tabs(tabs.MucTab):
+        bookmark = self.bookmarks[tab.name]
+        if not bookmark:
+            bookmark = Bookmark(tab.name, autojoin=True,
+                                method=method)
+            new_bookmarks.append(bookmark)
+        else:
+            bookmark.method = method
+            new_bookmarks.append(bookmark)
+            self.bookmarks.remove(bookmark)
+    new_bookmarks.extend(self.bookmarks.bookmarks)
+    self.bookmarks.set(new_bookmarks)
+    def _cb(iq):
+        if iq["type"] != "error":
+            self.information("Bookmarks saved.", "Info")
+        else:
+            self.information("Could not save the remote bookmarks.", "Info")
+    self.bookmarks.save_local()
+    self.bookmarks.save_remote(self.xmpp, _cb)
 
 @command_args_parser.ignored
 def command_bookmarks(self):
