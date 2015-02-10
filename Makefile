@@ -14,21 +14,16 @@ clean:
 	find ./ -name \*.pyc -delete
 	find ./ -name \*.pyo -delete
 	find ./ -name \*~ -delete
+	find ./ -type d -name __pycache__ -delete
 	find ./ -name "#*#" -delete
 	rm -rf doc/build/
+	rm -rf poezio.egg-info
+	rm -rf dist
 	rm -rf build
 	rm -f src/*.so
 
 install: all
 	python3 setup.py install --root=$(DESTDIR) --optimize=1
-	mkdir -p $(DESTDIR)$(prefix)  $(DESTDIR)$(DOCDIR)/poezio/ $(DESTDIR)$(LOCALEDIR) $(DESTDIR)$(BINDIR)
-	cp -R doc/* $(DESTDIR)$(DOCDIR)/poezio/
-	cp README.rst CHANGELOG COPYING $(DESTDIR)$(DOCDIR)/poezio/
-
-uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/poezio
-	rm -rf $(DESTDIR)$(DOCDIR)/poezio/
-	rm -rf $(DESTDIR)$(MANDIR)/man1/poezio.1
 
 doc:
 	make -C doc/ html

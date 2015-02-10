@@ -15,6 +15,7 @@ DEFSECTION = "Poezio"
 import logging.config
 import os
 import sys
+import pkg_resources
 from gettext import gettext as _
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
@@ -527,9 +528,8 @@ def run_cmdline_args(CONFIG_PATH):
 
     # Copy a default file if none exists
     if not path.isfile(options.filename):
-        default = path.join(path.dirname(__file__),
-                            '../data/default_config.cfg')
-        other = path.join(path.dirname(__file__), 'default_config.cfg')
+        default = path.join(path.dirname(__file__), '../data/default_config.cfg')
+        other = pkg_resources.resource_filename('poezio', 'default_config.cfg')
         if path.isfile(default):
             copy2(default, options.filename)
         elif path.isfile(other):

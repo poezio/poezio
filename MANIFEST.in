@@ -1,4 +1,0 @@
-include src/default_config.cfg
-include data/default_config.cfg
-include data/poezio.1
-recursive-include data/ *
