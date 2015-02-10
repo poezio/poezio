@@ -99,8 +99,8 @@ setup(name="poezio",
       entry_points={'console_scripts': ['poezio = poezio:main']},
       data_files=([('share/man/man1/', ['data/poezio.1']),
                    ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG'])]
-                  + find_doc('share/doc/poezio/html', 'source')
-                  + find_doc('share/doc/poezio/source', 'build/html')),
+                  + find_doc('share/doc/poezio/source', 'source')
+                  + find_doc('share/doc/poezio/html', 'build/html')),
       install_requires=['slixmpp', 'aiodns'],
       extras_require={'OTR plugin': 'python-potr>=1.0',
                       'Screen autoaway plugin': 'pyinotify==0.9.4'})
