@@ -19,7 +19,8 @@ def parse_args(CONFIG_PATH=''):
     parser.add_argument("-d", "--debug", dest="debug",
                         help=_("The file where debug will be written"),
                         metavar="DEBUG_FILE")
-    parser.add_argument("-v", "--version", action="version",
-                        version="0.9-dev")
+    parser.add_argument("-v", "--version", dest="version",
+                        help=SUPPRESS, metavar="VERSION",
+                        default="0.9-dev")
     options = parser.parse_args()
     return options
