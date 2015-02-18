@@ -31,6 +31,6 @@ class Plugin(BasePlugin):
         jid = safeJID(arg)
         if not jid.server:
             return
-        iq = self.core.xmpp.makeIqGet(ito=jid.server)
+        iq = self.core.xmpp.make_iq_get(ito=jid.server)
         iq.append(ET.Element('{jabber:iq:last}query'))
         iq.send(callback=callback)
