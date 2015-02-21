@@ -243,13 +243,26 @@ class BookmarkList(object):
 
     def get_remote(self, xmpp, information, callback):
         """Add the remotely stored bookmarks to the list."""
-        if xmpp.anon or not any(self.available_storage.values()):
+        force = config.get('force_remote_bookmarks')
+        if xmpp.anon or not (any(self.available_storage.values()) or force):
             information(_('No remote bookmark storage available'), 'Warning')
             return
-        if self.preferred == 'privatexml':
-            self.get_privatexml(xmpp, callback=callback)
-        else:
+
+        if force and not any(self.available_storage.values()):
+            old_callback = callback
+            method = 'pep' if self.preferred == 'pep' else 'privatexml'
+            def new_callback(result):
+                if result['type'] != 'error':
+                    self.available_storage[method] = True
+                    old_callback(result)
+                else:
+                    information(_('No remote bookmark storage available'), 'Warning')
+            callback = new_callback
+
+        if self.preferred == 'pep':
             self.get_pep(xmpp, callback=callback)
+        else:
+            self.get_privatexml(xmpp, callback=callback)
 
     def get_local(self):
         """Add the locally stored bookmarks to the list."""

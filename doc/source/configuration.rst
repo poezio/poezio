@@ -348,6 +348,14 @@ to understand what is :ref:`carbons <carbons-details>` or
         sender intended it as such. See :ref:`Message Correction <correct-feature>` for
         more information.
 
+
+    force_remote_bookmarks
+
+        **Default value:** ``false``
+
+        Try to retrieve your remote bookmarks, even when your server doesn’t advertise
+        support.
+
     use_bookmark_method
 
         **Default value:** ``[empty]``

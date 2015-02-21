@@ -62,6 +62,7 @@ DEFAULT_CONFIG = {
         'extract_inline_images': True,
         'filter_info_messages': '',
         'force_encryption': True,
+        'force_remote_bookmarks': False,
         'go_to_previous_tab_on_alt_number': False,
         'group_corrections': True,
         'hide_exit_join': -1,
