@@ -452,7 +452,7 @@ def _add_bookmark(self, jid, autojoin, password, method):
         return _add_wildcard_bookmarks(self, method)
     else:
         info = safeJID(jid)
-        roomname, nick = info.resource = info.bare, info.resource
+        roomname, nick = info.bare, info.resource
         if roomname == '':
             if not isinstance(self.current_tab(), tabs.MucTab):
                 return
