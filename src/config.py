@@ -78,7 +78,6 @@ DEFAULT_CONFIG = {
         'lazy_resize': True,
         'load_log': 10,
         'log_dir': '',
-        'logfile': 'logs',
         'log_errors': True,
         'max_lines_in_memory': 2048,
         'max_messages_in_memory': 2048,
@@ -590,7 +589,7 @@ def check_create_log_dir():
             home = environ.get('HOME')
             data_dir = path.join(home, '.local', 'share')
 
-        LOG_DIR = path.join(data_dir, 'poezio')
+        LOG_DIR = path.join(data_dir, 'poezio', 'logs')
 
     LOG_DIR = path.expanduser(LOG_DIR)
 

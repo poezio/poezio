@@ -25,9 +25,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from config import LOG_DIR
-
-log_dir = os.path.join(LOG_DIR, 'logs')
+from config import LOG_DIR as log_dir
 
 message_log_re = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
                             r'(\d{2}):(\d{2}):(\d{2})Z '
