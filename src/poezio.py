@@ -59,6 +59,10 @@ def main():
 
     from config import options
 
+    if options.check_config:
+        config.check_config()
+        sys.exit(0)
+
     import theming
     theming.update_themes_dir()
 

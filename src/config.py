@@ -522,6 +522,34 @@ def check_create_cache_dir():
     except OSError:
         pass
 
+def check_config():
+    """
+    Check the config file and print results
+    """
+    result = {'missing': [], 'changed': []}
+    for option in DEFAULT_CONFIG['Poezio']:
+        value = config.get(option)
+        if value != DEFAULT_CONFIG['Poezio'][option]:
+            result['changed'].append((option, value, DEFAULT_CONFIG['Poezio'][option]))
+        else:
+            value = config.get(option, default='')
+            upper = value.upper()
+            default = str(DEFAULT_CONFIG['Poezio'][option]).upper()
+            if upper != default:
+                result['missing'].append(option)
+
+    result['changed'].sort(key=lambda x: x[0])
+    result['missing'].sort()
+    if result['changed']:
+        print('\033[1mOptions changed from the default configuration:\033[0m\n')
+        for option, new_value, default in result['changed']:
+            print('    \033[1m%s\033[0m = \033[33m%s\033[0m (default: \033[32m%s\033[0m)' % (option, new_value, default))
+
+    if result['missing']:
+        print('\n\033[1mMissing options:\033[0m (the defaults are used)\n')
+        for option in result['missing']:
+            print('    \033[31m%s\033[0m' % option)
+
 def run_cmdline_args(CONFIG_PATH):
     "Parse the command line arguments"
     global options
