@@ -106,6 +106,8 @@ setup(name="poezio",
                       'Screen autoaway plugin': 'pyinotify==0.9.4'})
 
 # Remove the link afterwards
-if exists(join(current_dir, 'src', 'default_config.cfg')):
+if (exists(join(current_dir, 'src', 'default_config.cfg')) and
+        exists(join(current_dir, 'data', 'default_config.cfg'))):
+
     unlink(join(current_dir, 'src', 'default_config.cfg'))
 
