@@ -40,15 +40,9 @@ website.
 
 The simplest way to have up-to-date dependencies and to be able to test
 this developement version is to use the ``update.sh`` script that downloads
-and places them in the right directory.
+them, places them in the right directory, and builds the C module.
 
-You also need to compile some external C modules, to do this, just enter
-
-::
-
-    $ make
-
-you can then launch poezio with
+You can then launch poezio with
 
 ::
 
