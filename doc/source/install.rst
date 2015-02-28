@@ -11,13 +11,16 @@ As far as I know, Poezio is available in the following distributions, you just
 have to install it by using the package manager of the distribution, if you're
 using one of these.
 
-- *Archlinux*: A poezio_ and poezio-git_ packages are in AUR (use your favourite
-    AUR wrapper to install them)
-- *Gentoo*: `Sekh’s overlay`_ contains everything required to build poezio
-    (sleekxmpp, dnspython, and poezio)
-- *Fedora*: The poezio package was out of date for a long time in Fedora, but
-    now thanks to Casper, there is an `up-to-date package`_ in the repos since F19.
-- *Debian*: Use an other distro. (or make a package, we can provide help :) )
+- **Archlinux**: A poezio_ and poezio-git_ packages are in AUR (use your favourite
+  AUR wrapper to install them)
+- **Gentoo**: `Sekh’s overlay`_ contains everything required to build stable
+  versions of poezio (sleekxmpp, dnspython, and poezio)
+- **Fedora**: The stable poezio package was out of date for a long time in
+  Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
+  the repos since F19.
+- **Debian**: A set of `development builds`_ are available for poezio and its
+  dependencies; those are automatically generated (and most likely untested)
+  packages. We welcome anyone willing to make proper ones.
 
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
@@ -70,7 +73,7 @@ Poezio depends on two libraries:
 Additionally, it needs *python3-setuptools*, which is required for proper python
 packaging management.
 
-.. note:: We provide a script ``update.sh`` that creates a virtualenv and
+.. note:: We provide an ``update.sh`` script that creates a virtualenv and
           downloads all the required and optional dependencies inside it.
           we recommend using it with the git version of poezio, in order
           to keep everything up-to-date.
@@ -104,6 +107,18 @@ The aiodns is required in order to properly resolve XMPP domains (with SRV recor
     pip install --user aiodns
 
 This will also install pycares, which aiodns uses.
+
+
+""""""""
+Building
+""""""""
+
+If you don’t run the ``update.sh`` script, you need to manually build the C
+module used by poezio:
+
+.. code-block:: bash
+
+    make
 
 
 .. _poezio-install-label:
@@ -158,7 +173,7 @@ with:
     ./launch.sh
 
 
-If you did, it should be in he ``$PATH`` as ``poezio``, so run:
+If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 
 .. code-block:: bash
 
@@ -172,4 +187,5 @@ If you did, it should be in he ``$PATH`` as ``poezio``, so run:
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
 .. _pypi: https://pypi.python.org/pypi/poezio
+.. _development builds: http://dédié.jeproteste.info/poezio_debian/
 
