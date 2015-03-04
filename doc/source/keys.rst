@@ -182,20 +182,30 @@ These keys work only in the Roster tab (the tab number 0).
 
 **Ctrl-c**: Cancel the input (search or command)
 
-.. note:: The following will not work if you can still write things in the
-                input (meaning you previously typed ``s`` or ``/``)
+**Enter** on a contact/resource: open a chat tab with this contact/resource
 
-**Space**: Fold/Unfold the current item.
+**Enter** on a group: fold/unfold that group
 
 **Up**: Move the cursor down one contact.
 
 **Down**: Move the cursor up one contact.
 
-**o**: Show the offline contacts.
-
 **PageUp**: Scroll a page of contacts up.
 
 **PageDown**: Scroll a page of contacts down.
+
+.. note:: The following will not work if you can still write things in the
+                input (meaning you previously typed ``s`` or ``/``)
+
+**Space**: Fold/Unfold the current item.
+
+**o**: Show the offline contacts.
+
+During a search
+"""""""""""""""
+
+**Enter**: end the search while keeping the selected contact under the cursor
+(tip: press **Enter** a second time to open a chat window)
 
 .. _forms-keys:
 
