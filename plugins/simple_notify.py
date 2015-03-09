@@ -21,7 +21,7 @@ Second example:
 .. code-block:: ini
 
     [simple_notify]
-    command = echo \\<%{from}s\\> %{body}s >> some.fifo
+    command = echo \\<%(from)s\\> %(body)s >> some.fifo
     delay = 3
     after_command = echo >> some.fifo
 
