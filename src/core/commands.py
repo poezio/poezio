@@ -541,6 +541,8 @@ def command_set(self, args):
     """
     /set [module|][section] <option> [value]
     """
+    if args is None:
+        return self.command_help('set')
     if len(args) == 1:
         option = args[0]
         value = config.get(option)
