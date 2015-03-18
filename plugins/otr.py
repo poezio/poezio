@@ -875,21 +875,16 @@ class Plugin(BasePlugin):
         """
         Start an otr conversation with a contact
         """
-        otr = self.get_context(name)
         secs = self.config.get('timeout', 3)
-        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-            was_locked = True
-        else:
-            was_locked = False
         def notify_otr_timeout():
-            nonlocal name
-            otr = self.get_context(name)
-            if isinstance(tab, DynamicConversationTab) and not was_locked:
+            tab_name = tab.name
+            otr = self.get_context(tab_name)
+            if isinstance(tab, DynamicConversationTab):
                 if tab.locked_resource:
-                    name = safeJID(tab.name)
-                    name.resource = tab.locked_resource
-                    name = name.full
-                    otr = self.get_context(name)
+                    tab_name = safeJID(tab.name)
+                    tab_name.resource = tab.locked_resource
+                    tab_name = tab_name.full
+                    otr = self.get_context(tab_name)
             if otr.state != STATE_ENCRYPTED:
                 format_dict['secs'] = secs
                 text = OTR_NOT_ENABLED % format_dict
