@@ -893,7 +893,7 @@ class Plugin(BasePlugin):
         if secs > 0:
             event = self.api.create_delayed_event(secs, notify_otr_timeout)
             self.api.add_timed_event(event)
-        body = self.contexts[name].sendMessage(0, b'?OTRv?').decode()
+        body = self.get_context(name).sendMessage(0, b'?OTRv?').decode()
         self.core.xmpp.send_message(mto=name, mtype='chat', mbody=body)
         tab.add_message(OTR_REQUEST % format_dict, typ=0)
 
