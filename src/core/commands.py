@@ -559,8 +559,10 @@ def command_set(self, args):
     elif len(args) == 1:
         option = args[0]
         value = config.get(option)
+        if value is None and '=' in option:
+            args = option.split('=', 1)
         info = ('%s=%s' % (option, value), 'Info')
-    elif len(args) == 2:
+    if len(args) == 2:
         if '|' in args[0]:
             plugin_name, section = args[0].split('|')[:2]
             if not section:
@@ -606,7 +608,7 @@ def command_set(self, args):
             value = args[2]
             info = config.set_and_save(option, value, section)
             self.trigger_configuration_change(option, value)
-    else:
+    elif len(args) > 3:
         return self.command_help('set')
     self.call_for_resize()
     self.information(*info)
