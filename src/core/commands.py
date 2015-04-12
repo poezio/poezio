@@ -536,14 +536,27 @@ def command_remove_bookmark(self, args):
         else:
             self.information(_('No bookmark to remove'), 'Info')
 
-@command_args_parser.quoted(1, 2)
+@command_args_parser.quoted(0, 2)
 def command_set(self, args):
     """
     /set [module|][section] <option> [value]
     """
-    if args is None:
-        return self.command_help('set')
-    if len(args) == 1:
+    if args is None or len(args) == 0:
+        config_dict = config.to_dict()
+        lines = []
+        theme = get_theme()
+        for section_name, section in config_dict.items():
+            lines.append('\x19%(section_col)s}[%(section)s]\x19o' %
+                    {
+                        'section': section_name,
+                        'section_col': dump_tuple(theme.COLOR_INFORMATION_TEXT),
+                    })
+            for option_name, option_value in section.items():
+                lines.append('%s\x19%s}=\x19o%s' % (option_name,
+                                                    dump_tuple(theme.COLOR_REVISIONS_MESSAGE),
+                                                    option_value))
+        info = ('Current  options:\n%s' % '\n'.join(lines), 'Info')
+    elif len(args) == 1:
         option = args[0]
         value = config.get(option)
         info = ('%s=%s' % (option, value), 'Info')
