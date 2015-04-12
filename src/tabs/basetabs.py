@@ -290,6 +290,7 @@ class Tab(object):
             else:
                 arg = xhtml.clean_text_simple(arg)
             if func:
+                self.input.reset_completion()
                 func(arg)
             return True
         else:
