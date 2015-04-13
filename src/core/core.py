@@ -1242,11 +1242,11 @@ class Core(object):
         tab.privates.append(new_tab)
         return new_tab
 
-    def open_new_room(self, room, nick, focus=True):
+    def open_new_room(self, room, nick, *, password=None, focus=True):
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
-        new_tab = tabs.MucTab(room, nick)
+        new_tab = tabs.MucTab(room, nick, password=password)
         self.add_tab(new_tab, focus)
         self.refresh_window()
 

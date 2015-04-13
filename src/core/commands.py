@@ -388,13 +388,15 @@ def command_join(self, args, histo_length=None):
             seconds = int(seconds)
         else:
             seconds = 0
+        if password:
+            tab.password = password
         muc.join_groupchat(self, room, nick, password,
                            histo_length,
                            current_status.message,
                            current_status.show,
                            seconds=seconds)
     if not tab:
-        self.open_new_room(room, nick)
+        self.open_new_room(room, nick, password=password)
         muc.join_groupchat(self, room, nick, password,
                            histo_length,
                            current_status.message,
@@ -448,6 +450,8 @@ def _add_bookmark(self, jid, autojoin, password, method):
         roomname = tab.name
         if tab.joined and tab.own_nick != self.own_nick:
             nick = tab.own_nick
+        if password is None and tab.password is not None:
+            password = tab.password
     elif jid == '*':
         return _add_wildcard_bookmarks(self, method)
     else:
