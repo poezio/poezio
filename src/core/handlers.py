@@ -923,7 +923,8 @@ def on_disconnected(self, event):
     roster.modified()
     for tab in self.get_tabs(tabs.MucTab):
         tab.disconnect()
-    self.information(_("Disconnected from server."), _('Error'))
+    msg_typ = _('Error') if not self.legitimate_disconnect else _('Info')
+    self.information(_("Disconnected from server."), msg_typ)
     if not self.legitimate_disconnect and config.get('auto_reconnect', True):
         self.information(_("Auto-reconnecting."), _('Info'))
         self.xmpp.connect()
