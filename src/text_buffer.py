@@ -87,7 +87,7 @@ class TextBuffer(object):
     @staticmethod
     def make_message(txt, time, nickname, nick_color, history, user,
                      identifier, str_time=None, highlight=False,
-                     old_message=None, revisions=0, jid=None, ack=None):
+                     old_message=None, revisions=0, jid=None, ack=0):
         """
         Create a new Message object with parameters, check for /me messages,
         and delayed messages
@@ -128,7 +128,7 @@ class TextBuffer(object):
 
     def add_message(self, txt, time=None, nickname=None,
                     nick_color=None, history=None, user=None, highlight=False,
-                    identifier=None, str_time=None, jid=None, ack=None):
+                    identifier=None, str_time=None, jid=None, ack=0):
         """
         Create a message and add it to the text buffer
         """
@@ -160,13 +160,23 @@ class TextBuffer(object):
         """
         for i in range(len(self.messages) -1, -1, -1):
             msg = self.messages[i]
+            log.debug('\n%s  ≠≠≠  %s', msg.identifier, old_id)
             if msg.identifier == old_id:
                 return i
         return -1
 
     def ack_message(self, old_id, jid):
+        """Mark a message as acked"""
+        return self.edit_ack(1, old_id, jid)
+
+    def nack_message(self, error, old_id, jid):
+        """Mark a message as errored"""
+        return self.edit_ack(-1, old_id, jid, append=error)
+
+    def edit_ack(self, value, old_id, jid, append=''):
         """
-        Ack a message
+        Edit the ack status of a message, and optionally
+        append some text.
         """
         i = self._find_message(old_id)
         if i == -1:
@@ -177,7 +187,9 @@ class TextBuffer(object):
                             (old_id, msg.jid, jid))
 
         new_msg = list(msg)
-        new_msg[12] = True
+        new_msg[12] = value
+        if append:
+            new_msg[0] = new_msg[0] + append
         new_msg = Message(*new_msg)
         self.messages[i] = new_msg
         return new_msg

@@ -747,6 +747,17 @@ class OneToOneTab(ChatTab):
             self.text_win.modify_message(msg_id, new_msg)
             self.core.refresh_window()
 
+    def nack_message(self, error, msg_id, msg_jid):
+        """
+        Ack a message
+        """
+        new_msg = self._text_buffer.nack_message(error, msg_id, msg_jid)
+        if new_msg:
+            self.text_win.modify_message(msg_id, new_msg)
+            self.core.refresh_window()
+            return True
+        return False
+
     @command_args_parser.raw
     def command_xhtml(self, xhtml_data):
         message = self.generate_xhtml_message(xhtml_data)

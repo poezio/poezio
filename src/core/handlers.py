@@ -237,7 +237,16 @@ def on_error_message(self, message):
                 return self.room_error(message, jid_from)
             else:
                 return self.on_groupchat_private_message(message)
-    return self.information(self.get_error_message(message, deprecated=True), 'Error')
+    tab = self.get_conversation_by_jid(message['from'], create=False)
+    error_msg = self.get_error_message(message, deprecated=True)
+    if not tab:
+        return self.information(error_msg, _('Error'))
+    error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
+                                  error_msg)
+    if not tab.nack_message('\n' + error, message['id'], message['to']):
+        tab.add_message(error, typ=0)
+        self.refresh_window()
+
 
 def on_normal_message(self, message):
     """

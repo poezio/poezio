@@ -310,6 +310,7 @@ class Theme(object):
     CHAR_ERROR = '✖'
     CHAR_EMPTY = ' '
     CHAR_ACK_RECEIVED = CHAR_OK
+    CHAR_NACK = CHAR_ERROR
     CHAR_COLUMN_ASC = ' ▲'
     CHAR_COLUMN_DESC = ' ▼'
     CHAR_ROSTER_ERROR = CHAR_ERROR
@@ -324,6 +325,7 @@ class Theme(object):
     CHAR_ROSTER_NONE = '⇹'
 
     COLOR_CHAR_ACK = (2, -1)
+    COLOR_CHAR_NACK = (1, -1)
 
     COLOR_ROSTER_GAMING = (6, -1)
     COLOR_ROSTER_MOOD = (2, -1)

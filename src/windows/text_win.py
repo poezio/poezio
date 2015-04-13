@@ -307,7 +307,10 @@ class TextWin(BaseTextWin):
         nick = truncate_nick(message.nickname)
         offset = 0
         if message.ack:
-            offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+            if message.ack > 0:
+                offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+            else:
+                offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
         if nick:
             offset += poopt.wcswidth(nick) + 2 # + nick + '> ' length
         if message.revisions > 0:
@@ -361,7 +364,10 @@ class TextWin(BaseTextWin):
                     if with_timestamps:
                         self.write_time(msg.str_time)
                     if msg.ack:
-                        self.write_ack()
+                        if msg.ack > 0:
+                            self.write_ack()
+                        else:
+                            self.write_nack()
                     if msg.me:
                         self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
                         self.addstr('* ')
@@ -404,8 +410,11 @@ class TextWin(BaseTextWin):
                     offset += ceil(log10(line.msg.revisions + 1))
 
                     if line.msg.ack:
-                        offset += 1 + poopt.wcswidth(
-                                    get_theme().CHAR_ACK_RECEIVED)
+                        if msg.ack > 0:
+                            offset += 1 + poopt.wcswidth(
+                                        get_theme().CHAR_ACK_RECEIVED)
+                        else:
+                            offset += 1 + poopt.wcswidth(get_theme().CHAR_NACK)
 
                 self.write_text(y, offset,
                         line.prepend+line.msg.txt[line.start_pos:line.end_pos])
@@ -425,6 +434,13 @@ class TextWin(BaseTextWin):
         color = get_theme().COLOR_CHAR_ACK
         self._win.attron(to_curses_attr(color))
         self.addstr(get_theme().CHAR_ACK_RECEIVED)
+        self._win.attroff(to_curses_attr(color))
+        self.addstr(' ')
+
+    def write_nack(self):
+        color = get_theme().COLOR_CHAR_NACK
+        self._win.attron(to_curses_attr(color))
+        self.addstr(get_theme().CHAR_NACK)
         self._win.attroff(to_curses_attr(color))
         self.addstr(' ')
 
