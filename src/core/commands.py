@@ -536,7 +536,7 @@ def command_remove_bookmark(self, args):
         else:
             self.information(_('No bookmark to remove'), 'Info')
 
-@command_args_parser.quoted(0, 2)
+@command_args_parser.quoted(0, 3)
 def command_set(self, args):
     """
     /set [module|][section] <option> [value]
