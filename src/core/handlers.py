@@ -758,7 +758,10 @@ def on_subscription_request(self, presence):
             contact = roster.get_and_set(jid)
         roster.update_contact_groups(contact)
         contact.pending_in = True
-        self.information('%s wants to subscribe to your presence' % jid, 'Roster')
+        self.information(_('%s wants to subscribe to your presence, '
+                           'use /accept <jid> or /deny <jid> to accept '
+                           'or reject the query.') % jid,
+                          'Roster')
         self.get_tab_by_number(0).state = 'highlight'
         roster.modified()
     if isinstance(self.current_tab(), tabs.RosterInfoTab):
