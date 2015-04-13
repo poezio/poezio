@@ -603,7 +603,15 @@ def command_set(self, args):
                 plugin_config = self.plugin_manager.plugins[plugin_name].config
             info = plugin_config.set_and_save(option, value, section)
         else:
-            section = args[0]
+            if args[0] == '.':
+                name = safeJID(self.current_tab().name).bare
+                if not name:
+                    self.information(_('Invalid tab to use the "." argument.'),
+                                     _('Error'))
+                    return
+                section = name
+            else:
+                section = args[0]
             option = args[1]
             value = args[2]
             info = config.set_and_save(option, value, section)
