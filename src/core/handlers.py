@@ -224,6 +224,12 @@ def on_message(self, message):
     if message['type'] == 'groupchat':
         return
     # Differentiate both type of messages, and call the appropriate handler.
+    return self.on_normal_message(message)
+
+def on_error_message(self, message):
+    """
+    When receiving any message with type="error"
+    """
     jid_from = message['from']
     for tab in self.get_tabs(tabs.MucTab):
         if tab.name == jid_from.bare:
@@ -231,7 +237,7 @@ def on_message(self, message):
                 return self.room_error(message, jid_from)
             else:
                 return self.on_groupchat_private_message(message)
-    return self.on_normal_message(message)
+    return self.information(self.get_error_message(message, deprecated=True), 'Error')
 
 def on_normal_message(self, message):
     """
@@ -239,7 +245,7 @@ def on_normal_message(self, message):
     muc participant)
     """
     if message['type'] == 'error':
-        return self.information(self.get_error_message(message, deprecated=True), 'Error')
+        return
     elif message['type'] == 'headline' and message['body']:
         return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 

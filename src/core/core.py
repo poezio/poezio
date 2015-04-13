@@ -224,6 +224,7 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_subject",
                                     self.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.on_message)
+        self.xmpp.add_event_handler("message_error", self.on_error_message)
         self.xmpp.add_event_handler("receipt_received", self.on_receipt)
         self.xmpp.add_event_handler("got_online", self.on_got_online)
         self.xmpp.add_event_handler("got_offline", self.on_got_offline)
@@ -1947,6 +1948,7 @@ class Core(object):
     on_groupchat_direct_invitation = handlers.on_groupchat_direct_invitation
     on_groupchat_decline = handlers.on_groupchat_decline
     on_message = handlers.on_message
+    on_error_message = handlers.on_error_message
     on_normal_message = handlers.on_normal_message
     on_nick_received = handlers.on_nick_received
     on_gaming_event = handlers.on_gaming_event
