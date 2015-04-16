@@ -224,6 +224,11 @@ def on_message(self, message):
     if message['type'] == 'groupchat':
         return
     # Differentiate both type of messages, and call the appropriate handler.
+    jid_from = message['from']
+    for tab in self.get_tabs(tabs.MucTab):
+        if tab.name == jid_from.bare:
+            if message['type'] == 'chat':
+                return self.on_groupchat_private_message(message)
     return self.on_normal_message(message)
 
 def on_error_message(self, message):
