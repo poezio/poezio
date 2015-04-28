@@ -239,7 +239,7 @@ def on_error_message(self, message):
     for tab in self.get_tabs(tabs.MucTab):
         if tab.name == jid_from.bare:
             if message['type'] == 'error':
-                return self.room_error(message, jid_from)
+                return self.room_error(message, jid_from.bare)
             else:
                 return self.on_groupchat_private_message(message)
     tab = self.get_conversation_by_jid(message['from'], create=False)
@@ -1137,6 +1137,8 @@ def room_error(self, error, room_name):
     Display the error in the tab
     """
     tab = self.get_tab_by_name(room_name, tabs.MucTab)
+    if not tab:
+        return
     error_message = self.get_error_message(error)
     tab.add_message(error_message, highlight=True, nickname='Error',
                     nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
