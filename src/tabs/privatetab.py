@@ -88,6 +88,7 @@ class PrivateTab(OneToOneTab):
 
     def load_logs(self, log_nb):
         logs = logger.get_logs(safeJID(self.name).full.replace('/', '\\'), log_nb)
+        return logs
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
