@@ -117,10 +117,15 @@ class Logger(object):
 
         try:
             fd = open(os.path.join(log_dir, jid), 'rb')
-        except:
+        except FileNotFoundError:
+            log.info('Non-existing log file (%s)',
+                     os.path.join(log_dir, jid),
+                     exc_info=True)
+            return
+        except OSError:
             log.error('Unable to open the log file (%s)',
-                    os.path.join(log_dir, jid),
-                    exc_info=True)
+                      os.path.join(log_dir, jid),
+                      exc_info=True)
             return
         if not fd:
             return
