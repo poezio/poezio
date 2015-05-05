@@ -118,7 +118,6 @@ def completion_join(self, the_input):
         return the_input.new_completion(['/%s' % self.own_nick], 1, quotify=True)
     else:
         return the_input.new_completion(relevant_rooms, 1, quotify=True)
-    return True
 
 
 def completion_version(self, the_input):
@@ -211,9 +210,6 @@ def completion_bind(self, the_input):
         return
 
     return the_input.new_completion(args, n, '', quotify=False)
-
-
-    return the_input
 
 
 def completion_message(self, the_input):

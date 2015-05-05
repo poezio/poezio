@@ -254,7 +254,6 @@ class Tab(object):
                     return False # There's no completion function
                 else:
                     return command[2](the_input)
-                return True
         return False
 
     def execute_command(self, provided_text):
