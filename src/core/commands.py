@@ -622,7 +622,6 @@ def command_set(self, args):
             self.trigger_configuration_change(option, value)
     elif len(args) > 3:
         return self.command_help('set')
-    self.call_for_resize()
     self.information(*info)
 
 @command_args_parser.quoted(1, 2)
