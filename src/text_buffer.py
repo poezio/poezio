@@ -160,7 +160,6 @@ class TextBuffer(object):
         """
         for i in range(len(self.messages) -1, -1, -1):
             msg = self.messages[i]
-            log.debug('\n%s  ≠≠≠  %s', msg.identifier, old_id)
             if msg.identifier == old_id:
                 return i
         return -1
