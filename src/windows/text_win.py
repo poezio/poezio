@@ -63,13 +63,13 @@ class BaseTextWin(Win):
             self.pos = 0
         return self.pos != pos
 
-    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False):
+    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False, nick_size=10):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        lines = self.build_message(message, timestamp=timestamp)
+        lines = self.build_message(message, timestamp=timestamp, nick_size=nick_size)
         if self.lock:
             self.lock_buffer.extend(lines)
         else:
@@ -81,7 +81,7 @@ class BaseTextWin(Win):
                 self.built_lines.pop(0)
         return len(lines)
 
-    def build_message(self, message, timestamp=False):
+    def build_message(self, message, timestamp=False, nick_size=10):
         """
         Build a list of lines from a message, without adding it
         to a list
@@ -125,8 +125,9 @@ class BaseTextWin(Win):
     def rebuild_everything(self, room):
         self.built_lines = []
         with_timestamps = config.get('show_timestamps')
+        nick_size = config.get('max_nick_length')
         for message in room.messages:
-            self.build_new_message(message, clean=False, timestamp=with_timestamps)
+            self.build_new_message(message, clean=False, timestamp=with_timestamps, nick_size=nick_size)
             if self.separator_after is message:
                 self.build_new_message(None)
         while len(self.built_lines) > self.lines_nb_limit:
@@ -265,13 +266,13 @@ class TextWin(BaseTextWin):
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 
-    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False):
+    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False, nick_size=10):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        lines = self.build_message(message, timestamp=timestamp)
+        lines = self.build_message(message, timestamp=timestamp, nick_size=nick_size)
         if self.lock:
             self.lock_buffer.extend(lines)
         else:
@@ -288,7 +289,7 @@ class TextWin(BaseTextWin):
                 self.built_lines.pop(0)
         return len(lines)
 
-    def build_message(self, message, timestamp=False):
+    def build_message(self, message, timestamp=False, nick_size=10):
         """
         Build a list of lines from a message, without adding it
         to a list
@@ -304,7 +305,7 @@ class TextWin(BaseTextWin):
         else:
             default_color = None
         ret = []
-        nick = truncate_nick(message.nickname)
+        nick = truncate_nick(message.nickname, nick_size)
         offset = 0
         if message.ack:
             if message.ack > 0:
@@ -349,12 +350,14 @@ class TextWin(BaseTextWin):
         else:
             lines = self.built_lines[-self.height-self.pos:-self.pos]
         with_timestamps = config.get("show_timestamps")
+        nick_size = config.get("max_nick_length")
         self._win.move(0, 0)
         self._win.erase()
         for y, line in enumerate(lines):
             if line:
                 msg = line.msg
                 if line.start_pos == 0:
+                    nick = truncate_nick(msg.nickname, nick_size)
                     if msg.nick_color:
                         color = msg.nick_color
                     elif msg.user:
@@ -371,14 +374,14 @@ class TextWin(BaseTextWin):
                     if msg.me:
                         self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
                         self.addstr('* ')
-                        self.write_nickname(msg.nickname, color, msg.highlight)
+                        self.write_nickname(nick, color, msg.highlight)
                         if msg.revisions:
                             self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
                             self.addstr('%d' % msg.revisions)
                             self._win.attrset(0)
                         self.addstr(' ')
                     else:
-                        self.write_nickname(msg.nickname, color, msg.highlight)
+                        self.write_nickname(nick, color, msg.highlight)
                         if msg.revisions:
                             self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
                             self.addstr('%d' % msg.revisions)
@@ -401,8 +404,7 @@ class TextWin(BaseTextWin):
                 # Offset for the nickname (if any)
                 # plus a space and a > after it
                 if line.msg.nickname:
-                    offset += poopt.wcswidth(
-                                truncate_nick(line.msg.nickname))
+                    offset += poopt.wcswidth(truncate_nick(line.msg.nickname, nick_size))
                     if line.msg.me:
                         offset += 3
                     else:
@@ -459,7 +461,7 @@ class TextWin(BaseTextWin):
                 color = hl_color
         if color:
             self._win.attron(to_curses_attr(color))
-        self.addstr(truncate_nick(nickname))
+        self.addstr(nickname)
         if color:
             self._win.attroff(to_curses_attr(color))
         if highlight and hl_color == "reverse":
@@ -471,6 +473,7 @@ class TextWin(BaseTextWin):
         (instead of rebuilding everything in order to correct a message)
         """
         with_timestamps = config.get('show_timestamps')
+        nick_size = config.get('max_nick_length')
         for i in range(len(self.built_lines)-1, -1, -1):
             if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i
@@ -478,7 +481,7 @@ class TextWin(BaseTextWin):
                     self.built_lines.pop(index)
                     index -= 1
                 index += 1
-                lines = self.build_message(message, timestamp=with_timestamps)
+                lines = self.build_message(message, timestamp=with_timestamps, nick_size=nick_size)
                 for line in lines:
                     self.built_lines.insert(index, line)
                     index += 1
@@ -536,11 +539,11 @@ class XMLTextWin(BaseTextWin):
         self._win.attrset(0)
         self._refresh()
 
-    def build_message(self, message, timestamp=False):
+    def build_message(self, message, timestamp=False, nick_size=10):
         txt = message.txt
         ret = []
         default_color = None
-        nick = truncate_nick(message.nickname)
+        nick = truncate_nick(message.nickname, nick_size)
         offset = 0
         if nick:
             offset += poopt.wcswidth(nick) + 1 # + nick + ' ' length

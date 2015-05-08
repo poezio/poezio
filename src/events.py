@@ -10,9 +10,6 @@ The list of available events is here:
 http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
 
-import logging
-log = logging.getLogger(__name__)
-
 class EventHandler(object):
     """
     A class keeping a list of possible events that are triggered
@@ -71,9 +68,7 @@ class EventHandler(object):
         """
         callbacks = self.events.get(name, None)
         if callbacks is None:
-            log.debug('%s: No such event.', name)
             return
-        log.debug('Event %s triggered, callbacks: %s', name, callbacks)
         for callback in callbacks:
             callback(*args, **kwargs)
 

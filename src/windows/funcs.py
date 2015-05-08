@@ -4,7 +4,6 @@ Standalone functions used by the modules
 
 import string
 
-from config import config
 from . base_wins import FORMAT_CHAR, format_chars
 
 def find_first_format_char(text, chars=None):
@@ -19,8 +18,7 @@ def find_first_format_char(text, chars=None):
             pos = p
     return pos
 
-def truncate_nick(nick, size=None):
-    size = size or config.get('max_nick_length')
+def truncate_nick(nick, size=10):
     if size < 1:
         size = 1
     if nick and len(nick) > size:

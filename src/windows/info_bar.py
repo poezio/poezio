@@ -28,6 +28,7 @@ class GlobalInfoBar(Win):
         show_names = config.get('show_tab_names')
         show_nums = config.get('show_tab_numbers')
         use_nicks = config.get('use_tab_nicks')
+        show_inactive = config.get('show_inactive_tabs')
         # ignore any remaining gap tabs if the feature is not enabled
         if create_gaps:
             sorted_tabs = self.core.tabs[:]
@@ -37,8 +38,7 @@ class GlobalInfoBar(Win):
         for nb, tab in enumerate(sorted_tabs):
             if not tab: continue
             color = tab.color
-            if not config.get('show_inactive_tabs') and\
-                    color is get_theme().COLOR_TAB_NORMAL:
+            if not show_inactive and color is get_theme().COLOR_TAB_NORMAL:
                 continue
             try:
                 if show_nums or not show_names:
@@ -87,9 +87,10 @@ class VerticalGlobalInfoBar(Win):
                 sorted_tabs = sorted_tabs[-height:]
             else:
                 sorted_tabs = sorted_tabs[pos-height//2 : pos+height//2]
+        asc_sort = (config.get('vertical_tab_list_sort') == 'asc')
         for y, tab in enumerate(sorted_tabs):
             color = tab.vertical_color
-            if not config.get('vertical_tab_list_sort') != 'asc':
+            if asc_sort:
                 y = height - y - 1
             self.addstr(y, 0, "%2d" % tab.nb,
                     to_curses_attr(get_theme().COLOR_VERTICAL_TAB_NUMBER))

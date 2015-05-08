@@ -37,7 +37,8 @@ class UserList(Win):
         if config.get('hide_user_list'):
             return # do not refresh if this win is hidden.
         self._win.erase()
-        if config.get('user_list_sort').lower() == 'asc':
+        asc_sort = (config.get('user_list_sort').lower() == 'asc')
+        if asc_sort:
             y, x = self._win.getmaxyx()
             y -= 1
             users = sorted(users)
@@ -55,7 +56,7 @@ class UserList(Win):
             self.addstr(y, 2,
                     poopt.cut_by_columns(user.nick, self.width - 2),
                     to_curses_attr(user.color))
-            if config.get('user_list_sort').lower() == 'asc':
+            if asc_sort:
                 y -= 1
             else:
                 y += 1
@@ -63,12 +64,12 @@ class UserList(Win):
                 break
         # draw indicators of position in the list
         if self.pos > 0:
-            if config.get('user_list_sort').lower() == 'asc':
+            if asc_sort:
                 self.draw_plus(self.height-1)
             else:
                 self.draw_plus(0)
         if self.pos + self.height < len(users):
-            if config.get('user_list_sort').lower() == 'asc':
+            if asc_sort:
                 self.draw_plus(0)
             else:
                 self.draw_plus(self.height-1)

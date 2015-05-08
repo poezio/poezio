@@ -145,6 +145,12 @@ class RosterWin(Win):
         # draw the roster from the cache
         roster_view = self.roster_cache[self.start_pos-1:self.start_pos+self.height]
 
+        options = {
+            'show_roster_sub': config.get('show_roster_subscriptions'),
+            'show_s2s_errors': config.get('show_s2s_errors'),
+            'show_roster_jids': config.get('show_roster_jids')
+        }
+
         for item in roster_view:
             draw_selected = False
             if y -2 + self.start_pos == self.pos:
@@ -155,7 +161,7 @@ class RosterWin(Win):
                 self.draw_group(y, item, draw_selected)
                 group = item.name
             elif isinstance(item, Contact):
-                self.draw_contact_line(y, item, draw_selected, group)
+                self.draw_contact_line(y, item, draw_selected, group, **options)
             elif isinstance(item, Resource):
                 self.draw_resource_line(y, item, draw_selected)
 
@@ -206,7 +212,8 @@ class RosterWin(Win):
             return name
         return name[:self.width - added - 1] + '…'
 
-    def draw_contact_line(self, y, contact, colored, group):
+    def draw_contact_line(self, y, contact, colored, group, show_roster_sub=False,
+                          show_s2s_errors=True, show_roster_jids=False):
         """
         Draw on a line all informations about one contact.
         This is basically the highest priority resource's informations
@@ -229,15 +236,13 @@ class RosterWin(Win):
         self.addstr(y, 0, ' ')
         self.addstr(theme.CHAR_STATUS, to_curses_attr(color))
 
-        show_roster_sub = config.get('show_roster_subscriptions')
-
         self.addstr(' ')
         if resource:
             self.addstr('[+] ' if contact.folded(group) else '[-] ')
             added += 4
         if contact.ask:
             added += len(get_theme().CHAR_ROSTER_ASKED)
-        if config.get('show_s2s_errors') and contact.error:
+        if show_s2s_errors and contact.error:
             added += len(get_theme().CHAR_ROSTER_ERROR)
         if contact.tune:
             added += len(get_theme().CHAR_ROSTER_TUNE)
@@ -250,7 +255,7 @@ class RosterWin(Win):
         if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both', 'none'):
             added += len(theme.char_subscription(contact.subscription, keep=show_roster_sub))
 
-        if not config.get('show_roster_jids') and contact.name:
+        if not show_roster_jids and contact.name:
             display_name = '%s' % contact.name
         elif contact.name and contact.name != contact.bare_jid:
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
@@ -268,7 +273,7 @@ class RosterWin(Win):
             self.addstr(theme.char_subscription(contact.subscription, keep=show_roster_sub), to_curses_attr(theme.COLOR_ROSTER_SUBSCRIPTION))
         if contact.ask:
             self.addstr(get_theme().CHAR_ROSTER_ASKED, to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
-        if config.get('show_s2s_errors') and contact.error:
+        if show_s2s_errors and contact.error:
             self.addstr(get_theme().CHAR_ROSTER_ERROR, to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
         if contact.tune:
             self.addstr(get_theme().CHAR_ROSTER_TUNE, to_curses_attr(get_theme().COLOR_ROSTER_TUNE))
