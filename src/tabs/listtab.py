@@ -197,6 +197,6 @@ class ListTab(Tab):
         self.core.doupdate()
 
     def matching_names(self):
-        return [(2, self.name.full)]
+        return [(2, self.name)]
 
 
