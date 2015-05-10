@@ -4,8 +4,6 @@ sortable list.  It should be inherited, to actually provide methods that
 insert items in the list, and that lets the user interact with them.
 """
 
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -52,7 +50,7 @@ class ListTab(Tab):
         self.key_func['KEY_RIGHT'] = self.list_header.sel_column_right
         self.key_func[' '] = self.sort_by
         self.register_command('close', self.close,
-                shortdesc=_('Close this tab.'))
+                shortdesc='Close this tab.')
         self.resize()
         self.update_keys()
         self.update_commands()
@@ -121,7 +119,7 @@ class ListTab(Tab):
         """
         If there's an error (retrieving the values etc)
         """
-        self._error_message = _('Error: %(code)s - %(msg)s: %(body)s') % {'msg':msg, 'body':body, 'code':code}
+        self._error_message = 'Error: %(code)s - %(msg)s: %(body)s' % {'msg':msg, 'body':body, 'code':code}
         self.info_header.message = self._error_message
         self.info_header.refresh()
         curses.doupdate()

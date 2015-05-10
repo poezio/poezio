@@ -16,7 +16,6 @@ import logging.config
 import os
 import sys
 import pkg_resources
-from gettext import gettext as _
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
@@ -410,9 +409,9 @@ class Config(RawConfigParser):
                 elif current.lower() == "true":
                     value = "false"
                 else:
-                    return (_('Could not toggle option: %s.'
-                              ' Current value is %s.') %
-                                  (option, current or _("empty")),
+                    return ('Could not toggle option: %s.'
+                            ' Current value is %s.' %
+                                (option, current or "empty"),
                             'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
@@ -420,7 +419,7 @@ class Config(RawConfigParser):
             self.add_section(section)
             RawConfigParser.set(self, section, option, value)
         if not self.write_in_file(section, option, value):
-            return (_('Unable to write in the config file'), 'Error')
+            return ('Unable to write in the config file', 'Error')
         return ("%s=%s" % (option, value), 'Info')
 
     def remove_and_save(self, option, section=DEFSECTION):
@@ -430,8 +429,8 @@ class Config(RawConfigParser):
         if self.has_section(section):
             RawConfigParser.remove_option(self, section, option)
         if not self.remove_in_file(section, option):
-            return (_('Unable to save the config file'), 'Error')
-        return (_('Option %s deleted') % option, 'Info')
+            return ('Unable to save the config file', 'Error')
+        return ('Option %s deleted' % option, 'Info')
 
     def silent_set(self, option, value, section=DEFSECTION):
         """

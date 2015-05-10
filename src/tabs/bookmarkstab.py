@@ -10,8 +10,6 @@ from bookmarks import Bookmark, BookmarkList, stanza_storage
 from tabs import Tab
 from common import safeJID
 
-from gettext import gettext as _
-
 
 class BookmarksTab(Tab):
     """
@@ -32,10 +30,10 @@ class BookmarksTab(Tab):
         self.bookmarks_win = windows.BookmarksWin(self.bookmarks,
                                                   self.height-4,
                                                   self.width, 1, 0)
-        self.help_win = windows.HelpText(_('Ctrl+Y: save, Ctrl+G: cancel, '
-                                           '↑↓: change lines, tab: change '
-                                           'column, M-a: add bookmark, C-k'
-                                           ': delete bookmark'))
+        self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '
+                                         '↑↓: change lines, tab: change '
+                                         'column, M-a: add bookmark, C-k'
+                                         ': delete bookmark')
         self.info_header = windows.BookmarksInfoWin()
         self.key_func['KEY_UP'] = self.bookmarks_win.go_to_previous_line_input
         self.key_func['KEY_DOWN'] = self.bookmarks_win.go_to_next_line_input
@@ -66,14 +64,14 @@ class BookmarksTab(Tab):
     def on_save(self):
         self.bookmarks_win.save()
         if find_duplicates(self.new_bookmarks):
-            self.core.information(_('Duplicate bookmarks in list (saving aborted)'), 'Error')
+            self.core.information('Duplicate bookmarks in list (saving aborted)', 'Error')
             return
         for bm in self.new_bookmarks:
             if safeJID(bm.jid):
                 if not self.bookmarks[bm.jid]:
                     self.bookmarks.append(bm)
             else:
-                self.core.information(_('Invalid JID for bookmark: %s/%s') % (bm.jid, bm.nick), 'Error')
+                self.core.information('Invalid JID for bookmark: %s/%s' % (bm.jid, bm.nick), 'Error')
                 return
 
         for bm in self.removed_bookmarks:
@@ -82,9 +80,9 @@ class BookmarksTab(Tab):
 
         def send_cb(success):
             if success:
-                self.core.information(_('Bookmarks saved.'), 'Info')
+                self.core.information('Bookmarks saved.', 'Info')
             else:
-                self.core.information(_('Remote bookmarks not saved.'), 'Error')
+                self.core.information('Remote bookmarks not saved.', 'Error')
         log.debug('alerte %s', str(stanza_storage(self.bookmarks.bookmarks)))
         self.bookmarks.save(self.core.xmpp, callback=send_cb)
         self.core.close_tab()

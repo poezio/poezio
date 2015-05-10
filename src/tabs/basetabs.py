@@ -13,8 +13,6 @@ This module also defines ChatTabs, the parent class for all tabs
 revolving around chats.
 """
 
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -281,9 +279,9 @@ class Tab(object):
                     if self.missing_command_callback is not None:
                         error_handled = self.missing_command_callback(low)
                     if not error_handled:
-                        self.core.information(_("Unknown command (%s)") %
-                                                (command),
-                                              _('Error'))
+                        self.core.information("Unknown command (%s)" %
+                                              (command),
+                                              'Error')
             if command in ('correct', 'say'): # hack
                 arg = xhtml.convert_simple_to_full_colors(arg)
             else:
@@ -455,16 +453,16 @@ class ChatTab(Tab):
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
         self.register_command('say', self.command_say,
-                usage=_('<message>'),
-                shortdesc=_('Send the message.'))
+                usage='<message>',
+                shortdesc='Send the message.')
         self.register_command('xhtml', self.command_xhtml,
-                usage=_('<custom xhtml>'),
-                shortdesc=_('Send custom XHTML.'))
+                usage='<custom xhtml>',
+                shortdesc='Send custom XHTML.')
         self.register_command('clear', self.command_clear,
-                shortdesc=_('Clear the current buffer.'))
+                shortdesc='Clear the current buffer.')
         self.register_command('correct', self.command_correct,
-                desc=_('Fix the last message with whatever you want.'),
-                shortdesc=_('Correct the last message.'),
+                desc='Fix the last message with whatever you want.',
+                shortdesc='Correct the last message.',
                 completion=self.completion_correct)
         self.chat_state = None
         self.update_commands()
@@ -492,7 +490,7 @@ class ChatTab(Tab):
         """
         name = safeJID(self.name).bare
         if not logger.log_message(name, nickname, txt, date=time, typ=typ):
-            self.core.information(_('Unable to write in the log file'), 'Error')
+            self.core.information('Unable to write in the log file', 'Error')
 
     def add_message(self, txt, time=None, nickname=None, forced_user=None,
                     nick_color=None, identifier=None, jid=None, history=None,
@@ -647,7 +645,7 @@ class ChatTab(Tab):
             self.core.command_help('correct')
             return
         if not self.last_sent_message:
-            self.core.information(_('There is no message to correct.'))
+            self.core.information('There is no message to correct.')
             return
         self.command_say(line, correct=True)
 
@@ -729,9 +727,9 @@ class OneToOneTab(ChatTab):
             nope = get_theme().CHAR_EMPTY
             support = ok if value else nope
             if value:
-                msg = _('\x19%s}Contact supports chat states [%s].')
+                msg = '\x19%s}Contact supports chat states [%s].'
             else:
-                msg = _('\x19%s}Contact does not support chat states [%s].')
+                msg = '\x19%s}Contact does not support chat states [%s].'
             color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             msg = msg % (color, support)
             self.add_message(msg, typ=0)
@@ -798,11 +796,11 @@ class OneToOneTab(ChatTab):
             return False
 
         if command_name == 'correct':
-            feature = _('message correction')
+            feature = 'message correction'
         elif command_name == 'attention':
-            feature = _('attention requests')
-        msg = _('%s does not support %s, therefore the /%s '
-                'command is currently disabled in this tab.')
+            feature = 'attention requests'
+        msg = ('%s does not support %s, therefore the /%s '
+               'command is currently disabled in this tab.')
         msg = msg % (self.name, feature, command_name)
         self.core.information(msg, 'Info')
         return True
@@ -812,11 +810,11 @@ class OneToOneTab(ChatTab):
         if 'urn:xmpp:attention:0' in features:
             self.remote_supports_attention = True
             self.register_command('attention', self.command_attention,
-                                  usage=_('[message]'),
-                                  shortdesc=_('Request the attention.'),
-                                  desc=_('Attention: Request the attention of '
-                                         'the contact. Can also send a message'
-                                         ' along with the attention.'))
+                                  usage='[message]',
+                                  shortdesc='Request the attention.',
+                                  desc='Attention: Request the attention of '
+                                       'the contact. Can also send a message'
+                                       ' along with the attention.')
         else:
             self.remote_supports_attention = False
         return self.remote_supports_attention
@@ -828,8 +826,8 @@ class OneToOneTab(ChatTab):
                 del self.commands['correct']
         elif not 'correct' in self.commands:
             self.register_command('correct', self.command_correct,
-                    desc=_('Fix the last message with whatever you want.'),
-                    shortdesc=_('Correct the last message.'),
+                    desc='Fix the last message with whatever you want.',
+                    shortdesc='Correct the last message.',
                     completion=self.completion_correct)
         return 'correct' in self.commands
 
@@ -866,8 +864,8 @@ class OneToOneTab(ChatTab):
         attention = ok if attention else nope
         receipts = ok if receipts else nope
 
-        msg = _('\x19%s}Contact supports: correction [%s], '
-                'attention [%s], receipts [%s].')
+        msg = ('\x19%s}Contact supports: correction [%s], '
+               'attention [%s], receipts [%s].')
         color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         msg = msg % (color, correct, attention, receipts)
         self.add_message(msg, typ=0)

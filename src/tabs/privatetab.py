@@ -10,8 +10,6 @@ both participant’s nicks. It also has slightly different features than
 the ConversationTab (such as tab-completion on nicks from the room).
 
 """
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -49,15 +47,15 @@ class PrivateTab(OneToOneTab):
         self.key_func['^I'] = self.completion
         # commands
         self.register_command('info', self.command_info,
-                desc=_('Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.'),
-                shortdesc=_('Info about the user.'))
+                desc='Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.',
+                shortdesc='Info about the user.')
         self.register_command('unquery', self.command_unquery,
-                shortdesc=_('Close the tab.'))
+                shortdesc='Close the tab.')
         self.register_command('close', self.command_unquery,
-                shortdesc=_('Close the tab.'))
+                shortdesc='Close the tab.')
         self.register_command('version', self.command_version,
-                desc=_('Get the software version of the current interlocutor (usually its XMPP client and Operating System).'),
-                shortdesc=_('Get the software version of a jid.'))
+                desc='Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
+                shortdesc='Get the software version of a jid.')
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
         self.on = True
@@ -95,7 +93,7 @@ class PrivateTab(OneToOneTab):
         Log the messages in the archives.
         """
         if not logger.log_message(self.name, nickname, txt, date=time, typ=typ):
-            self.core.information(_('Unable to write in the log file'), 'Error')
+            self.core.information('Unable to write in the log file', 'Error')
 
     def on_close(self):
         self.parent_muc.privates.remove(self)
@@ -201,9 +199,9 @@ class PrivateTab(OneToOneTab):
             if not res:
                 return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
             version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or _('an unknown software'),
-                                                             res.get('version') or _('unknown'),
-                                                             res.get('os') or _('an unknown platform'))
+                                                             res.get('name') or 'an unknown software',
+                                                             res.get('version') or 'unknown',
+                                                             res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args:
             return self.core.command_version(args[0])
@@ -325,9 +323,9 @@ class PrivateTab(OneToOneTab):
         """
         self.deactivate()
         if not status_message:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
+            self.add_message('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room' % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         else:
-            self.add_message(_('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"') % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
+            self.add_message('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"' % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional

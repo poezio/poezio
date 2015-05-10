@@ -7,8 +7,6 @@ It keeps track of many things such as part/joins, maintains an
 user list, and updates private tabs when necessary.
 """
 
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -37,11 +35,11 @@ from user import User
 
 
 SHOW_NAME = {
-    'dnd': _('busy'),
-    'away': _('away'),
-    'xa': _('not available'),
-    'chat': _('chatty'),
-    '': _('available')
+    'dnd': 'busy',
+    'away': 'away',
+    'xa': 'not available',
+    'chat': 'chatty',
+    '': 'available'
     }
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
@@ -87,112 +85,112 @@ class MucTab(ChatTab):
         self.key_func['M-p'] = self.go_to_prev_hl
         # commands
         self.register_command('ignore', self.command_ignore,
-                usage=_('<nickname>'),
-                desc=_('Ignore a specified nickname.'),
-                shortdesc=_('Ignore someone'),
+                usage='<nickname>',
+                desc='Ignore a specified nickname.',
+                shortdesc='Ignore someone',
                 completion=self.completion_ignore)
         self.register_command('unignore', self.command_unignore,
-                usage=_('<nickname>'),
-                desc=_('Remove the specified nickname from the ignore list.'),
-                shortdesc=_('Unignore someone.'),
+                usage='<nickname>',
+                desc='Remove the specified nickname from the ignore list.',
+                shortdesc='Unignore someone.',
                 completion=self.completion_unignore)
         self.register_command('kick', self.command_kick,
-                usage=_('<nick> [reason]'),
-                desc=_('Kick the user with the specified nickname.'
-                       ' You also can give an optional reason.'),
-                shortdesc=_('Kick someone.'),
+                usage='<nick> [reason]',
+                desc='Kick the user with the specified nickname.'
+                     ' You also can give an optional reason.',
+                shortdesc='Kick someone.',
                 completion=self.completion_quoted)
         self.register_command('ban', self.command_ban,
-                usage=_('<nick> [reason]'),
-                desc=_('Ban the user with the specified nickname.'
-                       ' You also can give an optional reason.'),
+                usage='<nick> [reason]',
+                desc='Ban the user with the specified nickname.'
+                     ' You also can give an optional reason.',
                 shortdesc='Ban someone',
                 completion=self.completion_quoted)
         self.register_command('role', self.command_role,
-                usage=_('<nick> <role> [reason]'),
-                desc=_('Set the role of an user. Roles can be:'
-                       ' none, visitor, participant, moderator.'
-                       ' You also can give an optional reason.'),
-                shortdesc=_('Set the role of an user.'),
+                usage='<nick> <role> [reason]',
+                desc='Set the role of an user. Roles can be:'
+                     ' none, visitor, participant, moderator.'
+                     ' You also can give an optional reason.',
+                shortdesc='Set the role of an user.',
                 completion=self.completion_role)
         self.register_command('affiliation', self.command_affiliation,
-                usage=_('<nick or jid> <affiliation>'),
-                desc=_('Set the affiliation of an user. Affiliations can be:'
-                       ' outcast, none, member, admin, owner.'),
-                shortdesc=_('Set the affiliation of an user.'),
+                usage='<nick or jid> <affiliation>',
+                desc='Set the affiliation of an user. Affiliations can be:'
+                     ' outcast, none, member, admin, owner.',
+                shortdesc='Set the affiliation of an user.',
                 completion=self.completion_affiliation)
         self.register_command('topic', self.command_topic,
-                usage=_('<subject>'),
-                desc=_('Change the subject of the room.'),
-                shortdesc=_('Change the subject.'),
+                usage='<subject>',
+                desc='Change the subject of the room.',
+                shortdesc='Change the subject.',
                 completion=self.completion_topic)
         self.register_command('query', self.command_query,
-                usage=_('<nick> [message]'),
-                desc=_('Open a private conversation with <nick>. This nick'
-                       ' has to be present in the room you\'re currently in.'
-                       ' If you specified a message after the nickname, it '
-                       'will immediately be sent to this user.'),
-                shortdesc=_('Query an user.'),
+                usage='<nick> [message]',
+                desc='Open a private conversation with <nick>. This nick'
+                     ' has to be present in the room you\'re currently in.'
+                     ' If you specified a message after the nickname, it '
+                     'will immediately be sent to this user.',
+                shortdesc='Query an user.',
                 completion=self.completion_quoted)
         self.register_command('part', self.command_part,
-                usage=_('[message]'),
-                desc=_('Disconnect from a room. You can'
-                       ' specify an optional message.'),
-                shortdesc=_('Leave the room.'))
+                usage='[message]',
+                desc='Disconnect from a room. You can'
+                     ' specify an optional message.',
+                shortdesc='Leave the room.')
         self.register_command('close', self.command_close,
-                usage=_('[message]'),
-                desc=_('Disconnect from a room and close the tab.'
-                       ' You can specify an optional message if '
-                       'you are still connected.'),
-                shortdesc=_('Close the tab.'))
+                usage='[message]',
+                desc='Disconnect from a room and close the tab.'
+                     ' You can specify an optional message if '
+                     'you are still connected.',
+                shortdesc='Close the tab.')
         self.register_command('nick', self.command_nick,
-                usage=_('<nickname>'),
-                desc=_('Change your nickname in the current room.'),
-                shortdesc=_('Change your nickname.'),
+                usage='<nickname>',
+                desc='Change your nickname in the current room.',
+                shortdesc='Change your nickname.',
                 completion=self.completion_nick)
         self.register_command('recolor', self.command_recolor,
-                usage=_('[random]'),
-                desc=_('Re-assign a color to all participants of the'
-                       ' current room, based on the last time they talked.'
-                       ' Use this if the participants currently talking '
-                       'have too many identical colors. Use /recolor random'
-                       ' for a non-deterministic result.'),
-                shortdesc=_('Change the nicks colors.'),
+                usage='[random]',
+                desc='Re-assign a color to all participants of the'
+                     ' current room, based on the last time they talked.'
+                     ' Use this if the participants currently talking '
+                     'have too many identical colors. Use /recolor random'
+                     ' for a non-deterministic result.',
+                shortdesc='Change the nicks colors.',
                 completion=self.completion_recolor)
         self.register_command('color', self.command_color,
-                usage=_('<nick> <color>'),
-                desc=_('Fix a color for a nick. Use "unset" instead of a color'
-                       ' to remove the attribution'),
-                shortdesc=_('Fix a color for a nick.'),
+                usage='<nick> <color>',
+                desc='Fix a color for a nick. Use "unset" instead of a color'
+                     ' to remove the attribution',
+                shortdesc='Fix a color for a nick.',
                 completion=self.completion_color)
         self.register_command('cycle', self.command_cycle,
-                usage=_('[message]'),
-                desc=_('Leave the current room and rejoin it immediately.'),
-                shortdesc=_('Leave and re-join the room.'))
+                usage='[message]',
+                desc='Leave the current room and rejoin it immediately.',
+                shortdesc='Leave and re-join the room.')
         self.register_command('info', self.command_info,
-                usage=_('<nickname>'),
-                desc=_('Display some information about the user '
-                       'in the MUC: its/his/her role, affiliation,'
-                       ' status and status message.'),
-                shortdesc=_('Show an user\'s infos.'),
+                usage='<nickname>',
+                desc='Display some information about the user '
+                     'in the MUC: its/his/her role, affiliation,'
+                     ' status and status message.',
+                shortdesc='Show an user\'s infos.',
                 completion=self.completion_info)
         self.register_command('configure', self.command_configure,
-                desc=_('Configure the current room, through a form.'),
-                shortdesc=_('Configure the room.'))
+                desc='Configure the current room, through a form.',
+                shortdesc='Configure the room.')
         self.register_command('version', self.command_version,
-                usage=_('<jid or nick>'),
-                desc=_('Get the software version of the given JID'
-                       ' or nick in room (usually its XMPP client'
-                       ' and Operating System).'),
-                shortdesc=_('Get the software version of a jid.'),
+                usage='<jid or nick>',
+                desc='Get the software version of the given JID'
+                     ' or nick in room (usually its XMPP client'
+                     ' and Operating System).',
+                shortdesc='Get the software version of a jid.',
                 completion=self.completion_version)
         self.register_command('names', self.command_names,
-                desc=_('Get the users in the room with their roles.'),
-                shortdesc=_('List the users.'))
+                desc='Get the users in the room with their roles.',
+                shortdesc='List the users.')
         self.register_command('invite', self.command_invite,
-                desc=_('Invite a contact to this room'),
-                usage=_('<jid> [reason]'),
-                shortdesc=_('Invite a contact to this room'),
+                desc='Invite a contact to this room',
+                usage='<jid> [reason]',
+                shortdesc='Invite a contact to this room',
                 completion=self.completion_invite)
 
         if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
@@ -356,7 +354,7 @@ class MucTab(ChatTab):
         nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
-            return self.core.information(_("Unknown user: %s") % nick)
+            return self.core.information("Unknown user: %s" % nick)
         theme = get_theme()
         if user.jid:
             user_jid = ' (\x19%s}%s\x19o)' % (
@@ -364,8 +362,8 @@ class MucTab(ChatTab):
                             user.jid)
         else:
             user_jid = ''
-        info = _('\x19%s}%s\x19o%s: show: \x19%s}%s\x19o, affiliation:'
-                 ' \x19%s}%s\x19o, role: \x19%s}%s\x19o%s') % (
+        info = ('\x19%s}%s\x19o%s: show: \x19%s}%s\x19o, affiliation:'
+                ' \x19%s}%s\x19o, role: \x19%s}%s\x19o%s') % (
                         dump_tuple(user.color),
                         nick,
                         user_jid,
@@ -387,8 +385,8 @@ class MucTab(ChatTab):
         def on_form_received(form):
             if not form:
                 self.core.information(
-                    _('Could not retrieve the configuration form'),
-                    _('Error'))
+                    'Could not retrieve the configuration form',
+                    'Error')
                 return
             self.core.open_new_form(form, self.cancel_config, self.send_config)
 
@@ -433,9 +431,9 @@ class MucTab(ChatTab):
                     continue
                 user.set_deterministic_color()
             if args[0] == 'random':
-                self.core.information(_('"random" was provided, but poezio is '
-                                        'configured to use deterministic colors'),
-                                        'Warning')
+                self.core.information('"random" was provided, but poezio is '
+                                      'configured to use deterministic colors',
+                                      'Warning')
             self.user_win.refresh(self.users)
             self.input.refresh()
             return
@@ -477,13 +475,13 @@ class MucTab(ChatTab):
         color = args[1].lower()
         user = self.get_user_by_name(nick)
         if not color in xhtml.colors and color not in ('unset', 'random'):
-            return self.core.information(_("Unknown color: %s") % color, 'Error')
+            return self.core.information("Unknown color: %s" % color, 'Error')
         if user and user.nick == self.own_nick:
-            return self.core.information(_("You cannot change the color of your"
-                                           " own nick.", 'Error'))
+            return self.core.information("You cannot change the color of your"
+                                         " own nick.", 'Error')
         if color == 'unset':
             if config.remove_and_save(nick, 'muc_colors'):
-                self.core.information(_('Color for nick %s unset') % (nick))
+                self.core.information('Color for nick %s unset' % (nick))
         else:
             if color == 'random':
                 color = random.choice(list(xhtml.colors))
@@ -512,14 +510,14 @@ class MucTab(ChatTab):
         """
         def callback(res):
             if not res:
-                return self.core.information(_('Could not get the software '
-                                               'version from %s') % (jid,),
-                                             _('Warning'))
-            version = _('%s is running %s version %s on %s') % (
+                return self.core.information('Could not get the software '
+                                             'version from %s' % (jid,),
+                                             'Warning')
+            version = '%s is running %s version %s on %s' % (
                          jid,
-                         res.get('name') or _('an unknown software'),
-                         res.get('version') or _('unknown'),
-                         res.get('os') or _('an unknown platform'))
+                         res.get('name') or 'an unknown software',
+                         res.get('version') or 'unknown',
+                         res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args is None:
             return self.core.command_help('version')
@@ -541,8 +539,8 @@ class MucTab(ChatTab):
             return self.core.command_help('nick')
         nick = args[0]
         if not self.joined:
-            return self.core.information(_('/nick only works in joined rooms'),
-                                         _('Info'))
+            return self.core.information('/nick only works in joined rooms',
+                                         'Info')
         current_status = self.core.get_status()
         if not safeJID(self.name + '/' + nick):
             return self.core.information('Invalid nick', 'Info')
@@ -569,24 +567,24 @@ class MucTab(ChatTab):
                 color = 3
 
             if arg:
-                msg = _('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
-                        'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
-                        ' left the chatroom'
-                        ' (\x19o%(reason)s\x19%(info_col)s})') % {
-                            'info_col': info_col, 'reason': arg,
-                            'spec': char_quit, 'color': color,
-                            'color_spec': spec_col,
-                            'nick': self.own_nick,
-                        }
+                msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
+                       'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
+                       ' left the chatroom'
+                       ' (\x19o%(reason)s\x19%(info_col)s})') % {
+                           'info_col': info_col, 'reason': arg,
+                           'spec': char_quit, 'color': color,
+                           'color_spec': spec_col,
+                           'nick': self.own_nick,
+                       }
             else:
-                msg = _('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
-                        'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
-                        ' left the chatroom') % {
-                            'info_col': info_col,
-                            'spec': char_quit, 'color': color,
-                            'color_spec': spec_col,
-                            'nick': self.own_nick,
-                        }
+                msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
+                       'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
+                       ' left the chatroom') % {
+                           'info_col': info_col,
+                           'spec': char_quit, 'color': color,
+                           'color_spec': spec_col,
+                           'nick': self.own_nick,
+                       }
 
             self.add_message(msg, typ=2)
             self.disconnect()
@@ -621,7 +619,7 @@ class MucTab(ChatTab):
             self.core.current_tab().command_say(
                     xhtml.convert_simple_to_full_colors(msg))
         if not r:
-            self.core.information(_("Cannot find user: %s" % nick), 'Error')
+            self.core.information("Cannot find user: %s" % nick, 'Error')
 
     @command_args_parser.raw
     def command_topic(self, subject):
@@ -630,7 +628,7 @@ class MucTab(ChatTab):
         """
         if not subject:
             self._text_buffer.add_message(
-                    _("\x19%s}The subject of the room is: %s %s") %
+                    "\x19%s}The subject of the room is: %s %s" %
                         (dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                          self.topic,
                          '(set by %s)' % self.topic_from if self.topic_from
@@ -771,8 +769,8 @@ class MucTab(ChatTab):
         valid_roles = ('none', 'visitor', 'participant', 'moderator')
 
         if not self.joined or role not in valid_roles:
-            return self.core.information(_('The role must be one of ' + ', '.join(valid_roles)),
-                                         _('Error'))
+            return self.core.information('The role must be one of ' + ', '.join(valid_roles),
+                                         'Error')
 
         if not safeJID(self.name + '/' + nick):
             return self.core.information('Invalid nick', 'Info')
@@ -800,8 +798,8 @@ class MucTab(ChatTab):
 
         valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
         if affiliation not in valid_affiliations:
-            return self.core.information(_('The affiliation must be one of ' + ', '.join(valid_affiliations)),
-                                         _('Error'))
+            return self.core.information('The affiliation must be one of ' + ', '.join(valid_affiliations),
+                                         'Error')
 
         if nick in [user.nick for user in self.users]:
             res = muc.set_user_affiliation(self.core.xmpp, self.name,
@@ -812,7 +810,7 @@ class MucTab(ChatTab):
                                            affiliation, jid=safeJID(nick),
                                            callback=callback)
         if not res:
-            self.core.information(_('Could not set affiliation'), _('Error'))
+            self.core.information('Could not set affiliation', 'Error')
 
     @command_args_parser.raw
     def command_say(self, line, correct=False):
@@ -871,12 +869,12 @@ class MucTab(ChatTab):
         nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
-            self.core.information(_('%s is not in the room') % nick)
+            self.core.information('%s is not in the room' % nick)
         elif user in self.ignores:
-            self.core.information(_('%s is already ignored') % nick)
+            self.core.information('%s is already ignored' % nick)
         else:
             self.ignores.append(user)
-            self.core.information(_("%s is now ignored") % nick, 'info')
+            self.core.information("%s is now ignored" % nick, 'info')
 
     @command_args_parser.quoted(1)
     def command_unignore(self, args):
@@ -889,12 +887,12 @@ class MucTab(ChatTab):
         nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
-            self.core.information(_('%s is not in the room') % nick)
+            self.core.information('%s is not in the room' % nick)
         elif user not in self.ignores:
-            self.core.information(_('%s is not ignored') % nick)
+            self.core.information('%s is not ignored' % nick)
         else:
             self.ignores.remove(user)
-            self.core.information(_('%s is now unignored') % nick)
+            self.core.information('%s is now unignored' % nick)
 
     def completion_unignore(self, the_input):
         if the_input.get_argument_position() == 1:
@@ -1118,9 +1116,9 @@ class MucTab(ChatTab):
                     spec_col = dump_tuple(get_theme().COLOR_JOIN_CHAR)
 
                     self.add_message(
-                        _('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
-                          '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
-                          ' the chatroom') %
+                        '\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
+                        '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
+                        ' the chatroom' %
                             {
                             'nick': from_nick,
                             'spec': get_theme().CHAR_JOIN,
@@ -1131,21 +1129,21 @@ class MucTab(ChatTab):
                         typ=2)
                     if '201' in status_codes:
                         self.add_message(
-                                _('\x19%(info_col)s}Info: The room '
-                                  'has been created') %
+                                '\x19%(info_col)s}Info: The room '
+                                'has been created' %
                                    {'info_col': info_col},
                             typ=0)
                     if '170' in status_codes:
                         self.add_message(
-                                _('\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                                  ' This room is publicly logged') %
+                                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                                ' This room is publicly logged' %
                                     {'info_col': info_col,
                                      'warn_col': warn_col},
                             typ=0)
                     if '100' in status_codes:
                         self.add_message(
-                                _('\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                                  ' This room is not anonymous.') %
+                                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                                ' This room is not anonymous.' %
                                     {'info_col': info_col,
                                      'warn_col': warn_col},
                             typ=0)
@@ -1205,8 +1203,8 @@ class MucTab(ChatTab):
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
         self.add_message(
-                _('\x19%(info_col)s}You have been kicked because you '
-                  'are not a member and the room is now members-only.') % {
+                '\x19%(info_col)s}You have been kicked because you '
+                'are not a member and the room is now members-only.' % {
             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
             typ=2)
         self.disconnect()
@@ -1214,8 +1212,8 @@ class MucTab(ChatTab):
     def on_muc_shutdown(self):
         """We have been kicked because the MUC service is shutting down"""
         self.add_message(
-                _('\x19%(info_col)s}You have been kicked because the'
-                  ' MUC service is shutting down.') % {
+                '\x19%(info_col)s}You have been kicked because the'
+                ' MUC service is shutting down.' % {
             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
             typ=2)
         self.disconnect()
@@ -1240,17 +1238,17 @@ class MucTab(ChatTab):
             spec_col = dump_tuple(get_theme().COLOR_JOIN_CHAR)
             char_join = get_theme().CHAR_JOIN
             if not jid.full:
-                msg = _('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s'
-                        '\x19%(info_col)s} joined the chatroom') % {
+                msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s'
+                       '\x19%(info_col)s} joined the chatroom') % {
                             'nick': from_nick, 'spec': char_join,
                             'color': color,
                             'info_col': info_col,
                             'color_spec': spec_col,
                             }
             else:
-                msg = _('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s '
-                        '\x19%(info_col)s}(\x19%(jid_color)s}%(jid)s\x19'
-                        '%(info_col)s}) joined the chatroom') % {
+                msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s '
+                       '\x19%(info_col)s}(\x19%(jid_color)s}%(jid)s\x19'
+                       '%(info_col)s}) joined the chatroom') % {
                             'spec': char_join, 'nick': from_nick,
                             'color':color, 'jid':jid.full,
                             'info_col': info_col,
@@ -1281,8 +1279,8 @@ class MucTab(ChatTab):
         else:
             color = 3
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-        self.add_message(_('\x19%(color)s}%(old)s\x19%(info_col)s} is'
-                           ' now known as \x19%(color)s}%(new)s') % {
+        self.add_message('\x19%(color)s}%(old)s\x19%(info_col)s} is'
+                         ' now known as \x19%(color)s}%(new)s' % {
                               'old':from_nick, 'new':new_nick,
                               'color':color, 'info_col': info_col},
                          typ=2)
@@ -1305,13 +1303,13 @@ class MucTab(ChatTab):
 
         if from_nick == self.own_nick: # we are banned
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s}'
-                             ' have been banned by \x194}%(by)s') % {
+                kick_msg = ('\x191}%(spec)s \x193}You\x19%(info_col)s}'
+                            ' have been banned by \x194}%(by)s') % {
                                 'spec': char_kick, 'by': by,
                                 'info_col': info_col}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19'
-                             '%(info_col)s} have been banned.') % {
+                kick_msg = ('\x191}%(spec)s \x193}You\x19'
+                            '%(info_col)s} have been banned.') % {
                                 'spec': char_kick, 'info_col': info_col}
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
@@ -1340,20 +1338,20 @@ class MucTab(ChatTab):
                 color = 3
 
             if by:
-                kick_msg = _('\x191}%(spec)s \x19%(color)s}'
-                             '%(nick)s\x19%(info_col)s} '
-                             'has been banned by \x194}%(by)s') % {
+                kick_msg = ('\x191}%(spec)s \x19%(color)s}'
+                            '%(nick)s\x19%(info_col)s} '
+                            'has been banned by \x194}%(by)s') % {
                                 'spec': char_kick, 'nick': from_nick,
                                 'color': color, 'by': by,
                                 'info_col': info_col}
             else:
-                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s'
-                             '\x19%(info_col)s} has been banned') % {
+                kick_msg = ('\x191}%(spec)s \x19%(color)s}%(nick)s'
+                            '\x19%(info_col)s} has been banned') % {
                                 'spec': char_kick, 'nick': from_nick,
                                 'color': color, 'info_col': info_col}
         if reason is not None and reason.text:
-            kick_msg += _('\x19%(info_col)s} Reason: \x196}'
-                          '%(reason)s\x19%(info_col)s}') % {
+            kick_msg += ('\x19%(info_col)s} Reason: \x196}'
+                         '%(reason)s\x19%(info_col)s}') % {
                             'reason': reason.text, 'info_col': info_col}
         self.add_message(kick_msg, typ=2)
 
@@ -1373,14 +1371,14 @@ class MucTab(ChatTab):
             by = actor_elem.get('nick') or actor_elem.get('jid')
         if from_nick == self.own_nick: # we are kicked
             if by:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19'
-                             '%(info_col)s} have been kicked'
-                             ' by \x193}%(by)s') % {
+                kick_msg = ('\x191}%(spec)s \x193}You\x19'
+                            '%(info_col)s} have been kicked'
+                            ' by \x193}%(by)s') % {
                                  'spec': char_kick, 'by': by,
                                  'info_col': info_col}
             else:
-                kick_msg = _('\x191}%(spec)s \x193}You\x19%(info_col)s}'
-                             ' have been kicked.') % {
+                kick_msg = ('\x191}%(spec)s \x193}You\x19%(info_col)s}'
+                            ' have been kicked.') % {
                                  'spec': char_kick,
                                  'info_col': info_col}
             self.core.disable_private_tabs(self.name, reason=kick_msg)
@@ -1409,19 +1407,19 @@ class MucTab(ChatTab):
             else:
                 color = 3
             if by:
-                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s'
-                             '\x19%(info_col)s} has been kicked by '
-                             '\x193}%(by)s') % {
+                kick_msg = ('\x191}%(spec)s \x19%(color)s}%(nick)s'
+                            '\x19%(info_col)s} has been kicked by '
+                            '\x193}%(by)s') % {
                                 'spec': char_kick, 'nick':from_nick,
                                 'color':color, 'by':by, 'info_col': info_col}
             else:
-                kick_msg = _('\x191}%(spec)s \x19%(color)s}%(nick)s'
-                             '\x19%(info_col)s} has been kicked') % {
+                kick_msg = ('\x191}%(spec)s \x19%(color)s}%(nick)s'
+                            '\x19%(info_col)s} has been kicked') % {
                                 'spec': char_kick, 'nick': from_nick,
                                 'color':color, 'info_col': info_col}
         if reason is not None and reason.text:
-            kick_msg += _('\x19%(info_col)s} Reason: \x196}'
-                          '%(reason)s') % {
+            kick_msg += ('\x19%(info_col)s} Reason: \x196}'
+                         '%(reason)s') % {
                             'reason': reason.text, 'info_col': info_col}
         self.add_message(kick_msg, typ=2)
 
@@ -1450,19 +1448,19 @@ class MucTab(ChatTab):
             spec_col = dump_tuple(get_theme().COLOR_QUIT_CHAR)
 
             if not jid.full:
-                leave_msg = _('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
-                              '%(nick)s\x19%(info_col)s} has left the '
-                              'chatroom') % {
+                leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
+                             '%(nick)s\x19%(info_col)s} has left the '
+                             'chatroom') % {
                                   'nick':from_nick, 'color':color,
                                   'spec':get_theme().CHAR_QUIT,
                                   'info_col': info_col,
                                   'color_spec': spec_col}
             else:
                 jid_col = dump_tuple(get_theme().COLOR_MUC_JID)
-                leave_msg = _('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
-                              '%(nick)s\x19%(info_col)s} (\x19%(jid_col)s}'
-                              '%(jid)s\x19%(info_col)s}) has left the '
-                              'chatroom') % {
+                leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
+                             '%(nick)s\x19%(info_col)s} (\x19%(jid_col)s}'
+                             '%(jid)s\x19%(info_col)s}) has left the '
+                             'chatroom') % {
                                   'spec':get_theme().CHAR_QUIT,
                                   'nick':from_nick, 'color':color,
                                   'jid':jid.full, 'info_col': info_col,
@@ -1488,29 +1486,29 @@ class MucTab(ChatTab):
         else:
             color = 3
         if from_nick == self.own_nick:
-            msg = _('\x19%(color)s}You\x19%(info_col)s} changed: ') % {
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                    'color': color}
+            msg = '\x19%(color)s}You\x19%(info_col)s} changed: ' % {
+                  'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                  'color': color}
         else:
-            msg = _('\x19%(color)s}%(nick)s\x19%(info_col)s} changed: ') % {
-                    'nick': from_nick, 'color': color,
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
+            msg = '\x19%(color)s}%(nick)s\x19%(info_col)s} changed: ' % {
+                  'nick': from_nick, 'color': color,
+                  'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
         if affiliation != user.affiliation:
-            msg += _('affiliation: %s, ') % affiliation
+            msg += 'affiliation: %s, ' % affiliation
             display_message = True
         if role != user.role:
-            msg += _('role: %s, ') % role
+            msg += 'role: %s, ' % role
             display_message = True
         if show != user.show and show in SHOW_NAME:
-            msg += _('show: %s, ') % SHOW_NAME[show]
+            msg += 'show: %s, ' % SHOW_NAME[show]
             display_message = True
         if status != user.status:
             # if the user sets his status to nothing
             if status:
-                msg += _('status: %s, ') % status
+                msg += 'status: %s, ' % status
                 display_message = True
             elif show in SHOW_NAME and show == user.show:
-                msg += _('show: %s, ') % SHOW_NAME[show]
+                msg += 'show: %s, ' % SHOW_NAME[show]
                 display_message = True
         if not display_message:
             return
@@ -1561,8 +1559,8 @@ class MucTab(ChatTab):
         """
         if time is None and self.joined:    # don't log the history messages
             if not logger.log_message(self.name, nickname, txt, typ=typ):
-                self.core.information(_('Unable to write in the log file'),
-                                      _('Error'))
+                self.core.information('Unable to write in the log file',
+                                      'Error')
 
     def do_highlight(self, txt, time, nickname):
         """

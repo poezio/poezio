@@ -11,7 +11,6 @@ Add some facilities that are not available on the XEP_0045
 slix plugin
 """
 
-from gettext import gettext as _
 from xml.etree import cElementTree as ET
 
 from common import safeJID
@@ -43,10 +42,10 @@ def destroy_room(xmpp, room, reason='', altroom=''):
     iq.append(query)
     def callback(iq):
         if not iq or iq['type'] == 'error':
-            xmpp.core.information(_('Unable to destroy room %s') % room,
-                                  _('Info'))
+            xmpp.core.information('Unable to destroy room %s' % room,
+                                  'Info')
         else:
-            xmpp.core.information(_('Room %s destroyed') % room, _('Info'))
+            xmpp.core.information('Room %s destroyed' % room, 'Info')
     iq.send(callback=callback)
     return True
 

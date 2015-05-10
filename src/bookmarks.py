@@ -30,7 +30,6 @@ Adding a remote bookmark:
 
 import functools
 import logging
-from gettext import gettext as _
 
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from slixmpp import JID
@@ -245,7 +244,7 @@ class BookmarkList(object):
         """Add the remotely stored bookmarks to the list."""
         force = config.get('force_remote_bookmarks')
         if xmpp.anon or not (any(self.available_storage.values()) or force):
-            information(_('No remote bookmark storage available'), 'Warning')
+            information('No remote bookmark storage available', 'Warning')
             return
 
         if force and not any(self.available_storage.values()):
@@ -256,7 +255,7 @@ class BookmarkList(object):
                     self.available_storage[method] = True
                     old_callback(result)
                 else:
-                    information(_('No remote bookmark storage available'), 'Warning')
+                    information('No remote bookmark storage available', 'Warning')
             callback = new_callback
 
         if self.preferred == 'pep':

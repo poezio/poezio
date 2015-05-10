@@ -5,8 +5,6 @@ rectangle shows the current contact info.
 
 This module also includes functions to match users in the roster.
 """
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -68,80 +66,80 @@ class RosterInfoTab(Tab):
             self.key_func["S"] = self.start_search_slow
             self.key_func["n"] = self.change_contact_name
             self.register_command('deny', self.command_deny,
-                    usage=_('[jid]'),
-                    desc=_('Deny your presence to the provided JID (or the '
-                           'selected contact in your roster), who is asking'
-                           'you to be in his/here roster.'),
-                    shortdesc=_('Deny an user your presence.'),
+                    usage='[jid]',
+                    desc='Deny your presence to the provided JID (or the '
+                         'selected contact in your roster), who is asking'
+                         'you to be in his/here roster.',
+                    shortdesc='Deny an user your presence.',
                     completion=self.completion_deny)
             self.register_command('accept', self.command_accept,
-                    usage=_('[jid]'),
-                    desc=_('Allow the provided JID (or the selected contact '
-                           'in your roster), to see your presence.'),
-                    shortdesc=_('Allow an user your presence.'),
+                    usage='[jid]',
+                    desc='Allow the provided JID (or the selected contact '
+                         'in your roster), to see your presence.',
+                    shortdesc='Allow an user your presence.',
                     completion=self.completion_deny)
             self.register_command('add', self.command_add,
-                    usage=_('<jid>'),
-                    desc=_('Add the specified JID to your roster, ask him to'
-                           ' allow you to see his presence, and allow him to'
-                           ' see your presence.'),
-                    shortdesc=_('Add an user to your roster.'))
+                    usage='<jid>',
+                    desc='Add the specified JID to your roster, ask him to'
+                         ' allow you to see his presence, and allow him to'
+                         ' see your presence.',
+                    shortdesc='Add an user to your roster.')
             self.register_command('name', self.command_name,
-                    usage=_('<jid> [name]'),
-                    shortdesc=_('Set the given JID\'s name.'),
+                    usage='<jid> [name]',
+                    shortdesc='Set the given JID\'s name.',
                     completion=self.completion_name)
             self.register_command('groupadd', self.command_groupadd,
-                    usage=_('<jid> <group>'),
-                    desc=_('Add the given JID to the given group.'),
-                    shortdesc=_('Add an user to a group'),
+                    usage='<jid> <group>',
+                    desc='Add the given JID to the given group.',
+                    shortdesc='Add an user to a group',
                     completion=self.completion_groupadd)
             self.register_command('groupmove', self.command_groupmove,
-                    usage=_('<jid> <old group> <new group>'),
-                    desc=_('Move the given JID from the old group to the new group.'),
-                    shortdesc=_('Move an user to another group.'),
+                    usage='<jid> <old group> <new group>',
+                    desc='Move the given JID from the old group to the new group.',
+                    shortdesc='Move an user to another group.',
                     completion=self.completion_groupmove)
             self.register_command('groupremove', self.command_groupremove,
-                    usage=_('<jid> <group>'),
-                    desc=_('Remove the given JID from the given group.'),
-                    shortdesc=_('Remove an user from a group.'),
+                    usage='<jid> <group>',
+                    desc='Remove the given JID from the given group.',
+                    shortdesc='Remove an user from a group.',
                     completion=self.completion_groupremove)
             self.register_command('remove', self.command_remove,
-                    usage=_('[jid]'),
-                    desc=_('Remove the specified JID from your roster. This '
-                           'will unsubscribe you from its presence, cancel '
-                           'its subscription to yours, and remove the item '
-                           'from your roster.'),
-                    shortdesc=_('Remove an user from your roster.'),
+                    usage='[jid]',
+                    desc='Remove the specified JID from your roster. This '
+                         'will unsubscribe you from its presence, cancel '
+                         'its subscription to yours, and remove the item '
+                         'from your roster.',
+                    shortdesc='Remove an user from your roster.',
                     completion=self.completion_remove)
             self.register_command('export', self.command_export,
-                    usage=_('[/path/to/file]'),
-                    desc=_('Export your contacts into /path/to/file if '
-                           'specified, or $HOME/poezio_contacts if not.'),
-                    shortdesc=_('Export your roster to a file.'),
+                    usage='[/path/to/file]',
+                    desc='Export your contacts into /path/to/file if '
+                         'specified, or $HOME/poezio_contacts if not.',
+                    shortdesc='Export your roster to a file.',
                     completion=partial(self.completion_file, 1))
             self.register_command('import', self.command_import,
-                    usage=_('[/path/to/file]'),
-                    desc=_('Import your contacts from /path/to/file if '
-                           'specified, or $HOME/poezio_contacts if not.'),
-                    shortdesc=_('Import your roster from a file.'),
+                    usage='[/path/to/file]',
+                    desc='Import your contacts from /path/to/file if '
+                         'specified, or $HOME/poezio_contacts if not.',
+                    shortdesc='Import your roster from a file.',
                     completion=partial(self.completion_file, 1))
             self.register_command('password', self.command_password,
                     usage='<password>',
-                    shortdesc=_('Change your password'))
+                    shortdesc='Change your password')
 
         self.register_command('reconnect', self.command_reconnect,
-                desc=_('Disconnect from the remote server if you are '
-                       'currently connected and then connect to it again.'),
-                shortdesc=_('Disconnect and reconnect to the server.'))
+                desc='Disconnect from the remote server if you are '
+                     'currently connected and then connect to it again.',
+                shortdesc='Disconnect and reconnect to the server.')
         self.register_command('disconnect', self.command_disconnect,
-                desc=_('Disconnect from the remote server.'),
-                shortdesc=_('Disconnect from the server.'))
+                desc='Disconnect from the remote server.',
+                shortdesc='Disconnect from the server.')
         self.register_command('clear', self.command_clear,
-                shortdesc=_('Clear the info buffer.'))
+                shortdesc='Clear the info buffer.')
         self.register_command('last_activity', self.command_last_activity,
-                usage=_('<jid>'),
-                desc=_('Informs you of the last activity of a JID.'),
-                shortdesc=_('Get the activity of someone.'),
+                usage='<jid>',
+                desc='Informs you of the last activity of a JID.',
+                shortdesc='Get the activity of someone.',
                 completion=self.core.completion_last_activity)
 
         self.resize()
@@ -151,51 +149,51 @@ class RosterInfoTab(Tab):
     def check_blocking(self, features):
         if 'urn:xmpp:blocking' in features and not self.core.xmpp.anon:
             self.register_command('block', self.command_block,
-                    usage=_('[jid]'),
-                    shortdesc=_('Prevent a JID from talking to you.'),
+                    usage='[jid]',
+                    shortdesc='Prevent a JID from talking to you.',
                     completion=self.completion_block)
             self.register_command('unblock', self.command_unblock,
-                    usage=_('[jid]'),
-                    shortdesc=_('Allow a JID to talk to you.'),
+                    usage='[jid]',
+                    shortdesc='Allow a JID to talk to you.',
                     completion=self.completion_unblock)
             self.register_command('list_blocks', self.command_list_blocks,
-                    shortdesc=_('Show the blocked contacts.'))
+                    shortdesc='Show the blocked contacts.')
             self.core.xmpp.del_event_handler('session_start', self.check_blocking)
             self.core.xmpp.add_event_handler('blocked_message', self.on_blocked_message)
 
     def check_saslexternal(self, features):
         if 'urn:xmpp:saslcert:1' in features and not self.core.xmpp.anon:
             self.register_command('certs', self.command_certs,
-                                  desc=_('List the fingerprints of certificates'
-                                         ' which can connect to your account.'),
-                                  shortdesc=_('List allowed client certs.'))
+                                  desc='List the fingerprints of certificates'
+                                       ' which can connect to your account.',
+                                  shortdesc='List allowed client certs.')
             self.register_command('cert_add', self.command_cert_add,
-                                  desc=_('Add a client certificate to the authorized ones. '
-                                         'It must have an unique name and be contained in '
-                                         'a PEM file. [management] is a boolean indicating'
-                                         ' if a client connected using this certificate can'
-                                         ' manage the certificates itself.'),
-                                  shortdesc=_('Add a client certificate.'),
+                                  desc='Add a client certificate to the authorized ones. '
+                                       'It must have an unique name and be contained in '
+                                       'a PEM file. [management] is a boolean indicating'
+                                       ' if a client connected using this certificate can'
+                                       ' manage the certificates itself.',
+                                  shortdesc='Add a client certificate.',
                                   usage='<name> <certificate path> [management]',
                                   completion=self.completion_cert_add)
             self.register_command('cert_disable', self.command_cert_disable,
-                                  desc=_('Remove a certificate from the list '
-                                         'of allowed ones. Clients currently '
-                                         'using this certificate will not be '
-                                         'forcefully disconnected.'),
-                                  shortdesc=_('Disable a certificate'),
+                                  desc='Remove a certificate from the list '
+                                       'of allowed ones. Clients currently '
+                                       'using this certificate will not be '
+                                       'forcefully disconnected.',
+                                  shortdesc='Disable a certificate',
                                   usage='<name>')
             self.register_command('cert_revoke', self.command_cert_revoke,
-                                  desc=_('Remove a certificate from the list '
-                                         'of allowed ones. Clients currently '
-                                         'using this certificate will be '
-                                         'forcefully disconnected.'),
-                                  shortdesc=_('Revoke a certificate'),
+                                  desc='Remove a certificate from the list '
+                                       'of allowed ones. Clients currently '
+                                       'using this certificate will be '
+                                       'forcefully disconnected.',
+                                  shortdesc='Revoke a certificate',
                                   usage='<name>')
             self.register_command('cert_fetch', self.command_cert_fetch,
-                                  desc=_('Retrieve a certificate with its '
-                                         'name. It will be stored in <path>.'),
-                                  shortdesc=_('Fetch a certificate'),
+                                  desc='Retrieve a certificate with its '
+                                       'name. It will be stored in <path>.',
+                                  shortdesc='Fetch a certificate',
                                   usage='<name> <path>',
                                   completion=self.completion_cert_fetch)
 
@@ -206,8 +204,8 @@ class RosterInfoTab(Tab):
         """
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information(_('Unable to retrieve the certificate list.'),
-                                 _('Error'))
+                self.core.information('Unable to retrieve the certificate list.',
+                                      'Error')
                 return
             certs = []
             for item in iq['sasl_certs']['items']:
@@ -215,8 +213,8 @@ class RosterInfoTab(Tab):
                 certs.append((item['name'], users))
 
             if not certs:
-                return self.core.information(_('No certificates found'), _('Info'))
-            msg = _('Certificates:\n')
+                return self.core.information('No certificates found', 'Info')
+            msg = 'Certificates:\n'
             msg += '\n'.join((('  %s%s' % (item[0] + (': ' if item[1] else ''), item[1])) for item in certs))
             self.core.information(msg, 'Info')
 
@@ -231,9 +229,9 @@ class RosterInfoTab(Tab):
             return self.core.command_help('cert_add')
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information(_('Unable to add the certificate.'), _('Error'))
+                self.core.information('Unable to add the certificate.', 'Error')
             else:
-                self.core.information(_('Certificate added.'), _('Info'))
+                self.core.information('Certificate added.', 'Info')
 
         name = args[0]
 
@@ -285,9 +283,9 @@ class RosterInfoTab(Tab):
             return self.core.command_help('cert_disable')
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information(_('Unable to disable the certificate.'), _('Error'))
+                self.core.information('Unable to disable the certificate.', 'Error')
             else:
-                self.core.information(_('Certificate disabled.'), _('Info'))
+                self.core.information('Certificate disabled.', 'Info')
 
         name = args[0]
 
@@ -302,9 +300,9 @@ class RosterInfoTab(Tab):
             return self.core.command_help('cert_revoke')
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information(_('Unable to revoke the certificate.'), _('Error'))
+                self.core.information('Unable to revoke the certificate.', 'Error')
             else:
-                self.core.information(_('Certificate revoked.'), _('Info'))
+                self.core.information('Certificate revoked.', 'Info')
 
         name = args[0]
 
@@ -320,8 +318,8 @@ class RosterInfoTab(Tab):
             return self.core.command_help('cert_fetch')
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information(_('Unable to fetch the certificate.'),
-                                 _('Error'))
+                self.core.information('Unable to fetch the certificate.',
+                                      'Error')
                 return
 
             cert = None
@@ -331,13 +329,13 @@ class RosterInfoTab(Tab):
                     break
 
             if not cert:
-                return self.core.information(_('Certificate not found.'), _('Info'))
+                return self.core.information('Certificate not found.', 'Info')
 
             cert = ssl.DER_cert_to_PEM_cert(cert)
             with open(path, 'w') as fd:
                 fd.write(cert)
 
-            self.core.information(_('File stored at %s') % path, 'Info')
+            self.core.information('File stored at %s' % path, 'Info')
 
         name = args[0]
         path = args[1]
@@ -623,7 +621,7 @@ class RosterInfoTab(Tab):
         """
         jid = safeJID(safeJID(args[0]).bare)
         if not jid:
-            self.core.information(_('No JID specified'), 'Error')
+            self.core.information('No JID specified', 'Error')
             return
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
@@ -647,7 +645,7 @@ class RosterInfoTab(Tab):
 
         contact = roster[jid]
         if contact is None:
-            self.core.information(_('No such JID in roster'), 'Error')
+            self.core.information('No such JID in roster', 'Error')
             return
 
         groups = set(contact.groups)
@@ -669,12 +667,12 @@ class RosterInfoTab(Tab):
 
         contact = roster[jid]
         if contact is None:
-            self.core.information(_('No such JID in roster'), 'Error')
+            self.core.information('No such JID in roster', 'Error')
             return
 
         new_groups = set(contact.groups)
         if group in new_groups:
-            self.core.information(_('JID already in group'), 'Error')
+            self.core.information('JID already in group', 'Error')
             return
 
         roster.modified()
@@ -710,7 +708,7 @@ class RosterInfoTab(Tab):
 
         contact = roster[jid]
         if not contact:
-            self.core.information(_('No such JID in roster'), 'Error')
+            self.core.information('No such JID in roster', 'Error')
             return
 
         new_groups = set(contact.groups)
@@ -718,19 +716,19 @@ class RosterInfoTab(Tab):
             new_groups.remove('none')
 
         if group_to == 'none' or group_from == 'none':
-            self.core.information(_('"none" is not a group.'), 'Error')
+            self.core.information('"none" is not a group.', 'Error')
             return
 
         if group_from not in new_groups:
-            self.core.information(_('JID not in first group'), 'Error')
+            self.core.information('JID not in first group', 'Error')
             return
 
         if group_to in new_groups:
-            self.core.information(_('JID already in second group'), 'Error')
+            self.core.information('JID already in second group', 'Error')
             return
 
         if group_to == group_from:
-            self.core.information(_('The groups are the same.'), 'Error')
+            self.core.information('The groups are the same.', 'Error')
             return
 
         roster.modified()
@@ -765,7 +763,7 @@ class RosterInfoTab(Tab):
 
         contact = roster[jid]
         if contact is None:
-            self.core.information(_('No such JID in roster'), 'Error')
+            self.core.information('No such JID in roster', 'Error')
             return
 
         new_groups = set(contact.groups)
@@ -774,7 +772,7 @@ class RosterInfoTab(Tab):
         except KeyError:
             pass
         if group not in new_groups:
-            self.core.information(_('JID not in group'), 'Error')
+            self.core.information('JID not in group', 'Error')
             return
 
         roster.modified()
@@ -1005,7 +1003,7 @@ class RosterInfoTab(Tab):
         success = config.silent_set(option, str(not value))
         roster.modified()
         if not success:
-            self.core.information(_('Unable to write in the config file'), 'Error')
+            self.core.information('Unable to write in the config file', 'Error')
         return True
 
     def on_slash(self):

@@ -12,7 +12,6 @@ import ssl
 import sys
 import time
 from hashlib import sha1, sha512
-from gettext import gettext as _
 from os import path
 
 from slixmpp import InvalidJID
@@ -80,8 +79,8 @@ def check_bookmark_storage(self, features):
             type_ = iq['error']['type']
             condition = iq['error']['condition']
             if not (type_ == 'cancel' and condition == 'item-not-found'):
-                self.information(_('Unable to fetch the remote'
-                                   ' bookmarks; %s: %s') % (type_, condition),
+                self.information('Unable to fetch the remote'
+                                 ' bookmarks; %s: %s' % (type_, condition),
                                  'Error')
             return
         remote_bookmarks = self.bookmarks.remote()
@@ -245,7 +244,7 @@ def on_error_message(self, message):
     tab = self.get_conversation_by_jid(message['from'], create=False)
     error_msg = self.get_error_message(message, deprecated=True)
     if not tab:
-        return self.information(error_msg, _('Error'))
+        return self.information(error_msg, 'Error')
     error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
                                   error_msg)
     if not tab.nack_message('\n' + error, message['id'], message['to']):
@@ -522,7 +521,7 @@ def on_groupchat_message(self, message):
 
     tab = self.get_tab_by_name(room_from, tabs.MucTab)
     if not tab:
-        self.information(_("message received for a non-existing room: %s") % (room_from))
+        self.information("message received for a non-existing room: %s" % (room_from))
         muc.leave_groupchat(self.xmpp, room_from, self.own_nick, msg='')
         return
 
@@ -763,10 +762,10 @@ def on_subscription_request(self, presence):
             contact = roster.get_and_set(jid)
         roster.update_contact_groups(contact)
         contact.pending_in = True
-        self.information(_('%s wants to subscribe to your presence, '
-                           'use /accept <jid> or /deny <jid> to accept '
-                           'or reject the query.') % jid,
-                          'Roster')
+        self.information('%s wants to subscribe to your presence, '
+                         'use /accept <jid> or /deny <jid> to accept '
+                         'or reject the query.' % jid,
+                         'Roster')
         self.get_tab_by_number(0).state = 'highlight'
         roster.modified()
     if isinstance(self.current_tab(), tabs.RosterInfoTab):
@@ -859,7 +858,7 @@ def on_got_offline(self, presence):
         return
     jid = presence['from']
     if not logger.log_roster_change(jid.bare, 'got offline'):
-        self.information(_('Unable to write in the log file'), 'Error')
+        self.information('Unable to write in the log file', 'Error')
     # If a resource got offline, display the message in the conversation with this
     # precise resource.
     if jid.resource:
@@ -883,7 +882,7 @@ def on_got_online(self, presence):
         return
     roster.modified()
     if not logger.log_roster_change(jid.bare, 'got online'):
-        self.information(_('Unable to write in the log file'), 'Error')
+        self.information('Unable to write in the log file', 'Error')
     resource = Resource(jid.full, {
         'priority': presence.get_priority() or 0,
         'status': presence['status'],
@@ -920,7 +919,7 @@ def on_failed_connection(self, error):
     """
     We cannot contact the remote server
     """
-    self.information(_("Connection to remote server failed: %s" % (error,)), _('Error'))
+    self.information("Connection to remote server failed: %s" % (error,), 'Error')
 
 def on_disconnected(self, event):
     """
@@ -931,10 +930,10 @@ def on_disconnected(self, event):
     roster.modified()
     for tab in self.get_tabs(tabs.MucTab):
         tab.disconnect()
-    msg_typ = _('Error') if not self.legitimate_disconnect else _('Info')
-    self.information(_("Disconnected from server."), msg_typ)
+    msg_typ = 'Error' if not self.legitimate_disconnect else 'Info'
+    self.information("Disconnected from server.", msg_typ)
     if not self.legitimate_disconnect and config.get('auto_reconnect', True):
-        self.information(_("Auto-reconnecting."), _('Info'))
+        self.information("Auto-reconnecting.", 'Info')
         self.xmpp.connect()
 
 def on_stream_error(self, event):
@@ -942,29 +941,29 @@ def on_stream_error(self, event):
     When we receive a stream error
     """
     if event and event['text']:
-        self.information(_('Stream error: %s') % event['text'], _('Error'))
+        self.information('Stream error: %s' % event['text'], 'Error')
 
 def on_failed_all_auth(self, event):
     """
     Authentication failed
     """
-    self.information(_("Authentication failed (bad credentials?)."),
-                     _('Error'))
+    self.information("Authentication failed (bad credentials?).",
+                     'Error')
     self.legitimate_disconnect = True
 
 def on_no_auth(self, event):
     """
     Authentication failed (no mech)
     """
-    self.information(_("Authentication failed, no login method available."),
-                     _('Error'))
+    self.information("Authentication failed, no login method available.",
+                     'Error')
     self.legitimate_disconnect = True
 
 def on_connected(self, event):
     """
     Remote host responded, but we are not yet authenticated
     """
-    self.information(_("Connected to server."), 'Info')
+    self.information("Connected to server.", 'Info')
 
 def on_connecting(self, event):
     """
@@ -979,8 +978,8 @@ def on_session_start(self, event):
     self.connection_time = time.time()
     if not self.plugins_autoloaded: # Do not reload plugins on reconnection
         self.autoload_plugins()
-    self.information(_("Authentication success."), 'Info')
-    self.information(_("Your JID is %s") % self.xmpp.boundjid.full, 'Info')
+    self.information("Authentication success.", 'Info')
+    self.information("Your JID is %s" % self.xmpp.boundjid.full, 'Info')
     if not self.xmpp.anon:
         # request the roster
         self.xmpp.get_roster()
@@ -1075,12 +1074,12 @@ def on_groupchat_subject(self, message):
         # Do not display the message if the subject did not change or if we
         # receive an empty topic when joining the room.
         if nick_from:
-            tab.add_message(_("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s") %
+            tab.add_message("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s" %
                     {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
                     time=None,
                     typ=2)
         else:
-            tab.add_message(_("\x19%(info_col)s}The subject is: %(subject)s") %
+            tab.add_message("\x19%(info_col)s}The subject is: %(subject)s" %
                     {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
                     time=None,
                     typ=2)
@@ -1144,14 +1143,14 @@ def room_error(self, error, room_name):
                     nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
     code = error['error']['code']
     if code == '401':
-        msg = _('To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)')
+        msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
         tab.add_message(msg, typ=2)
     if code == '409':
         if config.get('alternative_nickname') != '':
             self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
         else:
             if not tab.joined:
-                tab.add_message(_('You can join the room with an other nick, by typing "/join /other_nick"'), typ=2)
+                tab.add_message('You can join the room with an other nick, by typing "/join /other_nick"', typ=2)
     self.refresh_window()
 
 def outgoing_stanza(self, stanza):
@@ -1243,7 +1242,7 @@ def validate_ssl(self, pem):
                     self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
                     log.debug('Setting certificate to %s', sha2_found_cert)
                     if not config.silent_set('certificate', sha2_found_cert):
-                        self.information(_('Unable to write in the config file'), 'Error')
+                        self.information('Unable to write in the config file', 'Error')
                 else:
                     self.information('You refused to validate the certificate. You are now disconnected', 'Info')
                     self.disconnect()
@@ -1263,7 +1262,7 @@ def validate_ssl(self, pem):
     else:
         log.debug('First time. Setting certificate to %s', sha2_found_cert)
         if not config.silent_set('certificate', sha2_found_cert):
-            self.information(_('Unable to write in the config file'), 'Error')
+            self.information('Unable to write in the config file', 'Error')
 
 def _composing_tab_state(tab, state):
     """

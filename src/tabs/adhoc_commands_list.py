@@ -4,8 +4,6 @@ select one of them and start executing it, or just close the tab and do
 nothing.
 """
 
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ class AdhocCommandsListTab(ListTab):
     def __init__(self, jid):
         ListTab.__init__(self, jid.full,
                          "“Enter”: execute selected command.",
-                         _('Ad-hoc commands of JID %s (Loading)') % jid,
+                         'Ad-hoc commands of JID %s (Loading)' % jid,
                          (('Node', 0), ('Description', 1)))
         self.key_func['^M'] = self.execute_selected_command
 
@@ -50,7 +48,7 @@ class AdhocCommandsListTab(ListTab):
                     yield item
         items = [(item['node'], item['name'] or '', item['jid']) for item in get_items()]
         self.listview.set_lines(items)
-        self.info_header.message = _('Ad-hoc commands of JID %s') % self.name
+        self.info_header.message = 'Ad-hoc commands of JID %s' % self.name
         if self.core.current_tab() is self:
             self.refresh()
         else:

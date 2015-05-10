@@ -4,8 +4,6 @@ A MucListTab is a tab listing the rooms on a conference server.
 It has no functionnality except scrolling the list, and allowing the
 user to join the rooms.
 """
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -24,7 +22,7 @@ class MucListTab(ListTab):
     def __init__(self, server):
         ListTab.__init__(self, server.full,
                          "“j”: join room.",
-                         _('Chatroom list on server %s (Loading)') % server,
+                         'Chatroom list on server %s (Loading)' % server,
                          (('node-part', 0), ('name', 2), ('users', 3)))
         self.key_func['j'] = self.join_selected
         self.key_func['J'] = self.join_selected_no_focus
@@ -56,7 +54,7 @@ class MucListTab(ListTab):
                   item[0],
                   item[2] or '', '') for item in get_items()]
         self.listview.set_lines(items)
-        self.info_header.message = _('Chatroom list on server %s') % self.name
+        self.info_header.message = 'Chatroom list on server %s' % self.name
         if self.core.current_tab() is self:
             self.refresh()
         else:

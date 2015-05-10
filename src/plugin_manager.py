@@ -8,7 +8,6 @@ plugin env.
 import os
 from os import path
 import logging
-from gettext import gettext as _
 
 import core
 import tabs
@@ -93,8 +92,8 @@ class PluginManager(object):
         except Exception as e:
             log.error('Error while loading the plugin %s', name, exc_info=True)
             if notify:
-                self.core.information(_('Unable to load the plugin %s: %s') %
-                                        (name, e),
+                self.core.information('Unable to load the plugin %s: %s' %
+                                      (name, e),
                                       'Error')
             self.unload(name, notify=False)
         else:
@@ -131,8 +130,8 @@ class PluginManager(object):
                     self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 log.debug("Could not unload plugin %s", name, exc_info=True)
-                self.core.information(_("Could not unload plugin %s: %s") %
-                                        (name, e),
+                self.core.information("Could not unload plugin %s: %s" %
+                                      (name, e),
                                       'Error')
 
     def add_command(self, module_name, name, handler, help,
@@ -141,7 +140,7 @@ class PluginManager(object):
         Add a global command.
         """
         if name in self.core.commands:
-            raise Exception(_("Command '%s' already exists") % (name,))
+            raise Exception("Command '%s' already exists" % (name,))
 
         commands = self.commands[module_name]
         commands[name] = core.Command(handler, help, completion, short, usage)
@@ -228,7 +227,7 @@ class PluginManager(object):
         already exists.
         """
         if key in self.core.key_func:
-            raise Exception(_("Key '%s' already exists") % (key,))
+            raise Exception("Key '%s' already exists" % (key,))
         keys = self.keys[module_name]
         keys[key] = handler
         self.core.key_func[key] = handler
@@ -279,7 +278,7 @@ class PluginManager(object):
                 except:
                     pass
         except OSError as e:
-            self.core.information(_('Completion failed: %s' % e), 'Error')
+            self.core.information('Completion failed: %s' % e, 'Error')
             return
         plugins_files = [name[:-3] for name in names if name.endswith('.py')
                 and name != '__init__.py' and not name.startswith('.')]

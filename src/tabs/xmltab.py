@@ -5,8 +5,6 @@ in order to only show the relevant ones, and it can also be frozen or
 unfrozen on demand so that the relevant information is not drowned by
 the traffic.
 """
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -71,40 +69,40 @@ class XMLTab(Tab):
         self.default_help_message = windows.HelpText("/ to enter a command")
 
         self.register_command('close', self.close,
-                shortdesc=_("Close this tab."))
+                shortdesc="Close this tab.")
         self.register_command('clear', self.command_clear,
-                shortdesc=_('Clear the current buffer.'))
+                shortdesc='Clear the current buffer.')
         self.register_command('reset', self.command_reset,
-                shortdesc=_('Reset the stanza filter.'))
+                shortdesc='Reset the stanza filter.')
         self.register_command('filter_id', self.command_filter_id,
                 usage='<id>',
-                desc=_('Show only the stanzas with the id <id>.'),
-                shortdesc=_('Filter by id.'))
+                desc='Show only the stanzas with the id <id>.',
+                shortdesc='Filter by id.')
         self.register_command('filter_xpath', self.command_filter_xpath,
                 usage='<xpath>',
-                desc=_('Show only the stanzas matching the xpath <xpath>.'
-                       ' Any occurrences of %n will be replaced by jabber:client.'),
-                shortdesc=_('Filter by XPath.'))
+                desc='Show only the stanzas matching the xpath <xpath>.'
+                     ' Any occurrences of %n will be replaced by jabber:client.',
+                shortdesc='Filter by XPath.')
         self.register_command('filter_jid', self.command_filter_jid,
                 usage='<jid>',
-                desc=_('Show only the stanzas matching the jid <jid> in from= or to=.'),
-                shortdesc=_('Filter by JID.'))
+                desc='Show only the stanzas matching the jid <jid> in from= or to=.',
+                shortdesc='Filter by JID.')
         self.register_command('filter_from', self.command_filter_from,
                 usage='<jid>',
-                desc=_('Show only the stanzas matching the jid <jid> in from=.'),
-                shortdesc=_('Filter by JID from.'))
+                desc='Show only the stanzas matching the jid <jid> in from=.',
+                shortdesc='Filter by JID from.')
         self.register_command('filter_to', self.command_filter_to,
                 usage='<jid>',
-                desc=_('Show only the stanzas matching the jid <jid> in to=.'),
-                shortdesc=_('Filter by JID to.'))
+                desc='Show only the stanzas matching the jid <jid> in to=.',
+                shortdesc='Filter by JID to.')
         self.register_command('filter_xmlmask', self.command_filter_xmlmask,
-                usage=_('<xml mask>'),
-                desc=_('Show only the stanzas matching the given xml mask.'),
-                shortdesc=_('Filter by xml mask.'))
+                usage='<xml mask>',
+                desc='Show only the stanzas matching the given xml mask.',
+                shortdesc='Filter by xml mask.')
         self.register_command('dump', self.command_dump,
-                usage=_('<filename>'),
-                desc=_('Writes the content of the XML buffer into a file.'),
-                shortdesc=_('Write in a file.'))
+                usage='<filename>',
+                desc='Writes the content of the XML buffer into a file.',
+                shortdesc='Write in a file.')
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion

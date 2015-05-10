@@ -11,8 +11,6 @@ There are two different instances of a ConversationTab:
     the time.
 
 """
-from gettext import gettext as _
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -54,18 +52,18 @@ class ConversationTab(OneToOneTab):
         self.key_func['^I'] = self.completion
         # commands
         self.register_command('unquery', self.command_unquery,
-                shortdesc=_('Close the tab.'))
+                shortdesc='Close the tab.')
         self.register_command('close', self.command_unquery,
-                shortdesc=_('Close the tab.'))
+                shortdesc='Close the tab.')
         self.register_command('version', self.command_version,
-                desc=_('Get the software version of the current interlocutor (usually its XMPP client and Operating System).'),
-                shortdesc=_('Get the software version of the user.'))
+                desc='Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
+                shortdesc='Get the software version of the user.')
         self.register_command('info', self.command_info,
-                shortdesc=_('Get the status of the contact.'))
+                shortdesc='Get the status of the contact.')
         self.register_command('last_activity', self.command_last_activity,
-                usage=_('[jid]'),
-                desc=_('Get the last activity of the given or the current contact.'),
-                shortdesc=_('Get the activity.'),
+                usage='[jid]',
+                desc='Get the last activity of the given or the current contact.',
+                shortdesc='Get the activity.',
                 completion=self.core.completion_last_activity)
         self.resize()
         self.update_commands()
@@ -199,7 +197,7 @@ class ConversationTab(OneToOneTab):
         else:
             resource = None
         if resource:
-            status = (_('Status: %s') % resource.status) if resource.status else ''
+            status = ('Status: %s' % resource.status) if resource.status else ''
             self._text_buffer.add_message("\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
                 'show': resource.show or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
@@ -220,9 +218,9 @@ class ConversationTab(OneToOneTab):
             if not res:
                 return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
             version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or _('an unknown software'),
-                                                             res.get('version') or _('unknown'),
-                                                             res.get('os') or _('an unknown platform'))
+                                                             res.get('name') or 'an unknown software',
+                                                             res.get('version') or 'unknown',
+                                                             res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args:
             return self.core.command_version(args[0])
@@ -380,7 +378,7 @@ class DynamicConversationTab(ConversationTab):
         self.info_header = windows.DynamicConversationInfoWin()
         ConversationTab.__init__(self, jid)
         self.register_command('unlock', self.unlock_command,
-                shortdesc=_('Unlock the conversation from a particular resource.'))
+                shortdesc='Unlock the conversation from a particular resource.')
 
     def lock(self, resource):
         """
@@ -392,8 +390,8 @@ class DynamicConversationTab(ConversationTab):
             info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
 
-            message = _('%(info)sConversation locked to '
-                        '%(jid_c)s%(jid)s/%(resource)s%(info)s.') % {
+            message = ('%(info)sConversation locked to '
+                       '%(jid_c)s%(jid)s/%(resource)s%(info)s.') % {
                             'info': info,
                             'jid_c': jid_c,
                             'jid': self.name,
@@ -417,14 +415,14 @@ class DynamicConversationTab(ConversationTab):
             jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
 
             if from_:
-                message = _('%(info)sConversation unlocked (received activity'
-                            ' from %(jid_c)s%(jid)s%(info)s).') % {
+                message = ('%(info)sConversation unlocked (received activity'
+                           ' from %(jid_c)s%(jid)s%(info)s).') % {
                                 'info': info,
                                 'jid_c': jid_c,
                                 'jid': from_}
                 self.add_message(message, typ=0)
             else:
-                message = _('%sConversation unlocked.') % info
+                message = '%sConversation unlocked.' % info
                 self.add_message(message, typ=0)
 
     def get_dest_jid(self):

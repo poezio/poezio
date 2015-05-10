@@ -8,7 +8,6 @@ log = logging.getLogger(__name__)
 
 import os
 from datetime import datetime
-from gettext import gettext as _
 from xml.etree import cElementTree as ET
 
 from slixmpp.xmlstream.stanzabase import StanzaBase
@@ -65,7 +64,7 @@ def command_help(self, args):
         buff.extend(acc)
 
         msg = '\n'.join(buff)
-        msg += _("\nType /help <command_name> to know what each command does")
+        msg += "\nType /help <command_name> to know what each command does"
     else:
         command = args[0].lstrip('/').strip()
 
@@ -74,10 +73,10 @@ def command_help(self, args):
         elif command in self.commands:
             tup = self.commands[command]
         else:
-            self.information(_('Unknown command: %s') % command, 'Error')
+            self.information('Unknown command: %s' % command, 'Error')
             return
         if isinstance(tup, Command):
-            msg = _('Usage: /%s %s\n' % (command, tup.usage))
+            msg = 'Usage: /%s %s\n' % (command, tup.usage)
             msg += tup.desc
         else:
             msg = tup[1]
@@ -155,7 +154,7 @@ def command_presence(self, args):
         self.events.trigger('send_normal_presence', pres)
         pres.send()
     except:
-        self.information(_('Could not send directed presence'), 'Error')
+        self.information('Could not send directed presence', 'Error')
         log.debug('Could not send directed presence to %s', jid, exc_info=True)
         return
     tab = self.get_tab_by_name(jid)
@@ -286,14 +285,14 @@ def command_version(self, args):
     def callback(res):
         "Callback for /version"
         if not res:
-            return self.information(_('Could not get the software'
-                                      ' version from %s') % jid,
-                                    _('Warning'))
-        version = _('%s is running %s version %s on %s') % (
+            return self.information('Could not get the software'
+                                    ' version from %s' % jid,
+                                    'Warning')
+        version = '%s is running %s version %s on %s' % (
                         jid,
-                        res.get('name') or _('an unknown software'),
-                        res.get('version') or _('unknown'),
-                        res.get('os') or _('an unknown platform'))
+                        res.get('name') or 'an unknown software',
+                        res.get('version') or 'unknown',
+                        res.get('os') or 'an unknown platform')
         self.information(version, 'Info')
 
     if args is None:
@@ -522,9 +521,9 @@ def command_remove_bookmark(self, args):
 
     def cb(success):
         if success:
-            self.information(_('Bookmark deleted'), 'Info')
+            self.information('Bookmark deleted', 'Info')
         else:
-            self.information(_('Error while deleting the bookmark'), 'Error')
+            self.information('Error while deleting the bookmark', 'Error')
 
     if not args:
         tab = self.current_tab()
@@ -532,13 +531,13 @@ def command_remove_bookmark(self, args):
             self.bookmarks.remove(tab.name)
             self.bookmarks.save(self.xmpp, callback=cb)
         else:
-            self.information(_('No bookmark to remove'), 'Info')
+            self.information('No bookmark to remove', 'Info')
     else:
         if self.bookmarks[args[0]]:
             self.bookmarks.remove(args[0])
             self.bookmarks.save(self.xmpp, callback=cb)
         else:
-            self.information(_('No bookmark to remove'), 'Info')
+            self.information('No bookmark to remove', 'Info')
 
 @command_args_parser.quoted(0, 3)
 def command_set(self, args):
@@ -610,8 +609,8 @@ def command_set(self, args):
             if args[0] == '.':
                 name = safeJID(self.current_tab().name).bare
                 if not name:
-                    self.information(_('Invalid tab to use the "." argument.'),
-                                     _('Error'))
+                    self.information('Invalid tab to use the "." argument.',
+                                     'Error')
                     return
                 section = name
             else:
@@ -672,7 +671,7 @@ def command_server_cycle(self, args):
         if isinstance(tab, tabs.MucTab):
             domain = safeJID(tab.name).domain
         else:
-            return self.information(_("No server specified"), "Error")
+            return self.information("No server specified", "Error")
     for tab in self.get_tabs(tabs.MucTab):
         if tab.name.endswith(domain):
             if tab.joined:
@@ -695,11 +694,11 @@ def command_last_activity(self, args):
         "Callback for the last activity"
         if iq['type'] != 'result':
             if iq['error']['type'] == 'auth':
-                self.information(_('You are not allowed to see the '
-                                   'activity of this contact.'),
-                                 _('Error'))
+                self.information('You are not allowed to see the '
+                                 'activity of this contact.',
+                                 'Error')
             else:
-                self.information(_('Error retrieving the activity'), 'Error')
+                self.information('Error retrieving the activity', 'Error')
             return
         seconds = iq['last_activity']['seconds']
         status = iq['last_activity']['status']
@@ -731,9 +730,9 @@ def command_mood(self, args):
 
     mood = args[0]
     if mood not in pep.MOODS:
-        return self.information(_('%s is not a correct value for a mood.')
+        return self.information('%s is not a correct value for a mood.'
                                 % mood,
-                                _('Error'))
+                                'Error')
     if len(args) == 2:
         text = args[1]
     else:
@@ -752,9 +751,9 @@ def command_activity(self, args):
 
     general = args[0]
     if general not in pep.ACTIVITIES:
-        return self.information(_('%s is not a correct value for an activity')
+        return self.information('%s is not a correct value for an activity'
                                     % general,
-                                _('Error'))
+                                'Error')
     specific = None
     text = None
     if length == 2:
@@ -766,9 +765,9 @@ def command_activity(self, args):
         specific = args[1]
         text = args[2]
     if specific and specific not in pep.ACTIVITIES[general]:
-        return self.information(_('%s is not a correct value '
-                                  'for an activity') % specific,
-                                _('Error'))
+        return self.information('%s is not a correct value '
+                                'for an activity' % specific,
+                                'Error')
     self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
                                                   callback=dumb_callback)
 
@@ -862,7 +861,7 @@ def command_destroy_room(self, args):
     elif isinstance(self.current_tab(), tabs.MucTab) and not args[0]:
         muc.destroy_room(self.xmpp, self.current_tab().general_jid)
     else:
-        self.information(_('Invalid JID: "%s"') % args[0], _('Error'))
+        self.information('Invalid JID: "%s"' % args[0], 'Error')
 
 @command_args_parser.quoted(1, 1, [''])
 def command_bind(self, args):
@@ -873,7 +872,7 @@ def command_bind(self, args):
         return self.command_help('bind')
 
     if not config.silent_set(args[0], args[1], section='bindings'):
-        self.information(_('Unable to write in the config file'), 'Error')
+        self.information('Unable to write in the config file', 'Error')
 
     if args[1]:
         self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
@@ -913,7 +912,7 @@ def command_rawxml(self, args):
 
         stanza.send()
     except:
-        self.information(_('Could not send custom stanza'), 'Error')
+        self.information('Could not send custom stanza', 'Error')
         log.debug('/rawxml: Could not send custom stanza (%s)',
                 repr(stanza),
                 exc_info=True)
@@ -941,9 +940,9 @@ def command_plugins(self):
     """
     /plugins
     """
-    self.information(_("Plugins currently in use: %s") %
+    self.information("Plugins currently in use: %s" %
                         repr(list(self.plugin_manager.plugins.keys())),
-                     _('Info'))
+                     'Info')
 
 @command_args_parser.quoted(1, 1)
 def command_message(self, args):
