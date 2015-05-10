@@ -1,10 +1,3 @@
-prefix=/usr/local/
-LIBDIR=$(prefix)/lib
-BINDIR=$(prefix)/bin
-DATADIR=$(prefix)/share
-DOCDIR=$(DATADIR)/doc
-LOCALEDIR=$(DATADIR)/locale
-MANDIR=$(DATADIR)/man
 TMPDIR=/tmp/
 
 all: Makefile
@@ -30,9 +23,6 @@ doc:
 
 test:
 	py.test -v test/
-
-pot:
-	xgettext src/*.py --from-code=utf-8 --keyword=_ -o locale/poezio.pot
 
 release:
 	rm -fr $(TMPDIR)/poezio-$(version)
