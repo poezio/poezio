@@ -87,6 +87,11 @@ Plugin index
 
         Close all tabs except MUCs and the roster.
 
+    Cyber
+        :ref:`Documentation <cyber-plugin>`
+
+        Add a cybertouch to your messages.
+
     Day Change
         :ref:`Documentation <daychange-plugin>`
 
@@ -297,3 +302,4 @@ Plugin index
     pipe_cmd
     close_all
     reorder
+    cyber
