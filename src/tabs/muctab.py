@@ -66,6 +66,8 @@ class MucTab(ChatTab):
         self.topic = ''
         self.topic_from = ''
         self.remote_wants_chatstates = True
+        # Self ping event, so we can cancel it when we leave the room
+        self.self_ping_event = None
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
         # that’s not our problem.
@@ -1152,6 +1154,9 @@ class MucTab(ChatTab):
                         self.core.current_tab().input.refresh()
                         self.core.doupdate()
                     self.core.enable_private_tabs(self.name)
+                    # Enable the self ping event, to regularly check if we
+                    # are still in the room.
+                    self.enable_self_ping_event()
         else:
             change_nick = '303' in status_codes
             kick = '307' in status_codes and typ == 'unavailable'
@@ -1545,6 +1550,9 @@ class MucTab(ChatTab):
         if self is not self.core.current_tab():
             self.state = 'disconnected'
         self.joined = False
+        if self.self_ping_event is not None:
+            self.core.remove_timed_event(self.self_ping_event)
+            self.self_ping_event = None
 
     def get_single_line_topic(self):
         """
@@ -1694,3 +1702,7 @@ class MucTab(ChatTab):
             nick_alias = re.sub('_*$', '', nick_alias)
             color = config.get_by_tabname(nick_alias, 'muc_colors')
         return color
+
+    def on_self_ping_failed(self, iq):
+        self.command_part("the MUC server is not responding")
+        self.core.refresh_window()
