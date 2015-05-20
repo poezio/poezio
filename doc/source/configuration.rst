@@ -856,9 +856,9 @@ Options related to logging.
 
     use_log
 
-        **Default value:** ``true``
+        **Default value:** ``false``
 
-        Set to ``false`` if you don’t want to save logs of all the messages
+        Set to ``true`` if you want to save logs of all the messages
         in files.
 
 Plugins
