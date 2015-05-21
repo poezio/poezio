@@ -315,6 +315,8 @@ class Core(object):
                                        self.on_password_change)
         self.add_configuration_handler("enable_vertical_tab_list",
                                        self.on_vertical_tab_list_config_change)
+        self.add_configuration_handler("vertical_tab_list_size",
+                                       self.on_vertical_tab_list_config_change)
         self.add_configuration_handler("deterministic_nick_colors",
                                        self.on_nick_determinism_changed)
 
