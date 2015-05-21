@@ -137,8 +137,11 @@ class XMLTab(Tab):
         self.filters.append(matcher)
         new_messages = []
         for msg in messages:
-            if self.match_stanza(ElementBase(ET.fromstring(clean_text(msg.txt)))):
-                new_messages.append(msg)
+            try:
+                if msg.txt.strip() and self.match_stanza(ElementBase(ET.fromstring(clean_text(msg.txt)))):
+                    new_messages.append(msg)
+            except ET.ParseError:
+                log.debug('Malformed XML : %s', msg.txt, exc_info=True)
         self.filtered_buffer.messages = new_messages
         self.text_win.rebuild_everything(self.filtered_buffer)
         self.gen_filter_repr()
