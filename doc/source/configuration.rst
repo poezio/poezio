@@ -549,7 +549,7 @@ or the way messages are displayed.
 
         **Default value:** ``20``
 
-        Size of the vertical tab list.
+        Horizontal size of the vertical tab list.
 
     vertical_tab_list_sort
 
