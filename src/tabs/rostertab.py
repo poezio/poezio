@@ -619,9 +619,12 @@ class RosterInfoTab(Tab):
         Add the specified JID to the roster, and set automatically
         accept the reverse subscription
         """
-        jid = safeJID(safeJID(args[0]).bare)
-        if not jid:
+        if args is None:
             self.core.information('No JID specified', 'Error')
+            return
+        jid = safeJID(safeJID(args[0]).bare)
+        if not str(jid):
+            self.core.information('The provided JID (%s) is not valid' % (args[0],), 'Error')
             return
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
