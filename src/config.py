@@ -98,6 +98,7 @@ DEFAULT_CONFIG = {
         'roster_show_offline': False,
         'roster_sort': 'jid:show',
         'save_status': True,
+        'self_ping_delay': 0,
         'send_chat_states': True,
         'send_initial_presence': True,
         'send_os_info': True,
