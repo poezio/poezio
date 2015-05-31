@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 import collections
 import curses
 import string
-from threading import RLock
 
 import core
 import singleton

@@ -16,7 +16,6 @@ import os
 import pipes
 import sys
 import time
-from threading import Event
 
 from slixmpp.xmlstream.handler import Callback
 
@@ -72,8 +71,6 @@ class Core(object):
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.bookmarks = BookmarkList()
-        self.paused = False
-        self.event = Event()
         self.debug = False
         self.remote_fifo = None
         # a unique buffer used to store global informations
@@ -612,11 +609,6 @@ class Core(object):
 
         # whether to refresh after ALL keys have been handled
         for char_list in separate_chars_from_bindings(big_char_list):
-            if self.paused:
-                self.current_tab().input.do_command(char_list[0])
-                self.current_tab().input.prompt()
-                self.event.set()
-                continue
             # Special case for M-x where x is a number
             if len(char_list) == 1:
                 char = char_list[0]

@@ -1237,7 +1237,6 @@ def validate_ssl(self, pem):
                              'Warning')
             def check_input():
                 self.current_tab().input = saved_input
-                self.paused = False
                 if input.value:
                     self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
                     log.debug('Setting certificate to %s', sha2_found_cert)
