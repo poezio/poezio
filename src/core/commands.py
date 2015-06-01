@@ -387,13 +387,18 @@ def command_join(self, args, histo_length=None):
             seconds = int(seconds)
         else:
             seconds = 0
-        if password:
-            tab.password = password
+        # If we didn’t have a password by now (from a bookmark or the
+        # explicit argument), just use the password that is stored in the
+        # tab because of our last join
+        if not password:
+            password = tab.password
         muc.join_groupchat(self, room, nick, password,
                            histo_length,
                            current_status.message,
                            current_status.show,
                            seconds=seconds)
+        # Store in the tab the password we used, for later use
+        tab.password = password
     if not tab:
         self.open_new_room(room, nick, password=password)
         muc.join_groupchat(self, room, nick, password,
