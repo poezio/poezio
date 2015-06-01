@@ -1694,7 +1694,7 @@ class MucTab(ChatTab):
 
     def on_self_ping_result(self, iq):
         if iq["type"] == "error":
-            self.command_part(iq["error"]["text"] or "not in this room")
+            self.command_cycle(iq["error"]["text"] or "not in this room")
             self.core.refresh_window()
         else:                   # Re-send a self-ping in a few seconds
             self.enable_self_ping_event()
@@ -1715,5 +1715,5 @@ class MucTab(ChatTab):
         return color
 
     def on_self_ping_failed(self, iq):
-        self.command_part("the MUC server is not responding")
+        self.command_cycle("the MUC server is not responding")
         self.core.refresh_window()
