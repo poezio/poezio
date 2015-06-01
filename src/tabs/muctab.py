@@ -1690,7 +1690,7 @@ class MucTab(ChatTab):
         self.core.xmpp.plugin['xep_0199'].send_ping(jid=to,
                                                     callback=self.on_self_ping_result,
                                                     timeout_callback=self.on_self_ping_failed,
-                                                    timeout=10)
+                                                    timeout=60)
 
     def on_self_ping_result(self, iq):
         if iq["type"] == "error":
