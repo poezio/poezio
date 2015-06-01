@@ -53,7 +53,8 @@ def _join_initial_rooms(self, bookmarks):
         tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
         nick = bm.nick if bm.nick else self.own_nick
         if not tab:
-            self.open_new_room(bm.jid, nick, focus=False)
+            self.open_new_room(bm.jid, nick, focus=False,
+                               password=bm.password)
         self.initial_joins.append(bm.jid)
         histo_length = config.get('muc_history_length')
         if histo_length == -1:
