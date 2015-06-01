@@ -415,7 +415,7 @@ class MucTab(ChatTab):
         self.disconnect()
         self.user_win.pos = 0
         self.core.disable_private_tabs(self.name)
-        self.core.command_join('"/%s"' % self.own_nick)
+        self.core.command_join('"%s/%s"' % (self.name, self.own_nick))
 
     @command_args_parser.quoted(0, 1, [''])
     def command_recolor(self, args):
