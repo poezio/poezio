@@ -1554,9 +1554,7 @@ class MucTab(ChatTab):
         if self is not self.core.current_tab():
             self.state = 'disconnected'
         self.joined = False
-        if self.self_ping_event is not None:
-            self.core.remove_timed_event(self.self_ping_event)
-            self.self_ping_event = None
+        self.disable_self_ping_event()
 
     def get_single_line_topic(self):
         """
@@ -1618,6 +1616,10 @@ class MucTab(ChatTab):
         in the room anymore
         Return True if the message highlighted us. False otherwise.
         """
+
+        # reset self-ping interval
+        self.enable_self_ping_event()
+
         self.log_message(txt, nickname, time=time, typ=kwargs.get('typ', 1))
         args = dict()
         for key, value in kwargs.items():
@@ -1674,8 +1676,14 @@ class MucTab(ChatTab):
         delay = config.get_by_tabname("self_ping_delay", self.general_jid, default=0)
         if delay <= 0:          # use 0 or some negative value to disable it
             return
+        self.disable_self_ping_event()
         self.self_ping_event = timed_events.DelayedEvent(delay, self.send_self_ping)
         self.core.add_timed_event(self.self_ping_event)
+
+    def disable_self_ping_event(self):
+        if self.self_ping_event is not None:
+            self.core.remove_timed_event(self.self_ping_event)
+            self.self_ping_event = None
 
     def send_self_ping(self):
         to = self.name + "/" + self.own_nick
