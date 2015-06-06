@@ -31,7 +31,7 @@ please try mcabber_.
 
 Other issues
 ------------
-Some things may appear in ``$XDG_DATA_HOME/poezio/errors.log``.
+Some things may appear in ``$XDG_DATA_HOME/poezio/logs/errors.log``. (or a user-defined :term:`log_dir`/errors.log)
 
 
 .. _web client: https://jappix.com/?r=poezio@muc.poezio.eu
