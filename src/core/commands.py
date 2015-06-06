@@ -266,7 +266,7 @@ def command_list(self, args):
     if args is None:
         return self.command_help('list')
     elif args:
-        server = safeJID(args[0])
+        server = safeJID(args[0]).server
     else:
         if not isinstance(self.current_tab(), tabs.MucTab):
             return self.information('Please provide a server', 'Error')

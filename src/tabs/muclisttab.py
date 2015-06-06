@@ -20,7 +20,7 @@ class MucListTab(ListTab):
     plugin_keys = {}
 
     def __init__(self, server):
-        ListTab.__init__(self, server.full,
+        ListTab.__init__(self, server,
                          "“j”: join room.",
                          'Chatroom list on server %s (Loading)' % server,
                          (('node-part', 0), ('name', 2), ('users', 3)))
