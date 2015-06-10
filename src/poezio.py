@@ -85,11 +85,18 @@ def main():
         cocore.debug = True
     cocore.start()
 
+    from slixmpp.exceptions import IqError, IqTimeout
+    def swallow_iqerrors(loop, context):
+        """Do not log unhandled iq errors and timeouts"""
+        if not isinstance(context['exception'], (IqError, IqTimeout)):
+            loop.default_exception_handler(context)
+
     # Warning: asyncio must always be imported after the config. Otherwise
     # the asyncio logger will not follow our configuration and won't write
     # the tracebacks in the correct file, etc
     import asyncio
     loop = asyncio.get_event_loop()
+    loop.set_exception_handler(swallow_iqerrors)
 
     loop.add_reader(sys.stdin, cocore.on_input_readable)
     loop.add_signal_handler(signal.SIGWINCH, cocore.sigwinch_handler)
