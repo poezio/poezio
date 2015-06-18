@@ -710,6 +710,13 @@ or the way messages are displayed.
         the contact names). If there is no contact name, the JID will still be
         displayed.
 
+    show_jid_in_conversations
+
+        **Default value:** ``true``
+
+        If ``false``, the JID of the contact will not be displayed in the information
+        window in conversation tags.
+
     show_s2s_errors
 
         **Default value:** ``true``

@@ -108,6 +108,7 @@ DEFAULT_CONFIG = {
         'server': 'anon.jeproteste.info',
         'show_composing_tabs': 'direct',
         'show_inactive_tabs': True,
+        'show_jid_in_conversations': True,
         'show_muc_jid': True,
         'show_roster_jids': True,
         'show_roster_subscriptions': '',
