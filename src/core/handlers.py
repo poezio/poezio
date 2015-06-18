@@ -862,10 +862,12 @@ def on_got_offline(self, presence):
         self.information('Unable to write in the log file', 'Error')
     # If a resource got offline, display the message in the conversation with this
     # precise resource.
+    contact = roster[jid.bare]
+    name = contact.name if contact and contact.name else jid.bare
     if jid.resource:
-        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % (jid.full))
-    self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % (jid.bare))
-    self.information('\x193}%s \x195}is \x191}offline' % (jid.bare), 'Roster')
+        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % name)
+    self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % name)
+    self.information('\x193}%s \x195}is \x191}offline' % name, 'Roster')
     roster.modified()
     if isinstance(self.current_tab(), tabs.RosterInfoTab):
         self.refresh_window()
@@ -890,14 +892,15 @@ def on_got_online(self, presence):
         'show': presence['show'],
         })
     self.events.trigger('normal_presence', presence, resource)
-    self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % (jid.full))
+    name = contact.name if contact.name else jid.bare
+    self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % name)
     if time.time() - self.connection_time > 10:
         # We do not display messages if we recently logged in
         if presence['status']:
-            self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (safeJID(resource.jid).bare, presence['status']), "Roster")
+            self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (name, presence['status']), "Roster")
         else:
-            self.information("\x193}%s \x195}is \x194}online\x195}" % safeJID(resource.jid).bare, "Roster")
-        self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % (jid.bare))
+            self.information("\x193}%s \x195}is \x194}online\x195}" % name, "Roster")
+        self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % name)
     if isinstance(self.current_tab(), tabs.RosterInfoTab):
         self.refresh_window()
 
