@@ -896,10 +896,11 @@ def command_rawxml(self, args):
     stanza = args
     try:
         stanza = StanzaBase(self.xmpp, xml=ET.fromstring(stanza))
-        if stanza.xml.tag == 'iq' and \
-                stanza.xml.attrib.get('type') in ('get', 'set') and \
-                stanza.xml.attrib.get('id'):
+        if stanza.xml.tag == 'iq' and stanza.xml.attrib.get('type') in ('get', 'set'):
             iq_id = stanza.xml.attrib.get('id')
+            if not iq_id:
+                iq_id = self.xmpp.new_id()
+                stanza['id'] = iq_id
 
             def iqfunc(iq):
                 "handler for an iq reply"
