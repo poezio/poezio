@@ -10,12 +10,12 @@ user list, and updates private tabs when necessary.
 import logging
 log = logging.getLogger(__name__)
 
+import bisect
 import curses
 import os
 import random
 import re
 from datetime import datetime
-from functools import reduce
 
 from . import ChatTab, Tab
 
@@ -1089,7 +1089,7 @@ class MucTab(ChatTab):
                     and typ != "unavailable"):
                 new_user = User(from_nick, affiliation, show,
                                 status, role, jid, deterministic, color)
-                self.users.append(new_user)
+                bisect.insort_left(self.users, new_user)
                 self.core.events.trigger('muc_join', presence, self)
                 if '110' in status_codes or self.own_nick == from_nick:
                     # second part of the condition is a workaround for old
@@ -1200,7 +1200,7 @@ class MucTab(ChatTab):
                                            affiliation, role, show, status)
         if self.core.current_tab() is self:
             self.text_win.refresh()
-            self.user_win.refresh(self.users)
+            self.user_win.refresh_if_changed(self.users)
             self.info_header.refresh(self, self.text_win)
             self.input.refresh()
             self.core.doupdate()
@@ -1230,7 +1230,7 @@ class MucTab(ChatTab):
         deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
         user = User(from_nick, affiliation,
                     show, status, role, jid, deterministic, color)
-        self.users.append(user)
+        bisect.insort_left(self.users, user)
         hide_exit_join = config.get_by_tabname('hide_exit_join',
                                                self.general_jid)
         if hide_exit_join != 0:
@@ -1277,6 +1277,8 @@ class MucTab(ChatTab):
                                                       self.name)
                 user.change_color(color, deterministic)
         user.change_nick(new_nick)
+        self.users.remove(user)
+        bisect.insort_left(self.users, user)
 
         if config.get_by_tabname('display_user_color_in_join_part',
                                  self.general_jid):
@@ -1698,8 +1700,7 @@ class MucTab(ChatTab):
             return color
         nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
         if nick_color_aliases:
-            nick_alias = re.sub('^_*', '', nick)
-            nick_alias = re.sub('_*$', '', nick_alias)
+            nick_alias = re.sub('^_*(.*?)_*$', '\\1', nick)
             color = config.get_by_tabname(nick_alias, 'muc_colors')
         return color
 

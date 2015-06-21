@@ -13,10 +13,17 @@ import poopt
 from config import config
 from theming import to_curses_attr, get_theme
 
+def userlist_to_cache(userlist):
+    result = []
+    for user in userlist:
+        result.append((user.nick, user.status, user.chatstate, user.affiliation, user.role))
+    return result
+
 class UserList(Win):
     def __init__(self):
         Win.__init__(self)
         self.pos = 0
+        self.cache = []
 
     def scroll_up(self):
         self.pos += self.height-1
@@ -32,25 +39,36 @@ class UserList(Win):
     def draw_plus(self, y):
         self.addstr(y, self.width-2, '++', to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
+
+    def refresh_if_changed(self, users):
+        old = self.cache
+        new = userlist_to_cache(users[self.pos:self.pos+self.height])
+        if len(old) != len(new):
+            self.cache = new
+            self.refresh(users)
+            return
+        for i in range(len(old)):
+            if old[i] != new[i]:
+                self.cache = new
+                self.refresh(users)
+
     def refresh(self, users):
         log.debug('Refresh: %s', self.__class__.__name__)
         if config.get('hide_user_list'):
             return # do not refresh if this win is hidden.
+        if len(users) < self.height:
+            self.pos = 0
+        elif self.pos >= len(users) - self.height and self.pos != 0:
+            self.pos = len(users) - self.height
         self._win.erase()
         asc_sort = (config.get('user_list_sort').lower() == 'asc')
         if asc_sort:
             y, x = self._win.getmaxyx()
             y -= 1
-            users = sorted(users)
         else:
             y = 0
-            users = sorted(users)
 
-        if len(users) < self.height:
-            self.pos = 0
-        elif self.pos >= len(users) - self.height and self.pos != 0:
-            self.pos = len(users) - self.height
-        for user in users[self.pos:]:
+        for user in users[self.pos:self.pos+self.height]:
             self.draw_role_affiliation(y, user)
             self.draw_status_chatstate(y, user)
             self.addstr(y, 2,
