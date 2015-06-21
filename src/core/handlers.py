@@ -1005,7 +1005,7 @@ def on_session_start(self, event):
 
     if config.get('enable_user_nick'):
         self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)
-    self.xmpp.plugin['xep_0115'].update_caps()
+    asyncio.async(self.xmpp.plugin['xep_0115'].update_caps())
     # Start the ping's plugin regular event
     self.xmpp.set_keepalive_values()
 
