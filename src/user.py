@@ -32,6 +32,8 @@ class User(object):
     """
     keep trace of an user in a Room
     """
+    __slots__ = ('last_talked', 'jid', 'chatstate', 'affiliation', 'show', 'status', 'role', 'nick', 'color')
+
     def __init__(self, nick, affiliation, show, status, role, jid, deterministic=True, color=''):
         self.last_talked = datetime(1, 1, 1) # The oldest possible time
         self.update(affiliation, show, status, role)
