@@ -171,6 +171,9 @@ class Tab(object):
             if self._state == 'current':
                 self._prev_state = None
 
+    def set_state(self, value):
+        self._state = value
+
     def save_state(self):
         if self._state != 'composing':
             self._prev_state = self._state

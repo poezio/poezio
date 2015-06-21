@@ -344,12 +344,16 @@ def on_normal_message(self, message):
             conversation.remote_wants_chatstates = True
         else:
             conversation.remote_wants_chatstates = False
-    if 'private' in config.get('beep_on').split():
+    if not own and 'private' in config.get('beep_on').split():
         if not config.get_by_tabname('disable_beep', conv_jid.bare):
             curses.beep()
     if self.current_tab() is not conversation:
-        conversation.state = 'private'
-        self.refresh_tab_win()
+        if not own:
+            conversation.state = 'private'
+            self.refresh_tab_win()
+        else:
+            conversation.set_state('normal')
+            self.refresh_tab_win()
     else:
         self.refresh_window()
 
