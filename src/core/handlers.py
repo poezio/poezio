@@ -867,7 +867,11 @@ def on_got_offline(self, presence):
     # If a resource got offline, display the message in the conversation with this
     # precise resource.
     contact = roster[jid.bare]
-    name = contact.name if contact and contact.name else jid.bare
+    name = jid.bare
+    if contact:
+        roster.connected -= 1
+        if contact.name:
+            name = contact.name
     if jid.resource:
         self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % name)
     self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % name)
@@ -887,6 +891,7 @@ def on_got_online(self, presence):
     if contact is None:
         # Todo, handle presence coming from contacts not in roster
         return
+    roster.connected += 1
     roster.modified()
     if not logger.log_roster_change(jid.bare, 'got online'):
         self.information('Unable to write in the log file', 'Error')

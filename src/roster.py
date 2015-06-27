@@ -40,6 +40,8 @@ class Roster(object):
                                             section='var').split(':'))
         self.groups = {}
         self.contacts = {}
+        self.length = 0
+        self.connected = 0
 
         # Used for caching roster infos
         self.last_built = datetime.now()
@@ -104,11 +106,12 @@ class Roster(object):
         return self.__node.jid
 
     def get_and_set(self, jid):
-        if not jid in self.contacts:
+        contact = self.contacts.get(jid)
+        if contact is None:
             contact = Contact(self.__node[jid])
             self.contacts[jid] = contact
             return contact
-        return self.contacts[jid]
+        return contact
 
     def set_node(self, value):
         """Set the slixmpp RosterSingle for our roster"""
@@ -146,6 +149,7 @@ class Roster(object):
             contact = self.get_and_set(key)
             if key != self.jid and (contact and self.exists(contact)):
                 l.append(key)
+        self.length = len(l)
         return l
 
     def get_contacts(self):
@@ -190,11 +194,7 @@ class Roster(object):
         """
         Get the number of connected contacts
         """
-        n = 0
-        for contact in self:
-            if self.exists(contact) and len(contact):
-                n += 1
-        return n
+        return self.connected
 
     def update_contact_groups(self, contact):
         """Regenerate the RosterGroups when receiving a contact update"""
@@ -219,7 +219,7 @@ class Roster(object):
         (used to return the display size, but now we have
         the display cache in RosterWin for that)
         """
-        return len(self.jids())
+        return self.length
 
     def __repr__(self):
         ret = '== Roster:\nContacts:\n'
@@ -243,7 +243,6 @@ class Roster(object):
             return
         except OSError:
             return
-
 
     def exists(self, contact):
         if not contact:
