@@ -824,7 +824,8 @@ class Plugin(BasePlugin):
             context.disconnect()
             if isinstance(tab, DynamicConversationTab) and not tab.locked_resource:
                 ctx = self.find_encrypted_context_with_matching(safeJID(name).bare)
-                ctx.disconnect()
+                if ctx is not None:
+                    ctx.disconnect()
         elif action == 'start' or action == 'refresh':
             self.otr_start(tab, name, format_dict)
         elif action == 'ourfpr':
