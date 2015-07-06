@@ -14,7 +14,7 @@ class BookmarkJIDInput(FieldInput, Input):
         FieldInput.__init__(self, field)
         Input.__init__(self)
         jid = safeJID(field.jid)
-        jid.resource = field.nick
+        jid.resource = field.nick or None
         self.text = jid.full
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
