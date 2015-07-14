@@ -513,7 +513,7 @@ class Core(object):
                 'It seems that it is the first time you start poezio.\n'
                 'The online help is here http://doc.poez.io/\n'
                 'No room is joined by default, but you can join poezio’s'
-                'chatroom (with /join poezio@muc.poez.io), where you can'
+                ' chatroom (with /join poezio@muc.poez.io), where you can'
                 ' ask for help or tell us how great it is.',
                 'Help')
         self.refresh_window()
