@@ -142,11 +142,13 @@ class TextBuffer(object):
 
         ret_val = None
         show_timestamps = config.get('show_timestamps')
+        nick_size = config.get('max_nick_length')
         for window in self.windows: # make the associated windows
                                     # build the lines from the new message
             nb = window.build_new_message(msg, history=history,
                                           highlight=highlight,
-                                          timestamp=show_timestamps)
+                                          timestamp=show_timestamps,
+                                          nick_size=nick_size)
             if ret_val is None:
                 ret_val = nb
             if window.pos != 0:
