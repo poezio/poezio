@@ -1540,8 +1540,10 @@ class MucTab(ChatTab):
         self.core.on_user_changed_status_in_private('%s/%s' %
                                                       (from_room, from_nick),
                                                     msg)
+        self.users.remove(user)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
+        bisect.insort_left(self.users, user)
 
     def disconnect(self):
         """
