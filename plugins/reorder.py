@@ -85,7 +85,8 @@ def parse_config(config):
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_command('reorder', self.command_reorder,
-                             help='Reorder all tabs.')
+                             help='Reorder all tabs using the pre-defined'
+                                  ' layout from the configuration file.')
 
     @command_args_parser.ignored
     def command_reorder(self):
