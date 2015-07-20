@@ -947,7 +947,7 @@ def on_disconnected(self, event):
     self.information("Disconnected from server.", msg_typ)
     if not self.legitimate_disconnect and config.get('auto_reconnect', True):
         self.information("Auto-reconnecting.", 'Info')
-        self.xmpp.connect()
+        self.xmpp.start()
 
 def on_stream_error(self, event):
     """
