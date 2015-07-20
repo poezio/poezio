@@ -2,7 +2,7 @@
 
 This plugin implements `Off The Record messaging`_.
 
-This is a plugin used to encrypt one-to-one conversation using the OTR
+This is a plugin used to encrypt a one-to-one conversation using the OTR
 encryption method. You can use it if you want good privacy, deniability,
 authentication, and strong secrecy. Without this encryption, your messages
 are encrypted **at least** from your client (poezio) to your server. The
@@ -16,8 +16,8 @@ decrypt your messages, and it is fully encrypted during **all** its travel
 through the internet.
 
 Note that if you are having an encrypted conversation with a contact, you can
-**not** send XHTML-IM messages to him (or correct messages, or anything more than
-raw text). They will be removed and be replaced by plain text messages.
+**not** send XHTML-IM messages to them (or correct messages, or anything more than
+raw text). All formatting will be removed and be replaced by plain text messages.
 
 This is a limitation of the OTR protocol, and it will never be fixed. Some clients
 like Pidgin-OTR try do do magic stuff with html unescaping inside the OTR body, and
