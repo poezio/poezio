@@ -103,8 +103,6 @@ def on_session_start_features(self, _):
         if (config.get('enable_carbons') and
                 'urn:xmpp:carbons:2' in features):
             self.xmpp.plugin['xep_0280'].enable()
-            self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
-            self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
         self.check_bookmark_storage(features)
 
     self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain,
