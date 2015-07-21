@@ -319,6 +319,8 @@ class Core(object):
                                        self.on_vertical_tab_list_config_change)
         self.add_configuration_handler("deterministic_nick_colors",
                                        self.on_nick_determinism_changed)
+        self.add_configuration_handler("enable_carbons",
+                                       self.on_carbons_switch)
 
         self.add_configuration_handler("", self.on_any_config_change)
 
@@ -426,6 +428,16 @@ class Core(object):
         if value.lower() == "true":
             for tab in self.get_tabs(tabs.MucTab):
                 tab.command_recolor('')
+
+    def on_carbons_switch(self, option, value):
+        """Whenever the user enables or disables carbons using /set, we should
+        inform the server immediately, this way we do not require a restart
+        for the change to take effect
+        """
+        if value:
+            self.xmpp.plugin['xep_0280'].enable()
+        else:
+            self.xmpp.plugin['xep_0280'].disable()
 
     def reload_config(self):
         # reload all log files
