@@ -25,10 +25,11 @@ Global configuration
     initial_connect
         **Default:** ``true``
 
-        If you want to join all the rooms and try to authenticate with
-        nickserv when the plugin gets loaded. If ``false``, you will have
-        to use the :term:`/irc_login` command to authenticate, and the
-        :term:`/irc_join` command to join preconfigured rooms.
+        Set to ``true`` if you want to join all the rooms and try to
+        authenticate with nickserv when the plugin gets loaded. If it set to
+        ``false``, you will have to use the :term:`/irc_login` command to
+        authenticate, and the :term:`/irc_join` command to join
+        preconfigured rooms.
 
 .. note:: There is no nickname option because the default from poezio will be used.
 
