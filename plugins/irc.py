@@ -11,6 +11,9 @@ XMPP rooms.
 Configuration
 -------------
 
+Every feature of this plugin is centered around its :ref:`configuration file <plugin-configuration>`,
+so you have to make sure it is filled properly.
+
 Global configuration
 ~~~~~~~~~~~~~~~~~~~~
 .. glossary::
@@ -98,7 +101,7 @@ Commands
         server as the current tab (can be a private conversation or a
         chatroom).  Doing `/irc_query foo "hello there"` when the current
         tab is #foo%irc.example.com@biboumi.example.com is equivalent to
-        `/message foo!irc.example.com@biboumi.example.com "hello there"`
+        ``/message foo!irc.example.com@biboumi.example.com "hello there"``
 
 Example configuration
 ~~~~~~~~~~~~~~~~~~~~~
