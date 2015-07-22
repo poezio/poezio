@@ -321,6 +321,8 @@ class Core(object):
                                        self.on_nick_determinism_changed)
         self.add_configuration_handler("enable_carbons",
                                        self.on_carbons_switch)
+        self.add_configuration_handler("hide_user_list",
+                                       self.on_hide_user_list_change)
 
         self.add_configuration_handler("", self.on_any_config_change)
 
@@ -354,6 +356,12 @@ class Core(object):
             return
         for callback in self.configuration_change_handlers[option]:
             callback(option, value)
+
+    def on_hide_user_list_change(self, option, value):
+        """
+        Called when the hide_user_list option changes
+        """
+        self.call_for_resize()
 
     def on_bookmarks_method_config_change(self, option, value):
         """
