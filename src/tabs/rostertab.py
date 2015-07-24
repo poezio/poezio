@@ -514,7 +514,7 @@ class RosterInfoTab(Tab):
                 self.contact_info_win.resize(contact_win_h - tab_win_height,
                                              info_width,
                                              self.height - tab_win_height
-                                                - contact_win_h - 1,
+                                             - contact_win_h,
                                              roster_width + 1)
         self.roster_win.resize(self.height - 1 - Tab.tab_win_height(),
                                roster_width, 0, 0)
