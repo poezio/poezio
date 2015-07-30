@@ -22,9 +22,11 @@ Command
         the current interlocutor.
 """
 
+from decorators import command_args_parser
 from plugin import BasePlugin
 from roster import roster
 from common import safeJID
+from contact import Contact, Resource
 import tabs
 import time
 
@@ -41,6 +43,11 @@ class Plugin(BasePlugin):
                 help='Send an XMPP ping to jid or nick (see XEP-0199).',
                 short='Send a ping.',
                 completion=self.completion_muc_ping)
+        self.api.add_tab_command(tabs.RosterInfoTab, 'ping', self.command_roster_ping,
+                usage='<jid>',
+                help='Send an XMPP ping to jid (see XEP-0199).',
+                short='Send a ping.',
+                completion=self.completion_ping)
         for _class in (tabs.PrivateTab, tabs.ConversationTab):
             self.api.add_tab_command(_class, 'ping', self.command_private_ping,
                     usage='[jid]',
@@ -48,6 +55,7 @@ class Plugin(BasePlugin):
                     short='Send a ping',
                     completion=self.completion_ping)
 
+    @command_args_parser.raw
     def command_ping(self, arg):
         if not arg:
             return self.core.command_help('ping')
@@ -64,17 +72,19 @@ class Plugin(BasePlugin):
 
     def completion_muc_ping(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
-        l = [contact.bare_jid for contact in roster.get_contacts()]
+        l = self.resources()
         users.extend(l)
         return the_input.auto_completion(users, '', quotify=False)
 
+    @command_args_parser.raw
     def command_private_ping(self, arg):
         if arg:
             return self.command_ping(arg)
         self.command_ping(self.api.current_tab().name)
 
+    @command_args_parser.raw
     def command_muc_ping(self, arg):
-        if not arg.strip():
+        if not arg:
             return
         user = self.api.current_tab().get_user_by_name(arg)
         if user:
@@ -84,7 +94,26 @@ class Plugin(BasePlugin):
             jid = safeJID(arg)
         self.command_ping(jid.full)
 
+    @command_args_parser.raw
+    def command_roster_ping(self, arg):
+        if arg:
+            self.command_ping(arg)
+        else:
+            current = self.api.current_tab().selected_row
+            if isinstance(current, Resource):
+                self.command_ping(current.jid)
+            elif isinstance(current, Contact):
+                res = current.get_highest_priority_resource()
+                if res is not None:
+                    self.command_ping(res.jid)
+
+    def resources(self):
+        l = []
+        for contact in roster.get_contacts():
+            for resource in contact.resources:
+                l.append(resource.jid)
+        return l
+
     def completion_ping(self, the_input):
-        l = [contact.bare_jid for contact in roster.get_contacts()]
-        return the_input.auto_completion(l, '', quotify=False)
+        return the_input.auto_completion(self.resources(), '', quotify=False)
 
