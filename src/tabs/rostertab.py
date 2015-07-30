@@ -197,6 +197,10 @@ class RosterInfoTab(Tab):
                                   usage='<name> <path>',
                                   completion=self.completion_cert_fetch)
 
+    @property
+    def selected_row(self):
+        return self.roster_win.get_selected_row()
+
     @command_args_parser.ignored
     def command_certs(self):
         """
