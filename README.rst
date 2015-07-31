@@ -154,13 +154,10 @@ we merge it to “master” as well, of course).
     - Link Mauve - Code, testing
     - Perdu - Code
     - Eijebong - Code
-    - Gaëtan Ribémont (http://www.bonbref.com) - Logo design
+    - Gaëtan Ribémont - Logo design
     - Ovart - Testing
     - Koshie - Donation
     - Gapan - Makefile
     - FlashCode (weechat dev) - Useful advices on how to use ncurses efficiently
     - And all the people using and testing poezio, and especially the ones present
       on the jabber chatroom doing bug reports and/or feature requests.
-- Project
-    - Gajim - send_vcard method, common.py, and PEP listings
-
