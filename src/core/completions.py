@@ -217,12 +217,13 @@ def completion_message(self, the_input):
     n = the_input.get_argument_position(quoted=True)
     if n >= 2:
         return
-    comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
-    comp = sorted(comp)
-    bares = sorted(roster[contact].bare_jid for contact in roster.jids() if len(roster[contact]))
-    off = sorted(jid for jid in roster.jids() if jid not in bares)
-    comp = bares + comp + off
-    return the_input.new_completion(comp, 1, '', quotify=True)
+    l = []
+    for jid in roster.jids():
+        if len(roster[jid]):
+            l.append(jid)
+            for resource in roster[jid].resources:
+                l.append(resource.jid)
+    return the_input.new_completion(l, 1, '', quotify=True)
 
 
 def completion_invite(self, the_input):
