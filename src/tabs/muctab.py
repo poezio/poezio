@@ -1618,7 +1618,8 @@ class MucTab(ChatTab):
         """
 
         # reset self-ping interval
-        self.enable_self_ping_event()
+        if self.self_ping_event:
+            self.enable_self_ping_event()
 
         self.log_message(txt, nickname, time=time, typ=kwargs.get('typ', 1))
         args = dict()
