@@ -23,6 +23,6 @@ def parse_args(CONFIG_PATH=''):
                         metavar="CONFIG_FILE")
     parser.add_argument("-v", "--version", dest="version",
                         help=SUPPRESS, metavar="VERSION",
-                        default="0.9-dev")
+                        default="0.9")
     options = parser.parse_args()
     return options

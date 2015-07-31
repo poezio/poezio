@@ -2,7 +2,10 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 http://dev.louiz.org/projects/poezio/roadmap
 
-* Poezio 0.9 - dev
+* Poezio 1.0 - dev
+
+
+* Poezio 0.9
 
 - Use slixmpp instead of sleekxmpp, remove threads and locks
 - Require python 3.4 for the input handling, event loop, xml parser,
