@@ -48,7 +48,7 @@ class Input(Win):
             '^W': self.delete_word,
             'M-d': self.delete_next_word,
             '^K': self.delete_end_of_line,
-            '^U': self.delete_begining_of_line,
+            '^U': self.delete_beginning_of_line,
             '^Y': self.paste_clipboard,
             '^A': self.key_home,
             '^E': self.key_end,
@@ -154,9 +154,9 @@ class Input(Win):
         self.key_end()
         return True
 
-    def delete_begining_of_line(self):
+    def delete_beginning_of_line(self):
         """
-        Cut the text from cursor to the begining of line
+        Cut the text from cursor to the beginning of line
         """
         if self.pos == 0:
             return True
@@ -189,7 +189,7 @@ class Input(Win):
 
     def key_home(self):
         """
-        Go to the begining of line
+        Go to the beginning of line
         """
         self.reset_completion()
         self.pos = 0

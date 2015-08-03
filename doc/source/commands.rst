@@ -319,7 +319,7 @@ MultiUserChat tab commands
 
         Assign a color to the given nick. The nick and all its alias (nicks
         are considered identical if they only differ by the presence of one
-        ore more **_** character at the begining or the end. For example
+        ore more **_** character at the beginning or the end. For example
         _Foo and Foo___ are considered aliases of the nick Foo) will then
         always have the specified color, in all MultiUserChat tabs.  This is
         true whatever the value of **deterministic_nick_colors** is.
