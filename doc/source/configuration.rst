@@ -224,7 +224,6 @@ Options related to account configuration, nickname…
 
 
 Connectivity
-
 ~~~~~~~~~~~~
 
 Options about general or chatroom connectivity. Reconnecting does not work very
