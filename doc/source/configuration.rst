@@ -1190,5 +1190,26 @@ found.
         Only for MUC tabs: if true the tab will change its color to notify you when a new message is received.
         You will still be notified of highlights.  Set to ``false`` if you’re not interested in a room non-highlight notifications.
 
+    self_ping_delay
+
+        **Default value:** ``0``
+
+        When this option is set to a positive value ``n``, poezio will send
+        a ping request to its own nick in the MUC every n seconds of
+        inactivity (whenever no new message or presence is received from the
+        MUC room for more than n seconds).  If the MUC service does not
+        respond with a successful pong within 60 seconds (that is: on an
+        error of the type “not-allowed” which means the MUC service doesn’t
+        consider us to be present in that room, or on a timeout which
+        probably means that the service is down), poezio will mark that MUC
+        room as not joined and will try to re-join it.  This is useful to
+        know when a MUC server crashes or becomes unavailable, because there
+        is no mechanism to be informed of that fact in XMPP.
+
+        A value of at least 60 seconds is recommended, to avoid sending too
+        many requests.
+
+        When set to 0 (the default value), no ping request will be sent.
+
 
 .. _OpenSSL format: https://www.openssl.org/docs/apps/ciphers.html#CIPHER_LIST_FORMAT
