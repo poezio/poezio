@@ -266,15 +266,15 @@ def command_list(self, args):
     if args is None:
         return self.command_help('list')
     elif args:
-        server = safeJID(args[0]).server
+        jid = safeJID(args[0])
     else:
         if not isinstance(self.current_tab(), tabs.MucTab):
             return self.information('Please provide a server', 'Error')
-        server = safeJID(self.current_tab().name).server
-    list_tab = tabs.MucListTab(server)
+        jid = safeJID(self.current_tab().name).server
+    list_tab = tabs.MucListTab(jid)
     self.add_tab(list_tab, True)
     cb = list_tab.on_muc_list_item_received
-    self.xmpp.plugin['xep_0030'].get_items(jid=server,
+    self.xmpp.plugin['xep_0030'].get_items(jid=jid,
                                            callback=cb)
 
 @command_args_parser.quoted(1)
