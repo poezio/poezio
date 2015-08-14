@@ -21,6 +21,9 @@ using one of these.
 - **Debian**: A set of `development builds`_ are available for poezio and its
   dependencies; those are automatically generated (and most likely untested)
   packages. We welcome anyone willing to make proper ones.
+- **Nix** (and **NixOS**): The last stable version of poezio is availalble in
+  the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
+  to install poezio for the current user.
 
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
