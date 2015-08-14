@@ -14,6 +14,7 @@ DEFSECTION = "Poezio"
 
 import logging.config
 import os
+import stat
 import sys
 import pkg_resources
 
@@ -563,6 +564,14 @@ def run_cmdline_args(CONFIG_PATH):
             copy2(default, options.filename)
         elif path.isfile(other):
             copy2(other, options.filename)
+
+        # Inside the nixstore and possibly other distributions, the reference
+        # file is readonly, so is the copy.
+        # Make it writable by the user who just created it.
+        if os.path.exists(options.filename):
+            os.chmod(options.filename,
+                     os.stat(options.filename).st_mode | stat.S_IWUSR)
+
         global firstrun
         firstrun = True
 
