@@ -14,6 +14,8 @@ log = logging.getLogger(__name__)
 
 
 import getpass
+import subprocess
+
 import slixmpp
 from slixmpp.plugins.xep_0184 import XEP_0184
 
@@ -43,8 +45,15 @@ class Connection(slixmpp.ClientXMPP):
             if resource:
                 jid = '%s/%s'% (jid, resource)
             password = config.get('password')
-            if not password and not (keyfile and certfile):
+            eval_password = config.get('eval_password')
+            if not password and not eval_password and not (keyfile and certfile):
                 password = getpass.getpass()
+            elif not password and not (keyfile and certfile):
+                print("No password or certificates provided, using the eval_password command.")
+                process = subprocess.Popen(['sh', '-c', eval_password], stdin=subprocess.PIPE,
+                                                        stdout=subprocess.PIPE, close_fds=True)
+                process.wait()
+                password = process.stdout.readline().decode('utf-8').strip('\n')
         else: # anonymous auth
             self.anon = True
             jid = config.get('server')

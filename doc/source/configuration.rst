@@ -1156,6 +1156,24 @@ found.
 
         The password needed to join the room.
 
+    eval_password
+
+        **Default value:** [empty]
+
+        A command which execution will retrieve the password from a password manager.
+
+        E.g. with secret-tool and the gnome keyring:
+
+        .. code-block:: bash
+
+            # Storing (to do beforehand)
+            secret-tool store --label="My jabber password" xmpp your@jid
+
+            # Retrieving (this should be the value of the option)
+            secret-tool lookup xmpp  your@jid
+
+        .. note:: This will only be used if the :term:`password` option is empty.
+
     private_auto_response
 
         **Default value:** ``Not in private, please.``
