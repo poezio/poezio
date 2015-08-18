@@ -541,9 +541,6 @@ class Input(Win):
         if poopt.wcswidth(self.text) < self.width:
             self.view_pos = 0
 
-        assert(self.pos >= self.view_pos and
-               self.pos <= self.view_pos + max(self.width, 3))
-
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
         self.rewrite_text()
