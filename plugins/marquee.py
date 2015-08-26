@@ -43,7 +43,7 @@ def move(text, step, spacing):
     return new_text[-(step % len(new_text)):] + new_text[:-(step % len(new_text))]
 
 class Plugin(BasePlugin):
-    default_config = {"marquee": {"refresh": 1, "total_duration": 30, "padding": 20}}
+    default_config = {"marquee": {"refresh": 1.0, "total_duration": 30, "padding": 20}}
 
     def init(self):
         self.add_tab_command(tabs.MucTab, 'marquee', self.command_marquee, 'Replicate the <marquee/> behavior in a message')
@@ -55,16 +55,17 @@ class Plugin(BasePlugin):
         msg_id = tab.last_sent_message["id"]
         jid = tab.name
 
-        self.api.add_timed_event(self.api.create_delayed_event(self.config.get("refresh"), self.delayed_event, jid, args, msg_id, 0))
+        self.api.add_timed_event(self.api.create_delayed_event(self.config.get("refresh"), self.delayed_event, jid, args, msg_id, 0, 0))
 
-    def delayed_event(self, jid, body, msg_id, duration):
+    def delayed_event(self, jid, body, msg_id, step, duration):
         if duration >= self.config.get("total_duration"):
             return
         message = self.core.xmpp.make_message(jid)
         message["type"] = "groupchat"
-        message["body"] = move(body, duration, self.config.get("padding"))
+        message["body"] = move(body, step, self.config.get("padding"))
         message["replace"]["id"] = msg_id
         message.send()
-        self.api.add_timed_event(self.api.create_delayed_event(self.config.get("refresh"), self.delayed_event, jid, body, message["id"], duration + 1))
+        self.api.information("refresh : %s" % self.config.get("refresh"))
+        self.api.add_timed_event(self.api.create_delayed_event(self.config.get("refresh"), self.delayed_event, jid, body, message["id"], step + 1, duration + self.config.get("refresh")))
 
 
