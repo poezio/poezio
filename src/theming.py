@@ -201,6 +201,7 @@ class Theme(object):
     # Time
     CHAR_TIME_LEFT = ''
     CHAR_TIME_RIGHT = ''
+    COLOR_TIME_STRING = (-1, -1)
 
     # Tabs
     COLOR_TAB_NORMAL = (7, 4)

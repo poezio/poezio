@@ -102,7 +102,11 @@ class BaseTextWin(Win):
         Write the date on the yth line of the window
         """
         if time:
+            color = get_theme().COLOR_TIME_STRING
+            curses_color = to_curses_attr(color)
+            self._win.attron(curses_color)
             self.addstr(time)
+            self._win.attroff(curses_color)
             self.addstr(' ')
 
     def resize(self, height, width, y, x, room=None):
