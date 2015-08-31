@@ -199,11 +199,8 @@ class Theme(object):
     COLOR_MORE_INDICATOR = (6, 4)
 
     # Time
-    COLOR_TIME_SEPARATOR = (106, -1)
-    COLOR_TIME_LIMITER = (0, -1)
     CHAR_TIME_LEFT = ''
     CHAR_TIME_RIGHT = ''
-    COLOR_TIME_NUMBERS = (0, -1)
 
     # Tabs
     COLOR_TAB_NORMAL = (7, 4)
