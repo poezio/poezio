@@ -137,6 +137,10 @@ class Win(object):
                             self._win.attron(curses.A_UNDERLINE)
                         elif char == 'b':
                             self._win.attron(curses.A_BOLD)
+                    else:
+                        # this will reset previous bold/uderline sequences if any was used
+                        self._win.attroff(curses.A_UNDERLINE)
+                        self._win.attroff(curses.A_BOLD)
                 elif color_str:
                     self._win.attron(to_curses_attr((int(color_str), -1)))
                 text = text[next_attr_char+len(color_str)+2:]
