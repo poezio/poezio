@@ -1251,8 +1251,8 @@ class MucTab(ChatTab):
                             'color_spec': spec_col,
                             }
             else:
-                msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s '
-                       '\x19%(info_col)s}(\x19%(jid_color)s}%(jid)s\x19'
+                msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s'
+                       '\x19%(info_col)s} (\x19%(jid_color)s}%(jid)s\x19'
                        '%(info_col)s}) joined the chatroom') % {
                             'spec': char_join, 'nick': from_nick,
                             'color':color, 'jid':jid.full,
