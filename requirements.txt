@@ -1,5 +1,5 @@
 cython
 -e git+git://git.louiz.org/slixmpp#egg=slixmpp
-aiodns
+aiodns==0.3.2
 pycares==0.7
 pygments

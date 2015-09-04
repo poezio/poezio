@@ -37,6 +37,7 @@ then
     # In case of a python version upgrade
     echo 'Trying to upgrade the virtualenv'
     $POEZIO_VENV_COMMAND --upgrade "$POEZIO_VENV"
+    $POEZIO_VENV_COMMAND --system-site-packages "$POEZIO_VENV"
 
     . "$POEZIO_VENV/bin/activate"
     echo 'Updating the in-venv pip'
@@ -49,6 +50,7 @@ then
 else
     echo "Creating the $POEZIO_VENV virtualenv"
     $POEZIO_VENV_COMMAND "$POEZIO_VENV"
+    $POEZIO_VENV_COMMAND --system-site-packages "$POEZIO_VENV"
 
     . "$POEZIO_VENV/bin/activate"
     cd "$POEZIO_VENV" # needed to download slixmpp inside the venv
