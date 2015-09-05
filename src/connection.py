@@ -149,6 +149,7 @@ class Connection(slixmpp.ClientXMPP):
         if config.get('send_time'):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
+        self.register_plugin('xep_0231')
         self.register_plugin('xep_0249')
         self.register_plugin('xep_0257')
         self.register_plugin('xep_0280')
