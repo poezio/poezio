@@ -69,6 +69,7 @@ Poezio depends on two libraries:
 
 - aiodns_
 - slixmpp_
+- slixmpp can make use of cython_ to compile performance-critical modules and be faster
 
 .. versionchanged:: 0.9
 
@@ -146,6 +147,11 @@ poezio without a system-wide install, do, in the :file:`poezio` directory:
 
 .. note::
 
+    You should probably install cython (for python3) on your system using your
+    package manager, since the installation from pypi takes a long time.
+
+.. note::
+
     If you want to use a custom directory for the virtualenv used by poezio,
     you can use the ``$POEZIO_VENV`` environment variable to set use
     another path (the default is :file:`poezio-venv`).
@@ -191,4 +197,5 @@ If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
 .. _pypi: https://pypi.python.org/pypi/poezio
 .. _development builds: http://dédié.jeproteste.info/poezio_debian/
+.. _cython: http://cython.org
 
