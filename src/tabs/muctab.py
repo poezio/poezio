@@ -356,23 +356,29 @@ class MucTab(ChatTab):
         nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
-            return self.core.information("Unknown user: %s" % nick)
+            return self.core.information("Unknown user: %s" % nick, "Error")
         theme = get_theme()
+        inf = '\x19' + dump_tuple(theme.COLOR_INFORMATION_TEXT) + '}'
         if user.jid:
-            user_jid = ' (\x19%s}%s\x19o)' % (
+            user_jid = '%s (\x19%s}%s\x19o%s)' % (
+                            inf,
                             dump_tuple(theme.COLOR_MUC_JID),
-                            user.jid)
+                            user.jid,
+                            inf)
         else:
             user_jid = ''
-        info = ('\x19%s}%s\x19o%s: show: \x19%s}%s\x19o, affiliation:'
-                ' \x19%s}%s\x19o, role: \x19%s}%s\x19o%s') % (
+        info = ('\x19%s}%s\x19o%s%s: show: \x19%s}%s\x19o%s, affiliation:'
+                ' \x19%s}%s\x19o%s, role: \x19%s}%s\x19o%s') % (
                         dump_tuple(user.color),
                         nick,
                         user_jid,
+                        inf,
                         dump_tuple(theme.color_show(user.show)),
                         user.show or 'Available',
+                        inf,
                         dump_tuple(theme.color_role(user.role)),
                         user.affiliation or 'None',
+                        inf,
                         dump_tuple(theme.color_role(user.role)),
                         user.role or 'None',
                         '\n%s' % user.status if user.status else '')
