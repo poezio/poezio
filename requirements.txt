@@ -1,4 +1,4 @@
 cython
 -e git+git://git.louiz.org/slixmpp#egg=slixmpp
-aiodns==0.3.2
-pycares==0.7
+aiodns==1.0
+pycares==1.0
