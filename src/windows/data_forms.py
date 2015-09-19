@@ -455,7 +455,7 @@ class FormWin(object):
             inp['label'].refresh()
             inp['input'].refresh()
             inp['label'].refresh()
-        if self.current_input < self.height-1:
+        if self.inputs and self.current_input < self.height-1:
             self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
             self.inputs[self.current_input]['input'].refresh()
             self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
@@ -465,7 +465,7 @@ class FormWin(object):
         self.inputs[self.current_input]['input'].refresh()
 
     def get_help_message(self):
-        if self.current_input < self.height-1 and self.inputs[self.current_input]['input']:
+        if self.inputs and self.current_input < self.height-1 and self.inputs[self.current_input]['input']:
             return self.inputs[self.current_input]['input'].get_help_message()
         return ''
 
