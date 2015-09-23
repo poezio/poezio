@@ -149,8 +149,13 @@ class Roster(object):
             contact = self.get_and_set(key)
             if key != self.jid and (contact and self.exists(contact)):
                 l.append(key)
-        self.length = len(l)
+        self.update_size(l)
         return l
+
+    def update_size(self, jids=None):
+        if jids is None:
+            jids = self.jids()
+        self.length = len(jids)
 
     def get_contacts(self):
         """

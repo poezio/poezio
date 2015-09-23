@@ -748,6 +748,7 @@ def on_roster_update(self, iq):
                 del roster[jid]
             else:
                 roster.update_contact_groups(jid)
+    roster.update_size()
     if isinstance(self.current_tab(), tabs.RosterInfoTab):
         self.refresh_window()
 
@@ -936,6 +937,7 @@ def on_disconnected(self, event):
     """
     When we are disconnected from remote server
     """
+    roster.connected = 0
     # Stop the ping plugin. It would try to send stanza on regular basis
     self.xmpp.plugin['xep_0199'].disable_keepalive()
     roster.modified()
