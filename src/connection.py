@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 import getpass
 import subprocess
+import sys
 
 import slixmpp
 from slixmpp.plugins.xep_0184 import XEP_0184
@@ -49,10 +50,15 @@ class Connection(slixmpp.ClientXMPP):
             if not password and not eval_password and not (keyfile and certfile):
                 password = getpass.getpass()
             elif not password and not (keyfile and certfile):
-                print("No password or certificates provided, using the eval_password command.")
+                sys.stderr.write("No password or certificates provided, using the eval_password command.\n")
                 process = subprocess.Popen(['sh', '-c', eval_password], stdin=subprocess.PIPE,
                                                         stdout=subprocess.PIPE, close_fds=True)
-                process.wait()
+                code = process.wait()
+                if code != 0:
+                    sys.stderr.write('The eval_password command (%s) returned a '
+                                     'nonzero status code: %s.\n' % (eval_password, code))
+                    sys.stderr.write('Poezio will now exit\n')
+                    sys.exit(code)
                 password = process.stdout.readline().decode('utf-8').strip('\n')
         else: # anonymous auth
             self.anon = True
