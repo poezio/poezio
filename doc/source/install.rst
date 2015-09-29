@@ -60,12 +60,19 @@ General
 
 Poezio is a python3.4 (and above)-only application, so you will first need that.
 
-You will also need the python3-devel package or equivalent, and make, in order
-to compile the poezio C module. Then you can run ``make`` to build it.
+Packages required for building poezio and deps:
+
+- make
+- gcc
+- libidn and libidn-dev, only if you want to use cython_ (see below)
+- python3-devel (or equivalent)
+- python3-setuptools
+
+Then you can run ``make`` to build it the poezio C extension module.
 If you downloaded the standalone stable package, you are finished here and can skip
 to :ref:`running poezio <poezio-run-label>`.
 
-Poezio depends on two libraries:
+Poezio needs two libraries to run:
 
 - aiodns_
 - slixmpp_
@@ -73,9 +80,6 @@ Poezio depends on two libraries:
 
 .. versionchanged:: 0.9
 
-
-Additionally, it needs *python3-setuptools*, which is required for proper python
-packaging management.
 
 .. note:: We provide an ``update.sh`` script that creates a virtualenv and
           downloads all the required and optional dependencies inside it.
@@ -91,7 +95,7 @@ following dependencies by hand; otherwise, skip to the
 slixmpp
 """"""""
 
-Poezio depends on slixmpp, a non-thread fork of the SleekXMPP library.
+Poezio depends on slixmpp, a non-threaded fork of the SleekXMPP library.
 
 .. code-block:: bash
 
@@ -103,7 +107,7 @@ Poezio depends on slixmpp, a non-thread fork of the SleekXMPP library.
 aiodns
 """"""
 
-The aiodns is required in order to properly resolve XMPP domains (with SRV records).
+The aiodns library is required in order to properly resolve XMPP domains (with SRV records).
 
 
 .. code-block:: bash
