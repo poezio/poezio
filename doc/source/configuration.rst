@@ -895,8 +895,8 @@ more details, go to the :ref:`dedicated page<plugins-doc>`.
 
         **Default value:** ``[empty]``
 
-        If plugins_dir is not set, plugins will be loaded from
-        ``$XDG_DATA_HOME/poezio/plugins``.
+        If plugins_dir is not set, plugins will be loaded from the plugins/
+        dir of the poezio install directory, then ``$XDG_DATA_HOME/poezio/plugins``.
         You can specify another directory to use. It will be created if it
         does not exist.
 
