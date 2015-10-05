@@ -421,7 +421,23 @@ class MucTab(ChatTab):
         self.disconnect()
         self.user_win.pos = 0
         self.core.disable_private_tabs(self.name)
-        self.core.command_join('"%s/%s"' % (self.name, self.own_nick))
+        self.join()
+
+    def join(self):
+        """
+        Join the room
+        """
+        status = self.core.get_status()
+        if self.last_connection:
+            delta = datetime.now() - self.last_connection
+            seconds = delta.seconds + delta.days * 24 * 3600
+        else:
+            seconds = 0
+        muc.join_groupchat(self.core, self.name, self.own_nick,
+                           self.password,
+                           status=status.message,
+                           show=status.show,
+                           seconds=seconds)
 
     @command_args_parser.quoted(0, 1, [''])
     def command_recolor(self, args):

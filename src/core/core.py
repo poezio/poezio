@@ -1265,6 +1265,7 @@ class Core(object):
         new_tab = tabs.MucTab(room, nick, password=password)
         self.add_tab(new_tab, focus)
         self.refresh_window()
+        return new_tab
 
     def open_new_form(self, form, on_cancel, on_send, **kwargs):
         """

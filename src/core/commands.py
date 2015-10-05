@@ -355,9 +355,7 @@ def command_join(self, args, histo_length=None):
     if room in self.pending_invites:
         del self.pending_invites[room]
     tab = self.get_tab_by_name(room, tabs.MucTab)
-    if len(args) == 2:       # a password is provided
-        password = args[1]
-    if tab and tab.joined:       # if we are already in the room
+    if tab is not None and tab.joined:       # if we are already in the room
         self.focus_tab_named(tab.name)
         if tab.own_nick == nick:
             self.information('/join: Nothing to do.', 'Info')
@@ -368,47 +366,25 @@ def command_join(self, args, histo_length=None):
 
     if room.startswith('@'):
         room = room[1:]
-    current_status = self.get_status()
     if not histo_length:
         histo_length = config.get('muc_history_length')
         if histo_length == -1:
             histo_length = None
     if histo_length is not None:
         histo_length = str(histo_length)
+    if len(args) == 2:       # a password is provided
+        password = args[1]
     if password is None: # try to use a saved password
         password = config.get_by_tabname('password', room, fallback=False)
-    if tab and not tab.joined:
-        if tab.last_connection:
-            if tab.last_connection is not None:
-                delta = datetime.now() - tab.last_connection
-                seconds = delta.seconds + delta.days * 24 * 3600
-            else:
-                seconds = 0
-            seconds = int(seconds)
-        else:
-            seconds = 0
-        # If we didn’t have a password by now (from a bookmark or the
-        # explicit argument), just use the password that is stored in the
-        # tab because of our last join
-        if not password:
-            password = tab.password
-        muc.join_groupchat(self, room, nick, password,
-                           histo_length,
-                           current_status.message,
-                           current_status.show,
-                           seconds=seconds)
-        # Store in the tab the password we used, for later use
-        tab.password = password
-    if not tab:
-        self.open_new_room(room, nick, password=password)
-        muc.join_groupchat(self, room, nick, password,
-                           histo_length,
-                           current_status.message,
-                           current_status.show)
+    if tab is not None:
+        if password:
+            tab.password = password
+        tab.join()
     else:
-        tab.own_nick = nick
-        tab.users = []
-    if tab and tab.joined:
+        tab = self.open_new_room(room, nick, password=password)
+        tab.join()
+
+    if tab.joined:
         self.enable_private_tabs(room)
         tab.state = "normal"
         if tab == self.current_tab():
