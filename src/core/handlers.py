@@ -56,17 +56,11 @@ def _join_initial_rooms(self, bookmarks):
             self.open_new_room(bm.jid, nick, focus=False,
                                password=bm.password)
         self.initial_joins.append(bm.jid)
-        histo_length = config.get('muc_history_length')
-        if histo_length == -1:
-            histo_length = None
-        if histo_length is not None:
-            histo_length = str(histo_length)
         # do not join rooms that do not have autojoin
         # but display them anyway
         if bm.autojoin:
             muc.join_groupchat(self, bm.jid, nick,
                     passwd=bm.password,
-                    maxhistory=histo_length,
                     status=self.status.message,
                     show=self.status.show)
 

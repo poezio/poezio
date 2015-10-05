@@ -942,23 +942,6 @@ Other
         will default to :file:`$XDG_CACHE_HOME/poezio/images` which is
         usually :file:`~/.cache/poezio/images`.
 
-    muc_history_length
-
-        **Default value:** ``50``
-
-        Limit the number of messages you want to receive when the
-        multiuserchat rooms send you recent history
-
-        ``0``: You won't receive any
-
-        ``-1``: You will receive the maximum
-
-        ``n``: You will receive at most n messages
-
-        Note that if you set a huge number (like the default value), you
-        may not receive that much messages. The server has its own
-        maximum too.
-
     remote_fifo_path
 
         **Default value:** ``./``

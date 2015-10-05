@@ -308,7 +308,7 @@ def command_version(self, args):
             fixes.get_version(self.xmpp, jid, callback=callback)
 
 @command_args_parser.quoted(0, 2)
-def command_join(self, args, histo_length=None):
+def command_join(self, args):
     """
     /join [room][/nick] [password]
     """
@@ -366,12 +366,6 @@ def command_join(self, args, histo_length=None):
 
     if room.startswith('@'):
         room = room[1:]
-    if not histo_length:
-        histo_length = config.get('muc_history_length')
-        if histo_length == -1:
-            histo_length = None
-    if histo_length is not None:
-        histo_length = str(histo_length)
     if len(args) == 2:       # a password is provided
         password = args[1]
     if password is None: # try to use a saved password
