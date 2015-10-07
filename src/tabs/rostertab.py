@@ -500,7 +500,7 @@ class RosterInfoTab(Tab):
                 contact_win_h = 0
             else:
                 display_contact_win = True
-                contact_win_h = 5
+                contact_win_h = 4
         if self.size.tab_degrade_y:
             tab_win_height = 0
         else:
@@ -515,10 +515,10 @@ class RosterInfoTab(Tab):
                                         info_width, 0, roster_width + 1,
                                         self.core.information_buffer)
             if display_contact_win:
-                self.contact_info_win.resize(contact_win_h - tab_win_height,
+                self.contact_info_win.resize(contact_win_h,
                                              info_width,
                                              self.height - tab_win_height
-                                             - contact_win_h,
+                                             - contact_win_h - 1,
                                              roster_width + 1)
         self.roster_win.resize(self.height - 1 - Tab.tab_win_height(),
                                roster_width, 0, 0)
