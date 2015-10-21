@@ -9,7 +9,6 @@
 Various useful functions.
 """
 
-from sys import version_info
 from datetime import datetime, timedelta
 from slixmpp import JID, InvalidJID
 from poezio_shlex import shlex
@@ -22,16 +21,6 @@ import subprocess
 import time
 import string
 
-
-# Needed to avoid datetime.datetime.timestamp()
-# on python < 3.3. Older versions do not get good dst detection.
-OLD_PYTHON = (version_info.major + version_info.minor/10) < 3.3
-
-ROOM_STATE_NONE = 11
-ROOM_STATE_CURRENT = 10
-ROOM_STATE_PRIVATE = 15
-ROOM_STATE_MESSAGE = 12
-ROOM_STATE_HL = 13
 
 def get_base64_from_file(path):
     """
@@ -48,7 +37,7 @@ def get_base64_from_file(path):
         return (None, None, "File does not exist")
     size = os.path.getsize(path)
     if size > 16384:
-        return (None, None,"File is too big")
+        return (None, None, "File is too big")
     fdes = open(path, 'rb')
     data = fdes.read()
     encoded = base64.encodestring(data)
@@ -56,7 +45,7 @@ def get_base64_from_file(path):
     mime_type = mimetypes.guess_type(path)[0]
     return (encoded, mime_type, sha1)
 
-def get_output_of_command(command):
+def _get_output_of_command(command):
     """
     Runs a command and returns its output.
 
@@ -69,7 +58,7 @@ def get_output_of_command(command):
     except subprocess.CalledProcessError:
         return None
 
-def is_in_path(command, return_abs_path=False):
+def _is_in_path(command, return_abs_path=False):
     """
     Check if *command* is in the $PATH or not.
 
@@ -93,25 +82,25 @@ def is_in_path(command, return_abs_path=False):
     return False
 
 DISTRO_INFO = {
-        'Arch Linux': '/etc/arch-release',
-        'Aurox Linux': '/etc/aurox-release',
-        'Conectiva Linux': '/etc/conectiva-release',
-        'CRUX': '/usr/bin/crux',
-        'Debian GNU/Linux': '/etc/debian_version',
-        'Fedora Linux': '/etc/fedora-release',
-        'Gentoo Linux': '/etc/gentoo-release',
-        'Linux from Scratch': '/etc/lfs-release',
-        'Mandrake Linux': '/etc/mandrake-release',
-        'Slackware Linux': '/etc/slackware-version',
-        'Solaris/Sparc': '/etc/release',
-        'Source Mage': '/etc/sourcemage_version',
-        'SUSE Linux': '/etc/SuSE-release',
-        'Sun JDS': '/etc/sun-release',
-        'PLD Linux': '/etc/pld-release',
-        'Yellow Dog Linux': '/etc/yellowdog-release',
-        # many distros use the /etc/redhat-release for compatibility
-        # so Redhat is the last
-        'Redhat Linux': '/etc/redhat-release'
+    'Arch Linux': '/etc/arch-release',
+    'Aurox Linux': '/etc/aurox-release',
+    'Conectiva Linux': '/etc/conectiva-release',
+    'CRUX': '/usr/bin/crux',
+    'Debian GNU/Linux': '/etc/debian_version',
+    'Fedora Linux': '/etc/fedora-release',
+    'Gentoo Linux': '/etc/gentoo-release',
+    'Linux from Scratch': '/etc/lfs-release',
+    'Mandrake Linux': '/etc/mandrake-release',
+    'Slackware Linux': '/etc/slackware-version',
+    'Solaris/Sparc': '/etc/release',
+    'Source Mage': '/etc/sourcemage_version',
+    'SUSE Linux': '/etc/SuSE-release',
+    'Sun JDS': '/etc/sun-release',
+    'PLD Linux': '/etc/pld-release',
+    'Yellow Dog Linux': '/etc/yellowdog-release',
+    # many distros use the /etc/redhat-release for compatibility
+    # so Redhat is the last
+    'Redhat Linux': '/etc/redhat-release'
 }
 
 def get_os_info():
@@ -124,7 +113,7 @@ def get_os_info():
     if os.name == 'posix':
         executable = 'lsb_release'
         params = ' --description --codename --release --short'
-        full_path_to_executable = is_in_path(executable, return_abs_path = True)
+        full_path_to_executable = _is_in_path(executable, return_abs_path=True)
         if full_path_to_executable:
             command = executable + params
             process = subprocess.Popen([command], shell=True,
@@ -144,7 +133,7 @@ def get_os_info():
                 if os.access(path_to_file, os.X_OK):
                     # the file is executable (f.e. CRUX)
                     # yes, then run it and get the first line of output.
-                    text = get_output_of_command(path_to_file)[0]
+                    text = _get_output_of_command(path_to_file)[0]
                 else:
                     fdes = open(path_to_file, encoding='utf-8')
                     text = fdes.readline().strip() # get only first line
@@ -153,11 +142,11 @@ def get_os_info():
                         # sourcemage_version and slackware-version files
                         # have all the info we need (name and version of distro)
                         if not os.path.basename(path_to_file).startswith(
-                        'sourcemage') or not\
-                        os.path.basename(path_to_file).startswith('slackware'):
+                                'sourcemage') or not\
+                                os.path.basename(path_to_file).startswith('slackware'):
                             text = distro_name + ' ' + text
                     elif path_to_file.endswith('aurox-release') or \
-                    path_to_file.endswith('arch-release'):
+                            path_to_file.endswith('arch-release'):
                         # file doesn't have version
                         text = distro_name
                     elif path_to_file.endswith('lfs-release'):
@@ -167,14 +156,14 @@ def get_os_info():
                 return os_info
 
         # our last chance, ask uname and strip it
-        uname_output = get_output_of_command('uname -sr')
+        uname_output = _get_output_of_command('uname -sr')
         if uname_output is not None:
             os_info = uname_output[0] # only first line
             return os_info
     os_info = 'N/A'
     return os_info
 
-def datetime_tuple(timestamp):
+def _datetime_tuple(timestamp):
     """
     Convert a timestamp using strptime and the format: %Y%m%dT%H:%M:%S.
 
@@ -194,7 +183,7 @@ def datetime_tuple(timestamp):
     tz_msg = timestamp[15:]
     try:
         ret = datetime.strptime(date, '%Y%m%dT%H%M%S')
-    except Exception:
+    except ValueError:
         ret = datetime.now()
     # add the message timezone if any
     try:
@@ -204,7 +193,7 @@ def datetime_tuple(timestamp):
             tz_msg = tz_msg.tm_hour * 3600 + tz_msg.tm_min * 60
             tz_msg = timedelta(seconds=tz_mod * tz_msg)
             ret -= tz_msg
-    except Exception:
+    except ValueError:
         pass # ignore if we got a badly-formatted offset
     # convert UTC to local time, with DST etc.
     if time.daylight and time.localtime().tm_isdst:
@@ -225,10 +214,7 @@ def get_utc_time(local_time=None):
         local_time = datetime.now()
         isdst = time.localtime().tm_isdst
     else:
-        if OLD_PYTHON:
-            isdst = time.localtime(int(local_time.strftime("%s"))).tm_isdst
-        else:
-            isdst = time.localtime(int(local_time.timestamp())).tm_isdst
+        isdst = time.localtime(int(local_time.timestamp())).tm_isdst
 
     if time.daylight and isdst:
         tz = timedelta(seconds=time.altzone)
@@ -243,10 +229,7 @@ def get_local_time(utc_time):
     """
     Get the local time from an UTC time
     """
-    if OLD_PYTHON:
-        isdst = time.localtime(int(utc_time.strftime("%s"))).tm_isdst
-    else:
-        isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
+    isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
 
     if time.daylight and isdst:
         tz = timedelta(seconds=time.altzone)
@@ -269,14 +252,14 @@ def find_delayed_tag(message):
     delay_tag = message.find('{urn:xmpp:delay}delay')
     if delay_tag is not None:
         delayed = True
-        date = datetime_tuple(delay_tag.attrib['stamp'])
+        date = _datetime_tuple(delay_tag.attrib['stamp'])
     else:
         # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
         # But it sucks, please, Jabber servers, don't do this :(
         delay_tag = message.find('{jabber:x:delay}x')
         if delay_tag is not None:
             delayed = True
-            date = datetime_tuple(delay_tag.attrib['stamp'])
+            date = _datetime_tuple(delay_tag.attrib['stamp'])
         else:
             delayed = False
             date = None
@@ -316,15 +299,15 @@ def find_argument(pos, text, quoted=True):
 
     :param int pos: The position to search.
     :param str text: The text to analyze.
-    :param quoted: Whether to take quotes into account or not.
+    :param bool quoted: Whether to take quotes into account or not.
     :rtype: int
     """
     if quoted:
-        return find_argument_quoted(pos, text)
+        return _find_argument_quoted(pos, text)
     else:
-        return find_argument_unquoted(pos, text)
+        return _find_argument_unquoted(pos, text)
 
-def find_argument_quoted(pos, text):
+def _find_argument_quoted(pos, text):
     """
     Get the number of the argument at position pos in
     a string with possibly quoted text.
@@ -340,7 +323,7 @@ def find_argument_quoted(pos, text):
 
     return count + 1
 
-def find_argument_unquoted(pos, text):
+def _find_argument_unquoted(pos, text):
     """
     Get the number of the argument at position pos in
     a string without interpreting quotes.
@@ -405,10 +388,10 @@ def parse_secs_to_str(duration=0):
     hours = (duration % 86400) // 3600
     days = duration // 86400
 
-    result += '%sd' % days if days else ''
-    result += '%sh' % hours if hours else ''
-    result += '%sm' % mins if mins else ''
-    result += '%ss' % secs if secs else ''
+    result += '%dd' % days if days else ''
+    result += '%dh' % hours if hours else ''
+    result += '%dm' % mins if mins else ''
+    result += '%ds' % secs if secs else ''
     if not result:
         result = '0s'
     return result
@@ -439,7 +422,7 @@ def format_tune_string(infos):
 
     rating = infos.get('rating')
     if rating:
-        elems.append('[ ' + rating + '/10' + ' ]')
+        elems.append('[ ' + rating + '/10 ]')
     length = infos.get('length')
     if length:
         length = int(length)
