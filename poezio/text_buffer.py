@@ -11,8 +11,6 @@ independantly by their TextWins.
 import logging
 log = logging.getLogger(__name__)
 
-import collections
-
 from datetime import datetime
 from config import config
 from theming import get_theme, dump_tuple
@@ -104,16 +102,16 @@ class TextBuffer(object):
 
         if messages_nb_limit is None:
             messages_nb_limit = config.get('max_messages_in_memory')
-        self.messages_nb_limit = messages_nb_limit
+        self._messages_nb_limit = messages_nb_limit
         # Message objects
         self.messages = []
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self.windows = []
+        self._windows = []
 
     def add_window(self, win):
-        self.windows.append(win)
+        self._windows.append(win)
 
     @property
     def last_message(self):
@@ -130,24 +128,24 @@ class TextBuffer(object):
                       jid=jid, ack=ack)
         self.messages.append(msg)
 
-        while len(self.messages) > self.messages_nb_limit:
+        while len(self.messages) > self._messages_nb_limit:
             self.messages.pop(0)
 
-        ret_val = None
+        ret_val = 0
         show_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
-        for window in self.windows: # make the associated windows
-                                    # build the lines from the new message
+        for window in self._windows: # make the associated windows
+                                     # build the lines from the new message
             nb = window.build_new_message(msg, history=history,
                                           highlight=highlight,
                                           timestamp=show_timestamps,
                                           nick_size=nick_size)
-            if ret_val is None:
+            if ret_val == 0:
                 ret_val = nb
             if window.pos != 0:
                 window.scroll_up(nb)
 
-        return ret_val or 1
+        return min(ret_val, 1)
 
     def _find_message(self, old_id):
         """
@@ -161,13 +159,13 @@ class TextBuffer(object):
 
     def ack_message(self, old_id, jid):
         """Mark a message as acked"""
-        return self.edit_ack(1, old_id, jid)
+        return self._edit_ack(1, old_id, jid)
 
     def nack_message(self, error, old_id, jid):
         """Mark a message as errored"""
-        return self.edit_ack(-1, old_id, jid, append=error)
+        return self._edit_ack(-1, old_id, jid, append=error)
 
-    def edit_ack(self, value, old_id, jid, append=''):
+    def _edit_ack(self, value, old_id, jid, append=''):
         """
         Edit the ack status of a message, and optionally
         append some text.
@@ -223,7 +221,7 @@ class TextBuffer(object):
         return message
 
     def del_window(self, win):
-        self.windows.remove(win)
+        self._windows.remove(win)
 
     def __del__(self):
         size = len(self.messages)
