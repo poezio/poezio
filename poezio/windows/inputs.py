@@ -30,7 +30,7 @@ class Input(Win):
     passing the list of items that can be used to complete. The completion can be used
     in a very flexible way.
     """
-    text_attributes = ['b', 'o', 'u', '1', '2', '3', '4', '5', '6', '7', 't']
+    text_attributes = 'bou1234567t'
     clipboard = '' # A common clipboard for all the inputs, this makes
     # it easy cut and paste text between various input
     def __init__(self):
@@ -463,8 +463,7 @@ class Input(Win):
         (\x0E to \x19 instead of \x19 + attr). We do not use any }
         char in this version
         """
-        chars = format_chars[:]
-        chars.append('\n')
+        chars = format_chars + '\n'
         if y is not None and x is not None:
             self.move(y, x)
         format_char = find_first_format_char(text, chars)
