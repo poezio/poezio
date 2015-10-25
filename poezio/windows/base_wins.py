@@ -28,7 +28,13 @@ allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
 
 # msg is a reference to the corresponding Message tuple. text_start and
 # text_end are the position delimiting the text in this line.
-Line = collections.namedtuple('Line', 'msg start_pos end_pos prepend')
+class Line:
+    __slots__ = ('msg', 'start_pos', 'end_pos', 'prepend')
+    def __init__(self, msg, start_pos, end_pos, prepend):
+        self.msg = msg
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.prepend = prepend
 
 LINES_NB_LIMIT = 4096
 
