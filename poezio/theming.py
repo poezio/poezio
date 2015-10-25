@@ -400,7 +400,7 @@ def read_tuple(_str):
     Read a tuple dumped with dump_tumple
     """
     attrs = _str.split(',')
-    char = attrs[2] if len(attrs) > 2 else None
+    char = attrs[2] if len(attrs) > 2 else '\0'
     return (int(attrs[0]), int(attrs[1])), char
 
 def to_curses_attr(color_tuple):

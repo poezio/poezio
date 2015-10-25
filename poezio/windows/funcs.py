@@ -35,7 +35,7 @@ def parse_attrs(text, previous=None):
         if next_attr_char + 1 < len(text):
             attr_char = text[next_attr_char+1].lower()
         else:
-            attr_char = str()
+            attr_char = '\0'
         if attr_char == 'o':
             attrs = []
         elif attr_char == 'u':
