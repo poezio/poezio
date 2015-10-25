@@ -23,9 +23,6 @@ FORMAT_CHAR = '\x19'
 # I guess. But maybe we can find better chars that are even less risky.
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18'
 
-# different colors allowed in the input
-allowed_color_digits = ('0', '1', '2', '3', '4', '5', '6', '7')
-
 # msg is a reference to the corresponding Message object. text_start and
 # text_end are the position delimiting the text in this line.
 class Line:
@@ -35,8 +32,6 @@ class Line:
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.prepend = prepend
-
-LINES_NB_LIMIT = 4096
 
 class DummyWin(object):
     def __getattribute__(self, name):
