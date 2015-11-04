@@ -774,6 +774,7 @@ def command_invite(self, args):
     to = safeJID(args[0])
     room = safeJID(args[1]).bare
     self.invite(to.full, room, reason=reason)
+    self.information('Invited %s to %s' % (to.bare, room), 'Info')
 
 @command_args_parser.quoted(1, 1, [''])
 def command_decline(self, args):
