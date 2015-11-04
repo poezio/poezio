@@ -1688,7 +1688,6 @@ class MucTab(ChatTab):
                                                    jid=jid)
         if message:
             self.text_win.modify_message(old_id, message)
-            self.core.refresh_window()
             return highlight
         return False
 
