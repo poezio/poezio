@@ -20,8 +20,8 @@ This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/unt
 
 """
 from plugin import BasePlugin
+from decorators import command_args_parser
 import tabs
-import common
 
 class Plugin(BasePlugin):
     def init(self):
@@ -48,13 +48,13 @@ class Plugin(BasePlugin):
             tab.command_say("%s: %s" % (nick, i))
         del self.tabs[tab][nick]
 
+    @command_args_parser.quoted(2)
     def command_tell(self, args):
         """/tell <nick> <message>"""
-        arg = common.shell_split(args)
-        if len(arg) != 2:
+        if args is None:
             self.core.command_help('tell')
             return
-        nick, msg = arg
+        nick, msg = args
         tab = self.api.current_tab()
         if not tab in self.tabs:
             self.tabs[tab] = {}
