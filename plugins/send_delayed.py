@@ -19,6 +19,7 @@ This plugin adds a command to the chat tabs.
 
 """
 from plugin import BasePlugin
+from decorators import command_args_parser
 import tabs
 import common
 import timed_events
@@ -33,16 +34,17 @@ class Plugin(BasePlugin):
                     short='Send a message later',
                     completion=self.completion_delay)
 
-    def command_delayed(self, arg):
-        args = common.shell_split(arg)
-        if len(args) != 2:
+    @command_args_parser.quoted(2)
+    def command_delayed(self, args):
+        if args is None:
             return
-        delay = common.parse_str_to_secs(args[0])
-        if not delay:
+        delay_str, txt = args
+        delay = common.parse_str_to_secs(delay_str)
+        if not delay_str:
             return
 
         tab = self.api.current_tab()
-        timed_event = timed_events.DelayedEvent(delay, self.say, (tab, args[1]))
+        timed_event = timed_events.DelayedEvent(delay, self.say, (tab, txt))
         self.api.add_timed_event(timed_event)
 
     def completion_delay(self, the_input):
