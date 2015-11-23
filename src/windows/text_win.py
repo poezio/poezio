@@ -376,9 +376,13 @@ class TextWin(BaseTextWin):
 
     def write_pre_msg(self, msg, with_timestamps, nick_size):
         offset = 0
+        if with_timestamps:
+            offset += self.write_time(msg.str_time)
+
+        if msg.nickname is None: # not a message, nothing to do afterwards
+            return offset
+
         nick = truncate_nick(msg.nickname, nick_size)
-        if nick is None:
-            return 0
         offset += poopt.wcswidth(nick)
         if msg.nick_color:
             color = msg.nick_color
@@ -386,8 +390,6 @@ class TextWin(BaseTextWin):
             color = msg.user.color
         else:
             color = None
-        if with_timestamps:
-            offset += self.write_time(msg.str_time)
         if msg.ack:
             if msg.ack > 0:
                 offset += self.write_ack()
