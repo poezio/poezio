@@ -110,13 +110,13 @@ class shlex(object):
             if self.debug >= 3:
                 print("shlex: in state", repr(self.state), \
                       "I see character:", repr(nextchar))
-            if self.state is None:
+            if self.state == '\0':
                 self.token = ''        # past end of file
                 token_end = self.instream.tell()
                 break
             elif self.state == ' ':
                 if not nextchar:
-                    self.state = None  # end of file
+                    self.state = '\0'  # end of file
                     token_end = self.instream.tell()
                     break
                 elif nextchar in self.whitespace:
@@ -131,7 +131,7 @@ class shlex(object):
                     token_start = self.instream.tell() - 1
                     self.token = nextchar
                     self.state = 'a'
-                elif nextchar in self.quotes:
+                elif nextchar == self.quotes:
                     token_start = self.instream.tell() - 1
                     self.state = nextchar
                 elif self.whitespace_split:
@@ -146,7 +146,7 @@ class shlex(object):
                         break   # emit current token
                     else:
                         continue
-            elif self.state in self.quotes:
+            elif self.state == self.quotes:
                 quoted = True
                 if not nextchar:      # end of file
                     if self.debug >= 2:
@@ -162,13 +162,13 @@ class shlex(object):
                         break
                     else:
                         self.state = 'a'
-                elif self.posix and nextchar in self.escape and \
-                     self.state in self.escapedquotes:
+                elif self.posix and nextchar == self.escape and \
+                     self.state == self.escapedquotes:
                     escapedstate = self.state
                     self.state = nextchar
                 else:
                     self.token = self.token + nextchar
-            elif self.state in self.escape:
+            elif self.state == self.escape:
                 if not nextchar:      # end of file
                     if self.debug >= 2:
                         print("shlex: I see EOF in escape state")
@@ -176,13 +176,13 @@ class shlex(object):
                     token_end = self.instream.tell()
                     break
                 # only the quote may be escaped
-                if escapedstate in self.quotes and nextchar != escapedstate:
+                if escapedstate == self.quotes and nextchar != escapedstate:
                     self.token = self.token + self.state
                 self.token = self.token + nextchar
                 self.state = escapedstate
             elif self.state == 'a':
                 if not nextchar:
-                    self.state = None   # end of file
+                    self.state = '\0'   # end of file
                     token_end = self.instream.tell()
                     break
                 elif nextchar in self.whitespace:
@@ -194,7 +194,7 @@ class shlex(object):
                         break   # emit current token
                     else:
                         continue
-                elif nextchar in self.wordchars or nextchar in self.quotes \
+                elif nextchar in self.wordchars or nextchar == self.quotes \
                         or self.whitespace_split:
                     self.token = self.token + nextchar
                 else:
@@ -227,11 +227,11 @@ class shlex(object):
             newfile = os.path.join(os.path.dirname(self.infile), newfile)
         return (newfile, open(newfile, "r"))
 
-    def error_leader(self, infile=None, lineno=None):
+    def error_leader(self, infile=None, lineno=0):
         "Emit a C-compiler-like, Emacs-friendly error-message leader."
         if infile is None:
             infile = self.infile
-        if lineno is None:
+        if lineno == 0:
             lineno = self.lineno
         return "\"%s\", line %d: " % (infile, lineno)
 

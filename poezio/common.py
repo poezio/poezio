@@ -12,6 +12,7 @@ Various useful functions.
 from sys import version_info
 from datetime import datetime, timedelta
 from slixmpp import JID, InvalidJID
+from poezio_shlex import shlex
 
 import base64
 import os
@@ -20,7 +21,6 @@ import hashlib
 import subprocess
 import time
 import string
-import poezio_shlex as shlex
 
 
 # Needed to avoid datetime.datetime.timestamp()
@@ -294,7 +294,7 @@ def shell_split(st):
     >>> shell_split('"sdf 1" "toto 2"')
     ['sdf 1', 'toto 2']
     """
-    sh = shlex.shlex(st)
+    sh = shlex(st)
     ret = []
     w = sh.get_token()
     while w and w[2] is not None:
@@ -329,7 +329,7 @@ def find_argument_quoted(pos, text):
     Get the number of the argument at position pos in
     a string with possibly quoted text.
     """
-    sh = shlex.shlex(text)
+    sh = shlex(text)
     count = -1
     w = sh.get_token()
     while w and w[2] is not None:
