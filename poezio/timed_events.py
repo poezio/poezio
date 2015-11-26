@@ -13,11 +13,6 @@ Once created, they must be added to the list of checked events with
 :py:func:`.PluginAPI.add_timed_event` (within a plugin).
 """
 
-import asyncio
-import logging
-
-log = logging.getLogger(__name__)
-
 import datetime
 
 class DelayedEvent(object):
