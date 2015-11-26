@@ -15,7 +15,7 @@ from common import safeJID
 from config import config
 from roster import roster
 
-from . structs import possible_show
+from . structs import POSSIBLE_SHOW
 
 
 def completion_help(self, the_input):
@@ -29,7 +29,7 @@ def completion_status(self, the_input):
     Completion of /status
     """
     if the_input.get_argument_position() == 1:
-        return the_input.new_completion([status for status in possible_show], 1, ' ', quotify=False)
+        return the_input.new_completion([status for status in POSSIBLE_SHOW], 1, ' ', quotify=False)
 
 
 def completion_presence(self, the_input):
@@ -40,7 +40,7 @@ def completion_presence(self, the_input):
     if arg == 1:
         return the_input.auto_completion([jid for jid in roster.jids()], '', quotify=True)
     elif arg == 2:
-        return the_input.auto_completion([status for status in possible_show], '', quotify=True)
+        return the_input.auto_completion([status for status in POSSIBLE_SHOW], '', quotify=True)
 
 
 def completion_theme(self, the_input):

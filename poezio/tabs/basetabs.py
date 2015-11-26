@@ -252,10 +252,10 @@ class Tab(object):
                     command = self.core.commands[command_name]
                 else:           # Unknown command, cannot complete
                     return False
-                if command[2] is None:
+                if command.comp is None:
                     return False # There's no completion function
                 else:
-                    return command[2](the_input)
+                    return command.comp(the_input)
         return False
 
     def execute_command(self, provided_text):
@@ -270,15 +270,15 @@ class Tab(object):
             arg = txt[2+len(command):] # jump the '/' and the ' '
             func = None
             if command in self.commands: # check tab-specific commands
-                func = self.commands[command][0]
+                func = self.commands[command].func
             elif command in self.core.commands: # check global commands
-                func = self.core.commands[command][0]
+                func = self.core.commands[command].func
             else:
                 low = command.lower()
                 if low in self.commands:
-                    func = self.commands[low][0]
+                    func = self.commands[low].func
                 elif low in self.core.commands:
-                    func = self.core.commands[low][0]
+                    func = self.core.commands[low].func
                 else:
                     if self.missing_command_callback is not None:
                         error_handled = self.missing_command_callback(low)

@@ -27,7 +27,7 @@ from roster import roster
 from theming import dump_tuple, get_theme
 from decorators import command_args_parser
 
-from . structs import Command, possible_show
+from . structs import Command, POSSIBLE_SHOW
 
 
 @command_args_parser.quoted(0, 1)
@@ -44,7 +44,7 @@ def command_help(self, args):
                 acc.append('  \x19%s}%s\x19o - %s' % (
                                color,
                                command,
-                               self.commands[command].short))
+                               self.commands[command].short_desc))
             else:
                 acc.append('  \x19%s}%s\x19o' % (color, command))
         acc = sorted(acc)
@@ -57,7 +57,7 @@ def command_help(self, args):
                 acc.append('  \x19%s}%s\x19o - %s' % (
                                 color,
                                 command,
-                                commands[command].short))
+                                commands[command].short_desc))
             else:
                 acc.append('  \x19%s}%s\x19o' % (color, command))
         acc = sorted(acc)
@@ -111,10 +111,10 @@ def command_status(self, args):
     if args is None:
         return self.command_help('status')
 
-    if not args[0] in possible_show.keys():
+    if not args[0] in POSSIBLE_SHOW.keys():
         return self.command_help('status')
 
-    show = possible_show[args[0]]
+    show = POSSIBLE_SHOW[args[0]]
     msg = args[1]
 
     pres = self.xmpp.make_presence()

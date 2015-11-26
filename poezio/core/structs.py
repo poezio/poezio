@@ -1,7 +1,9 @@
 """
 Module defining structures useful to the core class and related methods
 """
-import collections
+
+__all__ = ['ERROR_AND_STATUS_CODES', 'DEPRECATED_ERRORS', 'POSSIBLE_SHOW',
+           'Status', 'Command']
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -36,14 +38,27 @@ DEPRECATED_ERRORS = {
     '510': 'Disconnected',
 }
 
-possible_show = {'available':None,
-                 'chat':'chat',
-                 'away':'away',
-                 'afk':'away',
-                 'dnd':'dnd',
-                 'busy':'dnd',
-                 'xa':'xa'
-                 }
+POSSIBLE_SHOW = {
+    'available': None,
+    'chat': 'chat',
+    'away': 'away',
+    'afk': 'away',
+    'dnd': 'dnd',
+    'busy': 'dnd',
+    'xa': 'xa'
+}
 
-Status = collections.namedtuple('Status', 'show message')
-Command = collections.namedtuple('Command', 'func desc comp short usage')
+class Status:
+    __slots__ = ('show', 'message')
+    def __init__(self, show, message):
+        self.show = show
+        self.message = message
+
+class Command:
+    __slots__ = ('func', 'desc', 'comp', 'short_desc', 'usage')
+    def __init__(self, func, desc, comp, short_desc, usage):
+        self.func = func
+        self.desc = desc
+        self.comp = comp
+        self.short_desc = short_desc
+        self.usage = usage

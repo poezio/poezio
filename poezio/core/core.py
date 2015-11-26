@@ -45,7 +45,7 @@ import keyboard
 from . import completions
 from . import commands
 from . import handlers
-from . structs import possible_show, DEPRECATED_ERRORS, \
+from . structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
 
 
@@ -61,7 +61,7 @@ class Core(object):
         self.connection_time = time.time()
         self.stdscr = None
         status = config.get('status')
-        status = possible_show.get(status, None)
+        status = POSSIBLE_SHOW.get(status, None)
         self.status = Status(show=status,
                 message=config.get('status_message'))
         self.running = True
@@ -716,11 +716,11 @@ class Core(object):
         if line == "":
             return
         if line.startswith('/'):
-            command = line.strip()[:].split()[0][1:]
+            command = line.strip().split()[0][1:]
             arg = line[2+len(command):] # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
             if command in self.commands:
-                func = self.commands[command][0]
+                func = self.commands[command].func
                 func(arg)
                 return
             else:
