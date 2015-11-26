@@ -34,12 +34,12 @@ info_log_re = re.compile(r'MI (\d{4})(\d{2})(\d{2})T'
                          r'(\d{2}):(\d{2}):(\d{2})Z '
                          r'(\d+) (.*)')
 
-def parse_message_line(msg):
+def _parse_message_line(msg):
     if re.match(message_log_re, msg):
         return [i for i in re.split(message_log_re, msg) if i]
-    elif re.match(info_log_re, msg):
+    if re.match(info_log_re, msg):
         return [i for i in re.split(info_log_re, msg) if i]
-    return False
+    return None
 
 
 class Logger(object):
@@ -48,30 +48,35 @@ class Logger(object):
     and also log the conversations to logfiles
     """
     def __init__(self):
-        self.logfile = config.get('logfile')
-        self.roster_logfile = None
+        self._roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
-        self.fds = dict()
+        self._fds = {}
 
     def __del__(self):
-        for opened_file in self.fds.values():
+        for opened_file in self._fds.values():
             if opened_file:
                 try:
                     opened_file.close()
                 except: # Can't close? too bad
                     pass
 
+    def close(self, jid):
+        if jid in self._fds:
+            self._fds[jid].close()
+            log.debug('Log file for %s closed.', jid)
+            del self._fds[jid]
+
     def reload_all(self):
         """Close and reload all the file handles (on SIGHUP)"""
-        for opened_file in self.fds.values():
+        for opened_file in self._fds.values():
             if opened_file:
                 opened_file.close()
         log.debug('All log file handles closed')
-        for room in self.fds:
-            self.fds[room] = self.check_and_create_log_dir(room)
+        for room in self._fds:
+            self._fds[room] = self._check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
 
-    def check_and_create_log_dir(self, room, open_fd=True):
+    def _check_and_create_log_dir(self, room, open_fd=True):
         """
         Check that the directory where we want to log the messages
         exists. if not, create it
@@ -90,7 +95,7 @@ class Logger(object):
             return
         try:
             fd = open(os.path.join(log_dir, room), 'a')
-            self.fds[room] = fd
+            self._fds[room] = fd
             return fd
         except IOError:
             log.error('Unable to open the log file (%s)',
@@ -113,7 +118,7 @@ class Logger(object):
         if nb <= 0:
             return
 
-        self.check_and_create_log_dir(jid, open_fd=False)
+        self._check_and_create_log_dir(jid, open_fd=False)
 
         try:
             fd = open(os.path.join(log_dir, jid), 'rb')
@@ -163,21 +168,21 @@ class Logger(object):
                 idx += 1
                 log.debug('fail?')
                 continue
-            tup = parse_message_line(lines[idx])
+            tup = _parse_message_line(lines[idx])
             idx += 1
-            if not tup or 7 > len(tup) > 10: # skip
+            if not tup or len(tup) not in (8, 9): # skip
                 log.debug('format? %s', tup)
                 continue
-            time = [int(i) for index, i in enumerate(tup) if index < 6]
+            time = [int(i) for i in tup[:6]]
             message = {'lines': [],
                        'history': True,
                        'time': common.get_local_time(datetime(*time))}
             size = int(tup[6])
             if len(tup) == 8: #info line
-                message['lines'].append(color+tup[7])
+                message['lines'].append(color + tup[7])
             else: # message line
                 message['nickname'] = tup[7]
-                message['lines'].append(color+tup[8])
+                message['lines'].append(color + tup[8])
             while size != 0 and idx < len(lines):
                 message['lines'].append(lines[idx][1:])
                 size -= 1
@@ -202,10 +207,10 @@ class Logger(object):
         jid = str(jid).replace('/', '\\')
         if not config.get_by_tabname('use_log', jid):
             return True
-        if jid in self.fds.keys():
-            fd = self.fds[jid]
+        if jid in self._fds.keys():
+            fd = self._fds[jid]
         else:
-            fd = self.check_and_create_log_dir(jid)
+            fd = self._check_and_create_log_dir(jid)
         if not fd:
             return True
         try:
@@ -250,10 +255,10 @@ class Logger(object):
         """
         if not config.get_by_tabname('use_log', jid):
             return True
-        self.check_and_create_log_dir('', open_fd=False)
-        if not self.roster_logfile:
+        self._check_and_create_log_dir('', open_fd=False)
+        if not self._roster_logfile:
             try:
-                self.roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
+                self._roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
             except IOError:
                 log.error('Unable to create the log file (%s)',
                         os.path.join(log_dir, 'roster.log'),
@@ -265,10 +270,10 @@ class Logger(object):
             lines = message.split('\n')
             first_line = lines.pop(0)
             nb_lines = str(len(lines)).zfill(3)
-            self.roster_logfile.write('MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
+            self._roster_logfile.write('MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
             for line in lines:
-                self.roster_logfile.write(' %s\n' % line)
-            self.roster_logfile.flush()
+                self._roster_logfile.write(' %s\n' % line)
+            self._roster_logfile.flush()
         except:
             log.error('Unable to write in the log file (%s)',
                     os.path.join(log_dir, 'roster.log'),

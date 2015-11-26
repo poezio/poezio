@@ -1359,10 +1359,7 @@ class Core(object):
                 self.tabs[nb] = tabs.GapTab()
         else:
             self.tabs.remove(tab)
-        if tab and tab.name in logger.fds:
-            logger.fds[tab.name].close()
-            log.debug("Log file for %s closed.", tab.name)
-            del logger.fds[tab.name]
+        logger.close(tab.name)
         if self.current_tab_nb >= len(self.tabs):
             self.current_tab_nb = len(self.tabs) - 1
         while not self.tabs[self.current_tab_nb]:
