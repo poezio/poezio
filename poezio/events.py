@@ -55,10 +55,11 @@ class EventHandler(object):
         if name not in self.events:
             return False
 
+        callbacks = self.events[name]
         if position >= 0:
-            self.events[name].insert(position, callback)
+            callbacks.insert(position, callback)
         else:
-            self.events[name].append(callback)
+            callbacks.append(callback)
 
         return True
 
@@ -77,11 +78,10 @@ class EventHandler(object):
         Remove the callback from the list of callbacks of the given event
         """
         if not name:
-            for event in self.events:
-                while callback in self.events[event]:
-                    self.events[event].remove(callback)
-            return True
+            for callbacks in self.events.values():
+                while callback in callbacks:
+                    callbacks.remove(callback)
         else:
-            if callback in self.events[name]:
-                self.events[name].remove(callback)
-
+            callbacks = self.events[name]
+            if callback in callbacks:
+                callbacks.remove(callback)
