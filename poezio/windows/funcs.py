@@ -42,7 +42,7 @@ def parse_attrs(text, previous=None):
             attrs.append('u')
         elif attr_char == 'b':
             attrs.append('b')
-        if attr_char in string.digits and attr_char != '':
+        if attr_char in string.digits and attr_char:
             color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
             if color_str:
                 attrs.append(color_str + '}')
