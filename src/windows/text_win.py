@@ -379,7 +379,7 @@ class TextWin(BaseTextWin):
         if with_timestamps:
             offset += self.write_time(msg.str_time)
 
-        if msg.nickname is None: # not a message, nothing to do afterwards
+        if not msg.nickname: # not a message, nothing to do afterwards
             return offset
 
         nick = truncate_nick(msg.nickname, nick_size)
