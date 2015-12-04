@@ -365,6 +365,8 @@ class TextWin(BaseTextWin):
                 msg = line.msg
                 if line.start_pos == 0:
                     offset = self.write_pre_msg(msg, with_timestamps, nick_size)
+                elif y == 0:
+                    offset = self.compute_offset(msg, with_timestamps, nick_size)
                 self.write_text(y, offset, line.prepend
                                 + line.msg.txt[line.start_pos:line.end_pos])
             else:
@@ -373,6 +375,31 @@ class TextWin(BaseTextWin):
                 self.addstr('\n')
         self._win.attrset(0)
         self._refresh()
+
+    def compute_offset(self, msg, with_timestamps, nick_size):
+        offset = 0
+        if with_timestamps and msg.str_time:
+            offset += poopt.wcswidth(msg.str_time) + 1
+
+        if not msg.nickname: # not a message, nothing to do afterwards
+            return offset
+
+        nick = truncate_nick(msg.nickname, nick_size)
+        offset += poopt.wcswidth(nick)
+        if msg.ack:
+            if msg.ack > 0:
+                offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+            else:
+                offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
+        if msg.me:
+            offset += 3
+        else:
+            offset += 2
+        if msg.revisions:
+            offset += ceil(log10(msg.revisions + 1))
+        offset += self.write_revisions(msg)
+        return offset
+
 
     def write_pre_msg(self, msg, with_timestamps, nick_size):
         offset = 0
