@@ -314,6 +314,19 @@ MultiUserChat tab commands
 .. glossary::
     :sorted:
 
+    /affiliation
+       **Usage:** ``/affiliation <nick> <affiliation>``
+
+       Sets the affiliation of the participant designated by **nick** to the
+       given **affiliation** (can be one of owner, admin, member, outcast
+       and none).
+
+    /role
+       **Usage:** ``/affiliation <nick> <role>``
+
+       Sets the role of the participant designated by **nick** to the given
+       **role** (can be one of moderator, participant, visitor and none).
+
     /color
         **Usage:** ``/color <nick> <color>``
 
