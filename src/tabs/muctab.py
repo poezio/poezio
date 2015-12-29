@@ -31,7 +31,7 @@ from decorators import refresh_wrapper, command_args_parser
 from logger import logger
 from roster import roster
 from theming import get_theme, dump_tuple
-from user import User
+from user import User, ROLE_DICT
 
 
 SHOW_NAME = {
@@ -669,11 +669,7 @@ class MucTab(ChatTab):
         """
         if not self.joined:
             return
-        color_visitor = dump_tuple(get_theme().COLOR_USER_VISITOR)
-        color_other = dump_tuple(get_theme().COLOR_USER_NONE)
-        color_moderator = dump_tuple(get_theme().COLOR_USER_MODERATOR)
-        color_participant = dump_tuple(get_theme().COLOR_USER_PARTICIPANT)
-        visitors, moderators, participants, others = [], [], [], []
+
         aff = {
                 'owner': get_theme().CHAR_AFFILIATION_OWNER,
                 'admin': get_theme().CHAR_AFFILIATION_ADMIN,
@@ -681,37 +677,20 @@ class MucTab(ChatTab):
                 'none': get_theme().CHAR_AFFILIATION_NONE,
                 }
 
-        users = self.users[:]
-        users.sort(key=lambda x: x.nick.lower())
-        for user in users:
-            color = aff.get(user.affiliation,
-                            get_theme().CHAR_AFFILIATION_NONE)
-            if user.role == 'visitor':
-                visitors.append((user, color))
-            elif user.role == 'participant':
-                participants.append((user, color))
-            elif user.role == 'moderator':
-                moderators.append((user, color))
-            else:
-                others.append((user, color))
+        colors = {}
+        colors["visitor"] = dump_tuple(get_theme().COLOR_USER_VISITOR)
+        colors["moderator"] = dump_tuple(get_theme().COLOR_USER_MODERATOR)
+        colors["participant"] = dump_tuple(get_theme().COLOR_USER_PARTICIPANT)
+        color_other = dump_tuple(get_theme().COLOR_USER_NONE)
 
         buff = ['Users: %s \n' % len(self.users)]
-        for moderator in moderators:
+        for user in self.users:
+            affiliation = aff.get(user.affiliation,
+                                  get_theme().CHAR_AFFILIATION_NONE)
+            color = colors.get(user.role, color_other)
             buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
-                    color_moderator, moderator[1],
-                    dump_tuple(moderator[0].color), moderator[0].nick))
-        for participant in participants:
-            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
-                    color_participant, participant[1],
-                    dump_tuple(participant[0].color), participant[0].nick))
-        for visitor in visitors:
-            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
-                    color_visitor, visitor[1],
-                    dump_tuple(visitor[0].color), visitor[0].nick))
-        for other in others:
-            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
-                    color_other, other[1],
-                    dump_tuple(other[0].color), other[0].nick))
+                color, affiliation, dump_tuple(user.color), user.nick))
+
         buff.append('\n')
         message = ' '.join(buff)
 
