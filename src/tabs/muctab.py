@@ -31,7 +31,7 @@ from decorators import refresh_wrapper, command_args_parser
 from logger import logger
 from roster import roster
 from theming import get_theme, dump_tuple
-from user import User, ROLE_DICT
+from user import User
 
 
 SHOW_NAME = {
