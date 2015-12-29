@@ -27,7 +27,7 @@ command -v $POEZIO_VENV_COMMAND > /dev/null 2>&1 || {
 }
 
 echo 'Updating poezio'
-git pull origin master || {
+git pull --ff-only origin master || {
     echo "The script failed to update poezio."
     exit 1
 }
