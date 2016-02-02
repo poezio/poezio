@@ -541,9 +541,9 @@ class Plugin(BasePlugin):
             require = self.config.get_by_tabname('require_encryption',
                                                  jid, default=False)
             flags['REQUIRE_ENCRYPTION'] = require
-            logging_policy = self.config.get_by_tabname('log', jid, default='false').lower()
+            logging_policy = self.config.get_by_tabname('log', jid, default=False)
             self.contexts[jid] = PoezioContext(self.account, jid, self.core.xmpp, self.core)
-            self.contexts[jid].log = 1 if logging_policy != 'false' else 0
+            self.contexts[jid].log = 1 if logging_policy else 0
             self.contexts[jid].flags = flags
         return self.contexts[jid]
 
@@ -756,10 +756,15 @@ class Plugin(BasePlugin):
             'jid': name,
         }
 
-        ctx = self.contexts.get(name)
+        ctx = None
+        default_ctx = self.get_context(name)
+
         if isinstance(tab, DynamicConversationTab) and not tab.locked_resource:
             log.debug('Unlocked tab %s found, falling back to the first encrypted chat we find.', name)
             ctx = self.find_encrypted_context_with_matching(jid.bare)
+
+        if ctx is None:
+            ctx = default_ctx
 
         if ctx and ctx.state == STATE_ENCRYPTED:
             ctx.sendMessage(0, msg['body'].encode('utf-8'))
