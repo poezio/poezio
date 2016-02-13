@@ -535,17 +535,17 @@ class Plugin(BasePlugin):
         """
         Retrieve or create an OTR context
         """
-        jid = safeJID(jid).full
-        if not jid in self.contexts:
+        jid = safeJID(jid)
+        if not jid.full in self.contexts:
             flags = POLICY_FLAGS.copy()
             require = self.config.get_by_tabname('require_encryption',
-                                                 jid, default=False)
+                                                 jid.bare, default=False)
             flags['REQUIRE_ENCRYPTION'] = require
-            logging_policy = self.config.get_by_tabname('log', jid, default=False)
-            self.contexts[jid] = PoezioContext(self.account, jid, self.core.xmpp, self.core)
-            self.contexts[jid].log = 1 if logging_policy else 0
-            self.contexts[jid].flags = flags
-        return self.contexts[jid]
+            logging_policy = self.config.get_by_tabname('log', jid.bare , default=False)
+            self.contexts[jid.full] = PoezioContext(self.account, jid.full, self.core.xmpp, self.core)
+            self.contexts[jid.full].log = 1 if logging_policy else 0
+            self.contexts[jid.full].flags = flags
+        return self.contexts[jid.full]
 
     def on_conversation_msg(self, msg, tab):
         """
