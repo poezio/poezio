@@ -199,6 +199,14 @@ class PluginAPI(object):
         """
         return self.core.current_tab()
 
+    def get_status(self, _):
+        """
+        Get the current user global status.
+
+        :returns Status: The current status.
+        """
+        return self.core.get_status()
+
     def run_command(self, _, *args, **kwargs):
         """
         Run a command from the current tab.
