@@ -5,7 +5,7 @@ class Plugin(BasePlugin):
     def init(self):
         self.api.add_command('plugintest', self.command_plugintest, 'Test command')
         self.api.add_tab_command(tabs.MucTab, 'plugintest', self.command_tab_plugintest, 'Test command')
-        self.api.add_sleek_event_handler('message', self.on_message)
+        self.api.add_slix_event_handler('message', self.on_message)
         self.api.information("Plugin loaded")
 
     def cleanup(self):
