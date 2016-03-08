@@ -7,6 +7,10 @@ The following events are poezio-only events, for Slixmpp events, check out
 .. glossary::
     :sorted:
 
+    highlight
+        - **message:** :py:class:`~slixmpp.Message` that was received
+        - **tab:** :py:class:`~tabs.MucTab` source of the event
+
     tab_change
         - **old_tab_nb:** :py:class:`int` Old current tab number.
         - **new_tab_nb:** :py:class:`int` New current tab number.
@@ -130,27 +134,27 @@ The following events are poezio-only events, for Slixmpp events, check out
         - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
-        Triggered when an user joins a :py:class:`~tabs.MucTab`
+        Triggered when a user joins a :py:class:`~tabs.MucTab`
 
     muc_ban
         - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
-        Triggered when an user from a :py:class:`~tabs.MucTab`
+        Triggered when a user from a :py:class:`~tabs.MucTab`
         gets banned.
 
-    muc_kicked
+    muc_kick
         - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
-        Triggered when an user from a :py:class:`~tabs.MucTab`
+        Triggered when a user from a :py:class:`~tabs.MucTab`
         gets kicked.
 
     muc_nickchange
         - **presence:** :py:class:`~slixmpp.Presence` received
         - **tab:** :py:class:`~tabs.MucTab` source
 
-        Triggered when an user in a :py:class:`~tabs.MucTab` changes
+        Triggered when a user in a :py:class:`~tabs.MucTab` changes
         his nickname.
 
     ignored_private
