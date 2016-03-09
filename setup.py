@@ -69,7 +69,7 @@ setup(name="poezio",
       description="A console XMPP client",
       long_description=LONG_DESCRIPTION,
       ext_modules=[module_poopt],
-      url='http://poez.io/',
+      url='https://poez.io/',
       license='zlib',
       download_url='https://dev.louiz.org/projects/poezio/files',
 

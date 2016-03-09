@@ -334,7 +334,7 @@ class PluginAPI(object):
             Defaults to 0.
 
         A complete list of those events can be found at
-        http://poezio.eu/doc/en/dev/events.html
+        https://doc.poez.io/dev/events.html
         """
         return self.plugin_manager.add_event_handler(module, *args, **kwargs)
 
