@@ -43,6 +43,17 @@ are used to erase/delete/kill the notification after a certain
 delay.  In our example it is used to display an empty message in our
 xmobar, erasing the notification after 3 seconds.
 
+Third example:
+
+.. code-block:: ini
+
+    [simple_notify]
+    command = notify-send -i /path/to/poezio/data/poezio_80.png "New message from %(from)s" "%(body)s"
+    muc_too = true
+
+If present and set to ``True``, the ``muc_too`` option will also trigger a
+notification when a new message arrives on a Multi User Chat you've joined.
+
 .. note:: If you set the :term:`exec_remote` option to ``true`` into the
     main configuration file, the command will be executed remotely
     (as explained in the :ref:`link-plugin` plugin help).
@@ -62,17 +73,25 @@ Options defined
     after_command
         Command to run after :term:`delay`. You probably want to clean up things.
 
+    muc_too
+        Boolean indicating whether new messages in Multi User Chat rooms should
+        trigger a notification or not.
+
 """
 
 from plugin import BasePlugin
 from xhtml import get_body_from_message_stanza
 from timed_events import DelayedEvent
 import shlex
+import common
+
 
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('private_msg', self.on_private_msg)
         self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
+        if self.config.get('muc_too', False):
+            self.api.add_event_handler('muc_msg', self.on_muc_msg)
         self.api.add_event_handler('highlight', self.on_highlight)
 
     def on_private_msg(self, message, tab):
@@ -86,6 +105,14 @@ class Plugin(BasePlugin):
     def on_conversation_msg(self, message, tab):
         fro = message['from'].bare
         self.do_notify(message, fro)
+
+    def on_muc_msg(self, message, tab):
+        fro = message['from'].bare
+        # Prevent old messages to be notified
+        # find_delayed_tag(message) returns (True, the datetime) or
+        # (False, None)
+        if not common.find_delayed_tag(message)[0]:
+            self.do_notify(message, fro)
 
     def do_notify(self, message, fro):
         body = get_body_from_message_stanza(message, use_xhtml=False)
