@@ -23,16 +23,6 @@ FORMAT_CHAR = '\x19'
 # I guess. But maybe we can find better chars that are even less risky.
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18'
 
-# msg is a reference to the corresponding Message object. text_start and
-# text_end are the position delimiting the text in this line.
-class Line:
-    __slots__ = ('msg', 'start_pos', 'end_pos', 'prepend')
-    def __init__(self, msg, start_pos, end_pos, prepend):
-        self.msg = msg
-        self.start_pos = start_pos
-        self.end_pos = end_pos
-        self.prepend = prepend
-
 class DummyWin(object):
     def __getattribute__(self, name):
         if name != '__bool__':

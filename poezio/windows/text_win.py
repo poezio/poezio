@@ -10,12 +10,23 @@ import curses
 from math import ceil, log10
 
 from . import Win
-from . base_wins import FORMAT_CHAR, Line
+from . base_wins import FORMAT_CHAR
 from . funcs import truncate_nick, parse_attrs
 
 import poopt
 from config import config
 from theming import to_curses_attr, get_theme, dump_tuple
+
+
+# msg is a reference to the corresponding Message object. text_start and
+# text_end are the position delimiting the text in this line.
+class Line:
+    __slots__ = ('msg', 'start_pos', 'end_pos', 'prepend')
+    def __init__(self, msg, start_pos, end_pos, prepend):
+        self.msg = msg
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.prepend = prepend
 
 
 class BaseTextWin(Win):
