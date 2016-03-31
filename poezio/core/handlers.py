@@ -51,44 +51,6 @@ class HandlerCore:
     def __init__(self, core):
         self.core = core
 
-    def _join_initial_rooms(self, bookmarks):
-        """Join all rooms given in the iterator `bookmarks`"""
-        for bm in bookmarks:
-            if not (bm.autojoin or config.get('open_all_bookmarks')):
-                continue
-            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
-            nick = bm.nick if bm.nick else self.own_nick
-            if not tab:
-                self.open_new_room(bm.jid, nick, focus=False,
-                                   password=bm.password)
-            self.initial_joins.append(bm.jid)
-            # do not join rooms that do not have autojoin
-            # but display them anyway
-            if bm.autojoin:
-                muc.join_groupchat(self, bm.jid, nick,
-                        passwd=bm.password,
-                        status=self.status.message,
-                        show=self.status.show)
-
-    def check_bookmark_storage(self, features):
-        private = 'jabber:iq:private' in features
-        pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
-        self.bookmarks.available_storage['private'] = private
-        self.bookmarks.available_storage['pep'] = pep_
-        def _join_remote_only(iq):
-            if iq['type'] == 'error':
-                type_ = iq['error']['type']
-                condition = iq['error']['condition']
-                if not (type_ == 'cancel' and condition == 'item-not-found'):
-                    self.information('Unable to fetch the remote'
-                                     ' bookmarks; %s: %s' % (type_, condition),
-                                     'Error')
-                return
-            remote_bookmarks = self.bookmarks.remote()
-            _join_initial_rooms(self, remote_bookmarks)
-        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
-            self.bookmarks.get_remote(self.xmpp, self.information, _join_remote_only)
-
     def on_session_start_features(self, _):
         """
         Enable carbons & blocking on session start if wanted and possible
@@ -97,16 +59,16 @@ class HandlerCore:
             if not iq:
                 return
             features = iq['disco_info']['features']
-            rostertab = self.get_tab_by_name('Roster', tabs.RosterInfoTab)
+            rostertab = self.core.get_tab_by_name('Roster', tabs.RosterInfoTab)
             rostertab.check_blocking(features)
             rostertab.check_saslexternal(features)
             if (config.get('enable_carbons') and
                     'urn:xmpp:carbons:2' in features):
-                self.xmpp.plugin['xep_0280'].enable()
-            self.check_bookmark_storage(features)
+                self.core.xmpp.plugin['xep_0280'].enable()
+            self.core.check_bookmark_storage(features)
 
-        self.xmpp.plugin['xep_0030'].get_info(jid=self.xmpp.boundjid.domain,
-                                              callback=callback)
+        self.core.xmpp.plugin['xep_0030'].get_info(jid=self.core.xmpp.boundjid.domain,
+                                                   callback=callback)
 
     def on_carbon_received(self, message):
         """
@@ -116,7 +78,7 @@ class HandlerCore:
             log.debug('%s has category conference, ignoring carbon',
                       recv['from'].server)
         def receive_message(recv):
-            recv['to'] = self.xmpp.boundjid.full
+            recv['to'] = self.core.xmpp.boundjid.full
             if recv['receipt']:
                 return self.on_receipt(recv)
             self.on_normal_message(recv)
@@ -124,7 +86,7 @@ class HandlerCore:
         recv = message['carbon_received']
         if (recv['from'].bare not in roster or
             roster[recv['from'].bare].subscription == 'none'):
-            fixes.has_identity(self.xmpp, recv['from'].server,
+            fixes.has_identity(self.core.xmpp, recv['from'].server,
                                identity='conference',
                                on_true=functools.partial(ignore_message, recv),
                                on_false=functools.partial(receive_message, recv))
@@ -140,13 +102,13 @@ class HandlerCore:
             log.debug('%s has category conference, ignoring carbon',
                       sent['to'].server)
         def send_message(sent):
-            sent['from'] = self.xmpp.boundjid.full
+            sent['from'] = self.core.xmpp.boundjid.full
             self.on_normal_message(sent)
 
         sent = message['carbon_sent']
         if (sent['to'].bare not in roster or
                 roster[sent['to'].bare].subscription == 'none'):
-            fixes.has_identity(self.xmpp, sent['to'].server,
+            fixes.has_identity(self.core.xmpp, sent['to'].server,
                                identity='conference',
                                on_true=functools.partial(ignore_message, sent),
                                on_false=functools.partial(send_message, sent))
@@ -160,10 +122,10 @@ class HandlerCore:
         Mediated invitation received
         """
         jid = message['from']
-        if jid.bare in self.pending_invites:
+        if jid.bare in self.core.pending_invites:
             return
         # there are 2 'x' tags in the messages, making message['x'] useless
-        invite = StanzaBase(self.xmpp, xml=message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
+        invite = StanzaBase(self.core.xmpp, xml=message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
         inviter = invite['from']
         reason = invite['reason']
         password = invite['password']
@@ -172,11 +134,11 @@ class HandlerCore:
             msg += "because: %s" % reason
         if password:
             msg += ". The password is \"%s\"." % password
-        self.information(msg, 'Info')
+        self.core.information(msg, 'Info')
         if 'invite' in config.get('beep_on').split():
             curses.beep()
         logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
-        self.pending_invites[jid.bare] = inviter.full
+        self.core.pending_invites[jid.bare] = inviter.full
 
     def on_groupchat_decline(self, decline):
         "Mediated invitation declined; skip for now"
@@ -187,7 +149,7 @@ class HandlerCore:
         Direct invitation received
         """
         room = safeJID(message['groupchat_invite']['jid'])
-        if room.bare in self.pending_invites:
+        if room.bare in self.core.pending_invites:
             return
 
         inviter = message['from']
@@ -203,11 +165,11 @@ class HandlerCore:
         if reason:
             msg += "\nreason: %s" % reason
 
-        self.information(msg, 'Info')
+        self.core.information(msg, 'Info')
         if 'invite' in config.get('beep_on').split():
             curses.beep()
 
-        self.pending_invites[room.bare] = inviter.full
+        self.core.pending_invites[room.bare] = inviter.full
         logger.log_roster_change(inviter.full, 'invited you to %s' % room.bare)
 
     ### "classic" messages ###
@@ -223,32 +185,35 @@ class HandlerCore:
             return
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
-        for tab in self.get_tabs(tabs.MucTab):
+        for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name == jid_from.bare:
                 if message['type'] == 'chat':
-                    return self.on_groupchat_private_message(message)
-        return self.on_normal_message(message)
+                    self.on_groupchat_private_message(message)
+                    return
+        self.on_normal_message(message)
 
     def on_error_message(self, message):
         """
         When receiving any message with type="error"
         """
         jid_from = message['from']
-        for tab in self.get_tabs(tabs.MucTab):
+        for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name == jid_from.bare:
                 if message['type'] == 'error':
-                    return self.room_error(message, jid_from.bare)
+                    self.core.room_error(message, jid_from.bare)
                 else:
-                    return self.on_groupchat_private_message(message)
-        tab = self.get_conversation_by_jid(message['from'], create=False)
-        error_msg = self.get_error_message(message, deprecated=True)
+                    self.on_groupchat_private_message(message)
+                return
+        tab = self.core.get_conversation_by_jid(message['from'], create=False)
+        error_msg = self.core.get_error_message(message, deprecated=True)
         if not tab:
-            return self.information(error_msg, 'Error')
+            self.core.information(error_msg, 'Error')
+            return
         error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
                                       error_msg)
         if not tab.nack_message('\n' + error, message['id'], message['to']):
             tab.add_message(error, typ=0)
-            self.refresh_window()
+            self.core.refresh_window()
 
 
     def on_normal_message(self, message):
@@ -259,7 +224,7 @@ class HandlerCore:
         if message['type'] == 'error':
             return
         elif message['type'] == 'headline' and message['body']:
-            return self.information('%s says: %s' % (message['from'], message['body']), 'Headline')
+            return self.core.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
         use_xhtml = config.get('enable_xhtml_im')
         tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
@@ -272,7 +237,7 @@ class HandlerCore:
 
         remote_nick = ''
         # normal message, we are the recipient
-        if message['to'].bare == self.xmpp.boundjid.bare:
+        if message['to'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['from']
             jid = conv_jid
             color = get_theme().COLOR_REMOTE_USER
@@ -289,17 +254,17 @@ class HandlerCore:
                     remote_nick = conv_jid.full
             own = False
         # we wrote the message (happens with carbons)
-        elif message['from'].bare == self.xmpp.boundjid.bare:
+        elif message['from'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['to']
-            jid = self.xmpp.boundjid
+            jid = self.core.xmpp.boundjid
             color = get_theme().COLOR_OWN_NICK
-            remote_nick = self.own_nick
+            remote_nick = self.core.own_nick
             own = True
         # we are not part of that message, drop it
         else:
             return
 
-        conversation = self.get_conversation_by_jid(conv_jid, create=True)
+        conversation = self.core.get_conversation_by_jid(conv_jid, create=True)
         if isinstance(conversation, tabs.DynamicConversationTab) and conv_jid.resource:
             conversation.lock(conv_jid.resource)
 
@@ -308,7 +273,7 @@ class HandlerCore:
         elif not own: # keep a fixed nick during the whole conversation
             remote_nick = conversation.nick
 
-        self.events.trigger('conversation_msg', message, conversation)
+        self.core.events.trigger('conversation_msg', message, conversation)
         if not message['body']:
             return
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
@@ -345,15 +310,15 @@ class HandlerCore:
         if not own and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
                 curses.beep()
-        if self.current_tab() is not conversation:
+        if self.core.current_tab() is not conversation:
             if not own:
                 conversation.state = 'private'
-                self.refresh_tab_win()
+                self.core.refresh_tab_win()
             else:
                 conversation.set_state('normal')
-                self.refresh_tab_win()
+                self.core.refresh_tab_win()
         else:
-            self.refresh_window()
+            self.core.refresh_window()
 
     def on_nick_received(self, message):
         """
@@ -399,9 +364,9 @@ class HandlerCore:
 
         if old_gaming != contact.gaming and config.get_by_tabname('display_gaming_notifications', contact.bare_jid):
             if contact.gaming:
-                self.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
+                self.core.information('%s is playing %s' % (contact.bare_jid, common.format_gaming_string(contact.gaming)), 'Gaming')
             else:
-                self.information(contact.bare_jid + ' stopped playing.', 'Gaming')
+                self.core.information(contact.bare_jid + ' stopped playing.', 'Gaming')
 
     def on_mood_event(self, message):
         """
@@ -432,9 +397,9 @@ class HandlerCore:
 
         if old_mood != contact.mood and config.get_by_tabname('display_mood_notifications', contact.bare_jid):
             if contact.mood:
-                self.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
+                self.core.information('Mood from '+ contact.bare_jid + ': ' + contact.mood, 'Mood')
             else:
-                self.information(contact.bare_jid + ' stopped having his/her mood.', 'Mood')
+                self.core.information(contact.bare_jid + ' stopped having his/her mood.', 'Mood')
 
     def on_activity_event(self, message):
         """
@@ -471,9 +436,9 @@ class HandlerCore:
 
         if old_activity != contact.activity and config.get_by_tabname('display_activity_notifications', contact.bare_jid):
             if contact.activity:
-                self.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
+                self.core.information('Activity from '+ contact.bare_jid + ': ' + contact.activity, 'Activity')
             else:
-                self.information(contact.bare_jid + ' stopped doing his/her activity.', 'Activity')
+                self.core.information(contact.bare_jid + ' stopped doing his/her activity.', 'Activity')
 
     def on_tune_event(self, message):
         """
@@ -505,11 +470,11 @@ class HandlerCore:
 
         if old_tune != contact.tune and config.get_by_tabname('display_tune_notifications', contact.bare_jid):
             if contact.tune:
-                self.information(
+                self.core.information(
                         'Tune from '+ message['from'].bare + ': ' + common.format_tune_string(contact.tune),
                         'Tune')
             else:
-                self.information(contact.bare_jid + ' stopped listening to music.', 'Tune')
+                self.core.information(contact.bare_jid + ' stopped listening to music.', 'Tune')
 
     def on_groupchat_message(self, message):
         """
@@ -520,12 +485,13 @@ class HandlerCore:
         room_from = message['from'].bare
 
         if message['type'] == 'error': # Check if it's an error
-            return self.room_error(message, room_from)
+            self.core.room_error(message, room_from)
+            return
 
-        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
         if not tab:
-            self.information("message received for a non-existing room: %s" % (room_from))
-            muc.leave_groupchat(self.xmpp, room_from, self.own_nick, msg='')
+            self.core.information("message received for a non-existing room: %s" % (room_from))
+            muc.leave_groupchat(self.core.xmpp, room_from, self.core.own_nick, msg='')
             return
 
         nick_from = message['mucnick']
@@ -533,7 +499,7 @@ class HandlerCore:
         if user and user in tab.ignores:
             return
 
-        self.events.trigger('muc_msg', message, tab)
+        self.core.events.trigger('muc_msg', message, tab)
         use_xhtml = config.get('enable_xhtml_im')
         tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         extract_images = config.get('extract_inline_images')
@@ -554,36 +520,36 @@ class HandlerCore:
                 if tab.modify_message(body, replaced_id, message['id'],
                         time=delayed_date,
                         nickname=nick_from, user=user):
-                    self.events.trigger('highlight', message, tab)
+                    self.core.events.trigger('highlight', message, tab)
                 replaced = True
             except CorrectionError:
                 log.debug('Unable to correct a message', exc_info=True)
         if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
-            self.events.trigger('highlight', message, tab)
+            self.core.events.trigger('highlight', message, tab)
 
         if message['from'].resource == tab.own_nick:
             tab.last_sent_message = message
 
-        if tab is self.current_tab():
+        if tab is self.core.current_tab():
             tab.text_win.refresh()
             tab.info_header.refresh(tab, tab.text_win)
             tab.input.refresh()
-            self.doupdate()
+            self.core.doupdate()
         elif tab.state != old_state:
-            self.refresh_tab_win()
-            current = self.current_tab()
+            self.core.refresh_tab_win()
+            current = self.core.current_tab()
             if hasattr(current, 'input') and current.input:
                 current.input.refresh()
-            self.doupdate()
+            self.core.doupdate()
 
         if 'message' in config.get('beep_on').split():
             if (not config.get_by_tabname('disable_beep', room_from)
-                    and self.own_nick != message['from'].resource):
+                    and self.core.own_nick != message['from'].resource):
                 curses.beep()
 
     def on_muc_own_nickchange(self, muc):
         "We changed our nick in a MUC"
-        for tab in self.get_tabs(tabs.PrivateTab):
+        for tab in self.core.get_tabs(tabs.PrivateTab):
             if tab.parent_muc == muc:
                 tab.own_nick = muc.own_nick
 
@@ -594,7 +560,8 @@ class HandlerCore:
         jid = message['from']
         nick_from = jid.resource
         if not nick_from:
-            return self.on_groupchat_message(message)
+            self.on_groupchat_message(message)
+            return
 
         room_from = jid.bare
         use_xhtml = config.get('enable_xhtml_im')
@@ -603,18 +570,18 @@ class HandlerCore:
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                                   tmp_dir=tmp_dir,
                                                   extract_images=extract_images)
-        tab = self.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
+        tab = self.core.get_tab_by_name(jid.full, tabs.PrivateTab) # get the tab with the private conversation
         ignore = config.get_by_tabname('ignore_private', room_from)
         if not tab: # It's the first message we receive: create the tab
             if body and not ignore:
-                tab = self.open_private_window(room_from, nick_from, False)
+                tab = self.core.open_private_window(room_from, nick_from, False)
         if ignore:
-            self.events.trigger('ignored_private', message, tab)
+            self.core.events.trigger('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
             if msg and body:
-                self.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
+                self.core.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
             return
-        self.events.trigger('private_msg', message, tab)
+        self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                                   tmp_dir=tmp_dir,
                                                   extract_images=extract_images)
@@ -646,73 +613,72 @@ class HandlerCore:
         if 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
-        if tab is self.current_tab():
-            self.refresh_window()
+        if tab is self.core.current_tab():
+            self.core.refresh_window()
         else:
             tab.state = 'private'
-            self.refresh_tab_win()
+            self.core.refresh_tab_win()
 
     ### Chatstates ###
 
     def on_chatstate_active(self, message):
-        self.on_chatstate(message, "active")
+        self._on_chatstate(message, "active")
 
     def on_chatstate_inactive(self, message):
-        self.on_chatstate(message, "inactive")
+        self._on_chatstate(message, "inactive")
 
     def on_chatstate_composing(self, message):
-        self.on_chatstate(message, "composing")
+        self._on_chatstate(message, "composing")
 
     def on_chatstate_paused(self, message):
-        self.on_chatstate(message, "paused")
+        self._on_chatstate(message, "paused")
 
     def on_chatstate_gone(self, message):
-        self.on_chatstate(message, "gone")
+        self._on_chatstate(message, "gone")
 
-    def on_chatstate(self, message, state):
+    def _on_chatstate(self, message, state):
         if message['type'] == 'chat':
-            if not self.on_chatstate_normal_conversation(message, state):
-                tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+            if not self._on_chatstate_normal_conversation(message, state):
+                tab = self.core.get_tab_by_name(message['from'].full, tabs.PrivateTab)
                 if not tab:
                     return
-                self.on_chatstate_private_conversation(message, state)
+                self._on_chatstate_private_conversation(message, state)
         elif message['type'] == 'groupchat':
             self.on_chatstate_groupchat_conversation(message, state)
 
-    def on_chatstate_normal_conversation(self, message, state):
-        tab = self.get_conversation_by_jid(message['from'], False)
+    def _on_chatstate_normal_conversation(self, message, state):
+        tab = self.core.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
         tab.remote_wants_chatstates = True
-        self.events.trigger('normal_chatstate', message, tab)
+        self.core.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
         if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
             tab.unlock()
-        if tab == self.current_tab():
+        if tab == self.core.current_tab():
             tab.refresh_info_header()
-            self.doupdate()
+            self.core.doupdate()
         else:
             _composing_tab_state(tab, state)
-            self.refresh_tab_win()
+            self.core.refresh_tab_win()
         return True
 
-    def on_chatstate_private_conversation(self, message, state):
+    def _on_chatstate_private_conversation(self, message, state):
         """
         Chatstate received in a private conversation from a MUC
         """
-        tab = self.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+        tab = self.core.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
         tab.remote_wants_chatstates = True
-        self.events.trigger('private_chatstate', message, tab)
+        self.core.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
-        if tab == self.current_tab():
+        if tab == self.core.current_tab():
             tab.refresh_info_header()
-            self.doupdate()
+            self.core.doupdate()
         else:
             _composing_tab_state(tab, state)
-            self.refresh_tab_win()
-        return True
+            self.core.refresh_tab_win()
 
     def on_chatstate_groupchat_conversation(self, message, state):
         """
@@ -720,18 +686,18 @@ class HandlerCore:
         """
         nick = message['mucnick']
         room_from = message.get_mucroom()
-        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
         if tab and tab.get_user_by_name(nick):
-            self.events.trigger('muc_chatstate', message, tab)
+            self.core.events.trigger('muc_chatstate', message, tab)
             tab.get_user_by_name(nick).chatstate = state
-        if tab == self.current_tab():
-            if not self.size.tab_degrade_x:
+        if tab == self.core.current_tab():
+            if not self.core.size.tab_degrade_x:
                 tab.user_win.refresh(tab.users)
             tab.input.refresh()
-            self.doupdate()
+            self.core.doupdate()
         else:
             _composing_tab_state(tab, state)
-            self.refresh_tab_win()
+            self.core.refresh_tab_win()
 
     ### subscription-related handlers ###
 
@@ -751,8 +717,8 @@ class HandlerCore:
                 else:
                     roster.update_contact_groups(jid)
         roster.update_size()
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_subscription_request(self, presence):
         """subscribe received"""
@@ -761,35 +727,35 @@ class HandlerCore:
         if contact and contact.subscription in ('from', 'both'):
             return
         elif contact and contact.subscription == 'to':
-            self.xmpp.sendPresence(pto=jid, ptype='subscribed')
-            self.xmpp.sendPresence(pto=jid)
+            self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
+            self.core.xmpp.sendPresence(pto=jid)
         else:
             if not contact:
                 contact = roster.get_and_set(jid)
             roster.update_contact_groups(contact)
             contact.pending_in = True
-            self.information('%s wants to subscribe to your presence, use '
-                             '/accept <jid> or /deny <jid> in the roster '
-                             'tab to accept or reject the query.' % jid,
-                             'Roster')
-            self.get_tab_by_number(0).state = 'highlight'
+            self.core.information('%s wants to subscribe to your presence, use '
+                                  '/accept <jid> or /deny <jid> in the roster '
+                                  'tab to accept or reject the query.' % jid,
+                                  'Roster')
+            self.core.get_tab_by_number(0).state = 'highlight'
             roster.modified()
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_subscription_authorized(self, presence):
         """subscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
         if contact.subscription not in ('both', 'from'):
-            self.information('%s accepted your contact proposal' % jid, 'Roster')
+            self.core.information('%s accepted your contact proposal' % jid, 'Roster')
         if contact.pending_out:
             contact.pending_out = False
 
         roster.modified()
 
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_subscription_remove(self, presence):
         """unsubscribe received"""
@@ -798,10 +764,10 @@ class HandlerCore:
         if not contact:
             return
         roster.modified()
-        self.information('%s does not want to receive your status anymore.' % jid, 'Roster')
-        self.get_tab_by_number(0).state = 'highlight'
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        self.core.information('%s does not want to receive your status anymore.' % jid, 'Roster')
+        self.core.get_tab_by_number(0).state = 'highlight'
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_subscription_removed(self, presence):
         """unsubscribed received"""
@@ -811,13 +777,13 @@ class HandlerCore:
             return
         roster.modified()
         if contact.pending_out:
-            self.information('%s rejected your contact proposal' % jid, 'Roster')
+            self.core.information('%s rejected your contact proposal' % jid, 'Roster')
             contact.pending_out = False
         else:
-            self.information('%s does not want you to receive his/her/its status anymore.'%jid, 'Roster')
-        self.get_tab_by_number(0).state = 'highlight'
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+            self.core.information('%s does not want you to receive his/her/its status anymore.'%jid, 'Roster')
+        self.core.get_tab_by_number(0).state = 'highlight'
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     ### Presence-related handlers ###
 
@@ -826,7 +792,7 @@ class HandlerCore:
             return
         jid = presence['from']
         contact = roster[jid.bare]
-        tab = self.get_conversation_by_jid(jid, create=False)
+        tab = self.core.get_conversation_by_jid(jid, create=False)
         if isinstance(tab, tabs.DynamicConversationTab):
             if tab.get_dest_jid() != jid.full:
                 tab.unlock(from_=jid.full)
@@ -836,13 +802,13 @@ class HandlerCore:
             return
         roster.modified()
         contact.error = None
-        self.events.trigger('normal_presence', presence, contact[jid.full])
-        tab = self.get_conversation_by_jid(jid, create=False)
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
-        elif self.current_tab() == tab:
+        self.core.events.trigger('normal_presence', presence, contact[jid.full])
+        tab = self.core.get_conversation_by_jid(jid, create=False)
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
+        elif self.core.current_tab() == tab:
             tab.refresh()
-            self.doupdate()
+            self.core.doupdate()
 
     def on_presence_error(self, presence):
         jid = presence['from']
@@ -852,7 +818,7 @@ class HandlerCore:
         roster.modified()
         contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
         # reset chat states status on presence error
-        tab = self.get_tab_by_name(jid.full, tabs.ConversationTab)
+        tab = self.core.get_tab_by_name(jid.full, tabs.ConversationTab)
         if tab:
             tab.remote_wants_chatstates = None
 
@@ -864,7 +830,7 @@ class HandlerCore:
             return
         jid = presence['from']
         if not logger.log_roster_change(jid.bare, 'got offline'):
-            self.information('Unable to write in the log file', 'Error')
+            self.core.information('Unable to write in the log file', 'Error')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
         contact = roster[jid.bare]
@@ -874,12 +840,12 @@ class HandlerCore:
             if contact.name:
                 name = contact.name
         if jid.resource:
-            self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % name)
-        self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % name)
-        self.information('\x193}%s \x195}is \x191}offline' % name, 'Roster')
+            self.core.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x191}offline' % name)
+        self.core.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x191}offline' % name)
+        self.core.information('\x193}%s \x195}is \x191}offline' % name, 'Roster')
         roster.modified()
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_got_online(self, presence):
         """
@@ -895,24 +861,24 @@ class HandlerCore:
         roster.connected += 1
         roster.modified()
         if not logger.log_roster_change(jid.bare, 'got online'):
-            self.information('Unable to write in the log file', 'Error')
+            self.core.information('Unable to write in the log file', 'Error')
         resource = Resource(jid.full, {
             'priority': presence.get_priority() or 0,
             'status': presence['status'],
             'show': presence['show'],
             })
-        self.events.trigger('normal_presence', presence, resource)
+        self.core.events.trigger('normal_presence', presence, resource)
         name = contact.name if contact.name else jid.bare
-        self.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % name)
-        if time.time() - self.connection_time > 10:
+        self.core.add_information_message_to_conversation_tab(jid.full, '\x195}%s is \x194}online' % name)
+        if time.time() - self.core.connection_time > 10:
             # We do not display messages if we recently logged in
             if presence['status']:
-                self.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (name, presence['status']), "Roster")
+                self.core.information("\x193}%s \x195}is \x194}online\x195} (\x19o%s\x195})" % (name, presence['status']), "Roster")
             else:
-                self.information("\x193}%s \x195}is \x194}online\x195}" % name, "Roster")
-            self.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % name)
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
-            self.refresh_window()
+                self.core.information("\x193}%s \x195}is \x194}online\x195}" % name, "Roster")
+            self.core.add_information_message_to_conversation_tab(jid.bare, '\x195}%s is \x194}online' % name)
+        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+            self.core.refresh_window()
 
     def on_groupchat_presence(self, presence):
         """
@@ -921,9 +887,9 @@ class HandlerCore:
         presence information of the concerned user
         """
         from_room = presence['from'].bare
-        tab = self.get_tab_by_name(from_room, tabs.MucTab)
+        tab = self.core.get_tab_by_name(from_room, tabs.MucTab)
         if tab:
-            self.events.trigger('muc_presence', presence, tab)
+            self.core.events.trigger('muc_presence', presence, tab)
             tab.handle_presence(presence)
 
 
@@ -933,7 +899,7 @@ class HandlerCore:
         """
         We cannot contact the remote server
         """
-        self.information("Connection to remote server failed: %s" % (error,), 'Error')
+        self.core.information("Connection to remote server failed: %s" % (error,), 'Error')
 
     def on_disconnected(self, event):
         """
@@ -941,80 +907,80 @@ class HandlerCore:
         """
         roster.connected = 0
         # Stop the ping plugin. It would try to send stanza on regular basis
-        self.xmpp.plugin['xep_0199'].disable_keepalive()
+        self.core.xmpp.plugin['xep_0199'].disable_keepalive()
         roster.modified()
-        for tab in self.get_tabs(tabs.MucTab):
+        for tab in self.core.get_tabs(tabs.MucTab):
             tab.disconnect()
-        msg_typ = 'Error' if not self.legitimate_disconnect else 'Info'
-        self.information("Disconnected from server.", msg_typ)
-        if not self.legitimate_disconnect and config.get('auto_reconnect', True):
-            self.information("Auto-reconnecting.", 'Info')
-            self.xmpp.start()
+        msg_typ = 'Error' if not self.core.legitimate_disconnect else 'Info'
+        self.core.information("Disconnected from server.", msg_typ)
+        if not self.core.legitimate_disconnect and config.get('auto_reconnect', True):
+            self.core.information("Auto-reconnecting.", 'Info')
+            self.core.xmpp.start()
 
     def on_stream_error(self, event):
         """
         When we receive a stream error
         """
         if event and event['text']:
-            self.information('Stream error: %s' % event['text'], 'Error')
+            self.core.information('Stream error: %s' % event['text'], 'Error')
 
     def on_failed_all_auth(self, event):
         """
         Authentication failed
         """
-        self.information("Authentication failed (bad credentials?).",
-                         'Error')
-        self.legitimate_disconnect = True
+        self.core.information("Authentication failed (bad credentials?).",
+                              'Error')
+        self.core.legitimate_disconnect = True
 
     def on_no_auth(self, event):
         """
         Authentication failed (no mech)
         """
-        self.information("Authentication failed, no login method available.",
-                         'Error')
-        self.legitimate_disconnect = True
+        self.core.information("Authentication failed, no login method available.",
+                              'Error')
+        self.core.legitimate_disconnect = True
 
     def on_connected(self, event):
         """
         Remote host responded, but we are not yet authenticated
         """
-        self.information("Connected to server.", 'Info')
+        self.core.information("Connected to server.", 'Info')
 
     def on_connecting(self, event):
         """
         Just before we try to connect to the server
         """
-        self.legitimate_disconnect = False
+        self.core.legitimate_disconnect = False
 
     def on_session_start(self, event):
         """
         Called when we are connected and authenticated
         """
-        self.connection_time = time.time()
-        if not self.plugins_autoloaded: # Do not reload plugins on reconnection
-            self.autoload_plugins()
-        self.information("Authentication success.", 'Info')
-        self.information("Your JID is %s" % self.xmpp.boundjid.full, 'Info')
-        if not self.xmpp.anon:
+        self.core.connection_time = time.time()
+        if not self.core.plugins_autoloaded: # Do not reload plugins on reconnection
+            self.core.autoload_plugins()
+        self.core.information("Authentication success.", 'Info')
+        self.core.information("Your JID is %s" % self.core.xmpp.boundjid.full, 'Info')
+        if not self.core.xmpp.anon:
             # request the roster
-            self.xmpp.get_roster()
-            roster.update_contact_groups(self.xmpp.boundjid.bare)
+            self.core.xmpp.get_roster()
+            roster.update_contact_groups(self.core.xmpp.boundjid.bare)
             # send initial presence
             if config.get('send_initial_presence'):
-                pres = self.xmpp.make_presence()
-                pres['show'] = self.status.show
-                pres['status'] = self.status.message
-                self.events.trigger('send_normal_presence', pres)
+                pres = self.core.xmpp.make_presence()
+                pres['show'] = self.core.status.show
+                pres['status'] = self.core.status.message
+                self.core.events.trigger('send_normal_presence', pres)
                 pres.send()
-        self.bookmarks.get_local()
+        self.core.bookmarks.get_local()
         # join all the available bookmarks. As of yet, this is just the local ones
-        _join_initial_rooms(self, self.bookmarks)
+        self.core.join_initial_rooms(self.core.bookmarks)
 
         if config.get('enable_user_nick'):
-            self.xmpp.plugin['xep_0172'].publish_nick(nick=self.own_nick, callback=dumb_callback)
-        asyncio.async(self.xmpp.plugin['xep_0115'].update_caps())
+            self.core.xmpp.plugin['xep_0172'].publish_nick(nick=self.core.own_nick, callback=dumb_callback)
+        asyncio.async(self.core.xmpp.plugin['xep_0115'].update_caps())
         # Start the ping's plugin regular event
-        self.xmpp.set_keepalive_values()
+        self.core.xmpp.set_keepalive_values()
 
     ### Other handlers ###
 
@@ -1024,10 +990,10 @@ class HandlerCore:
         Those are received when a room configuration change occurs.
         """
         room_from = message['from']
-        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
         status_codes = set([s.attrib['code'] for s in message.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))])
         if '101' in status_codes:
-            self.information('Your affiliation in the room %s changed' % room_from, 'Info')
+            self.core.information('Your affiliation in the room %s changed' % room_from, 'Info')
         elif tab and status_codes:
             show_unavailable = '102' in status_codes
             hide_unavailable = '103' in status_codes
@@ -1073,7 +1039,7 @@ class HandlerCore:
                         {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
                         typ=2)
             if modif:
-                self.refresh_window()
+                self.core.refresh_window()
 
     def on_groupchat_subject(self, message):
         """
@@ -1081,7 +1047,7 @@ class HandlerCore:
         """
         nick_from = message['mucnick']
         room_from = message.get_mucroom()
-        tab = self.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
         subject = message['subject']
         if subject is None or not tab:
             return
@@ -1100,8 +1066,8 @@ class HandlerCore:
                         typ=2)
         tab.topic = subject
         tab.topic_from = nick_from
-        if self.get_tab_by_name(room_from, tabs.MucTab) is self.current_tab():
-            self.refresh_window()
+        if self.core.get_tab_by_name(room_from, tabs.MucTab) is self.core.current_tab():
+            self.core.refresh_window()
 
     def on_receipt(self, message):
         """
@@ -1112,13 +1078,13 @@ class HandlerCore:
         if not msg_id:
             return
 
-        conversation = self.get_tab_by_name(jid, tabs.ChatTab)
-        conversation = conversation or self.get_tab_by_name(jid.bare, tabs.ChatTab)
+        conversation = self.core.get_tab_by_name(jid.full, tabs.ChatTab)
+        conversation = conversation or self.core.get_tab_by_name(jid.bare, tabs.ChatTab)
         if not conversation:
             return
 
         try:
-            conversation.ack_message(msg_id, self.xmpp.boundjid)
+            conversation.ack_message(msg_id, self.core.xmpp.boundjid)
         except AckError:
             log.debug('Error while receiving an ack', exc_info=True)
 
@@ -1126,96 +1092,74 @@ class HandlerCore:
         """
         When a data form is received
         """
-        self.information('%s' % message)
+        self.core.information('%s' % message)
 
     def on_attention(self, message):
         """
         Attention probe received.
         """
         jid_from = message['from']
-        self.information('%s requests your attention!' % jid_from, 'Info')
-        for tab in self.tabs:
+        self.core.information('%s requests your attention!' % jid_from, 'Info')
+        for tab in self.core.tabs:
             if tab.name == jid_from:
                 tab.state = 'attention'
-                self.refresh_tab_win()
+                self.core.refresh_tab_win()
                 return
-        for tab in self.tabs:
+        for tab in self.core.tabs:
             if tab.name == jid_from.bare:
                 tab.state = 'attention'
-                self.refresh_tab_win()
+                self.core.refresh_tab_win()
                 return
-        self.information('%s tab not found.' % jid_from, 'Error')
-
-    def room_error(self, error, room_name):
-        """
-        Display the error in the tab
-        """
-        tab = self.get_tab_by_name(room_name, tabs.MucTab)
-        if not tab:
-            return
-        error_message = self.get_error_message(error)
-        tab.add_message(error_message, highlight=True, nickname='Error',
-                        nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
-        code = error['error']['code']
-        if code == '401':
-            msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
-            tab.add_message(msg, typ=2)
-        if code == '409':
-            if config.get('alternative_nickname') != '':
-                self.command_join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
-            else:
-                if not tab.joined:
-                    tab.add_message('You can join the room with an other nick, by typing "/join /other_nick"', typ=2)
-        self.refresh_window()
+        self.core.information('%s tab not found.' % jid_from, 'Error')
 
     def outgoing_stanza(self, stanza):
         """
         We are sending a new stanza, write it in the xml buffer if needed.
         """
-        if self.xml_tab:
+        if self.core.xml_tab:
             if PYGMENTS:
                 xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
                 poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = '%s' % stanza
-            self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
-                                            nickname=get_theme().CHAR_XML_OUT)
+            self.core.add_message_to_text_buffer(self.core.xml_buffer, poezio_colored,
+                                                 nickname=get_theme().CHAR_XML_OUT)
             try:
-                if self.xml_tab.match_stanza(ElementBase(ET.fromstring(stanza))):
-                    self.add_message_to_text_buffer(self.xml_tab.filtered_buffer, poezio_colored,
-                                                    nickname=get_theme().CHAR_XML_OUT)
+                if self.core.xml_tab.match_stanza(ElementBase(ET.fromstring(stanza))):
+                    self.core.add_message_to_text_buffer(self.core.xml_tab.filtered_buffer, poezio_colored,
+                                                         nickname=get_theme().CHAR_XML_OUT)
             except:
                 log.debug('', exc_info=True)
 
-            if isinstance(self.current_tab(), tabs.XMLTab):
-                self.current_tab().refresh()
-                self.doupdate()
+            if isinstance(self.core.current_tab(), tabs.XMLTab):
+                self.core.current_tab().refresh()
+                self.core.doupdate()
 
     def incoming_stanza(self, stanza):
         """
         We are receiving a new stanza, write it in the xml buffer if needed.
         """
-        if self.xml_tab:
+        if self.core.xml_tab:
             if PYGMENTS:
                 xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
                 poezio_colored = xhtml.xhtml_to_poezio_colors(xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = '%s' % stanza
-            self.add_message_to_text_buffer(self.xml_buffer, poezio_colored,
-                                            nickname=get_theme().CHAR_XML_IN)
+            self.core.add_message_to_text_buffer(self.core.xml_buffer, poezio_colored,
+                                                 nickname=get_theme().CHAR_XML_IN)
             try:
-                if self.xml_tab.match_stanza(stanza):
-                    self.add_message_to_text_buffer(self.xml_tab.filtered_buffer, poezio_colored,
-                                                    nickname=get_theme().CHAR_XML_IN)
+                if self.core.xml_tab.match_stanza(stanza):
+                    self.core.add_message_to_text_buffer(self.core.xml_tab.filtered_buffer, poezio_colored,
+                                                         nickname=get_theme().CHAR_XML_IN)
             except:
                 log.debug('', exc_info=True)
-            if isinstance(self.current_tab(), tabs.XMLTab):
-                self.current_tab().refresh()
-                self.doupdate()
+            if isinstance(self.core.current_tab(), tabs.XMLTab):
+                self.core.current_tab().refresh()
+                self.core.doupdate()
 
     def ssl_invalid_chain(self, tb):
-        self.information('The certificate sent by the server is invalid.', 'Error')
-        self.disconnect()
+        self.core.information('The certificate sent by the server is invalid.', 'Error')
+        self.core.disconnect()
 
     def validate_ssl(self, pem):
         """
@@ -1245,64 +1189,38 @@ class HandlerCore:
                 log.debug('Cert %s OK', sha2_found_cert)
                 return
             else:
-                saved_input = self.current_tab().input
+                saved_input = self.core.current_tab().input
                 log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, sha2_found_cert)
-                self.information('New certificate found (sha-2 hash:'
-                                 ' %s)\nPlease validate or abort' % sha2_found_cert,
-                                 'Warning')
+                self.core.information('New certificate found (sha-2 hash:'
+                                      ' %s)\nPlease validate or abort' % sha2_found_cert,
+                                      'Warning')
                 def check_input():
-                    self.current_tab().input = saved_input
+                    self.core.current_tab().input = saved_input
                     if input.value:
-                        self.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
+                        self.core.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
                         log.debug('Setting certificate to %s', sha2_found_cert)
                         if not config.silent_set('certificate', sha2_found_cert):
-                            self.information('Unable to write in the config file', 'Error')
+                            self.core.information('Unable to write in the config file', 'Error')
                     else:
-                        self.information('You refused to validate the certificate. You are now disconnected', 'Info')
-                        self.disconnect()
+                        self.core.information('You refused to validate the certificate. You are now disconnected', 'Info')
+                        self.core.disconnect()
                     new_loop.stop()
                     asyncio.set_event_loop(old_loop)
                 input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n)", callback=check_input)
-                self.current_tab().input = input
-                input.resize(1, self.current_tab().width, self.current_tab().height-1, 0)
+                self.core.current_tab().input = input
+                input.resize(1, self.core.current_tab().width, self.core.current_tab().height-1, 0)
                 input.refresh()
-                self.doupdate()
+                self.core.doupdate()
                 old_loop = asyncio.get_event_loop()
                 new_loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(new_loop)
-                new_loop.add_reader(sys.stdin, self.on_input_readable)
+                new_loop.add_reader(sys.stdin, self.core.on_input_readable)
                 curses.beep()
                 new_loop.run_forever()
         else:
             log.debug('First time. Setting certificate to %s', sha2_found_cert)
             if not config.silent_set('certificate', sha2_found_cert):
-                self.information('Unable to write in the config file', 'Error')
-
-    def _composing_tab_state(tab, state):
-        """
-        Set a tab state to or from the "composing" state
-        according to the config and the current tab state
-        """
-        if isinstance(tab, tabs.MucTab):
-            values = ('true', 'muc')
-        elif isinstance(tab, tabs.PrivateTab):
-            values = ('true', 'direct', 'private')
-        elif isinstance(tab, tabs.ConversationTab):
-            values = ('true', 'direct', 'conversation')
-        else:
-            return # should not happen
-
-        show = config.get('show_composing_tabs')
-        show = show in values
-
-        if tab.state != 'composing' and state == 'composing':
-            if show:
-                if tabs.STATE_PRIORITY[tab.state] > tabs.STATE_PRIORITY[state]:
-                    return
-                tab.save_state()
-                tab.state = 'composing'
-        elif tab.state == 'composing' and state != 'composing':
-            tab.restore_state()
+                self.core.information('Unable to write in the config file', 'Error')
 
     ### Ad-hoc commands
 
@@ -1310,50 +1228,77 @@ class HandlerCore:
         status = iq['command']['status']
         xform = iq.xml.find('{http://jabber.org/protocol/commands}command/{jabber:x:data}x')
         if xform is not None:
-            form = self.xmpp.plugin['xep_0004'].buildForm(xform)
+            form = self.core.xmpp.plugin['xep_0004'].buildForm(xform)
         else:
             form = None
 
         if status == 'error':
-            return self.information("An error occured while executing the command")
+            return self.core.information("An error occured while executing the command")
 
         if status == 'executing':
             if not form:
-                self.information("Adhoc command step does not contain a data-form. Aborting the execution.", "Error")
-                return self.xmpp.plugin['xep_0050'].cancel_command(adhoc_session)
-            on_validate = self.validate_adhoc_step
-            on_cancel = self.cancel_adhoc_command
+                self.core.information("Adhoc command step does not contain a data-form. Aborting the execution.", "Error")
+                return self.core.xmpp.plugin['xep_0050'].cancel_command(adhoc_session)
+            on_validate = self._validate_adhoc_step
+            on_cancel = self._cancel_adhoc_command
         if status == 'completed':
-            on_validate = lambda form, session: self.close_tab()
-            on_cancel = lambda form, session: self.close_tab()
+            on_validate = lambda form, session: self.core.close_tab()
+            on_cancel = lambda form, session: self.core.close_tab()
 
         # If a form is available, use it, and add the Notes from the
         # response to it, if any
         if form:
             for note in iq['command']['notes']:
                 form.add_field(type='fixed', label=note[1])
-            self.open_new_form(form, on_cancel, on_validate,
-                               session=adhoc_session)
+            self.core.open_new_form(form, on_cancel, on_validate,
+                                    session=adhoc_session)
         else:                   # otherwise, just display an information
                                 # message
             notes = '\n'.join([note[1] for note in iq['command']['notes']])
-            self.information("Adhoc command %s: %s" % (status, notes), "Info")
+            self.core.information("Adhoc command %s: %s" % (status, notes), "Info")
 
     def on_adhoc_error(self, iq, adhoc_session):
-        self.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
-        error_message = self.get_error_message(iq)
-        self.information("An error occured while executing the command: %s" % (error_message),
-                         'Error')
+        self.core.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
+        error_message = self.core.get_error_message(iq)
+        self.core.information("An error occured while executing the command: %s" % (error_message),
+                              'Error')
 
-    def cancel_adhoc_command(self, form, session):
-        self.xmpp.plugin['xep_0050'].cancel_command(session)
-        self.close_tab()
+    def _cancel_adhoc_command(self, form, session):
+        self.core.xmpp.plugin['xep_0050'].cancel_command(session)
+        self.core.close_tab()
 
-    def validate_adhoc_step(self, form, session):
+    def _validate_adhoc_step(self, form, session):
         session['payload'] = form
-        self.xmpp.plugin['xep_0050'].continue_command(session)
-        self.close_tab()
+        self.core.xmpp.plugin['xep_0050'].continue_command(session)
+        self.core.close_tab()
 
-    def terminate_adhoc_command(self, form, session):
-        self.xmpp.plugin['xep_0050'].terminate_command(session)
-        self.close_tab()
+    def _terminate_adhoc_command(self, form, session):
+        self.core.xmpp.plugin['xep_0050'].terminate_command(session)
+        self.core.close_tab()
+
+def _composing_tab_state(tab, state):
+    """
+    Set a tab state to or from the "composing" state
+    according to the config and the current tab state
+    """
+    if isinstance(tab, tabs.MucTab):
+        values = ('true', 'muc')
+    elif isinstance(tab, tabs.PrivateTab):
+        values = ('true', 'direct', 'private')
+    elif isinstance(tab, tabs.ConversationTab):
+        values = ('true', 'direct', 'conversation')
+    else:
+        return # should not happen
+
+    show = config.get('show_composing_tabs')
+    show = show in values
+
+    if tab.state != 'composing' and state == 'composing':
+        if show:
+            if tabs.STATE_PRIORITY[tab.state] > tabs.STATE_PRIORITY[state]:
+                return
+            tab.save_state()
+            tab.state = 'composing'
+    elif tab.state == 'composing' and state != 'composing':
+        tab.restore_state()
+

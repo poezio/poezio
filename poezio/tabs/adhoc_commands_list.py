@@ -26,8 +26,8 @@ class AdhocCommandsListTab(ListTab):
         if not self.listview or not self.listview.get_selected_row():
             return
         node, name, jid = self.listview.get_selected_row()
-        session = {'next': self.core.on_next_adhoc_step,
-                   'error': self.core.on_adhoc_error}
+        session = {'next': self.core.handler.next_adhoc_step,
+                   'error': self.core.handler.adhoc_error}
         self.core.xmpp.plugin['xep_0050'].start_command(jid, node, session)
 
     def get_columns_sizes(self):

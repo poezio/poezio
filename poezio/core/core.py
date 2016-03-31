@@ -22,6 +22,7 @@ from slixmpp.xmlstream.handler import Callback
 import connection
 import decorators
 import events
+import multiuserchat as muc
 import singleton
 import tabs
 import theming
@@ -44,7 +45,7 @@ import keyboard
 
 from . completions import CompletionCore
 from . commands import CommandCore
-from . import handlers
+from . handlers import HandlerCore
 from . structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
 
@@ -57,6 +58,7 @@ class Core(object):
     def __init__(self):
         self.completion = CompletionCore(self)
         self.command = CommandCore(self)
+        self.handler = HandlerCore(self)
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
@@ -197,82 +199,82 @@ class Core(object):
         self.key_func.update(key_func)
 
         # Add handlers
-        self.xmpp.add_event_handler('connecting', self.on_connecting)
-        self.xmpp.add_event_handler('connected', self.on_connected)
-        self.xmpp.add_event_handler('connection_failed', self.on_failed_connection)
-        self.xmpp.add_event_handler('disconnected', self.on_disconnected)
-        self.xmpp.add_event_handler('stream_error', self.on_stream_error)
-        self.xmpp.add_event_handler('failed_all_auth', self.on_failed_all_auth)
-        self.xmpp.add_event_handler('no_auth', self.on_no_auth)
-        self.xmpp.add_event_handler("session_start", self.on_session_start)
+        self.xmpp.add_event_handler('connecting', self.handler.on_connecting)
+        self.xmpp.add_event_handler('connected', self.handler.on_connected)
+        self.xmpp.add_event_handler('connection_failed', self.handler.on_failed_connection)
+        self.xmpp.add_event_handler('disconnected', self.handler.on_disconnected)
+        self.xmpp.add_event_handler('stream_error', self.handler.on_stream_error)
+        self.xmpp.add_event_handler('failed_all_auth', self.handler.on_failed_all_auth)
+        self.xmpp.add_event_handler('no_auth', self.handler.on_no_auth)
+        self.xmpp.add_event_handler("session_start", self.handler.on_session_start)
         self.xmpp.add_event_handler("session_start",
-                                    self.on_session_start_features)
+                                    self.handler.on_session_start_features)
         self.xmpp.add_event_handler("groupchat_presence",
-                                    self.on_groupchat_presence)
+                                    self.handler.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message",
-                                    self.on_groupchat_message)
+                                    self.handler.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_invite",
-                                    self.on_groupchat_invitation)
+                                    self.handler.on_groupchat_invitation)
         self.xmpp.add_event_handler("groupchat_direct_invite",
-                                    self.on_groupchat_direct_invitation)
+                                    self.handler.on_groupchat_direct_invitation)
         self.xmpp.add_event_handler("groupchat_decline",
-                                    self.on_groupchat_decline)
+                                    self.handler.on_groupchat_decline)
         self.xmpp.add_event_handler("groupchat_config_status",
-                                    self.on_status_codes)
+                                    self.handler.on_status_codes)
         self.xmpp.add_event_handler("groupchat_subject",
-                                    self.on_groupchat_subject)
-        self.xmpp.add_event_handler("message", self.on_message)
-        self.xmpp.add_event_handler("message_error", self.on_error_message)
-        self.xmpp.add_event_handler("receipt_received", self.on_receipt)
-        self.xmpp.add_event_handler("got_online", self.on_got_online)
-        self.xmpp.add_event_handler("got_offline", self.on_got_offline)
-        self.xmpp.add_event_handler("roster_update", self.on_roster_update)
-        self.xmpp.add_event_handler("changed_status", self.on_presence)
-        self.xmpp.add_event_handler("presence_error", self.on_presence_error)
+                                    self.handler.on_groupchat_subject)
+        self.xmpp.add_event_handler("message", self.handler.on_message)
+        self.xmpp.add_event_handler("message_error", self.handler.on_error_message)
+        self.xmpp.add_event_handler("receipt_received", self.handler.on_receipt)
+        self.xmpp.add_event_handler("got_online", self.handler.on_got_online)
+        self.xmpp.add_event_handler("got_offline", self.handler.on_got_offline)
+        self.xmpp.add_event_handler("roster_update", self.handler.on_roster_update)
+        self.xmpp.add_event_handler("changed_status", self.handler.on_presence)
+        self.xmpp.add_event_handler("presence_error", self.handler.on_presence_error)
         self.xmpp.add_event_handler("roster_subscription_request",
-                                    self.on_subscription_request)
+                                    self.handler.on_subscription_request)
         self.xmpp.add_event_handler("roster_subscription_authorized",
-                                    self.on_subscription_authorized)
+                                    self.handler.on_subscription_authorized)
         self.xmpp.add_event_handler("roster_subscription_remove",
-                                    self.on_subscription_remove)
+                                    self.handler.on_subscription_remove)
         self.xmpp.add_event_handler("roster_subscription_removed",
-                                    self.on_subscription_removed)
-        self.xmpp.add_event_handler("message_xform", self.on_data_form)
+                                    self.handler.on_subscription_removed)
+        self.xmpp.add_event_handler("message_xform", self.handler.on_data_form)
         self.xmpp.add_event_handler("chatstate_active",
-                                    self.on_chatstate_active)
+                                    self.handler.on_chatstate_active)
         self.xmpp.add_event_handler("chatstate_composing",
-                                    self.on_chatstate_composing)
+                                    self.handler.on_chatstate_composing)
         self.xmpp.add_event_handler("chatstate_paused",
-                                    self.on_chatstate_paused)
+                                    self.handler.on_chatstate_paused)
         self.xmpp.add_event_handler("chatstate_gone",
-                                    self.on_chatstate_gone)
+                                    self.handler.on_chatstate_gone)
         self.xmpp.add_event_handler("chatstate_inactive",
-                                    self.on_chatstate_inactive)
-        self.xmpp.add_event_handler("attention", self.on_attention)
-        self.xmpp.add_event_handler("ssl_cert", self.validate_ssl)
-        self.xmpp.add_event_handler("ssl_invalid_chain", self.ssl_invalid_chain)
-        self.xmpp.add_event_handler('carbon_received', self.on_carbon_received)
-        self.xmpp.add_event_handler('carbon_sent', self.on_carbon_sent)
+                                    self.handler.on_chatstate_inactive)
+        self.xmpp.add_event_handler("attention", self.handler.on_attention)
+        self.xmpp.add_event_handler("ssl_cert", self.handler.validate_ssl)
+        self.xmpp.add_event_handler("ssl_invalid_chain", self.handler.ssl_invalid_chain)
+        self.xmpp.add_event_handler('carbon_received', self.handler.on_carbon_received)
+        self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
 
         self.all_stanzas = Callback('custom matcher',
                                     connection.MatchAll(None),
-                                    self.incoming_stanza)
+                                    self.handler.incoming_stanza)
         self.xmpp.register_handler(self.all_stanzas)
         if config.get('enable_user_tune'):
             self.xmpp.add_event_handler("user_tune_publish",
-                                        self.on_tune_event)
+                                        self.handler.on_tune_event)
         if config.get('enable_user_nick'):
             self.xmpp.add_event_handler("user_nick_publish",
-                                        self.on_nick_received)
+                                        self.handler.on_nick_received)
         if config.get('enable_user_mood'):
             self.xmpp.add_event_handler("user_mood_publish",
-                                        self.on_mood_event)
+                                        self.handler.on_mood_event)
         if config.get('enable_user_activity'):
             self.xmpp.add_event_handler("user_activity_publish",
-                                        self.on_activity_event)
+                                        self.handler.on_activity_event)
         if config.get('enable_user_gaming'):
             self.xmpp.add_event_handler("user_gaming_publish",
-                                        self.on_gaming_event)
+                                        self.handler.on_gaming_event)
 
         self.initial_joins = []
 
@@ -1950,69 +1952,67 @@ class Core(object):
                     shortdesc='Send your gaming activity.',
                     completion=None)
 
-####################### XMPP Event Handlers  ##################################
-    on_session_start_features = handlers.on_session_start_features
-    on_carbon_received = handlers.on_carbon_received
-    on_carbon_sent = handlers.on_carbon_sent
-    on_groupchat_invitation = handlers.on_groupchat_invitation
-    on_groupchat_direct_invitation = handlers.on_groupchat_direct_invitation
-    on_groupchat_decline = handlers.on_groupchat_decline
-    on_message = handlers.on_message
-    on_error_message = handlers.on_error_message
-    on_normal_message = handlers.on_normal_message
-    on_nick_received = handlers.on_nick_received
-    on_gaming_event = handlers.on_gaming_event
-    on_mood_event = handlers.on_mood_event
-    on_activity_event = handlers.on_activity_event
-    on_tune_event = handlers.on_tune_event
-    on_groupchat_message = handlers.on_groupchat_message
-    on_muc_own_nickchange = handlers.on_muc_own_nickchange
-    on_groupchat_private_message = handlers.on_groupchat_private_message
-    on_chatstate_active = handlers.on_chatstate_active
-    on_chatstate_inactive = handlers.on_chatstate_inactive
-    on_chatstate_composing = handlers.on_chatstate_composing
-    on_chatstate_paused = handlers.on_chatstate_paused
-    on_chatstate_gone = handlers.on_chatstate_gone
-    on_chatstate = handlers.on_chatstate
-    on_chatstate_normal_conversation = handlers.on_chatstate_normal_conversation
-    on_chatstate_private_conversation = \
-            handlers.on_chatstate_private_conversation
-    on_chatstate_groupchat_conversation = \
-            handlers.on_chatstate_groupchat_conversation
-    on_roster_update = handlers.on_roster_update
-    on_subscription_request = handlers.on_subscription_request
-    on_subscription_authorized = handlers.on_subscription_authorized
-    on_subscription_remove = handlers.on_subscription_remove
-    on_subscription_removed = handlers.on_subscription_removed
-    on_presence = handlers.on_presence
-    on_presence_error = handlers.on_presence_error
-    on_got_offline = handlers.on_got_offline
-    on_got_online = handlers.on_got_online
-    on_groupchat_presence = handlers.on_groupchat_presence
-    on_failed_connection = handlers.on_failed_connection
-    on_disconnected = handlers.on_disconnected
-    on_stream_error = handlers.on_stream_error
-    on_failed_all_auth = handlers.on_failed_all_auth
-    on_no_auth = handlers.on_no_auth
-    on_connected = handlers.on_connected
-    on_connecting = handlers.on_connecting
-    on_session_start = handlers.on_session_start
-    on_status_codes = handlers.on_status_codes
-    on_groupchat_subject = handlers.on_groupchat_subject
-    on_data_form = handlers.on_data_form
-    on_receipt = handlers.on_receipt
-    on_attention = handlers.on_attention
-    room_error = handlers.room_error
-    check_bookmark_storage = handlers.check_bookmark_storage
-    outgoing_stanza = handlers.outgoing_stanza
-    incoming_stanza = handlers.incoming_stanza
-    validate_ssl = handlers.validate_ssl
-    ssl_invalid_chain = handlers.ssl_invalid_chain
-    on_next_adhoc_step = handlers.on_next_adhoc_step
-    on_adhoc_error = handlers.on_adhoc_error
-    cancel_adhoc_command = handlers.cancel_adhoc_command
-    validate_adhoc_step = handlers.validate_adhoc_step
-    terminate_adhoc_command = handlers.terminate_adhoc_command
+####################### Random things to move #################################
+
+    def join_initial_rooms(self, bookmarks):
+        """Join all rooms given in the iterator `bookmarks`"""
+        for bm in bookmarks:
+            if not (bm.autojoin or config.get('open_all_bookmarks')):
+                continue
+            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+            nick = bm.nick if bm.nick else self.own_nick
+            if not tab:
+                self.open_new_room(bm.jid, nick, focus=False,
+                                   password=bm.password)
+            self.initial_joins.append(bm.jid)
+            # do not join rooms that do not have autojoin
+            # but display them anyway
+            if bm.autojoin:
+                muc.join_groupchat(self, bm.jid, nick,
+                        passwd=bm.password,
+                        status=self.status.message,
+                        show=self.status.show)
+
+    def check_bookmark_storage(self, features):
+        private = 'jabber:iq:private' in features
+        pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
+        self.bookmarks.available_storage['private'] = private
+        self.bookmarks.available_storage['pep'] = pep_
+        def _join_remote_only(iq):
+            if iq['type'] == 'error':
+                type_ = iq['error']['type']
+                condition = iq['error']['condition']
+                if not (type_ == 'cancel' and condition == 'item-not-found'):
+                    self.information('Unable to fetch the remote'
+                                     ' bookmarks; %s: %s' % (type_, condition),
+                                     'Error')
+                return
+            remote_bookmarks = self.bookmarks.remote()
+            self.join_initial_rooms(remote_bookmarks)
+        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
+            self.bookmarks.get_remote(self.xmpp, self.information, _join_remote_only)
+
+    def room_error(self, error, room_name):
+        """
+        Display the error in the tab
+        """
+        tab = self.get_tab_by_name(room_name, tabs.MucTab)
+        if not tab:
+            return
+        error_message = self.get_error_message(error)
+        tab.add_message(error_message, highlight=True, nickname='Error',
+                        nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+        code = error['error']['code']
+        if code == '401':
+            msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
+            tab.add_message(msg, typ=2)
+        if code == '409':
+            if config.get('alternative_nickname') != '':
+                self.command.join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
+            else:
+                if not tab.joined:
+                    tab.add_message('You can join the room with an other nick, by typing "/join /other_nick"', typ=2)
+        self.refresh_window()
 
 
 

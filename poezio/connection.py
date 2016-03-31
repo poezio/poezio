@@ -211,7 +211,7 @@ class Connection(slixmpp.ClientXMPP):
         Overrides XMLStream.send_raw, with an event added
         """
         if self.core:
-            self.core.outgoing_stanza(data)
+            self.core.handler.outgoing_stanza(data)
         slixmpp.ClientXMPP.send_raw(self, data)
 
 class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
