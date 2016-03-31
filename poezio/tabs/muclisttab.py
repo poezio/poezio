@@ -66,5 +66,5 @@ class MucListTab(ListTab):
         row = self.listview.get_selected_row()
         if not row:
             return
-        self.core.command_join(row[1])
+        self.core.command.join(row[1])
 

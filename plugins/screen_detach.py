@@ -99,7 +99,7 @@ class Plugin(BasePlugin, pyinotify.Notifier):
         if attached != self.attached:
             self.attached = attached
             status = 'available' if self.attached else 'away'
-            self.core.command_status(status)
+            self.core.command.status(status)
             if self.config.get('use_csi'):
                 if self.attached:
                     self.core.xmpp.plugin['xep_0352'].send_active()

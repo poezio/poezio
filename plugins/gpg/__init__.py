@@ -194,7 +194,7 @@ class Plugin(BasePlugin):
         that we cannot/do not want to encrypt/decrypt messages.
         """
         current_presence = self.core.get_status()
-        self.core.command_status('%s %s' % (current_presence.show or 'available', current_presence.message or '',))
+        self.core.command.status('%s %s' % (current_presence.show or 'available', current_presence.message or '',))
 
     def on_normal_presence(self, presence):
         """
@@ -293,7 +293,7 @@ class Plugin(BasePlugin):
         """
         args = args.split()
         if not args:
-            return self.core.command_help("gpg")
+            return self.core.command.help("gpg")
         if len(args) >= 2:
             jid = JID(args[1])
         else:
@@ -313,7 +313,7 @@ class Plugin(BasePlugin):
             self.contacts[JID(jid).full] = 'disabled'
         elif command == 'setkey':
             if len(args) != 3:
-                return self.core.command_help("gpg")
+                return self.core.command.help("gpg")
             if not self.config.has_section('keys'):
                 self.config.add_section('keys')
             self.config.set(jid.bare, args[2], 'keys')

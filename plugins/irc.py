@@ -178,7 +178,7 @@ class Plugin(BasePlugin):
         rooms = self.config.get_by_tabname('rooms', server, default='').split(':')
         for room in rooms:
             room = '{}%{}@{}/{}'.format(room, server, gateway, nick)
-            self.core.command_join(room)
+            self.core.command.join(room)
 
     def initial_connect(self):
         gateway = self.config.get('gateway', 'irc.poez.io')
@@ -204,7 +204,7 @@ class Plugin(BasePlugin):
                     delayed = self.api.create_delayed_event(5, self.join, gw, sect)
                     self.api.add_timed_event(delayed)
                 if not already_opened:
-                    self.core.command_join(room_suffix + '/' + nick)
+                    self.core.command.join(room_suffix + '/' + nick)
                     delayed = self.api.create_delayed_event(5, login, gateway, section,
                                                             login_nick, login_command,
                                                             room_suffix[1:])
@@ -278,7 +278,7 @@ class Plugin(BasePlugin):
         /irc_join <room or server>
         """
         if not args:
-            return self.core.command_help('irc_join')
+            return self.core.command.help('irc_join')
         sections = self.config.sections()
         if 'irc' in sections:
             sections.remove('irc')
@@ -294,7 +294,7 @@ class Plugin(BasePlugin):
         server.
         """
         if args is None:
-            return self.core.command_help('irc_query')
+            return self.core.command.help('irc_query')
         current_tab_info = self.get_current_tab_irc_info()
         if not current_tab_info:
             return
@@ -305,9 +305,9 @@ class Plugin(BasePlugin):
             message = args[1]
         jid = '{}!{}@{}'.format(nickname, server, gateway)
         if message:
-            self.core.command_message('{} "{}"'.format(jid, message))
+            self.core.command.message('{} "{}"'.format(jid, message))
         else:
-            self.core.command_message('{}'.format(jid))
+            self.core.command.message('{}'.format(jid))
 
     def join_server_rooms(self, section):
         """
@@ -324,7 +324,7 @@ class Plugin(BasePlugin):
         suffix = '%{}@{}{}'.format(section, gateway, nick)
 
         for room in rooms:
-            self.core.command_join(room + suffix)
+            self.core.command.join(room + suffix)
 
     def join_room(self, name):
         """
@@ -339,7 +339,7 @@ class Plugin(BasePlugin):
         if self.config.get_by_tabname('nickname', server):
             room += '/' + self.config.get_by_tabname('nickname', server)
 
-        self.core.command_join(room)
+        self.core.command.join(room)
 
     def get_current_tab_irc_info(self):
         """

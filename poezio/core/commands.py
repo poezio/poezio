@@ -35,7 +35,7 @@ class CommandCore:
         self.core = core
 
     @command_args_parser.quoted(0, 1)
-    def command_help(self, args):
+    def help(self, args):
         """
         /help [command_name]
         """
@@ -43,27 +43,27 @@ class CommandCore:
             color = dump_tuple(get_theme().COLOR_HELP_COMMANDS)
             acc = []
             buff = ['Global commands:']
-            for command in self.commands:
-                if isinstance(self.commands[command], Command):
+            for name, command in enumerate(self.core.commands):
+                if isinstance(command, Command):
                     acc.append('  \x19%s}%s\x19o - %s' % (
                                    color,
-                                   command,
-                                   self.commands[command].short_desc))
+                                   name,
+                                   command.short_desc))
                 else:
-                    acc.append('  \x19%s}%s\x19o' % (color, command))
+                    acc.append('  \x19%s}%s\x19o' % (color, name))
             acc = sorted(acc)
             buff.extend(acc)
             acc = []
             buff.append('Tab-specific commands:')
-            commands = self.current_tab().commands
-            for command in commands:
-                if isinstance(commands[command], Command):
+            tab_commands = self.core.current_tab().commands
+            for name, command in enumerate(tab_commands):
+                if isinstance(command, Command):
                     acc.append('  \x19%s}%s\x19o - %s' % (
                                     color,
-                                    command,
-                                    commands[command].short_desc))
+                                    name,
+                                    command.short_desc))
                 else:
-                    acc.append('  \x19%s}%s\x19o' % (color, command))
+                    acc.append('  \x19%s}%s\x19o' % (color, name))
             acc = sorted(acc)
             buff.extend(acc)
 
@@ -72,22 +72,23 @@ class CommandCore:
         else:
             command = args[0].lstrip('/').strip()
 
-            if command in self.current_tab().commands:
-                tup = self.current_tab().commands[command]
-            elif command in self.commands:
-                tup = self.commands[command]
+            tab_commands = self.core.current_tab().commands
+            if command in tab_commands:
+                tup = tab_commands[command]
+            elif command in self.core.commands:
+                tup = self.core.commands[command]
             else:
-                self.information('Unknown command: %s' % command, 'Error')
+                self.core.information('Unknown command: %s' % command, 'Error')
                 return
             if isinstance(tup, Command):
                 msg = 'Usage: /%s %s\n' % (command, tup.usage)
                 msg += tup.desc
             else:
                 msg = tup[1]
-        self.information(msg, 'Help')
+        self.core.information(msg, 'Help')
 
     @command_args_parser.quoted(1)
-    def command_runkey(self, args):
+    def runkey(self, args):
         """
         /runkey <key>
         """
@@ -97,71 +98,71 @@ class CommandCore:
                 return '\n'
             return key
         if args is None:
-            return self.command_help('runkey')
+            return self.help('runkey')
         char = args[0]
-        func = self.key_func.get(char, None)
+        func = self.core.key_func.get(char, None)
         if func:
             func()
         else:
-            res = self.do_command(replace_line_breaks(char), False)
+            res = self.core.do_command(replace_line_breaks(char), False)
             if res:
-                self.refresh_window()
+                self.core.refresh_window()
 
     @command_args_parser.quoted(1, 1, [None])
-    def command_status(self, args):
+    def status(self, args):
         """
         /status <status> [msg]
         """
         if args is None:
-            return self.command_help('status')
+            return self.help('status')
 
         if not args[0] in POSSIBLE_SHOW.keys():
-            return self.command_help('status')
+            return self.help('status')
 
         show = POSSIBLE_SHOW[args[0]]
         msg = args[1]
 
-        pres = self.xmpp.make_presence()
+        pres = self.core.xmpp.make_presence()
         if msg:
             pres['status'] = msg
         pres['type'] = show
-        self.events.trigger('send_normal_presence', pres)
+        self.core.events.trigger('send_normal_presence', pres)
         pres.send()
-        current = self.current_tab()
+        current = self.core.current_tab()
         is_muctab = isinstance(current, tabs.MucTab)
         if is_muctab and current.joined and show in ('away', 'xa'):
             current.send_chat_state('inactive')
-        for tab in self.tabs:
+        for tab in self.core.tabs:
             if isinstance(tab, tabs.MucTab) and tab.joined:
-                muc.change_show(self.xmpp, tab.name, tab.own_nick, show, msg)
+                muc.change_show(self.core.xmpp, tab.name, tab.own_nick, show, msg)
             if hasattr(tab, 'directed_presence'):
                 del tab.directed_presence
-        self.set_status(show, msg)
+        self.core.set_status(show, msg)
         if is_muctab and current.joined and show not in ('away', 'xa'):
             current.send_chat_state('active')
 
     @command_args_parser.quoted(1, 2, [None, None])
-    def command_presence(self, args):
+    def presence(self, args):
         """
         /presence <JID> [type] [status]
         """
         if args is None:
-            return self.command_help('presence')
+            return self.help('presence')
 
         jid, type, status = args[0], args[1], args[2]
-        if jid == '.' and isinstance(self.current_tab(), tabs.ChatTab):
-            jid = self.current_tab().name
+        if jid == '.' and isinstance(self.core.current_tab(), tabs.ChatTab):
+            jid = self.core.current_tab().name
         if type == 'available':
             type = None
         try:
-            pres = self.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
-            self.events.trigger('send_normal_presence', pres)
+            pres = self.core.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
+            self.core.events.trigger('send_normal_presence', pres)
             pres.send()
         except:
-            self.information('Could not send directed presence', 'Error')
+            self.core.information('Could not send directed presence', 'Error')
             log.debug('Could not send directed presence to %s', jid, exc_info=True)
             return
-        tab = self.get_tab_by_name(jid)
+        tab = self.core.get_tab_by_name(jid)
         if tab:
             if type in ('xa', 'away'):
                 tab.directed_presence = False
@@ -169,67 +170,67 @@ class CommandCore:
             else:
                 tab.directed_presence = True
                 chatstate = 'active'
-            if tab == self.current_tab():
+            if tab == self.core.current_tab():
                 tab.send_chat_state(chatstate, True)
             if isinstance(tab, tabs.MucTab):
                 for private in tab.privates:
                     private.directed_presence = tab.directed_presence
-                if self.current_tab() in tab.privates:
-                    self.current_tab().send_chat_state(chatstate, True)
+                if self.core.current_tab() in tab.privates:
+                    self.core.current_tab().send_chat_state(chatstate, True)
 
     @command_args_parser.quoted(1)
-    def command_theme(self, args=None):
+    def theme(self, args=None):
         """/theme <theme name>"""
         if args is None:
-            return self.command_help('theme')
-        self.command_set('theme %s' % (args[0],))
+            return self.help('theme')
+        self.set('theme %s' % (args[0],))
 
     @command_args_parser.quoted(1)
-    def command_win(self, args):
+    def win(self, args):
         """
         /win <number>
         """
         if args is None:
-            return self.command_help('win')
+            return self.help('win')
 
         nb = args[0]
         try:
             nb = int(nb)
         except ValueError:
             pass
-        if self.current_tab_nb == nb:
+        if self.core.current_tab_nb == nb:
             return
-        self.previous_tab_nb = self.current_tab_nb
-        old_tab = self.current_tab()
+        self.core.previous_tab_nb = self.core.current_tab_nb
+        old_tab = self.core.current_tab()
         if isinstance(nb, int):
-            if 0 <= nb < len(self.tabs):
-                if not self.tabs[nb]:
+            if 0 <= nb < len(self.core.tabs):
+                if not self.core.tabs[nb]:
                     return
-                self.current_tab_nb = nb
+                self.core.current_tab_nb = nb
         else:
             matchs = []
-            for tab in self.tabs:
+            for tab in self.core.tabs:
                 for name in tab.matching_names():
                     if nb.lower() in name[1].lower():
                         matchs.append((name[0], tab))
-                        self.current_tab_nb = tab.nb
+                        self.core.current_tab_nb = tab.nb
             if not matchs:
                 return
             tab = min(matchs, key=lambda m: m[0])[1]
-            self.current_tab_nb = tab.nb
+            self.core.current_tab_nb = tab.nb
         old_tab.on_lose_focus()
-        self.current_tab().on_gain_focus()
-        self.refresh_window()
+        self.core.current_tab().on_gain_focus()
+        self.core.refresh_window()
 
     @command_args_parser.quoted(2)
-    def command_move_tab(self, args):
+    def move_tab(self, args):
         """
         /move_tab old_pos new_pos
         """
         if args is None:
-            return self.command_help('move_tab')
+            return self.help('move_tab')
 
-        current_tab = self.current_tab()
+        current_tab = self.core.current_tab()
         if args[0] == '.':
             args[0] = current_tab.nb
         if args[1] == '.':
@@ -242,83 +243,83 @@ class CommandCore:
                 ref = int(value)
             except ValueError:
                 old_tab = None
-                for tab in self.tabs:
+                for tab in self.core.tabs:
                     if not old_tab and value == tab.name:
                         old_tab = tab
                 if not old_tab:
-                    self.information("Tab %s does not exist" % args[0], "Error")
+                    self.core.information("Tab %s does not exist" % args[0], "Error")
                     return None
                 ref = old_tab.nb
             return ref
         old = get_nb_from_value(args[0])
         new = get_nb_from_value(args[1])
         if new is None or old is None:
-            return self.information('Unable to move the tab.', 'Info')
-        result = self.insert_tab(old, new)
+            return self.core.information('Unable to move the tab.', 'Info')
+        result = self.core.insert_tab(old, new)
         if not result:
-            self.information('Unable to move the tab.', 'Info')
+            self.core.information('Unable to move the tab.', 'Info')
         else:
-            self.current_tab_nb = self.tabs.index(current_tab)
-        self.refresh_window()
+            self.core.current_tab_nb = self.core.tabs.index(current_tab)
+        self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
-    def command_list(self, args):
+    def list(self, args):
         """
         /list [server]
         Opens a MucListTab containing the list of the room in the specified server
         """
         if args is None:
-            return self.command_help('list')
+            return self.help('list')
         elif args:
             jid = safeJID(args[0])
         else:
-            if not isinstance(self.current_tab(), tabs.MucTab):
-                return self.information('Please provide a server', 'Error')
-            jid = safeJID(self.current_tab().name).server
+            if not isinstance(self.core.current_tab(), tabs.MucTab):
+                return self.core.information('Please provide a server', 'Error')
+            jid = safeJID(self.core.current_tab().name).server
         list_tab = tabs.MucListTab(jid)
-        self.add_tab(list_tab, True)
+        self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
-        self.xmpp.plugin['xep_0030'].get_items(jid=jid,
-                                               callback=cb)
+        self.core.xmpp.plugin['xep_0030'].get_items(jid=jid,
+                                                    callback=cb)
 
     @command_args_parser.quoted(1)
-    def command_version(self, args):
+    def version(self, args):
         """
         /version <jid>
         """
         def callback(res):
             "Callback for /version"
             if not res:
-                return self.information('Could not get the software'
-                                        ' version from %s' % jid,
-                                        'Warning')
+                return self.core.information('Could not get the software'
+                                             ' version from %s' % jid,
+                                             'Warning')
             version = '%s is running %s version %s on %s' % (
                             jid,
                             res.get('name') or 'an unknown software',
                             res.get('version') or 'unknown',
                             res.get('os') or 'an unknown platform')
-            self.information(version, 'Info')
+            self.core.information(version, 'Info')
 
         if args is None:
-            return self.command_help('version')
+            return self.help('version')
 
         jid = safeJID(args[0])
         if jid.resource or jid not in roster:
-            fixes.get_version(self.xmpp, jid, callback=callback)
+            fixes.get_version(self.core.xmpp, jid, callback=callback)
         elif jid in roster:
             for resource in roster[jid].resources:
-                fixes.get_version(self.xmpp, resource.jid, callback=callback)
+                fixes.get_version(self.core.xmpp, resource.jid, callback=callback)
             else:
-                fixes.get_version(self.xmpp, jid, callback=callback)
+                fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     @command_args_parser.quoted(0, 2)
-    def command_join(self, args):
+    def join(self, args):
         """
         /join [room][/nick] [password]
         """
         password = None
         if len(args) == 0:
-            tab = self.current_tab()
+            tab = self.core.current_tab()
             if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
                 return
             room = safeJID(tab.name).bare
@@ -333,11 +334,11 @@ class CommandCore:
             if info == '' and len(args[0]) > 1 and args[0][0] == '/':
                 nick = args[0][1:]
             elif info.resource == '':
-                nick = self.own_nick
+                nick = self.core.own_nick
             else:
                 nick = info.resource
             if info.bare == '':   # happens with /join /nickname, which is OK
-                tab = self.current_tab()
+                tab = self.core.current_tab()
                 if not isinstance(tab, tabs.MucTab):
                     return
                 room = tab.name
@@ -349,25 +350,25 @@ class CommandCore:
                 # use the server of the current room if available
                 # check if the current room's name has a server
                 if room.find('@') == -1 and not server_root:
-                    if isinstance(self.current_tab(), tabs.MucTab) and\
-                            self.current_tab().name.find('@') != -1:
-                        domain = safeJID(self.current_tab().name).domain
+                    tab = self.core.current_tab()
+                    if isinstance(tab, tabs.MucTab) and\
+                            tab.name.find('@') != -1:
+                        domain = safeJID(tab.name).domain
                         room += '@%s' % domain
                     else:
                         room = args[0]
         room = room.lower()
-        if room in self.pending_invites:
-            del self.pending_invites[room]
-        tab = self.get_tab_by_name(room, tabs.MucTab)
+        if room in self.core.pending_invites:
+            del self.core.pending_invites[room]
+        tab = self.core.get_tab_by_name(room, tabs.MucTab)
         if tab is not None:
-            self.focus_tab_named(tab.name)
+            self.core.focus_tab_named(tab.name)
             if tab.own_nick == nick and tab.joined:
-                self.information('/join: Nothing to do.', 'Info')
+                self.core.information('/join: Nothing to do.', 'Info')
             else:
                 tab.command_part('')
                 tab.own_nick = nick
                 tab.join()
-
             return
 
         if room.startswith('@'):
@@ -381,70 +382,71 @@ class CommandCore:
                 tab.password = password
             tab.join()
         else:
-            tab = self.open_new_room(room, nick, password=password)
+            tab = self.core.open_new_room(room, nick, password=password)
             tab.join()
 
         if tab.joined:
-            self.enable_private_tabs(room)
+            self.core.enable_private_tabs(room)
             tab.state = "normal"
-            if tab == self.current_tab():
+            if tab == self.core.current_tab():
                 tab.refresh()
-                self.doupdate()
+                self.core.doupdate()
 
     @command_args_parser.quoted(0, 2)
-    def command_bookmark_local(self, args):
+    def bookmark_local(self, args):
         """
         /bookmark_local [room][/nick] [password]
         """
-        if not args and not isinstance(self.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.core.current_tab(), tabs.MucTab):
             return
         password = args[1] if len(args) > 1 else None
         jid = args[0] if args else None
 
-        _add_bookmark(self, jid, True, password, 'local')
+        self._add_bookmark(jid, True, password, 'local')
 
     @command_args_parser.quoted(0, 3)
-    def command_bookmark(self, args):
+    def bookmark(self, args):
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
-        if not args and not isinstance(self.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.core.current_tab(), tabs.MucTab):
             return
         jid = args[0] if args else ''
         password = args[2] if len(args) > 2 else None
 
         if not config.get('use_remote_bookmarks'):
-            return _add_bookmark(self, jid, True, password, 'local')
+            return self._add_bookmark(jid, True, password, 'local')
 
         if len(args) > 1:
             autojoin = False if args[1].lower() != 'true' else True
         else:
             autojoin = True
 
-        _add_bookmark(self, jid, autojoin, password, 'remote')
+        self._add_bookmark(jid, autojoin, password, 'remote')
 
     def _add_bookmark(self, jid, autojoin, password, method):
         nick = None
         if not jid:
-            tab = self.current_tab()
+            tab = self.core.current_tab()
             roomname = tab.name
-            if tab.joined and tab.own_nick != self.own_nick:
+            if tab.joined and tab.own_nick != self.core.own_nick:
                 nick = tab.own_nick
             if password is None and tab.password is not None:
                 password = tab.password
         elif jid == '*':
-            return _add_wildcard_bookmarks(self, method)
+            return self._add_wildcard_bookmarks(method)
         else:
             info = safeJID(jid)
             roomname, nick = info.bare, info.resource
             if roomname == '':
-                if not isinstance(self.current_tab(), tabs.MucTab):
+                tab = self.core.current_tab()
+                if not isinstance(tab, tabs.MucTab):
                     return
-                roomname = self.current_tab().name
-        bookmark = self.bookmarks[roomname]
+                roomname = tab.name
+        bookmark = self.core.bookmarks[roomname]
         if bookmark is None:
             bookmark = Bookmark(roomname)
-            self.bookmarks.append(bookmark)
+            self.core.bookmarks.append(bookmark)
         bookmark.method = method
         bookmark.autojoin = autojoin
         if nick:
@@ -453,16 +455,16 @@ class CommandCore:
             bookmark.password = password
         def callback(iq):
             if iq["type"] != "error":
-                self.information('Bookmark added.', 'Info')
+                self.core.information('Bookmark added.', 'Info')
             else:
-                self.information("Could not add the bookmarks.", "Info")
-        self.bookmarks.save_local()
-        self.bookmarks.save_remote(self.xmpp, callback)
+                self.core.information("Could not add the bookmarks.", "Info")
+        self.core.bookmarks.save_local()
+        self.core.bookmarks.save_remote(self.core.xmpp, callback)
 
     def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
-        for tab in self.get_tabs(tabs.MucTab):
-            bookmark = self.bookmarks[tab.name]
+        for tab in self.core.get_tabs(tabs.MucTab):
+            bookmark = self.core.bookmarks[tab.name]
             if not bookmark:
                 bookmark = Bookmark(tab.name, autojoin=True,
                                     method=method)
@@ -470,58 +472,58 @@ class CommandCore:
             else:
                 bookmark.method = method
                 new_bookmarks.append(bookmark)
-                self.bookmarks.remove(bookmark)
-        new_bookmarks.extend(self.bookmarks.bookmarks)
-        self.bookmarks.set(new_bookmarks)
+                self.core.bookmarks.remove(bookmark)
+        new_bookmarks.extend(self.core.bookmarks.bookmarks)
+        self.core.bookmarks.set(new_bookmarks)
         def _cb(iq):
             if iq["type"] != "error":
-                self.information("Bookmarks saved.", "Info")
+                self.core.information("Bookmarks saved.", "Info")
             else:
-                self.information("Could not save the remote bookmarks.", "Info")
-        self.bookmarks.save_local()
-        self.bookmarks.save_remote(self.xmpp, _cb)
+                self.core.information("Could not save the remote bookmarks.", "Info")
+        self.core.bookmarks.save_local()
+        self.core.bookmarks.save_remote(self.core.xmpp, _cb)
 
     @command_args_parser.ignored
-    def command_bookmarks(self):
+    def bookmarks(self):
         """/bookmarks"""
-        tab = self.get_tab_by_name('Bookmarks', tabs.BookmarksTab)
-        old_tab = self.current_tab()
+        tab = self.core.get_tab_by_name('Bookmarks', tabs.BookmarksTab)
+        old_tab = self.core.current_tab()
         if tab:
-            self.current_tab_nb = tab.nb
+            self.core.current_tab_nb = tab.nb
         else:
-            tab = tabs.BookmarksTab(self.bookmarks)
-            self.tabs.append(tab)
-            self.current_tab_nb = tab.nb
+            tab = tabs.BookmarksTab(self.core.bookmarks)
+            self.core.tabs.append(tab)
+            self.core.current_tab_nb = tab.nb
         old_tab.on_lose_focus()
         tab.on_gain_focus()
-        self.refresh_window()
+        self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
-    def command_remove_bookmark(self, args):
+    def remove_bookmark(self, args):
         """/remove_bookmark [jid]"""
 
         def cb(success):
             if success:
-                self.information('Bookmark deleted', 'Info')
+                self.core.information('Bookmark deleted', 'Info')
             else:
-                self.information('Error while deleting the bookmark', 'Error')
+                self.core.information('Error while deleting the bookmark', 'Error')
 
         if not args:
-            tab = self.current_tab()
-            if isinstance(tab, tabs.MucTab) and self.bookmarks[tab.name]:
-                self.bookmarks.remove(tab.name)
-                self.bookmarks.save(self.xmpp, callback=cb)
+            tab = self.core.current_tab()
+            if isinstance(tab, tabs.MucTab) and self.core.bookmarks[tab.name]:
+                self.core.bookmarks.remove(tab.name)
+                self.core.bookmarks.save(self.core.xmpp, callback=cb)
             else:
-                self.information('No bookmark to remove', 'Info')
+                self.core.information('No bookmark to remove', 'Info')
         else:
-            if self.bookmarks[args[0]]:
-                self.bookmarks.remove(args[0])
-                self.bookmarks.save(self.xmpp, callback=cb)
+            if self.core.bookmarks[args[0]]:
+                self.core.bookmarks.remove(args[0])
+                self.core.bookmarks.save(self.core.xmpp, callback=cb)
             else:
-                self.information('No bookmark to remove', 'Info')
+                self.core.information('No bookmark to remove', 'Info')
 
     @command_args_parser.quoted(0, 3)
-    def command_set(self, args):
+    def set(self, args):
         """
         /set [module|][section] <option> [value]
         """
@@ -552,12 +554,12 @@ class CommandCore:
                 if not section:
                     section = plugin_name
                 option = args[1]
-                if not plugin_name in self.plugin_manager.plugins:
-                    file_name = self.plugin_manager.plugins_conf_dir
+                if not plugin_name in self.core.plugin_manager.plugins:
+                    file_name = self.core.plugin_manager.plugins_conf_dir
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
-                    plugin_config = self.plugin_manager.plugins[plugin_name].config
+                    plugin_config = self.core.plugin_manager.plugins[plugin_name].config
                 value = plugin_config.get(option, default='', section=section)
                 info = ('%s=%s' % (option, value), 'Info')
             else:
@@ -571,7 +573,7 @@ class CommandCore:
                     option = args[0]
                     value = args[1]
                     info = config.set_and_save(option, value)
-                    self.trigger_configuration_change(option, value)
+                    self.core.trigger_configuration_change(option, value)
         elif len(args) == 3:
             if '|' in args[0]:
                 plugin_name, section = args[0].split('|')[:2]
@@ -579,19 +581,19 @@ class CommandCore:
                     section = plugin_name
                 option = args[1]
                 value = args[2]
-                if not plugin_name in self.plugin_manager.plugins:
-                    file_name = self.plugin_manager.plugins_conf_dir
+                if not plugin_name in self.core.plugin_manager.plugins:
+                    file_name = self.core.plugin_manager.plugins_conf_dir
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
-                    plugin_config = self.plugin_manager.plugins[plugin_name].config
+                    plugin_config = self.core.plugin_manager.plugins[plugin_name].config
                 info = plugin_config.set_and_save(option, value, section)
             else:
                 if args[0] == '.':
-                    name = safeJID(self.current_tab().name).bare
+                    name = safeJID(self.core.current_tab().name).bare
                     if not name:
-                        self.information('Invalid tab to use the "." argument.',
-                                         'Error')
+                        self.core.information('Invalid tab to use the "." argument.',
+                                              'Error')
                         return
                     section = name
                 else:
@@ -599,13 +601,13 @@ class CommandCore:
                 option = args[1]
                 value = args[2]
                 info = config.set_and_save(option, value, section)
-                self.trigger_configuration_change(option, value)
+                self.core.trigger_configuration_change(option, value)
         elif len(args) > 3:
-            return self.command_help('set')
-        self.information(*info)
+            return self.help('set')
+        self.core.information(*info)
 
     @command_args_parser.quoted(1, 2)
-    def command_set_default(self, args):
+    def set_default(self, args):
         """
         /set_default [section] <option>
         """
@@ -616,33 +618,33 @@ class CommandCore:
             section = args[0]
             option = args[1]
         else:
-            return self.command_help('set_default')
+            return self.help('set_default')
 
         default_config = DEFAULT_CONFIG.get(section, tuple())
         if option not in default_config:
             info = ("Option %s has no default value" % (option), "Error")
-            return self.information(*info)
-        self.command_set('%s %s %s' % (section, option, default_config[option]))
+            return self.core.information(*info)
+        self.set('%s %s %s' % (section, option, default_config[option]))
 
     @command_args_parser.quoted(1)
-    def command_toggle(self, args):
+    def toggle(self, args):
         """
         /toggle <option>
         shortcut for /set <option> toggle
         """
         if args is None:
-            return self.command_help('toggle')
+            return self.help('toggle')
 
         if args[0]:
-            self.command_set('%s toggle' % args[0])
+            self.set('%s toggle' % args[0])
 
     @command_args_parser.quoted(1, 1)
-    def command_server_cycle(self, args):
+    def server_cycle(self, args):
         """
         Do a /cycle on each room of the given server.
         If none, do it on the current tab
         """
-        tab = self.current_tab()
+        tab = self.core.current_tab()
         message = ""
         if args:
             domain = args[0]
@@ -652,8 +654,8 @@ class CommandCore:
             if isinstance(tab, tabs.MucTab):
                 domain = safeJID(tab.name).domain
             else:
-                return self.information("No server specified", "Error")
-        for tab in self.get_tabs(tabs.MucTab):
+                return self.core.information("No server specified", "Error")
+        for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name.endswith(domain):
                 if tab.joined:
                     muc.leave_groupchat(tab.core.xmpp,
@@ -662,12 +664,12 @@ class CommandCore:
                                         message)
                 tab.joined = False
                 if tab.name == domain:
-                    self.command_join('"@%s/%s"' %(tab.name, tab.own_nick))
+                    self.join('"@%s/%s"' %(tab.name, tab.own_nick))
                 else:
-                    self.command_join('"%s/%s"' %(tab.name, tab.own_nick))
+                    self.join('"%s/%s"' %(tab.name, tab.own_nick))
 
     @command_args_parser.quoted(1)
-    def command_last_activity(self, args):
+    def last_activity(self, args):
         """
         /last_activity <jid>
         """
@@ -675,11 +677,11 @@ class CommandCore:
             "Callback for the last activity"
             if iq['type'] != 'result':
                 if iq['error']['type'] == 'auth':
-                    self.information('You are not allowed to see the '
-                                     'activity of this contact.',
-                                     'Error')
+                    self.core.information('You are not allowed to see the '
+                                          'activity of this contact.',
+                                          'Error')
                 else:
-                    self.information('Error retrieving the activity', 'Error')
+                    self.core.information('Error retrieving the activity', 'Error')
                 return
             seconds = iq['last_activity']['seconds']
             status = iq['last_activity']['status']
@@ -693,48 +695,48 @@ class CommandCore:
                     from_,
                     common.parse_secs_to_str(seconds),
                     (' and his/her last status was %s' % status) if status else '')
-            self.information(msg, 'Info')
+            self.core.information(msg, 'Info')
 
         if args is None:
-            return self.command_help('last_activity')
+            return self.help('last_activity')
         jid = safeJID(args[0])
-        self.xmpp.plugin['xep_0012'].get_last_activity(jid,
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(jid,
                                                        callback=callback)
 
     @command_args_parser.quoted(0, 2)
-    def command_mood(self, args):
+    def mood(self, args):
         """
         /mood [<mood> [text]]
         """
         if not args:
-            return self.xmpp.plugin['xep_0107'].stop()
+            return self.core.xmpp.plugin['xep_0107'].stop()
 
         mood = args[0]
         if mood not in pep.MOODS:
-            return self.information('%s is not a correct value for a mood.'
-                                    % mood,
-                                    'Error')
+            return self.core.information('%s is not a correct value for a mood.'
+                                             % mood,
+                                          'Error')
         if len(args) == 2:
             text = args[1]
         else:
             text = None
-        self.xmpp.plugin['xep_0107'].publish_mood(mood, text,
-                                                  callback=dumb_callback)
+        self.core.xmpp.plugin['xep_0107'].publish_mood(mood, text,
+                                                       callback=dumb_callback)
 
     @command_args_parser.quoted(0, 3)
-    def command_activity(self, args):
+    def activity(self, args):
         """
         /activity [<general> [specific] [text]]
         """
         length = len(args)
         if not length:
-            return self.xmpp.plugin['xep_0108'].stop()
+            return self.core.xmpp.plugin['xep_0108'].stop()
 
         general = args[0]
         if general not in pep.ACTIVITIES:
-            return self.information('%s is not a correct value for an activity'
-                                        % general,
-                                    'Error')
+            return self.core.information('%s is not a correct value for an activity'
+                                             % general,
+                                         'Error')
         specific = None
         text = None
         if length == 2:
@@ -746,123 +748,123 @@ class CommandCore:
             specific = args[1]
             text = args[2]
         if specific and specific not in pep.ACTIVITIES[general]:
-            return self.information('%s is not a correct value '
-                                    'for an activity' % specific,
-                                    'Error')
-        self.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
-                                                      callback=dumb_callback)
+            return self.core.information('%s is not a correct value '
+                                         'for an activity' % specific,
+                                         'Error')
+        self.core.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
+                                                           callback=dumb_callback)
 
     @command_args_parser.quoted(0, 2)
-    def command_gaming(self, args):
+    def gaming(self, args):
         """
         /gaming [<game name> [server address]]
         """
         if not args:
-            return self.xmpp.plugin['xep_0196'].stop()
+            return self.core.xmpp.plugin['xep_0196'].stop()
 
         name = args[0]
         if len(args) > 1:
             address = args[1]
         else:
             address = None
-        return self.xmpp.plugin['xep_0196'].publish_gaming(name=name,
-                                                           server_address=address,
-                                                           callback=dumb_callback)
+        return self.core.xmpp.plugin['xep_0196'].publish_gaming(name=name,
+                                                                server_address=address,
+                                                                callback=dumb_callback)
 
     @command_args_parser.quoted(2, 1, [None])
-    def command_invite(self, args):
+    def invite(self, args):
         """/invite <to> <room> [reason]"""
 
         if args is None:
-            return self.command_help('invite')
+            return self.help('invite')
 
         reason = args[2]
         to = safeJID(args[0])
         room = safeJID(args[1]).bare
-        self.invite(to.full, room, reason=reason)
-        self.information('Invited %s to %s' % (to.bare, room), 'Info')
+        self.core.invite(to.full, room, reason=reason)
+        self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
     @command_args_parser.quoted(1, 1, [''])
-    def command_decline(self, args):
+    def decline(self, args):
         """/decline <room@server.tld> [reason]"""
         if args is None:
-            return self.command_help('decline')
+            return self.help('decline')
         jid = safeJID(args[0])
-        if jid.bare not in self.pending_invites:
+        if jid.bare not in self.core.pending_invites:
             return
         reason = args[1]
-        del self.pending_invites[jid.bare]
-        self.xmpp.plugin['xep_0045'].decline_invite(jid.bare,
-                                                    self.pending_invites[jid.bare],
-                                                    reason)
+        del self.core.pending_invites[jid.bare]
+        self.core.xmpp.plugin['xep_0045'].decline_invite(jid.bare,
+                                                         self.core.pending_invites[jid.bare],
+                                                         reason)
 
 ### Commands without a completion in this class ###
 
     @command_args_parser.ignored
-    def command_invitations(self):
+    def invitations(self):
         """/invitations"""
         build = ""
-        for invite in self.pending_invites:
+        for invite in self.core.pending_invites:
             build += "%s by %s" % (invite,
-                                   safeJID(self.pending_invites[invite]).bare)
-        if self.pending_invites:
+                                   safeJID(self.core.pending_invites[invite]).bare)
+        if self.core.pending_invites:
             build = "You are invited to the following rooms:\n" + build
         else:
             build = "You do not have any pending invitations."
-        self.information(build, 'Info')
+        self.core.information(build, 'Info')
 
     @command_args_parser.quoted(0, 1, [None])
-    def command_quit(self, args):
+    def quit(self, args):
         """
         /quit [message]
         """
-        if not self.xmpp.is_connected():
-            self.exit()
+        if not self.core.xmpp.is_connected():
+            self.core.exit()
             return
 
         msg = args[0]
         if config.get('enable_user_mood'):
-            self.xmpp.plugin['xep_0107'].stop()
+            self.core.xmpp.plugin['xep_0107'].stop()
         if config.get('enable_user_activity'):
-            self.xmpp.plugin['xep_0108'].stop()
+            self.core.xmpp.plugin['xep_0108'].stop()
         if config.get('enable_user_gaming'):
-            self.xmpp.plugin['xep_0196'].stop()
-        self.save_config()
-        self.plugin_manager.disable_plugins()
-        self.disconnect(msg)
-        self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)
+            self.core.xmpp.plugin['xep_0196'].stop()
+        self.core.save_config()
+        self.core.plugin_manager.disable_plugins()
+        self.core.disconnect(msg)
+        self.core.xmpp.add_event_handler("disconnected", self.core.exit, disposable=True)
 
     @command_args_parser.quoted(0, 1, [''])
-    def command_destroy_room(self, args):
+    def destroy_room(self, args):
         """
         /destroy_room [JID]
         """
         room = safeJID(args[0]).bare
         if room:
-            muc.destroy_room(self.xmpp, room)
-        elif isinstance(self.current_tab(), tabs.MucTab) and not args[0]:
-            muc.destroy_room(self.xmpp, self.current_tab().general_jid)
+            muc.destroy_room(self.core.xmpp, room)
+        elif isinstance(self.core.current_tab(), tabs.MucTab) and not args[0]:
+            muc.destroy_room(self.core.xmpp, self.core.current_tab().general_jid)
         else:
-            self.information('Invalid JID: "%s"' % args[0], 'Error')
+            self.core.information('Invalid JID: "%s"' % args[0], 'Error')
 
     @command_args_parser.quoted(1, 1, [''])
-    def command_bind(self, args):
+    def bind(self, args):
         """
         Bind a key.
         """
         if args is None:
-            return self.command_help('bind')
+            return self.help('bind')
 
         if not config.silent_set(args[0], args[1], section='bindings'):
-            self.information('Unable to write in the config file', 'Error')
+            self.core.information('Unable to write in the config file', 'Error')
 
         if args[1]:
-            self.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
+            self.core.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
         else:
-            self.information('%s is now unbound' % args[0], 'Info')
+            self.core.information('%s is now unbound' % args[0], 'Info')
 
     @command_args_parser.raw
-    def command_rawxml(self, args):
+    def rawxml(self, args):
         """
         /rawxml <xml stanza>
         """
@@ -872,19 +874,19 @@ class CommandCore:
 
         stanza = args
         try:
-            stanza = StanzaBase(self.xmpp, xml=ET.fromstring(stanza))
+            stanza = StanzaBase(self.core.xmpp, xml=ET.fromstring(stanza))
             if stanza.xml.tag == 'iq' and stanza.xml.attrib.get('type') in ('get', 'set'):
                 iq_id = stanza.xml.attrib.get('id')
                 if not iq_id:
-                    iq_id = self.xmpp.new_id()
+                    iq_id = self.core.xmpp.new_id()
                     stanza['id'] = iq_id
 
                 def iqfunc(iq):
                     "handler for an iq reply"
-                    self.information('%s' % iq, 'Iq')
-                    self.xmpp.remove_handler('Iq %s' % iq_id)
+                    self.core.information('%s' % iq, 'Iq')
+                    self.core.xmpp.remove_handler('Iq %s' % iq_id)
 
-                self.xmpp.register_handler(
+                self.core.xmpp.register_handler(
                         Callback('Iq %s' % iq_id,
                             StanzaPath('iq@id=%s' % iq_id),
                             iqfunc
@@ -895,92 +897,92 @@ class CommandCore:
 
             stanza.send()
         except:
-            self.information('Could not send custom stanza', 'Error')
+            self.core.information('Could not send custom stanza', 'Error')
             log.debug('/rawxml: Could not send custom stanza (%s)',
-                    repr(stanza),
-                    exc_info=True)
+                      repr(stanza),
+                      exc_info=True)
 
 
     @command_args_parser.quoted(1, 256)
-    def command_load(self, args):
+    def load(self, args):
         """
         /load <plugin> [<otherplugin> …]
         # TODO: being able to load more than 256 plugins at once, hihi.
         """
         for plugin in args:
-            self.plugin_manager.load(plugin)
+            self.core.plugin_manager.load(plugin)
 
     @command_args_parser.quoted(1, 256)
-    def command_unload(self, args):
+    def unload(self, args):
         """
         /unload <plugin> [<otherplugin> …]
         """
         for plugin in args:
-            self.plugin_manager.unload(plugin)
+            self.core.plugin_manager.unload(plugin)
 
     @command_args_parser.ignored
-    def command_plugins(self):
+    def plugins(self):
         """
         /plugins
         """
-        self.information("Plugins currently in use: %s" %
-                            repr(list(self.plugin_manager.plugins.keys())),
-                         'Info')
+        self.core.information("Plugins currently in use: %s" %
+                                  repr(list(self.core.plugin_manager.plugins.keys())),
+                              'Info')
 
     @command_args_parser.quoted(1, 1)
-    def command_message(self, args):
+    def message(self, args):
         """
         /message <jid> [message]
         """
         if args is None:
-            return self.command_help('message')
+            return self.help('message')
         jid = safeJID(args[0])
         if not jid.user and not jid.domain and not jid.resource:
-            return self.information('Invalid JID.', 'Error')
-        tab = self.get_conversation_by_jid(jid.full, False, fallback_barejid=False)
-        muc = self.get_tab_by_name(jid.bare, typ=tabs.MucTab)
+            return self.core.information('Invalid JID.', 'Error')
+        tab = self.core.get_conversation_by_jid(jid.full, False, fallback_barejid=False)
+        muc = self.core.get_tab_by_name(jid.bare, typ=tabs.MucTab)
         if not tab and not muc:
-            tab = self.open_conversation_window(jid.full, focus=True)
+            tab = self.core.open_conversation_window(jid.full, focus=True)
         elif muc:
-            tab = self.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
+            tab = self.core.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
             if tab:
-                self.focus_tab_named(tab.name)
+                self.core.focus_tab_named(tab.name)
             else:
-                tab = self.open_private_window(jid.bare, jid.resource)
+                tab = self.core.open_private_window(jid.bare, jid.resource)
         else:
-            self.focus_tab_named(tab.name)
+            self.core.focus_tab_named(tab.name)
         if len(args) == 2:
             tab.command_say(args[1])
 
     @command_args_parser.ignored
-    def command_xml_tab(self):
+    def xml_tab(self):
         """/xml_tab"""
-        xml_tab = self.focus_tab_named('XMLTab', tabs.XMLTab)
+        xml_tab = self.core.focus_tab_named('XMLTab', tabs.XMLTab)
         if not xml_tab:
             tab = tabs.XMLTab()
-            self.add_tab(tab, True)
-            self.xml_tab = tab
+            self.core.add_tab(tab, True)
+            self.core.xml_tab = tab
 
     @command_args_parser.quoted(1)
-    def command_adhoc(self, args):
+    def adhoc(self, args):
         if not args:
-            return self.command_help('ad-hoc')
+            return self.help('ad-hoc')
         jid = safeJID(args[0])
         list_tab = tabs.AdhocCommandsListTab(jid)
-        self.add_tab(list_tab, True)
+        self.core.add_tab(list_tab, True)
         cb = list_tab.on_list_received
-        self.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
-                                                  callback=cb)
+        self.core.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
+                                                       callback=cb)
 
     @command_args_parser.ignored
-    def command_self(self):
+    def self(self_):
         """
         /self
         """
-        status = self.get_status()
+        status = self_.core.get_status()
         show, message = status.show, status.message
-        nick = self.own_nick
-        jid = self.xmpp.boundjid.full
+        nick = self_.core.own_nick
+        jid = self_.core.xmpp.boundjid.full
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
                 '\nYour default nickname is %s\nYou are running poezio %s' % (
                 jid,
@@ -988,16 +990,16 @@ class CommandCore:
                 show if show else 'available',
                 nick,
                 config_opts.version))
-        self.information(info, 'Info')
+        self_.core.information(info, 'Info')
 
 
     @command_args_parser.ignored
-    def command_reload(self):
+    def reload(self):
         """
         /reload
         """
-        self.reload_config()
+        self.core.reload_config()
 
-    def dumb_callback(*args, **kwargs):
-        "mock callback"
+def dumb_callback(*args, **kwargs):
+    "mock callback"
 

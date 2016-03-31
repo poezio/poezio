@@ -810,7 +810,7 @@ class Plugin(BasePlugin):
         """
         args = common.shell_split(arg)
         if not args:
-            return self.core.command_help('otr')
+            return self.core.command.help('otr')
         action = args.pop(0)
         tab = self.api.current_tab()
         name = tab.name
@@ -920,7 +920,7 @@ class Plugin(BasePlugin):
         /otrsmp <ask|answer|abort> [question] [secret]
         """
         if args is None or not args:
-            return self.core.command_help('otrsmp')
+            return self.core.command.help('otrsmp')
         length = len(args)
         action = args.pop(0)
         if length == 2:

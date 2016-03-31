@@ -648,7 +648,7 @@ class ChatTab(Tab):
         /correct <fixed message>
         """
         if not line:
-            self.core.command_help('correct')
+            self.core.command.help('correct')
             return
         if not self.last_sent_message:
             self.core.information('There is no message to correct.')

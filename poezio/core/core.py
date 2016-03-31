@@ -43,7 +43,7 @@ from theming import get_theme
 import keyboard
 
 from . completions import CompletionCore
-from . import commands
+from . commands import CommandCore
 from . import handlers
 from . structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
@@ -56,6 +56,7 @@ class Core(object):
 
     def __init__(self):
         self.completion = CompletionCore(self)
+        self.command = CommandCore(self)
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
@@ -162,14 +163,14 @@ class Core(object):
             'M-C': self.scroll_info_down,
             'M-k': self.escape_next_key,
         ######## actions mappings ##########
-            '_bookmark': self.command_bookmark,
-            '_bookmark_local': self.command_bookmark_local,
+            '_bookmark': self.command.bookmark,
+            '_bookmark_local': self.command.bookmark_local,
             '_close_tab': self.close_tab,
             '_disconnect': self.disconnect,
-            '_quit': self.command_quit,
+            '_quit': self.command.quit,
             '_redraw_screen': self.full_screen_redraw,
-            '_reload_theme': self.command_theme,
-            '_remove_bookmark': self.command_remove_bookmark,
+            '_reload_theme': self.command.theme,
+            '_remove_bookmark': self.command.remove_bookmark,
             '_room_left': self.rotate_rooms_left,
             '_room_right': self.rotate_rooms_right,
             '_show_roster': self.go_to_roster,
@@ -177,19 +178,19 @@ class Core(object):
             '_scroll_up': self.scroll_page_up,
             '_scroll_info_up': self.scroll_info_up,
             '_scroll_info_down': self.scroll_info_down,
-            '_server_cycle': self.command_server_cycle,
-            '_show_bookmarks': self.command_bookmarks,
+            '_server_cycle': self.command.server_cycle,
+            '_show_bookmarks': self.command.bookmarks,
             '_show_important_room': self.go_to_important_room,
-            '_show_invitations': self.command_invitations,
-            '_show_plugins': self.command_plugins,
-            '_show_xmltab': self.command_xml_tab,
+            '_show_invitations': self.command.invitations,
+            '_show_plugins': self.command.plugins,
+            '_show_xmltab': self.command.xml_tab,
             '_toggle_pane': self.toggle_left_pane,
         ###### status actions ######
-            '_available': lambda: self.command_status('available'),
-            '_away': lambda: self.command_status('away'),
-            '_chat': lambda: self.command_status('chat'),
-            '_dnd': lambda: self.command_status('dnd'),
-            '_xa': lambda: self.command_status('xa'),
+            '_available': lambda: self.command.status('available'),
+            '_away': lambda: self.command.status('away'),
+            '_chat': lambda: self.command.status('chat'),
+            '_dnd': lambda: self.command.status('dnd'),
+            '_xa': lambda: self.command.status('xa'),
         ##### Custom actions ########
             '_exc_': self.try_execute,
         }
@@ -645,7 +646,7 @@ class Core(object):
                         if self.current_tab().nb == nb and config.get('go_to_previous_tab_on_alt_number'):
                             self.go_to_previous_tab()
                         else:
-                            self.command_win('%d' % nb)
+                            self.command.win('%d' % nb)
                 # search for keyboard shortcut
                 func = self.key_func.get(char, None)
                 if func:
@@ -1021,7 +1022,7 @@ class Core(object):
         """
         self.tabs.append(new_tab)
         if focus:
-            self.command_win("%s" % new_tab.nb)
+            self.command.win("%s" % new_tab.nb)
 
     def insert_tab_nogaps(self, old_pos, new_pos):
         """
@@ -1141,7 +1142,7 @@ class Core(object):
                 if len(self.room_number_jump) == 2:
                     arg = "".join(self.room_number_jump)
                     self.room_number_jump.clear()
-                    self.command_win(arg)
+                    self.command.win(arg)
                 else:
                     # We need to read more digits
                     keyboard.continuation_keys_callback = read_next_digit
@@ -1149,11 +1150,11 @@ class Core(object):
 
     def go_to_roster(self):
         "Select the roster as the current tab"
-        self.command_win('0')
+        self.command.win('0')
 
     def go_to_previous_tab(self):
         "Go to the previous tab"
-        self.command_win('%s' % (self.previous_tab_nb,))
+        self.command.win('%s' % (self.previous_tab_nb,))
 
     def go_to_important_room(self):
         """
@@ -1182,7 +1183,7 @@ class Core(object):
                 if (tab.nb < self.current_tab_nb and
                     tab_refs[state][-1].nb > self.current_tab_nb):
                     continue
-                self.command_win('%s' % tab.nb)
+                self.command.win('%s' % tab.nb)
                 return
         return
 
@@ -1191,7 +1192,7 @@ class Core(object):
         for tab in self.tabs:
             if tab.name == tab_name:
                 if (type_ and (isinstance(tab, type_))) or not type_:
-                    self.command_win('%s' % (tab.nb,))
+                    self.command.win('%s' % (tab.nb,))
                 return True
         return False
 
@@ -1242,7 +1243,7 @@ class Core(object):
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name == complete_jid:
-                self.command_win('%s' % tab.nb)
+                self.command.win('%s' % tab.nb)
                 return tab
         # create the new tab
         tab = self.get_tab_by_name(room_name, tabs.MucTab)
@@ -1727,11 +1728,11 @@ class Core(object):
         """
         Register the commands when poezio starts
         """
-        self.register_command('help', self.command_help,
+        self.register_command('help', self.command.help,
                 usage='[command]',
                 shortdesc='\\_o< KOIN KOIN KOIN',
                 completion=self.completion.help)
-        self.register_command('join', self.command_join,
+        self.register_command('join', self.command.join,
                 usage="[room_name][@server][/nick] [password]",
                 desc="Join the specified room. You can specify a nickname "
                      "after a slash (/). If no nickname is specified, you will"
@@ -1746,22 +1747,22 @@ class Core(object):
                      ".tld/my_nick password\n/join / password",
                 shortdesc='Join a room',
                 completion=self.completion.join)
-        self.register_command('exit', self.command_quit,
+        self.register_command('exit', self.command.quit,
                 desc='Just disconnect from the server and exit poezio.',
                 shortdesc='Exit poezio.')
-        self.register_command('quit', self.command_quit,
+        self.register_command('quit', self.command.quit,
                 desc='Just disconnect from the server and exit poezio.',
                 shortdesc='Exit poezio.')
         self.register_command('next', self.rotate_rooms_right,
                 shortdesc='Go to the next room.')
         self.register_command('prev', self.rotate_rooms_left,
                 shortdesc='Go to the previous room.')
-        self.register_command('win', self.command_win,
+        self.register_command('win', self.command.win,
                 usage='<number or name>',
                 shortdesc='Go to the specified room',
                 completion=self.completion.win)
         self.commands['w'] = self.commands['win']
-        self.register_command('move_tab', self.command_move_tab,
+        self.register_command('move_tab', self.command.move_tab,
                 usage='<source> <destination>',
                 desc="Insert the <source> tab at the position of "
                      "<destination>. This will make the following tabs shift in"
@@ -1771,14 +1772,14 @@ class Core(object):
                      "tab.",
                 shortdesc='Move a tab.',
                 completion=self.completion.move_tab)
-        self.register_command('destroy_room', self.command_destroy_room,
+        self.register_command('destroy_room', self.command.destroy_room,
                 usage='[room JID]',
                 desc='Try to destroy the room [room JID], or the current'
                      ' tab if it is a multi-user chat and [room JID] is '
                      'not given.',
                 shortdesc='Destroy a room.',
                 completion=None)
-        self.register_command('show', self.command_status,
+        self.register_command('show', self.command.status,
                 usage='<availability> [status message]',
                 desc="Sets your availability and (optionally) your status "
                      "message. The <availability> argument is one of \"available"
@@ -1787,7 +1788,7 @@ class Core(object):
                 shortdesc='Change your availability.',
                 completion=self.completion.status)
         self.commands['status'] = self.commands['show']
-        self.register_command('bookmark_local', self.command_bookmark_local,
+        self.register_command('bookmark_local', self.command.bookmark_local,
                 usage="[roomname][/nick] [password]",
                 desc="Bookmark Local: Bookmark locally the specified room "
                      "(you will then auto-join it on each poezio start). This"
@@ -1798,7 +1799,7 @@ class Core(object):
                      "(instead of default_nick)",
                 shortdesc='Bookmark a room locally.',
                 completion=self.completion.bookmark_local)
-        self.register_command('bookmark', self.command_bookmark,
+        self.register_command('bookmark', self.command.bookmark,
                 usage="[roomname][/nick] [autojoin] [password]",
                 desc="Bookmark: Bookmark online the specified room (you "
                      "will then auto-join it on each poezio start if autojoin"
@@ -1809,7 +1810,7 @@ class Core(object):
                      "currently using in this room (instead of default_nick).",
                 shortdesc="Bookmark a room online.",
                 completion=self.completion.bookmark)
-        self.register_command('set', self.command_set,
+        self.register_command('set', self.command.set,
                 usage="[plugin|][section] <option> [value]",
                 desc="Set the value of an option in your configuration file."
                      " You can, for example, change your default nickname by "
@@ -1820,7 +1821,7 @@ class Core(object):
                      "used as a special value to toggle a boolean option.",
                 shortdesc="Set the value of an option",
                 completion=self.completion.set)
-        self.register_command('set_default', self.command_set_default,
+        self.register_command('set_default', self.command.set_default,
                 usage="[section] <option>",
                 desc="Set the default value of an option. For example, "
                      "`/set_default resource` will reset the resource "
@@ -1828,104 +1829,104 @@ class Core(object):
                      "sections by doing `/set_default section option`.",
                 shortdesc="Set the default value of an option",
                 completion=self.completion.set_default)
-        self.register_command('toggle', self.command_toggle,
+        self.register_command('toggle', self.command.toggle,
                 usage='<option>',
                 desc='Shortcut for /set <option> toggle',
                 shortdesc='Toggle an option',
                 completion=self.completion.toggle)
-        self.register_command('theme', self.command_theme,
+        self.register_command('theme', self.command.theme,
                 usage='[theme name]',
                 desc="Reload the theme defined in the config file. If theme"
                      "_name is provided, set that theme before reloading it.",
                 shortdesc='Load a theme',
                 completion=self.completion.theme)
-        self.register_command('list', self.command_list,
+        self.register_command('list', self.command.list,
                 usage='[server]',
                 desc="Get the list of public chatrooms"
                      " on the specified server.",
                 shortdesc='List the rooms.',
                 completion=self.completion.list)
-        self.register_command('message', self.command_message,
+        self.register_command('message', self.command.message,
                 usage='<jid> [optional message]',
                 desc="Open a conversation with the specified JID (even if it"
                      " is not in our roster), and send a message to it, if the "
                      "message is specified.",
                 shortdesc='Send a message',
                 completion=self.completion.message)
-        self.register_command('version', self.command_version,
+        self.register_command('version', self.command.version,
                 usage='<jid>',
                 desc="Get the software version of the given JID (usually its"
                      " XMPP client and Operating System).",
                 shortdesc='Get the software version of a JID.',
                 completion=self.completion.version)
-        self.register_command('server_cycle', self.command_server_cycle,
+        self.register_command('server_cycle', self.command.server_cycle,
                 usage='[domain] [message]',
                 desc='Disconnect and reconnect in all the rooms in domain.',
                 shortdesc='Cycle a range of rooms',
                 completion=self.completion.server_cycle)
-        self.register_command('bind', self.command_bind,
+        self.register_command('bind', self.command.bind,
                 usage='<key> <equ>',
                 desc="Bind a key to another key or to a “command”. For "
                      "example \"/bind ^H KEY_UP\" makes Control + h do the"
                      " same same as the Up key.",
                 completion=self.completion.bind,
                 shortdesc='Bind a key to another key.')
-        self.register_command('load', self.command_load,
+        self.register_command('load', self.command.load,
                 usage='<plugin> [<otherplugin> …]',
                 shortdesc='Load the specified plugin(s)',
                 completion=self.plugin_manager.completion_load)
-        self.register_command('unload', self.command_unload,
+        self.register_command('unload', self.command.unload,
                 usage='<plugin> [<otherplugin> …]',
                 shortdesc='Unload the specified plugin(s)',
                 completion=self.plugin_manager.completion_unload)
-        self.register_command('plugins', self.command_plugins,
+        self.register_command('plugins', self.command.plugins,
                 shortdesc='Show the plugins in use.')
-        self.register_command('presence', self.command_presence,
+        self.register_command('presence', self.command.presence,
                 usage='<JID> [type] [status]',
                 desc="Send a directed presence to <JID> and using"
                      " [type] and [status] if provided.",
                 shortdesc='Send a directed presence.',
                 completion=self.completion.presence)
-        self.register_command('rawxml', self.command_rawxml,
+        self.register_command('rawxml', self.command.rawxml,
                 usage='<xml>',
                 shortdesc='Send a custom xml stanza.')
-        self.register_command('invite', self.command_invite,
+        self.register_command('invite', self.command.invite,
                 usage='<jid> <room> [reason]',
                 desc='Invite jid in room with reason.',
                 shortdesc='Invite someone in a room.',
                 completion=self.completion.invite)
-        self.register_command('invitations', self.command_invitations,
+        self.register_command('invitations', self.command.invitations,
                 shortdesc='Show the pending invitations.')
-        self.register_command('bookmarks', self.command_bookmarks,
+        self.register_command('bookmarks', self.command.bookmarks,
                 shortdesc='Show the current bookmarks.')
-        self.register_command('remove_bookmark', self.command_remove_bookmark,
+        self.register_command('remove_bookmark', self.command.remove_bookmark,
                 usage='[jid]',
                 desc="Remove the specified bookmark, or the "
                      "bookmark on the current tab, if any.",
                 shortdesc='Remove a bookmark',
                 completion=self.completion.remove_bookmark)
-        self.register_command('xml_tab', self.command_xml_tab,
+        self.register_command('xml_tab', self.command.xml_tab,
                 shortdesc='Open an XML tab.')
-        self.register_command('runkey', self.command_runkey,
+        self.register_command('runkey', self.command.runkey,
                 usage='<key>',
                 shortdesc='Execute the action defined for <key>.',
                 completion=self.completion.runkey)
-        self.register_command('self', self.command_self,
+        self.register_command('self', self.command.self,
                 shortdesc='Remind you of who you are.')
-        self.register_command('last_activity', self.command_last_activity,
+        self.register_command('last_activity', self.command.last_activity,
                 usage='<jid>',
                 desc='Informs you of the last activity of a JID.',
                 shortdesc='Get the activity of someone.',
                 completion=self.completion.last_activity)
-        self.register_command('ad-hoc', self.command_adhoc,
+        self.register_command('ad-hoc', self.command.adhoc,
                 usage='<jid>',
                 shortdesc='List available ad-hoc commands on the given jid')
-        self.register_command('reload', self.command_reload,
+        self.register_command('reload', self.command.reload,
                 shortdesc='Reload the config. You can achieve the same by '
                           'sending SIGUSR1 to poezio.')
 
         if config.get('enable_user_activity'):
-            self.register_command('activity', self.command_activity,
+            self.register_command('activity', self.command.activity,
                     usage='[<general> [specific] [text]]',
                     desc='Send your current activity to your contacts '
                          '(use the completion). Nothing means '
@@ -1933,7 +1934,7 @@ class Core(object):
                     shortdesc='Send your activity.',
                     completion=self.completion.activity)
         if config.get('enable_user_mood'):
-            self.register_command('mood', self.command_mood,
+            self.register_command('mood', self.command.mood,
                     usage='[<mood> [text]]',
                     desc='Send your current mood to your contacts '
                          '(use the completion). Nothing means '
@@ -1941,7 +1942,7 @@ class Core(object):
                     shortdesc='Send your mood.',
                     completion=self.completion.mood)
         if config.get('enable_user_gaming'):
-            self.register_command('gaming', self.command_gaming,
+            self.register_command('gaming', self.command.gaming,
                     usage='[<game name> [server address]]',
                     desc='Send your current gaming activity to '
                          'your contacts. Nothing means "stop '
@@ -2012,43 +2013,6 @@ class Core(object):
     cancel_adhoc_command = handlers.cancel_adhoc_command
     validate_adhoc_step = handlers.validate_adhoc_step
     terminate_adhoc_command = handlers.terminate_adhoc_command
-    command_help = commands.command_help
-    command_runkey = commands.command_runkey
-    command_status = commands.command_status
-    command_presence = commands.command_presence
-    command_theme = commands.command_theme
-    command_win = commands.command_win
-    command_move_tab = commands.command_move_tab
-    command_list = commands.command_list
-    command_version = commands.command_version
-    command_join = commands.command_join
-    command_bookmark_local = commands.command_bookmark_local
-    command_bookmark = commands.command_bookmark
-    command_bookmarks = commands.command_bookmarks
-    command_destroy_room = commands.command_destroy_room
-    command_remove_bookmark = commands.command_remove_bookmark
-    command_set = commands.command_set
-    command_set_default = commands.command_set_default
-    command_toggle = commands.command_toggle
-    command_server_cycle = commands.command_server_cycle
-    command_last_activity = commands.command_last_activity
-    command_mood = commands.command_mood
-    command_activity = commands.command_activity
-    command_gaming = commands.command_gaming
-    command_invite = commands.command_invite
-    command_decline = commands.command_decline
-    command_invitations = commands.command_invitations
-    command_quit = commands.command_quit
-    command_bind = commands.command_bind
-    command_rawxml = commands.command_rawxml
-    command_load = commands.command_load
-    command_unload = commands.command_unload
-    command_plugins = commands.command_plugins
-    command_message = commands.command_message
-    command_xml_tab = commands.command_xml_tab
-    command_adhoc = commands.command_adhoc
-    command_self = commands.command_self
-    command_reload = commands.command_reload
 
 
 

@@ -204,7 +204,7 @@ class PrivateTab(OneToOneTab):
                                                              res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args:
-            return self.core.command_version(args[0])
+            return self.core.command.version(args[0])
         jid = safeJID(self.name)
         fixes.get_version(self.core.xmpp, jid,
                 callback=callback)

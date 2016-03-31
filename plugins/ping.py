@@ -58,7 +58,7 @@ class Plugin(BasePlugin):
     @command_args_parser.raw
     def command_ping(self, arg):
         if not arg:
-            return self.core.command_help('ping')
+            return self.core.command.help('ping')
         jid = safeJID(arg)
         start = time.time()
         def callback(iq):

@@ -52,7 +52,7 @@ class Plugin(BasePlugin):
     def command_tell(self, args):
         """/tell <nick> <message>"""
         if args is None:
-            self.core.command_help('tell')
+            self.core.command.help('tell')
             return
         nick, msg = args
         tab = self.api.current_tab()

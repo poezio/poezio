@@ -230,7 +230,7 @@ class RosterInfoTab(Tab):
         /cert_add <name> <certfile> [cert-management]
         """
         if not args or len(args) < 2:
-            return self.core.command_help('cert_add')
+            return self.core.command.help('cert_add')
         def cb(iq):
             if iq['type'] == 'error':
                 self.core.information('Unable to add the certificate.', 'Error')
@@ -284,7 +284,7 @@ class RosterInfoTab(Tab):
         /cert_disable <name>
         """
         if not args:
-            return self.core.command_help('cert_disable')
+            return self.core.command.help('cert_disable')
         def cb(iq):
             if iq['type'] == 'error':
                 self.core.information('Unable to disable the certificate.', 'Error')
@@ -301,7 +301,7 @@ class RosterInfoTab(Tab):
         /cert_revoke <name>
         """
         if not args:
-            return self.core.command_help('cert_revoke')
+            return self.core.command.help('cert_revoke')
         def cb(iq):
             if iq['type'] == 'error':
                 self.core.information('Unable to revoke the certificate.', 'Error')
@@ -319,7 +319,7 @@ class RosterInfoTab(Tab):
         /cert_fetch <name> <path>
         """
         if not args or len(args) < 2:
-            return self.core.command_help('cert_fetch')
+            return self.core.command.help('cert_fetch')
         def cb(iq):
             if iq['type'] == 'error':
                 self.core.information('Unable to fetch the certificate.',
@@ -485,7 +485,7 @@ class RosterInfoTab(Tab):
         else:
             self.core.information('No JID selected.', 'Error')
             return
-        self.core.command_last_activity(jid)
+        self.core.command.last_activity(jid)
 
     def resize(self):
         self.need_resize = False
@@ -646,7 +646,7 @@ class RosterInfoTab(Tab):
                 self.core.information('The name could not be set.', 'Error')
                 log.debug('Error in /name:\n%s', iq)
         if args is None:
-            return self.core.command_help('name')
+            return self.core.command.help('name')
         jid = safeJID(args[0]).bare
         name = args[1] if len(args) == 2 else ''
 
@@ -668,7 +668,7 @@ class RosterInfoTab(Tab):
         Add the specified JID to the specified group
         """
         if args is None:
-            return self.core.command_help('groupadd')
+            return self.core.command.help('groupadd')
         jid = safeJID(args[0]).bare
         group = args[1]
 
@@ -708,7 +708,7 @@ class RosterInfoTab(Tab):
         Remove the specified JID from the first specified group and add it to the second one
         """
         if args is None:
-            return self.core.command_help('groupmove')
+            return self.core.command.help('groupmove')
         jid = safeJID(args[0]).bare
         group_from = args[1]
         group_to = args[2]
@@ -763,7 +763,7 @@ class RosterInfoTab(Tab):
         Remove the specified JID from the specified group
         """
         if args is None:
-            return self.core.command_help('groupremove')
+            return self.core.command.help('groupremove')
 
         jid = safeJID(args[0]).bare
         group = args[1]
@@ -1125,9 +1125,9 @@ class RosterInfoTab(Tab):
         selected_row = self.roster_win.get_selected_row()
         if isinstance(selected_row, Contact):
             for resource in selected_row.resources:
-                self.core.command_version(str(resource.jid))
+                self.core.command.version(str(resource.jid))
         elif isinstance(selected_row, Resource):
-            self.core.command_version(str(selected_row.jid))
+            self.core.command.version(str(selected_row.jid))
         else:
             self.core.information('Nothing to get versions from', 'Info')
 

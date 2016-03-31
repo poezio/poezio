@@ -326,9 +326,9 @@ class MucTab(ChatTab):
     def command_invite(self, args):
         """/invite <jid> [reason]"""
         if args is None:
-            return self.core.command_help('invite')
+            return self.core.command.help('invite')
         jid, reason = args
-        self.core.command_invite('%s %s "%s"' % (jid, self.name, reason))
+        self.core.command.invite('%s %s "%s"' % (jid, self.name, reason))
 
     def completion_invite(self, the_input):
         """Completion for /invite"""
@@ -352,7 +352,7 @@ class MucTab(ChatTab):
         /info <nick>
         """
         if args is None:
-            return self.core.command_help('info')
+            return self.core.command.help('info')
         nick = args[0]
         user = self.get_user_by_name(nick)
         if not user:
@@ -494,7 +494,7 @@ class MucTab(ChatTab):
         User "random" to attribute a random color.
         """
         if args is None:
-            return self.core.command_help('color')
+            return self.core.command.help('color')
         nick = args[0]
         color = args[1].lower()
         user = self.get_user_by_name(nick)
@@ -544,7 +544,7 @@ class MucTab(ChatTab):
                          res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args is None:
-            return self.core.command_help('version')
+            return self.core.command.help('version')
         nick = args[0]
         if nick in [user.nick for user in self.users]:
             jid = safeJID(self.name).bare
@@ -560,7 +560,7 @@ class MucTab(ChatTab):
         /nick <nickname>
         """
         if args is None:
-            return self.core.command_help('nick')
+            return self.core.command.help('nick')
         nick = args[0]
         if not self.joined:
             return self.core.information('/nick only works in joined rooms',
@@ -632,7 +632,7 @@ class MucTab(ChatTab):
         /query <nick> [message]
         """
         if args is None:
-            return  self.core.command_help('query')
+            return  self.core.command.help('query')
         nick = args[0]
         r = None
         for user in self.users:
@@ -719,7 +719,7 @@ class MucTab(ChatTab):
         /kick <nick> [reason]
         """
         if args is None:
-            return self.core.command_help('kick')
+            return self.core.command.help('kick')
         if len(args) == 2:
             msg = ' "%s"' % args[1]
         else:
@@ -735,7 +735,7 @@ class MucTab(ChatTab):
             if iq['type'] == 'error':
                 self.core.room_error(iq, self.name)
         if args is None:
-            return self.core.command_help('ban')
+            return self.core.command.help('ban')
         if len(args) > 1:
             msg = args[1]
         else:
@@ -765,7 +765,7 @@ class MucTab(ChatTab):
                 self.core.room_error(iq, self.name)
 
         if args is None:
-            return self.core.command_help('role')
+            return self.core.command.help('role')
 
         nick, role, reason = args[0], args[1].lower(), args[2]
 
@@ -792,7 +792,7 @@ class MucTab(ChatTab):
                 self.core.room_error(iq, self.name)
 
         if args is None:
-            return self.core.command_help('affiliation')
+            return self.core.command.help('affiliation')
 
         nick, affiliation = args[0], args[1].lower()
 
@@ -867,7 +867,7 @@ class MucTab(ChatTab):
         /ignore <nick>
         """
         if args is None:
-            return self.core.command_help('ignore')
+            return self.core.command.help('ignore')
 
         nick = args[0]
         user = self.get_user_by_name(nick)
@@ -885,7 +885,7 @@ class MucTab(ChatTab):
         /unignore <nick>
         """
         if args is None:
-            return self.core.command_help('unignore')
+            return self.core.command.help('unignore')
 
         nick = args[0]
         user = self.get_user_by_name(nick)

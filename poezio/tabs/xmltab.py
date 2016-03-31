@@ -203,7 +203,7 @@ class XMLTab(Tab):
     def command_filter_id(self, args):
         """/filter_id <id>"""
         if args is None:
-            return self.core.command_help('filter_id')
+            return self.core.command.help('filter_id')
 
         self.update_filters(matcher.MatcherId(args[0]))
         self.refresh()
@@ -234,7 +234,7 @@ class XMLTab(Tab):
     def command_dump(self, args):
         """/dump <filename>"""
         if args is None:
-            return self.core.command_help('dump')
+            return self.core.command.help('dump')
         if self.filters:
             xml = self.filtered_buffer.messages[:]
         else:

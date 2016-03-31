@@ -155,7 +155,7 @@ class ConversationTab(OneToOneTab):
         /last_activity [jid]
         """
         if args and args[0]:
-            return self.core.command_last_activity(args[0])
+            return self.core.command.last_activity(args[0])
 
         def callback(iq):
             if iq['type'] != 'result':
@@ -223,7 +223,7 @@ class ConversationTab(OneToOneTab):
                                                              res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
         if args:
-            return self.core.command_version(args[0])
+            return self.core.command.version(args[0])
         jid = safeJID(self.name)
         if not jid.resource:
             if jid in roster:
