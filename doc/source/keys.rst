@@ -249,7 +249,7 @@ To know exactly what the code of a key is, just run
 
 .. code-block:: bash
 
-    python3 src/keyboard.py
+    python3 poezio/keyboard.py
 
 And enter any key.
 

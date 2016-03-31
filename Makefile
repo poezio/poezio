@@ -13,7 +13,7 @@ clean:
 	rm -rf poezio.egg-info
 	rm -rf dist
 	rm -rf build
-	rm -f src/*.so
+	rm -f poezio/*.so
 
 install: all
 	python3 setup.py install --root=$(DESTDIR) --optimize=1

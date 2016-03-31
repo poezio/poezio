@@ -4,7 +4,7 @@ by the file of this module.
 
 A window is a little part of the screen, for example the input window,
 the text window, the roster window, etc.
-A Tab (see the src/tabs module) is composed of multiple Windows
+A Tab (see the poezio.tabs module) is composed of multiple Windows
 """
 
 import logging

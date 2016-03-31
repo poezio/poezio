@@ -25,5 +25,5 @@ else
 fi
 
 $PYTHON3 -c 'import sys;(print("Python 3.4 or newer is required") and exit(1)) if sys.version_info < (3, 4) else exit(0)' || exit 1
-exec "$PYTHON3" "$poezio_dir/src/poezio.py" -v "$args" "$@"
+exec "$PYTHON3" "$poezio_dir/poezio/poezio.py" -v "$args" "$@"
 

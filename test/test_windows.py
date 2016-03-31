@@ -1,6 +1,6 @@
 import pytest
 import sys
-sys.path.append('src')
+sys.path.append('poezio')
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):

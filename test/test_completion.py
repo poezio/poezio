@@ -8,7 +8,7 @@ import random
 import sys
 import os
 
-sys.path.append('src')
+sys.path.append('poezio')
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):

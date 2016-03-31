@@ -3,7 +3,7 @@ Test the functions in the `common` module
 """
 
 import sys
-sys.path.append('src')
+sys.path.append('poezio')
 
 import time
 import pytest

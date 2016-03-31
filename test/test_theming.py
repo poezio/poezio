@@ -4,7 +4,7 @@ Test the functions in the `theming` module
 
 import sys
 import pytest
-sys.path.append('src')
+sys.path.append('poezio')
 
 from theming import dump_tuple, read_tuple
 

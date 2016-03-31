@@ -38,12 +38,12 @@ def find_doc(before, path):
 
 module_poopt = Extension('poezio.poopt',
                     extra_compile_args=['-Wno-declaration-after-statement'],
-                    sources=['src/pooptmodule.c'])
+                    sources=['poezio/pooptmodule.c'])
 
 # Create a link to the config file (for packaging purposes)
-if not exists(join(current_dir, 'src', 'default_config.cfg')):
+if not exists(join(current_dir, 'poezio', 'default_config.cfg')):
     link(join(current_dir, 'data', 'default_config.cfg'),
-         join(current_dir, 'src', 'default_config.cfg'))
+         join(current_dir, 'poezio', 'default_config.cfg'))
 
 # identify the git version
 git_dir = join(current_dir, '.git')
@@ -91,7 +91,7 @@ setup(name="poezio",
       keywords=['jabber', 'xmpp', 'client', 'chat', 'im', 'console'],
       packages=['poezio', 'poezio.core', 'poezio.tabs', 'poezio.windows',
                 'poezio_plugins', 'poezio_plugins.gpg', 'poezio_themes'],
-      package_dir={'poezio': 'src',
+      package_dir={'poezio': 'poezio',
                    'poezio_plugins': 'plugins',
                    'poezio_themes': 'data/themes'},
       package_data={'poezio': ['default_config.cfg']},
@@ -106,8 +106,8 @@ setup(name="poezio",
                       'Screen autoaway plugin': 'pyinotify==0.9.4'})
 
 # Remove the link afterwards
-if (exists(join(current_dir, 'src', 'default_config.cfg')) and
+if (exists(join(current_dir, 'poezio', 'default_config.cfg')) and
         exists(join(current_dir, 'data', 'default_config.cfg'))):
 
-    unlink(join(current_dir, 'src', 'default_config.cfg'))
+    unlink(join(current_dir, 'poezio', 'default_config.cfg'))
 

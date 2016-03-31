@@ -8,7 +8,7 @@ import sys
 import os
 
 
-sys.path.append('src')
+sys.path.append('poezio')
 
 import config
 

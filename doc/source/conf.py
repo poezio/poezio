@@ -15,7 +15,7 @@
 import sys, os, time
 
 sys.path.insert(0, os.path.abspath('../stub'))
-sys.path.append(os.path.abspath('../../src/'))
+sys.path.append(os.path.abspath('../../poezio/'))
 sys.path.append(os.path.abspath('../../plugins/'))
 
 # If extensions (or modules to document with autodoc) are in another directory,

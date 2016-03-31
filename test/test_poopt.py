@@ -4,7 +4,7 @@ Test of the poopt module
 
 import pytest
 import sys
-sys.path.append('src')
+sys.path.append('poezio')
 
 from poopt import cut_text
 
