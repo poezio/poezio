@@ -396,8 +396,8 @@ class XHTMLHandler(sax.ContentHandler):
         if name == 'a':
             self.pop_formatting()
             # do not display the link twice
-            text_elements = filter(lambda x: not x.startswith('\x19'),
-                                   self.builder[self.a_start:])
+            text_elements = [x for x in self.builder[self.a_start:]
+                               if not x.startswith('\x19')]
             link_text = ''.join(text_elements).strip()
             if 'href' in attrs and attrs['href'] != link_text:
                 builder.append(' (%s)' % trim(attrs['href']))

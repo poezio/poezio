@@ -262,7 +262,7 @@ class PluginManager(object):
         else:
             self.core.xmpp.del_event_handler(event_name, handler)
         eh = self.event_handlers[module_name]
-        eh = list(filter(lambda e: e != (event_name, handler), eh))
+        eh = [e for e in eh if e != (event_name, handler)]
 
     def completion_load(self, the_input):
         """
@@ -279,7 +279,7 @@ class PluginManager(object):
                     pass
         except OSError as e:
             self.core.information('Completion failed: %s' % e, 'Error')
-            return
+            return False
         plugins_files = [name[:-3] for name in names if name.endswith('.py')
                 and name != '__init__.py' and not name.startswith('.')]
         plugins_files.sort()

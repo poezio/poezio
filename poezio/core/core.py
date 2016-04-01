@@ -382,7 +382,7 @@ class Core(object):
         Remove all gaptabs if switching from gaps to nogaps.
         """
         if value.lower() == "false":
-            self.tabs = list(tab for tab in self.tabs if tab)
+            self.tabs = [tab for tab in self.tabs if tab]
 
     def on_request_receipts_config_change(self, option, value):
         """
@@ -960,7 +960,7 @@ class Core(object):
         "Get all the tabs of a type"
         if cls is None:
             cls = tabs.Tab
-        return filter(lambda tab: isinstance(tab, cls), self.tabs)
+        return [tab for tab in self.tabs if isinstance(tab, cls)]
 
     def current_tab(self):
         """
