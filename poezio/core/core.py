@@ -1647,16 +1647,15 @@ class Core(object):
                                     tabs.Tab.height - 2, 0)
                 self.left_tab_win = None
 
-    def add_message_to_text_buffer(self, buff, txt,
-                                   time=None, nickname=None, history=None):
+    def add_message_to_text_buffer(self, buff, txt, nickname=None):
         """
         Add the message to the room if possible, else, add it to the Info window
         (in the Info tab of the info window in the RosterTab)
         """
         if not buff:
             self.information('Trying to add a message in no room: %s' % txt, 'Error')
-        else:
-            buff.add_message(txt, time, nickname, history=history)
+            return
+        buff.add_message(txt, nickname=nickname)
 
     def full_screen_redraw(self):
         """
