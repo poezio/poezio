@@ -316,7 +316,7 @@ class XMLTab(Tab):
 
         self.text_win.resize(self.height - info_win_size - tab_win_height - 2,
                              self.width, 0, 0)
-        self.text_win.rebuild_everything(self.core.xml_buffer)
+        self.text_win.rebuild_everything(self.core_buffer)
         self.info_header.resize(1, self.width,
                                 self.height - 2 - info_win_size
                                     - tab_win_height,
