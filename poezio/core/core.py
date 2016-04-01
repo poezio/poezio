@@ -256,10 +256,10 @@ class Core(object):
         self.xmpp.add_event_handler('carbon_received', self.handler.on_carbon_received)
         self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
 
-        self.all_stanzas = Callback('custom matcher',
-                                    connection.MatchAll(None),
-                                    self.handler.incoming_stanza)
-        self.xmpp.register_handler(self.all_stanzas)
+        all_stanzas = Callback('custom matcher',
+                               connection.MatchAll(None),
+                               self.handler.incoming_stanza)
+        self.xmpp.register_handler(all_stanzas)
         if config.get('enable_user_tune'):
             self.xmpp.add_event_handler("user_tune_publish",
                                         self.handler.on_tune_event)
@@ -529,7 +529,7 @@ class Core(object):
         Init curses, create the first tab, etc
         """
         self.stdscr = curses.initscr()
-        self.init_curses(self.stdscr)
+        self._init_curses(self.stdscr)
         self.call_for_resize()
         default_tab = tabs.RosterInfoTab()
         default_tab.on_gain_focus()
@@ -956,8 +956,10 @@ class Core(object):
 
     ### Tab getters ###
 
-    def get_tabs(self, cls=tabs.Tab):
+    def get_tabs(self, cls=None):
         "Get all the tabs of a type"
+        if cls is None:
+            cls = tabs.Tab
         return filter(lambda tab: isinstance(tab, cls), self.tabs)
 
     def current_tab(self):
@@ -1333,7 +1335,7 @@ class Core(object):
 
     def on_user_changed_status_in_private(self, jid, msg):
         tab = self.get_tab_by_name(jid, tabs.ChatTab)
-        if tab: # display the message in private
+        if tab is not None:  # display the message in private
             tab.add_message(msg, typ=2)
 
     def close_tab(self, tab=None):
@@ -1341,7 +1343,8 @@ class Core(object):
         Close the given tab. If None, close the current one
         """
         was_current = tab is None
-        tab = tab or self.current_tab()
+        if tab is None:
+            tab = self.current_tab()
         if isinstance(tab, tabs.RosterInfoTab):
             return              # The tab 0 should NEVER be closed
         del tab.key_func      # Remove self references
@@ -1383,7 +1386,7 @@ class Core(object):
         if yes, add the given message to it
         """
         tab = self.get_tab_by_name(jid, tabs.ConversationTab)
-        if tab:
+        if tab is not None:
             tab.add_message(msg, typ=2)
             if self.current_tab() is tab:
                 self.refresh_window()
@@ -1416,14 +1419,14 @@ class Core(object):
             self.refresh_window()
         elif typ != '' and typ.lower() in popup_on:
             popup_time = config.get('popup_time') + (nb_lines - 1) * 2
-            self.pop_information_win_up(nb_lines, popup_time)
+            self._pop_information_win_up(nb_lines, popup_time)
         else:
             if self.information_win_size != 0:
                 self.information_win.refresh()
                 self.current_tab().input.refresh()
         return True
 
-    def init_curses(self, stdscr):
+    def _init_curses(self, stdscr):
         """
         ncurses initialization
         """
@@ -1448,10 +1451,6 @@ class Core(object):
         curses.nocbreak()
         curses.curs_set(1)
         curses.endwin()
-
-    @property
-    def informations(self):
-        return self.information_buffer
 
     def refresh_window(self):
         """
@@ -1479,7 +1478,7 @@ class Core(object):
             self.current_tab().input.refresh()
         self.doupdate()
 
-    def scroll_page_down(self, args=None):
+    def scroll_page_down(self):
         """
         Scroll a page down, if possible.
         Returns True on success, None on failure.
@@ -1488,7 +1487,7 @@ class Core(object):
             self.refresh_window()
             return True
 
-    def scroll_page_up(self, args=None):
+    def scroll_page_up(self):
         """
         Scroll a page up, if possible.
         Returns True on success, None on failure.
@@ -1497,7 +1496,7 @@ class Core(object):
             self.refresh_window()
             return True
 
-    def scroll_line_up(self, args=None):
+    def scroll_line_up(self):
         """
         Scroll a line up, if possible.
         Returns True on success, None on failure.
@@ -1506,7 +1505,7 @@ class Core(object):
             self.refresh_window()
             return True
 
-    def scroll_line_down(self, args=None):
+    def scroll_line_down(self):
         """
         Scroll a line down, if possible.
         Returns True on success, None on failure.
@@ -1515,7 +1514,7 @@ class Core(object):
             self.refresh_window()
             return True
 
-    def scroll_half_up(self, args=None):
+    def scroll_half_up(self):
         """
         Scroll half a screen down, if possible.
         Returns True on success, None on failure.
@@ -1524,7 +1523,7 @@ class Core(object):
             self.refresh_window()
             return True
 
-    def scroll_half_down(self, args=None):
+    def scroll_half_down(self):
         """
         Scroll half a screen down, if possible.
         Returns True on success, None on failure.
@@ -1586,7 +1585,7 @@ class Core(object):
             info.scroll_down(info.height)
             self.refresh_window()
 
-    def pop_information_win_up(self, size, time):
+    def _pop_information_win_up(self, size, time):
         """
         Temporarly increase the size of the information win of size lines
         during time seconds.
