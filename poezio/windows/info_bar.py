@@ -16,8 +16,9 @@ from . import Win
 from theming import get_theme, to_curses_attr
 
 class GlobalInfoBar(Win):
-    def __init__(self):
+    def __init__(self, core):
         Win.__init__(self)
+        self.core = core
 
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
@@ -62,8 +63,9 @@ class GlobalInfoBar(Win):
         self._refresh()
 
 class VerticalGlobalInfoBar(Win):
-    def __init__(self, scr):
+    def __init__(self, core, scr):
         Win.__init__(self)
+        self.core = core
         self._win = scr
 
     def refresh(self):

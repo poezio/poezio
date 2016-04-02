@@ -34,7 +34,6 @@ class DummyWin(object):
         return False
 
 class Win(object):
-    _win_core = None
     _tab_win = None
     def __init__(self):
         self._win = None
@@ -149,10 +148,3 @@ class Win(object):
             self.addnstr(' '*size, size, to_curses_attr(color))
         else:
             self.addnstr(' '*size, size)
-
-    @property
-    def core(self):
-        if not Win._win_core:
-            Win._win_core = singleton.Singleton(core.Core)
-        return Win._win_core
-

@@ -86,7 +86,7 @@ class Core(object):
         self.information_buffer.add_window(self.information_win)
         self.left_tab_win = None
 
-        self.tab_win = windows.GlobalInfoBar()
+        self.tab_win = windows.GlobalInfoBar(self)
         # Whether the XML tab is opened
         self.xml_tab = None
         self.xml_buffer = TextBuffer()
@@ -1641,7 +1641,7 @@ class Core(object):
             except:
                 log.error('Curses error on infobar resize', exc_info=True)
                 return
-            self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
+            self.left_tab_win = windows.VerticalGlobalInfoBar(self, truncated_win)
         elif not self.size.core_degrade_y:
             self.tab_win.resize(1, tabs.Tab.width,
                                 tabs.Tab.height - 2, 0)
