@@ -1643,9 +1643,9 @@ class Core(object):
                 return
             self.left_tab_win = windows.VerticalGlobalInfoBar(truncated_win)
         elif not self.size.core_degrade_y:
-                self.tab_win.resize(1, tabs.Tab.width,
-                                    tabs.Tab.height - 2, 0)
-                self.left_tab_win = None
+            self.tab_win.resize(1, tabs.Tab.width,
+                                tabs.Tab.height - 2, 0)
+            self.left_tab_win = None
 
     def add_message_to_text_buffer(self, buff, txt, nickname=None):
         """

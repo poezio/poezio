@@ -16,31 +16,22 @@ class SizeManager(object):
         self._core = core
 
     @property
-    def tab_scr(self):
-        return self._win_class._tab_win
-
-    @property
-    def core_scr(self):
-        return self._core.stdscr
-
-    @property
     def tab_degrade_x(self):
-        _, x = self.tab_scr.getmaxyx()
+        _, x = self._win_class._tab_win.getmaxyx()
         return x < THRESHOLD_WIDTH_DEGRADE
 
     @property
     def tab_degrade_y(self):
-        y, x = self.tab_scr.getmaxyx()
+        y, x = self._win_class._tab_win.getmaxyx()
         return y < THRESHOLD_HEIGHT_DEGRADE
 
     @property
     def core_degrade_x(self):
-        y, x = self.core_scr.getmaxyx()
+        y, x = self._core.stdscr.getmaxyx()
         return x < FULL_WIDTH_DEGRADE
 
     @property
     def core_degrade_y(self):
-        y, x = self.core_scr.getmaxyx()
+        y, x = self._core.stdscr.getmaxyx()
         return y < FULL_HEIGHT_DEGRADE
-
 
