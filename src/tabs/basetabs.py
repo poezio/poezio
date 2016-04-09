@@ -763,6 +763,7 @@ class OneToOneTab(ChatTab):
     def command_xhtml(self, xhtml_data):
         message = self.generate_xhtml_message(xhtml_data)
         if message:
+            message['type'] = 'chat'
             if self.remote_supports_receipts:
                 message._add_receipt = True
             if self.remote_wants_chatstates:
