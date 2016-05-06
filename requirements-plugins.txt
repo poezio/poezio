@@ -1,3 +1,3 @@
-git+git://github.com/afflux/pure-python-otr.git#egg=potr
+git+git://github.com/afflux/pure-python-otr.git#egg=python-otr
 pyinotify
 python-mpd2
