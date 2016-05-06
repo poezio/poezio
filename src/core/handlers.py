@@ -11,6 +11,7 @@ import functools
 import ssl
 import sys
 import time
+from datetime import datetime
 from hashlib import sha1, sha512
 from os import path
 
@@ -544,7 +545,9 @@ def on_groupchat_message(self, message):
     if replaced_id is not '' and config.get_by_tabname('group_corrections',
                                                        message['from'].bare):
         try:
-            if tab.modify_message(body, replaced_id, message['id'], time=date,
+            delayed_date = date or datetime.now()
+            if tab.modify_message(body, replaced_id, message['id'],
+                    time=delayed_date,
                     nickname=nick_from, user=user):
                 self.events.trigger('highlight', message, tab)
             replaced = True
