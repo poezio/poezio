@@ -36,6 +36,7 @@ Configuration
 """
 from plugin import BasePlugin
 import tabs
+import xhtml
 from decorators import command_args_parser
 
 def move(text, step, spacing):
@@ -53,6 +54,7 @@ class Plugin(BasePlugin):
     @command_args_parser.raw
     def command_marquee(self, args):
         tab = self.api.current_tab()
+        args = xhtml.clean_text(xhtml.convert_simple_to_full_colors(args))
         tab.command_say(args)
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
