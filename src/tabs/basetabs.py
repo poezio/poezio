@@ -72,9 +72,9 @@ STATE_PRIORITY = {
         'disconnected': 0,
         'nonempty': 0.1,
         'scrolled': 0.5,
+        'joined': 0.8,
         'composing': 0.9,
         'message': 1,
-        'joined': 1,
         'highlight': 2,
         'private': 2,
         'attention': 3
