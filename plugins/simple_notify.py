@@ -112,6 +112,10 @@ class Plugin(BasePlugin):
         self.do_notify(message, fro)
 
     def on_muc_msg(self, message, tab):
+        # Dont notify if message is from yourself
+        if message['from'].resource == tab.own_nick:
+            return
+
         fro = message['from'].full
         muc = message['from'].bare
         whitelist=self.config.get('muc_list', '').split(',')
