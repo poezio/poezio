@@ -50,12 +50,12 @@ Third example:
     [simple_notify]
     command = notify-send -i /path/to/poezio/data/poezio_80.png "New message from %(from)s" "%(body)s"
     muc_too = true
-    muc_list = someroom@conference.jabber.org,someotherroom@conference.jabber.org
+    muc_list = someroom@conference.jabber.org:someotherroom@conference.jabber.org
 
 If present and set to ``True``, the ``muc_too`` option will also trigger a
 notification when a new message arrives on a Multi User Chat you've joined.
 
-If present and set to a comma separated list of muc JIDs, muc_list together 
+If present and set to a colon separated list of muc JIDs, muc_list together 
 with muc_too = true will only notify when a new message arrives on a Multi 
 User Chat, you've joined if it is present on the list.
 
@@ -118,7 +118,7 @@ class Plugin(BasePlugin):
 
         fro = message['from'].full
         muc = message['from'].bare
-        whitelist=self.config.get('muc_list', '').split(',')
+        whitelist=self.config.get('muc_list', '').split(':')
 
         # Prevent old messages to be notified
         # find_delayed_tag(message) returns (True, the datetime) or
