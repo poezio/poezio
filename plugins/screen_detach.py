@@ -93,6 +93,10 @@ class Plugin(BasePlugin, pyinotify.Notifier):
             self.attached = attached
             status = 'available' if self.attached else 'away'
             self.core.command_status(status)
+            if self.attached:
+                self.core.xmpp.plugin['xep_0352'].send_active()
+            else:
+                self.core.xmpp.plugin['xep_0352'].send_inactive()
 
 class HandleScreen(pyinotify.ProcessEvent):
     def my_init(self, **kwargs):
