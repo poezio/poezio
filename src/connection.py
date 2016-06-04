@@ -123,6 +123,7 @@ class Connection(slixmpp.ClientXMPP):
         self.plugin['xep_0184'].auto_request = config.get('request_message_receipts')
 
         self.register_plugin('xep_0191')
+        self.register_plugin('xep_0198')
         self.register_plugin('xep_0199')
 
         if config.get('enable_user_tune'):
