@@ -18,6 +18,12 @@ Configuration options
 
         Try to find and attached tmux.
 
+    use_csi
+        **Default:** ``false``
+
+        Use `client state indication`_ to limit bandwidth (thus CPU) usage when detached. WARNING: using CSI together with chatrooms will result in inaccurate logs due to presence filtering or other inaccuracies.
+
+.. _client state indication: https://xmpp.org/extensions/xep-0352.html
 """
 
 from plugin import BasePlugin
@@ -29,7 +35,8 @@ import asyncio
 DEFAULT_CONFIG = {
     'screen_detach': {
         'use_tmux': True,
-        'use_screen': True
+        'use_screen': True,
+        'use_csi': False
     }
 }
 
@@ -93,10 +100,11 @@ class Plugin(BasePlugin, pyinotify.Notifier):
             self.attached = attached
             status = 'available' if self.attached else 'away'
             self.core.command_status(status)
-            if self.attached:
-                self.core.xmpp.plugin['xep_0352'].send_active()
-            else:
-                self.core.xmpp.plugin['xep_0352'].send_inactive()
+            if sef.config.get('use_csi'):
+                if self.attached:
+                    self.core.xmpp.plugin['xep_0352'].send_active()
+                else:
+                    self.core.xmpp.plugin['xep_0352'].send_inactive()
 
 class HandleScreen(pyinotify.ProcessEvent):
     def my_init(self, **kwargs):
