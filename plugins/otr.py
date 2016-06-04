@@ -347,6 +347,8 @@ class PoezioContext(Context):
                                          mbody=msg.decode('ascii'),
                                          mtype='chat')
         message.enable('carbon_private')
+        message.enable('no-copy')
+        message.enable('no-permanent-store')
         message.send()
 
     def setState(self, newstate):
