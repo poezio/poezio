@@ -1540,12 +1540,7 @@ class Core(object):
                 self.information_win_size+nb >= self.current_tab().height-4 or\
                 self.size.core_degrade_y:
             return 0
-        if self.information_win_size == 14:
-            return 0
         self.information_win_size += nb
-        if self.information_win_size > 14:
-            nb = nb - (self.information_win_size - 14)
-            self.information_win_size = 14
         self.resize_global_information_win()
         for tab in self.tabs:
             tab.on_info_win_size_changed()
