@@ -295,10 +295,12 @@ to understand what is :ref:`carbons <carbons-details>` or
 
     enable_carbons
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        Set this to ``true`` to enable Message Carbons (XEP-280), which allows transparent message
-        delivery from and to other resources with carbons enabled.
+        Set this to ``false`` to disable Message Carbons (XEP-280), which allows
+        transparent message delivery from and to other resources with carbons
+        enabled. There should be no reason to disable this except if you encounter
+        issues with your server.
 
     enable_user_activity
 
