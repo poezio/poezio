@@ -118,7 +118,7 @@ DEFAULT_CONFIG = {
         'show_tab_names': False,
         'show_tab_numbers': True,
         'show_timestamps': True,
-        'show_useless_separator': False,
+        'show_useless_separator': True,
         'status': '',
         'status_message': '',
         'theme': 'default',

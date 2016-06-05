@@ -1174,9 +1174,10 @@ found.
 
     show_useless_separator
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        If ``true``, show the separator at the bottom of a chat room, even if no one spoke.
+        If ``false``, the separator at the bottom of a chat room will not be
+        displayed if no one spoke.
 
     use_log
 
