@@ -654,7 +654,7 @@ class Core(object):
             else:
                 self.do_command(''.join(char_list), True)
         if self.status.show not in ('xa', 'away'):
-            self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
+            self.xmpp.plugin['xep_0319'].idle()
         self.doupdate()
 
     def save_config(self):

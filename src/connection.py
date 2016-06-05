@@ -162,6 +162,7 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0280')
         self.register_plugin('xep_0297')
         self.register_plugin('xep_0308')
+        self.register_plugin('xep_0319')
         self.register_plugin('xep_0334')
         self.register_plugin('xep_0352')
         self.init_plugins()
