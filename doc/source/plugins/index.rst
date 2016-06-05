@@ -87,6 +87,11 @@ Plugin index
 
         Close all tabs except MUCs and the roster.
 
+    CSI
+        :ref:`Documentation <csi-plugin>`
+
+        Set the client state indication manually.
+
     Cyber
         :ref:`Documentation <cyber-plugin>`
 
@@ -303,3 +308,4 @@ Plugin index
     close_all
     reorder
     cyber
+    csi
