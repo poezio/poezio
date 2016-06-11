@@ -20,7 +20,7 @@ from . import Tab
 import text_buffer
 import windows
 from xhtml import clean_text
-from decorators import command_args_parser
+from decorators import command_args_parser, refresh_wrapper
 from common import safeJID
 
 
@@ -256,12 +256,13 @@ class XMLTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0)
         self.input.do_command("/") # we add the slash
 
+    @refresh_wrapper.always
     def reset_help_message(self, _=None):
+        if self.closed:
+            return True
         if self.core.current_tab() is self:
             curses.curs_set(0)
         self.input = self.default_help_message
-        self.input.refresh()
-        self.core.doupdate()
         return True
 
     def on_scroll_up(self):

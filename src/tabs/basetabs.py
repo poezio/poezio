@@ -90,6 +90,7 @@ class Tab(object):
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
         self.input = None
+        self.closed = False
         self._state = 'normal'
         self._prev_state = None
 
@@ -404,6 +405,7 @@ class Tab(object):
         """
         if self.input:
             self.input.on_delete()
+        self.closed = True
 
     def matching_names(self):
         """

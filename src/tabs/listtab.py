@@ -141,6 +141,8 @@ class ListTab(Tab):
 
     @refresh_wrapper.always
     def reset_help_message(self, _=None):
+        if self.closed:
+            return True
         curses.curs_set(0)
         self.input = self.default_help_message
         self.input.resize(1, self.width, self.height-1, 0)
