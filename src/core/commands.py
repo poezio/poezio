@@ -355,13 +355,15 @@ def command_join(self, args):
     if room in self.pending_invites:
         del self.pending_invites[room]
     tab = self.get_tab_by_name(room, tabs.MucTab)
-    if tab is not None and tab.joined:       # if we are already in the room
+    if tab is not None:
         self.focus_tab_named(tab.name)
-        if tab.own_nick == nick:
+        if tab.own_nick == nick and tab.joined:
             self.information('/join: Nothing to do.', 'Info')
         else:
+            tab.command_part('')
             tab.own_nick = nick
-            tab.command_cycle('')
+            tab.join()
+
         return
 
     if room.startswith('@'):
