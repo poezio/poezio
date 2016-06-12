@@ -42,7 +42,7 @@ from text_buffer import TextBuffer
 from theming import get_theme
 import keyboard
 
-from . import completions
+from . completions import CompletionCore
 from . import commands
 from . import handlers
 from . structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
@@ -55,6 +55,7 @@ class Core(object):
     """
 
     def __init__(self):
+        self.completion = CompletionCore(self)
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
@@ -1729,7 +1730,7 @@ class Core(object):
         self.register_command('help', self.command_help,
                 usage='[command]',
                 shortdesc='\\_o< KOIN KOIN KOIN',
-                completion=self.completion_help)
+                completion=self.completion.help)
         self.register_command('join', self.command_join,
                 usage="[room_name][@server][/nick] [password]",
                 desc="Join the specified room. You can specify a nickname "
@@ -1744,7 +1745,7 @@ class Core(object):
                      "/join room2\n/join /me_again\n/join\n/join room@server"
                      ".tld/my_nick password\n/join / password",
                 shortdesc='Join a room',
-                completion=self.completion_join)
+                completion=self.completion.join)
         self.register_command('exit', self.command_quit,
                 desc='Just disconnect from the server and exit poezio.',
                 shortdesc='Exit poezio.')
@@ -1758,7 +1759,7 @@ class Core(object):
         self.register_command('win', self.command_win,
                 usage='<number or name>',
                 shortdesc='Go to the specified room',
-                completion=self.completion_win)
+                completion=self.completion.win)
         self.commands['w'] = self.commands['win']
         self.register_command('move_tab', self.command_move_tab,
                 usage='<source> <destination>',
@@ -1769,7 +1770,7 @@ class Core(object):
                      "address. You can use \".\" as a shortcut for the current "
                      "tab.",
                 shortdesc='Move a tab.',
-                completion=self.completion_move_tab)
+                completion=self.completion.move_tab)
         self.register_command('destroy_room', self.command_destroy_room,
                 usage='[room JID]',
                 desc='Try to destroy the room [room JID], or the current'
@@ -1784,7 +1785,7 @@ class Core(object):
                      ", chat, away, afk, dnd, busy, xa\" and the optional "
                      "[status message] argument will be your status message.",
                 shortdesc='Change your availability.',
-                completion=self.completion_status)
+                completion=self.completion.status)
         self.commands['status'] = self.commands['show']
         self.register_command('bookmark_local', self.command_bookmark_local,
                 usage="[roomname][/nick] [password]",
@@ -1796,7 +1797,7 @@ class Core(object):
                      "with the nickname you\'re currently using in this room "
                      "(instead of default_nick)",
                 shortdesc='Bookmark a room locally.',
-                completion=self.completion_bookmark_local)
+                completion=self.completion.bookmark_local)
         self.register_command('bookmark', self.command_bookmark,
                 usage="[roomname][/nick] [autojoin] [password]",
                 desc="Bookmark: Bookmark online the specified room (you "
@@ -1807,7 +1808,7 @@ class Core(object):
                      " room will be bookmarked with the nickname you\'re "
                      "currently using in this room (instead of default_nick).",
                 shortdesc="Bookmark a room online.",
-                completion=self.completion_bookmark)
+                completion=self.completion.bookmark)
         self.register_command('set', self.command_set,
                 usage="[plugin|][section] <option> [value]",
                 desc="Set the value of an option in your configuration file."
@@ -1818,7 +1819,7 @@ class Core(object):
                      " with `/set mpd_client| host 127.0.0.1`. `toggle` can be "
                      "used as a special value to toggle a boolean option.",
                 shortdesc="Set the value of an option",
-                completion=self.completion_set)
+                completion=self.completion.set)
         self.register_command('set_default', self.command_set_default,
                 usage="[section] <option>",
                 desc="Set the default value of an option. For example, "
@@ -1826,48 +1827,48 @@ class Core(object):
                      "option. You can also reset options in specific "
                      "sections by doing `/set_default section option`.",
                 shortdesc="Set the default value of an option",
-                completion=self.completion_set_default)
+                completion=self.completion.set_default)
         self.register_command('toggle', self.command_toggle,
                 usage='<option>',
                 desc='Shortcut for /set <option> toggle',
                 shortdesc='Toggle an option',
-                completion=self.completion_toggle)
+                completion=self.completion.toggle)
         self.register_command('theme', self.command_theme,
                 usage='[theme name]',
                 desc="Reload the theme defined in the config file. If theme"
                      "_name is provided, set that theme before reloading it.",
                 shortdesc='Load a theme',
-                completion=self.completion_theme)
+                completion=self.completion.theme)
         self.register_command('list', self.command_list,
                 usage='[server]',
                 desc="Get the list of public chatrooms"
                      " on the specified server.",
                 shortdesc='List the rooms.',
-                completion=self.completion_list)
+                completion=self.completion.list)
         self.register_command('message', self.command_message,
                 usage='<jid> [optional message]',
                 desc="Open a conversation with the specified JID (even if it"
                      " is not in our roster), and send a message to it, if the "
                      "message is specified.",
                 shortdesc='Send a message',
-                completion=self.completion_message)
+                completion=self.completion.message)
         self.register_command('version', self.command_version,
                 usage='<jid>',
                 desc="Get the software version of the given JID (usually its"
                      " XMPP client and Operating System).",
                 shortdesc='Get the software version of a JID.',
-                completion=self.completion_version)
+                completion=self.completion.version)
         self.register_command('server_cycle', self.command_server_cycle,
                 usage='[domain] [message]',
                 desc='Disconnect and reconnect in all the rooms in domain.',
                 shortdesc='Cycle a range of rooms',
-                completion=self.completion_server_cycle)
+                completion=self.completion.server_cycle)
         self.register_command('bind', self.command_bind,
                 usage='<key> <equ>',
                 desc="Bind a key to another key or to a “command”. For "
                      "example \"/bind ^H KEY_UP\" makes Control + h do the"
                      " same same as the Up key.",
-                completion=self.completion_bind,
+                completion=self.completion.bind,
                 shortdesc='Bind a key to another key.')
         self.register_command('load', self.command_load,
                 usage='<plugin> [<otherplugin> …]',
@@ -1884,7 +1885,7 @@ class Core(object):
                 desc="Send a directed presence to <JID> and using"
                      " [type] and [status] if provided.",
                 shortdesc='Send a directed presence.',
-                completion=self.completion_presence)
+                completion=self.completion.presence)
         self.register_command('rawxml', self.command_rawxml,
                 usage='<xml>',
                 shortdesc='Send a custom xml stanza.')
@@ -1892,7 +1893,7 @@ class Core(object):
                 usage='<jid> <room> [reason]',
                 desc='Invite jid in room with reason.',
                 shortdesc='Invite someone in a room.',
-                completion=self.completion_invite)
+                completion=self.completion.invite)
         self.register_command('invitations', self.command_invitations,
                 shortdesc='Show the pending invitations.')
         self.register_command('bookmarks', self.command_bookmarks,
@@ -1902,20 +1903,20 @@ class Core(object):
                 desc="Remove the specified bookmark, or the "
                      "bookmark on the current tab, if any.",
                 shortdesc='Remove a bookmark',
-                completion=self.completion_remove_bookmark)
+                completion=self.completion.remove_bookmark)
         self.register_command('xml_tab', self.command_xml_tab,
                 shortdesc='Open an XML tab.')
         self.register_command('runkey', self.command_runkey,
                 usage='<key>',
                 shortdesc='Execute the action defined for <key>.',
-                completion=self.completion_runkey)
+                completion=self.completion.runkey)
         self.register_command('self', self.command_self,
                 shortdesc='Remind you of who you are.')
         self.register_command('last_activity', self.command_last_activity,
                 usage='<jid>',
                 desc='Informs you of the last activity of a JID.',
                 shortdesc='Get the activity of someone.',
-                completion=self.completion_last_activity)
+                completion=self.completion.last_activity)
         self.register_command('ad-hoc', self.command_adhoc,
                 usage='<jid>',
                 shortdesc='List available ad-hoc commands on the given jid')
@@ -1930,7 +1931,7 @@ class Core(object):
                          '(use the completion). Nothing means '
                          '"stop broadcasting an activity".',
                     shortdesc='Send your activity.',
-                    completion=self.completion_activity)
+                    completion=self.completion.activity)
         if config.get('enable_user_mood'):
             self.register_command('mood', self.command_mood,
                     usage='[<mood> [text]]',
@@ -1938,7 +1939,7 @@ class Core(object):
                          '(use the completion). Nothing means '
                          '"stop broadcasting a mood".',
                     shortdesc='Send your mood.',
-                    completion=self.completion_mood)
+                    completion=self.completion.mood)
         if config.get('enable_user_gaming'):
             self.register_command('gaming', self.command_gaming,
                     usage='[<game name> [server address]]',
@@ -2048,30 +2049,6 @@ class Core(object):
     command_adhoc = commands.command_adhoc
     command_self = commands.command_self
     command_reload = commands.command_reload
-    completion_help = completions.completion_help
-    completion_status = completions.completion_status
-    completion_presence = completions.completion_presence
-    completion_theme = completions.completion_theme
-    completion_win = completions.completion_win
-    completion_join = completions.completion_join
-    completion_version = completions.completion_version
-    completion_list = completions.completion_list
-    completion_move_tab = completions.completion_move_tab
-    completion_runkey = completions.completion_runkey
-    completion_bookmark = completions.completion_bookmark
-    completion_remove_bookmark = completions.completion_remove_bookmark
-    completion_decline = completions.completion_decline
-    completion_bind = completions.completion_bind
-    completion_message = completions.completion_message
-    completion_invite = completions.completion_invite
-    completion_activity = completions.completion_activity
-    completion_mood = completions.completion_mood
-    completion_last_activity = completions.completion_last_activity
-    completion_server_cycle = completions.completion_server_cycle
-    completion_set = completions.completion_set
-    completion_set_default = completions.completion_set_default
-    completion_toggle = completions.completion_toggle
-    completion_bookmark_local = completions.completion_bookmark_local
 
 
 

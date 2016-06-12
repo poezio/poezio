@@ -64,7 +64,7 @@ class ConversationTab(OneToOneTab):
                 usage='[jid]',
                 desc='Get the last activity of the given or the current contact.',
                 shortdesc='Get the activity.',
-                completion=self.core.completion_last_activity)
+                completion=self.core.completion.last_activity)
         self.resize()
         self.update_commands()
         self.update_keys()

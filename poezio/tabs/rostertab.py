@@ -140,7 +140,7 @@ class RosterInfoTab(Tab):
                 usage='<jid>',
                 desc='Informs you of the last activity of a JID.',
                 shortdesc='Get the activity of someone.',
-                completion=self.core.completion_last_activity)
+                completion=self.core.completion.last_activity)
 
         self.resize()
         self.update_commands()
