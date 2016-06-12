@@ -10,9 +10,11 @@ import pytest
 import datetime
 from slixmpp import JID
 from datetime import timedelta
-from common import (datetime_tuple, get_utc_time, get_local_time, shell_split,
-                    find_argument_quoted, find_argument_unquoted,
-                    parse_str_to_secs, parse_secs_to_str, safeJID)
+from common import (_datetime_tuple as datetime_tuple, get_utc_time,
+                    get_local_time, shell_split, _find_argument_quoted
+                    as find_argument_quoted, _find_argument_unquoted as
+                    find_argument_unquoted, parse_str_to_secs,
+                    parse_secs_to_str, safeJID)
 
 def test_utc_time():
     delta = timedelta(seconds=-3600)
