@@ -242,7 +242,7 @@ well, but you will at least want to know when you get disconnected.
 
     connection_check_interval
 
-        **Default value:** ``60``
+        **Default value:** ``300``
 
         A ping is sent to the server every N seconds, N being the value of
         that option.  Change this to a low value if you want to know quickly
@@ -253,9 +253,9 @@ well, but you will at least want to know when you get disconnected.
 
     connection_timeout_delay
 
-        **Default value:** ``10``
+        **Default value:** ``30``
 
-        The timeout delay of the ping referenced above, 10 should really be fine, but
+        The timeout delay of the ping referenced above, 30 should really be fine, but
         if your network is really unstable, it can be set higher or lower, depending
         of your preference.
 
