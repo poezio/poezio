@@ -302,6 +302,15 @@ to understand what is :ref:`carbons <carbons-details>` or
         enabled. There should be no reason to disable this except if you encounter
         issues with your server.
 
+    enable_smacks
+
+        **Default value:** ``false``
+
+        Stream Management (XEP-0198) is an extension designed to improve
+        the reliability of XMPP in unreliable network conditions (such
+        as mobile networks). It can however increase bandwidth usage.
+        It also requires server support.
+
     enable_user_activity
 
         **Default value:** ``true``

@@ -58,6 +58,7 @@ DEFAULT_CONFIG = {
         'enable_user_tune': True,
         'enable_vertical_tab_list': False,
         'enable_xhtml_im': True,
+        'enable_smacks': False,
         'eval_password': '',
         'exec_remote': False,
         'extract_inline_images': True,
