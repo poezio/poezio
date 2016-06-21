@@ -1224,7 +1224,7 @@ class HandlerCore:
 
     ### Ad-hoc commands
 
-    def on_next_adhoc_step(self, iq, adhoc_session):
+    def next_adhoc_step(self, iq, adhoc_session):
         status = iq['command']['status']
         xform = iq.xml.find('{http://jabber.org/protocol/commands}command/{jabber:x:data}x')
         if xform is not None:
@@ -1257,7 +1257,7 @@ class HandlerCore:
             notes = '\n'.join([note[1] for note in iq['command']['notes']])
             self.core.information("Adhoc command %s: %s" % (status, notes), "Info")
 
-    def on_adhoc_error(self, iq, adhoc_session):
+    def adhoc_error(self, iq, adhoc_session):
         self.core.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
         error_message = self.core.get_error_message(iq)
         self.core.information("An error occured while executing the command: %s" % (error_message),
