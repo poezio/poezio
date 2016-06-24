@@ -239,7 +239,10 @@ class RosterWin(Win):
         self.addstr(' ')
         if resource:
             self.addstr('[+] ' if contact.folded(group) else '[-] ')
-            added += 4
+        else:
+            self.addstr('    ')
+        added += 4
+
         if contact.ask:
             added += len(get_theme().CHAR_ROSTER_ASKED)
         if show_s2s_errors and contact.error:
@@ -292,9 +295,9 @@ class RosterWin(Win):
         color = get_theme().color_show(resource.presence)
         self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
-            self.addstr(y, 6, self.truncate_name(str(resource.jid), 6), to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self.addstr(y, 8, self.truncate_name(str(resource.jid), 6), to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
-            self.addstr(y, 6, self.truncate_name(str(resource.jid), 6))
+            self.addstr(y, 8, self.truncate_name(str(resource.jid), 6))
         self.finish_line()
 
     def get_selected_row(self):
