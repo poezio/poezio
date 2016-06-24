@@ -617,6 +617,8 @@ class MucTab(ChatTab):
             if self == self.core.current_tab():
                 self.refresh()
             self.core.doupdate()
+        else:
+            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
 
     @command_args_parser.raw
     def command_close(self, msg):
