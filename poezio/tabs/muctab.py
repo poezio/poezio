@@ -1575,12 +1575,12 @@ class MucTab(ChatTab):
                 self.core.information('Unable to write in the log file',
                                       'Error')
 
-    def do_highlight(self, txt, time, nickname):
+    def do_highlight(self, txt, time, nickname, corrected=False):
         """
         Set the tab color and returns the nick color
         """
         highlighted = False
-        if not time and nickname and nickname != self.own_nick and self.joined:
+        if (not time or corrected) and nickname and nickname != self.own_nick and self.joined:
 
             if re.search(r'\b' + self.own_nick.lower() + r'\b', txt.lower()):
                 if self.state != 'current':
@@ -1662,7 +1662,7 @@ class MucTab(ChatTab):
     def modify_message(self, txt, old_id, new_id,
                        time=None, nickname=None, user=None, jid=None):
         self.log_message(txt, nickname, time=time, typ=1)
-        highlight = self.do_highlight(txt, time, nickname)
+        highlight = self.do_highlight(txt, time, nickname, corrected=True)
         message = self._text_buffer.modify_message(txt, old_id, new_id,
                                                    highlight=highlight,
                                                    time=time, user=user,
