@@ -1078,9 +1078,10 @@ class HandlerCore:
         if not msg_id:
             return
 
-        conversation = self.core.get_tab_by_name(jid.full, tabs.ChatTab)
-        conversation = conversation or self.core.get_tab_by_name(jid.bare, tabs.ChatTab)
+        conversation = self.core.get_tab_by_name(jid.full, tabs.OneToOneTab)
+        conversation = conversation or self.core.get_tab_by_name(jid.bare, tabs.OneToOneTab)
         if not conversation:
+            log.error("Received ack from non-existing chat tab: %s", jid)
             return
 
         try:
