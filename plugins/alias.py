@@ -150,9 +150,9 @@ class Plugin(BasePlugin):
         if name in self.commands:
             return dummy
         elif name in self.core.commands:
-            return self.core.commands[name][0]
+            return self.core.commands[name].func
         elif name in self.api.current_tab().commands:
-            return self.api.current_tab().commands[name][0]
+            return self.api.current_tab().commands[name].func
         return dummy
 
 def split_args(line):
