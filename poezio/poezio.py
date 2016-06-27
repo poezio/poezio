@@ -107,9 +107,3 @@ def main():
         cocore.reset_curses()
     except:
         pass
-
-if __name__ == '__main__':
-    if test_curses():
-        main()
-    else:
-        sys.exit(1)
