@@ -6,8 +6,8 @@ import curses
 from . import Win
 from . inputs import Input
 from . data_forms import FieldInput
-from theming import to_curses_attr, get_theme
-from common import safeJID
+from .. theming import to_curses_attr, get_theme
+from .. common import safeJID
 
 class BookmarkJIDInput(FieldInput, Input):
     def __init__(self, field):

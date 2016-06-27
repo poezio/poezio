@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 import curses
 
 from . import Win
-from theming import get_theme, to_curses_attr
+from .. theming import get_theme, to_curses_attr
 
 class VerticalSeparator(Win):
     """

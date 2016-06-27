@@ -10,9 +10,9 @@ log = logging.getLogger(__name__)
 import curses
 import collections
 
-import windows
-from common import safeJID
-from decorators import refresh_wrapper
+from .. import windows
+from .. common import safeJID
+from .. decorators import refresh_wrapper
 
 from . import Tab
 

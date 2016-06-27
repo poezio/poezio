@@ -9,7 +9,7 @@ others when needed.
 from . import Win
 from . inputs import Input
 
-from theming import to_curses_attr, get_theme
+from .. theming import to_curses_attr, get_theme
 
 class FieldInput(object):
     """

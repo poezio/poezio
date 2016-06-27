@@ -12,13 +12,13 @@ Defines the Roster and RosterGroup classes
 import logging
 log = logging.getLogger(__name__)
 
-from config import config
-from contact import Contact
-from roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
+from . config import config
+from . contact import Contact
+from . roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 
 from os import path as p
 from datetime import datetime
-from common import safeJID
+from . common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
 
 

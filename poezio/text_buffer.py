@@ -12,8 +12,8 @@ import logging
 log = logging.getLogger(__name__)
 
 from datetime import datetime
-from config import config
-from theming import get_theme, dump_tuple
+from . config import config
+from . theming import get_theme, dump_tuple
 
 class Message:
     __slots__ = ('txt', 'nick_color', 'time', 'str_time', 'nickname', 'user',

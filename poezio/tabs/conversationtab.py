@@ -18,16 +18,16 @@ import curses
 
 from . basetabs import OneToOneTab, Tab
 
-import common
-import fixes
-import windows
-import xhtml
-from common import safeJID
-from config import config
-from decorators import refresh_wrapper
-from roster import roster
-from theming import get_theme, dump_tuple
-from decorators import command_args_parser
+from .. import common
+from .. import fixes
+from .. import windows
+from .. import xhtml
+from .. common import safeJID
+from .. config import config
+from .. decorators import refresh_wrapper
+from .. roster import roster
+from .. theming import get_theme, dump_tuple
+from .. decorators import command_args_parser
 
 class ConversationTab(OneToOneTab):
     """

@@ -9,9 +9,9 @@ import curses
 
 from . import Win
 
-import poopt
-from config import config
-from theming import to_curses_attr, get_theme
+from .. import poopt
+from .. config import config
+from .. theming import to_curses_attr, get_theme
 
 def userlist_to_cache(userlist):
     result = []

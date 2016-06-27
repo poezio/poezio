@@ -8,12 +8,12 @@ log = logging.getLogger(__name__)
 import os
 from functools import reduce
 
-import common
-import pep
-import tabs
-from common import safeJID
-from config import config
-from roster import roster
+from .. import common
+from .. import pep
+from .. import tabs
+from .. common import safeJID
+from .. config import config
+from .. roster import roster
 
 from . structs import POSSIBLE_SHOW
 

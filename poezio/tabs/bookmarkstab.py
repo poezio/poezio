@@ -5,10 +5,10 @@ Defines the data-forms Tab
 import logging
 log = logging.getLogger(__name__)
 
-import windows
-from bookmarks import Bookmark, BookmarkList, stanza_storage
-from tabs import Tab
-from common import safeJID
+from .. import windows
+from .. bookmarks import Bookmark, BookmarkList, stanza_storage
+from .. tabs import Tab
+from .. common import safeJID
 
 
 class BookmarksTab(Tab):

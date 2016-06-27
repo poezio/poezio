@@ -6,12 +6,12 @@ info buffer in normal tabs
 import logging
 log = logging.getLogger(__name__)
 
-from common import safeJID
-from config import config
+from .. common import safeJID
+from .. config import config
 
 from . import Win
 from . funcs import truncate_nick
-from theming import get_theme, to_curses_attr
+from .. theming import get_theme, to_curses_attr
 
 class InfoWin(Win):
     """

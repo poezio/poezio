@@ -16,24 +16,24 @@ revolving around chats.
 import logging
 log = logging.getLogger(__name__)
 
-import singleton
+from .. import singleton
 import string
 import time
 import weakref
 from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 
-import core
-import timed_events
-import windows
-import xhtml
-from common import safeJID
-from config import config
-from decorators import refresh_wrapper
-from logger import logger
-from text_buffer import TextBuffer
-from theming import get_theme, dump_tuple
-from decorators import command_args_parser
+from .. import core
+from .. import timed_events
+from .. import windows
+from .. import xhtml
+from .. common import safeJID
+from .. config import config
+from .. decorators import refresh_wrapper
+from .. logger import logger
+from .. text_buffer import TextBuffer
+from .. theming import get_theme, dump_tuple
+from .. decorators import command_args_parser
 
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {

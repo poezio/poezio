@@ -9,11 +9,11 @@ from datetime import datetime
 
 from . import Win
 
-import common
-from config import config
-from contact import Contact, Resource
-from roster import RosterGroup
-from theming import get_theme, to_curses_attr
+from .. import common
+from .. config import config
+from .. contact import Contact, Resource
+from .. roster import RosterGroup
+from .. theming import get_theme, to_curses_attr
 
 
 class RosterWin(Win):

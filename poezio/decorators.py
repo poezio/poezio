@@ -2,7 +2,7 @@
 Module containing various decorators
 """
 
-import common
+from . import common
 
 class RefreshWrapper(object):
     def __init__(self):

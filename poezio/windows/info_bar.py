@@ -11,9 +11,9 @@ log = logging.getLogger(__name__)
 import curses
 
 
-from config import config
+from .. config import config
 from . import Win
-from theming import get_theme, to_curses_attr
+from .. theming import get_theme, to_curses_attr
 
 class GlobalInfoBar(Win):
     def __init__(self, core):

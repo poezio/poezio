@@ -13,7 +13,7 @@ the roster.
 import logging
 log = logging.getLogger(__name__)
 
-from common import safeJID
+from . common import safeJID
 from collections import defaultdict
 
 class Resource(object):

@@ -20,10 +20,10 @@ import sys
 import slixmpp
 from slixmpp.plugins.xep_0184 import XEP_0184
 
-import common
-import fixes
-from common import safeJID
-from config import config, options
+from . import common
+from . import fixes
+from . common import safeJID
+from . config import config, options
 
 class Connection(slixmpp.ClientXMPP):
     """

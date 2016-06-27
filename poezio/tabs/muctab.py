@@ -19,19 +19,19 @@ from datetime import datetime
 
 from . import ChatTab, Tab
 
-import common
-import fixes
-import multiuserchat as muc
-import timed_events
-import windows
-import xhtml
-from common import safeJID
-from config import config
-from decorators import refresh_wrapper, command_args_parser
-from logger import logger
-from roster import roster
-from theming import get_theme, dump_tuple
-from user import User
+from .. import common
+from .. import fixes
+from .. import multiuserchat as muc
+from .. import timed_events
+from .. import windows
+from .. import xhtml
+from .. common import safeJID
+from .. config import config
+from .. decorators import refresh_wrapper, command_args_parser
+from .. logger import logger
+from .. roster import roster
+from .. theming import get_theme, dump_tuple
+from .. user import User
 
 
 SHOW_NAME = {

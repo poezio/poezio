@@ -14,9 +14,9 @@ import collections
 import curses
 import string
 
-import core
-import singleton
-from theming import to_curses_attr, read_tuple
+from .. import core
+from .. import singleton
+from .. theming import to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,

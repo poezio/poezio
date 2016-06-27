@@ -8,14 +8,14 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
-import keyboard
-import common
-import poopt
+from .. import keyboard
+from .. import common
+from .. import poopt
 from . import Win
 from . base_wins import format_chars
 from . funcs import find_first_format_char
-from config import config
-from theming import to_curses_attr
+from .. config import config
+from .. theming import to_curses_attr
 
 
 class Input(Win):

@@ -6,8 +6,8 @@ These are used in the plugin system added in poezio 0.7.5
 import os
 from functools import partial
 from configparser import RawConfigParser
-from timed_events import TimedEvent, DelayedEvent
-import config
+from . timed_events import TimedEvent, DelayedEvent
+from . import config
 import inspect
 import traceback
 import logging

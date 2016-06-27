@@ -5,8 +5,8 @@ Defines the data-forms Tab
 import logging
 log = logging.getLogger(__name__)
 
-import windows
-from tabs import Tab
+from .. import windows
+from .. tabs import Tab
 
 class DataFormsTab(Tab):
     """

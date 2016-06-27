@@ -13,7 +13,7 @@ slix plugin
 
 from xml.etree import cElementTree as ET
 
-from common import safeJID
+from . common import safeJID
 import logging
 log = logging.getLogger(__name__)
 

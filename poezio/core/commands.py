@@ -14,18 +14,18 @@ from slixmpp.xmlstream.stanzabase import StanzaBase
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
 
-import common
-import fixes
-import pep
-import tabs
-from bookmarks import Bookmark
-from common import safeJID
-from config import config, DEFAULT_CONFIG, options as config_opts
-import multiuserchat as muc
-from plugin import PluginConfig
-from roster import roster
-from theming import dump_tuple, get_theme
-from decorators import command_args_parser
+from .. import common
+from .. import fixes
+from .. import pep
+from .. import tabs
+from .. bookmarks import Bookmark
+from .. common import safeJID
+from .. config import config, DEFAULT_CONFIG, options as config_opts
+from .. import multiuserchat as muc
+from .. plugin import PluginConfig
+from .. roster import roster
+from .. theming import dump_tuple, get_theme
+from .. decorators import command_args_parser
 
 from . structs import Command, POSSIBLE_SHOW
 

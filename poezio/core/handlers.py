@@ -19,20 +19,20 @@ from slixmpp import InvalidJID
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
-import common
-import fixes
-import pep
-import tabs
-import windows
-import xhtml
-import multiuserchat as muc
-from common import safeJID
-from config import config, CACHE_DIR
-from contact import Resource
-from logger import logger
-from roster import roster
-from text_buffer import CorrectionError, AckError
-from theming import dump_tuple, get_theme
+from .. import common
+from .. import fixes
+from .. import pep
+from .. import tabs
+from .. import windows
+from .. import xhtml
+from .. import multiuserchat as muc
+from .. common import safeJID
+from .. config import config, CACHE_DIR
+from .. contact import Resource
+from .. logger import logger
+from .. roster import roster
+from .. text_buffer import CorrectionError, AckError
+from .. theming import dump_tuple, get_theme
 
 from . commands import dumb_callback
 

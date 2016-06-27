@@ -19,29 +19,29 @@ import time
 
 from slixmpp.xmlstream.handler import Callback
 
-import connection
-import decorators
-import events
-import multiuserchat as muc
-import singleton
-import tabs
-import theming
-import timed_events
-import windows
+from .. import connection
+from .. import decorators
+from .. import events
+from .. import multiuserchat as muc
+from .. import singleton
+from .. import tabs
+from .. import theming
+from .. import timed_events
+from .. import windows
 
-from bookmarks import BookmarkList
-from common import safeJID
-from config import config, firstrun
-from contact import Contact, Resource
-from daemon import Executor
-from fifo import Fifo
-from logger import logger
-from plugin_manager import PluginManager
-from roster import roster
-from size_manager import SizeManager
-from text_buffer import TextBuffer
-from theming import get_theme
-import keyboard
+from .. bookmarks import BookmarkList
+from .. common import safeJID
+from .. config import config, firstrun
+from .. contact import Contact, Resource
+from .. daemon import Executor
+from .. fifo import Fifo
+from .. logger import logger
+from .. plugin_manager import PluginManager
+from .. roster import roster
+from .. size_manager import SizeManager
+from .. text_buffer import TextBuffer
+from .. theming import get_theme
+from .. import keyboard
 
 from . completions import CompletionCore
 from . commands import CommandCore

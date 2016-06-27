@@ -18,15 +18,15 @@ from functools import partial
 
 from . import Tab
 
-import common
-import windows
-from common import safeJID
-from config import config
-from contact import Contact, Resource
-from decorators import refresh_wrapper
-from roster import RosterGroup, roster
-from theming import get_theme, dump_tuple
-from decorators import command_args_parser
+from .. import common
+from .. import windows
+from .. common import safeJID
+from .. config import config
+from .. contact import Contact, Resource
+from .. decorators import refresh_wrapper
+from .. roster import RosterGroup, roster
+from .. theming import get_theme, dump_tuple
+from .. decorators import command_args_parser
 
 class RosterInfoTab(Tab):
     """

@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 import curses
 
 from . import Win
-from theming import to_curses_attr, get_theme
+from .. theming import to_curses_attr, get_theme
 
 
 class ListWin(Win):

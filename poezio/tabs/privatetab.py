@@ -17,15 +17,15 @@ import curses
 
 from . import OneToOneTab, MucTab, Tab
 
-import fixes
-import windows
-import xhtml
-from common import safeJID
-from config import config
-from decorators import refresh_wrapper
-from logger import logger
-from theming import get_theme, dump_tuple
-from decorators import command_args_parser
+from .. import fixes
+from .. import windows
+from .. import xhtml
+from .. common import safeJID
+from .. config import config
+from .. decorators import refresh_wrapper
+from .. logger import logger
+from .. theming import get_theme, dump_tuple
+from .. decorators import command_args_parser
 
 class PrivateTab(OneToOneTab):
     """
