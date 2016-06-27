@@ -44,7 +44,7 @@ Poezio is currently unable to read your input or draw its interface properly,\
 
 def main():
     """
-    Enter point
+    Entry point.
     """
     sys.stdout.write("\x1b]0;poezio\x07")
     sys.stdout.flush()
