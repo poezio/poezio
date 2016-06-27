@@ -13,8 +13,8 @@ This method is the only one that I can come up with that do not call
 __init__() each time.
 """
 
-instances = {}
+_instances = {}
 def Singleton(cls, *args, **kwargs):
-    if not cls in instances:
-        instances[cls] = cls(*args, **kwargs)
-    return instances[cls]
+    if not cls in _instances:
+        _instances[cls] = cls(*args, **kwargs)
+    return _instances[cls]

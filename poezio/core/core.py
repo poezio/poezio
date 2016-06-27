@@ -23,7 +23,6 @@ from .. import connection
 from .. import decorators
 from .. import events
 from .. import multiuserchat as muc
-from .. import singleton
 from .. import tabs
 from .. import theming
 from .. import timed_events
@@ -38,6 +37,7 @@ from .. fifo import Fifo
 from .. logger import logger
 from .. plugin_manager import PluginManager
 from .. roster import roster
+from .. singleton import Singleton
 from .. size_manager import SizeManager
 from .. text_buffer import TextBuffer
 from .. theming import get_theme
@@ -69,7 +69,7 @@ class Core(object):
         self.status = Status(show=status,
                 message=config.get('status_message'))
         self.running = True
-        self.xmpp = singleton.Singleton(connection.Connection)
+        self.xmpp = Singleton(connection.Connection)
         self.xmpp.core = self
         self.keyboard = keyboard.Keyboard()
         roster.set_node(self.xmpp.client_roster)

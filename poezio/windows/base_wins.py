@@ -10,12 +10,9 @@ A Tab (see the poezio.tabs module) is composed of multiple Windows
 import logging
 log = logging.getLogger(__name__)
 
-import collections
 import curses
 import string
 
-from .. import core
-from .. import singleton
 from .. theming import to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'

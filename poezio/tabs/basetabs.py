@@ -16,7 +16,6 @@ revolving around chats.
 import logging
 log = logging.getLogger(__name__)
 
-from .. import singleton
 import string
 import time
 import weakref
@@ -31,6 +30,7 @@ from .. common import safeJID
 from .. config import config
 from .. decorators import refresh_wrapper
 from .. logger import logger
+from .. singleton import Singleton
 from .. text_buffer import TextBuffer
 from .. theming import get_theme, dump_tuple
 from .. decorators import command_args_parser
@@ -109,7 +109,7 @@ class Tab(object):
     @property
     def core(self):
         if not Tab.tab_core:
-            Tab.tab_core = singleton.Singleton(core.Core)
+            Tab.tab_core = Singleton(core.Core)
         return Tab.tab_core
 
     @property
@@ -122,13 +122,13 @@ class Tab(object):
     @property
     def tab_win(self):
         if not Tab.tab_core:
-            Tab.tab_core = singleton.Singleton(core.Core)
+            Tab.tab_core = Singleton(core.Core)
         return Tab.tab_core.tab_win
 
     @property
     def left_tab_win(self):
         if not Tab.tab_core:
-            Tab.tab_core = singleton.Singleton(core.Core)
+            Tab.tab_core = Singleton(core.Core)
         return Tab.tab_core.left_tab_win
 
     @staticmethod
