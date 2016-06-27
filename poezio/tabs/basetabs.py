@@ -81,9 +81,6 @@ STATE_PRIORITY = {
     }
 
 class Tab(object):
-    tab_core = None
-    size_manager = None
-
     plugin_commands = {}
     plugin_keys = {}
     def __init__(self):
@@ -102,15 +99,11 @@ class Tab(object):
 
     @property
     def size(self):
-        if not Tab.size_manager:
-            Tab.size_manager = self.core.size
-        return Tab.size_manager
+        return self.core.size
 
     @property
     def core(self):
-        if not Tab.tab_core:
-            Tab.tab_core = Singleton(core.Core)
-        return Tab.tab_core
+        return Singleton(core.Core)
 
     @property
     def nb(self):
@@ -118,18 +111,6 @@ class Tab(object):
             if tab == self:
                 return index
         return len(self.core.tabs)
-
-    @property
-    def tab_win(self):
-        if not Tab.tab_core:
-            Tab.tab_core = Singleton(core.Core)
-        return Tab.tab_core.tab_win
-
-    @property
-    def left_tab_win(self):
-        if not Tab.tab_core:
-            Tab.tab_core = Singleton(core.Core)
-        return Tab.tab_core.left_tab_win
 
     @staticmethod
     def tab_win_height():
@@ -300,10 +281,11 @@ class Tab(object):
 
     def refresh_tab_win(self):
         if config.get('enable_vertical_tab_list'):
-            if self.left_tab_win and not self.size.core_degrade_x:
-                self.left_tab_win.refresh()
+            left_tab_win = self.core.left_tab_win
+            if left_tab_win and not self.size.core_degrade_x:
+                left_tab_win.refresh()
         elif not self.size.core_degrade_y:
-            self.tab_win.refresh()
+            self.core.tab_win.refresh()
 
     def refresh(self):
         """
