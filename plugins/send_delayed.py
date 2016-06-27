@@ -18,11 +18,11 @@ This plugin adds a command to the chat tabs.
 
 
 """
-from plugin import BasePlugin
-from decorators import command_args_parser
-import tabs
-import common
-import timed_events
+from poezio.plugin import BasePlugin
+from poezio.decorators import command_args_parser
+from poezio import tabs
+from poezio import common
+from poezio import timed_events
 
 class Plugin(BasePlugin):
 

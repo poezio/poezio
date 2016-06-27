@@ -17,10 +17,10 @@ You only have to load the plugin:
         **Usage:** ``/stoi``
 
 """
-from plugin import BasePlugin
-import tabs
+from poezio.plugin import BasePlugin
+from poezio import tabs
 import string
-import xhtml
+from poezio import xhtml
 import random
 
 char_we_dont_want = string.punctuation+' ’„“”…«»'

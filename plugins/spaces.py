@@ -2,8 +2,8 @@
 Insert a space between each character, in messages that you send, making
 them horrible to read.
 """
-from plugin import BasePlugin
-import xhtml
+from poezio.plugin import BasePlugin
+from poezio import xhtml
 
 class Plugin(BasePlugin):
     def init(self):

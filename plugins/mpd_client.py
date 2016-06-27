@@ -47,10 +47,10 @@ Usage
 
 """
 
-from plugin import BasePlugin
-from common import shell_split
+from poezio.plugin import BasePlugin
+from poezio.common import shell_split
 from os.path import basename as base
-import tabs
+from poezio import tabs
 import mpd
 
 class Plugin(BasePlugin):

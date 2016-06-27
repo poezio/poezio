@@ -2,7 +2,7 @@
 This plugin will set the title of your terminal to the name of the current tab.
 
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import sys
 
 

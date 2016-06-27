@@ -11,9 +11,9 @@ Commands
 
         Close all tabs except the roster and MUC tabs.
 """
-from plugin import BasePlugin
-import tabs
-from decorators import command_args_parser
+from poezio.plugin import BasePlugin
+from poezio import tabs
+from poezio.decorators import command_args_parser
 
 
 class Plugin(BasePlugin):

@@ -2,9 +2,9 @@
 Shuffle the words in every message you send in a :ref:`muctab`
 (may/should confuse the reader).
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from random import shuffle
-import xhtml
+from poezio import xhtml
 
 class Plugin(BasePlugin):
     def init(self):

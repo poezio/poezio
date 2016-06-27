@@ -84,11 +84,11 @@ Options defined
 
 """
 
-from plugin import BasePlugin
-from xhtml import get_body_from_message_stanza
-from timed_events import DelayedEvent
+from poezio.plugin import BasePlugin
+from poezio.xhtml import get_body_from_message_stanza
+from poezio.timed_events import DelayedEvent
 import shlex
-import common
+from poezio import common
 
 
 class Plugin(BasePlugin):

@@ -29,7 +29,7 @@ Messages like “2 hours, 25 minutes passed…” are automatically displayed in
 
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from datetime import datetime, timedelta
 
 class Plugin(BasePlugin):

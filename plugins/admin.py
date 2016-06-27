@@ -51,8 +51,8 @@ For affiliations
 """
 
 
-from plugin import BasePlugin
-from tabs import MucTab
+from poezio.plugin import BasePlugin
+from poezio.tabs import MucTab
 
 class Plugin(BasePlugin):
     """

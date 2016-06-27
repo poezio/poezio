@@ -33,7 +33,7 @@ Command
 
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from random import randrange
 
 class Plugin(BasePlugin):

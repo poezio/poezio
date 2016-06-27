@@ -12,8 +12,8 @@ Usage
 
 .. note:: Can create fun things when used with :ref:`The figlet plugin <figlet-plugin>`.
 """
-from plugin import BasePlugin
-import xhtml
+from poezio.plugin import BasePlugin
+from poezio import xhtml
 import random
 
 possible_colors = list(range(256))

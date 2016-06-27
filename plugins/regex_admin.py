@@ -26,8 +26,8 @@ Those commands take a regular expression (as defined in the
 """
 
 
-from plugin import BasePlugin
-from tabs import MucTab
+from poezio.plugin import BasePlugin
+from poezio.tabs import MucTab
 
 import re
 

@@ -11,8 +11,8 @@ Command
 
         Retrieve the uptime of the server of ``jid``.
 """
-from plugin import BasePlugin
-from common import parse_secs_to_str, safeJID
+from poezio.plugin import BasePlugin
+from poezio.common import parse_secs_to_str, safeJID
 from slixmpp.xmlstream import ET
 
 class Plugin(BasePlugin):

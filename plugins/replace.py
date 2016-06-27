@@ -53,8 +53,8 @@ For more convenience, you can read your nice words from a file, do whatever
 you want in that function, as long as it returns a string.
 """
 
-from plugin import BasePlugin
-import tabs
+from poezio.plugin import BasePlugin
+from poezio import tabs
 import datetime
 import random
 import re

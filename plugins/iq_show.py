@@ -2,7 +2,7 @@
 Show the exchanged IQs (useful for debugging).
 
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from slixmpp.xmlstream.matcher import StanzaPath
 from slixmpp.xmlstream.handler import Callback
 

@@ -13,9 +13,9 @@ Usage
 """
 
 from random import choice
-from tabs import MucTab
+from poezio.tabs import MucTab
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 
 class Plugin(BasePlugin):
     def init(self):

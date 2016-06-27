@@ -22,9 +22,9 @@ Usage
 
 
 """
-from plugin import BasePlugin
-from common import shell_split
-import tabs
+from poezio.plugin import BasePlugin
+from poezio.common import shell_split
+from poezio import tabs
 
 class Plugin(BasePlugin):
     def init(self):

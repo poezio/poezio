@@ -64,8 +64,8 @@ Example of the syntax:
 
 """
 
-from plugin import BasePlugin
-from common import shell_split
+from poezio.plugin import BasePlugin
+from poezio.common import shell_split
 
 
 class Plugin(BasePlugin):

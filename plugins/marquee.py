@@ -34,10 +34,10 @@ Configuration
 
 
 """
-from plugin import BasePlugin
-import tabs
-import xhtml
-from decorators import command_args_parser
+from poezio.plugin import BasePlugin
+from poezio import tabs
+from poezio import xhtml
+from poezio.decorators import command_args_parser
 
 def move(text, step, spacing):
     new_text = text + (" " * spacing)

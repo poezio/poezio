@@ -11,7 +11,7 @@ Say something in a Chat tab.
 .. note:: Can create fun things when used with :ref:`The rainbow plugin <rainbow-plugin>`.
 
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import subprocess
 
 class Plugin(BasePlugin):

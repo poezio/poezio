@@ -35,8 +35,8 @@ Usage
 
 """
 
-from plugin import BasePlugin
-import common
+from poezio.plugin import BasePlugin
+from poezio import common
 import subprocess
 
 class Plugin(BasePlugin):

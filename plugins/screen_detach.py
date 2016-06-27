@@ -26,7 +26,7 @@ Configuration options
 .. _client state indication: https://xmpp.org/extensions/xep-0352.html
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import os
 import stat
 import pyinotify

@@ -44,10 +44,10 @@ Options
         time of the message.
 """
 
-from plugin import BasePlugin
-from xhtml import clean_text
-import common
-import tabs
+from poezio.plugin import BasePlugin
+from poezio.xhtml import clean_text
+from poezio import common
+from poezio import tabs
 
 import logging
 log = logging.getLogger(__name__)

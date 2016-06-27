@@ -82,10 +82,10 @@ Options
 import platform
 import re
 
-from plugin import BasePlugin
-from xhtml import clean_text
-import common
-import tabs
+from poezio.plugin import BasePlugin
+from poezio.xhtml import clean_text
+from poezio import common
+from poezio import tabs
 
 url_pattern = re.compile(r'\b(http[s]?://(?:\S+))\b', re.I|re.U)
 app_mapping = {

@@ -5,10 +5,10 @@ date has changed.
 """
 
 from gettext import gettext as _
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import datetime
-import tabs
-import timed_events
+from poezio import tabs
+from poezio import timed_events
 
 class Plugin(BasePlugin):
     def init(self):

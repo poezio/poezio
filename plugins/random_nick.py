@@ -11,7 +11,7 @@ automatically be changed to something random, for example: ::
 
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from random import choice
 
 class Plugin(BasePlugin):

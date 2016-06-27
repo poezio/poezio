@@ -186,14 +186,14 @@ import curses
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
-import common
-import xhtml
-from common import safeJID
-from config import config
-from plugin import BasePlugin
-from tabs import ConversationTab, DynamicConversationTab, PrivateTab
-from theming import get_theme, dump_tuple
-from decorators import command_args_parser
+from poezio import common
+from poezio import xhtml
+from poezio.common import safeJID
+from poezio.config import config
+from poezio.plugin import BasePlugin
+from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab
+from poezio.theming import get_theme, dump_tuple
+from poezio.decorators import command_args_parser
 
 OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
                        '~/.local/share', 'poezio', 'otr')

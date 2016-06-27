@@ -22,12 +22,12 @@ Command
         the current interlocutor.
 """
 
-from decorators import command_args_parser
-from plugin import BasePlugin
-from roster import roster
-from common import safeJID
-from contact import Contact, Resource
-import tabs
+from poezio.decorators import command_args_parser
+from poezio.plugin import BasePlugin
+from poezio.roster import roster
+from poezio.common import safeJID
+from poezio.contact import Contact, Resource
+from poezio import tabs
 import time
 
 

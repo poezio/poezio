@@ -19,7 +19,7 @@ Configuration
 """
 
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import os
 import stat
 import logging

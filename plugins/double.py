@@ -1,7 +1,7 @@
 """
 Double the first word of any message you send in a :ref:`muctab`, making you appear retarded.
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 
 class Plugin(BasePlugin):
     def init(self):

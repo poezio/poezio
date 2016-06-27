@@ -22,8 +22,8 @@ Configuration options
         The time during which the file should stay in cache on the receiving side.
 """
 
-from plugin import BasePlugin
-import tabs
+from poezio.plugin import BasePlugin
+from poezio import tabs
 
 from pathlib import Path
 from glob import glob

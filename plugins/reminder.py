@@ -47,10 +47,10 @@ Will remind you to get up every 1 hour 23 minutes.
 
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import curses
-import common
-import timed_events
+from poezio import common
+from poezio import timed_events
 
 class Plugin(BasePlugin):
 

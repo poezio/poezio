@@ -1,5 +1,5 @@
-from plugin import BasePlugin
-import tabs
+from poezio.plugin import BasePlugin
+from poezio import tabs
 
 class Plugin(BasePlugin):
     def init(self):

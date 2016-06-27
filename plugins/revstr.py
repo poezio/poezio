@@ -2,8 +2,8 @@
 Reverse everything you say (``Je proteste énergiquement`` will become
 ``tnemeuqigrené etsetorp eJ``)
 """
-from plugin import BasePlugin
-import xhtml
+from poezio.plugin import BasePlugin
+from poezio import xhtml
 
 class Plugin(BasePlugin):
     def init(self):

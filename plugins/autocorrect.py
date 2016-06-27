@@ -45,7 +45,7 @@ This variant is useful if you don’t want to care about regular expressions
 
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 import re
 
 allowed_separators = '/#!:;'

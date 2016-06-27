@@ -129,10 +129,10 @@ Example configuration
 
 """
 
-from plugin import BasePlugin
-from decorators import command_args_parser
-import common
-import tabs
+from poezio.plugin import BasePlugin
+from poezio.decorators import command_args_parser
+from poezio import common
+from poezio import tabs
 
 class Plugin(BasePlugin):
 

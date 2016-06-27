@@ -54,9 +54,9 @@ And finally, the ``[tab name]`` must be:
 - For a type ``dynamic``, the bare JID of the contact
 - For a type ``static``, the full JID of the contact
 """
-from plugin import BasePlugin
-import tabs
-from decorators import command_args_parser
+from poezio.plugin import BasePlugin
+from poezio import tabs
+from poezio.decorators import command_args_parser
 
 mapping = {
     'muc': tabs.MucTab,

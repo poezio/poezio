@@ -20,8 +20,8 @@ Commands
 .. _CSI: https://xmpp.org/extensions/xep-0352.html
 """
 
-from plugin import BasePlugin
-import tabs
+from poezio.plugin import BasePlugin
+from poezio import tabs
 
 class Plugin(BasePlugin):
     def init(self):

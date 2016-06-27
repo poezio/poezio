@@ -17,7 +17,7 @@ Configuration options
         The percentage of the time the plugin will activate (randomly). 100 for every message, <= 0 for never.
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 from random import choice, randint
 import re
 

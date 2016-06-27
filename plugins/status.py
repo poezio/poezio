@@ -25,7 +25,7 @@ Aliases
         Set your status to ``xa``
 
 """
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 
 class Plugin(BasePlugin):
     """

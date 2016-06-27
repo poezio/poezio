@@ -19,9 +19,9 @@ This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/unt
         Cancel all scheduled messages to *nick*.
 
 """
-from plugin import BasePlugin
-from decorators import command_args_parser
-import tabs
+from poezio.plugin import BasePlugin
+from poezio.decorators import command_args_parser
+from poezio import tabs
 
 class Plugin(BasePlugin):
     def init(self):
