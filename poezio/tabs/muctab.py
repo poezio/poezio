@@ -1272,7 +1272,7 @@ class MucTab(ChatTab):
         if user.nick == self.own_nick:
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
-            self.core.handler.muc_own_nickchange(self)
+            self.core.handler.on_muc_own_nickchange(self)
         else:
             color = config.get_by_tabname(new_nick, 'muc_colors')
             if color != '':
