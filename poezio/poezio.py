@@ -17,8 +17,6 @@ import logging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from poezio.singleton import Singleton
-
 def test_curses():
     """
     Check if the system ncurses linked with python has unicode capabilities.
@@ -77,7 +75,7 @@ def main():
     log = logging.getLogger('')
 
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
-    cocore = Singleton(core.Core)
+    cocore = core.Core()
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler) # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)

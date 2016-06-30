@@ -30,7 +30,6 @@ from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
-from poezio.singleton import Singleton
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser

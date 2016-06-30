@@ -37,7 +37,6 @@ from poezio.fifo import Fifo
 from poezio.logger import logger
 from poezio.plugin_manager import PluginManager
 from poezio.roster import roster
-from poezio.singleton import Singleton
 from poezio.size_manager import SizeManager
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme
@@ -69,7 +68,7 @@ class Core(object):
         self.status = Status(show=status,
                 message=config.get('status_message'))
         self.running = True
-        self.xmpp = Singleton(connection.Connection)
+        self.xmpp = connection.Connection()
         self.xmpp.core = self
         self.keyboard = keyboard.Keyboard()
         roster.set_node(self.xmpp.client_roster)
