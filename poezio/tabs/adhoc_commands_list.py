@@ -15,8 +15,8 @@ class AdhocCommandsListTab(ListTab):
     plugin_commands = {}
     plugin_keys = {}
 
-    def __init__(self, jid):
-        ListTab.__init__(self, jid.full,
+    def __init__(self, core, jid):
+        ListTab.__init__(self,  core, jid.full,
                          "“Enter”: execute selected command.",
                          'Ad-hoc commands of JID %s (Loading)' % jid,
                          (('Node', 0), ('Description', 1)))

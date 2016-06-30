@@ -38,8 +38,8 @@ class ConversationTab(OneToOneTab):
     plugin_keys = {}
     additional_informations = {}
     message_type = 'chat'
-    def __init__(self, jid):
-        OneToOneTab.__init__(self, jid)
+    def __init__(self, core, jid):
+        OneToOneTab.__init__(self, core, jid)
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'

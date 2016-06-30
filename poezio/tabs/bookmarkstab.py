@@ -17,8 +17,8 @@ class BookmarksTab(Tab):
     a 4 widgets to set the jid/password/autojoin/storage method
     """
     plugin_commands = {}
-    def __init__(self, bookmarks: BookmarkList):
-        Tab.__init__(self)
+    def __init__(self, core, bookmarks: BookmarkList):
+        Tab.__init__(self, core)
         self.name = "Bookmarks"
         self.bookmarks = bookmarks
         self.new_bookmarks = []

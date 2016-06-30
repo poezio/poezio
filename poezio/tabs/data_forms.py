@@ -14,8 +14,8 @@ class DataFormsTab(Tab):
     a form that the user needs to fill.
     """
     plugin_commands = {}
-    def __init__(self, form, on_cancel, on_send, kwargs):
-        Tab.__init__(self)
+    def __init__(self, core, form, on_cancel, on_send, kwargs):
+        Tab.__init__(self, core)
         self._form = form
         self._on_cancel = on_cancel
         self._on_send = on_send

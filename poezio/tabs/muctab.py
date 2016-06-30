@@ -53,9 +53,9 @@ class MucTab(ChatTab):
     message_type = 'groupchat'
     plugin_commands = {}
     plugin_keys = {}
-    def __init__(self, jid, nick, password=None):
+    def __init__(self, core, jid, nick, password=None):
         self.joined = False
-        ChatTab.__init__(self, jid)
+        ChatTab.__init__(self, core, jid)
         if self.joined == False:
             self._state = 'disconnected'
         self.own_nick = nick

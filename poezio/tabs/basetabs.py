@@ -83,7 +83,8 @@ STATE_PRIORITY = {
 class Tab(object):
     plugin_commands = {}
     plugin_keys = {}
-    def __init__(self):
+    def __init__(self, core):
+        self.core = core
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
         self.input = None
@@ -100,10 +101,6 @@ class Tab(object):
     @property
     def size(self):
         return self.core.size
-
-    @property
-    def core(self):
-        return Singleton(core.Core)
 
     @property
     def nb(self):
@@ -425,8 +422,8 @@ class ChatTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
-    def __init__(self, jid=''):
-        Tab.__init__(self)
+    def __init__(self, core, jid=''):
+        Tab.__init__(self, core)
         self.name = jid
         self.text_win = None
         self._text_buffer = TextBuffer()
@@ -688,8 +685,8 @@ class ChatTab(Tab):
 
 class OneToOneTab(ChatTab):
 
-    def __init__(self, jid=''):
-        ChatTab.__init__(self, jid)
+    def __init__(self, core, jid=''):
+        ChatTab.__init__(self, core, jid)
 
         # Set to true once the first disco is done
         self.__initial_disco = False
@@ -859,5 +856,4 @@ class OneToOneTab(ChatTab):
         msg = msg % (color, correct, attention, receipts)
         self.add_message(msg, typ=0)
         self.core.refresh_window()
-
 

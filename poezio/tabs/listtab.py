@@ -21,7 +21,7 @@ class ListTab(Tab):
     plugin_commands = {}
     plugin_keys = {}
 
-    def __init__(self, name, help_message, header_text, cols):
+    def __init__(self, core, name, help_message, header_text, cols):
         """Parameters:
         name: The name of the tab
         help_message: The default help message displayed instead of the
@@ -31,7 +31,7 @@ class ListTab(Tab):
         cols: a tuple of 2-tuples. e.g. (('column1_name', number),
                                          ('column2_name', number))
         """
-        Tab.__init__(self)
+        Tab.__init__(self, core)
         self.state = 'normal'
         self.name = name
         columns = collections.OrderedDict()

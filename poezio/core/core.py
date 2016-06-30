@@ -531,7 +531,7 @@ class Core(object):
         self.stdscr = curses.initscr()
         self._init_curses(self.stdscr)
         self.call_for_resize()
-        default_tab = tabs.RosterInfoTab()
+        default_tab = tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information('Welcome to poezio!', 'Info')
@@ -1056,16 +1056,16 @@ class Core(object):
         if not target:
             if new_pos < len(self.tabs):
                 old_tab = self.tabs[old_pos]
-                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab()
+                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab(self)
             else:
                 self.tabs.append(self.tabs[old_pos])
-                self.tabs[old_pos] = tabs.GapTab()
+                self.tabs[old_pos] = tabs.GapTab(self)
         else:
             if new_pos > old_pos:
                 self.tabs.insert(new_pos, tab)
-                self.tabs[old_pos] = tabs.GapTab()
+                self.tabs[old_pos] = tabs.GapTab(self)
             elif new_pos < old_pos:
-                self.tabs[old_pos] = tabs.GapTab()
+                self.tabs[old_pos] = tabs.GapTab(self)
                 self.tabs.insert(new_pos, tab)
             else:
                 return False
@@ -1230,9 +1230,9 @@ class Core(object):
         DynamicConversationTab
         """
         if safeJID(jid).resource:
-            new_tab = tabs.StaticConversationTab(jid)
+            new_tab = tabs.StaticConversationTab(self, jid)
         else:
-            new_tab = tabs.DynamicConversationTab(jid)
+            new_tab = tabs.DynamicConversationTab(self, jid)
         if not focus:
             new_tab.state = "private"
         self.add_tab(new_tab, focus)
@@ -1253,7 +1253,7 @@ class Core(object):
         tab = self.get_tab_by_name(room_name, tabs.MucTab)
         if not tab:
             return None
-        new_tab = tabs.PrivateTab(complete_jid, tab.own_nick)
+        new_tab = tabs.PrivateTab(self, complete_jid, tab.own_nick)
         if hasattr(tab, 'directed_presence'):
             new_tab.directed_presence = tab.directed_presence
         if not focus:
@@ -1268,7 +1268,7 @@ class Core(object):
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
-        new_tab = tabs.MucTab(room, nick, password=password)
+        new_tab = tabs.MucTab(self, room, nick, password=password)
         self.add_tab(new_tab, focus)
         self.refresh_window()
         return new_tab
@@ -1279,7 +1279,7 @@ class Core(object):
         The callback are called with the completed form as parameter in
         addition with kwargs
         """
-        form_tab = tabs.DataFormsTab(form, on_cancel, on_send, kwargs)
+        form_tab = tabs.DataFormsTab(self, form, on_cancel, on_send, kwargs)
         self.add_tab(form_tab, True)
 
     ### Modifying actions ###
@@ -1363,7 +1363,7 @@ class Core(object):
                     self.tabs.pop()
                     nb -= 1
             else:
-                self.tabs[nb] = tabs.GapTab()
+                self.tabs[nb] = tabs.GapTab(self)
         else:
             self.tabs.remove(tab)
         logger.close(tab.name)

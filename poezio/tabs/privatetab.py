@@ -35,8 +35,8 @@ class PrivateTab(OneToOneTab):
     plugin_commands = {}
     additional_informations = {}
     plugin_keys = {}
-    def __init__(self, name, nick):
-        OneToOneTab.__init__(self, name)
+    def __init__(self, core, name, nick):
+        OneToOneTab.__init__(self, core, name)
         self.own_nick = nick
         self.name = name
         self.text_win = windows.TextWin()

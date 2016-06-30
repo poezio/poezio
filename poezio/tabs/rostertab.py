@@ -35,8 +35,8 @@ class RosterInfoTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
-    def __init__(self):
-        Tab.__init__(self)
+    def __init__(self, core):
+        Tab.__init__(self, core)
         self.name = "Roster"
         self.v_separator = windows.VerticalSeparator()
         self.information_win = windows.TextWin()

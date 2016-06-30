@@ -54,8 +54,8 @@ MATCHERS_MAPPINGS = {
 }
 
 class XMLTab(Tab):
-    def __init__(self):
-        Tab.__init__(self)
+    def __init__(self, core):
+        Tab.__init__(self, core)
         self.state = 'normal'
         self.name = 'XMLTab'
         self.filters = []

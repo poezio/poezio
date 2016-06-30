@@ -276,7 +276,7 @@ class CommandCore:
             if not isinstance(self.core.current_tab(), tabs.MucTab):
                 return self.core.information('Please provide a server', 'Error')
             jid = safeJID(self.core.current_tab().name).server
-        list_tab = tabs.MucListTab(jid)
+        list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
         self.core.xmpp.plugin['xep_0030'].get_items(jid=jid,
@@ -491,7 +491,7 @@ class CommandCore:
         if tab:
             self.core.current_tab_nb = tab.nb
         else:
-            tab = tabs.BookmarksTab(self.core.bookmarks)
+            tab = tabs.BookmarksTab(self.core, self.core.bookmarks)
             self.core.tabs.append(tab)
             self.core.current_tab_nb = tab.nb
         old_tab.on_lose_focus()
@@ -959,7 +959,7 @@ class CommandCore:
         """/xml_tab"""
         xml_tab = self.core.focus_tab_named('XMLTab', tabs.XMLTab)
         if not xml_tab:
-            tab = tabs.XMLTab()
+            tab = tabs.XMLTab(self.core)
             self.core.add_tab(tab, True)
             self.core.xml_tab = tab
 
@@ -968,7 +968,7 @@ class CommandCore:
         if not args:
             return self.help('ad-hoc')
         jid = safeJID(args[0])
-        list_tab = tabs.AdhocCommandsListTab(jid)
+        list_tab = tabs.AdhocCommandsListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_list_received
         self.core.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
