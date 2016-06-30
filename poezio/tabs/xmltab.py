@@ -17,11 +17,11 @@ from xml.etree import ElementTree as ET
 
 from . import Tab
 
-from .. import text_buffer
-from .. import windows
-from .. xhtml import clean_text
-from .. decorators import command_args_parser, refresh_wrapper
-from .. common import safeJID
+from poezio import text_buffer
+from poezio import windows
+from poezio.xhtml import clean_text
+from poezio.decorators import command_args_parser, refresh_wrapper
+from poezio.common import safeJID
 
 
 class MatchJID(object):

@@ -19,29 +19,29 @@ import time
 
 from slixmpp.xmlstream.handler import Callback
 
-from .. import connection
-from .. import decorators
-from .. import events
-from .. import multiuserchat as muc
-from .. import tabs
-from .. import theming
-from .. import timed_events
-from .. import windows
+from poezio import connection
+from poezio import decorators
+from poezio import events
+from poezio import multiuserchat as muc
+from poezio import tabs
+from poezio import theming
+from poezio import timed_events
+from poezio import windows
 
-from .. bookmarks import BookmarkList
-from .. common import safeJID
-from .. config import config, firstrun
-from .. contact import Contact, Resource
-from .. daemon import Executor
-from .. fifo import Fifo
-from .. logger import logger
-from .. plugin_manager import PluginManager
-from .. roster import roster
-from .. singleton import Singleton
-from .. size_manager import SizeManager
-from .. text_buffer import TextBuffer
-from .. theming import get_theme
-from .. import keyboard
+from poezio.bookmarks import BookmarkList
+from poezio.common import safeJID
+from poezio.config import config, firstrun
+from poezio.contact import Contact, Resource
+from poezio.daemon import Executor
+from poezio.fifo import Fifo
+from poezio.logger import logger
+from poezio.plugin_manager import PluginManager
+from poezio.roster import roster
+from poezio.singleton import Singleton
+from poezio.size_manager import SizeManager
+from poezio.text_buffer import TextBuffer
+from poezio.theming import get_theme
+from poezio import keyboard
 
 from . completions import CompletionCore
 from . commands import CommandCore

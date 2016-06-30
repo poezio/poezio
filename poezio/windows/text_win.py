@@ -13,9 +13,9 @@ from . import Win
 from . base_wins import FORMAT_CHAR
 from . funcs import truncate_nick, parse_attrs
 
-from .. import poopt
-from .. config import config
-from .. theming import to_curses_attr, get_theme, dump_tuple
+from poezio import poopt
+from poezio.config import config
+from poezio.theming import to_curses_attr, get_theme, dump_tuple
 
 
 # msg is a reference to the corresponding Message object. text_start and

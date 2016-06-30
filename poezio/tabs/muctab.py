@@ -19,19 +19,19 @@ from datetime import datetime
 
 from . import ChatTab, Tab
 
-from .. import common
-from .. import fixes
-from .. import multiuserchat as muc
-from .. import timed_events
-from .. import windows
-from .. import xhtml
-from .. common import safeJID
-from .. config import config
-from .. decorators import refresh_wrapper, command_args_parser
-from .. logger import logger
-from .. roster import roster
-from .. theming import get_theme, dump_tuple
-from .. user import User
+from poezio import common
+from poezio import fixes
+from poezio import multiuserchat as muc
+from poezio import timed_events
+from poezio import windows
+from poezio import xhtml
+from poezio.common import safeJID
+from poezio.config import config
+from poezio.decorators import refresh_wrapper, command_args_parser
+from poezio.logger import logger
+from poezio.roster import roster
+from poezio.theming import get_theme, dump_tuple
+from poezio.user import User
 
 
 SHOW_NAME = {

@@ -19,20 +19,20 @@ from slixmpp import InvalidJID
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
-from .. import common
-from .. import fixes
-from .. import pep
-from .. import tabs
-from .. import windows
-from .. import xhtml
-from .. import multiuserchat as muc
-from .. common import safeJID
-from .. config import config, CACHE_DIR
-from .. contact import Resource
-from .. logger import logger
-from .. roster import roster
-from .. text_buffer import CorrectionError, AckError
-from .. theming import dump_tuple, get_theme
+from poezio import common
+from poezio import fixes
+from poezio import pep
+from poezio import tabs
+from poezio import windows
+from poezio import xhtml
+from poezio import multiuserchat as muc
+from poezio.common import safeJID
+from poezio.config import config, CACHE_DIR
+from poezio.contact import Resource
+from poezio.logger import logger
+from poezio.roster import roster
+from poezio.text_buffer import CorrectionError, AckError
+from poezio.theming import dump_tuple, get_theme
 
 from . commands import dumb_callback
 

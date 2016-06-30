@@ -5,10 +5,10 @@ Defines the data-forms Tab
 import logging
 log = logging.getLogger(__name__)
 
-from .. import windows
-from .. bookmarks import Bookmark, BookmarkList, stanza_storage
-from .. tabs import Tab
-from .. common import safeJID
+from poezio import windows
+from poezio.bookmarks import Bookmark, BookmarkList, stanza_storage
+from poezio.tabs import Tab
+from poezio.common import safeJID
 
 
 class BookmarksTab(Tab):

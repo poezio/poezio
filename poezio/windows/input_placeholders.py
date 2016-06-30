@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 from . import Win
-from .. theming import get_theme, to_curses_attr
+from poezio.theming import get_theme, to_curses_attr
 
 
 class HelpText(Win):

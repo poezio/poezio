@@ -14,18 +14,18 @@ from slixmpp.xmlstream.stanzabase import StanzaBase
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
 
-from .. import common
-from .. import fixes
-from .. import pep
-from .. import tabs
-from .. bookmarks import Bookmark
-from .. common import safeJID
-from .. config import config, DEFAULT_CONFIG, options as config_opts
-from .. import multiuserchat as muc
-from .. plugin import PluginConfig
-from .. roster import roster
-from .. theming import dump_tuple, get_theme
-from .. decorators import command_args_parser
+from poezio import common
+from poezio import fixes
+from poezio import pep
+from poezio import tabs
+from poezio.bookmarks import Bookmark
+from poezio.common import safeJID
+from poezio.config import config, DEFAULT_CONFIG, options as config_opts
+from poezio import multiuserchat as muc
+from poezio.plugin import PluginConfig
+from poezio.roster import roster
+from poezio.theming import dump_tuple, get_theme
+from poezio.decorators import command_args_parser
 
 from . structs import Command, POSSIBLE_SHOW
 

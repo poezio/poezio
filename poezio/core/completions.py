@@ -8,12 +8,12 @@ log = logging.getLogger(__name__)
 import os
 from functools import reduce
 
-from .. import common
-from .. import pep
-from .. import tabs
-from .. common import safeJID
-from .. config import config
-from .. roster import roster
+from poezio import common
+from poezio import pep
+from poezio import tabs
+from poezio.common import safeJID
+from poezio.config import config
+from poezio.roster import roster
 
 from . structs import POSSIBLE_SHOW
 

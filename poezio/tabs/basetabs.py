@@ -22,18 +22,18 @@ import weakref
 from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 
-from .. import core
-from .. import timed_events
-from .. import windows
-from .. import xhtml
-from .. common import safeJID
-from .. config import config
-from .. decorators import refresh_wrapper
-from .. logger import logger
-from .. singleton import Singleton
-from .. text_buffer import TextBuffer
-from .. theming import get_theme, dump_tuple
-from .. decorators import command_args_parser
+from poezio import core
+from poezio import timed_events
+from poezio import windows
+from poezio import xhtml
+from poezio.common import safeJID
+from poezio.config import config
+from poezio.decorators import refresh_wrapper
+from poezio.logger import logger
+from poezio.singleton import Singleton
+from poezio.text_buffer import TextBuffer
+from poezio.theming import get_theme, dump_tuple
+from poezio.decorators import command_args_parser
 
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {

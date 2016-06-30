@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
-from .. theming import to_curses_attr, read_tuple
+from poezio.theming import to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,
