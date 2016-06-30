@@ -370,13 +370,13 @@ class DynamicConversationTab(ConversationTab):
     a full jid, and unlocked, as described in the XEP-0296.
     Only one DynamicConversationTab can be opened for a given jid.
     """
-    def __init__(self, jid, resource=None):
+    def __init__(self, core, jid, resource=None):
         self.locked_resource = None
         self.name = safeJID(jid).bare
         if resource:
             self.lock(resource)
         self.info_header = windows.DynamicConversationInfoWin()
-        ConversationTab.__init__(self, jid)
+        ConversationTab.__init__(self, core, jid)
         self.register_command('unlock', self.unlock_command,
                 shortdesc='Unlock the conversation from a particular resource.')
 
@@ -476,9 +476,8 @@ class StaticConversationTab(ConversationTab):
     A conversation tab associated with one Full JID. It cannot be locked to
     an different resource or unlocked.
     """
-    def __init__(self, jid):
+    def __init__(self, core, jid):
         assert(safeJID(jid).resource)
         self.info_header = windows.ConversationInfoWin()
-        ConversationTab.__init__(self, jid)
-
+        ConversationTab.__init__(self, core, jid)
 
