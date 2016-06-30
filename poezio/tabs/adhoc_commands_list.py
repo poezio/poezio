@@ -7,7 +7,7 @@ nothing.
 import logging
 log = logging.getLogger(__name__)
 
-from . import ListTab
+from poezio.tabs import ListTab
 
 from slixmpp.plugins.xep_0030.stanza.items import DiscoItem
 

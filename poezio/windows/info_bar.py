@@ -12,7 +12,7 @@ import curses
 
 
 from poezio.config import config
-from . import Win
+from poezio.windows import Win
 from poezio.theming import get_theme, to_curses_attr
 
 class GlobalInfoBar(Win):

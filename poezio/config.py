@@ -21,7 +21,7 @@ import pkg_resources
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
 from shutil import copy2
-from . args import parse_args
+from poezio.args import parse_args
 
 DEFAULT_CONFIG = {
     'Poezio': {
@@ -642,7 +642,7 @@ def setup_logging():
 def post_logging_setup():
     # common imports slixmpp, which creates then its loggers, so
     # it needs to be after logger configuration
-    from . common import safeJID as JID
+    from poezio.common import safeJID as JID
     global safeJID
     safeJID = JID
 

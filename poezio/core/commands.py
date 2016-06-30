@@ -27,7 +27,7 @@ from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
 from poezio.decorators import command_args_parser
 
-from . structs import Command, POSSIBLE_SHOW
+from poezio.core.structs import Command, POSSIBLE_SHOW
 
 
 class CommandCore:

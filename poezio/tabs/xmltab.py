@@ -15,7 +15,7 @@ from slixmpp.xmlstream.tostring import tostring
 from slixmpp.xmlstream.stanzabase import ElementBase
 from xml.etree import ElementTree as ET
 
-from . import Tab
+from poezio.tabs import Tab
 
 from poezio import text_buffer
 from poezio import windows

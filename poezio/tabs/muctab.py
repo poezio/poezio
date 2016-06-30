@@ -17,7 +17,7 @@ import random
 import re
 from datetime import datetime
 
-from . import ChatTab, Tab
+from poezio.tabs import ChatTab, Tab
 
 from poezio import common
 from poezio import fixes

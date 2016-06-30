@@ -3,18 +3,18 @@ Module exporting all the Windows, which are wrappers around curses wins
 used to display information on the screen
 """
 
-from . base_wins import Win
-from . data_forms import FormWin
-from . bookmark_forms import BookmarksWin
-from . info_bar import GlobalInfoBar, VerticalGlobalInfoBar
-from . info_wins import InfoWin, XMLInfoWin, PrivateInfoWin, MucListInfoWin, \
+from poezio.windows.base_wins import Win
+from poezio.windows.data_forms import FormWin
+from poezio.windows.bookmark_forms import BookmarksWin
+from poezio.windows.info_bar import GlobalInfoBar, VerticalGlobalInfoBar
+from poezio.windows.info_wins import InfoWin, XMLInfoWin, PrivateInfoWin, MucListInfoWin, \
         ConversationInfoWin, DynamicConversationInfoWin, MucInfoWin, \
         ConversationStatusMessageWin, BookmarksInfoWin
-from . input_placeholders import HelpText, YesNoInput
-from . inputs import Input, HistoryInput, MessageInput, CommandInput
-from . list import ListWin, ColumnHeaderWin
-from . misc import VerticalSeparator
-from . muc import UserList, Topic
-from . roster_win import RosterWin, ContactInfoWin
-from . text_win import TextWin, XMLTextWin
+from poezio.windows.input_placeholders import HelpText, YesNoInput
+from poezio.windows.inputs import Input, HistoryInput, MessageInput, CommandInput
+from poezio.windows.list import ListWin, ColumnHeaderWin
+from poezio.windows.misc import VerticalSeparator
+from poezio.windows.muc import UserList, Topic
+from poezio.windows.roster_win import RosterWin, ContactInfoWin
+from poezio.windows.text_win import TextWin, XMLTextWin
 

@@ -15,7 +15,7 @@ from poezio.common import safeJID
 from poezio.config import config
 from poezio.roster import roster
 
-from . structs import POSSIBLE_SHOW
+from poezio.core.structs import POSSIBLE_SHOW
 
 
 class CompletionCore:

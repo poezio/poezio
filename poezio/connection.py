@@ -20,10 +20,10 @@ import sys
 import slixmpp
 from slixmpp.plugins.xep_0184 import XEP_0184
 
-from . import common
-from . import fixes
-from . common import safeJID
-from . config import config, options
+from poezio import common
+from poezio import fixes
+from poezio.common import safeJID
+from poezio.config import config, options
 
 class Connection(slixmpp.ClientXMPP):
     """

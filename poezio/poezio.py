@@ -17,7 +17,7 @@ import logging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from . singleton import Singleton
+from poezio.singleton import Singleton
 
 def test_curses():
     """
@@ -48,7 +48,7 @@ def main():
     """
     sys.stdout.write("\x1b]0;poezio\x07")
     sys.stdout.flush()
-    from . import config
+    from poezio import config
     config_path = config.check_create_config_dir()
     config.run_cmdline_args(config_path)
     config.create_global_config()
@@ -57,22 +57,22 @@ def main():
     config.setup_logging()
     config.post_logging_setup()
 
-    from . config import options
+    from poezio.config import options
 
     if options.check_config:
         config.check_config()
         sys.exit(0)
 
-    from . import theming
+    from poezio import theming
     theming.update_themes_dir()
 
-    from . import logger
+    from poezio import logger
     logger.create_logger()
 
-    from . import roster
+    from poezio import roster
     roster.create_roster()
 
-    from . import core
+    from poezio import core
 
     log = logging.getLogger('')
 

@@ -16,16 +16,16 @@ import re
 from os import makedirs
 from datetime import datetime
 
-from . import common
-from . config import config
-from . xhtml import clean_text
-from . theming import dump_tuple, get_theme
+from poezio import common
+from poezio.config import config
+from poezio.xhtml import clean_text
+from poezio.theming import dump_tuple, get_theme
 
 import logging
 
 log = logging.getLogger(__name__)
 
-from . config import LOG_DIR as log_dir
+from poezio.config import LOG_DIR as log_dir
 
 message_log_re = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
                             r'(\d{2}):(\d{2}):(\d{2})Z '

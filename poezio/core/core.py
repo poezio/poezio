@@ -43,10 +43,10 @@ from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme
 from poezio import keyboard
 
-from . completions import CompletionCore
-from . commands import CommandCore
-from . handlers import HandlerCore
-from . structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
+from poezio.core.completions import CompletionCore
+from poezio.core.commands import CommandCore
+from poezio.core.handlers import HandlerCore
+from poezio.core.structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
 
 

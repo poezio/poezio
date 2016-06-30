@@ -34,7 +34,7 @@ from poezio.roster import roster
 from poezio.text_buffer import CorrectionError, AckError
 from poezio.theming import dump_tuple, get_theme
 
-from . commands import dumb_callback
+from poezio.core.commands import dumb_callback
 
 try:
     from pygments import highlight

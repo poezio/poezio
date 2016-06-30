@@ -3,9 +3,9 @@ Windows used inthe bookmarkstab
 """
 import curses
 
-from . import Win
-from . inputs import Input
-from . data_forms import FieldInput
+from poezio.windows import Win
+from poezio.windows.inputs import Input
+from poezio.windows.data_forms import FieldInput
 from poezio.theming import to_curses_attr, get_theme
 from poezio.common import safeJID
 

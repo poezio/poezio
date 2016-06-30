@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from . import OneToOneTab, MucTab, Tab
+from poezio.tabs import OneToOneTab, MucTab, Tab
 
 from poezio import fixes
 from poezio import windows

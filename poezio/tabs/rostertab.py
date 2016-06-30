@@ -16,8 +16,6 @@ import ssl
 from os import getenv, path
 from functools import partial
 
-from . import Tab
-
 from poezio import common
 from poezio import windows
 from poezio.common import safeJID
@@ -27,6 +25,9 @@ from poezio.decorators import refresh_wrapper
 from poezio.roster import RosterGroup, roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+
+from poezio.tabs import Tab
+
 
 class RosterInfoTab(Tab):
     """

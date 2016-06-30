@@ -2,7 +2,7 @@
 Module containing various decorators
 """
 
-from . import common
+from poezio import common
 
 class RefreshWrapper(object):
     def __init__(self):

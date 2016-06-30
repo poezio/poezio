@@ -4,7 +4,7 @@ Standalone functions used by the modules
 
 import string
 
-from . base_wins import FORMAT_CHAR, format_chars
+from poezio.windows.base_wins import FORMAT_CHAR, format_chars
 
 def find_first_format_char(text, chars=None):
     if chars is None:

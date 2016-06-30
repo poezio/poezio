@@ -33,8 +33,8 @@ import logging
 
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from slixmpp import JID
-from . common import safeJID
-from . config import config
+from poezio.common import safeJID
+from poezio.config import config
 
 log = logging.getLogger(__name__)
 

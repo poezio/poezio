@@ -11,7 +11,7 @@ Various useful functions.
 
 from datetime import datetime, timedelta
 from slixmpp import JID, InvalidJID
-from . poezio_shlex import shlex
+from poezio.poezio_shlex import shlex
 
 import base64
 import os

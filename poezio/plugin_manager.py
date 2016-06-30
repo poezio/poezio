@@ -9,10 +9,10 @@ import os
 from os import path
 import logging
 
-from . import core
-from . import tabs
-from . plugin import PluginAPI
-from . config import config
+from poezio import core
+from poezio import tabs
+from poezio.plugin import PluginAPI
+from poezio.config import config
 
 log = logging.getLogger(__name__)
 
@@ -375,7 +375,7 @@ class PluginManager(object):
             self.load_path.append(self.plugins_dir)
 
         try:
-            from . import poezio_plugins
+            from poezio import poezio_plugins
         except:
             pass
         else:
