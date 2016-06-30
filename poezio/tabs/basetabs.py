@@ -22,7 +22,7 @@ import weakref
 from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 
-from poezio import core
+from poezio.core.structs import Command
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
@@ -185,7 +185,7 @@ class Tab(object):
             return
         if not desc and shortdesc:
             desc = shortdesc
-        self.commands[name] = core.Command(func, desc, completion, shortdesc, usage)
+        self.commands[name] = Command(func, desc, completion, shortdesc, usage)
 
     def complete_commands(self, the_input):
         """

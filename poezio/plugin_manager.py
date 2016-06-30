@@ -9,8 +9,8 @@ import os
 from os import path
 import logging
 
-from poezio import core
 from poezio import tabs
+from poezio.core.structs import Command
 from poezio.plugin import PluginAPI
 from poezio.config import config
 
@@ -143,7 +143,7 @@ class PluginManager(object):
             raise Exception("Command '%s' already exists" % (name,))
 
         commands = self.commands[module_name]
-        commands[name] = core.Command(handler, help, completion, short, usage)
+        commands[name] = Command(handler, help, completion, short, usage)
         self.core.commands[name] = commands[name]
 
     def del_command(self, module_name, name):
@@ -167,7 +167,7 @@ class PluginManager(object):
         if not t in commands:
             commands[t] = []
         commands[t].append((name, handler, help, completion))
-        tab_type.plugin_commands[name] = core.Command(handler, help,
+        tab_type.plugin_commands[name] = Command(handler, help,
                                                       completion, short, usage)
         for tab in self.core.tabs:
             if isinstance(tab, tab_type):
