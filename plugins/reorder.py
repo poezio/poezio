@@ -11,6 +11,10 @@ Commands
 
         Reorder the tabs according to the configuration.
 
+    /save_order
+        **Usage:** ``/save_order``
+
+        Save the current tab order to the configuration.
 
 Configuration
 -------------
@@ -54,16 +58,25 @@ And finally, the ``[tab name]`` must be:
 - For a type ``dynamic``, the bare JID of the contact
 - For a type ``static``, the full JID of the contact
 """
-from poezio.plugin import BasePlugin
+
 from poezio import tabs
 from poezio.decorators import command_args_parser
+from poezio.plugin import BasePlugin
 
-mapping = {
+TEXT_TO_TAB = {
     'muc': tabs.MucTab,
     'private': tabs.PrivateTab,
     'dynamic': tabs.DynamicConversationTab,
     'static': tabs.StaticConversationTab,
     'empty': tabs.GapTab
+}
+
+TAB_TO_TEXT = {
+    tabs.MucTab: 'muc',
+    tabs.DynamicConversationTab: 'dynamic',
+    tabs.PrivateTab: 'private',
+    tabs.StaticConversationTab: 'static',
+    tabs.GapTab: 'empty'
 }
 
 def parse_config(config):
@@ -76,17 +89,42 @@ def parse_config(config):
             return
 
         typ, name = config.get(option, default=':').split(':', maxsplit=1)
-        if typ not in mapping:
+        if typ not in TEXT_TO_TAB:
             return
-        result[pos] = (mapping[typ], name)
+        result[pos] = (TEXT_TO_TAB[typ], name)
 
     return result
+
+def check_tab(tab):
+    for cls, rep in TAB_TO_TEXT.items():
+        if isinstance(tab, cls):
+            return rep
+    return ''
+
+def parse_runtime_tablist(tablist):
+    props = []
+    i = 0
+    for tab in tablist[1:]:
+        i += 1
+        result = check_tab(tab)
+        if result:
+            props.append((i, '%s:%s' % (result, tab.name)))
+    return props
 
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_command('reorder', self.command_reorder,
                              help='Reorder all tabs using the pre-defined'
                                   ' layout from the configuration file.')
+        self.api.add_command('save_order', self.command_save_order,
+                             help='Save the current tab layout')
+
+    @command_args_parser.ignored
+    def command_save_order(self):
+        conf = parse_runtime_tablist(self.core.tabs)
+        for key, value in conf:
+            self.config.set(key, value)
+        self.api.information('Tab order saved', 'Info')
 
     @command_args_parser.ignored
     def command_reorder(self):
@@ -107,7 +145,7 @@ class Plugin(BasePlugin):
         last = 0
         for pos in sorted(tabs_spec):
             if pos > last + 1:
-                new_tabs += [tabs.GapTab() for i in range(pos - last)]
+                new_tabs += [tabs.GapTab(self.core) for i in range(pos - last)]
             cls, name = tabs_spec[pos]
             tab = self.core.get_tab_by_name(name, typ=cls)
             if tab and tab in old_tabs:
@@ -115,7 +153,7 @@ class Plugin(BasePlugin):
                 old_tabs.remove(tab)
             else:
                 self.api.information('Tab %s not found' % name, 'Warning')
-                new_tabs.append(tabs.GapTab())
+                new_tabs.append(tabs.GapTab(self.core))
             last = pos
 
         for tab in old_tabs:
