@@ -96,7 +96,7 @@ setup(name="poezio",
                    'poezio_themes': 'data/themes'},
       package_data={'poezio': ['default_config.cfg']},
       scripts=['scripts/poezio_gpg_export'],
-      entry_points={'console_scripts': ['poezio = poezio.__main__']},
+      entry_points={'console_scripts': ['poezio = poezio.__main__:run']},
       data_files=([('share/man/man1/', ['data/poezio.1']),
                    ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG'])]
                   + find_doc('share/doc/poezio/source', 'source')
