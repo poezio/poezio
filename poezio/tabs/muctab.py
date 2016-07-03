@@ -195,9 +195,6 @@ class MucTab(ChatTab):
                 shortdesc='Invite a contact to this room',
                 completion=self.completion_invite)
 
-        if self.core.xmpp.boundjid.server == "gmail.com": #gmail sucks
-            del self.commands["nick"]
-
         self.resize()
         self.update_commands()
         self.update_keys()
