@@ -375,7 +375,7 @@ class PluginManager(object):
             self.load_path.append(self.plugins_dir)
 
         try:
-            from poezio import poezio_plugins
+            import poezio_plugins
         except:
             pass
         else:
