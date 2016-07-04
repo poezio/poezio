@@ -312,85 +312,94 @@ class CommandCore:
             else:
                 fixes.get_version(self.core.xmpp, jid, callback=callback)
 
+    def _empty_join(self):
+        tab = self.core.current_tab()
+        if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
+            return (None, None)
+        room = safeJID(tab.name).bare
+        nick = tab.own_nick
+        return (room, nick)
+
+    def _parse_join_jid(self, jid_string):
+        # we try to join a server directly
+        if jid_string.startswith('@'):
+            server_root = True
+            info = safeJID(jid_string[1:])
+        else:
+            info = safeJID(jid_string)
+            server_root = False
+
+        set_nick = ''
+        if len(jid_string) > 1 and jid_string.startswith('/'):
+            set_nick = jid_string[1:]
+        elif info.resource:
+            set_nick = info.resource
+
+        # happens with /join /nickname, which is OK
+        if info.bare == '':
+            tab = self.core.current_tab()
+            if not isinstance(tab, tabs.MucTab):
+                room, set_nick = (None, None)
+            else:
+                room = tab.name
+                if not set_nick:
+                    set_nick = tab.own_nick
+        else:
+            room = info.bare
+            # no server is provided, like "/join hello":
+            # use the server of the current room if available
+            # check if the current room's name has a server
+            if room.find('@') == -1 and not server_root:
+                tab = self.core.current_tab()
+                if isinstance(tab, tabs.MucTab):
+                    if tab.name.find('@') != -1:
+                        domain = safeJID(tab.name).domain
+                        room += '@%s' % domain
+        return (room, set_nick)
+
     @command_args_parser.quoted(0, 2)
     def join(self, args):
         """
         /join [room][/nick] [password]
         """
-        password = None
         if len(args) == 0:
-            tab = self.core.current_tab()
-            if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
-                return
-            room = safeJID(tab.name).bare
-            nick = tab.own_nick
+            room, nick = self._empty_join()
         else:
-            if args[0].startswith('@'): # we try to join a server directly
-                server_root = True
-                info = safeJID(args[0][1:])
-            else:
-                info = safeJID(args[0])
-                server_root = False
-            if info == '' and len(args[0]) > 1 and args[0][0] == '/':
-                nick = args[0][1:]
-            elif info.resource == '':
-                nick = self.core.own_nick
-            else:
-                nick = info.resource
-            if info.bare == '':   # happens with /join /nickname, which is OK
-                tab = self.core.current_tab()
-                if not isinstance(tab, tabs.MucTab):
-                    return
-                room = tab.name
-                if nick == '':
-                    nick = tab.own_nick
-            else:
-                room = info.bare
-                # no server is provided, like "/join hello":
-                # use the server of the current room if available
-                # check if the current room's name has a server
-                if room.find('@') == -1 and not server_root:
-                    tab = self.core.current_tab()
-                    if isinstance(tab, tabs.MucTab) and\
-                            tab.name.find('@') != -1:
-                        domain = safeJID(tab.name).domain
-                        room += '@%s' % domain
-                    else:
-                        room = args[0]
+            room, nick = self._parse_join_jid(args[0])
+        if not room and not nick:
+            return # nothing was parsed
+
         room = room.lower()
+        if nick == '':
+            nick = self.core.own_nick
+
+        # a password is provided
+        if len(args) == 2:
+            password = args[1]
+        else:
+            password = config.get_by_tabname('password', room, fallback=False)
+
         if room in self.core.pending_invites:
             del self.core.pending_invites[room]
+
         tab = self.core.get_tab_by_name(room, tabs.MucTab)
-        if tab is not None:
+        # New tab
+        if tab is None:
+            tab = self.core.open_new_room(room, nick, password=password)
+            tab.join()
+        else:
             self.core.focus_tab_named(tab.name)
             if tab.own_nick == nick and tab.joined:
                 self.core.information('/join: Nothing to do.', 'Info')
             else:
                 tab.command_part('')
                 tab.own_nick = nick
-                tab.join()
-            return
-
-        if room.startswith('@'):
-            room = room[1:]
-        if len(args) == 2:       # a password is provided
-            password = args[1]
-        if password is None: # try to use a saved password
-            password = config.get_by_tabname('password', room, fallback=False)
-        if tab is not None:
-            if password:
                 tab.password = password
-            tab.join()
-        else:
-            tab = self.core.open_new_room(room, nick, password=password)
-            tab.join()
+                tab.join()
 
-        if tab.joined:
-            self.core.enable_private_tabs(room)
-            tab.state = "normal"
-            if tab == self.core.current_tab():
-                tab.refresh()
-                self.core.doupdate()
+        if tab == self.core.current_tab():
+            tab.refresh()
+            self.core.doupdate()
 
     @command_args_parser.quoted(0, 2)
     def bookmark_local(self, args):
