@@ -266,6 +266,15 @@ Plugin index
         Change the title of the terminal according to the name
         of the current tab.
 
+    Marquee
+        :ref:`Documentation <marquee-plugin>`
+
+        Reproduce the behavior of the ``<marquee/>`` html tag.
+
+    Dice
+        :ref:`Documentation <dice-plugin>`
+
+        Roll one or several dice using message corrections.
 
 .. toctree::
     :hidden:
@@ -309,3 +318,5 @@ Plugin index
     reorder
     cyber
     csi
+    dice
+    marquee
