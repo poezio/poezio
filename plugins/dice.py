@@ -8,7 +8,7 @@ Commands
 
 .. glossary::
 
-    /roll <number of dice> [duration of the roll] 
+    /roll [number of dice] [duration of the roll]
         Roll one or several unicode dice
 
 Configuration
@@ -22,7 +22,7 @@ Configuration
 
         Interval in seconds between each correction (the closest to 0 is the fastest)
 
-    default_duration 
+    default_duration
         **Default:** ``5``
 
         Total duration of the animation.
@@ -34,7 +34,7 @@ from poezio import tabs
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 
-DICE = ('\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685')
+DICE = '\u2680\u2681\u2682\u2683\u2684\u2685'
 
 class DiceRoll:
     __slots__ = ['duration', 'total_duration', 'dice_number', 'msgtype',
@@ -55,22 +55,24 @@ class DiceRoll:
         return self.duration >= self.total_duration
 
 class Plugin(BasePlugin):
-    default_config = {"roll": {"refresh": 0.5, "default_duration": 5}}
+    default_config = {"dice": {"refresh": 0.5, "default_duration": 5}}
 
     def init(self):
         for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
             self.api.add_tab_command(tab_t, 'roll', self.command_dice,
                                      help='Roll a die',
-                                     usage='<number> [duration]')
+                                     usage='[number] [duration]')
 
-    @command_args_parser.quoted(1, 1, [''], True)
+    @command_args_parser.quoted(0, 2, ['', ''], True)
     def command_dice(self, args):
         tab = self.api.current_tab()
         duration = self.config.get('default_duration')
+        num_dice = 1
         try:
-            num_dice = int(args[0])
-            if args[1]:
-                duration = float(args[1])
+            if args[0]:
+                num_dice = int(args[0])
+                if args[1]:
+                    duration = float(args[1])
         except ValueError:
             self.core.command.help("roll")
             return
