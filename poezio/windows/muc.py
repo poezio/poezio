@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 import curses
 
-from poezio.windows import Win
+from poezio.windows.base_wins import Win
 
 from poezio import poopt
 from poezio.config import config

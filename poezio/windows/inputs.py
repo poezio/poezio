@@ -11,8 +11,7 @@ import string
 from poezio import keyboard
 from poezio import common
 from poezio import poopt
-from poezio.windows import Win
-from poezio.windows.base_wins import format_chars
+from poezio.windows.base_wins import Win, format_chars
 from poezio.windows.funcs import find_first_format_char
 from poezio.config import config
 from poezio.theming import to_curses_attr

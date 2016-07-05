@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 from datetime import datetime
 
-from poezio.windows import Win
+from poezio.windows.base_wins import Win
 
 from poezio import common
 from poezio.config import config

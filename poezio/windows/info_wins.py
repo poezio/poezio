@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 from poezio.common import safeJID
 from poezio.config import config
 
-from poezio.windows import Win
+from poezio.windows.base_wins import Win
 from poezio.windows.funcs import truncate_nick
 from poezio.theming import get_theme, to_curses_attr
 

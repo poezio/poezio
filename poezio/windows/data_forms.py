@@ -6,7 +6,7 @@ does not inherit from the Win base class), as it will create the
 others when needed.
 """
 
-from poezio.windows import Win
+from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
 
 from poezio.theming import to_curses_attr, get_theme

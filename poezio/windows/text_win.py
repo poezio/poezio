@@ -9,8 +9,7 @@ log = logging.getLogger(__name__)
 import curses
 from math import ceil, log10
 
-from poezio.windows import Win
-from poezio.windows.base_wins import FORMAT_CHAR
+from poezio.windows.base_wins import Win, FORMAT_CHAR
 from poezio.windows.funcs import truncate_nick, parse_attrs
 
 from poezio import poopt
