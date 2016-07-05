@@ -166,7 +166,7 @@ class Tab(object):
     @staticmethod
     def resize(scr):
         Tab.height, Tab.width = scr.getmaxyx()
-        windows.Win._tab_win = scr
+        windows.TAB_WIN = scr
 
     def missing_command_callback(self, command_name):
         """

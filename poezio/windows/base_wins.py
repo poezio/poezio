@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
+from poezio import windows
 from poezio.theming import to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'
@@ -30,8 +31,8 @@ class DummyWin(object):
     def __bool__(self):
         return False
 
+
 class Win(object):
-    _tab_win = None
     def __init__(self):
         self._win = None
         self.height, self.width = 0, 0
@@ -42,7 +43,7 @@ class Win(object):
             return
         self.height, self.width, self.x, self.y = height, width, x, y
         try:
-            self._win = Win._tab_win.derwin(height, width, y, x)
+            self._win = windows.TAB_WIN.derwin(height, width, y, x)
         except:
             log.debug('DEBUG: mvwin returned ERR. Please investigate')
             if self._win is None:

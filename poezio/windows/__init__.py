@@ -3,6 +3,8 @@ Module exporting all the Windows, which are wrappers around curses wins
 used to display information on the screen
 """
 
+TAB_WIN = None
+
 from poezio.windows.base_wins import Win
 from poezio.windows.data_forms import FormWin
 from poezio.windows.bookmark_forms import BookmarksWin

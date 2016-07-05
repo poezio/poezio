@@ -3,6 +3,9 @@ Size Manager:
     used to check size boundaries of the whole window and
     specific tabs
 """
+
+from poezio import windows
+
 THRESHOLD_WIDTH_DEGRADE = 45
 THRESHOLD_HEIGHT_DEGRADE = 10
 
@@ -17,12 +20,12 @@ class SizeManager(object):
 
     @property
     def tab_degrade_x(self):
-        _, x = self._win_class._tab_win.getmaxyx()
+        _, x = windows.TAB_WIN.getmaxyx()
         return x < THRESHOLD_WIDTH_DEGRADE
 
     @property
     def tab_degrade_y(self):
-        y, x = self._win_class._tab_win.getmaxyx()
+        y, x = windows.TAB_WIN.getmaxyx()
         return y < THRESHOLD_HEIGHT_DEGRADE
 
     @property
