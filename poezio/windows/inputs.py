@@ -456,7 +456,7 @@ class Input(Win):
         """
         return self.text
 
-    def addstr_colored_lite(self, text, y=None, x=None):
+    def _addstr_colored_lite(self, text, y=None, x=None):
         """
         Just like addstr_colored, with the single-char attributes
         (\x0E to \x19 instead of \x19 + attr). We do not use any }
@@ -490,7 +490,7 @@ class Input(Win):
         """
         Refresh the line onscreen, but first, always adjust the
         view_pos.  Also, each FORMAT_CHAR+attr_char count only take
-        one screen column (this is done in addstr_colored_lite), we
+        one screen column (this is done in _addstr_colored_lite), we
         have to do some special calculations to find the correct
         length of text to display, and the position of the cursor.
         """
@@ -501,7 +501,7 @@ class Input(Win):
             self._win.attron(to_curses_attr(self.color))
         displayed_text = text[self.view_pos:self.view_pos+self.width-1].replace('\t', '\x18')
         self._win.attrset(0)
-        self.addstr_colored_lite(displayed_text)
+        self._addstr_colored_lite(displayed_text)
         # Fill the rest of the line with the input color
         if self.color:
             (_, x) = self._win.getyx()
