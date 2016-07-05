@@ -704,8 +704,8 @@ class CommandInput(HistoryInput):
         self.key_func["M-B"] = self.key_down
         self.histo_pos = -1
 
-    def do_command(self, key, refresh=True, raw=False):
-        res = Input.do_command(self, key, refresh, raw)
+    def do_command(self, key, reset=True, raw=False):
+        res = Input.do_command(self, key, reset=reset, raw=raw)
         if self.on_input:
             self.on_input(self.get_text())
         return res
