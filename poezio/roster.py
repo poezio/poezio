@@ -238,16 +238,16 @@ class Roster(object):
     def export(self, path):
         """Export a list of bare jids to a given file"""
         if p.isfile(path):
-            return
+            return False
         try:
             f = open(path, 'w+', encoding='utf-8')
             f.writelines([str(i) + "\n" for i in self.contacts if self[i] and (self[i].subscription == "both" or self[i].ask)])
             f.close()
             return True
         except IOError:
-            return
+            return False
         except OSError:
-            return
+            return False
 
     def exists(self, contact):
         if not contact:

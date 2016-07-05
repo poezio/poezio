@@ -238,7 +238,7 @@ class Input(Win):
         """
         self.reset_completion()
         if self.pos == 0:
-            return
+            return False
         self.key_left()
         self.key_dc()
         return True
