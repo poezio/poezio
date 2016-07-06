@@ -47,10 +47,11 @@ class UserList(Win):
             self.cache = new
             self.refresh(users)
             return
-        for i in range(len(old)):
-            if old[i] != new[i]:
+        for a, b in zip(old, new):
+            if a != b:
                 self.cache = new
                 self.refresh(users)
+                return
 
     def refresh(self, users):
         log.debug('Refresh: %s', self.__class__.__name__)

@@ -69,6 +69,7 @@ log = logging.getLogger(__name__)
 from poezio.config import config
 
 import curses
+import functools
 import os
 from os import path
 
@@ -403,6 +404,7 @@ def read_tuple(_str):
     char = attrs[2] if len(attrs) > 2 else '\0'
     return (int(attrs[0]), int(attrs[1])), char
 
+@functools.lru_cache(maxsize=128)
 def to_curses_attr(color_tuple):
     """
     Takes a color tuple (as defined at the top of this file) and
