@@ -68,7 +68,7 @@ class CommandArgParser(object):
         return wrap
 
     @staticmethod
-    def quoted(mandatory, optional=0, defaults=[],
+    def quoted(mandatory, optional=0, defaults=None,
                ignore_trailing_arguments=False):
 
         """The function receives a list with a number of arguments that is between
@@ -113,6 +113,8 @@ class CommandArgParser(object):
         ['un et demi', 'deux', 'trois quatre cinq six']
 
         """
+        if defaults is None:
+            defaults = []
         def first(func):
             def second(self, args, *a, **kw):
                 default_args = defaults
