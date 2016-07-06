@@ -74,8 +74,6 @@ class Plugin(BasePlugin):
 
         if typ == 's':
             try:
-                regex = re.compile(remove)
-
                 if replace_all:
                     new_body = re.sub(remove, put, body)
                 else:

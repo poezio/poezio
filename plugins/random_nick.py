@@ -30,6 +30,6 @@ c = ["b", "c", "d", "f", "g", "h", "j", "k", "m", "l", "n", "p", "r", "s", "t", 
 
 def gen_nick(size):
     res = ''
-    for i in range(size):
+    for _ in range(size):
         res += '%s%s' % (choice(c), choice(s))
     return res

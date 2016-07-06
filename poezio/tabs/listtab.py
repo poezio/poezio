@@ -11,7 +11,6 @@ import curses
 import collections
 
 from poezio import windows
-from poezio.common import safeJID
 from poezio.decorators import refresh_wrapper
 
 from poezio.tabs import Tab

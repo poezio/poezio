@@ -18,8 +18,6 @@ log = logging.getLogger(__name__)
 
 import string
 import time
-import weakref
-from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 
 from poezio.core.structs import Command
