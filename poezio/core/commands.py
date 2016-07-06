@@ -304,13 +304,11 @@ class CommandCore:
             return self.help('version')
 
         jid = safeJID(args[0])
-        if jid.resource or jid not in roster:
+        if jid.resource or jid not in roster or not roster[jid].resources:
             fixes.get_version(self.core.xmpp, jid, callback=callback)
         elif jid in roster:
             for resource in roster[jid].resources:
                 fixes.get_version(self.core.xmpp, resource.jid, callback=callback)
-            else:
-                fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     def _empty_join(self):
         tab = self.core.current_tab()
