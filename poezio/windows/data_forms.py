@@ -6,7 +6,8 @@ does not inherit from the Win base class), as it will create the
 others when needed.
 """
 
-from poezio.windows.base_wins import Win, TAB_WIN
+from poezio.windows import base_wins
+from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
 
 from poezio.theming import to_curses_attr, get_theme
@@ -341,7 +342,7 @@ class FormWin(object):
                      }
     def __init__(self, form, height, width, y, x):
         self._form = form
-        self._win = TAB_WIN.derwin(height, width, y, x)
+        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         self.scroll_pos = 0
         self.current_input = 0
         self.inputs = []        # dict list
@@ -364,7 +365,7 @@ class FormWin(object):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
-        self._win = TAB_WIN.derwin(height, width, y, x)
+        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
         while self.current_input - self.scroll_pos > self.height-1:

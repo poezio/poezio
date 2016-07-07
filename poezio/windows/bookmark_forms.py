@@ -3,7 +3,8 @@ Windows used inthe bookmarkstab
 """
 import curses
 
-from poezio.windows.base_wins import Win, TAB_WIN
+from poezio.windows import base_wins
+from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
 from poezio.windows.data_forms import FieldInput
 from poezio.theming import to_curses_attr, get_theme
@@ -130,7 +131,7 @@ class BookmarkAutojoinWin(FieldInput, Win):
 
 class BookmarksWin(Win):
     def __init__(self, bookmarks, height, width, y, x):
-        self._win = TAB_WIN.derwin(height, width, y, x)
+        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         self.scroll_pos = 0
         self._current_input = 0
         self.current_horizontal_input = 0
@@ -181,7 +182,7 @@ class BookmarksWin(Win):
     def resize(self, height, width, y, x):
         self.height = height
         self.width = width
-        self._win = TAB_WIN.derwin(height, width, y, x)
+        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
         while self.current_input - self.scroll_pos > self.height-1:
