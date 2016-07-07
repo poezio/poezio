@@ -20,12 +20,12 @@ class SizeManager(object):
 
     @property
     def tab_degrade_x(self):
-        _, x = windows.TAB_WIN.getmaxyx()
+        _, x = windows.base_wins.TAB_WIN.getmaxyx()
         return x < THRESHOLD_WIDTH_DEGRADE
 
     @property
     def tab_degrade_y(self):
-        y, x = windows.TAB_WIN.getmaxyx()
+        y, x = windows.base_wins.TAB_WIN.getmaxyx()
         return y < THRESHOLD_HEIGHT_DEGRADE
 
     @property
