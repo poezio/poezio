@@ -104,7 +104,7 @@ class Core(object):
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
 
-        self.size = SizeManager(self, windows.Win)
+        self.size = SizeManager(self)
 
         # Set to True whenever we consider that we have been disconnected
         # from the server because of a legitimate reason (bad credentials,
