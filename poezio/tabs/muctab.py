@@ -59,6 +59,7 @@ class MucTab(ChatTab):
         if self.joined == False:
             self._state = 'disconnected'
         self.own_nick = nick
+        self.own_user = None
         self.name = jid
         self.password = password
         self.users = []
@@ -958,7 +959,7 @@ class MucTab(ChatTab):
         if display_user_list:
             self.v_separator.refresh()
             self.user_win.refresh(self.users)
-        self.info_header.refresh(self, self.text_win)
+        self.info_header.refresh(self, self.text_win, user=self.own_user)
         self.refresh_tab_win()
         if display_info_win:
             self.info_win.refresh()
@@ -1096,6 +1097,7 @@ class MucTab(ChatTab):
                     # ejabberd or every gateway in the world that just do
                     # not send a 110 status code with the presence
                     self.own_nick = from_nick
+                    self.own_user = new_user
                     self.joined = True
                     if self.name in self.core.initial_joins:
                         self.core.initial_joins.remove(self.name)
@@ -1201,7 +1203,7 @@ class MucTab(ChatTab):
         if self.core.current_tab() is self:
             self.text_win.refresh()
             self.user_win.refresh_if_changed(self.users)
-            self.info_header.refresh(self, self.text_win)
+            self.info_header.refresh(self, self.text_win, user=self.own_user)
             self.input.refresh()
             self.core.doupdate()
 

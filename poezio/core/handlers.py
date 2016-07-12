@@ -532,7 +532,7 @@ class HandlerCore:
 
         if tab is self.core.current_tab():
             tab.text_win.refresh()
-            tab.info_header.refresh(tab, tab.text_win)
+            tab.info_header.refresh(tab, tab.text_win, user=tab.own_user)
             tab.input.refresh()
             self.core.doupdate()
         elif tab.state != old_state:

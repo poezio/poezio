@@ -213,14 +213,14 @@ class MucInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, room, window=None):
+    def refresh(self, room, window=None, user=None):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         self.write_room_name(room)
         self.write_participants_number(room)
         self.write_own_nick(room)
         self.write_disconnected(room)
-        self.write_role(room)
+        self.write_role(room, user)
         if window:
             self.print_scroll_position(window)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
@@ -252,21 +252,16 @@ class MucInfoWin(InfoWin):
             return
         self.addstr(truncate_nick(nick, 13), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-    def write_role(self, room):
+    def write_role(self, room, user):
         """
         Write our own role and affiliation
         """
-        own_user = None
-        for user in room.users:
-            if user.nick == room.own_nick:
-                own_user = user
-                break
-        if not own_user:
+        if not user:
             return
         txt = ' ('
-        if own_user.affiliation != 'none':
-            txt += own_user.affiliation+', '
-        txt += own_user.role+')'
+        if user.affiliation != 'none':
+            txt += user.affiliation + ', '
+        txt += user.role + ')'
         self.addstr(txt, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 class ConversationStatusMessageWin(InfoWin):
