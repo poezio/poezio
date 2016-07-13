@@ -1,4 +1,4 @@
-#/usr/bin/env python3
+#!/usr/bin/env python3
 # Copyright 2011 Florent Le Coz <louiz@louiz.org>
 #
 # This file is part of Poezio.
