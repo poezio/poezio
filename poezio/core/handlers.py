@@ -1054,14 +1054,31 @@ class HandlerCore:
         if subject != tab.topic:
             # Do not display the message if the subject did not change or if we
             # receive an empty topic when joining the room.
+            fmt = {
+                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+                'text_col': dump_tuple(get_theme().COLOR_NORMAL_TEXT),
+                'subject': subject,
+                'user': '',
+            }
             if nick_from:
-                tab.add_message("\x19%(info_col)s}%(nick)s set the subject to: %(subject)s" %
-                        {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT), 'nick':nick_from, 'subject':subject},
+                user = tab.get_user_by_name(nick_from)
+                if nick_from == tab.own_nick:
+                    after = ' (You)'
+                else:
+                    after = ''
+                if user:
+                    user_col = dump_tuple(user.color)
+                    user_string = '\x19%s}%s\x19%s}%s' % (user_col, nick_from, fmt['info_col'], after)
+                else:
+                    user_string = '\x19%s}%s%s' % (fmt['info_col'], nick_from, after)
+                fmt['user'] = user_string
+
+            if nick_from:
+                tab.add_message("%(user)s set the subject to: \x19%(text_col)s}%(subject)s" % fmt,
                         time=None,
                         typ=2)
             else:
-                tab.add_message("\x19%(info_col)s}The subject is: %(subject)s" %
-                        {'subject':subject, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                tab.add_message("\x19%(info_col)s}The subject is: \x19%(text_col)s}%(subject)s" % fmt,
                         time=None,
                         typ=2)
         tab.topic = subject
