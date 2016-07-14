@@ -651,12 +651,22 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not subject:
+            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            norm_text = dump_tuple(get_theme().COLOR_NORMAL_TEXT)
+            if self.topic_from:
+                user = self.get_user_by_name(self.topic_from)
+                if user:
+                    user_text = dump_tuple(user.color)
+                    user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
+                            info_text, user_text, user.nick, info_text)
+                else:
+                    user_string = self.topic_from
+            else:
+                user_string = ''
+
             self._text_buffer.add_message(
-                    "\x19%s}The subject of the room is: %s %s" %
-                        (dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                         self.topic,
-                         '(set by %s)' % self.topic_from if self.topic_from
-                                                         else ''))
+                    "\x19%s}The subject of the room is: \x19%s}%s %s" %
+                        (info_text, norm_text, self.topic, user_string))
             self.refresh()
             return
 
