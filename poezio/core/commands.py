@@ -275,7 +275,7 @@ class CommandCore:
         else:
             if not isinstance(self.core.current_tab(), tabs.MucTab):
                 return self.core.information('Please provide a server', 'Error')
-            jid = safeJID(self.core.current_tab().name).server
+            jid = safeJID(self.core.current_tab().name)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
