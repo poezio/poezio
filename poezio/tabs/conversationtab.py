@@ -207,7 +207,7 @@ class ConversationTab(OneToOneTab):
 
     @command_args_parser.ignored
     def command_unquery(self):
-        self.core.close_tab()
+        self.core.close_tab(self)
 
     @command_args_parser.quoted(0, 1)
     def command_version(self, args):

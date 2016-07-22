@@ -58,7 +58,7 @@ class BookmarksTab(Tab):
             self.removed_bookmarks.append(current)
 
     def on_cancel(self):
-        self.core.close_tab()
+        self.core.close_tab(self)
         return True
 
     def on_save(self):
@@ -85,7 +85,7 @@ class BookmarksTab(Tab):
                 self.core.information('Remote bookmarks not saved.', 'Error')
         log.debug('alerte %s', str(stanza_storage(self.bookmarks.bookmarks)))
         self.bookmarks.save(self.core.xmpp, callback=send_cb)
-        self.core.close_tab()
+        self.core.close_tab(self)
         return True
 
     def on_input(self, key, raw=False):

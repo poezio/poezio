@@ -96,6 +96,7 @@ class PrivateTab(OneToOneTab):
             self.core.information('Unable to write in the log file', 'Error')
 
     def on_close(self):
+        super().on_close()
         self.parent_muc.privates.remove(self)
 
     def completion(self):
@@ -188,7 +189,7 @@ class PrivateTab(OneToOneTab):
         """
         /unquery
         """
-        self.core.close_tab()
+        self.core.close_tab(self)
 
     @command_args_parser.quoted(0, 1)
     def command_version(self, args):

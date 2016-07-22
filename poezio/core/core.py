@@ -1346,9 +1346,9 @@ class Core(object):
             tab = self.current_tab()
         if isinstance(tab, tabs.RosterInfoTab):
             return              # The tab 0 should NEVER be closed
+        tab.on_close()
         del tab.key_func      # Remove self references
         del tab.commands      # and make the object collectable
-        tab.on_close()
         nb = tab.nb
         if was_current:
             if self.previous_tab_nb != nb:

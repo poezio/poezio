@@ -111,7 +111,6 @@ class ListTab(Tab):
         self.input.do_command("/") # we add the slash
 
     def close(self, arg=None):
-        self.input.on_delete()
         self.core.close_tab(self)
 
     def set_error(self, msg, code, body):

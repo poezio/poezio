@@ -303,7 +303,7 @@ class XMLTab(Tab):
             return self.key_func[key]()
 
     def close(self, arg=None):
-        self.core.close_tab()
+        self.core.close_tab(self)
 
     def resize(self):
         self.need_resize = False
@@ -348,6 +348,7 @@ class XMLTab(Tab):
         curses.curs_set(0)
 
     def on_close(self):
+        super().on_close()
         self.command_clear('')
         self.core.xml_tab = False
 
