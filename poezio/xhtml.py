@@ -229,7 +229,7 @@ def ncurses_color_to_html(color):
     else:
         color -= 232
         r = g = b = color / 24 * 6
-    return '#%02X%02X%02X' % (r*256/6, g*256/6, b*256/6)
+    return '#%02X%02X%02X' % (int(r*256/6), int(g*256/6), int(b*256/6))
 
 def parse_css(css):
     def get_color(value):
