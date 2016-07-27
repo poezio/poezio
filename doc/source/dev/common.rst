@@ -1,7 +1,7 @@
 Common operations documentation
 ===============================
 
-.. automodule:: common
+.. automodule:: poezio.common
    :members:
    :undoc-members:
 

@@ -146,4 +146,4 @@ Examples:
 
 See the source of the CommandArgParser for more information.
 
-.. autoclass:: decorators.CommandArgParser
+.. autoclass:: poezio.decorators.CommandArgParser

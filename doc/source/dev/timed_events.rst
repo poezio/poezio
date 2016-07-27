@@ -1,7 +1,7 @@
 Timed events documentation
 ==========================
 
-.. automodule:: timed_events
+.. automodule:: poezio.timed_events
 
 .. autoclass:: TimedEvent
 

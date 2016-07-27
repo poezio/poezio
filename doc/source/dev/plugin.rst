@@ -4,7 +4,7 @@ Plugin API documentation
 BasePlugin
 ----------
 
-.. module:: plugin
+.. module:: poezio.plugin
 
 .. autoclass:: BasePlugin
     :members: init, cleanup, api, core

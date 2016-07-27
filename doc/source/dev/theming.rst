@@ -1,7 +1,7 @@
 Theming module
 ==============
 
-.. automodule:: theming
+.. automodule:: poezio.theming
 
 .. autoclass:: Theme
 

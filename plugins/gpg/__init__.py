@@ -114,10 +114,10 @@ import xml.sax.saxutils
 import logging
 log = logging.getLogger(__name__)
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 
-from tabs import ConversationTab
-from theming import get_theme
+from poezio.tabs import ConversationTab
+from poezio.theming import get_theme
 
 NS_SIGNED = "jabber:x:signed"
 NS_ENCRYPTED = "jabber:x:encrypted"

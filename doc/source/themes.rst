@@ -110,5 +110,5 @@ All available options can be found into the default theme, which is into the
 **theming.py** file from the poezio’s source code.
 
 
-.. autoclass:: theming.Theme
+.. autoclass:: poezio.theming.Theme
 
