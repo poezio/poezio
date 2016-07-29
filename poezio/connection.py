@@ -148,11 +148,11 @@ class Connection(slixmpp.ClientXMPP):
             if config.get('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(
-                    identities=set([('client', 'pc', None, 'Poezio')]))
+                    identities={('client', 'console', None, 'Poezio')})
         else:
             info = {'name': '', 'version': ''}
             self.plugin['xep_0030'].set_identities(
-                    identities=set([('client', 'pc', None, '')]))
+                    identities={('client', 'console', None, '')})
         self.register_plugin('xep_0092', pconfig=info)
         if config.get('send_time'):
             self.register_plugin('xep_0202')
