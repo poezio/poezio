@@ -620,6 +620,7 @@ def setup_logging():
                 'filename': path.join(LOG_DIR, 'errors.log'),
                 'formatter': 'simple',
             }
+        logging.disable(logging.WARNING)
 
     if options.debug:
         LOGGING_CONFIG['root']['handlers'].append('debug')
@@ -629,11 +630,13 @@ def setup_logging():
                 'filename': options.debug,
                 'formatter': 'simple',
             }
+        logging.disable(logging.NOTSET)
 
 
     if LOGGING_CONFIG['root']['handlers']:
         logging.config.dictConfig(LOGGING_CONFIG)
     else:
+        logging.disable(logging.ERROR)
         logging.basicConfig(level=logging.CRITICAL)
 
     global log
