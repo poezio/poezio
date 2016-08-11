@@ -43,7 +43,7 @@ class CommandCore:
             color = dump_tuple(get_theme().COLOR_HELP_COMMANDS)
             acc = []
             buff = ['Global commands:']
-            for name, command in enumerate(self.core.commands):
+            for name, command in self.core.commands.items():
                 if isinstance(command, Command):
                     acc.append('  \x19%s}%s\x19o - %s' % (
                                    color,
@@ -56,7 +56,7 @@ class CommandCore:
             acc = []
             buff.append('Tab-specific commands:')
             tab_commands = self.core.current_tab().commands
-            for name, command in enumerate(tab_commands):
+            for name, command in tab_commands.items():
                 if isinstance(command, Command):
                     acc.append('  \x19%s}%s\x19o - %s' % (
                                     color,
