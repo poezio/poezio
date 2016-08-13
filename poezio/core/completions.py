@@ -227,6 +227,9 @@ class CompletionCore:
                 l.append(jid)
                 for resource in roster[jid].resources:
                     l.append(resource.jid)
+        for jid in roster.jids():
+            if not len(roster[jid]):
+                l.append(jid)
         return the_input.new_completion(l, 1, '', quotify=True)
 
 
