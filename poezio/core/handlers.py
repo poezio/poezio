@@ -270,8 +270,8 @@ class HandlerCore:
 
         if not own and not conversation.nick:
             conversation.nick = remote_nick
-        elif not own: # keep a fixed nick during the whole conversation
-            remote_nick = conversation.nick
+        elif not own:
+            remote_nick = conversation.get_nick()
 
         self.core.events.trigger('conversation_msg', message, conversation)
         if not message['body']:
