@@ -1018,8 +1018,6 @@ class RosterInfoTab(Tab):
         """
         '/' is pressed, we enter "input mode"
         """
-        if isinstance(self.input, windows.YesNoInput):
-            return
         curses.curs_set(1)
         self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
         self.input.resize(1, self.width, self.height-1, 0)
@@ -1195,8 +1193,6 @@ class RosterInfoTab(Tab):
         Start the search. The input should appear with a short instruction
         in it.
         """
-        if isinstance(self.input, windows.YesNoInput):
-            return
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
         self.input.resize(1, self.width, self.height-1, 0)
@@ -1207,8 +1203,6 @@ class RosterInfoTab(Tab):
 
     @refresh_wrapper.always
     def start_search_slow(self):
-        if isinstance(self.input, windows.YesNoInput):
-            return
         curses.curs_set(1)
         self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter_slow)
         self.input.resize(1, self.width, self.height-1, 0)

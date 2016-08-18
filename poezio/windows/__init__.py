@@ -11,7 +11,7 @@ from poezio.windows.info_bar import GlobalInfoBar, VerticalGlobalInfoBar
 from poezio.windows.info_wins import InfoWin, XMLInfoWin, PrivateInfoWin, MucListInfoWin, \
         ConversationInfoWin, DynamicConversationInfoWin, MucInfoWin, \
         ConversationStatusMessageWin, BookmarksInfoWin, ConfirmStatusWin
-from poezio.windows.input_placeholders import HelpText, YesNoInput
+from poezio.windows.input_placeholders import HelpText
 from poezio.windows.inputs import Input, HistoryInput, MessageInput, CommandInput
 from poezio.windows.list import ListWin, ColumnHeaderWin
 from poezio.windows.misc import VerticalSeparator

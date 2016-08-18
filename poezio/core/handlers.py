@@ -1204,30 +1204,39 @@ class HandlerCore:
                 config.set_and_save('certificate', sha2_found_cert)
                 return
             elif sha2_found_cert == cert:
-                log.debug('Cert %s OK', sha2_found_cert)
                 return
             else:
-                saved_input = self.core.current_tab().input
-                log.debug('\nWARNING: CERTIFICATE CHANGED old: %s, new: %s\n', cert, sha2_found_cert)
-                self.core.information('New certificate found (sha-2 hash:'
-                                      ' %s)\nPlease validate or abort' % sha2_found_cert,
-                                      'Warning')
-                def check_input():
-                    self.core.current_tab().input = saved_input
-                    if input.value:
-                        self.core.information('Setting new certificate: old: %s, new: %s' % (cert, sha2_found_cert), 'Info')
+                def cb(result):
+                    if result:
+                        self.core.information('New certificate accepted.', 'Info')
                         log.debug('Setting certificate to %s', sha2_found_cert)
                         if not config.silent_set('certificate', sha2_found_cert):
-                            self.core.information('Unable to write in the config file', 'Error')
+                            self.core.information(
+                                'Unable to write in the config file',
+                                'Error')
                     else:
-                        self.core.information('You refused to validate the certificate. You are now disconnected', 'Info')
+                        self.core.information('You refused to validate the certificate. You are now disconnected.', 'Info')
                         self.core.disconnect()
                     new_loop.stop()
                     asyncio.set_event_loop(old_loop)
-                input = windows.YesNoInput(text="WARNING! Server certificate has changed, accept? (y/n)", callback=check_input)
-                self.core.current_tab().input = input
-                input.resize(1, self.core.current_tab().width, self.core.current_tab().height-1, 0)
-                input.refresh()
+                confirm_tab = tabs.ConfirmTab(
+                        self.core,
+                        'Certificate check required',
+                        """
+WARNING: CERTIFICATE FOR %s CHANGED
+
+This can be part of a normal renewal process, but can also mean that \
+an attacker is performing a man-in-the-middle attack on your connection.
+When in doubt, check with your administrator using another channel.
+
+SHA-512 of the old certificate: %s
+
+SHA-512 of the new certificate: %s
+""" % (self.core.xmpp.boundjid.domain, cert, sha2_found_cert),
+                        'You need to accept or reject the certificate',
+                        cb,
+                        critical=True)
+                self.core.add_tab(confirm_tab, True)
                 self.core.doupdate()
                 old_loop = asyncio.get_event_loop()
                 new_loop = asyncio.new_event_loop()
