@@ -3,6 +3,7 @@ from poezio.tabs.basetabs import STATE_PRIORITY
 from poezio.tabs.rostertab import RosterInfoTab
 from poezio.tabs.muctab import MucTab, NS_MUC_USER
 from poezio.tabs.privatetab import PrivateTab
+from poezio.tabs.confirmtab import ConfirmTab
 from poezio.tabs.conversationtab import ConversationTab, StaticConversationTab,\
         DynamicConversationTab
 from poezio.tabs.xmltab import XMLTab

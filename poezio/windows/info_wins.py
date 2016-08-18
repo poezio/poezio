@@ -304,3 +304,21 @@ class BookmarksInfoWin(InfoWin):
     def write_remote_status(self, preferred):
         self.addstr('Remote storage: %s' % preferred, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
+class ConfirmStatusWin(Win):
+    def __init__(self, text, critical=False):
+        Win.__init__(self)
+        self.text = text
+        self.critical = critical
+
+    def refresh(self):
+        log.debug('Refresh: %s', self.__class__.__name__)
+        self._win.erase()
+        if self.critical:
+            color = get_theme().COLOR_WARNING_PROMPT
+        else:
+            color = get_theme().COLOR_INFORMATION_BAR
+        c_color = to_curses_attr(color)
+        self.addstr(self.text, c_color)
+        self.finish_line(color)
+        self._refresh()
+
