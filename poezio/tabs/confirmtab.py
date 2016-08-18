@@ -5,12 +5,7 @@ A generic tab that displays a text and a boolean choice
 import logging
 log = logging.getLogger(__name__)
 
-import curses
-import collections
-
 from poezio import windows
-from poezio.decorators import refresh_wrapper
-
 from poezio.tabs import Tab
 
 
