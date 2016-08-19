@@ -254,6 +254,7 @@ class Core(object):
         self.xmpp.add_event_handler("ssl_invalid_chain", self.handler.ssl_invalid_chain)
         self.xmpp.add_event_handler('carbon_received', self.handler.on_carbon_received)
         self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
+        self.xmpp.add_event_handler('http_confirm', self.handler.http_confirm)
 
         all_stanzas = Callback('custom matcher',
                                connection.MatchAll(None),

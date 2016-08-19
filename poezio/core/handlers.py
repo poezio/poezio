@@ -1249,6 +1249,38 @@ SHA-512 of the new certificate: %s
             if not config.silent_set('certificate', sha2_found_cert):
                 self.core.information('Unable to write in the config file', 'Error')
 
+    def http_confirm(self, stanza):
+        confirm = stanza['confirm']
+        def cb(result):
+            if result:
+                reply = stanza.reply()
+            else:
+                reply = stanza.reply()
+                reply.enable('error')
+                reply['error']['type'] = 'auth'
+                reply['error']['code'] = '401'
+                reply['error']['condition'] = 'not-authorized'
+            reply.append(stanza['confirm'])
+            reply.send()
+
+        c_id, c_url, c_method = confirm['id'], confirm['url'], confirm['method']
+        confirm_tab = tabs.ConfirmTab(self.core,
+                        'HTTP Verification',
+                        """
+Someone (maybe you) has requested an identity verification regarding
+using method "%s" for the url "%s".
+
+The transaction id is: %s
+And the XMPP address of the verification service is %s.
+
+""" % (c_method, c_url, c_id, stanza['from'].full),
+                        'An HTTP verification was requested',
+                        cb,
+                        critical=False)
+        self.core.add_tab(confirm_tab, False)
+        self.core.refresh_window()
+        self.core.doupdate()
+
     ### Ad-hoc commands
 
     def next_adhoc_step(self, iq, adhoc_session):

@@ -24,7 +24,7 @@ class ConfirmTab(Tab):
         critical: if the message needs to be displayed in a flashy color
         """
         Tab.__init__(self, core)
-        self.state = 'normal'
+        self.state = 'highlight'
         self.name = name
         self.default_help_message = windows.HelpText("Choose with arrow keys and press enter")
         self.input = self.default_help_message
