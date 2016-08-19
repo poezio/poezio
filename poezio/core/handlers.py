@@ -1267,7 +1267,7 @@ SHA-512 of the new certificate: %s
         confirm_tab = tabs.ConfirmTab(self.core,
                         'HTTP Verification',
                         """
-Someone (maybe you) has requested an identity verification regarding
+Someone (maybe you) has requested an identity verification
 using method "%s" for the url "%s".
 
 The transaction id is: %s
