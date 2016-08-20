@@ -129,7 +129,9 @@ These commands work in *any* tab.
         Remove the bookmark on *room_jid* or the one on the current tab, if any.
 
     /bookmarks
-        Show the current bookmarks.
+      **Usage:** ``/bookmarks``
+
+      Open a :ref:`bookmarks tab` in order to edit the current boookmarks.
 
     /set
         **Usage:** ``/set [plugin|][section] <option> <value>``

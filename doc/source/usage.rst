@@ -255,6 +255,7 @@ Or a XEP-0070_ validation:
 .. figure:: ./images/xep_0070.png
     :alt: XEP-0070 validation tab
 
+.. _bookmarks tab:
 
 Bookmarks tab
 ~~~~~~~~~~~~~
