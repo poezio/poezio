@@ -62,6 +62,7 @@ class Core(object):
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
         self.connection_time = time.time()
+        self.last_stream_error = None
         self.stdscr = None
         status = config.get('status')
         status = POSSIBLE_SHOW.get(status, None)

@@ -901,6 +901,7 @@ class HandlerCore:
         """
         self.core.information("Connection to remote server failed: %s" % (error,), 'Error')
 
+    @asyncio.coroutine
     def on_disconnected(self, event):
         """
         When we are disconnected from remote server
@@ -913,9 +914,14 @@ class HandlerCore:
             tab.disconnect()
         msg_typ = 'Error' if not self.core.legitimate_disconnect else 'Info'
         self.core.information("Disconnected from server.", msg_typ)
-        if not self.core.legitimate_disconnect and config.get('auto_reconnect', True):
-            self.core.information("Auto-reconnecting.", 'Info')
-            self.core.xmpp.start()
+        if self.core.legitimate_disconnect or not config.get('auto_reconnect', True):
+            return
+        if (self.core.last_stream_error and
+                self.core.last_stream_error[1]['condition'] in ('conflict', 'host-unknown')):
+            return
+        yield from asyncio.sleep(1)
+        self.core.information("Auto-reconnecting.", 'Info')
+        self.core.xmpp.start()
 
     def on_stream_error(self, event):
         """
@@ -923,6 +929,8 @@ class HandlerCore:
         """
         if event and event['text']:
             self.core.information('Stream error: %s' % event['text'], 'Error')
+        if event:
+            self.core.last_stream_error = (time.time(), event)
 
     def on_failed_all_auth(self, event):
         """
