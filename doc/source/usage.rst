@@ -255,4 +255,16 @@ Or a XEP-0070_ validation:
 .. figure:: ./images/xep_0070.png
     :alt: XEP-0070 validation tab
 
+
+Bookmarks tab
+~~~~~~~~~~~~~
+
+This tab can be obtained using :term:`/bookmarks`, it is a graphical interface
+for managing bookmarks. You can edit the bookmark address itself, its password,
+the storage backend, and the autojoin status. Note that local bookmarks always
+have autojoin set to True.
+
+.. figure:: images/bookmark_tab.png
+    :alt: Bookmarks tab screenshot
+
 .. _XEP-0070: https://xmpp.org/extensions/xep-0070.html
