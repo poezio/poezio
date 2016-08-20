@@ -240,3 +240,19 @@ use ``Enter`` or ``j`` to join the selected room.
 
 You can sort the rooms by moving the direction arrows (``←`` or ``→``) and pressing
 ``Space`` when you are on the appropriate column.
+
+Confirm tab
+~~~~~~~~~~~
+
+This kind of tab is used to prompt a binary choice to the user due to external
+events, such as a certificate change:
+
+.. figure:: ./images/cert_warning.png
+    :alt: Certificate warning prompt tab
+
+Or a XEP-0070_ validation:
+
+.. figure:: ./images/xep_0070.png
+    :alt: XEP-0070 validation tab
+
+.. _XEP-0070: https://xmpp.org/extensions/xep-0070.html
