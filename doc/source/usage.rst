@@ -241,6 +241,8 @@ use ``Enter`` or ``j`` to join the selected room.
 You can sort the rooms by moving the direction arrows (``←`` or ``→``) and pressing
 ``Space`` when you are on the appropriate column.
 
+.. _confirmtab:
+
 Confirm tab
 ~~~~~~~~~~~
 

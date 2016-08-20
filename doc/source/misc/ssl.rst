@@ -60,20 +60,17 @@ connections.
 
 If you are paranoid (or run poezio for the first time in an unsafe
 environment), you can set the :term:`certificate` value of your config file yourself
-(the hash, not colon-separated).
+(the hash, colon-separated).
 
 
-If the certificate is not the same, poezio will show an error message and wait
+If the certificate is not the same, poezio will open a :ref:`confirmtab` and wait
 for confirmation:
 
-.. figure:: ../images/ssl_warning.png
+.. figure:: ../images/cert_warning.png
     :alt: Warning message
 
-If you press y, the change is validated an poezio will match the next certs
-with the accepted one.
+If you refuse, you will be disconnected.
 
-If you press n, you will get the confirmation that the change has been
-refused, and you will be disconnected.
 
 CA-Based
 --------
