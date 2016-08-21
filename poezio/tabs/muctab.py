@@ -32,6 +32,7 @@ from poezio.logger import logger
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
+from poezio.core.structs import Completion
 
 
 SHOW_NAME = {
@@ -243,7 +244,7 @@ class MucTab(ChatTab):
         comp.sort()
         userlist.extend(comp)
 
-        return the_input.auto_completion(userlist, quotify=False)
+        return Completion(the_input.auto_completion, userlist, quotify=False)
 
     def completion_info(self, the_input):
         """Completion for /info"""
@@ -251,7 +252,7 @@ class MucTab(ChatTab):
         userlist = []
         for user in sorted(self.users, key=compare_users, reverse=True):
             userlist.append(user.nick)
-        return the_input.auto_completion(userlist, quotify=False)
+        return Completion(the_input.auto_completion, userlist, quotify=False)
 
     def completion_nick(self, the_input):
         """Completion for /nick"""
@@ -259,11 +260,11 @@ class MucTab(ChatTab):
                  config.get('default_nick'),
                  self.core.get_bookmark_nickname(self.name)]
         nicks = [i for i in nicks if i]
-        return the_input.auto_completion(nicks, '', quotify=False)
+        return Completion(the_input.auto_completion, nicks, '', quotify=False)
 
     def completion_recolor(self, the_input):
         if the_input.get_argument_position() == 1:
-            return the_input.new_completion(['random'], 1, '', quotify=False)
+            return Completion(the_input.new_completion, ['random'], 1, '', quotify=False)
         return True
 
     def completion_color(self, the_input):
@@ -273,13 +274,13 @@ class MucTab(ChatTab):
             userlist = [user.nick for user in self.users]
             if self.own_nick in userlist:
                 userlist.remove(self.own_nick)
-            return the_input.new_completion(userlist, 1, '', quotify=True)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
         elif n == 2:
             colors = [i for i in xhtml.colors if i]
             colors.sort()
             colors.append('unset')
             colors.append('random')
-            return the_input.new_completion(colors, 2, '', quotify=False)
+            return Completion(the_input.new_completion, colors, 2, '', quotify=False)
 
     def completion_ignore(self, the_input):
         """Completion for /ignore"""
@@ -287,7 +288,7 @@ class MucTab(ChatTab):
         if self.own_nick in userlist:
             userlist.remove(self.own_nick)
         userlist.sort()
-        return the_input.auto_completion(userlist, quotify=False)
+        return Completion(the_input.auto_completion, userlist, quotify=False)
 
     def completion_role(self, the_input):
         """Completion for /role"""
@@ -296,10 +297,10 @@ class MucTab(ChatTab):
             userlist = [user.nick for user in self.users]
             if self.own_nick in userlist:
                 userlist.remove(self.own_nick)
-            return the_input.new_completion(userlist, 1, '', quotify=True)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
         elif n == 2:
             possible_roles = ['none', 'visitor', 'participant', 'moderator']
-            return the_input.new_completion(possible_roles, 2, '',
+            return Completion(the_input.new_completion, possible_roles, 2, '',
                                             quotify=True)
 
     def completion_affiliation(self, the_input):
@@ -313,11 +314,11 @@ class MucTab(ChatTab):
             if self.core.xmpp.boundjid.bare in jidlist:
                 jidlist.remove(self.core.xmpp.boundjid.bare)
             userlist.extend(jidlist)
-            return the_input.new_completion(userlist, 1, '', quotify=True)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
         elif n == 2:
             possible_affiliations = ['none', 'member', 'admin',
                                      'owner', 'outcast']
-            return the_input.new_completion(possible_affiliations, 2, '',
+            return Completion(the_input.new_completion, possible_affiliations, 2, '',
                                             quotify=True)
 
     @command_args_parser.quoted(1, 1, [''])
@@ -332,7 +333,7 @@ class MucTab(ChatTab):
         """Completion for /invite"""
         n = the_input.get_argument_position(quoted=True)
         if n == 1:
-            return the_input.new_completion(roster.jids(), 1, quotify=True)
+            return Completion(the_input.new_completion, roster.jids(), 1, quotify=True)
 
     def scroll_user_list_up(self):
         self.user_win.scroll_up()
@@ -714,7 +715,7 @@ class MucTab(ChatTab):
 
     def completion_topic(self, the_input):
         if the_input.get_argument_position() == 1:
-            return the_input.auto_completion([self.topic], '', quotify=False)
+            return Completion(the_input.auto_completion, [self.topic], '', quotify=False)
 
     def completion_quoted(self, the_input):
         """Nick completion, but with quotes"""
@@ -725,7 +726,7 @@ class MucTab(ChatTab):
                 if user.nick != self.own_nick:
                     word_list.append(user.nick)
 
-            return the_input.new_completion(word_list, 1, quotify=True)
+            return Completion(the_input.new_completion, word_list, 1, quotify=True)
 
     @command_args_parser.quoted(1, 1)
     def command_kick(self, args):
@@ -914,7 +915,7 @@ class MucTab(ChatTab):
     def completion_unignore(self, the_input):
         if the_input.get_argument_position() == 1:
             users = [user.nick for user in self.ignores]
-            return the_input.auto_completion(users, quotify=False)
+            return Completion(the_input.auto_completion, users, quotify=False)
 
     def resize(self):
         """

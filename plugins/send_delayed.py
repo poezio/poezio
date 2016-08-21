@@ -19,6 +19,7 @@ This plugin adds a command to the chat tabs.
 
 """
 from poezio.plugin import BasePlugin
+from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
 from poezio import tabs
 from poezio import common
@@ -54,7 +55,7 @@ class Plugin(BasePlugin):
         if txt.endswith(' '):
             n += 1
         if n == 2:
-            return the_input.auto_completion(["60", "5m", "15m", "30m", "1h", "10h", "1d"], '')
+            return Completion(the_input.auto_completion, ["60", "5m", "15m", "30m", "1h", "10h", "1d"], '')
 
     def say(self, args=None):
         if not args:

@@ -88,9 +88,13 @@ structured as key (command name) -> tuple(command function, help string, complet
 Completions are a bit tricky, but it’s easy once you get used to it:
 
 They take an **Input** (a _windows_ class) as a parameter, named the_input
-everywhere in the sources. To effectively have a completion, you have to call
-**the_input.auto_completion()** or **the_input.new_completion()** with the relevant
-parameters before returning from the function.
+everywhere in the sources. To effectively have a completion, you have to create
+a :py:class:`poezio.core.structs.Completion` object initialized with the
+completion you want to call
+(**the_input.auto_completion()** or **the_input.new_completion()**) with the
+relevant parameters and return it with the function. Previously you would call
+the function directly from the completion method, but having side effects
+inside it makes it harder to test.
 
 .. code-block:: python
 

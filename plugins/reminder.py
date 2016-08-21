@@ -47,10 +47,11 @@ Will remind you to get up every 1 hour 23 minutes.
 
 """
 
+from poezio.core.structs import Completion
 from poezio.plugin import BasePlugin
-import curses
-from poezio import common
 from poezio import timed_events
+from poezio import common
+import curses
 
 class Plugin(BasePlugin):
 
@@ -107,10 +108,10 @@ class Plugin(BasePlugin):
         if txt.endswith(' '):
             n += 1
         if n == 2:
-            return the_input.auto_completion(["60", "5m", "15m", "30m", "1h", "10h", "1d"], '')
+            return Completion(the_input.auto_completion, ["60", "5m", "15m", "30m", "1h", "10h", "1d"], '')
 
     def completion_done(self, the_input):
-        return the_input.auto_completion(["%s" % key for key in self.tasks], '')
+        return Completion(the_input.auto_completion, ["%s" % key for key in self.tasks], '')
 
     def command_done(self, arg="0"):
         try:

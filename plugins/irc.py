@@ -131,6 +131,7 @@ Example configuration
 
 from poezio.plugin import BasePlugin
 from poezio.decorators import command_args_parser
+from poezio.core.structs import Completion
 from poezio import common
 from poezio import tabs
 
@@ -270,7 +271,7 @@ class Plugin(BasePlugin):
                 sections.remove(section)
             except:
                 pass
-        return the_input.new_completion(sections, pos)
+        return Completion(the_input.new_completion, sections, pos)
 
     @command_args_parser.quoted(1, 1)
     def command_irc_join(self, args):
@@ -375,6 +376,6 @@ class Plugin(BasePlugin):
         sections = self.config.sections()
         if 'irc' in sections:
             sections.remove('irc')
-        return the_input.new_completion(sections, 1)
+        return Completion(the_input.new_completion, sections, 1)
 
 

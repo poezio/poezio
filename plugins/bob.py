@@ -22,6 +22,7 @@ Configuration options
         The time during which the file should stay in cache on the receiving side.
 """
 
+from poezio.core.structs import Completion
 from poezio.plugin import BasePlugin
 from poezio import tabs
 
@@ -72,4 +73,4 @@ class Plugin(BasePlugin):
             mime_type = guess_type(filename)[0]
             if mime_type is not None and mime_type.startswith('image/'):
                 images.append(filename)
-        return the_input.auto_completion(images, quotify=False)
+        return Completion(the_input.auto_completion, images, quotify=False)

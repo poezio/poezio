@@ -53,6 +53,7 @@ For affiliations
 
 from poezio.plugin import BasePlugin
 from poezio.tabs import MucTab
+from poezio.core.structs import Completion
 
 class Plugin(BasePlugin):
     """
@@ -113,7 +114,7 @@ class Plugin(BasePlugin):
         compare_users = lambda x: x.last_talked
         word_list = [user.nick for user in sorted(tab.users, key=compare_users, reverse=True)\
                          if user.nick != tab.own_nick]
-        return the_input.auto_completion(word_list, '')
+        return Completion(the_input.auto_completion, word_list, '')
 
 
 

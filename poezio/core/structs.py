@@ -3,7 +3,7 @@ Module defining structures useful to the core class and related methods
 """
 
 __all__ = ['ERROR_AND_STATUS_CODES', 'DEPRECATED_ERRORS', 'POSSIBLE_SHOW',
-           'Status', 'Command']
+           'Status', 'Command', 'Completion']
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -62,3 +62,17 @@ class Command:
         self.comp = comp
         self.short_desc = short_desc
         self.usage = usage
+
+class Completion:
+    """
+    A completion result essentially currying the input completion call.
+    """
+    __slots__ = ['func', 'args', 'kwargs', 'comp_list']
+    def __init__(self, func, comp_list, *args, **kwargs):
+        self.func = func
+        self.comp_list = comp_list
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self):
+        return self.func(self.comp_list, *self.args, **self.kwargs)

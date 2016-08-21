@@ -27,6 +27,7 @@ from poezio.plugin import BasePlugin
 from poezio.roster import roster
 from poezio.common import safeJID
 from poezio.contact import Contact, Resource
+from poezio.core.structs import Completion
 from poezio import tabs
 import time
 
@@ -74,7 +75,7 @@ class Plugin(BasePlugin):
         users = [user.nick for user in self.api.current_tab().users]
         l = self.resources()
         users.extend(l)
-        return the_input.auto_completion(users, '', quotify=False)
+        return Completion(the_input.auto_completion, users, '', quotify=False)
 
     @command_args_parser.raw
     def command_private_ping(self, arg):
@@ -115,5 +116,5 @@ class Plugin(BasePlugin):
         return l
 
     def completion_ping(self, the_input):
-        return the_input.auto_completion(self.resources(), '', quotify=False)
+        return Completion(the_input.auto_completion, self.resources(), '', quotify=False)
 

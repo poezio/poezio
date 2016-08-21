@@ -44,6 +44,7 @@ Options
         time of the message.
 """
 
+from poezio.core.structs import Completion
 from poezio.plugin import BasePlugin
 from poezio.xhtml import clean_text
 from poezio import common
@@ -101,5 +102,5 @@ class Plugin(BasePlugin):
             messages = list(filter(message_match, messages))
         elif len(args) > 1:
             return False
-        return the_input.auto_completion([clean_text(msg.txt) for msg in messages[::-1]], '')
+        return Completion(the_input.auto_completion, [clean_text(msg.txt) for msg in messages[::-1]], '')
 

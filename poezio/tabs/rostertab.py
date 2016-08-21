@@ -25,6 +25,7 @@ from poezio.decorators import refresh_wrapper
 from poezio.roster import RosterGroup, roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+from poezio.core.structs import Completion
 
 from poezio.tabs import Tab
 
@@ -277,7 +278,7 @@ class RosterInfoTab(Tab):
         elif n == 2:
             return self.completion_file(2, the_input)
         elif n == 3:
-            return the_input.new_completion(['true', 'false'], n)
+            return Completion(the_input.new_completion, ['true', 'false'], n)
 
     @command_args_parser.quoted(1)
     def command_cert_disable(self, args):
@@ -399,7 +400,7 @@ class RosterInfoTab(Tab):
         """
         if the_input.get_argument_position() == 1:
             jids = roster.jids()
-            return the_input.new_completion(jids, 1, '', quotify=False)
+            return Completion(the_input.new_completion, jids, 1, '', quotify=False)
 
     @command_args_parser.quoted(0, 1)
     def command_unblock(self, args):
@@ -429,7 +430,7 @@ class RosterInfoTab(Tab):
             if iq['type'] == 'error':
                 return
             l = sorted(str(item) for item in iq['blocklist']['items'])
-            return the_input.new_completion(l, 1, quotify=False)
+            return Completion(the_input.new_completion, l, 1, quotify=False)
 
         if the_input.get_argument_position():
             self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
@@ -544,7 +545,7 @@ class RosterInfoTab(Tab):
         if n == complete_number:
             if args[n-1] == '' or len(args) < n+1:
                 home = os.getenv('HOME') or '/'
-                return the_input.new_completion([home, '/tmp'], n, quotify=True)
+                return Completion(the_input.new_completion, [home, '/tmp'], n, quotify=True)
             path_ = args[n]
             if path.isdir(path_):
                 dir_ = path_
@@ -567,7 +568,7 @@ class RosterInfoTab(Tab):
                 if not name.startswith('.'):
                     end_list.append(value)
 
-            return the_input.new_completion(end_list, n, quotify=True)
+            return Completion(the_input.new_completion, end_list, n, quotify=True)
 
     @command_args_parser.ignored
     def command_clear(self):
@@ -872,24 +873,24 @@ class RosterInfoTab(Tab):
         Completion for /remove
         """
         jids = [jid for jid in roster.jids()]
-        return the_input.auto_completion(jids, '', quotify=False)
+        return Completion(the_input.auto_completion, jids, '', quotify=False)
 
     def completion_name(self, the_input):
         """Completion for /name"""
         n = the_input.get_argument_position()
         if n == 1:
             jids = [jid for jid in roster.jids()]
-            return the_input.new_completion(jids, n, quotify=True)
+            return Completion(the_input.new_completion, jids, n, quotify=True)
         return False
 
     def completion_groupadd(self, the_input):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return the_input.new_completion(jids, n, '', quotify=True)
+            return Completion(the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
             groups = sorted(group for group in roster.groups if group != 'none')
-            return the_input.new_completion(groups, n, '', quotify=True)
+            return Completion(the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_groupmove(self, the_input):
@@ -897,7 +898,7 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return the_input.new_completion(jids, n, '', quotify=True)
+            return Completion(the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
             contact = roster[args[1]]
             if not contact:
@@ -905,10 +906,10 @@ class RosterInfoTab(Tab):
             groups = list(contact.groups)
             if 'none' in groups:
                 groups.remove('none')
-            return the_input.new_completion(groups, n, '', quotify=True)
+            return Completion(the_input.new_completion, groups, n, '', quotify=True)
         elif n == 3:
             groups = sorted(group for group in roster.groups)
-            return the_input.new_completion(groups, n, '', quotify=True)
+            return Completion(the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_groupremove(self, the_input):
@@ -916,7 +917,7 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return the_input.new_completion(jids, n, '', quotify=True)
+            return Completion(the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
             contact = roster[args[1]]
             if contact is None:
@@ -926,7 +927,7 @@ class RosterInfoTab(Tab):
                 groups.remove('none')
             except ValueError:
                 pass
-            return the_input.new_completion(groups, n, '', quotify=True)
+            return Completion(the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_deny(self, the_input):
@@ -936,7 +937,7 @@ class RosterInfoTab(Tab):
         """
         jids = sorted(str(contact.bare_jid) for contact in roster.contacts.values()
              if contact.pending_in)
-        return the_input.new_completion(jids, 1, '', quotify=False)
+        return Completion(the_input.new_completion, jids, 1, '', quotify=False)
 
     @command_args_parser.quoted(0, 1)
     def command_accept(self, args):

@@ -20,7 +20,7 @@ import string
 import time
 from xml.etree import cElementTree as ET
 
-from poezio.core.structs import Command
+from poezio.core.structs import Command, Completion
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
@@ -230,7 +230,10 @@ class Tab(object):
                 if command.comp is None:
                     return False # There's no completion function
                 else:
-                    return command.comp(the_input)
+                    comp = command.comp(the_input)
+                    if comp:
+                        return comp.run()
+                    return comp
         return False
 
     def execute_command(self, provided_text):
@@ -633,7 +636,7 @@ class ChatTab(Tab):
 
     def completion_correct(self, the_input):
         if self.last_sent_message and the_input.get_argument_position() == 1:
-            return the_input.auto_completion([self.last_sent_message['body']], '', quotify=False)
+            return Completion(the_input.auto_completion, [self.last_sent_message['body']], '', quotify=False)
 
     @property
     def inactive(self):

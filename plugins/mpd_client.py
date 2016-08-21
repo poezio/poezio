@@ -49,6 +49,7 @@ Usage
 
 from poezio.plugin import BasePlugin
 from poezio.common import shell_split
+from poezio.core.structs import Completion
 from os.path import basename as base
 from poezio import tabs
 import mpd
@@ -84,4 +85,4 @@ class Plugin(BasePlugin):
             self.api.information('Cannot send result (%s)' % s, 'Error')
 
     def completion_mpd(self, the_input):
-        return the_input.auto_completion(['full'], quotify=False)
+        return Completion(the_input.auto_completion, ['full'], quotify=False)

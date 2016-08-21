@@ -10,7 +10,7 @@ from os import path
 import logging
 
 from poezio import tabs
-from poezio.core.structs import Command
+from poezio.core.structs import Command, Completion
 from poezio.plugin import PluginAPI
 from poezio.config import config
 
@@ -284,7 +284,7 @@ class PluginManager(object):
                 and name != '__init__.py' and not name.startswith('.')]
         plugins_files.sort()
         position = the_input.get_argument_position(quoted=False)
-        return the_input.new_completion(plugins_files, position, '',
+        return Completion(the_input.new_completion, plugins_files, position, '',
                                         quotify=False)
 
     def completion_unload(self, the_input):
@@ -292,7 +292,7 @@ class PluginManager(object):
         completion function that completes the name of loaded plugins
         """
         position = the_input.get_argument_position(quoted=False)
-        return the_input.new_completion(sorted(self.plugins.keys()), position,
+        return Completion(the_input.new_completion, sorted(self.plugins.keys()), position,
                                         '', quotify=False)
 
     def on_plugins_dir_change(self, new_value):

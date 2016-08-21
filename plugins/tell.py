@@ -20,6 +20,7 @@ This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/unt
 
 """
 from poezio.plugin import BasePlugin
+from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
 from poezio import tabs
 
@@ -77,6 +78,6 @@ class Plugin(BasePlugin):
     def completion_untell(self, the_input):
         tab = self.api.current_tab()
         if not tab in self.tabs:
-            return the_input.auto_completion([], '')
-        return the_input.auto_completion(list(self.tabs[tab]), '', quotify=False)
+            return Completion(the_input.auto_completion, [], '')
+        return Completion(the_input.auto_completion, list(self.tabs[tab]), '', quotify=False)
 

@@ -194,6 +194,7 @@ from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+from poezio.core.structs import Completion
 
 OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
                        '~/.local/share', 'poezio', 'otr')
@@ -912,7 +913,7 @@ class Plugin(BasePlugin):
         Completion for /otr
         """
         comp = ['start', 'fpr', 'ourfpr', 'refresh', 'end', 'trust', 'untrust']
-        return the_input.new_completion(comp, 1, quotify=False)
+        return Completion(the_input.new_completion, comp, 1, quotify=False)
 
     @command_args_parser.quoted(1, 2)
     def command_smp(self, args):
@@ -972,7 +973,7 @@ class Plugin(BasePlugin):
     def completion_smp(the_input):
         """Completion for /otrsmp"""
         if the_input.get_argument_position() == 1:
-            return the_input.new_completion(['ask', 'answer', 'abort'], 1, quotify=False)
+            return Completion(the_input.new_completion, ['ask', 'answer', 'abort'], 1, quotify=False)
 
 def get_tlv(tlvs, cls):
     """Find the instance of a class in a list"""

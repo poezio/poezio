@@ -66,6 +66,7 @@ Example of the syntax:
 
 from poezio.plugin import BasePlugin
 from poezio.common import shell_split
+from poezio.core.structs import Completion
 
 
 class Plugin(BasePlugin):
@@ -140,7 +141,7 @@ class Plugin(BasePlugin):
         "Completion for /unalias"
         aliases = [alias for alias in self.commands]
         aliases.sort()
-        return the_input.auto_completion(aliases, '', quotify=False)
+        return Completion(the_input.auto_completion, aliases, '', quotify=False)
 
     def get_command(self, name):
         """Returns the function associated with a command"""
