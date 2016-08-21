@@ -2,19 +2,16 @@
 Test the functions in the `common` module
 """
 
-import sys
-sys.path.append('poezio')
-
 import time
 import pytest
 import datetime
 from slixmpp import JID
 from datetime import timedelta
-from common import (_datetime_tuple as datetime_tuple, get_utc_time,
-                    get_local_time, shell_split, _find_argument_quoted
-                    as find_argument_quoted, _find_argument_unquoted as
-                    find_argument_unquoted, parse_str_to_secs,
-                    parse_secs_to_str, safeJID)
+from poezio.common import (_datetime_tuple as datetime_tuple, get_utc_time,
+                           get_local_time, shell_split, _find_argument_quoted
+                           as find_argument_quoted, _find_argument_unquoted as
+                           find_argument_unquoted, parse_str_to_secs,
+                           parse_secs_to_str, safeJID)
 
 def test_utc_time():
     delta = timedelta(seconds=-3600)
@@ -65,4 +62,4 @@ def test_parse_secs_to_str():
 
 def test_safeJID():
     assert safeJID('toto@titi/tata') == JID('toto@titi/tata')
-    assert safeJID('é_è') == JID('')
+    assert safeJID('toto@…') == JID('')

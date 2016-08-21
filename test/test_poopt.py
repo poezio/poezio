@@ -3,10 +3,8 @@ Test of the poopt module
 """
 
 import pytest
-import sys
-sys.path.append('poezio')
 
-from poopt import cut_text
+from poezio.poopt import cut_text
 
 def test_cut_text():
 

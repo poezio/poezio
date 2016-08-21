@@ -4,13 +4,10 @@ Test the config module
 
 import tempfile
 import pytest
-import sys
 import os
 
 
-sys.path.append('poezio')
-
-import config
+from poezio import config
 
 @pytest.yield_fixture(scope="module")
 def config_obj():

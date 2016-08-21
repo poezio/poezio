@@ -5,19 +5,16 @@ Test the completions methods on an altered input object.
 import string
 import pytest
 import random
-import sys
 import os
-
-sys.path.append('poezio')
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):
         return ''
 
-import config
+from poezio import config
 config.config = ConfigShim()
 
-from windows import Input
+from poezio.windows import Input
 
 @pytest.fixture(scope="function")
 def input_obj():

@@ -3,11 +3,9 @@ Test the functions in the `xhtml` module
 """
 
 import pytest
-import sys
 import xml
-sys.path.append('poezio')
 
-from xhtml import (poezio_colors_to_html, xhtml_to_poezio_colors,
+from poezio.xhtml import (poezio_colors_to_html, xhtml_to_poezio_colors,
                    parse_css, clean_text)
 
 def test_clean_text():

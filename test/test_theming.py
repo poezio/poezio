@@ -2,11 +2,9 @@
 Test the functions in the `theming` module
 """
 
-import sys
 import pytest
-sys.path.append('poezio')
 
-from theming import dump_tuple, read_tuple
+from poezio.theming import dump_tuple, read_tuple
 
 def test_read_tuple():
     assert read_tuple('1,-1,u') == ((1, -1), 'u')

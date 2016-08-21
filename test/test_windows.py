@@ -1,16 +1,14 @@
 import pytest
-import sys
-sys.path.append('poezio')
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):
         return ''
 
-import config
+from poezio import config
 config.config = ConfigShim()
-import core
+from poezio import core
 
-from windows import Input, HistoryInput, MessageInput, CommandInput
+from poezio.windows import Input, HistoryInput, MessageInput, CommandInput
 
 @pytest.fixture
 def input():
