@@ -91,7 +91,7 @@ class BooleanWin(FieldInput, Win):
         FieldInput.__init__(self, field)
         Win.__init__(self)
         self.last_key = 'KEY_RIGHT'
-        self.value = bool(field.getValue())
+        self.value = bool(field.get_value())
 
     def do_command(self, key):
         if key == 'KEY_LEFT' or key == 'KEY_RIGHT':
@@ -115,7 +115,7 @@ class BooleanWin(FieldInput, Win):
 
     def reply(self):
         self._field['label'] = ''
-        self._field.setAnswer(self.value)
+        self._field.set_answer(self.value)
 
     def get_help_message(self):
         return '← and →: change the value between True and False'
@@ -124,7 +124,7 @@ class TextMultiWin(FieldInput, Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
-        self.options = field.getValue()
+        self.options = field.get_value()
         if not isinstance(self.options, list):
             self.options = self.options.split('\n') if self.options else []
         self.val_pos = 0
@@ -182,7 +182,7 @@ class TextMultiWin(FieldInput, Win):
 
     def reply(self):
         values = [val for val in self.options if val]
-        self._field.setAnswer(values)
+        self._field.set_answer(values)
 
     def get_help_message(self):
         if not self.edition_input:
@@ -199,7 +199,7 @@ class ListMultiWin(FieldInput, Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
-        values = field.getValue() or []
+        values = field.get_value() or []
         self.options = [[option, True if option['value'] in values else False]\
                         for option in field.get_options()]
         self.val_pos = 0
@@ -236,7 +236,7 @@ class ListMultiWin(FieldInput, Win):
         self._field['label'] = ''
         self._field.delOptions()
         values = [option[0]['value'] for option in self.options if option[1] is True]
-        self._field.setAnswer(values)
+        self._field.set_answer(values)
 
     def get_help_message(self):
         return '←, →: Switch between the value. Space: select or unselect a value'
@@ -246,11 +246,11 @@ class ListSingleWin(FieldInput, Win):
         FieldInput.__init__(self, field)
         Win.__init__(self)
         # the option list never changes
-        self.options = field.getOptions()
+        self.options = field.get_options()
         # val_pos is the position of the currently selected option
         self.val_pos = 0
         for i, option in enumerate(self.options):
-            if field.getValue() == option['value']:
+            if field.get_value() == option['value']:
                 self.val_pos = i
 
     def do_command(self, key):
@@ -281,7 +281,7 @@ class ListSingleWin(FieldInput, Win):
     def reply(self):
         self._field['label'] = ''
         self._field.delOptions()
-        self._field.setAnswer(self.options[self.val_pos]['value'])
+        self._field.set_answer(self.options[self.val_pos]['value'])
 
     def get_help_message(self):
         return '←, →: Select a value amongst the others'
@@ -290,14 +290,14 @@ class TextSingleWin(FieldInput, Input):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Input.__init__(self)
-        self.text = field.getValue() if isinstance(field.getValue(), str)\
+        self.text = field.get_value() if isinstance(field.get_value(), str)\
             else ""
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def reply(self):
         self._field['label'] = ''
-        self._field.setAnswer(self.get_text())
+        self._field.set_answer(self.get_text())
 
     def get_help_message(self):
         return 'Edit the text'
@@ -356,7 +356,7 @@ class FormWin(object):
             label = field['label']
             desc = field['desc']
             if field['type'] == 'fixed':
-                label = field.getValue()
+                label = field.get_value()
             inp = input_class(field)
             self.inputs.append({'label':ColoredLabel(label),
                                 'description': desc,
