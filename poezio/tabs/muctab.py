@@ -1098,13 +1098,13 @@ class MucTab(ChatTab):
         jid = presence['muc']['jid']
         typ = presence['type']
         deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
-        color = self.search_for_color(from_nick)
         if not self.joined:     # user in the room BEFORE us.
             # ignore redondant presence message, see bug #1509
             if (from_nick not in [user.nick for user in self.users]
                     and typ != "unavailable"):
+                user_color = self.search_for_color(from_nick)
                 new_user = User(from_nick, affiliation, show,
-                                status, role, jid, deterministic, color)
+                                status, role, jid, deterministic, user_color)
                 bisect.insort_left(self.users, new_user)
                 self.core.events.trigger('muc_join', presence, self)
                 if '110' in status_codes or self.own_nick == from_nick:
@@ -1183,9 +1183,10 @@ class MucTab(ChatTab):
             user = self.get_user_by_name(from_nick)
             # New user
             if not user:
+                user_color = self.search_for_color(from_nick)
                 self.core.events.trigger('muc_join', presence, self)
                 self.on_user_join(from_nick, affiliation, show, status, role,
-                                  jid, color)
+                                  jid, user_color)
             # nick change
             elif change_nick:
                 self.core.events.trigger('muc_nickchange', presence, self)
