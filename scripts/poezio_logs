@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""
+A simple script to parse and output logs from a poezio logfile
+"""
+
+from poezio.logger import LogInfo, LogMessage, parse_message_line
+from functools import singledispatch
+from poezio import poopt
+import argparse
+import datetime
+import sys
+
+INFO_COLOR = '\033[35;2m'
+NICK_COLOR = '\033[36;2m'
+NO_COLOR = '\033[0m'
+TIME_COLOR = '\033[33;2m'
+
+SHOW_INFO = True
+SHOW_TIME = True
+
+@singledispatch
+def print_log(log_object, additional_lines=None):
+    time = log_object.time.strftime('%Y-%m-%d %H:%M:%S')
+
+    nick = log_object.nick
+    offset = ((poopt.wcswidth(time) +1) if SHOW_TIME else 0) + 2 + poopt.wcswidth(nick)
+    pad = ' ' * offset
+
+    if additional_lines:
+        more = ''.join([(pad + line) for line in additional_lines])
+    else:
+        more = ''
+
+    if SHOW_TIME:
+        print(('%s%s%s %s%s%s> %s\n' % (TIME_COLOR, time, NO_COLOR, NICK_COLOR, nick, NO_COLOR, log_object.text)) + more, end='')
+    else:
+        print(('%s%s%s> %s\n' % (NICK_COLOR, nick, NO_COLOR, log_object.text)) + more, end='')
+
+@print_log.register(type(None))
+def _(log_object, additional_lines=None):
+    return
+
+@print_log.register(LogInfo)
+def _(log_object, additional_lines=None):
+    if not SHOW_INFO: return
+    time = log_object.time.strftime('%Y-%m-%d %H:%M:%S') + ' '
+
+    offset = (poopt.wcswidth(time) + 1) if SHOW_TIME else 0
+    pad = ' ' * offset
+
+    if additional_lines:
+        more = ''.join([(pad + line) for line in additional_lines])
+    else:
+        more = ''
+
+    if SHOW_TIME:
+        print(('%s%s%s %s%s\n' % (TIME_COLOR, time, NO_COLOR, INFO_COLOR, log_object.text)) + more, end='')
+    else:
+        print(('%s%s\n' % (INFO_COLOR, log_object.text)) + more, end='')
+
+def parse_messages(fd):
+    in_text = False
+    more_lines = []
+    current_log = None
+    for line in fd:
+        if in_text and not line.startswith(' '):
+            print_log(current_log, more_lines)
+            more_lines = []
+            in_text = False
+            current_log = None
+        elif in_text:
+            more_lines.append(line[1:])
+            continue
+        current_log = parse_message_line(line.rstrip())
+        in_text = True
+    print_log(current_log, more_lines)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('poezio_logs', description="""
+Show the logs stored in poezio format in a more human-readable way.
+""")
+    parser.add_argument('-i', '--hide-info', dest='hide_info',
+                        action='store_true', default=False,
+                        help='Hide info lines')
+    parser.add_argument('-t', '--hide-time', dest='hide_time',
+                        action='store_true', default=False,
+                        help='Hide timestamps')
+    parser.add_argument('-c', '--no-color', dest='no_color',
+                        action='store_true', default=False,
+                        help='Remove color')
+    parser.add_argument('log_file', type=argparse.FileType('r'))
+    result = parser.parse_args()
+    SHOW_INFO = not result.hide_info
+    SHOW_TIME = not result.hide_time
+    if result.no_color:
+        INFO_COLOR = ''
+        NICK_COLOR = ''
+        NO_COLOR = ''
+        TIME_COLOR = ''
+
+    parse_messages(result.log_file)
