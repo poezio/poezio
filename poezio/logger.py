@@ -27,20 +27,36 @@ log = logging.getLogger(__name__)
 
 from poezio.config import LOG_DIR as log_dir
 
-message_log_re = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
+MESSAGE_LOG_RE = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
                             r'(\d{2}):(\d{2}):(\d{2})Z '
                             r'(\d+) <([^ ]+)>  (.*)')
-info_log_re = re.compile(r'MI (\d{4})(\d{2})(\d{2})T'
+INFO_LOG_RE = re.compile(r'MI (\d{4})(\d{2})(\d{2})T'
                          r'(\d{2}):(\d{2}):(\d{2})Z '
                          r'(\d+) (.*)')
 
-def _parse_message_line(msg):
-    if re.match(message_log_re, msg):
-        return [i for i in re.split(message_log_re, msg) if i]
-    if re.match(info_log_re, msg):
-        return [i for i in re.split(info_log_re, msg) if i]
-    return None
+class LogItem:
+    def __init__(self, year, month, day, hour, minute, second, nb_lines, message):
+        self.time = datetime(int(year), int(month), int(day), int(hour),
+                             int(minute), int(second))
+        self.nb_lines = int(nb_lines)
+        self.text = message
 
+class LogInfo(LogItem):
+    def __init__(self, *args):
+        LogItem.__init__(self, *args)
+
+class LogMessage(LogItem):
+    def __init__(self, year, month, day, hour, minute, seconds, nb_lines, nick, message):
+        LogItem.__init__(self, year, month, day, hour, minute, seconds,
+                         nb_lines, message)
+        self.nick = nick
+
+def parse_message_line(msg):
+    if re.match(MESSAGE_LOG_RE, msg):
+        return LogMessage(*[i for i in re.split(MESSAGE_LOG_RE, msg) if i])
+    if re.match(INFO_LOG_RE, msg):
+        return LogInfo(*[i for i in re.split(INFO_LOG_RE, msg) if i])
+    return None
 
 class Logger(object):
     """
@@ -168,21 +184,20 @@ class Logger(object):
                 idx += 1
                 log.debug('fail?')
                 continue
-            tup = _parse_message_line(lines[idx])
+            log_item = parse_message_line(lines[idx])
             idx += 1
-            if not tup or len(tup) not in (8, 9): # skip
-                log.debug('format? %s', tup)
+            if not isinstance(log_item, LogItem):
+                log.debug('wrong log format? %s', tup)
                 continue
-            time = [int(i) for i in tup[:6]]
             message = {'lines': [],
                        'history': True,
-                       'time': common.get_local_time(datetime(*time))}
-            size = int(tup[6])
-            if len(tup) == 8: #info line
-                message['lines'].append(color + tup[7])
-            else: # message line
-                message['nickname'] = tup[7]
-                message['lines'].append(color + tup[8])
+                       'time': common.get_local_time(log_item.time)}
+            size = log_item.nb_lines
+            if isinstance(log_item, LogInfo):
+                message['lines'].append(color + log_item.text)
+            elif isinstance(log_item, LogMessage):
+                message['nickname'] = log_item.nick
+                message['lines'].append(color + log_item.text)
             while size != 0 and idx < len(lines):
                 message['lines'].append(lines[idx][1:])
                 size -= 1
