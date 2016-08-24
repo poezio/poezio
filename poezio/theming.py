@@ -66,7 +66,11 @@ It is used for example to define color gradient, etc.
 import logging
 log = logging.getLogger(__name__)
 
-from poezio.config import config
+try:
+    from poezio.config import config
+except ImportError:
+    if __name__ != "__main__":
+        raise
 
 import curses
 import functools
