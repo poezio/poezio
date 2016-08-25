@@ -77,6 +77,7 @@ class Logger(object):
                     pass
 
     def close(self, jid):
+        jid = str(jid).replace('/', '\\')
         if jid in self._fds:
             self._fds[jid].close()
             log.debug('Log file for %s closed.', jid)
