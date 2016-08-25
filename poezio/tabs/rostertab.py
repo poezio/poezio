@@ -72,38 +72,38 @@ class RosterInfoTab(Tab):
                     desc='Deny your presence to the provided JID (or the '
                          'selected contact in your roster), who is asking'
                          'you to be in his/here roster.',
-                    shortdesc='Deny an user your presence.',
+                    shortdesc='Deny a user your presence.',
                     completion=self.completion_deny)
             self.register_command('accept', self.command_accept,
                     usage='[jid]',
                     desc='Allow the provided JID (or the selected contact '
                          'in your roster), to see your presence.',
-                    shortdesc='Allow an user your presence.',
+                    shortdesc='Allow a user your presence.',
                     completion=self.completion_deny)
             self.register_command('add', self.command_add,
                     usage='<jid>',
                     desc='Add the specified JID to your roster, ask him to'
                          ' allow you to see his presence, and allow him to'
                          ' see your presence.',
-                    shortdesc='Add an user to your roster.')
+                    shortdesc='Add a user to your roster.')
             self.register_command('name', self.command_name,
                     usage='<jid> [name]',
                     shortdesc='Set the given JID\'s name.',
                     completion=self.completion_name)
             self.register_command('groupadd', self.command_groupadd,
-                    usage='<jid> <group>',
-                    desc='Add the given JID to the given group.',
-                    shortdesc='Add an user to a group',
+                    usage='[<jid> <group>]|<group>',
+                    desc='Add the given JID or selected line to the given group.',
+                    shortdesc='Add a user to a group',
                     completion=self.completion_groupadd)
             self.register_command('groupmove', self.command_groupmove,
                     usage='<jid> <old group> <new group>',
                     desc='Move the given JID from the old group to the new group.',
-                    shortdesc='Move an user to another group.',
+                    shortdesc='Move a user to another group.',
                     completion=self.completion_groupmove)
             self.register_command('groupremove', self.command_groupremove,
                     usage='<jid> <group>',
                     desc='Remove the given JID from the given group.',
-                    shortdesc='Remove an user from a group.',
+                    shortdesc='Remove a user from a group.',
                     completion=self.completion_groupremove)
             self.register_command('remove', self.command_remove,
                     usage='[jid]',
@@ -111,7 +111,7 @@ class RosterInfoTab(Tab):
                          'will unsubscribe you from its presence, cancel '
                          'its subscription to yours, and remove the item '
                          'from your roster.',
-                    shortdesc='Remove an user from your roster.',
+                    shortdesc='Remove a user from your roster.',
                     completion=self.completion_remove)
             self.register_command('export', self.command_export,
                     usage='[/path/to/file]',
@@ -664,15 +664,25 @@ class RosterInfoTab(Tab):
         self.core.xmpp.update_roster(jid, name=name, groups=groups,
                                      subscription=subscription, callback=callback)
 
-    @command_args_parser.quoted(2)
+    @command_args_parser.quoted(1, 1)
     def command_groupadd(self, args):
         """
         Add the specified JID to the specified group
         """
         if args is None:
             return self.core.command.help('groupadd')
-        jid = safeJID(args[0]).bare
-        group = args[1]
+        if len(args) == 1:
+            group = args[0]
+            item = self.roster_win.selected_row
+            if isinstance(item, Contact):
+                jid = item.bare_jid
+            elif isinstance(item, Resource):
+                jid = item.jid
+            else:
+                return self.core.command.help('groupadd')
+        else:
+            jid = safeJID(args[0]).bare
+            group = args[1]
 
         contact = roster[jid]
         if contact is None:
