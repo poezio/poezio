@@ -104,6 +104,10 @@ class Plugin(BasePlugin):
         self.do_notify(message, fro)
 
     def on_highlight(self, message, tab):
+        whitelist = self.config.get('muc_list', '').split(':')
+        # prevents double notifications
+        if message['from'].bare in whitelist:
+            return
         fro = message['from'].resource
         self.do_notify(message, fro)
 
@@ -118,7 +122,7 @@ class Plugin(BasePlugin):
 
         fro = message['from'].full
         muc = message['from'].bare
-        whitelist=self.config.get('muc_list', '').split(':')
+        whitelist = self.config.get('muc_list', '').split(':')
 
         # Prevent old messages to be notified
         # find_delayed_tag(message) returns (True, the datetime) or
