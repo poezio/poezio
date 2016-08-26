@@ -504,10 +504,12 @@ Roster tab commands
         Change your password.
 
     /groupadd
-        **Usage:** ``/groupadd <jid> <group>``
+        **Usage:** ``/groupadd (<jid> <group>|<group>)
 
         Add the given JID to the given group (if the group
-        does not exist, it will be created).
+        does not exist, it will be created). If no jid is provided,
+        the currently selected item on the roster (resource or JID)
+        will be used.
 
     /groupmove
         **Usage:** ``/groupmove <jid> <old_group> <new_group>``

@@ -6,7 +6,10 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 - A lot of cleanup and refactor in order to use cython on the codebase
   more easily.
+- A new poezio_logs script to make logfiles more human-readable
 - Substantial performance improvements
+- Added a new confirmation tab and used it for cert warnings and XEP-0070
+- Added support for XEP-0070 (HTTP request verification)
 - Enabled carbons (XEP-0280) by default
 - Added support for XEP-0198 (stream management)
 - Added support for XEP-0352 (client state indication)
