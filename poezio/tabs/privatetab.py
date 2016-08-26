@@ -360,4 +360,10 @@ class PrivateTab(OneToOneTab):
     def matching_names(self):
         return [(3, safeJID(self.name).resource), (4, self.name)]
 
+    def add_error(self, error_message):
+        error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
+                                    error_message)
+        self.add_message(error, highlight=True, nickname='Error',
+                         nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+        self.core.refresh_window()
 

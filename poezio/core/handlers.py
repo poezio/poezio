@@ -220,10 +220,15 @@ class HandlerCore:
         jid_from = message['from']
         for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name == jid_from.bare:
-                if message['type'] == 'error':
+                if jid_from.full == jid_from.bare:
                     self.core.room_error(message, jid_from.bare)
                 else:
-                    self.on_groupchat_private_message(message)
+                    text = self.core.get_error_message(message)
+                    p_tab = self.core.get_tab_by_name(jid_from.full, tabs.PrivateTab)
+                    if p_tab:
+                        p_tab.add_error(text)
+                    else:
+                        self.core.information(text, 'Error')
                 return
         tab = self.core.get_conversation_by_jid(message['from'], create=False)
         error_msg = self.core.get_error_message(message, deprecated=True)
