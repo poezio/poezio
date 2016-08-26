@@ -118,7 +118,10 @@ class CommandArgParser(object):
         def first(func):
             def second(self, args, *a, **kw):
                 default_args = defaults
-                args = common.shell_split(args)
+                if args and args.strip():
+                    args = common.shell_split(args)
+                else:
+                    args = []
                 if len(args) < mandatory:
                     return func(self, None, *a, **kw)
                 res, args = args[:mandatory], args[mandatory:]
