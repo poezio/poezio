@@ -353,11 +353,11 @@ class XHTMLHandler(sax.ContentHandler):
                     try:
                         with open(filepath, 'wb') as fd:
                             fd.write(bin_data)
-                        builder.append('file://%s' % filepath)
+                        builder.append('[file stored as %s]' % filename)
                     except Exception as e:
                         builder.append('[Error while saving image: %s]' % e)
                 else:
-                    builder.append('file://%s' % filepath)
+                    builder.append('[file stored as %s]' % filename)
             else:
                 builder.append(trim(attrs['src']))
             if 'alt' in attrs:
