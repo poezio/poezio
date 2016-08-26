@@ -97,12 +97,13 @@ class CompletionCore:
 
         relevant_rooms = []
         relevant_rooms.extend(sorted(self.core.pending_invites.keys()))
-        bookmarks = {str(elem.jid): False for elem in self.core.bookmarks}
-        for tab in self.core.get_tabs(tabs.MucTab):
-            name = tab.name
-            if name in bookmarks and not tab.joined:
-                bookmarks[name] = True
-        relevant_rooms.extend(sorted(room[0] for room in bookmarks.items() if room[1]))
+        bookmarks = [str(elem.jid)  for elem in self.core.bookmarks]
+        to_suggest = []
+        for bookmark in bookmarks:
+            tab = self.core.get_tab_by_name(bookmark, tabs.MucTab)
+            if not tab or (tab and not tab.joined):
+                to_suggest.append(bookmark)
+        relevant_rooms.extend(sorted(to_suggest))
 
         if the_input.last_completion:
             return Completion(the_input.new_completion, [], 1, quotify=True)
