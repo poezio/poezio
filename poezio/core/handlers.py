@@ -46,6 +46,27 @@ try:
 except ImportError:
     PYGMENTS = False
 
+CERT_WARNING_TEXT = """
+WARNING: CERTIFICATE FOR %s CHANGED
+
+This can be part of a normal renewal process, but can also mean that \
+an attacker is performing a man-in-the-middle attack on your connection.
+When in doubt, check with your administrator using another channel.
+
+SHA-512 of the old certificate: %s
+
+SHA-512 of the new certificate: %s
+"""
+
+HTTP_VERIF_TEXT = """
+Someone (maybe you) has requested an identity verification
+using method "%s" for the url "%s".
+
+The transaction id is: %s
+And the XMPP address of the verification service is %s.
+
+"""
+
 
 class HandlerCore:
     def __init__(self, core):
@@ -1187,6 +1208,41 @@ class HandlerCore:
         self.core.information('The certificate sent by the server is invalid.', 'Error')
         self.core.disconnect()
 
+    def _ssl_pop_tab(self, old_cert, new_cert):
+        def cb(result):
+            if result:
+                self.core.information('New certificate accepted.', 'Info')
+                log.debug('Setting certificate to %s', new_cert)
+                if not config.silent_set('certificate', new_cert):
+                    self.core.information(
+                        'Unable to write in the config file',
+                        'Error')
+            else:
+                self.core.information('You refused to validate the certificate.'
+                                      ' You are now disconnected.', 'Info')
+                self.core.disconnect()
+            new_loop.stop()
+            asyncio.set_event_loop(old_loop)
+
+        confirm_tab = tabs.ConfirmTab(self.core,
+                'Certificate check required',
+                 CERT_WARNING_TEXT % (self.core.xmpp.boundjid.domain, old_cert, new_cert),
+                'You need to accept or reject the certificate',
+                cb,
+                critical=True)
+
+
+        self.core.add_tab(confirm_tab, True)
+        self.core.doupdate()
+        # some magic to avoid running the event loop in which slixmpp
+        # does stuff. FIXME: not perfect.
+        old_loop = asyncio.get_event_loop()
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
+        new_loop.add_reader(sys.stdin, self.core.on_input_readable)
+        curses.beep()
+        new_loop.run_forever()
+
     def validate_ssl(self, pem):
         """
         Check the server certificate using the slixmpp ssl_cert event
@@ -1204,9 +1260,9 @@ class HandlerCore:
         sha1_found_cert = ':'.join(i + j for i, j in zip(sha1_digest[::2], sha1_digest[1::2]))
         sha2_digest = sha512(der).hexdigest().upper()
         sha2_found_cert = ':'.join(i + j for i, j in zip(sha2_digest[::2], sha2_digest[1::2]))
+
         if cert:
             if sha1_found_cert == cert:
-                log.debug('Cert %s OK', sha1_found_cert)
                 log.debug('Current hash is SHA-1, moving to SHA-2 (%s)',
                           sha2_found_cert)
                 config.set_and_save('certificate', sha2_found_cert)
@@ -1214,44 +1270,7 @@ class HandlerCore:
             elif sha2_found_cert == cert:
                 return
             else:
-                def cb(result):
-                    if result:
-                        self.core.information('New certificate accepted.', 'Info')
-                        log.debug('Setting certificate to %s', sha2_found_cert)
-                        if not config.silent_set('certificate', sha2_found_cert):
-                            self.core.information(
-                                'Unable to write in the config file',
-                                'Error')
-                    else:
-                        self.core.information('You refused to validate the certificate. You are now disconnected.', 'Info')
-                        self.core.disconnect()
-                    new_loop.stop()
-                    asyncio.set_event_loop(old_loop)
-                confirm_tab = tabs.ConfirmTab(
-                        self.core,
-                        'Certificate check required',
-                        """
-WARNING: CERTIFICATE FOR %s CHANGED
-
-This can be part of a normal renewal process, but can also mean that \
-an attacker is performing a man-in-the-middle attack on your connection.
-When in doubt, check with your administrator using another channel.
-
-SHA-512 of the old certificate: %s
-
-SHA-512 of the new certificate: %s
-""" % (self.core.xmpp.boundjid.domain, cert, sha2_found_cert),
-                        'You need to accept or reject the certificate',
-                        cb,
-                        critical=True)
-                self.core.add_tab(confirm_tab, True)
-                self.core.doupdate()
-                old_loop = asyncio.get_event_loop()
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                new_loop.add_reader(sys.stdin, self.core.on_input_readable)
-                curses.beep()
-                new_loop.run_forever()
+                self._ssl_pop_tab(cert, sha2_found_cert)
         else:
             log.debug('First time. Setting certificate to %s', sha2_found_cert)
             if not config.silent_set('certificate', sha2_found_cert):
@@ -1274,14 +1293,7 @@ SHA-512 of the new certificate: %s
         c_id, c_url, c_method = confirm['id'], confirm['url'], confirm['method']
         confirm_tab = tabs.ConfirmTab(self.core,
                         'HTTP Verification',
-                        """
-Someone (maybe you) has requested an identity verification
-using method "%s" for the url "%s".
-
-The transaction id is: %s
-And the XMPP address of the verification service is %s.
-
-""" % (c_method, c_url, c_id, stanza['from'].full),
+                        HTTP_VERIF_TEXT % (c_method, c_url, c_id, stanza['from'].full),
                         'An HTTP verification was requested',
                         cb,
                         critical=False)
