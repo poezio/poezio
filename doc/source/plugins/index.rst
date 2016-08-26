@@ -271,6 +271,11 @@ Plugin index
 
         Reproduce the behavior of the ``<marquee/>`` html tag.
 
+    Server Part
+        :ref:`Documentation <serverpart-plugin>`
+
+        Add a ``/server_part`` command.
+
     Dice
         :ref:`Documentation <dice-plugin>`
 
@@ -320,3 +325,4 @@ Plugin index
     csi
     dice
     marquee
+    server_part
