@@ -899,9 +899,6 @@ class CommandCore:
                             iqfunc
                             )
                         )
-                log.debug('handler')
-            log.debug('%s %s', stanza.xml.tag, stanza.xml.attrib)
-
             stanza.send()
         except:
             self.core.information('Could not send custom stanza', 'Error')
