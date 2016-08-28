@@ -125,7 +125,7 @@ class TextMultiWin(FieldInput, Win):
         FieldInput.__init__(self, field)
         Win.__init__(self)
         options = field.get_value()
-        if isinstance(self.options, list):
+        if isinstance(options, list):
             self.options = options
         else:
             self.options = options.split('\n') if options else []
