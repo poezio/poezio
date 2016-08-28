@@ -493,6 +493,8 @@ class Plugin(BasePlugin):
         ConversationTab.add_information_element('otr', self.display_encryption_status)
         PrivateTab.add_information_element('otr', self.display_encryption_status)
 
+        self.core.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:otr:0')
+
         self.account = PoezioAccount(self.core.xmpp.boundjid.bare, OTR_DIR)
         self.account.load_trusts()
         self.contexts = {}
@@ -530,6 +532,8 @@ class Plugin(BasePlugin):
     def cleanup(self):
         for context in self.contexts.values():
             context.disconnect()
+
+        self.core.xmpp.plugin['xep_0030'].del_feature(feature='urn:xmpp:otr:0')
 
         ConversationTab.remove_information_element('otr')
         PrivateTab.remove_information_element('otr')
