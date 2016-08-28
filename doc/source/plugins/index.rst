@@ -281,6 +281,11 @@ Plugin index
 
         Roll one or several dice using message corrections.
 
+    vCard
+        :ref:`Documentation <vcard-plugin>`
+
+        Add a ``/vcard`` command to retrieve and display a vCard.
+
 .. toctree::
     :hidden:
 
@@ -326,3 +331,4 @@ Plugin index
     dice
     marquee
     server_part
+    vcard
