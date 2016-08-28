@@ -128,7 +128,7 @@ class TextMultiWin(FieldInput, Win):
         if isinstance(self.options, list):
             self.options = options
         else:
-            self.options = self.options.split('\n') if self.options else []
+            self.options = options.split('\n') if options else []
         self.val_pos = 0
         self.edition_input = None
         if not isinstance(self.options, list):
