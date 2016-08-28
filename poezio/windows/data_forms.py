@@ -14,7 +14,7 @@ from poezio.theming import to_curses_attr, get_theme
 
 class FieldInput(object):
     """
-    All input type in a data form should inherite this class,
+    All input types in a data form should inherit this class,
     in addition with windows.Input or any relevant class from the
     'windows' library.
     """
@@ -124,8 +124,10 @@ class TextMultiWin(FieldInput, Win):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
-        self.options = field.get_value()
-        if not isinstance(self.options, list):
+        options = field.get_value()
+        if isinstance(self.options, list):
+            self.options = options
+        else:
             self.options = self.options.split('\n') if self.options else []
         self.val_pos = 0
         self.edition_input = None

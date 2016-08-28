@@ -188,32 +188,32 @@ class CommandCore:
     @command_args_parser.quoted(1)
     def win(self, args):
         """
-        /win <number>
+        /win <number or name>
         """
         if args is None:
             return self.help('win')
 
-        nb = args[0]
+        name = args[0]
         try:
-            nb = int(nb)
+            number = int(name)
         except ValueError:
-            pass
-        if self.core.current_tab_nb == nb:
+            number = -1
+        if number != -1 and self.core.current_tab_nb == number:
             return
+        prev_nb = self.core.previous_tab_nb
         self.core.previous_tab_nb = self.core.current_tab_nb
         old_tab = self.core.current_tab()
-        if isinstance(nb, int):
-            if 0 <= nb < len(self.core.tabs):
-                if not self.core.tabs[nb]:
-                    return
-                self.core.current_tab_nb = nb
+        if 0 <= number < len(self.core.tabs):
+            if not self.core.tabs[number]:
+                self.core.previous_tab_nb = prev_nb
+                return
+            self.core.current_tab_nb = number
         else:
             matchs = []
             for tab in self.core.tabs:
-                for name in tab.matching_names():
-                    if nb.lower() in name[1].lower():
-                        matchs.append((name[0], tab))
-                        self.core.current_tab_nb = tab.nb
+                for tab_name in tab.matching_names():
+                    if name.lower() in tab_name[1].lower():
+                        matchs.append((tab_name[0], tab))
             if not matchs:
                 return
             tab = min(matchs, key=lambda m: m[0])[1]

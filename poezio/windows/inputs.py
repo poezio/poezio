@@ -563,6 +563,7 @@ class HistoryInput(Input):
     def __init__(self):
         Input.__init__(self)
         self.help_message = ''
+        self.histo_pos = -1
         self.current_completed = ''
         self.key_func['^R'] = self.toggle_search
         self.search = False
@@ -647,7 +648,6 @@ class MessageInput(HistoryInput):
     def __init__(self):
         HistoryInput.__init__(self)
         self.last_completion = None
-        self.histo_pos = -1
         self.key_func["KEY_UP"] = self.key_up
         self.key_func["M-A"] = self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
@@ -702,7 +702,6 @@ class CommandInput(HistoryInput):
         self.key_func["M-A"] = self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
-        self.histo_pos = -1
 
     def do_command(self, key, reset=True, raw=False):
         res = Input.do_command(self, key, reset=reset, raw=raw)
