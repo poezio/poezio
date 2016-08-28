@@ -188,7 +188,7 @@ class Logger(object):
             log_item = parse_message_line(lines[idx])
             idx += 1
             if not isinstance(log_item, LogItem):
-                log.debug('wrong log format? %s', tup)
+                log.debug('wrong log format? %s', log_item)
                 continue
             message = {'lines': [],
                        'history': True,
