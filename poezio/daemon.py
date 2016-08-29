@@ -35,7 +35,7 @@ class Executor(threading.Thread):
     can totally fail, we don’t care, and we can start commands without
     having to wait for them to return.
     WARNING: Be careful to properly escape what is untrusted by using
-    pipes.quote (or shlex.quote with python 3.3) for example.
+    shlex.quote for example.
     """
     def __init__(self, command, remote=False):
         threading.Thread.__init__(self)
