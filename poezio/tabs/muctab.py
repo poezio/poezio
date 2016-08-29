@@ -1133,19 +1133,17 @@ class MucTab(ChatTab):
                     info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
                     warn_col = dump_tuple(get_theme().COLOR_WARNING_TEXT)
                     spec_col = dump_tuple(get_theme().COLOR_JOIN_CHAR)
-
-                    self.add_message(
+                    enable_message = (
                         '\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
                         '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
-                        ' the chatroom' %
-                            {
+                        ' the chatroom') % {
                             'nick': from_nick,
                             'spec': get_theme().CHAR_JOIN,
                             'color_spec': spec_col,
                             'nick_col': color,
                             'info_col': info_col,
-                            },
-                        typ=2)
+                            }
+                    self.add_message(enable_message, typ=2)
                     if '201' in status_codes:
                         self.add_message(
                                 '\x19%(info_col)s}Info: The room '
@@ -1170,7 +1168,7 @@ class MucTab(ChatTab):
                         self.refresh_tab_win()
                         self.core.current_tab().input.refresh()
                         self.core.doupdate()
-                    self.core.enable_private_tabs(self.name)
+                    self.core.enable_private_tabs(self.name, enable_message)
                     # Enable the self ping event, to regularly check if we
                     # are still in the room.
                     self.enable_self_ping_event()
@@ -1310,7 +1308,7 @@ class MucTab(ChatTab):
                               'color':color, 'info_col': info_col},
                          typ=2)
         # rename the private tabs if needed
-        self.core.rename_private_tabs(self.name, from_nick, new_nick)
+        self.core.rename_private_tabs(self.name, from_nick, user)
 
     def on_user_banned(self, presence, user, from_nick):
         """
@@ -1494,7 +1492,7 @@ class MucTab(ChatTab):
             if status:
                 leave_msg += ' (\x19o%s\x19%s})' % (status, info_col)
             self.add_message(leave_msg, typ=2)
-        self.core.on_user_left_private_conversation(from_room, from_nick,
+        self.core.on_user_left_private_conversation(from_room, user,
                                                     status)
 
     def on_user_change_status(

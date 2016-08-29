@@ -307,26 +307,49 @@ class PrivateTab(OneToOneTab):
         return self.text_win
 
     @refresh_wrapper.conditional
-    def rename_user(self, old_nick, new_nick):
+    def rename_user(self, old_nick, user):
         """
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.add_message('\x193}%(old)s\x19%(info_col)s} is now known as \x193}%(new)s' % {'old':old_nick, 'new':new_nick, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
-        new_jid = safeJID(self.name).bare+'/'+new_nick
+        self.add_message('\x19%(nick_col)s}%(old)s\x19%(info_col)s} is now '
+                         'known as \x19%(nick_col)s}%(new)s' % {
+                             'old':old_nick, 'new': user.nick,
+                             'nick_col': dump_tuple(user.color),
+                             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                         typ=2)
+        new_jid = safeJID(self.name).bare+'/'+user.nick
         self.name = new_jid
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
-    def user_left(self, status_message, from_nick):
+    def user_left(self, status_message, user):
         """
         The user left the associated MUC
         """
         self.deactivate()
-        if not status_message:
-            self.add_message('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room' % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
+        if config.get_by_tabname('display_user_color_in_join_part', self.general_jid):
+            color = dump_tuple(user.color)
         else:
-            self.add_message('\x191}%(spec)s \x193}%(nick)s\x19%(info_col)s} has left the room (%(status)s)"' % {'nick':from_nick, 'spec':get_theme().CHAR_QUIT, 'status': status_message, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
+            color = dump_tuple(get_theme().COLOR_REMOTE_USER)
+
+        if not status_message:
+            self.add_message('\x19%(join_col)s}%(spec)s \x19%(nick_col)s}'
+                             '%(nick)s\x19%(info_col)s} has left the room' % {
+                                 'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
+                                 'nick_col': color,
+                                 'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                             typ=2)
+        else:
+            self.add_message('\x19%(join_col)s}%(spec)s \x19%(nick_col)s}'
+                             '%(nick)s\x19%(info_col)s} has left the room'
+                             ' (%(status)s)' % { 'status': status_message,
+                                 'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
+                                 'nick_col': color,
+                                 'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                             typ=2)
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
@@ -336,14 +359,19 @@ class PrivateTab(OneToOneTab):
         """
         self.activate()
         self.check_features()
-        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
-        color = 3
+        tab = self.parent_muc
+        color = dump_tuple(get_theme().COLOR_REMOTE_USER)
         if tab and config.get_by_tabname('display_user_color_in_join_part',
                                          self.general_jid):
             user = tab.get_user_by_name(nick)
             if user:
                 color = dump_tuple(user.color)
-        self.add_message('\x194}%(spec)s \x19%(color)s}%(nick)s\x19%(info_col)s} joined the room' % {'nick':nick, 'color': color, 'spec':get_theme().CHAR_JOIN, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}, typ=2)
+        self.add_message('\x19%(join_col)s}%(spec)s \x19%(color)s}%(nick)s\x19'
+                         '%(info_col)s} joined the room' % {'nick':nick,
+                             'color': color, 'spec':get_theme().CHAR_JOIN,
+                             'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+                         typ=2)
         return self.core.current_tab() is self
 
     def activate(self, reason=None):

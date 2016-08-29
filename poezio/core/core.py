@@ -1285,7 +1285,7 @@ class Core(object):
 
     ### Modifying actions ###
 
-    def rename_private_tabs(self, room_name, old_nick, new_nick):
+    def rename_private_tabs(self, room_name, old_nick, user):
         """
         Call this method when someone changes his/her nick in a MUC,
         this updates the name of all the opened private conversations
@@ -1294,16 +1294,16 @@ class Core(object):
         tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick),
                                    tabs.PrivateTab)
         if tab:
-            tab.rename_user(old_nick, new_nick)
+            tab.rename_user(old_nick, user)
 
-    def on_user_left_private_conversation(self, room_name, nick, status_message):
+    def on_user_left_private_conversation(self, room_name, user, status_message):
         """
         The user left the MUC: add a message in the associated
         private conversation
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
+        tab = self.get_tab_by_name('%s/%s' % (room_name, user.nick), tabs.PrivateTab)
         if tab:
-            tab.user_left(status_message, nick)
+            tab.user_left(status_message, user)
 
     def on_user_rejoined_private_conversation(self, room_name, nick):
         """
