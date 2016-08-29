@@ -159,10 +159,7 @@ class Config(RawConfigParser):
         self.default = default
 
     def read_file(self):
-        try:
-            RawConfigParser.read(self, self.file_name, encoding='utf-8')
-        except TypeError: # python < 3.2 sucks
-            RawConfigParser.read(self, self.file_name)
+        RawConfigParser.read(self, self.file_name, encoding='utf-8')
         # Check config integrity and fix it if it’s wrong
         # only when the object is the main config
         if self.__class__ is Config:
