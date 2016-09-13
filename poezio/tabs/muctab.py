@@ -1192,13 +1192,13 @@ class MucTab(ChatTab):
             elif ban:
                 self.core.events.trigger('muc_ban', presence, self)
                 self.core.on_user_left_private_conversation(from_room,
-                                                            from_nick, status)
+                                                            user, status)
                 self.on_user_banned(presence, user, from_nick)
             # kick
             elif kick:
                 self.core.events.trigger('muc_kick', presence, self)
                 self.core.on_user_left_private_conversation(from_room,
-                                                            from_nick, status)
+                                                            user, status)
                 self.on_user_kicked(presence, user, from_nick)
             elif shutdown:
                 self.core.events.trigger('muc_shutdown', presence, self)
