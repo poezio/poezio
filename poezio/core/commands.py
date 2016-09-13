@@ -212,7 +212,7 @@ class CommandCore:
             matchs = []
             for tab in self.core.tabs:
                 for tab_name in tab.matching_names():
-                    if name.lower() in tab_name[1].lower():
+                    if tab_name[1] and name.lower() in tab_name[1].lower():
                         matchs.append((tab_name[0], tab))
             if not matchs:
                 return
