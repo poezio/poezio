@@ -227,6 +227,44 @@ class BookmarksWin(Win):
             self.current_horizontal_input = 0
         self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
 
+    def go_to_next_page(self):
+        if not self.lines:
+            return
+
+        if self.current_input == len(self.lines) - 1:
+            return
+
+        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        inc = min(self.height, len(self.lines) - self.current_input - 1)
+
+        if self.current_input + inc - self.scroll_pos > self.height - 1:
+            self.current_input += inc
+            self.scroll_pos += inc
+            self.refresh()
+        else:
+            self.current_input += inc
+            self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        return True
+
+    def go_to_previous_page(self):
+        if not self.lines:
+            return
+
+        if self.current_input == 0:
+            return
+
+        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+
+        dec = min(self.height, self.current_input)
+        self.current_input -= dec
+        # Adjust the scroll position if the current_input would be outside
+        # of the visible area
+        if self.current_input < self.scroll_pos:
+            self.scroll_pos = self.current_input
+            self.refresh()
+        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        return True
+
     def go_to_previous_horizontal_input(self):
         if not self.lines:
             return

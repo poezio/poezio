@@ -61,6 +61,12 @@ class BookmarksTab(Tab):
         self.core.close_tab(self)
         return True
 
+    def on_scroll_down(self):
+        return self.bookmarks_win.go_to_next_page()
+
+    def on_scroll_up(self):
+        return self.bookmarks_win.go_to_previous_page()
+
     def on_save(self):
         self.bookmarks_win.save()
         if find_duplicates(self.new_bookmarks):
