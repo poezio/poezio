@@ -111,7 +111,7 @@ def join_groupchat(core, jid, nick, passwd='', status=None, show=None, seconds=N
     to = stanza["to"]
     stanza.send()
     xmpp.plugin['xep_0045'].rooms[jid] = {}
-    xmpp.plugin['xep_0045'].ourNicks[jid] = to.resource
+    xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
 
 def leave_groupchat(xmpp, jid, own_nick, msg):
     """
@@ -119,7 +119,7 @@ def leave_groupchat(xmpp, jid, own_nick, msg):
     """
     jid = safeJID(jid)
     try:
-        xmpp.plugin['xep_0045'].leaveMUC(jid, own_nick, msg)
+        xmpp.plugin['xep_0045'].leave_muc(jid, own_nick, msg)
     except KeyError:
         log.debug("muc.leave_groupchat: could not leave the room %s",
                 jid, exc_info=True)
@@ -169,7 +169,7 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
     if callback:
         return iq.send(callback=callback)
     try:
-        return xmpp.plugin['xep_0045'].setAffiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
+        return xmpp.plugin['xep_0045'].set_affiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
     except:
         import traceback
         log.debug('Error setting the affiliation: %s', traceback.format_exc())
