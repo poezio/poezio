@@ -101,7 +101,7 @@ Commands
         server as the current tab (can be a private conversation or a
         chatroom).  Doing `/irc_query foo "hello there"` when the current
         tab is #foo%irc.example.com@biboumi.example.com is equivalent to
-        ``/message foo!irc.example.com@biboumi.example.com "hello there"``
+        ``/message foo%irc.example.com@biboumi.example.com "hello there"``
 
 Example configuration
 ~~~~~~~~~~~~~~~~~~~~~
@@ -169,7 +169,7 @@ class Plugin(BasePlugin):
                                    'current tab is #foo%irc.example.com@'
                                    'biboumi.example.com, doing `/irc_query '
                                    'nick "hi there"` is equivalent to '
-                                   '`/message nick!irc.example.com@biboumi.'
+                                   '`/message nick%irc.example.com@biboumi.'
                                    'example.com "hi there"`'),
                              short='Open a private conversation with an IRC user')
 
@@ -200,7 +200,7 @@ class Plugin(BasePlugin):
             nick = self.config.get_by_tabname('nickname', section, default='') or self.core.own_nick
             if login_command and login_nick:
                 def login(gw, sect, log_nick, log_cmd, room_suff):
-                    dest = '{}!{}'.format(log_nick, room_suff)
+                    dest = '{}%{}'.format(log_nick, room_suff)
                     self.core.xmpp.send_message(mto=dest, mbody=log_cmd, mtype='chat')
                     delayed = self.api.create_delayed_event(5, self.join, gw, sect)
                     self.api.add_timed_event(delayed)
@@ -235,7 +235,7 @@ class Plugin(BasePlugin):
                     continue
 
                 room_suffix = '%{}@{}'.format(section, gateway)
-                dest = '{}!{}'.format(login_nick, room_suffix[1:])
+                dest = '{}%{}'.format(login_nick, room_suffix[1:])
                 self.core.xmpp.send_message(mto=dest, mbody=login_command, mtype='chat')
             if len(not_present) == 1:
                 self.api.information('Section %s does not exist or is not configured' % not_present[0], 'Warning')
@@ -251,7 +251,7 @@ class Plugin(BasePlugin):
                     continue
 
                 room_suffix = '%{}@{}'.format(section, gateway)
-                dest = '{}!{}'.format(login_nick, room_suffix[1:])
+                dest = '{}%{}'.format(login_nick, room_suffix[1:])
                 self.core.xmpp.send_message(mto=dest, mbody=login_command, mtype='chat')
 
 
@@ -304,7 +304,7 @@ class Plugin(BasePlugin):
         message = None
         if len(args) == 2:
             message = args[1]
-        jid = '{}!{}@{}'.format(nickname, server, gateway)
+        jid = '{}%{}@{}'.format(nickname, server, gateway)
         if message:
             self.core.command.message('{} "{}"'.format(jid, message))
         else:
@@ -355,10 +355,10 @@ class Plugin(BasePlugin):
             self.api.information('The current tab does not appear to be an IRC one', 'Warning')
             return None
         if isinstance(current, tabs.OneToOneTab):
-            if not '!' in current_jid.node:
+            if not '%' in current_jid.node:
                 server = current_jid.node
             else:
-                ignored, server = current_jid.node.rsplit('!', 1)
+                ignored, server = current_jid.node.rsplit('%', 1)
         elif isinstance(current, tabs.MucTab):
             if not '%' in current_jid.node:
                 server = current_jid.node
