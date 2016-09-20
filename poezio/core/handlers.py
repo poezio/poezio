@@ -259,7 +259,10 @@ class HandlerCore:
                                                   tmp_dir=tmp_dir,
                                                   extract_images=extract_images)
         if not body:
-            return
+            if not self.core.xmpp.plugin['xep_0380'].has_eme(message):
+                return
+            self.core.xmpp.plugin['xep_0380'].replace_body_with_eme(message)
+            body = msg['body']
 
         remote_nick = ''
         # normal message, we are the recipient

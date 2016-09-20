@@ -251,6 +251,7 @@ class Plugin(BasePlugin):
             encrypted_element.text = self.remove_gpg_headers(xml.sax.saxutils.escape(str(text)))
             message.append(encrypted_element)
             message['body'] = 'This message has been encrypted using the GPG key with id: %s' % self.keyid
+            message['eme']['namespace'] = 'jabber:x:encrypted'
             message.send()
             del message['body']
             tab.add_message(body, nickname=self.core.own_nick,

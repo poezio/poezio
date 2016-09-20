@@ -347,6 +347,7 @@ class PoezioContext(Context):
         message = self.xmpp.make_message(mto=self.peer,
                                          mbody=msg.decode('ascii'),
                                          mtype='chat')
+        message['eme']['namespace'] = 'urn:xmpp:otr:0'
         message.enable('carbon_private')
         message.enable('no-copy')
         message.enable('no-permanent-store')
