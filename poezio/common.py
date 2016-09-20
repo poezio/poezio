@@ -249,14 +249,15 @@ def find_delayed_tag(message):
     :rtype: :py:class:`tuple`
     """
 
-    delay_tag = message.find('{urn:xmpp:delay}delay')
+    find_delay = message.xml.find
+    delay_tag = find_delay('{urn:xmpp:delay}delay')
     if delay_tag is not None:
         delayed = True
         date = _datetime_tuple(delay_tag.attrib['stamp'])
     else:
         # We support the OLD and deprecated XEP: http://xmpp.org/extensions/xep-0091.html
         # But it sucks, please, Jabber servers, don't do this :(
-        delay_tag = message.find('{jabber:x:delay}x')
+        delay_tag = find_delay('{jabber:x:delay}x')
         if delay_tag is not None:
             delayed = True
             date = _datetime_tuple(delay_tag.attrib['stamp'])

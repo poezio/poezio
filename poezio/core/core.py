@@ -928,7 +928,7 @@ class Core(object):
         Takes a stanza of the form <message type='error'><error/></message>
         and return a well formed string containing the error informations
         """
-        sender = stanza.attrib['from']
+        sender = stanza['from']
         msg = stanza['error']['type']
         condition = stanza['error']['condition']
         code = stanza['error']['code']

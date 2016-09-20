@@ -1085,7 +1085,7 @@ class MucTab(ChatTab):
         from_room = presence['from'].bare
         xpath = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
         status_codes = set()
-        for status_code in presence.findall(xpath):
+        for status_code in presence.xml.findall(xpath):
             status_codes.add(status_code.attrib['code'])
 
         # Check if it's not an error presence.
@@ -1280,8 +1280,8 @@ class MucTab(ChatTab):
         self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
-        new_nick = presence.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
-                                ).attrib['nick']
+        new_nick = presence.xml.find('{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
+                                     ).attrib['nick']
         if user.nick == self.own_nick:
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
@@ -1315,10 +1315,10 @@ class MucTab(ChatTab):
         When someone is banned from a muc
         """
         self.users.remove(user)
-        by = presence.find('{%s}x/{%s}item/{%s}actor' %
-                            (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        reason = presence.find('{%s}x/{%s}item/{%s}reason' %
-                                (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        by = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
+                               (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        reason = presence.xml.find('{%s}x/{%s}item/{%s}reason' %
+                                   (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = by.attrib['jid'] if by is not None else None
 
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
@@ -1383,10 +1383,10 @@ class MucTab(ChatTab):
         When someone is kicked from a muc
         """
         self.users.remove(user)
-        actor_elem = presence.find('{%s}x/{%s}item/{%s}actor' %
-                                     (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        reason = presence.find('{%s}x/{%s}item/{%s}reason' %
-                                (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        actor_elem = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
+                                       (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        reason = presence.xml.find('{%s}x/{%s}item/{%s}reason' %
+                                   (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         by = None
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         char_kick = get_theme().CHAR_KICK

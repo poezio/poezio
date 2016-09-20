@@ -146,7 +146,7 @@ class HandlerCore:
         if jid.bare in self.core.pending_invites:
             return
         # there are 2 'x' tags in the messages, making message['x'] useless
-        invite = StanzaBase(self.core.xmpp, xml=message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
+        invite = StanzaBase(self.core.xmpp, xml=message.xml.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'))
         inviter = invite['from']
         reason = invite['reason']
         password = invite['password']
@@ -200,7 +200,7 @@ class HandlerCore:
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
-        if message.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') != None:
+        if message.xml.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') != None:
             return
         if message['type'] == 'groupchat':
             return
@@ -1025,7 +1025,7 @@ class HandlerCore:
         """
         room_from = message['from']
         tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
-        status_codes = set([s.attrib['code'] for s in message.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))])
+        status_codes = {s.attrib['code'] for s in message.xml.findall('{%s}x/{%s}status' % (tabs.NS_MUC_USER, tabs.NS_MUC_USER))}
         if '101' in status_codes:
             self.core.information('Your affiliation in the room %s changed' % room_from, 'Info')
         elif tab and status_codes:
@@ -1312,7 +1312,7 @@ class HandlerCore:
         status = iq['command']['status']
         xform = iq.xml.find('{http://jabber.org/protocol/commands}command/{jabber:x:data}x')
         if xform is not None:
-            form = self.core.xmpp.plugin['xep_0004'].buildForm(xform)
+            form = self.core.xmpp.plugin['xep_0004'].build_form(xform)
         else:
             form = None
 

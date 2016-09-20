@@ -45,7 +45,7 @@ def get_room_form(xmpp, room, callback):
         xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
         if xform is None:
             return callback(None)
-        form = xmpp.plugin['xep_0004'].buildForm(xform)
+        form = xmpp.plugin['xep_0004'].build_form(xform)
         return callback(form)
 
     iq = xmpp.make_iq_get(ito=room)
