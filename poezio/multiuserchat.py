@@ -190,7 +190,7 @@ def configure_room(xmpp, room, form):
     iq['to'] = room
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
     form['type'] = 'submit'
-    query.append(form)
+    query.append(form.xml)
     iq.append(query)
     iq.send()
 
