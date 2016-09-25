@@ -541,7 +541,7 @@ class Core(object):
                 'It seems that it is the first time you start poezio.\n'
                 'The online help is here http://doc.poez.io/\n'
                 'No room is joined by default, but you can join poezio’s'
-                ' chatroom (with /join poezio@muc.poez.io), where you can'
+                ' room (with /join poezio@muc.poez.io), where you can'
                 ' ask for help or tell us how great it is.',
                 'Help')
         self.refresh_window()
@@ -1319,7 +1319,7 @@ class Core(object):
         Disable private tabs when leaving a room
         """
         if reason is None:
-            reason = '\x195}You left the chatroom\x193}'
+            reason = '\x195}You left the room\x193}'
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name.startswith(room_name):
                 tab.deactivate(reason=reason)
@@ -1329,7 +1329,7 @@ class Core(object):
         Enable private tabs when joining a room
         """
         if reason is None:
-            reason = '\x195}You joined the chatroom\x193}'
+            reason = '\x195}You joined the room\x193}'
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
@@ -1844,7 +1844,7 @@ class Core(object):
                 completion=self.completion.theme)
         self.register_command('list', self.command.list,
                 usage='[server]',
-                desc="Get the list of public chatrooms"
+                desc="Get the list of public rooms"
                      " on the specified server.",
                 shortdesc='List the rooms.',
                 completion=self.completion.list)

@@ -592,7 +592,7 @@ class MucTab(ChatTab):
             if arg:
                 msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
                        'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
-                       ' left the chatroom'
+                       ' left the room'
                        ' (\x19o%(reason)s\x19%(info_col)s})') % {
                            'info_col': info_col, 'reason': arg,
                            'spec': char_quit, 'color': color,
@@ -602,7 +602,7 @@ class MucTab(ChatTab):
             else:
                 msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
                        'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
-                       ' left the chatroom') % {
+                       ' left the room') % {
                            'info_col': info_col,
                            'spec': char_quit, 'color': color,
                            'color_spec': spec_col,
@@ -1136,7 +1136,7 @@ class MucTab(ChatTab):
                     enable_message = (
                         '\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
                         '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
-                        ' the chatroom') % {
+                        ' the room') % {
                             'nick': from_nick,
                             'spec': get_theme().CHAR_JOIN,
                             'color_spec': spec_col,
@@ -1260,7 +1260,7 @@ class MucTab(ChatTab):
             char_join = get_theme().CHAR_JOIN
             if not jid.full:
                 msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s'
-                       '\x19%(info_col)s} joined the chatroom') % {
+                       '\x19%(info_col)s} joined the room') % {
                             'nick': from_nick, 'spec': char_join,
                             'color': color,
                             'info_col': info_col,
@@ -1269,7 +1269,7 @@ class MucTab(ChatTab):
             else:
                 msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}%(nick)s'
                        '\x19%(info_col)s} (\x19%(jid_color)s}%(jid)s\x19'
-                       '%(info_col)s}) joined the chatroom') % {
+                       '%(info_col)s}) joined the room') % {
                             'spec': char_join, 'nick': from_nick,
                             'color':color, 'jid':jid.full,
                             'info_col': info_col,
@@ -1473,7 +1473,7 @@ class MucTab(ChatTab):
             if not jid.full:
                 leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
                              '%(nick)s\x19%(info_col)s} has left the '
-                             'chatroom') % {
+                             'room') % {
                                   'nick':from_nick, 'color':color,
                                   'spec':get_theme().CHAR_QUIT,
                                   'info_col': info_col,
@@ -1483,7 +1483,7 @@ class MucTab(ChatTab):
                 leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
                              '%(nick)s\x19%(info_col)s} (\x19%(jid_col)s}'
                              '%(jid)s\x19%(info_col)s}) has left the '
-                             'chatroom') % {
+                             'room') % {
                                   'spec':get_theme().CHAR_QUIT,
                                   'nick':from_nick, 'color':color,
                                   'jid':jid.full, 'info_col': info_col,
