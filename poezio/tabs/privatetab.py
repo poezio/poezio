@@ -334,20 +334,20 @@ class PrivateTab(OneToOneTab):
             color = dump_tuple(get_theme().COLOR_REMOTE_USER)
 
         if not status_message:
-            self.add_message('\x19%(join_col)s}%(spec)s \x19%(nick_col)s}'
+            self.add_message('\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
                              '%(nick)s\x19%(info_col)s} has left the room' % {
                                  'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
                                  'nick_col': color,
-                                 'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                                 'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
                                  'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
                              typ=2)
         else:
-            self.add_message('\x19%(join_col)s}%(spec)s \x19%(nick_col)s}'
+            self.add_message('\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
                              '%(nick)s\x19%(info_col)s} has left the room'
                              ' (%(status)s)' % { 'status': status_message,
                                  'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
                                  'nick_col': color,
-                                 'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                                 'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
                                  'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
                              typ=2)
         return self.core.current_tab() is self
