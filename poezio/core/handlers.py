@@ -252,7 +252,7 @@ class HandlerCore:
         elif message['type'] == 'headline' and message['body']:
             return self.core.information('%s says: %s' % (message['from'], message['body']), 'Headline')
 
-        use_xhtml = config.get('enable_xhtml_im')
+        use_xhtml = config.get_by_tabname('enable_xhtml_im', message['from'].bare)
         tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         extract_images = config.get('extract_inline_images')
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
@@ -526,7 +526,7 @@ class HandlerCore:
             return
 
         self.core.events.trigger('muc_msg', message, tab)
-        use_xhtml = config.get('enable_xhtml_im')
+        use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
         tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         extract_images = config.get('extract_inline_images')
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
@@ -590,7 +590,7 @@ class HandlerCore:
             return
 
         room_from = jid.bare
-        use_xhtml = config.get('enable_xhtml_im')
+        use_xhtml = config.get_by_tabname('enable_xhtml_im', jid.bare)
         tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         extract_images = config.get('extract_inline_images')
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
