@@ -1,5 +1,5 @@
 from poezio.tabs.basetabs import Tab, ChatTab, GapTab, OneToOneTab
-from poezio.tabs.basetabs import STATE_PRIORITY
+from poezio.tabs.basetabs import STATE_PRIORITY, SHOW_NAME
 from poezio.tabs.rostertab import RosterInfoTab
 from poezio.tabs.muctab import MucTab, NS_MUC_USER
 from poezio.tabs.privatetab import PrivateTab

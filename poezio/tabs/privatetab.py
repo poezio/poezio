@@ -62,6 +62,12 @@ class PrivateTab(OneToOneTab):
         self.update_commands()
         self.update_keys()
 
+    def remote_user_color(self):
+        user = self.parent_muc.get_user_by_name(safeJID(self.name).resource)
+        if user:
+            return dump_tuple(user.color);
+        return super().remote_user_color()
+
     @property
     def general_jid(self):
         return self.name

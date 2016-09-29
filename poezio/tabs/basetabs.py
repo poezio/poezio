@@ -18,9 +18,10 @@ log = logging.getLogger(__name__)
 
 import string
 import time
+from datetime import datetime
 from xml.etree import cElementTree as ET
 
-from poezio.core.structs import Command, Completion
+from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
@@ -75,6 +76,14 @@ STATE_PRIORITY = {
         'highlight': 2,
         'private': 2,
         'attention': 3
+    }
+
+SHOW_NAME = {
+        'dnd': 'busy',
+        'away': 'away',
+        'xa': 'not available',
+        'chat': 'chatty',
+        '': 'available'
     }
 
 class Tab(object):
@@ -688,6 +697,9 @@ class OneToOneTab(ChatTab):
     def __init__(self, core, jid=''):
         ChatTab.__init__(self, core, jid)
 
+        self.__status = Status("", "")
+        self.last_remote_message = datetime.now()
+
         # Set to true once the first disco is done
         self.__initial_disco = False
         # change this to True or False when
@@ -697,6 +709,33 @@ class OneToOneTab(ChatTab):
         self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
+
+    def remote_user_color(self):
+        return dump_tuple(get_theme().COLOR_REMOTE_USER)
+
+    def update_status(self, status):
+        old_status = self.__status
+        if not (old_status.show != status.show or
+                old_status.message != status.message):
+            return
+        self.__status = status
+        hide_status_change = config.get_by_tabname('hide_status_change',
+                                                   safeJID(self.name).bare)
+        now = datetime.now()
+        dff = now - self.last_remote_message
+        if hide_status_change > -1 and dff.total_seconds() > hide_status_change:
+            return
+
+        info_c = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        nick = self.get_nick()
+        remote = self.remote_user_color()
+        msg = '\x19%(color)s}%(nick)s\x19%(info)s} changed: '
+        msg %= {'color': remote, 'nick': nick, 'info': info_c}
+        if status.message != old_status.message and status.message:
+            msg += 'status: %s, ' % status.message
+        if status.show in SHOW_NAME:
+            msg += 'show: %s, ' % SHOW_NAME[status.show]
+        self.add_message(msg[:-2], typ=2)
 
     @property
     def remote_wants_chatstates(self):

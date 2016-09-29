@@ -17,7 +17,7 @@ import random
 import re
 from datetime import datetime
 
-from poezio.tabs import ChatTab, Tab
+from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
 from poezio import fixes
@@ -32,16 +32,8 @@ from poezio.logger import logger
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
-from poezio.core.structs import Completion
+from poezio.core.structs import Completion, Status
 
-
-SHOW_NAME = {
-    'dnd': 'busy',
-    'away': 'away',
-    'xa': 'not available',
-    'chat': 'chatty',
-    '': 'available'
-    }
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
@@ -1555,7 +1547,7 @@ class MucTab(ChatTab):
             self._text_buffer.add_message(msg)
         self.core.on_user_changed_status_in_private('%s/%s' %
                                                       (from_room, from_nick),
-                                                    msg)
+                                                    Status(show, status))
         self.users.remove(user)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)

@@ -28,6 +28,7 @@ from poezio import xhtml
 from poezio import multiuserchat as muc
 from poezio.common import safeJID
 from poezio.config import config, CACHE_DIR
+from poezio.core.structs import Status
 from poezio.contact import Resource
 from poezio.logger import logger
 from poezio.roster import roster
@@ -298,6 +299,9 @@ class HandlerCore:
             conversation.nick = remote_nick
         elif not own:
             remote_nick = conversation.get_nick()
+
+        if not own:
+            conversation.last_remote_message = datetime.now()
 
         self.core.events.trigger('conversation_msg', message, conversation)
         if not message['body']:
@@ -607,6 +611,7 @@ class HandlerCore:
             if msg and body:
                 self.core.xmpp.send_message(mto=jid.full, mbody=msg, mtype='chat')
             return
+        tab.last_remote_message = datetime.now()
         self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(message, use_xhtml=use_xhtml,
                                                   tmp_dir=tmp_dir,
@@ -830,6 +835,8 @@ class HandlerCore:
         contact.error = None
         self.core.events.trigger('normal_presence', presence, contact[jid.full])
         tab = self.core.get_conversation_by_jid(jid, create=False)
+        if tab:
+            tab.update_status(Status(show=presence['show'], message=presence['status']))
         if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
             self.core.refresh_window()
         elif self.core.current_tab() == tab:

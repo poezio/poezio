@@ -1334,10 +1334,10 @@ class Core(object):
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
-    def on_user_changed_status_in_private(self, jid, msg):
+    def on_user_changed_status_in_private(self, jid, status):
         tab = self.get_tab_by_name(jid, tabs.ChatTab)
         if tab is not None:  # display the message in private
-            tab.add_message(msg, typ=2)
+            tab.update_status(status)
 
     def close_tab(self, tab=None):
         """
