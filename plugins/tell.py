@@ -18,6 +18,11 @@ This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/unt
 
         Cancel all scheduled messages to *nick*.
 
+    /list_tell
+        **Usage:** ``/list_tell``
+
+        List all queued messages for the current chatroom.
+
 """
 from poezio.plugin import BasePlugin
 from poezio.core.structs import Completion
@@ -35,6 +40,9 @@ class Plugin(BasePlugin):
                 help='Remove the planned messages from /tell.',
                 short='Cancel a /tell message',
                 completion=self.completion_untell)
+        self.api.add_tab_command(tabs.MucTab, 'list_tell', self.command_list_tell,
+                usage='',
+                help='List currently queued messages')
         self.api.add_event_handler('muc_join', self.on_join)
         # {tab -> {nick -> [messages]}
         self.tabs = {}
@@ -48,6 +56,19 @@ class Plugin(BasePlugin):
         for i in self.tabs[tab][nick]:
             tab.command_say("%s: %s" % (nick, i))
         del self.tabs[tab][nick]
+
+    @command_args_parser.ignored
+    def command_list_tell(self):
+        tab = self.api.current_tab()
+        if not self.tabs.get(tab):
+            self.api.information('No message queued.', 'Info')
+            return
+        build = ['Messages queued for %s:' % tab.name]
+        for nick, messages in self.tabs[tab].items():
+            build.append(' for %s:' % nick)
+            for message in messages:
+                build.append(' - %s' % message)
+        self.api.information('\n'.join(build), 'Info')
 
     @command_args_parser.quoted(2)
     def command_tell(self, args):
