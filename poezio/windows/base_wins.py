@@ -84,7 +84,7 @@ class Win(object):
         try:
             self._win.move(y, x)
         except:
-            self._win.move(0, 0)
+            pass
 
     def addstr_colored(self, text, y=None, x=None):
         """
