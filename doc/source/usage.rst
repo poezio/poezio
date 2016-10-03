@@ -110,7 +110,7 @@ fold or unfold a group or a contact.
 #. Area where information messages are displayed.
 #. Actual list of contacts. The first level is group, the second is the
    contacts and the third is the resources of your online contacts.
-#. More informations about the selected contact.
+#. More information about the selected contact.
 
 .. _muctab:
 

@@ -77,7 +77,7 @@ class Core(object):
         self.bookmarks = BookmarkList()
         self.debug = False
         self.remote_fifo = None
-        # a unique buffer used to store global informations
+        # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
@@ -926,7 +926,7 @@ class Core(object):
     def get_error_message(self, stanza, deprecated=False):
         """
         Takes a stanza of the form <message type='error'><error/></message>
-        and return a well formed string containing the error informations
+        and return a well formed string containing error information
         """
         sender = stanza['from']
         msg = stanza['error']['type']

@@ -96,7 +96,7 @@ class AckError(Exception):
 class TextBuffer(object):
     """
     This class just keep trace of messages, in a list with various
-    informations and attributes.
+    information and attributes.
     """
     def __init__(self, messages_nb_limit=None):
 

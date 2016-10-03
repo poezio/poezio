@@ -106,7 +106,7 @@ DISTRO_INFO = {
 def get_os_info():
     """
     Returns a detailed and well formated string containing
-    informations about the operating system
+    information about the operating system
 
     :rtype: str
     """
@@ -401,7 +401,7 @@ def format_tune_string(infos):
     """
     Contruct a string from a dict created from an "User tune" event.
 
-    :param dict infos: The informations
+    :param dict infos: Tune information
     :return: The formatted string
     :rtype: :py:class:`str`
     """
@@ -436,11 +436,10 @@ def format_tune_string(infos):
 
 def format_gaming_string(infos):
     """
-    Construct a string from a dict containing the "user gaming"
-    informations.
+    Construct a string from a dict containing "user gaming" information.
     (for now, only use address and name)
 
-    :param dict infos: The informations
+    :param dict infos: Gaming information
     :returns: The formatted string
     :rtype: :py:class:`str`
     """

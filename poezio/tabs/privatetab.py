@@ -33,7 +33,7 @@ class PrivateTab(OneToOneTab):
     """
     message_type = 'chat'
     plugin_commands = {}
-    additional_informations = {}
+    additional_information = {}
     plugin_keys = {}
     def __init__(self, core, name, nick):
         OneToOneTab.__init__(self, core, name)
@@ -84,11 +84,11 @@ class PrivateTab(OneToOneTab):
         """
         Lets a plugin add its own information to the PrivateInfoWin
         """
-        PrivateTab.additional_informations[plugin_name] = callback
+        PrivateTab.additional_information[plugin_name] = callback
 
     @staticmethod
     def remove_information_element(plugin_name):
-        del PrivateTab.additional_informations[plugin_name]
+        del PrivateTab.additional_information[plugin_name]
 
     def load_logs(self, log_nb):
         logs = logger.get_logs(safeJID(self.name).full.replace('/', '\\'), log_nb)
@@ -254,7 +254,7 @@ class PrivateTab(OneToOneTab):
 
         self.text_win.refresh()
         self.info_header.refresh(self.name, self.text_win, self.chatstate,
-                                 PrivateTab.additional_informations)
+                                 PrivateTab.additional_information)
         if display_info_win:
             self.info_win.refresh()
 
@@ -262,7 +262,7 @@ class PrivateTab(OneToOneTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_informations)
+        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_information)
         self.input.refresh()
 
     def get_nick(self):

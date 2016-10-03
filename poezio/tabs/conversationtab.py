@@ -36,7 +36,7 @@ class ConversationTab(OneToOneTab):
     """
     plugin_commands = {}
     plugin_keys = {}
-    additional_informations = {}
+    additional_information = {}
     message_type = 'chat'
     def __init__(self, core, jid):
         OneToOneTab.__init__(self, core, jid)
@@ -78,11 +78,11 @@ class ConversationTab(OneToOneTab):
         """
         Lets a plugin add its own information to the ConversationInfoWin
         """
-        ConversationTab.additional_informations[plugin_name] = callback
+        ConversationTab.additional_information[plugin_name] = callback
 
     @staticmethod
     def remove_information_element(plugin_name):
-        del ConversationTab.additional_informations[plugin_name]
+        del ConversationTab.additional_information[plugin_name]
 
     def completion(self):
         self.complete_commands(self.input)
@@ -267,7 +267,7 @@ class ConversationTab(OneToOneTab):
 
         if display_bar:
             self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
-        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_informations)
+        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_information)
 
         if display_info_win:
             self.info_win.refresh()
@@ -276,7 +276,7 @@ class ConversationTab(OneToOneTab):
 
     def refresh_info_header(self):
         self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()],
-                self.text_win, self.chatstate, ConversationTab.additional_informations)
+                self.text_win, self.chatstate, ConversationTab.additional_information)
         self.input.refresh()
 
     def get_nick(self):
@@ -452,7 +452,7 @@ class DynamicConversationTab(ConversationTab):
             displayed_jid = self.name
         self.info_header.refresh(displayed_jid, roster[self.name],
                                  self.text_win, self.chatstate,
-                                 ConversationTab.additional_informations)
+                                 ConversationTab.additional_information)
         if display_info_win:
             self.info_win.refresh()
 
@@ -468,7 +468,7 @@ class DynamicConversationTab(ConversationTab):
         else:
             displayed_jid = self.name
         self.info_header.refresh(displayed_jid, roster[self.name],
-                self.text_win, self.chatstate, ConversationTab.additional_informations)
+                self.text_win, self.chatstate, ConversationTab.additional_information)
         self.input.refresh()
 
 class StaticConversationTab(ConversationTab):

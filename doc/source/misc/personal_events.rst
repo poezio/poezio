@@ -6,8 +6,8 @@ Personal Events
 Starting from poezio 0.8, poezio now supports `user mood`_, `user activity`_,
 `user tune`_, and `user gaming`_.
 
-Those extensions are standardized ways to broadcast informations that might be
-useful to your contacts (they will receive those informations only if they
+Those extensions are standardized ways to broadcast information that might be
+useful to your contacts (they will receive those information only if they
 have indicated their interest in them).
 
 The events are also shown in the contact list, next to the contact line:

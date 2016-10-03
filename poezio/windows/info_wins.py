@@ -53,29 +53,29 @@ class XMLInfoWin(InfoWin):
 
 class PrivateInfoWin(InfoWin):
     """
-    The line above the information window, displaying informations
+    The line above the information window, displaying information
     about the MUC user we are talking to
     """
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, name, window, chatstate, informations):
+    def refresh(self, name, window, chatstate, information):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         self.write_room_name(name)
         self.print_scroll_position(window)
         self.write_chatstate(chatstate)
-        self.write_additional_informations(informations, name)
+        self.write_additional_information(information, name)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
 
-    def write_additional_informations(self, informations, jid):
+    def write_additional_information(self, information, jid):
         """
-        Write all informations added by plugins by getting the
+        Write all information added by plugins by getting the
         value returned by the callbacks.
         """
-        for key in informations:
-            self.addstr(informations[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        for key in information:
+            self.addstr(information[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
         jid = safeJID(name)
@@ -90,7 +90,7 @@ class PrivateInfoWin(InfoWin):
 
 class MucListInfoWin(InfoWin):
     """
-    The live above the information window, displaying informations
+    The live above the information window, displaying informatios
     about the muc server being listed
     """
     def __init__(self, message=''):
@@ -111,14 +111,14 @@ class MucListInfoWin(InfoWin):
 
 class ConversationInfoWin(InfoWin):
     """
-    The line above the information window, displaying informations
+    The line above the information window, displaying information
     about the user we are talking to
     """
 
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, jid, contact, window, chatstate, informations):
+    def refresh(self, jid, contact, window, chatstate, information):
         # contact can be None, if we receive a message
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
@@ -139,26 +139,26 @@ class ConversationInfoWin(InfoWin):
         self._win.erase()
         if config.get('show_jid_in_conversations'):
             self.write_contact_jid(jid)
-        self.write_contact_informations(contact)
+        self.write_contact_information(contact)
         self.write_resource_information(resource)
         self.print_scroll_position(window)
         self.write_chatstate(chatstate)
-        self.write_additional_informations(informations, jid)
+        self.write_additional_information(information, jid)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
 
-    def write_additional_informations(self, informations, jid):
+    def write_additional_information(self, information, jid):
         """
-        Write all informations added by plugins by getting the
+        Write all information added by plugins by getting the
         value returned by the callbacks.
         """
-        for key in informations:
-            self.addstr(informations[key](jid),
+        for key in information:
+            self.addstr(information[key](jid),
                     to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_resource_information(self, resource):
         """
-        Write the informations about the resource
+        Write the information about the resource
         """
         if not resource:
             presence = "unavailable"
@@ -169,9 +169,9 @@ class ConversationInfoWin(InfoWin):
         self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-    def write_contact_informations(self, contact):
+    def write_contact_information(self, contact):
         """
-        Write the informations about the contact
+        Write the information about the contact
         """
         if not contact:
             self.addstr("(contact not in roster)", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
@@ -207,7 +207,7 @@ class DynamicConversationInfoWin(ConversationInfoWin):
 
 class MucInfoWin(InfoWin):
     """
-    The line just above the information window, displaying informations
+    The line just above the information window, displaying information
     about the MUC we are viewing
     """
     def __init__(self):

@@ -456,7 +456,7 @@ to understand what is :ref:`carbons <carbons-details>` or
 
         If ``true``, information about the Operation System you're using
         will be sent when requested by anyone
-        Set to ``false`` if you don't want people to know these informations.
+        Set to ``false`` if you don't want people to know these information.
 
         Note that this information will not be sent if :term:`send_poezio_info` is False
 

@@ -215,8 +215,8 @@ class RosterWin(Win):
     def draw_contact_line(self, y, contact, colored, group, show_roster_sub=False,
                           show_s2s_errors=True, show_roster_jids=False):
         """
-        Draw on a line all informations about one contact.
-        This is basically the highest priority resource's informations
+        Draw on a line all information about one contact.
+        This is basically the highest priority resource's information
         Use 'color' to draw the jid/display_name to show what is
         the currently selected contact in the list
         """

@@ -383,7 +383,7 @@ class Tab(object):
 
     def on_info_win_size_changed(self):
         """
-        Called when the window with the informations is resized
+        Called when the window with the information is resized
         """
         pass
 
