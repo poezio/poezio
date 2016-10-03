@@ -491,9 +491,9 @@ or the way messages are displayed.
         **Default value:** ``true``
 
         The tabs have a name, and a nick, which is, for a contact, its name in
-        the roster, or for a private conversation, the nickname in the chatroom.
-        Set this to ``true`` if you want to have them shown instead of the jid
-        of the contact.
+        the contact list, or for a private conversation, the nickname in the
+        chatroom. Set this to ``true`` if you want to have them shown instead
+        of the jid of the contact.
 
     theme
 
@@ -661,8 +661,8 @@ or the way messages are displayed.
 
         **Default value:** ``name``
 
-        How to sort the roster groups. The principles are the same as :term:`roster_sort`
-        (see below).
+        How to sort the contact list groups. The principles are the same
+        as :term:`roster_sort` (see below).
 
         Available methods are:
           * ``reverse``: reverse the current sorting
@@ -682,7 +682,7 @@ or the way messages are displayed.
 
         **Default value:** ``jid:show``
 
-        How you want the contacts to be sorted inside the roster groups. The given
+        How you want the contacts to be sorted inside the contact list groups. The given
         methods are used sequentially (from left to right), so the last one is the
         one on the far right.
 
@@ -691,7 +691,7 @@ or the way messages are displayed.
         * ``reverse``: reverse the current sorting
         * ``jid``: sort by JID (alphabetical order)
         * ``show``: sort by show (available/away/xa/…)
-        * ``name``: sort by roster name (if no name, then the bare jid is used)
+        * ``name``: sort by given name (if no name, then the bare jid is used)
         * ``resource``: sort by resource number
         * ``online``: sort by online presence (online or not)
 
@@ -719,9 +719,9 @@ or the way messages are displayed.
 
         **Default value:** ``true``
 
-        Set this to ``false`` if you want to hide the JIDs in the roster (and keep only
-        the contact names). If there is no contact name, the JID will still be
-        displayed.
+        Set this to ``false`` if you want to hide the JIDs in the contact list
+        (and keep only the contact names). If there is no contact name, the
+        JID will still be displayed.
 
     show_jid_in_conversations
 
@@ -734,13 +734,13 @@ or the way messages are displayed.
 
         **Default value:** ``true``
 
-        Show s2s errors in the roster or not.
+        Show s2s errors in the contact list or not.
 
     show_roster_subscriptions
 
         **Defalt value:** ``[empty]``
 
-        Select the level of display of subscriptions with a char the roster
+        Select the level of display of subscriptions with a char in the contact list.
 
         - ``all`` to display all subscriptions
         - ``incomplete`` to display *from*, *to* and *none*

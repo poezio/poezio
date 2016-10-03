@@ -13,7 +13,7 @@ Command
 
         **Usage (in a chatroom tab):** ``/vcard <jid or nick>``
 
-        **Usage (in a conversation or roster tab):** ``/vcard [jid]``
+        **Usage (in a conversation or contact list tab):** ``/vcard [jid]``
 
         Globally, you can do ``/vcard user@server.example`` to get a vcard.
 
@@ -22,8 +22,8 @@ Command
         user@server.example``).
 
         In a private or a direct conversation, you can do ``/vcard`` to request
-        vcard from the current interlocutor, and in the roster to do it on the
-        currently selected contact.
+        vcard from the current interlocutor, and in the contact list to do it
+        on the currently selected contact.
 """
 
 from poezio.decorators import command_args_parser

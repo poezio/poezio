@@ -199,8 +199,8 @@ These commands work in *any* tab.
     /message
         **Usage:** ``/message <jid> [optional message]``
 
-        Open a conversation with the specified JID (event if it is not in our roster),
-        and send a message to him/her, if specified.
+        Open a conversation with the specified JID (event if it is not in our
+        contact list), and send a message to them, if specified.
 
     /version
         **Usage:** ``/version <jid>``
@@ -273,8 +273,8 @@ These commands work in *any* tab.
     /close
         Close the tab.
 
-        .. note:: The /close command will work everywhere, except in the Roster tab,
-                    which can’t be closed.
+        .. note:: The /close command will work everywhere, except in the
+                    Contact list tab, which can’t be closed.
 
 
 .. _chattab-commands:
@@ -467,8 +467,8 @@ Normal Conversation tab commands
 
 .. _rostertab-commands:
 
-Roster tab commands
-~~~~~~~~~~~~~~~~~~~
+Contact list tab commands
+~~~~~~~~~~~~~~~~~~~~~~~~~
 .. glossary::
     :sorted:
 
@@ -476,25 +476,25 @@ Roster tab commands
         **Usage:** ``/accept [jid]``
 
         Authorize the provided JID (or the selected contact in the
-        roster) to see your presence.
+        contact list) to see your presence.
 
     /deny
         **Usage:** ``/deny [jid]``
 
         Prevent the provided JID (or the selected contact in the
-        roster) from seeing your presence.
+        contact list) from seeing your presence.
 
     /add
         **Usage:** ``/add <jid>``
 
-        Add the specified JID to your roster and authorize him to see
-        your presence. If he accepts you, the subscription will be mutual (and if he
-        doesn’t, you can still /remove him).
+        Add the specified JID to your contact list and authorize them to see
+        your presence. If they accepts you, the subscription will be mutual
+        (and if they don’t, you can still /remove them).
 
     /name
         **Usage:** ``/name <jid> <name>``
 
-        Set the given JID’s name in your roster.
+        Set the given JID’s name in your contact list.
 
     /password
         **Usage:** ``/password <password>``
@@ -506,7 +506,7 @@ Roster tab commands
 
         Add the given JID to the given group (if the group
         does not exist, it will be created). If no jid is provided,
-        the currently selected item on the roster (resource or JID)
+        the currently selected item on the contact list (resource or JID)
         will be used.
 
     /groupmove
@@ -525,9 +525,9 @@ Roster tab commands
     /remove
         **Usage:** ``/remove [jid]``
 
-        Remove the specified JID from your roster. This will
+        Remove the specified JID from your contact list. This will
         unsubscribe you from its presence, cancel its subscription to yours, and
-        remove the item from your roster.
+        remove the item from your contact list.
 
     /reconnect
 

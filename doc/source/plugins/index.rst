@@ -85,7 +85,7 @@ Plugin index
     Close all
         :ref:`Documentation <closeall-plugin>`
 
-        Close all tabs except chatrooms and the roster.
+        Close all tabs except chatrooms and the contact list.
 
     CSI
         :ref:`Documentation <csi-plugin>`

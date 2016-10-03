@@ -34,7 +34,7 @@ highlight > message > non-empty input).
 
 **Alt-z**: Go to the previously selected tab.
 
-**Alt-r**: Go to the roster tab.
+**Alt-r**: Go to the contact list tab.
 
 **F4**: Toggle the left pane.
 
@@ -165,10 +165,10 @@ These keys work only in the MultiUserChat List tab (obtained with :term:`/list`)
 
 .. _rostertab-keys:
 
-Roster tab input keys
-~~~~~~~~~~~~~~~~~~~~~
+Contact list tab input keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These keys work only in the Roster tab (the tab number 0).
+These keys work only in the Contact list tab (the tab number 0).
 
 **/**: Open a prompt for commands.
 
@@ -292,7 +292,8 @@ Actions list
 
 **_close_tab**: Closes the current tab.
 
-    This is the same as :term:`/close`. The first tab (the roster) can not be closed.
+    This is the same as :term:`/close`. The first tab (the contact list) can
+    not be closed.
 
 **_disconnect**: Disconnects poezio from the server.
 
@@ -324,7 +325,7 @@ Actions list
 
     Similar to the default Ctrl-n action.
 
-**_show_roster**: Goes to the roster.
+**_show_roster**: Goes to the contact list
 
     Similar to Alt-r action.
 

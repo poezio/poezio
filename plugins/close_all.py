@@ -1,5 +1,5 @@
 """
-``close_all`` plugin: close all tabs except chatrooms and the roster.
+``close_all`` plugin: close all tabs except chatrooms and the contact lis.
 
 Commands
 --------

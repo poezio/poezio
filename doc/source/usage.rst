@@ -59,7 +59,7 @@ Generalities
 
 :ref:`Global shortcuts <global-keys>`
 
-The tab numbered **0** is always the **roster** tab, the other tabs can be of any
+The tab numbered **0** is always the **Contact list** tab, the other tabs can be of any
 type.
 
 .. figure:: ./images/tab_bar.png
@@ -89,8 +89,8 @@ You can go from one tab to another in many ways:
 
 .. _rostertab:
 
-Roster tab
-~~~~~~~~~~
+Contact list tab
+~~~~~~~~~~~~~~~~
 
 :ref:`Specific commands <rostertab-commands>`
 
@@ -105,7 +105,7 @@ Use the **direction arrows** (↑↓) to browse the list, the ``Space`` key to
 fold or unfold a group or a contact.
 
 .. figure:: ./images/roster.png
-    :alt: The roster tab
+    :alt: The contact list tab
 
 #. Area where information messages are displayed.
 #. Actual list of contacts. The first level is group, the second is the
@@ -195,7 +195,8 @@ Conversation tab
 
 :ref:`Chat shortcuts <chattab-keys>`
 
-A tab opened from the roster or :term:`/message`, to talk in private with one of your contacts.
+A tab opened by interacting with the contact list or :term:`/message`,
+to talk in private with one of your contacts.
 
 .. figure:: ./images/conversation.png
     :alt: The conversation tab
