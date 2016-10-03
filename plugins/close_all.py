@@ -1,5 +1,5 @@
 """
-``close_all`` plugin: close all tabs except MUCs and the roster.
+``close_all`` plugin: close all tabs except chatrooms and the roster.
 
 Commands
 --------
@@ -9,7 +9,7 @@ Commands
     /closeall
         **Usage:** ``/closeall``
 
-        Close all tabs except the roster and MUC tabs.
+        Close all tabs except the roster and chatroom tabs.
 """
 from poezio.plugin import BasePlugin
 from poezio import tabs
@@ -19,7 +19,7 @@ from poezio.decorators import command_args_parser
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_command('closeall', self.command_closeall,
-                             help='Close all non-muc tabs.')
+                             help='Close all non-chatroom tabs.')
 
     @command_args_parser.ignored
     def command_closeall(self):

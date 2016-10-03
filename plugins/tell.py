@@ -3,7 +3,8 @@ The command added by this plugin sends a message to someone when he next joins.
 
 Usage
 -----
-This plugin defines two new commands for MUC tabs: :term:`/tell` and :term:`/untell`.
+This plugin defines two new commands for chatroom tabs:
+:term:`/tell`, :term:`/untell`, and :term:`/list_tell`.
 
 .. glossary::
     :sorted:

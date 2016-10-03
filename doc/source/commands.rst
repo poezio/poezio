@@ -344,7 +344,7 @@ MultiUserChat tab commands
         this nick.
         You can also use **random** to attribute a random color.
 
-    /clear [MUCTab version]
+    /clear [Chatroom version]
         **Usage:** ``/clear``
 
         Clear the messages buffer.
@@ -354,7 +354,7 @@ MultiUserChat tab commands
 
         Ignore a specified nickname.
 
-    /invite [MUCTab version]
+    /invite [Chatroom version]
         **Usage:** ``/invite <jid> [reason]``
 
         Invite *jid* to this room with *reason* (if
@@ -395,8 +395,6 @@ MultiUserChat tab commands
         **Usage:** ``/nick <nickname>``
 
         Change your nickname in the current room.
-        **Except for gmail users** because gmail.com sucks and will do weird things
-        if you change your nickname in a MUC.
 
     /recolor
         **Usage:** ``/recolor [random]``

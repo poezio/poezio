@@ -11,7 +11,7 @@ Command
         **Usage:** ``/server_part [<server> [message]]``
 
         Leave all rooms on ``<server>``, if not provided and the current
-        tab is a MUC tab, it will leave all rooms on the current server.
+        tab is a chatroom tab, it will leave all rooms on the current server.
         ``[message]`` can indicate a quit message.
 
 

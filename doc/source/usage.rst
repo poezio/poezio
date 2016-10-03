@@ -114,8 +114,8 @@ fold or unfold a group or a contact.
 
 .. _muctab:
 
-MultiUserChat tab
-~~~~~~~~~~~~~~~~~
+Chatroom tab
+~~~~~~~~~~~~
 
 :ref:`Specific commands <muctab-commands>`
 
@@ -123,10 +123,12 @@ MultiUserChat tab
 
 :ref:`Chat shortcuts <chattab-keys>`
 
+.. note:: A chatroom is also called a MUC (for Multi-User-Chat) in XMPP terms.
+
 This tab contains a multi-user conversation.
 
 .. figure:: ./images/muc.png
-    :alt: The MUC tab
+    :alt: The chatroom tab
 
 #. The conversation window, this is where all the messages and events
    related to the muc will be displayed. It can be scrolled up and down with
@@ -159,7 +161,7 @@ This tab contains a multi-user conversation.
 
    The nicks have a random color given by poezio (which can be changed with :term:`/recolor`)
 
-#. Your information in that MUC (the name of the room, your nick, your role
+#. Your information in that chatroom (the name of the room, your nick, your role
    and affiliation).
 #. The topic of the room.
 
@@ -210,7 +212,7 @@ Dataforms tab
 :ref:`Specific shortcuts <forms-keys>`
 
 This tab lets you view a form received from a remote entity, edit the values and
-send everything back. It is mostly used to configure MUCs with the
+send everything back. It is mostly used to configure chatrooms with the
 :term:`/configure` command but can actually be used for almost anything.
 
 .. figure:: ./images/data_forms.png
@@ -228,7 +230,7 @@ List tab
 
 :ref:`Specific shortcuts <muclisttab-keys>`
 
-This tab lists all public rooms on a MUC service (with the :term:`/list` command).
+This tab lists all public rooms on a chatroom service (with the :term:`/list` command).
 It is currently very limited but will be improved in the future. There currently
 is no way to search a room.
 

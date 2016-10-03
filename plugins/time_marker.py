@@ -3,8 +3,8 @@ Display the time between two messages.
 
 Helps you identify the times of a conversation.  For example
 if you disable the timestamps, and remove the join/quit notifications in a
-MUC, you can’t really distinguish when a conversation stopped and when a new
-one started, because you don’t have a visual separation between the two.
+chatroom, you can’t really distinguish when a conversation stopped and when
+a new one started, because you don’t have a visual separation between the two.
 
 This plugin displays a message in the conversation indicating the time that
 passed between two messages, if the time is bigger than X minutes

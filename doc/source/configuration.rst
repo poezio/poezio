@@ -490,9 +490,10 @@ or the way messages are displayed.
 
         **Default value:** ``true``
 
-        The tabs have a name, and a nick, which is, for a contact, its name in the
-        roster, or for a private conversation, the nickname in the MUC. Set this to
-        ``true`` if you want to have them shown instead of the jid of the contact.
+        The tabs have a name, and a nick, which is, for a contact, its name in
+        the roster, or for a private conversation, the nickname in the chatroom.
+        Set this to ``true`` if you want to have them shown instead of the jid
+        of the contact.
 
     theme
 
@@ -534,8 +535,9 @@ or the way messages are displayed.
 
         **Default value:** ``desc``
 
-        If set to ``desc``, the MUC users will be displayed from top to bottom in the list,
-        if set to ``asc``, they will be displayed from bottom to top.
+        If set to ``desc``, the chatroom users will be displayed from top to
+        bottom in the list, if set to ``asc``, they will be displayed from
+        bottom to top.
 
     deterministic_nick_colors
 
@@ -637,8 +639,8 @@ or the way messages are displayed.
 
         **Default value:** ``true``
 
-        If set to true, the color of the nick will be used in MUCs information
-        messages, instead of the default color from the theme.
+        If set to true, the color of the nick will be used in chatroom
+        information messages, instead of the default color from the theme.
 
     enable_vertical_tab_list
 
@@ -708,9 +710,10 @@ or the way messages are displayed.
 
         **Default value:** ``true``
 
-        Set this to ``false`` if you want to display only the “user” part of the MUC
-        jid. E.g. if you have **poezio@muc.poezio.eu**, it will be displayed as
-        **poezio**. This will be used only if :term:`use_tab_nicks` is set to ``true``.
+        Set this to ``false`` if you want to display only the “user” part of the
+        chatroom jid. E.g. if you have **poezio@muc.poez.io**, it will be
+        displayed as **poezio**. This will be used only if :term:`use_tab_nicks`
+        is set to ``true``.
 
     show_roster_jids
 
@@ -785,9 +788,9 @@ or the way messages are displayed.
 
         **Default:** ``[empty]``
 
-        Fix a color for a nick. Whenever such a nick appears in a MUC, it will
-	be displayed in that color. This color won't be changed by the recolor
-	command.
+        Fix a color for a nick. Whenever such a nick appears in a chatroom, it
+        will be displayed in that color. This color won't be changed by the
+        recolor command.
 
 User Interaction
 ~~~~~~~~~~~~~~~~
@@ -820,9 +823,10 @@ Options that change the behavior of poezio in a non-visual manner.
         (separated by spaces).
 
         The events can be
-        - ``highlight`` (when you are highlighted in a MUC)
-        - ``private`` (when a new private message is received, from your contacts or someone from a MUC)
-        - ``message`` (any message from a MUC)
+        - ``highlight`` (when you are highlighted in a chatroom)
+        - ``private`` (when a new private message is received, from your
+          contacts or someone from a chatroom)
+        - ``message`` (any message from a chatroom)
 
     separate_history
 
@@ -973,7 +977,7 @@ Other
 
         Send initial presence (normal behaviour). If ``false``, you will not send nor
         receive any presence that is not directed (through :term:`/presence`) or sent by a
-        MUC.
+        chatroom.
 
     lazy_resize
 
@@ -1055,8 +1059,8 @@ found.
 
         **Default value:** ``false``
 
-        Disable the beeps triggered by this conversation. Works in MucTab,
-        PrivateTab and ConversationTab.
+        Disable the beeps triggered by this conversation. Works in chatroom
+        tabs, private messaging tabs, and conversation tabs.
 
     display_activity_notifications
 
@@ -1083,8 +1087,8 @@ found.
 
         **Default value:** ``false``
 
-        If set to ``true``, the color of the nick will be used in MUCs information
-        messages, instead of the default color from the theme.
+        If set to ``true``, the color of the nick will be used in chatroom
+        information messages, instead of the default color from the theme.
 
     display_tune_notifications
 
@@ -1178,8 +1182,8 @@ found.
 
         **Default value:** ``true``
 
-        Lets you disable/enable chatstates per-JID. Works in MucTab, PrivateTab
-        and ConversationTab.
+        Lets you disable/enable chatstates per-JID. Works in chatroom tabs,
+        private messaging tabs, and normal conversation tabs.
 
     show_useless_separator
 
@@ -1199,24 +1203,26 @@ found.
 
         **Default value:** ``true``
 
-        Only for MUC tabs: if true the tab will change its color to notify you when a new message is received.
-        You will still be notified of highlights.  Set to ``false`` if you’re not interested in a room non-highlight notifications.
+        Only for chatroom tabs: if true the tab will change its color to
+        notify you when a new message is received.
+        You will still be notified of highlights.  Set to ``false`` if you are
+        not interested in a room non-highlight notifications.
 
     self_ping_delay
 
         **Default value:** ``0``
 
         When this option is set to a positive value ``n``, poezio will send
-        a ping request to its own nick in the MUC every n seconds of
+        a ping request to its own nick in the chatroom every n seconds of
         inactivity (whenever no new message or presence is received from the
-        MUC room for more than n seconds).  If the MUC service does not
+        chatroom for more than n seconds).  If the chatroom service does not
         respond with a successful pong within 60 seconds (that is: on an
-        error of the type “not-allowed” which means the MUC service doesn’t
-        consider us to be present in that room, or on a timeout which
-        probably means that the service is down), poezio will mark that MUC
-        room as not joined and will try to re-join it.  This is useful to
-        know when a MUC server crashes or becomes unavailable, because there
-        is no mechanism to be informed of that fact in XMPP.
+        error of the type “not-allowed” which means the chatroom service
+        doesn’t consider us to be present in that room, or on a timeout which
+        probably means that the service is down), poezio will mark that
+        chatroom as not joined and will try to re-join it.  This is useful to
+        know when a chatroom server crashes or becomes unavailable, because
+        there is no mechanism to be informed of that fact in XMPP.
 
         A value of at least 60 seconds is recommended, to avoid sending too
         many requests.

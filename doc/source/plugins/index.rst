@@ -69,7 +69,7 @@ Plugin index
     Admin
         :ref:`Documentation <admin-plugin>`
 
-        Creates convenient aliases for MUC administration.
+        Creates convenient aliases for chatroom administration.
 
     Alias
         :ref:`Documentation <alias-plugin>`
@@ -85,7 +85,7 @@ Plugin index
     Close all
         :ref:`Documentation <closeall-plugin>`
 
-        Close all tabs except MUCs and the roster.
+        Close all tabs except chatrooms and the roster.
 
     CSI
         :ref:`Documentation <csi-plugin>`
@@ -173,7 +173,8 @@ Plugin index
     Screen Detach
         :ref:`Documentation <screendetach-plugin>`
 
-        Changes your status to **away** if the screen (or tmux) poezio is in gets detached.
+        Changes your status to **away** if the screen (or tmux) poezio is in
+        gets detached.
 
     Send Delayed
         :ref:`Documentation <senddelayed-plugin>`
@@ -183,7 +184,8 @@ Plugin index
     Simple notify
         :ref:`Documentation <simplenotify-plugin>`
 
-        Sends a notification with a command of your choice on (non-MUC) messages.
+        Sends a notification with a command of your choice on (non-chatroom)
+        messages.
 
     Spam
         :ref:`Documentation <spam-plugin>`
@@ -198,7 +200,7 @@ Plugin index
     Tell
         :ref:`Documentation <tell-plugin>`
 
-        Tells a message to a nick when he connects to a MUC.
+        Sends a message to a nick when he connects to a chatroom.
 
     Uptime
         :ref:`Documentation <uptime-plugin>`

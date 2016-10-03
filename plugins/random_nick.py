@@ -1,5 +1,5 @@
 """
-This plugin makes you have a random nick when joining a MUC.
+This plugin makes you have a random nick when joining a chatroom.
 
 Usage
 -----

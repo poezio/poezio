@@ -344,10 +344,10 @@ Actions list
 
     Similar to Alt-d.
 
-**_server_cycle**: Cycles in the current MUC server.
+**_server_cycle**: Cycles in the current chatroom server.
 
-    Similar to :term:`/server_cycle` in a MUC. If you are not in a MUC, you will get
-    an error.
+    Similar to :term:`/server_cycle` in a chatroom. If you are not in a
+    chatroom, you will get an error.
 
 **_show_bookmarks**: Shows the current bookmarks.
 
@@ -357,7 +357,7 @@ Actions list
 
     Similar to Alt-e.
 
-**_show_invitations**: Shows all the pending MUC invitations.
+**_show_invitations**: Shows all the pending chatroom invitations.
 
     Similar to :term:`/invitations`.
 
@@ -414,7 +414,7 @@ You only have to prefix your command line with ``_exc_``, and without the  ``/``
 
 
 That key binding will only work in the tabs defining the command (here, the
-MUC tab), and will show an error message in the others.
+chatroom tab), and will show an error message in the others.
 
 Examples
 ~~~~~~~~

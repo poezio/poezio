@@ -11,13 +11,13 @@ Command
 
         **Usage (globally):** ``/vcard <jid>``
 
-        **Usage (in a MUC tab):** ``/vcard <jid or nick>``
+        **Usage (in a chatroom tab):** ``/vcard <jid or nick>``
 
         **Usage (in a conversation or roster tab):** ``/vcard [jid]``
 
         Globally, you can do ``/vcard user@server.example`` to get a vcard.
 
-        In a MUC, you can either do it on a JID or a nick (``/vcard nick``,
+        In a chatroom , you can either do it on a JID or a nick (``/vcard nick``,
         ``/vcard room@muc.server.example/nick`` or ``/vcard
         user@server.example``).
 

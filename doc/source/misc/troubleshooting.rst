@@ -34,7 +34,7 @@ Other issues
 Some things may appear in ``$XDG_DATA_HOME/poezio/logs/errors.log``. (or a user-defined :term:`log_dir`/errors.log)
 
 
-.. _web client: https://jappix.com/?r=poezio@muc.poezio.eu
+.. _web client: https://jappix.com/?r=poezio@muc.poez.io
 .. _mcabber: http://mcabber.com/
 .. _every: https://bugs.mageia.org/show_bug.cgi?id=2156
 .. _significant: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=602720
