@@ -1,3 +1,5 @@
+.. _usage:
+
 Usage
 =====
 
@@ -95,6 +97,8 @@ Contact list tab
 :ref:`Specific commands <rostertab-commands>`
 
 :ref:`Specific shortcuts <rostertab-keys>`
+
+.. note:: The contact list also called a roster in XMPP terms.
 
 This is a unique tab, always numbered **0**. It contains the list of your
 contacts. You can add (:term:`/add`, :term:`/accept`), remove

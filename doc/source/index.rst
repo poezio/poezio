@@ -15,6 +15,7 @@ Poezio documentation
     commands
     keys
     misc/index
+    quickstart
     themes
     plugins/index
     dev/index

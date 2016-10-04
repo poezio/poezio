@@ -25,7 +25,7 @@ will override the one in :file:`../plugins`), or if it is a plugin you made.
 Plugin autoload
 ---------------
 
-Use the :term:`plugins_autoload` optionto select which plugins should be
+Use the :term:`plugins_autoload` option to select which plugins should be
 loaded on startup. The value is a list of plugin names separated by colons,
 e.g.
 
