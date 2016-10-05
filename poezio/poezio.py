@@ -61,6 +61,9 @@ def main():
         config.check_config()
         sys.exit(0)
 
+    from poezio.asyncio import monkey_patch_asyncio_slixmpp
+    monkey_patch_asyncio_slixmpp()
+
     from poezio import theming
     theming.update_themes_dir()
 
