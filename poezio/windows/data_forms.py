@@ -433,10 +433,10 @@ class FormWin(object):
         self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
         self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
 
-    def on_input(self, key):
+    def on_input(self, key, raw=False):
         if not self.inputs:
             return
-        self.inputs[self.current_input]['input'].do_command(key)
+        self.inputs[self.current_input]['input'].do_command(key, raw=raw)
 
     def refresh(self):
         self._win.erase()

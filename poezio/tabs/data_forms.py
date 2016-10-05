@@ -52,7 +52,7 @@ class DataFormsTab(Tab):
             self.help_win_dyn.refresh(self.form_win.get_help_message())
             self.form_win.refresh_current_input()
         else:
-            self.form_win.on_input(key)
+            self.form_win.on_input(key, raw=raw)
 
     def resize(self):
         self.need_resize = False
