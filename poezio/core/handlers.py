@@ -758,8 +758,8 @@ class HandlerCore:
         if contact and contact.subscription in ('from', 'both'):
             return
         elif contact and contact.subscription == 'to':
-            self.core.xmpp.sendPresence(pto=jid, ptype='subscribed')
-            self.core.xmpp.sendPresence(pto=jid)
+            self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
+            self.core.xmpp.send_presence(pto=jid)
         else:
             if not contact:
                 contact = roster.get_and_set(jid)
