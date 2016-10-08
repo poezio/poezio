@@ -77,7 +77,7 @@ class DummyInput(FieldInput, Win):
         FieldInput.__init__(self, field)
         Win.__init__(self)
 
-    def do_command(self):
+    def do_command(self, *args, **kwargs):
         return
 
     def refresh(self):
@@ -93,7 +93,7 @@ class BooleanWin(FieldInput, Win):
         self.last_key = 'KEY_RIGHT'
         self.value = bool(field.get_value())
 
-    def do_command(self, key):
+    def do_command(self, key, raw=False):
         if key == 'KEY_LEFT' or key == 'KEY_RIGHT':
             self.value = not self.value
             self.last_key = key
@@ -138,7 +138,7 @@ class TextMultiWin(FieldInput, Win):
                 self.options = []
         self.options.append('')
 
-    def do_command(self, key):
+    def do_command(self, key, raw=False):
         if not self.edition_input:
             if key == 'KEY_LEFT':
                 if self.val_pos > 0:
@@ -206,7 +206,7 @@ class ListMultiWin(FieldInput, Win):
                         for option in field.get_options()]
         self.val_pos = 0
 
-    def do_command(self, key):
+    def do_command(self, key, raw=False):
         if key == 'KEY_LEFT':
             if self.val_pos > 0:
                 self.val_pos -= 1
@@ -255,7 +255,7 @@ class ListSingleWin(FieldInput, Win):
             if field.get_value() == option['value']:
                 self.val_pos = i
 
-    def do_command(self, key):
+    def do_command(self, key, raw=False):
         if key == 'KEY_LEFT':
             if self.val_pos > 0:
                 self.val_pos -= 1
