@@ -95,7 +95,6 @@ DEFAULT_CONFIG = {
         'private_auto_response': '',
         'remote_fifo_path': './',
         'request_message_receipts': True,
-        'resource': '',
         'rooms': '',
         'roster_group_sort': 'name',
         'roster_show_offline': False,

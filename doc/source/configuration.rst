@@ -110,7 +110,7 @@ Options related to account configuration, nickname…
         account on a server. This is optional and useful only for some features,
         like room administration or nickname registration.
         The :term:`server` option will be ignored if you specify a JID (Jabber id)
-        It should be in the form nickname@server.tld
+        It should be in the form nickname@server.tld or nickname@server.tld/resource
 
     custom_host
 
@@ -171,14 +171,6 @@ Options related to account configuration, nickname…
         Path to a PEM certificate file to use for certificate authentication
         through SASL External. If set, :term:`keyfile` **MUST** be set as well
         in order to login.
-
-    resource
-
-        **Default value:** ``[empty]``
-
-        The resource you will use. If it's empty, your resource will be chosen
-        (most likely randomly) by the server. It is not recommended to use a
-        resource that is easy to guess, because it can lead to presence leak.
 
     rooms
 
