@@ -32,8 +32,6 @@ class Connection(slixmpp.ClientXMPP):
     """
     __init = False
     def __init__(self):
-        resource = config.get('resource')
-
         keyfile = config.get('keyfile')
         certfile = config.get('certfile')
 
@@ -43,8 +41,6 @@ class Connection(slixmpp.ClientXMPP):
             # depending on this setting
             self.anon = False
             jid = '%s' % config.get('jid')
-            if resource:
-                jid = '%s/%s'% (jid, resource)
             password = config.get('password')
             eval_password = config.get('eval_password')
             if not password and not eval_password and not (keyfile and certfile):
@@ -63,8 +59,6 @@ class Connection(slixmpp.ClientXMPP):
         else: # anonymous auth
             self.anon = True
             jid = config.get('server')
-            if resource:
-                jid = '%s/%s' % (jid, resource)
             password = None
         jid = safeJID(jid)
         # TODO: use the system language

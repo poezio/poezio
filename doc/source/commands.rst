@@ -138,7 +138,7 @@ These commands work in *any* tab.
 
         Set the value to the option in
         your configuration file. You can, for example, change your default nickname
-        by doing "/set default_nick toto" or your resource with "/set resource
+        by doing "/set default_nick toto" or your password with "/set password
         blabla".  Doing so will write in the main config file, and in the main
         section ([Poezio]). But you can also write to another section, with ``/set
         bindings M-i ^i``, to a plugin configuration with ``/set mpd_client| host
@@ -152,7 +152,7 @@ These commands work in *any* tab.
         **Usage:** ``/set_default [section] <option>``
 
         Set the value of an option back to the default. For example,
-        ``/set_default resource`` will reset the ``resource`` option.
+        ``/set_default password`` will reset the ``password`` option.
 
     /toggle
         **Usage:** ``/toggle <option>``
