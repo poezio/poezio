@@ -2,6 +2,8 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 https://dev.louiz.org/projects/poezio/roadmap
 
+* Poezio 1.0 - dev
+
 * Poezio 0.10
 
 - A lot of cleanup and refactor in order to use cython on the codebase
