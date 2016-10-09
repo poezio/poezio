@@ -1,10 +1,11 @@
 Quickstart guide
 ================
 
-This page is an attempt at provinding first aid to new users, who must
-first follow the :ref:`Install Guide <install>` to get a working poezio.
+This page is an attempt at providing first aid to new users, who must
+first follow the :ref:`Install Guide <install>` to get a working poezio
+install.
 
-Reading the more detailed:ref:`Usage page <usage>` is recommended to get
+Reading the more detailed :ref:`Usage page <usage>` is recommended to get
 a deeper understanding of poezio.
 
 Anonymous usage
@@ -23,7 +24,7 @@ talking to people right away. It opens a new :ref:`muctab`.
 Talking to people
 ~~~~~~~~~~~~~~~~~
 
-You can use the :ref:`/message` command if you know the address of people
+You can use the :term:`/message` command if you know the address of people
 you want to talk to. This will open a :ref:`conversationtab`.
 
 Normal usage
@@ -37,7 +38,9 @@ in anonymous mode.
 
 After obtaining an account and setting the :term:`jid` config option to
 the right value, you should go through the configuration file to get
-an overview of the different configuration options available.
+an overview of the different :ref:`configuration options <config>` available. If you
+don’t set the value of the :term:`password` option, you will be prompted
+to enter it on startup.
 
 Joining rooms
 ~~~~~~~~~~~~~
@@ -50,7 +53,7 @@ to join a chatroom and start talking to people right away. It opens a new
 Talking to people
 ~~~~~~~~~~~~~~~~~
 
-Just as in the anonymous mode, you can use the :ref:`/message` command if
+Just as in the anonymous mode, you can use the :term:`/message` command if
 you know the address of people you want to talk to. This will open a
 :ref:`conversationtab`.
 
@@ -74,5 +77,11 @@ make sure you have it installed first.
 
 After that, you can enable the OTR plugin with ``/load otr``. Further usage is
 discussed in the :ref:`plugin documentation <otr-plugin>`.
+
+
+Exiting poezio
+~~~~~~~~~~~~~~
+
+Use the :term:`/exit` command to quit poezio.
 
 .. _gajim: https://gajim.org

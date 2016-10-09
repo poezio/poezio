@@ -13,10 +13,10 @@ As far as I know, Poezio is available in the following distributions, you just
 have to install it by using the package manager of the distribution, if you're
 using one of these.
 
-- **Archlinux**: A poezio_ and poezio-git_ packages are in AUR (use your favourite
-  AUR wrapper to install them)
-- **Gentoo**: `Sekh’s overlay`_ contains everything required to build stable
-  versions of poezio (sleekxmpp, dnspython, and poezio)
+- **Archlinux**: poezio_ and poezio-git_ packages are in the AUR
+  (use your favourite AUR wrapper to install them)
+- **Gentoo**: It’s uncertain, but the bgo-overlay_ appears to contain poezio
+  and slixmpp packages.
 - **Fedora**: The stable poezio package was out of date for a long time in
   Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
   the repos since F19.
@@ -26,6 +26,7 @@ using one of these.
 - **Nix** (and **NixOS**): The last stable version of poezio is availalble in
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
   to install poezio for the current user.
+- **OpenBSD**: a poezio port_ is available
 
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
@@ -194,7 +195,6 @@ If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 
     poezio
 
-.. _Sekh’s overlay: https://github.com/sekh/sekh_overlay
 .. _stable sources: https://dev.louiz.org/project/poezio/download
 .. _slixmpp: https://dev.louiz.org/projects/slixmpp
 .. _aiodns: https://github.com/saghul/aiodns
@@ -204,4 +204,5 @@ If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 .. _pypi: https://pypi.python.org/pypi/poezio
 .. _development builds: http://dédié.jeproteste.info/poezio_debian/
 .. _cython: http://cython.org
-
+.. _bgo-overlay: https://bgo.zugaina.org/
+.. _port: http://ports.su/net/poezio
