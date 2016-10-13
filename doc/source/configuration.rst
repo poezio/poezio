@@ -627,6 +627,17 @@ or the way messages are displayed.
         A list of message types that should make the information buffer grow
         Possible values: ``error``, ``roster``, ``warning``, ``info``, ``help``
 
+    information_popup_type_filter
+
+        **Default value:** ``[empty]``
+
+        Some informational messages (error, a contact getting connected, etc)
+        are sometimes added to the information buffer.
+
+        A list of message types that should never be displayed in the information
+        buffer.
+        Possible values: ``error``, ``roster``, ``warning``, ``info``, ``help``
+
     display_user_color_in_join_part
 
         **Default value:** ``true``

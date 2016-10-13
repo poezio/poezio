@@ -1405,10 +1405,14 @@ class Core(object):
         """
         Displays an informational message in the "Info" buffer
         """
+        filter_types = config.get('information_buffer_type_filter').split(':')
+        if typ.lower() in filter_types:
+            log.debug('Did not show the message:\n\t%s> %s \n\tdue to information_popup_type_filter configuration', typ, msg)
+            return False
         filter_messages = config.get('filter_info_messages').split(':')
         for words in filter_messages:
             if words and words in msg:
-                log.debug('Did not show the message:\n\t%s> %s', typ, msg)
+                log.debug('Did not show the message:\n\t%s> %s \n\tdue to filter_info_messages configuration', typ, msg)
                 return False
         colors = get_theme().INFO_COLORS
         color = colors.get(typ.lower(), colors.get('default', None))
