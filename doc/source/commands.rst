@@ -88,9 +88,10 @@ These commands work in *any* tab.
 
     /win
     /w
-        **Usage:** ``/win <number>``
+        **Usage:** ``/win <number or string>``
 
-        Go to the specified room.
+        Go to the matching tab.  If the argument is a number, it goes to the tab with that number.
+        Otherwise, it goes to the next tab whose name contains the given string.
 
     /status
         **Usage:** ``/status <availability> [status message]``
