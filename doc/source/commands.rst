@@ -625,7 +625,7 @@ XML tab commands
 
         Write the content of the XML buffer into a file.
 
-    /reset
+    /filter_reset
         Reset the stanza filters.
 
     /filter_id

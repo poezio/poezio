@@ -72,7 +72,7 @@ class XMLTab(Tab):
                 shortdesc="Close this tab.")
         self.register_command('clear', self.command_clear,
                 shortdesc='Clear the current buffer.')
-        self.register_command('reset', self.command_reset,
+        self.register_command('filter_reset', self.command_filter_reset,
                 shortdesc='Reset the stanza filter.')
         self.register_command('filter_id', self.command_filter_id,
                 usage='<id>',
@@ -167,7 +167,7 @@ class XMLTab(Tab):
             self.refresh()
         except Exception as e:
             self.core.information('Invalid XML Mask: %s' % e, 'Error')
-            self.command_reset('')
+            self.command_filter_reset('')
 
     @command_args_parser.raw
     def command_filter_to(self, jid):
@@ -216,11 +216,11 @@ class XMLTab(Tab):
             self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
-            self.command_reset('')
+            self.command_filter_reset('')
 
     @command_args_parser.ignored
-    def command_reset(self):
-        """/reset"""
+    def command_filter_reset(self):
+        """/filter_reset"""
         if self.filters:
             self.filters = []
             self.filtered_buffer.del_window(self.text_win)
