@@ -65,7 +65,7 @@ with open('README.rst', encoding='utf-8') as readme_fd:
     LONG_DESCRIPTION = readme_fd.read()
 
 setup(name="poezio",
-      version="1.0",
+      version="1.0" + version,
       description="A console XMPP client",
       long_description=LONG_DESCRIPTION,
       ext_modules=[module_poopt],
