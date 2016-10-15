@@ -152,6 +152,17 @@ we merge it to “master” as well, of course).
     - Todd Eisenberger - Plugin system and OTR support
     - Jérôme Parment (Manfraid) - Code, testing
     - Link Mauve - Code, testing
+    - Akim Sadaoui - Code
+    - Florian Duraffourg - Code
+    - Frédéric Meynadier - Code
+    - Georg Lukas - Code
+    - Johannes Krude - Code
+    - Łabędź - Code
+    - Lasse Aagren - Code
+    - Lancelot SIX - Code
+    - Luke Marlin - Code
+    - Maxim Buquet - Code
+    - Nicolas Braud-Santoni - Code
     - Perdu - Code
     - Eijebong - Code
     - Gaëtan Ribémont - Logo design
