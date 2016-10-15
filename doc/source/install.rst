@@ -195,6 +195,31 @@ If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 
     poezio
 
+Docker images
+-------------
+
+poezio is available on the docker hub in the `poezio/poezio`_ repository
+in which ``poezio/poezio:latest`` is the latest built git version, and
+stable versions are tagged with their numbers. The image is based off
+alpine linux and we tried to keep the image size to a minimum (<100MiB).
+
+You can therefore just fetch the images with docker pull:
+
+.. code-block:: bash
+
+    docker pull poezio/poezio
+
+In order to run poezio with non-temporary config and logs, and to have
+the right colors, you have to share the ``TERM`` env var and some directories:
+
+.. code-block:: bash
+
+    docker run -it -e TERM -v ~/.config/poezio:/home/poezio-user/.config/poezio -v ~/.local/share/poezio:/home/poezio-user/.local/share/poezio poezio/poezio
+
+
+If you don’t trust images distributed on the docker hub, you can rebuild the
+image from the Dockerfile at the root of the git repository.
+
 .. _stable sources: https://dev.louiz.org/project/poezio/download
 .. _slixmpp: https://dev.louiz.org/projects/slixmpp
 .. _aiodns: https://github.com/saghul/aiodns
@@ -206,3 +231,4 @@ If you did, it should be in the ``$PATH`` as ``poezio``, so run:
 .. _cython: http://cython.org
 .. _bgo-overlay: https://bgo.zugaina.org/
 .. _port: http://ports.su/net/poezio
+.. _poezio/poezio: https://hub.docker.com/r/poezio/poezio/
