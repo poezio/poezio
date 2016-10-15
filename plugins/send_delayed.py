@@ -38,15 +38,19 @@ class Plugin(BasePlugin):
     @command_args_parser.quoted(2)
     def command_delayed(self, args):
         if args is None:
+            self.core.command.help('send_delayed')
             return
         delay_str, txt = args
         delay = common.parse_str_to_secs(delay_str)
-        if not delay_str:
+        if not delay:
+            self.api.information('Failed to parse %s.' % delay_str, 'Error')
             return
 
         tab = self.api.current_tab()
         timed_event = timed_events.DelayedEvent(delay, self.say, (tab, txt))
         self.api.add_timed_event(timed_event)
+        self.api.information('Delayed message will be sent in %ds (%s).'
+                             % (delay, delay_str), 'Info')
 
     def completion_delay(self, the_input):
         txt = the_input.get_text()
