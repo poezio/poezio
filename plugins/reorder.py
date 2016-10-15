@@ -62,6 +62,7 @@ And finally, the ``[tab name]`` must be:
 from poezio import tabs
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
+from poezio.config import config
 
 TEXT_TO_TAB = {
     'muc': tabs.MucTab,
@@ -141,10 +142,12 @@ class Plugin(BasePlugin):
         old_tabs = self.core.tabs[1:]
         roster = self.core.tabs[0]
 
+        create_gaps = config.get('create_gaps')
+
         new_tabs = []
         last = 0
         for pos in sorted(tabs_spec):
-            if pos > last + 1:
+            if create_gaps and pos > last + 1:
                 new_tabs += [tabs.GapTab(self.core) for i in range(pos - last)]
             cls, name = tabs_spec[pos]
             tab = self.core.get_tab_by_name(name, typ=cls)
@@ -153,7 +156,8 @@ class Plugin(BasePlugin):
                 old_tabs.remove(tab)
             else:
                 self.api.information('Tab %s not found' % name, 'Warning')
-                new_tabs.append(tabs.GapTab(self.core))
+                if create_gaps:
+                    new_tabs.append(tabs.GapTab(self.core))
             last = pos
 
         for tab in old_tabs:
