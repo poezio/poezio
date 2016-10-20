@@ -19,3 +19,11 @@ from poezio.windows.muc import UserList, Topic
 from poezio.windows.roster_win import RosterWin, ContactInfoWin
 from poezio.windows.text_win import TextWin, XMLTextWin
 
+__all__ = ['Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
+           'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin',
+           'MucListInfoWin', 'ConversationInfoWin', 'MucInfoWin',
+           'DynamicConversationInfoWin', 'ConversationStatusMessageWin',
+           'BookmarksInfoWin', 'ConfirmStatusWin', 'HelpText', 'Input',
+           'HistoryInput', 'MessageInput', 'CommandInput', 'ListWin',
+           'ColumnHeaderWin', 'VerticalSeparator', 'UserList', 'Topic',
+           'RosterWin', 'ContactInfoWin', 'TextWin', 'XMLTextWin']
