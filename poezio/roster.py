@@ -244,8 +244,6 @@ class Roster(object):
             f.writelines([str(i) + "\n" for i in self.contacts if self[i] and (self[i].subscription == "both" or self[i].ask)])
             f.close()
             return True
-        except IOError:
-            return False
         except OSError:
             return False
 
