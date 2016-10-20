@@ -23,7 +23,6 @@ from poezio import common
 from poezio import fixes
 from poezio import pep
 from poezio import tabs
-from poezio import windows
 from poezio import xhtml
 from poezio import multiuserchat as muc
 from poezio.common import safeJID

@@ -271,9 +271,9 @@ class PluginManager(object):
         """
         try:
             names = set()
-            for path in self.load_path:
+            for path_ in self.load_path:
                 try:
-                    add = set(os.listdir(path))
+                    add = set(os.listdir(path_))
                     names |= add
                 except:
                     pass
@@ -312,9 +312,9 @@ class PluginManager(object):
         if not plugins_conf_dir:
             config_home = os.environ.get('XDG_CONFIG_HOME')
             if not config_home:
-                config_home = os.path.join(os.environ.get('HOME'), '.config')
-            plugins_conf_dir = os.path.join(config_home, 'poezio', 'plugins')
-        self.plugins_conf_dir = os.path.expanduser(plugins_conf_dir)
+                config_home = path.join(os.environ.get('HOME'), '.config')
+            plugins_conf_dir = path.join(config_home, 'poezio', 'plugins')
+        self.plugins_conf_dir = path.expanduser(plugins_conf_dir)
         self.check_create_plugins_conf_dir()
 
     def check_create_plugins_conf_dir(self):
@@ -337,11 +337,11 @@ class PluginManager(object):
         """
         plugins_dir = config.get('plugins_dir')
         plugins_dir = plugins_dir or\
-            os.path.join(os.environ.get('XDG_DATA_HOME') or\
-                             os.path.join(os.environ.get('HOME'),
+            path.join(os.environ.get('XDG_DATA_HOME') or\
+                             path.join(os.environ.get('HOME'),
                                           '.local', 'share'),
                          'poezio', 'plugins')
-        self.plugins_dir = os.path.expanduser(plugins_dir)
+        self.plugins_dir = path.expanduser(plugins_dir)
         self.check_create_plugins_dir()
 
     def check_create_plugins_dir(self):

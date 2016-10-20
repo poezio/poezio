@@ -915,18 +915,14 @@ class MucTab(ChatTab):
         """
         self.need_resize = False
         if config.get('hide_user_list') or self.size.tab_degrade_x:
-            display_user_list = False
             text_width = self.width
         else:
-            display_user_list = True
             text_width = (self.width // 10) * 9
 
         if self.size.tab_degrade_y:
-            display_info_win = False
             tab_win_height = 0
             info_win_height = 0
         else:
-            display_info_win = True
             tab_win_height = Tab.tab_win_height()
             info_win_height = self.core.information_win_size
 

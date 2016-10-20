@@ -269,8 +269,6 @@ class RosterInfoTab(Tab):
         """
         completion for /cert_add <name> <path> [management]
         """
-        text = the_input.get_text()
-        args = common.shell_split(text)
         n = the_input.get_argument_position()
         log.debug('%s %s %s', the_input.text, n, the_input.pos)
         if n == 1:
@@ -352,8 +350,6 @@ class RosterInfoTab(Tab):
         """
         completion for /cert_fetch <name> <path>
         """
-        text = the_input.get_text()
-        args = common.shell_split(text)
         n = the_input.get_argument_position()
         log.debug('%s %s %s', the_input.text, n, the_input.pos)
         if n == 1:

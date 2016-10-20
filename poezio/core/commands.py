@@ -7,7 +7,6 @@ import logging
 log = logging.getLogger(__name__)
 
 import os
-from datetime import datetime
 from xml.etree import cElementTree as ET
 
 from slixmpp.xmlstream.stanzabase import StanzaBase

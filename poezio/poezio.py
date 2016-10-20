@@ -13,7 +13,6 @@ Starting point of poezio. Launches both the Connection and Gui
 import sys
 import os
 import signal
-import logging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -74,8 +73,6 @@ def main():
     roster.create_roster()
 
     from poezio import core
-
-    log = logging.getLogger('')
 
     signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
     cocore = core.Core()

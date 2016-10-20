@@ -1136,7 +1136,7 @@ class Core(object):
         """
         def read_next_digit(digit):
             try:
-                nb = int(digit)
+                int(digit)
             except ValueError:
                 # If it is not a number, we do nothing. If it was the first
                 # one, we do not wait for a second one by re-setting the

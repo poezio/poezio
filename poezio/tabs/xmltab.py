@@ -154,8 +154,8 @@ class XMLTab(Tab):
         self.refresh()
 
     def match_stanza(self, stanza):
-        for matcher in self.filters:
-            if not matcher.match(stanza):
+        for matcher_ in self.filters:
+            if not matcher_.match(stanza):
                 return False
         return True
 
