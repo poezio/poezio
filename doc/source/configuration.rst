@@ -133,7 +133,7 @@ Options related to account configuration, nickname…
         **Default value:** ``[empty]``
 
         the nick you will use when joining a room with no associated nick
-        If this is empty, the $USER environnement variable will be used
+        If this is empty, the $USER environment variable will be used
 
     server
 
