@@ -1,0 +1,155 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V5.0//EN" "http://docbook.org/xml/5.0/dtd/docbook.dtd" [
+
+<!--
+
+`xsltproc /usr/share/xml/docbook/stylesheet/docbook-xsl-ns/manpages/docbook.xsl \
+          scripts.xml'
+
+A manual page <package>.<section> will be generated. You may view the
+manual page with: man -l <package>.<section>'. A typical entry in a Makefile or
+Makefile.am is:
+
+DB2MAN = /usr/share/xml/docbook/stylesheet/docbook-xsl-ns/manpages/docbook.xsl
+XP     = xsltproc
+
+poezio_gpg_export.1 poezio_logs.1: scripts.xml
+        $(XP) $(DB2MAN) $<
+
+The xsltproc binary is found in the xsltproc package. The XSL files are in
+docbook-xsl-ns. A description of the parameters you can use can be found in the
+docbook-xsl-doc-* packages.
+
+Validation can be done using: `xmllint -''-noout -''-valid manpage.xml`
+
+General documentation about man-pages and man-page-formatting:
+man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
+
+-->
+
+  <!ENTITY authorfirstname "Tanguy">
+  <!ENTITY authorsurname   "Ortolo">
+  <!ENTITY authorfullname  "&authorfirstname; &authorsurname;">
+  <!ENTITY authoremail     "tanguy+debian@ortolo.eu">
+  <!ENTITY mansection      "1">
+  <!ENTITY mansectitle     "User Commands">
+  <!ENTITY upcommand1      "POEZIO_GPG_EXPORT">
+  <!ENTITY command1        "poezio_gpg_export">
+  <!ENTITY upcommand2      "POEZIO_LOGS">
+  <!ENTITY command2        "poezio_logs">
+  <!ENTITY program         "Poezio">
+]>
+
+<article xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en">
+<title>User commands</title>
+<info>
+<productname>&program;</productname>
+
+<authorgroup>
+  <author>
+    <personname><firstname>&authorfirstname;</firstname><surname>&authorsurname;</surname></personname>
+    <contrib>Wrote this manpage for the Debian system.</contrib>
+    <address><email>&authoremail;</email></address>
+  </author>
+</authorgroup>
+
+<copyright>
+  <year>2016</year>
+  <holder>&authorfullname;</holder>
+</copyright>
+
+<legalnotice>
+  <para>This manual page was written for the Debian system
+    (and may be used by others).</para>
+  <para>Permission is granted to copy, distribute and/or modify this
+    document under the terms of the Zlib License.</para>
+</legalnotice>
+</info>
+
+<refentry xml:id="&command1;">
+  <refmeta>
+    <refentrytitle>&upcommand1;</refentrytitle>
+    <manvolnum>&mansection;</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>&command1;</refname>
+    <refpurpose>Print a key list for the &program; GPG plugin</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&command1;</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsection xml:id="poezio_gpg_export-description"><info><title>DESCRIPTION</title></info>
+    <para><application>&program;</application> is a console-based XMPP
+      client.</para>
+    <para><command>&command1;</command> uses <command>gpg</command> to build
+      a list suitable for the &program; GPG plugin. Double-check the output
+      and use at your own risk.</para>
+  </refsection>
+
+  <refsection xml:id="poezio_gpg_export-see"><info><title>SEE ALSO</title></info>
+    <simplelist type="inline">
+      <member><citerefentry><refentrytitle>poezio</refentrytitle><manvolnum>1</manvolnum></citerefentry></member>
+      <member><citerefentry><refentrytitle>gpg</refentrytitle><manvolnum>1</manvolnum></citerefentry></member>
+    </simplelist>
+  </refsection>
+</refentry>
+
+<refentry xml:id="&command2;">
+  <refmeta>
+    <refentrytitle>&upcommand2;</refentrytitle>
+    <manvolnum>&mansection;</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>&command2;</refname>
+    <refpurpose>Display a Poezio log in a human-readable format</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&command2;</command>
+      <arg choice="opt"><replaceable>options</replaceable></arg>
+      <arg choice="req"><replaceable>LOG_FILE</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsection xml:id="poezio_logs-description"><info><title>DESCRIPTION</title></info>
+    <para><application>&program;</application> is a console-based XMPP
+      client.</para>
+    <para><command>&command2;</command> displays a log stored in Poezio format
+      in a more human-readable way.</para>
+  </refsection>
+
+  <refsection xml:id="poezio_logs-options"><info><title>OPTIONS</title></info>
+    <variablelist>
+      <varlistentry>
+        <term><option>-i</option></term>
+        <term><option>--hide-info</option></term>
+        <listitem><para>Hide info lines</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-t</option></term>
+        <term><option>--hide-time</option></term>
+        <listitem><para>Hide timestamps</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-c</option></term>
+        <term><option>--no-color</option></term>
+        <listitem><para>Remove color</para></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsection>
+
+  <refsection xml:id="poezio_logs-see"><info><title>SEE ALSO</title></info>
+    <simplelist type="inline">
+      <member><citerefentry><refentrytitle>poezio</refentrytitle><manvolnum>1</manvolnum></citerefentry></member>
+    </simplelist>
+  </refsection>
+</refentry>
+
+</article>
