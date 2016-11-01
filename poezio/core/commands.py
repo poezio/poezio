@@ -197,6 +197,7 @@ class CommandCore:
             number = int(name)
         except ValueError:
             number = -1
+            name = name.lower()
         if number != -1 and self.core.current_tab_nb == number:
             return
         prev_nb = self.core.previous_tab_nb
@@ -211,9 +212,10 @@ class CommandCore:
             matchs = []
             for tab in self.core.tabs:
                 for tab_name in tab.matching_names():
-                    if tab_name[1] and name.lower() in tab_name[1].lower():
+                    if tab_name[1] and name in tab_name[1].lower():
                         matchs.append((tab_name[0], tab))
             if not matchs:
+                self.core.previous_tab_nb = prev_nb
                 return
             tab = min(matchs, key=lambda m: m[0])[1]
             self.core.current_tab_nb = tab.nb
