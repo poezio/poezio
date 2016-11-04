@@ -69,7 +69,7 @@ and save it to the clipboard.
 
 **Ctrl-y**: Insert the content of the clipboard at the cursor position.
 
-**Ctrl-Enter**: Insert a line break. Since the input is only one line,
+**Ctrl-Enter** or **Ctrl-j**: Insert a line break. Since the input is only one line,
 the line break is represented by the character ``|`` in it but will be
 sent as the real ``\n`` character.
 
