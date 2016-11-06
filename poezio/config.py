@@ -74,6 +74,7 @@ DEFAULT_CONFIG = {
         'ignore_certificate': False,
         'ignore_private': False,
         'information_buffer_popup_on': 'error roster warning help info',
+        'information_buffer_type_filter': '',
         'jid': '',
         'keyfile': '',
         'lang': 'en',
