@@ -374,10 +374,16 @@ MultiUserChat tab commands
         also give an optional reason.
 
     /topic
-        **Usage:** ``/topic <subject>``
+        **Usage:** ``/topic [subject]``
 
-        Change the subject of the room. You might want to knwow
-        that entering ``/topic [tab]`` will autocomplete the topic.
+        Change the subject of the room.
+
+        Using the auto-completion of this command writes the current topic
+        in the input, to help the user make a small change to the topic
+        whithout having to rewrite it all by hand.
+
+        If no subject is specified as an argument, the current topic is
+        displayed, unchanged.
 
     /query
         **Usage:** ``/query <nick> [message]``
