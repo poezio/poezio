@@ -195,15 +195,18 @@ def get_body_from_message_stanza(message, use_xhtml=False,
     poezio colors if there's an xhtml_im element, or
     the body (without any color) otherwise
     """
-    if use_xhtml:
-        xhtml = message['html'].xml
-        xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
-        if xhtml_body:
-            content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=tmp_dir,
-                                             extract_images=extract_images)
-            content = content if content else message['body']
-            return content or " "
-    return message['body']
+    if not use_xhtml:
+        return message['body']
+    xhtml = message.xml.find('{http://jabber.org/protocol/xhtml-im}html')
+    if not xhtml:
+        return message['body']
+    xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
+    if not xhtml_body:
+        return message['body']
+    content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=tmp_dir,
+                                     extract_images=extract_images)
+    content = content if content else message['body']
+    return content or " "
 
 def ncurses_color_to_html(color):
     """
