@@ -202,7 +202,7 @@ class Plugin(BasePlugin):
         add 'valid' or 'invalid' into the dict. If it cannot be verified, just add
         'signed'. Otherwise, do nothing.
         """
-        signed = presence.find('{%s}x' % (NS_SIGNED,))
+        signed = presence.xml.find('{%s}x' % (NS_SIGNED,))
         bare = presence['from'].bare
         full = presence['from'].full
         if signed is None:
@@ -264,7 +264,7 @@ class Plugin(BasePlugin):
         """
         Check if the message is encrypted, and decrypt it if we can.
         """
-        encrypted = message.find('{%s}x' % (NS_ENCRYPTED,))
+        encrypted = message.xml.find('{%s}x' % (NS_ENCRYPTED,))
         fro = message['from']
         if encrypted is not None:
             if self.config.has_section('keys') and fro.bare in self.config.options('keys'):
