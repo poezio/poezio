@@ -1,0 +1,13 @@
+test:
+  tags:
+    - docker
+  image: ubuntu:latest
+  script:
+    - apt update
+    - apt install -y python3 cython3
+    - git clone git://git.louiz.org/slixmpp
+    - pushd slixmpp
+    - python3 setup.py build
+    - python3 setup.py install
+    - popd
+    - python3 setup.py test
