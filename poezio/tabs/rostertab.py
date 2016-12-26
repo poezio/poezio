@@ -601,12 +601,12 @@ class RosterInfoTab(Tab):
             if isinstance(item, Contact):
                 jid = item.bare_jid
             else:
-                self.core.information('No subscription to deny')
+                self.core.information('No subscription to deny', 'Warning')
                 return
         else:
             jid = safeJID(args[0]).bare
             if not jid in [jid for jid in roster.jids()]:
-                self.core.information('No subscription to deny')
+                self.core.information('No subscription to deny', 'Warning')
                 return
 
         contact = roster[jid]
@@ -759,7 +759,7 @@ class RosterInfoTab(Tab):
             if iq:
                 roster.update_contact_groups(contact)
             else:
-                self.core.information('The group could not be set')
+                self.core.information('The group could not be set', 'Error')
                 log.debug('Error in groupmove:\n%s', iq)
 
         self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
@@ -819,7 +819,7 @@ class RosterInfoTab(Tab):
             if isinstance(item, Contact):
                 jid = item.bare_jid
             else:
-                self.core.information('No roster item to remove')
+                self.core.information('No roster item to remove', 'Error')
                 return
         roster.remove(jid)
         del roster[jid]
@@ -955,7 +955,7 @@ class RosterInfoTab(Tab):
             if isinstance(item, Contact):
                 jid = item.bare_jid
             else:
-                self.core.information('No subscription to accept')
+                self.core.information('No subscription to accept', 'Warning')
                 return
         else:
             jid = safeJID(args[0]).bare

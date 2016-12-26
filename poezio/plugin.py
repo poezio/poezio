@@ -81,7 +81,7 @@ class SafetyMetaclass(type):
                     raise
                 elif SafetyMetaclass.core:
                     log.error('Error in a plugin', exc_info=True)
-                    SafetyMetaclass.core.information(traceback.format_exc())
+                    SafetyMetaclass.core.information(traceback.format_exc(), 'Error')
                     return None
         return helper
 

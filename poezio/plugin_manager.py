@@ -68,7 +68,7 @@ class PluginManager(object):
             module = None
             loader = self.finder.find_module(name, self.load_path)
             if not loader:
-                self.core.information('Could not find plugin: %s' % name)
+                self.core.information('Could not find plugin: %s' % name, 'Error')
                 return
             module = loader.load_module()
         except Exception as e:

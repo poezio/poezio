@@ -65,10 +65,10 @@ class Plugin(BasePlugin):
         result = process.communicate()[0].decode('utf-8')
         if arg and arg == '-o':
             if not self.api.send_message('%s' % (result,)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result)
+                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
         elif arg and arg == '-O':
             if not self.api.send_message('%s:\n%s' % (command, result)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result)
+                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
         else:
             self.api.information('%s:\n%s' % (command, result), 'Info')
         return

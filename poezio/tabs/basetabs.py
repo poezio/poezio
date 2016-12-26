@@ -639,7 +639,7 @@ class ChatTab(Tab):
             self.core.command.help('correct')
             return
         if not self.last_sent_message:
-            self.core.information('There is no message to correct.')
+            self.core.information('There is no message to correct.', 'Error')
             return
         self.command_say(line, correct=True)
 

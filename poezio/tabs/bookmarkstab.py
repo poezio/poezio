@@ -89,7 +89,6 @@ class BookmarksTab(Tab):
                 self.core.information('Bookmarks saved.', 'Info')
             else:
                 self.core.information('Remote bookmarks not saved.', 'Error')
-        log.debug('alerte %s', str(stanza_storage(self.bookmarks.bookmarks)))
         self.bookmarks.save(self.core.xmpp, callback=send_cb)
         self.core.close_tab(self)
         return True
