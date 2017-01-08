@@ -262,7 +262,7 @@ class HandlerCore:
             if not self.core.xmpp.plugin['xep_0380'].has_eme(message):
                 return
             self.core.xmpp.plugin['xep_0380'].replace_body_with_eme(message)
-            body = msg['body']
+            body = message['body']
 
         remote_nick = ''
         # normal message, we are the recipient
