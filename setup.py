@@ -65,7 +65,7 @@ with open('README.rst', encoding='utf-8') as readme_fd:
     LONG_DESCRIPTION = readme_fd.read()
 
 setup(name="poezio",
-      version="1.0" + version,
+      version="0.11",
       description="A console XMPP client",
       long_description=LONG_DESCRIPTION,
       ext_modules=[module_poopt],
@@ -104,7 +104,7 @@ setup(name="poezio",
                    ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG'])]
                   + find_doc('share/doc/poezio/source', 'source')
                   + find_doc('share/doc/poezio/html', 'build/html')),
-      install_requires=['slixmpp', 'aiodns'],
+      install_requires=['slixmpp>=1.2.4', 'aiodns'],
       extras_require={'OTR plugin': 'python-potr>=1.0',
                       'Screen autoaway plugin': 'pyinotify==0.9.4'})
 

@@ -4,6 +4,15 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 1.0 - dev
 
+* Poezio 0.11
+
+- Implementation of XEP-0380
+- Docker images
+- Improved documentation
+- GPG plugin fixes
+- Added manpages for the utility scripts
+- Misc fixes
+
 * Poezio 0.10
 
 - A lot of cleanup and refactor in order to use cython on the codebase
