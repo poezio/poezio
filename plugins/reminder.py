@@ -115,14 +115,14 @@ class Plugin(BasePlugin):
 
     def command_done(self, arg="0"):
         try:
-            id = int(arg)
+            id_ = int(arg)
         except:
             return
-        if not id in self.tasks:
+        if not id_ in self.tasks:
             return
 
-        self.api.information('Task %s: %s [DONE]' % (id, self.tasks[id][1]), 'Info')
-        del self.tasks[id]
+        self.api.information('Task %s: %s [DONE]' % (id_, self.tasks[id_][1]), 'Info')
+        del self.tasks[id_]
 
     def command_tasks(self, arg, nocommand=None):
         if nocommand:
@@ -135,13 +135,13 @@ class Plugin(BasePlugin):
         if s:
             self.api.information(s, 'Info')
 
-    def remind(self, id=0):
-        if not id in self.tasks:
+    def remind(self, id_=0):
+        if not id_ in self.tasks:
             return
-        self.api.information('Task %s: %s' % (id, self.tasks[id][1]), 'Info')
+        self.api.information('Task %s: %s' % (id_, self.tasks[id_][1]), 'Info')
         if self.config.get('beep', '') == 'true':
             curses.beep()
-        timed_event = timed_events.DelayedEvent(self.tasks[id][0], self.remind, id)
+        timed_event = timed_events.DelayedEvent(self.tasks[id_][0], self.remind, id_)
         self.api.add_timed_event(timed_event)
 
     def cleanup(self):

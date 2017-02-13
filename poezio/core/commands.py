@@ -148,13 +148,13 @@ class CommandCore:
         if args is None:
             return self.help('presence')
 
-        jid, type, status = args[0], args[1], args[2]
+        jid, ptype, status = args[0], args[1], args[2]
         if jid == '.' and isinstance(self.core.current_tab(), tabs.ChatTab):
             jid = self.core.current_tab().name
-        if type == 'available':
-            type = None
+        if ptype == 'available':
+            ptype = None
         try:
-            pres = self.core.xmpp.make_presence(pto=jid, ptype=type, pstatus=status)
+            pres = self.core.xmpp.make_presence(pto=jid, ptype=ptype, pstatus=status)
             self.core.events.trigger('send_normal_presence', pres)
             pres.send()
         except:
@@ -163,7 +163,7 @@ class CommandCore:
             return
         tab = self.core.get_tab_by_name(jid)
         if tab:
-            if type in ('xa', 'away'):
+            if ptype in ('xa', 'away'):
                 tab.directed_presence = False
                 chatstate = 'inactive'
             else:
