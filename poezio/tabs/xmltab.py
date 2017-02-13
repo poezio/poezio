@@ -167,7 +167,7 @@ class XMLTab(Tab):
             self.refresh()
         except Exception as e:
             self.core.information('Invalid XML Mask: %s' % e, 'Error')
-            self.command_filter_reset('')
+            self.command_filter_reset()
 
     @command_args_parser.raw
     def command_filter_to(self, jid):
@@ -216,7 +216,7 @@ class XMLTab(Tab):
             self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
-            self.command_filter_reset('')
+            self.command_filter_reset()
 
     @command_args_parser.ignored
     def command_filter_reset(self):
@@ -349,7 +349,7 @@ class XMLTab(Tab):
 
     def on_close(self):
         super().on_close()
-        self.command_clear('')
+        self.command_clear()
         self.core.xml_tab = False
 
     def on_info_win_size_changed(self):

@@ -63,7 +63,7 @@ class CommandArgParser(object):
         """
         Call the function without any argument
         """
-        def wrap(self, args, *a, **kw):
+        def wrap(self, args=None, *a, **kw):
             return func(self, *a, **kw)
         return wrap
 
