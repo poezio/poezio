@@ -47,7 +47,7 @@ class MatchJID(object):
         return '%s%s%s' % (self.dest, ': ' if self.dest else '', self.jid)
 
 MATCHERS_MAPPINGS = {
-        MatchJID: ('JID', lambda obj: repr(obj)),
+        MatchJID: ('JID', repr),
         matcher.MatcherId: ('ID', lambda obj: obj._criteria),
         matcher.MatchXMLMask: ('XMLMask', lambda obj: tostring(obj._criteria)),
         matcher.MatchXPath: ('XPath', lambda obj: obj._criteria)
