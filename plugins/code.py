@@ -33,7 +33,7 @@ FORMATTER = HtmlFormatter(noclasses=True)
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_command('code', self.command_code,
-                usage='<message>',
+                usage='<language> <code>',
                 short='Sends syntax-highlighted code',
                 help='Sends syntax-highlighted code in the current tab')
 
