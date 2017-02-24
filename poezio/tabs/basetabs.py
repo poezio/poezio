@@ -549,7 +549,7 @@ class ChatTab(Tab):
         if not arg:
             return
         try:
-            body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg))
+            body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg, force=True))
             ET.fromstring(arg)
         except:
             self.core.information('Could not send custom xhtml', 'Error')
