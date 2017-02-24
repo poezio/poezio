@@ -28,7 +28,7 @@ from plugin import BasePlugin
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
-FORMATTER = HtmlFormatter(noclasses=True)
+FORMATTER = HtmlFormatter(nowrap=True, noclasses=True)
 
 class Plugin(BasePlugin):
     def init(self):
@@ -41,4 +41,5 @@ class Plugin(BasePlugin):
         language, code = args.split(None, 1)
         lexer = get_lexer_by_name(language)
         room = self.api.current_tab()
-        room.command_xhtml(highlight(code, lexer, FORMATTER).strip().replace('\n</pre>', '</pre>'))
+        code = highlight(code, lexer, FORMATTER)
+        room.command_xhtml('<pre>%s</pre>' % code.rstrip('\n'))
