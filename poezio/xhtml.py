@@ -12,10 +12,10 @@ xhtml code to shell colors,
 poezio colors to xhtml code
 """
 
-import base64
 import curses
 import hashlib
 import re
+from base64 import b64encode, b64decode
 from os import path
 from slixmpp.xmlstream import ET
 from urllib.parse import unquote
@@ -292,6 +292,11 @@ def parse_css(css):
 def trim(string):
     return re.sub(whitespace_re, ' ', string)
 
+def get_hash(data: bytes) -> bytes:
+    # Currently using SHA-256, this might change in the future.
+    # base64 gives shorter hashes than hex, so use that.
+    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=')
+
 class XHTMLHandler(sax.ContentHandler):
     def __init__(self, force_ns=False, tmp_dir=None, extract_images=False):
         self.builder = []
@@ -349,8 +354,8 @@ class XHTMLHandler(sax.ContentHandler):
         elif name == 'img':
             if re.match(xhtml_data_re, attrs['src']) and self.extract_images:
                 type_, data = [i for i in re.split(xhtml_data_re, attrs['src']) if i]
-                bin_data = base64.b64decode(unquote(data))
-                filename = hashlib.sha1(bin_data).hexdigest() + '.' + type_
+                bin_data = b64decode(unquote(data))
+                filename = get_hash(bin_data) + '.' + type_
                 filepath = path.join(self.tmp_dir, filename)
                 if not path.exists(filepath):
                     try:
