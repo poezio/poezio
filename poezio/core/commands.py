@@ -949,11 +949,14 @@ class CommandCore:
         if not tab and not muc:
             tab = self.core.open_conversation_window(jid.full, focus=True)
         elif muc:
-            tab = self.core.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
-            if tab:
-                self.core.focus_tab_named(tab.name)
+            if jid.resource:
+                tab = self.core.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
+                if tab:
+                    self.core.focus_tab_named(tab.name)
+                else:
+                    tab = self.core.open_private_window(jid.bare, jid.resource)
             else:
-                tab = self.core.open_private_window(jid.bare, jid.resource)
+                tab = muc
         else:
             self.core.focus_tab_named(tab.name)
         if len(args) == 2:
