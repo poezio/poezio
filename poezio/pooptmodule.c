@@ -103,13 +103,13 @@ static PyObject* poopt_cut_text(PyObject* self, PyObject* args)
 
     while (buffer < end)
     {
-        /* Special case to jump poezio special characters that are contained
-         * in the python string, but should not be counted as chars, because
+        /* Special case to skip poezio special characters that are contained
+         * in the python string, but should not be counted as chars because
          * they will not be displayed. Those are the formatting chars (to
          * insert colors or things like that in the string) */
         if (*buffer == 25)   /* \x19 */
         {
-            /* Jump everything until the end of this format marker, but
+            /* Skip everything until the end of this format marker, but
              * without increasing the number of columns of the current
              * line. Because these chars are not printed.  */
             while (buffer < end && *buffer != 'u' &&
