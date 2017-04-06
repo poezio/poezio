@@ -292,10 +292,10 @@ def parse_css(css):
 def trim(string):
     return re.sub(whitespace_re, ' ', string)
 
-def get_hash(data: bytes) -> bytes:
+def get_hash(data: bytes) -> str:
     # Currently using SHA-256, this might change in the future.
     # base64 gives shorter hashes than hex, so use that.
-    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=')
+    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=').decode()
 
 class XHTMLHandler(sax.ContentHandler):
     def __init__(self, force_ns=False, tmp_dir=None, extract_images=False):
