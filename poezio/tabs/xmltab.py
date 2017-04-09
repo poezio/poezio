@@ -276,12 +276,9 @@ class XMLTab(Tab):
         """
         /clear
         """
-        if self.filters:
-            buffer = self.core_buffer
-        else:
-            buffer = self.filtered_buffer
-        buffer.messages = []
-        self.text_win.rebuild_everything(buffer)
+        self.core_buffer.messages = []
+        self.filtered_buffer.messages = []
+        self.text_win.rebuild_everything(self.filtered_buffer)
         self.refresh()
         self.core.doupdate()
 
