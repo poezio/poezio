@@ -40,6 +40,7 @@ class ConfirmTab(Tab):
         self.update_keys()
         self.update_commands()
         self.completion_callback = callback
+        self.done = False
 
     def toggle_choice(self):
         self.dialog.toggle_choice()
@@ -81,6 +82,7 @@ class ConfirmTab(Tab):
         self.input.resize(1, self.width, self.height-1, 0)
 
     def close(self, arg=None):
+        self.done = True
         self.core.close_tab(self)
 
     def on_input(self, key, raw):

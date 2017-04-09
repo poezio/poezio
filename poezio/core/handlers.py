@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 import asyncio
 import curses
 import functools
+import select
 import ssl
 import sys
 import time
@@ -1235,8 +1236,6 @@ class HandlerCore:
                 self.core.information('You refused to validate the certificate.'
                                       ' You are now disconnected.', 'Info')
                 self.core.disconnect()
-            new_loop.stop()
-            asyncio.set_event_loop(old_loop)
 
         confirm_tab = tabs.ConfirmTab(self.core,
                 'Certificate check required',
@@ -1248,14 +1247,11 @@ class HandlerCore:
 
         self.core.add_tab(confirm_tab, True)
         self.core.doupdate()
-        # some magic to avoid running the event loop in which slixmpp
-        # does stuff. FIXME: not perfect.
-        old_loop = asyncio.get_event_loop()
-        new_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(new_loop)
-        new_loop.add_reader(sys.stdin, self.core.on_input_readable)
-        curses.beep()
-        new_loop.run_forever()
+        while not confirm_tab.done:
+            sel = select.select([sys.stdin], [], [], 5)[0]
+
+            if sel:
+                self.core.on_input_readable()
 
     def validate_ssl(self, pem):
         """
