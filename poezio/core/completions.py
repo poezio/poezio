@@ -97,7 +97,7 @@ class CompletionCore:
 
         relevant_rooms = []
         relevant_rooms.extend(sorted(self.core.pending_invites.keys()))
-        bookmarks = [str(elem.jid)  for elem in self.core.bookmarks]
+        bookmarks = [(str(elem.jid) if not elem.nick else '%s/%s' % (elem.jid, elem.nick))  for elem in self.core.bookmarks]
         to_suggest = []
         for bookmark in bookmarks:
             tab = self.core.get_tab_by_name(bookmark, tabs.MucTab)
