@@ -81,6 +81,7 @@ setup(name="poezio",
 
       classifiers=['Development Status :: 5 - Production/Stable',
                    'Topic :: Communications :: Chat',
+                   'Topic :: Internet :: XMPP',
                    'Environment :: Console :: Curses',
                    'Intended Audience :: End Users/Desktop',
                    'License :: OSI Approved :: zlib/libpng License',
