@@ -199,7 +199,6 @@ class Core(object):
         self.key_func.update(key_func)
 
         # Add handlers
-        self.xmpp.add_event_handler('connecting', self.handler.on_connecting)
         self.xmpp.add_event_handler('connected', self.handler.on_connected)
         self.xmpp.add_event_handler('connection_failed', self.handler.on_failed_connection)
         self.xmpp.add_event_handler('disconnected', self.handler.on_disconnected)

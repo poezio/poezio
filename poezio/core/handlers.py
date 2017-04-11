@@ -989,11 +989,6 @@ class HandlerCore:
         Remote host responded, but we are not yet authenticated
         """
         self.core.information("Connected to server.", 'Info')
-
-    def on_connecting(self, event):
-        """
-        Just before we try to connect to the server
-        """
         self.core.legitimate_disconnect = False
 
     def on_session_start(self, event):
