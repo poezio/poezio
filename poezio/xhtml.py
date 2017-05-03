@@ -198,10 +198,10 @@ def get_body_from_message_stanza(message, use_xhtml=False,
     if not use_xhtml:
         return message['body']
     xhtml = message.xml.find('{http://jabber.org/protocol/xhtml-im}html')
-    if xhtml is not None:
+    if xhtml is None:
         return message['body']
     xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
-    if xhtml_body is not None:
+    if xhtml_body is None:
         return message['body']
     content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=tmp_dir,
                                      extract_images=extract_images)
