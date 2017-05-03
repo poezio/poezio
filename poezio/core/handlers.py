@@ -201,7 +201,7 @@ class HandlerCore:
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
-        if message.xml.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') != None:
+        if message.xml.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite') is not None:
             return
         if message['type'] == 'groupchat':
             return
@@ -362,7 +362,7 @@ class HandlerCore:
         if not contact:
             return
         item = message['pubsub_event']['items']['item']
-        if item.xml.find('{http://jabber.org/protocol/nick}nick'):
+        if item.xml.find('{http://jabber.org/protocol/nick}nick') is not None:
             contact.name = item['nick']['nick']
         else:
             contact.name = ''
@@ -377,7 +377,7 @@ class HandlerCore:
             return
         item = message['pubsub_event']['items']['item']
         old_gaming = contact.gaming
-        if item.xml.find('{urn:xmpp:gaming:0}gaming'):
+        if item.xml.find('{urn:xmpp:gaming:0}gaming') is not None:
             item = item['gaming']
             # only name and server_address are used for now
             contact.gaming = {
@@ -412,7 +412,7 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_mood = contact.mood
-        if item.xml.find('{http://jabber.org/protocol/mood}mood'):
+        if item.xml.find('{http://jabber.org/protocol/mood}mood') is not None:
             mood = item['mood']['value']
             if mood:
                 mood = pep.MOODS.get(mood, mood)
@@ -445,7 +445,7 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_activity = contact.activity
-        if item.xml.find('{http://jabber.org/protocol/activity}activity'):
+        if item.xml.find('{http://jabber.org/protocol/activity}activity') is not None:
             try:
                 activity = item['activity']['value']
             except ValueError:
@@ -484,7 +484,7 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_tune = contact.tune
-        if item.xml.find('{http://jabber.org/protocol/tune}tune'):
+        if item.xml.find('{http://jabber.org/protocol/tune}tune') is not None:
             item = item['tune']
             contact.tune = {
                     'artist': item['artist'],
@@ -822,7 +822,7 @@ class HandlerCore:
     ### Presence-related handlers ###
 
     def on_presence(self, presence):
-        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x') is not None:
             return
         jid = presence['from']
         contact = roster[jid.bare]
@@ -862,7 +862,7 @@ class HandlerCore:
         """
         A JID got offline
         """
-        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x') is not None:
             return
         jid = presence['from']
         if not logger.log_roster_change(jid.bare, 'got offline'):
@@ -887,7 +887,7 @@ class HandlerCore:
         """
         A JID got online
         """
-        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x'):
+        if presence.match('presence/muc') or presence.xml.find('{http://jabber.org/protocol/muc#user}x') is not None:
             return
         jid = presence['from']
         contact = roster[jid.bare]
