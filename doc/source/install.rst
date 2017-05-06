@@ -227,7 +227,7 @@ image from the Dockerfile at the root of the git repository.
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
 .. _pypi: https://pypi.python.org/pypi/poezio
-.. _development builds: http://dédié.jeproteste.info/poezio_debian/
+.. _development builds: http://dedie.jeproteste.info/poezio_debian/
 .. _cython: http://cython.org
 .. _bgo-overlay: https://bgo.zugaina.org/
 .. _port: http://ports.su/net/poezio
