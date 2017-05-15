@@ -82,8 +82,8 @@ class RosterInfoTab(Tab):
                     completion=self.completion_deny)
             self.register_command('add', self.command_add,
                     usage='<jid>',
-                    desc='Add the specified JID to your roster, ask him to'
-                         ' allow you to see his presence, and allow him to'
+                    desc='Add the specified JID to your roster, ask them to'
+                         ' allow you to see his presence, and allow them to'
                          ' see your presence.',
                     shortdesc='Add a user to your roster.')
             self.register_command('name', self.command_name,
@@ -618,7 +618,7 @@ class RosterInfoTab(Tab):
     @command_args_parser.quoted(1)
     def command_add(self, args):
         """
-        Add the specified JID to the roster, and set automatically
+        Add the specified JID to the roster, and automatically
         accept the reverse subscription
         """
         if args is None:
