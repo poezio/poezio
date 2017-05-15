@@ -64,12 +64,26 @@ class Plugin(BasePlugin):
         start = time.time()
         def callback(iq):
             delay = time.time() - start
-            if iq['type'] == 'error' and iq['error']['condition'] in ('remote-server-timeout', 'remote-server-not-found'):
-                self.api.information('%s did not respond to ping' % jid, 'Info')
+            error = False
+            reply = ''
+            if iq['type'] == 'error':
+                error_condition = iq['error']['condition']
+                reply = error_condition
+                if error_condition in ('remote-server-timeout', 'remote-server-not-found'):
+                    error = True
+                    error_text = iq['error']['text']
+                    if error_text:
+                        reply = '%s: %s' % (error_condition, error_text)
+            if error:
+                message = '%s did not respond to ping: %s' % (jid, reply)
             else:
-                self.api.information('%s responded to ping after %s s' % (jid, round(delay, 4)), 'Info')
+                reply = ' (%s)' % reply if reply else ''
+                message = '%s responded to ping after %ss%s' % (jid, round(delay, 4), reply)
+            self.api.information(message, 'Info')
+        def timeout(iq):
+            self.api.information('%s did not respond to ping after 10s: timeout' % jid, 'Info')
 
-        self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid, callback=callback)
+        self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid, callback=callback, timeout=10, timeout_callback=timeout)
 
     def completion_muc_ping(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
