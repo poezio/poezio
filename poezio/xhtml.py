@@ -295,7 +295,7 @@ def trim(string):
 def get_hash(data: bytes) -> str:
     # Currently using SHA-256, this might change in the future.
     # base64 gives shorter hashes than hex, so use that.
-    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=').decode()
+    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=').replace(b'/', b'-').decode()
 
 class XHTMLHandler(sax.ContentHandler):
     def __init__(self, force_ns=False, tmp_dir=None, extract_images=False):
