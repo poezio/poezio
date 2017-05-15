@@ -825,6 +825,7 @@ class OneToOneTab(ChatTab):
         """
         /unquery
         """
+        self.send_chat_state('gone', always_send=True):
         self.core.close_tab(self)
 
     def missing_command_callback(self, command_name):
