@@ -49,10 +49,6 @@ class PrivateTab(OneToOneTab):
         self.register_command('info', self.command_info,
                 desc='Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.',
                 shortdesc='Info about the user.')
-        self.register_command('unquery', self.command_unquery,
-                shortdesc='Close the tab.')
-        self.register_command('close', self.command_unquery,
-                shortdesc='Close the tab.')
         self.register_command('version', self.command_version,
                 desc='Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
                 shortdesc='Get the software version of a jid.')
@@ -189,13 +185,6 @@ class PrivateTab(OneToOneTab):
         self.cancel_paused_delay()
         self.text_win.refresh()
         self.input.refresh()
-
-    @command_args_parser.ignored
-    def command_unquery(self):
-        """
-        /unquery
-        """
-        self.core.close_tab(self)
 
     @command_args_parser.quoted(0, 1)
     def command_version(self, args):

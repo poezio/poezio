@@ -709,6 +709,10 @@ class OneToOneTab(ChatTab):
         self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
+        self.register_command('unquery', self.command_unquery,
+                shortdesc='Close the tab.')
+        self.register_command('close', self.command_unquery,
+                shortdesc='Close the tab.')
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)
@@ -815,6 +819,13 @@ class OneToOneTab(ChatTab):
     @command_args_parser.raw
     def command_say(self, line, correct=False, attention=False):
         pass
+
+    @command_args_parser.ignored
+    def command_unquery(self):
+        """
+        /unquery
+        """
+        self.core.close_tab(self)
 
     def missing_command_callback(self, command_name):
         if command_name not in ('correct', 'attention'):
