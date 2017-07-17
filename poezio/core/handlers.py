@@ -315,6 +315,8 @@ class HandlerCore:
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
+            if not message.xml.find('{urn:xmpp:message-correct:0}replace'):
+                return False
             replaced_id = message['replace']['id']
             if replaced_id and config.get_by_tabname('group_corrections',
                                                      conv_jid.bare):
@@ -544,19 +546,20 @@ class HandlerCore:
 
         old_state = tab.state
         delayed, date = common.find_delayed_tag(message)
-        replaced_id = message['replace']['id']
         replaced = False
-        if replaced_id is not '' and config.get_by_tabname('group_corrections',
-                                                           message['from'].bare):
-            try:
-                delayed_date = date or datetime.now()
-                if tab.modify_message(body, replaced_id, message['id'],
-                        time=delayed_date,
-                        nickname=nick_from, user=user):
-                    self.core.events.trigger('highlight', message, tab)
-                replaced = True
-            except CorrectionError:
-                log.debug('Unable to correct a message', exc_info=True)
+        if message.xml.find('{urn:xmpp:message-correct:0}replace'):
+            replaced_id = message['replace']['id']
+            if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                               message['from'].bare):
+                try:
+                    delayed_date = date or datetime.now()
+                    if tab.modify_message(body, replaced_id, message['id'],
+                            time=delayed_date,
+                            nickname=nick_from, user=user):
+                        self.core.events.trigger('highlight', message, tab)
+                    replaced = True
+                except CorrectionError:
+                    log.debug('Unable to correct a message', exc_info=True)
         if not replaced and tab.add_message(body, date, nick_from, history=delayed, identifier=message['id'], jid=message['from'], typ=1):
             self.core.events.trigger('highlight', message, tab)
 
@@ -621,17 +624,18 @@ class HandlerCore:
                                                   extract_images=extract_images)
         if not body or not tab:
             return
-        replaced_id = message['replace']['id']
         replaced = False
-        user = tab.parent_muc.get_user_by_name(nick_from)
-        if replaced_id is not '' and config.get_by_tabname('group_corrections',
-                                                           room_from):
-            try:
-                tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
-                        nickname=nick_from)
-                replaced = True
-            except CorrectionError:
-                log.debug('Unable to correct a message', exc_info=True)
+        if message.xml.find('{urn:xmpp:message-correct:0}replace'):
+            replaced_id = message['replace']['id']
+            user = tab.parent_muc.get_user_by_name(nick_from)
+            if replaced_id is not '' and config.get_by_tabname('group_corrections',
+                                                               room_from):
+                try:
+                    tab.modify_message(body, replaced_id, message['id'], user=user, jid=message['from'],
+                            nickname=nick_from)
+                    replaced = True
+                except CorrectionError:
+                    log.debug('Unable to correct a message', exc_info=True)
         if not replaced:
             tab.add_message(body, time=None, nickname=nick_from,
                             forced_user=user,
