@@ -563,13 +563,7 @@ class MucTab(ChatTab):
                         current_status.message,
                         current_status.show)
 
-    @command_args_parser.quoted(0, 1, [''])
-    def command_part(self, args):
-        """
-        /part [msg]
-        """
-        arg = args[0]
-        msg = None
+    def leave_room(self, message):
         if self.joined:
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             char_quit = get_theme().CHAR_QUIT
@@ -581,12 +575,12 @@ class MucTab(ChatTab):
             else:
                 color = 3
 
-            if arg:
+            if message:
                 msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
                        'You (\x19%(color)s}%(nick)s\x19%(info_col)s})'
                        ' left the room'
                        ' (\x19o%(reason)s\x19%(info_col)s})') % {
-                           'info_col': info_col, 'reason': arg,
+                           'info_col': info_col, 'reason': message,
                            'spec': char_quit, 'color': color,
                            'color_spec': spec_col,
                            'nick': self.own_nick,
@@ -603,13 +597,21 @@ class MucTab(ChatTab):
 
             self.add_message(msg, typ=2)
             self.disconnect()
-            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
+            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, message)
             self.core.disable_private_tabs(self.name, reason=msg)
-            if self == self.core.current_tab():
-                self.refresh()
-            self.core.doupdate()
         else:
-            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, arg)
+            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, message)
+
+    @command_args_parser.quoted(0, 1, [''])
+    def command_part(self, args):
+        """
+        /part [msg]
+        """
+        message = args[0]
+        self.leave_room(message)
+        if self == self.core.current_tab():
+            self.refresh()
+        self.core.doupdate()
 
     @command_args_parser.raw
     def command_close(self, msg):

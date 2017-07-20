@@ -665,16 +665,8 @@ class CommandCore:
                 return self.core.information("No server specified", "Error")
         for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name.endswith(domain):
-                if tab.joined:
-                    muc.leave_groupchat(tab.core.xmpp,
-                                        tab.name,
-                                        tab.own_nick,
-                                        message)
-                tab.joined = False
-                if tab.name == domain:
-                    self.join('"@%s/%s"' %(tab.name, tab.own_nick))
-                else:
-                    self.join('"%s/%s"' %(tab.name, tab.own_nick))
+                tab.leave_room(message)
+                tab.join()
 
     @command_args_parser.quoted(1)
     def last_activity(self, args):
