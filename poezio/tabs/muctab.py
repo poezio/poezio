@@ -408,10 +408,7 @@ class MucTab(ChatTab):
     @command_args_parser.raw
     def command_cycle(self, msg):
         """/cycle [reason]"""
-        self.command_part(msg)
-        self.disconnect()
-        self.user_win.pos = 0
-        self.core.disable_private_tabs(self.name)
+        self.leave_room(msg)
         self.join()
 
     def join(self):
