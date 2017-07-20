@@ -69,11 +69,14 @@ class Plugin(BasePlugin):
             if iq['type'] == 'error':
                 error_condition = iq['error']['condition']
                 reply = error_condition
-                if error_condition in ('remote-server-timeout', 'remote-server-not-found'):
+                # These IQ errors are not ping errors:
+                # 'service-unavailable': official "not supported" response as of RFC6120 (§8.4) and XEP-0199 (§4.1)
+                # 'feature-not-implemented': inoffcial not-supported response from many clients
+                if error_condition not in ('service-unavailable', 'feature-not-implemented'):
                     error = True
-                    error_text = iq['error']['text']
-                    if error_text:
-                        reply = '%s: %s' % (error_condition, error_text)
+                error_text = iq['error']['text']
+                if error_text:
+                    reply = '%s: %s' % (error_condition, error_text)
             if error:
                 message = '%s did not respond to ping: %s' % (jid, reply)
             else:
