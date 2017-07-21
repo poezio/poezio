@@ -315,7 +315,7 @@ class HandlerCore:
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
-            if not message.xml.find('{urn:xmpp:message-correct:0}replace'):
+            if not message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
                 return False
             replaced_id = message['replace']['id']
             if replaced_id and config.get_by_tabname('group_corrections',
@@ -547,7 +547,7 @@ class HandlerCore:
         old_state = tab.state
         delayed, date = common.find_delayed_tag(message)
         replaced = False
-        if message.xml.find('{urn:xmpp:message-correct:0}replace'):
+        if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
             if replaced_id is not '' and config.get_by_tabname('group_corrections',
                                                                message['from'].bare):
@@ -625,7 +625,7 @@ class HandlerCore:
         if not body or not tab:
             return
         replaced = False
-        if message.xml.find('{urn:xmpp:message-correct:0}replace'):
+        if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
             user = tab.parent_muc.get_user_by_name(nick_from)
             if replaced_id is not '' and config.get_by_tabname('group_corrections',
