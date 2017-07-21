@@ -315,7 +315,7 @@ class HandlerCore:
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
-            if not message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
+            if message.xml.find('{urn:xmpp:message-correct:0}replace') is None:
                 return False
             replaced_id = message['replace']['id']
             if replaced_id and config.get_by_tabname('group_corrections',
