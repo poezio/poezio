@@ -625,9 +625,9 @@ class HandlerCore:
         if not body or not tab:
             return
         replaced = False
+        user = tab.parent_muc.get_user_by_name(nick_from)
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
-            user = tab.parent_muc.get_user_by_name(nick_from)
             if replaced_id is not '' and config.get_by_tabname('group_corrections',
                                                                room_from):
                 try:
