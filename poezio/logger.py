@@ -245,7 +245,7 @@ class Logger(object):
 
             if nick:
                 nick = '<' + nick + '>'
-                fd.write('%s %s %s %s  %s\n' % (prefix, str_time, nb_lines, nick, first_line))
+                fd.write('%s %s %s %s  %s\n' % (prefix, str_time, nb_lines, nick, first_line))
             else:
                 fd.write('%s %s %s %s\n' % (prefix, str_time, nb_lines, first_line))
             for line in lines:
