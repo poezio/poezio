@@ -81,7 +81,6 @@ class Connection(slixmpp.ClientXMPP):
 
         self.core = None
         self.auto_reconnect = config.get('auto_reconnect')
-        self.reconnect_max_attempts = 0
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
         # for anything that came out after 2002
