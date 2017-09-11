@@ -170,7 +170,7 @@ class ConversationInfoWin(InfoWin):
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(presence, to_curses_attr(color))
         if resource and resource.status:
-            shortened = resource.status[:20] + (resource.status[:20] and '..')
+            shortened = resource.status[:20] + (resource.status[:20] and '…')
             self.addstr(' %s' % shortened, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
