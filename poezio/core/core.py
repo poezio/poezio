@@ -165,6 +165,7 @@ class Core(object):
             'M-C': self.scroll_info_down,
             'M-k': self.escape_next_key,
         ######## actions mappings ##########
+            '_noop': lambda *args, **kwargs: None,
             '_bookmark': self.command.bookmark,
             '_bookmark_local': self.command.bookmark_local,
             '_close_tab': self.close_tab,
