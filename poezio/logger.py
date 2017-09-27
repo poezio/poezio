@@ -52,10 +52,13 @@ class LogMessage(LogItem):
         self.nick = nick
 
 def parse_message_line(msg):
-    if re.match(MESSAGE_LOG_RE, msg):
-        return LogMessage(*[i for i in re.split(MESSAGE_LOG_RE, msg) if i])
-    if re.match(INFO_LOG_RE, msg):
-        return LogInfo(*[i for i in re.split(INFO_LOG_RE, msg) if i])
+    match = re.match(MESSAGE_LOG_RE, msg)
+    if match:
+        return LogMessage(*match.groups())
+    match = re.match(INFO_LOG_RE, msg)
+    if match:
+        return LogInfo(*match.groups())
+    log.debug('Error while parsing "%s"', msg)
     return None
 
 class Logger(object):
