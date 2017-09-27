@@ -27,12 +27,12 @@ log = logging.getLogger(__name__)
 
 from poezio.config import LOG_DIR as log_dir
 
-MESSAGE_LOG_RE = re.compile(r'MR (\d{4})(\d{2})(\d{2})T'
+MESSAGE_LOG_RE = re.compile(r'^MR (\d{4})(\d{2})(\d{2})T'
                             r'(\d{2}):(\d{2}):(\d{2})Z '
-                            r'(\d+) <([^ ]+)>  (.*)')
-INFO_LOG_RE = re.compile(r'MI (\d{4})(\d{2})(\d{2})T'
+                            r'(\d+) <([^ ]+)>  (.*)$')
+INFO_LOG_RE = re.compile(r'^MI (\d{4})(\d{2})(\d{2})T'
                          r'(\d{2}):(\d{2}):(\d{2})Z '
-                         r'(\d+) (.*)')
+                         r'(\d+) (.*)$')
 
 class LogItem:
     def __init__(self, year, month, day, hour, minute, second, nb_lines, message):
