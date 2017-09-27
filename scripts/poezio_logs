@@ -71,7 +71,7 @@ def parse_messages(fd):
         elif in_text:
             more_lines.append(line[1:])
             continue
-        current_log = parse_message_line(line.rstrip())
+        current_log = parse_message_line(line)
         in_text = True
     print_log(current_log, more_lines)
 
