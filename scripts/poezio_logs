@@ -3,7 +3,7 @@
 A simple script to parse and output logs from a poezio logfile
 """
 
-from poezio.logger import LogInfo, LogMessage, parse_message_line
+from poezio.logger import LogInfo, LogMessage, parse_log_line
 from functools import singledispatch
 from poezio import poopt
 import argparse
@@ -71,7 +71,7 @@ def parse_messages(fd):
         elif in_text:
             more_lines.append(line[1:])
             continue
-        current_log = parse_message_line(line)
+        current_log = parse_log_line(line)
         in_text = True
     print_log(current_log, more_lines)
 

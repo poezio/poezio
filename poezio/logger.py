@@ -51,7 +51,7 @@ class LogMessage(LogItem):
                          nb_lines, message)
         self.nick = nick
 
-def parse_message_line(msg):
+def parse_log_line(msg):
     match = re.match(MESSAGE_LOG_RE, msg)
     if match:
         return LogMessage(*match.groups())
@@ -188,7 +188,7 @@ class Logger(object):
                 idx += 1
                 log.debug('fail?')
                 continue
-            log_item = parse_message_line(lines[idx])
+            log_item = parse_log_line(lines[idx])
             idx += 1
             if not isinstance(log_item, LogItem):
                 log.debug('wrong log format? %s', log_item)
