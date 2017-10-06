@@ -1167,7 +1167,7 @@ class MucTab(ChatTab):
             non_member = '322' in status_codes and typ == 'unavailable'
             user = self.get_user_by_name(from_nick)
             # New user
-            if not user:
+            if not user and typ != "unavailable":
                 user_color = self.search_for_color(from_nick)
                 self.core.events.trigger('muc_join', presence, self)
                 self.on_user_join(from_nick, affiliation, show, status, role,
