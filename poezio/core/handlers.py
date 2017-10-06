@@ -1021,7 +1021,7 @@ class HandlerCore:
 
         if config.get('enable_user_nick'):
             self.core.xmpp.plugin['xep_0172'].publish_nick(nick=self.core.own_nick, callback=dumb_callback)
-        asyncio.async(self.core.xmpp.plugin['xep_0115'].update_caps())
+        asyncio.ensure_future(self.core.xmpp.plugin['xep_0115'].update_caps())
         # Start the ping's plugin regular event
         self.core.xmpp.set_keepalive_values()
 
