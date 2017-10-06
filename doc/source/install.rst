@@ -163,10 +163,18 @@ poezio without a system-wide install, do, in the :file:`poezio` directory:
     you can use the ``$POEZIO_VENV`` environment variable to set use
     another path (the default is :file:`poezio-venv`).
 
-    If your distribution does not have a ``pyvenv`` symlink to the latest
-    pyvenv available, you will need to set ``$POEZIO_VENV_COMMAND`` to it.
-    For example, if you have python 3.4, you will need to set it to
-    ``pyvenv-3.4`` instead.
+.. note::
+
+    The python version used can be customized using the ``$POEZIO_PYTHON``
+    env variable.
+
+    If your distribution's python3 does not have a ``venv`` module, install
+    the package corresponding to that module (probably ``python3-venv``).
+
+
+.. versionchanged:: 0.12
+    Previously there was a ``$POEZIO_VENV_COMMAND`` env variable to define
+    the command. Now it is required to use ``$POEZIO_PYTHON``.
 
 
 If you really want to install it, run as root (or sudo in ubuntu or whatever):
