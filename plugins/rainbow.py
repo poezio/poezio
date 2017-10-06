@@ -1,6 +1,8 @@
 """
 This plugin colors each character of a message with a random color.
 
+.. note:: As ticket `#3273`_ puts it, the final output is closer to vomit than a rainbow.
+
 Usage
 -----
 
@@ -11,6 +13,8 @@ Usage
         Say something in a Chat tab.
 
 .. note:: Can create fun things when used with :ref:`The figlet plugin <figlet-plugin>`.
+
+.. _#3273: https://dev.louiz.org/issues/3273
 """
 from poezio.plugin import BasePlugin
 from poezio import xhtml
