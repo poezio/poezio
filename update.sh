@@ -12,19 +12,22 @@ then
     POEZIO_VENV="poezio-venv"
 fi
 
-if [ -z "$POEZIO_VENV_COMMAND" ]
+if [ -z "$POEZIO_PYTHON" ]
 then
-    POEZIO_VENV_COMMAND="pyvenv"
+    POEZIO_PYTHON=python3
 fi
-command -v $POEZIO_VENV_COMMAND > /dev/null 2>&1 || {
-    echo "'$POEZIO_VENV_COMMAND' executable not found. Check that you have python (>= 3.4) installed,"
-    echo " and that \$POEZIO_VENV_COMMAND points to a valid virtualenv command."
-    if [ "$POEZIO_VENV_COMMAND" = 'pyvenv' ]; then
-        echo "If your distribution does not provide a 'pyvenv' command, maybe it has another name, like 'pyvenv-3.4'"
-        echo 'Set the $POEZIO_VENV_COMMAND env variable to the name of that executable and this script will use it.'
-    fi
+
+if ! command -v "$POEZIO_PYTHON" > /dev/null 2>&1
+then
+    echo "Python executable '$POEZIO_PYTHON' not found."
     exit 1
-}
+fi
+
+if ! $POEZIO_PYTHON -c 'import venv' &> /dev/null
+then
+    echo "'$POEZIO_PYTHON' venv module not found. Check that you have python (>= 3.4) installed,"
+    exit 1
+fi
 
 echo 'Updating poezio'
 git pull --ff-only origin master || {
@@ -36,8 +39,8 @@ if [ -e "$POEZIO_VENV" ]
 then
     # In case of a python version upgrade
     echo 'Trying to upgrade the virtualenv'
-    $POEZIO_VENV_COMMAND --upgrade "$POEZIO_VENV"
-    $POEZIO_VENV_COMMAND --system-site-packages "$POEZIO_VENV"
+    $POEZIO_PYTHON -m venv --upgrade "$POEZIO_VENV"
+    $POEZIO_PYTHON -m venv --system-site-packages "$POEZIO_VENV"
 
     . "$POEZIO_VENV/bin/activate"
     echo 'Updating the in-venv pip'
@@ -49,8 +52,8 @@ then
     pip install -r requirements-plugins.txt --upgrade
 else
     echo "Creating the $POEZIO_VENV virtualenv"
-    $POEZIO_VENV_COMMAND "$POEZIO_VENV"
-    $POEZIO_VENV_COMMAND --system-site-packages "$POEZIO_VENV"
+    $POEZIO_PYTHON -m venv "$POEZIO_VENV"
+    $POEZIO_PYTHON -m venv --system-site-packages "$POEZIO_VENV"
 
     . "$POEZIO_VENV/bin/activate"
     cd "$POEZIO_VENV" # needed to download slixmpp inside the venv
