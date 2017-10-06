@@ -1306,7 +1306,10 @@ class MucTab(ChatTab):
                                (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
         reason = presence.xml.find('{%s}x/{%s}item/{%s}reason' %
                                    (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        by = by.attrib['jid'] if by is not None else None
+        if by:
+            by = by.get('jid') or by.get('nick') or None
+        else:
+            by = None
 
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         char_kick = get_theme().CHAR_KICK
