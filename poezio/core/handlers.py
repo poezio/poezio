@@ -371,7 +371,7 @@ class HandlerCore:
                 try:
                     result = yield from self.core.xmpp['xep_0084'].retrieve_avatar(jid,
                                                                                    info['id'],
-                                                                                   timeout=10)
+                                                                                   timeout=60)
                     contact.avatar = result['pubsub']['items']['item']['avatar_data']['value']
                 except Exception:
                     log.exception('Failed retrieving 0084 data from %s:', jid)
@@ -381,12 +381,16 @@ class HandlerCore:
     @asyncio.coroutine
     def on_vcard_avatar(self, pres):
         jid = pres['from'].bare
+        contact = roster[jid]
+        if not contact:
+            return
         log.debug('Received vCard avatar update from %s', jid)
         try:
             result = yield from self.core.xmpp['xep_0054'].get_vcard(jid,
                                                                      cached=True,
-                                                                     timeout=10)
-            contact.avatar = result['vcard_temp']['PHOTO']
+                                                                     timeout=60)
+            avatar = result['vcard_temp']['PHOTO']
+            contact.avatar = avatar['BINVAL']
         except Exception:
             log.exception('Failed retrieving vCard from %s:', jid)
             return
