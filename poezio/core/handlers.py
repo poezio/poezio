@@ -355,6 +355,43 @@ class HandlerCore:
         else:
             self.core.refresh_window()
 
+    @asyncio.coroutine
+    def on_0084_avatar(self, msg):
+        jid = msg['from'].bare
+        contact = roster[jid]
+        if not contact:
+            return
+        log.debug('Received 0084 avatar update from %s', jid)
+        try:
+            metadata = msg['pubsub_event']['items']['item']['avatar_metadata']['items']
+        except Exception:
+            return
+        for info in metadata:
+            if not info['url']:
+                try:
+                    result = yield from self.core.xmpp['xep_0084'].retrieve_avatar(jid,
+                                                                                   info['id'],
+                                                                                   timeout=10)
+                    contact.avatar = result['pubsub']['items']['item']['avatar_data']['value']
+                except Exception:
+                    log.exception('Failed retrieving 0084 data from %s:', jid)
+                    return
+                log.debug('Received %s avatar: %s', jid, info['type'])
+
+    @asyncio.coroutine
+    def on_vcard_avatar(self, pres):
+        jid = pres['from'].bare
+        log.debug('Received vCard avatar update from %s', jid)
+        try:
+            result = yield from self.core.xmpp['xep_0054'].get_vcard(jid,
+                                                                     cached=True,
+                                                                     timeout=10)
+            contact.avatar = result['vcard_temp']['PHOTO']
+        except Exception:
+            log.exception('Failed retrieving vCard from %s:', jid)
+            return
+        log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
+
     def on_nick_received(self, message):
         """
         Called when a pep notification for an user nickname

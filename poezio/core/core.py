@@ -261,6 +261,11 @@ class Core(object):
                                connection.MatchAll(None),
                                self.handler.incoming_stanza)
         self.xmpp.register_handler(all_stanzas)
+        if config.get('enable_avatars'):
+            self.xmpp.add_event_handler("vcard_avatar_update",
+                                        self.handler.on_vcard_avatar)
+            self.xmpp.add_event_handler("avatar_metadata_publish",
+                                        self.handler.on_0084_avatar)
         if config.get('enable_user_tune'):
             self.xmpp.add_event_handler("user_tune_publish",
                                         self.handler.on_tune_event)

@@ -44,6 +44,7 @@ class RosterInfoTab(Tab):
         self.core.information_buffer.add_window(self.information_win)
         self.roster_win = windows.RosterWin()
         self.contact_info_win = windows.ContactInfoWin()
+        self.avatar_win = windows.ImageWin()
         self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
         self.state = 'normal'
@@ -513,11 +514,14 @@ class RosterInfoTab(Tab):
                                         info_width, 0, roster_width + 1,
                                         self.core.information_buffer)
             if display_contact_win:
+                y = self.height - tab_win_height - contact_win_h - 1
+                avatar_width = contact_win_h * 2
                 self.contact_info_win.resize(contact_win_h,
-                                             info_width,
-                                             self.height - tab_win_height
-                                             - contact_win_h - 1,
-                                             roster_width + 1)
+                                             info_width - avatar_width,
+                                             y, roster_width + 1)
+                self.avatar_win.resize(contact_win_h,
+                                       avatar_width,
+                                       y, self.width - avatar_width)
         self.roster_win.resize(self.height - 1 - Tab.tab_win_height(),
                                roster_width, 0, 0)
         self.input.resize(1, self.width, self.height-1, 0)
@@ -989,8 +993,12 @@ class RosterInfoTab(Tab):
             self.v_separator.refresh()
             self.information_win.refresh()
             if display_contact_win:
-                self.contact_info_win.refresh(
-                        self.roster_win.get_selected_row())
+                row = self.roster_win.get_selected_row()
+                self.contact_info_win.refresh(row)
+                if isinstance(row, Contact):
+                    self.avatar_win.refresh(row.avatar)
+                else:
+                    self.avatar_win.refresh(None)
         self.refresh_tab_win()
         self.input.refresh()
 

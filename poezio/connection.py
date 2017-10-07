@@ -106,8 +106,10 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0071')
         self.register_plugin('xep_0077')
         self.plugin['xep_0077'].create_account = False
+        self.register_plugin('xep_0084')
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0115')
+        self.register_plugin('xep_0153')
 
         # monkey-patch xep_0184 to avoid requesting receipts for messages
         # without a body
