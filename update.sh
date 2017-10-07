@@ -17,17 +17,15 @@ then
     POEZIO_PYTHON=python3
 fi
 
-if ! command -v "$POEZIO_PYTHON" > /dev/null 2>&1
-then
+command -v "$POEZIO_PYTHON" > /dev/null 2>&1 || {
     echo "Python executable '$POEZIO_PYTHON' not found."
     exit 1
-fi
+}
 
-if ! $POEZIO_PYTHON -c 'import venv' &> /dev/null
-then
+$POEZIO_PYTHON -c 'import venv' &> /dev/null || {
     echo "'$POEZIO_PYTHON' venv module not found. Check that you have python (>= 3.4) installed,"
     exit 1
-fi
+}
 
 echo 'Updating poezio'
 git pull --ff-only origin master || {
