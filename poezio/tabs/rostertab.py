@@ -18,7 +18,7 @@ from functools import partial
 
 from poezio import common
 from poezio import windows
-from poezio.common import safeJID
+from poezio.common import safeJID, shell_split
 from poezio.config import config
 from poezio.contact import Contact, Resource
 from poezio.decorators import refresh_wrapper
@@ -536,7 +536,7 @@ class RosterInfoTab(Tab):
         for a command)
         """
         text = the_input.get_text()
-        args = common.shell_split(text)
+        args = shell_split(text)
         n = the_input.get_argument_position()
         if n == complete_number:
             if args[n-1] == '' or len(args) < n+1:
@@ -900,7 +900,7 @@ class RosterInfoTab(Tab):
         return False
 
     def completion_groupmove(self, the_input):
-        args = common.shell_split(the_input.text)
+        args = shell_split(the_input.text)
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
@@ -919,7 +919,7 @@ class RosterInfoTab(Tab):
         return False
 
     def completion_groupremove(self, the_input):
-        args = common.shell_split(the_input.text)
+        args = shell_split(the_input.text)
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
