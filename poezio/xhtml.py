@@ -260,7 +260,7 @@ def _parse_css_color(name):
         return colors[name]
     return -1
 
-def parse_css(css):
+def _parse_css(css):
     shell = ''
     rules = css.split(';')
     for rule in rules:
@@ -290,7 +290,7 @@ def parse_css(css):
                 shell += '\x19a'
     return shell
 
-def trim(string):
+def _trim(string):
     return re.sub(whitespace_re, ' ', string)
 
 def get_hash(data: bytes) -> str:
@@ -326,7 +326,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.builder.append('\x19o' + ''.join(self.formatting))
 
     def characters(self, characters):
-        self.builder.append(characters if self.is_pre else trim(characters))
+        self.builder.append(characters if self.is_pre else _trim(characters))
 
     def startElementNS(self, name, _, attrs):
         if name[0] != XHTML_NS and not self.force_ns:
@@ -337,7 +337,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.attrs.append(attrs)
 
         if 'style' in attrs:
-            style = parse_css(attrs['style'])
+            style = _parse_css(attrs['style'])
             self.append_formatting(style)
 
         name = name[1]
@@ -368,9 +368,9 @@ class XHTMLHandler(sax.ContentHandler):
                 else:
                     builder.append('[file stored as %s]' % filename)
             else:
-                builder.append(trim(attrs['src']))
+                builder.append(_trim(attrs['src']))
             if 'alt' in attrs:
-                builder.append(' (%s)' % trim(attrs['alt']))
+                builder.append(' (%s)' % _trim(attrs['alt']))
         elif name == 'ul':
             self.list_state.append('ul')
         elif name == 'ol':
@@ -409,7 +409,7 @@ class XHTMLHandler(sax.ContentHandler):
                                if not x.startswith('\x19')]
             link_text = ''.join(text_elements).strip()
             if 'href' in attrs and attrs['href'] != link_text:
-                builder.append(' (%s)' % trim(attrs['href']))
+                builder.append(' (%s)' % _trim(attrs['href']))
         elif name == 'blockquote':
             builder.append('”')
         elif name in ('cite', 'em', 'strong'):
