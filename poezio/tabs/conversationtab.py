@@ -200,7 +200,7 @@ class ConversationTab(OneToOneTab):
         if resource:
             status = ('Status: %s' % resource.status) if resource.status else ''
             self._text_buffer.add_message("\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
-                'show': resource.show or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+                'show': resource.presence or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
         else:
             self._text_buffer.add_message("\x19%(info_col)s}No information available\x19o" % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
