@@ -6,7 +6,7 @@ import pytest
 import xml
 
 from poezio.xhtml import (poezio_colors_to_html, xhtml_to_poezio_colors,
-                   parse_css, clean_text)
+                   _parse_css as parse_css, clean_text)
 
 def test_clean_text():
     example_string = '\x191}Toto \x192,-1}titi\x19b Tata'
