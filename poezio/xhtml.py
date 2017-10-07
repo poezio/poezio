@@ -234,32 +234,33 @@ def ncurses_color_to_html(color):
         r = g = b = color / 24 * 6
     return '#%02X%02X%02X' % (int(r*256/6), int(g*256/6), int(b*256/6))
 
+def _parse_css_color(name):
+    if name[0] == '#':
+        name = name[1:]
+        length = len(name)
+        if length != 3 and length != 6:
+            return -1
+        value = int(name, 16)
+        if length == 6:
+            r = value >> 16
+            g = (value >> 8) & 0xff
+            b = value & 0xff
+            if r == g == b:
+                return int(232 + 0.0941 * r)
+            mult = 0.0235
+        else:
+            r = value >> 8
+            g = (value >> 4) & 0xf
+            b = value & 0xf
+            if r == g == b:
+                return int(232 + 1.54 * r)
+            mult = 0.3984
+        return 6*6*int(mult*r) + 6*int(mult*g) + int(mult*b) + 16
+    if name in colors:
+        return colors[name]
+    return -1
+
 def parse_css(css):
-    def get_color(value):
-        if value[0] == '#':
-            value = value[1:]
-            length = len(value)
-            if length != 3 and length != 6:
-                return -1
-            value = int(value, 16)
-            if length == 6:
-                r = int(value >> 16)
-                g = int((value >> 8) & 0xff)
-                b = int(value & 0xff)
-                if r == g == b:
-                    return 232 + int(r/10.6251)
-                div = 42.51
-            else:
-                r = int(value >> 8)
-                g = int((value >> 4) & 0xf)
-                b = int(value & 0xf)
-                if r == g == b:
-                    return 232 + int(1.54*r)
-                div = 2.51
-            return 6*6*int(r/div) + 6*int(g/div) + int(b/div) + 16
-        if value in colors:
-            return colors[value]
-        return -1
     shell = ''
     rules = css.split(';')
     for rule in rules:
@@ -271,7 +272,7 @@ def parse_css(css):
         if key == 'background-color':
             pass#shell += '\x191'
         elif key == 'color':
-            color = get_color(value)
+            color = _parse_css_color(value)
             if color != -1:
                 shell += '\x19%d}' % color
         elif key == 'font-style':
