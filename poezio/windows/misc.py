@@ -15,9 +15,6 @@ class VerticalSeparator(Win):
     Just a one-column window, with just a line in it, that is
     refreshed only on resize, but never on refresh, for efficiency
     """
-    def __init__(self):
-        Win.__init__(self)
-
     def rewrite_line(self):
         self._win.vline(0, 0, curses.ACS_VLINE, self.height,
                         to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))

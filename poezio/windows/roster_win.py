@@ -309,9 +309,6 @@ class RosterWin(Win):
         return None
 
 class ContactInfoWin(Win):
-    def __init__(self):
-        Win.__init__(self)
-
     def draw_contact_info(self, contact):
         """
         draw the contact information
