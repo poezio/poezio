@@ -58,7 +58,7 @@ class User(object):
         self.affiliation = affiliation
         self.show = show
         self.status = status
-        if role not in ROLE_DICT: # avoid unvalid roles
+        if role not in ROLE_DICT:  # avoid invalid roles
             role = ''
         self.role = role
 
