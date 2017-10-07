@@ -64,7 +64,7 @@ class ImageWin(Win):
         original_width = width
         size = self._compute_size(self._image.size, width, height)
         image2 = self._image.resize(size, resample=Image.BILINEAR)
-        data: bytes = image2.tobytes()
+        data = image2.tobytes()
         width, height = size
         start_y = (original_height - height // 2) // 2
         start_x = (original_width - width) // 2
