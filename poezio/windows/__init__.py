@@ -18,6 +18,7 @@ from poezio.windows.misc import VerticalSeparator
 from poezio.windows.muc import UserList, Topic
 from poezio.windows.roster_win import RosterWin, ContactInfoWin
 from poezio.windows.text_win import TextWin, XMLTextWin
+from poezio.windows.image import ImageWin
 
 __all__ = ['Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
            'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin',
@@ -26,4 +27,4 @@ __all__ = ['Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
            'BookmarksInfoWin', 'ConfirmStatusWin', 'HelpText', 'Input',
            'HistoryInput', 'MessageInput', 'CommandInput', 'ListWin',
            'ColumnHeaderWin', 'VerticalSeparator', 'UserList', 'Topic',
-           'RosterWin', 'ContactInfoWin', 'TextWin', 'XMLTextWin']
+           'RosterWin', 'ContactInfoWin', 'TextWin', 'XMLTextWin', 'ImageWin']
