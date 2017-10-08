@@ -37,6 +37,7 @@ Usage
 
 from poezio.plugin import BasePlugin
 from poezio import common
+import asyncio
 import subprocess
 
 class Plugin(BasePlugin):
@@ -45,6 +46,30 @@ class Plugin(BasePlugin):
                 usage='[-o|-O] <command>',
                 help='Execute a shell command and prints the result in the information buffer. The command should be ONE argument, that means it should be between \"\". The first argument (before the command) can be -o or -O. If -o is specified, it sends the result in the current conversation. If -O is specified, it sends the command and its result in the current conversation.\nExample: /exec -O \"uptime\" will send “uptime\n20:36:19 up  3:47,  4 users,  load average: 0.09, 0.13, 0.09” in the current conversation.',
                 short='Execute a command')
+
+    @asyncio.coroutine
+    def async_exec(self, command, arg):
+        create = asyncio.create_subprocess_exec('sh', '-c', command,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            process = yield from create
+        except OSError as e:
+            self.api.information('Failed to execute command: %s' % (e,), 'Error')
+            return
+        stdout, stderr = yield from process.communicate()
+        result = stdout.decode('utf-8')
+        stderr = stderr.decode('utf-8')
+        if arg == '-o':
+            if not self.api.send_message('%s' % (result,)):
+                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
+        elif arg == '-O':
+            if not self.api.send_message('%s:\n%s' % (command, result)):
+                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
+        else:
+            self.api.information('%s:\n%s' % (command, result), 'Info')
+        if stderr:
+            self.api.information('stderr for %s:\n%s' % (command, stderr), 'Info')
+        yield from process.wait()
 
     def command_exec(self, args):
         args = common.shell_split(args)
@@ -57,18 +82,4 @@ class Plugin(BasePlugin):
         else:
             self.api.run_command('/help exec')
             return
-        try:
-            process = subprocess.Popen(['sh', '-c', command], stdout=subprocess.PIPE)
-        except OSError as e:
-            self.api.information('Failed to execute command: %s' % (e,), 'Error')
-            return
-        result = process.communicate()[0].decode('utf-8')
-        if arg and arg == '-o':
-            if not self.api.send_message('%s' % (result,)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
-        elif arg and arg == '-O':
-            if not self.api.send_message('%s:\n%s' % (command, result)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
-        else:
-            self.api.information('%s:\n%s' % (command, result), 'Info')
-        return
+        asyncio.ensure_future(self.async_exec(command, arg))
