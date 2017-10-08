@@ -499,7 +499,7 @@ class RosterInfoTab(Tab):
                 contact_win_h = 0
             else:
                 display_contact_win = True
-                contact_win_h = 4
+                contact_win_h = 8
         if self.size.tab_degrade_y:
             tab_win_height = 0
         else:
