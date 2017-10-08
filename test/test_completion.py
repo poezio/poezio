@@ -145,7 +145,7 @@ def test_new_completion_quoted_random(input_obj, quoted_words):
 
     # generate the text which is supposed to be present in the input
     def f(p, i):
-        rep = words_l[letters[p]][i] if not ' ' in words_l[letters[p]][i] else '"'+words_l[letters[p]][i]+'"'
+        rep = words_l[letters[p]][i] if ' ' not in words_l[letters[p]][i] else '"'+words_l[letters[p]][i]+'"'
         fst = letters[1] if p != 1 else rep
         snd = letters[2] if p != 2 else rep
         trd = letters[3] if p != 3 else rep

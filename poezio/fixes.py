@@ -79,7 +79,7 @@ def _filter_add_receipt_request(self, stanza):
     if stanza['request_receipt']:
         return stanza
 
-    if not stanza['type'] in self.ack_types:
+    if stanza['type'] not in self.ack_types:
         return stanza
 
     if stanza['receipt']:

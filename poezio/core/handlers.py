@@ -1347,7 +1347,7 @@ class HandlerCore:
             return
         cert = config.get('certificate')
         # update the cert representation when it uses the old one
-        if cert and not ':' in cert:
+        if cert and ':' not in cert:
             cert = ':'.join(i + j for i, j in zip(cert[::2], cert[1::2])).upper()
             config.set_and_save('certificate', cert)
 

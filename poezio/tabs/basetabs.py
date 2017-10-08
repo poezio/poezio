@@ -143,7 +143,7 @@ class Tab(object):
 
     @state.setter
     def state(self, value):
-        if not value in STATE_COLORS:
+        if value not in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value not in ('current', 'disconnected') and \
@@ -325,12 +325,12 @@ class Tab(object):
 
     def update_commands(self):
         for c in self.plugin_commands:
-            if not c in self.commands:
+            if c not in self.commands:
                 self.commands[c] = self.plugin_commands[c]
 
     def update_keys(self):
         for k in self.plugin_keys:
-            if not k in self.key_func:
+            if k not in self.key_func:
                 self.key_func[k] = self.plugin_keys[k]
 
     def on_lose_focus(self):
@@ -858,10 +858,10 @@ class OneToOneTab(ChatTab):
 
     def _feature_correct(self, features):
         "Check for the 'correction' feature"
-        if not 'urn:xmpp:message-correct:0' in features:
+        if 'urn:xmpp:message-correct:0' not in features:
             if 'correct' in self.commands:
                 del self.commands['correct']
-        elif not 'correct' in self.commands:
+        elif 'correct' not in self.commands:
             self.register_command('correct', self.command_correct,
                     desc='Fix the last message with whatever you want.',
                     shortdesc='Correct the last message.',

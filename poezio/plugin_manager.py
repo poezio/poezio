@@ -164,7 +164,7 @@ class PluginManager(object):
         t = tab_type.__name__
         if name in tab_type.plugin_commands:
             return
-        if not t in commands:
+        if t not in commands:
             commands[t] = []
         commands[t].append((name, handler, help, completion))
         tab_type.plugin_commands[name] = Command(handler, help,
@@ -179,7 +179,7 @@ class PluginManager(object):
         """
         commands = self.tab_commands[module_name]
         t = tab_type.__name__
-        if not t in commands:
+        if t not in commands:
             return
         for command in commands[t]:
             if command[0] == name:
@@ -197,7 +197,7 @@ class PluginManager(object):
         t = tab_type.__name__
         if key in tab_type.plugin_keys:
             return
-        if not t in keys:
+        if t not in keys:
             keys[t] = []
         keys[t].append((key, handler))
         tab_type.plugin_keys[key] = handler
@@ -211,7 +211,7 @@ class PluginManager(object):
         """
         keys = self.tab_keys[module_name]
         t = tab_type.__name__
-        if not t in keys:
+        if t not in keys:
             return
         for _key in keys[t]:
             if _key[0] == key:

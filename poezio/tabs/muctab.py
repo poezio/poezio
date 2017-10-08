@@ -486,7 +486,7 @@ class MucTab(ChatTab):
         nick = args[0]
         color = args[1].lower()
         user = self.get_user_by_name(nick)
-        if not color in xhtml.colors and color not in ('unset', 'random'):
+        if color not in xhtml.colors and color not in ('unset', 'random'):
             return self.core.information("Unknown color: %s" % color, 'Error')
         if user and user.nick == self.own_nick:
             return self.core.information("You cannot change the color of your"

@@ -214,7 +214,7 @@ class Roster(object):
                 group.remove(contact)
 
         for group in contact.groups:
-            if not group in self.groups:
+            if group not in self.groups:
                 self.groups[group] = RosterGroup(group, folded=group in self.folded_groups)
                 self.groups[group].add(contact)
 

@@ -609,7 +609,7 @@ class RosterInfoTab(Tab):
                 return
         else:
             jid = safeJID(args[0]).bare
-            if not jid in [jid for jid in roster.jids()]:
+            if jid not in [jid for jid in roster.jids()]:
                 self.core.information('No subscription to deny', 'Warning')
                 return
 

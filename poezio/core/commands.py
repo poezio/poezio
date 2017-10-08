@@ -115,7 +115,7 @@ class CommandCore:
         if args is None:
             return self.help('status')
 
-        if not args[0] in POSSIBLE_SHOW.keys():
+        if args[0] not in POSSIBLE_SHOW.keys():
             return self.help('status')
 
         show = POSSIBLE_SHOW[args[0]]
@@ -562,7 +562,7 @@ class CommandCore:
                 if not section:
                     section = plugin_name
                 option = args[1]
-                if not plugin_name in self.core.plugin_manager.plugins:
+                if plugin_name not in self.core.plugin_manager.plugins:
                     file_name = self.core.plugin_manager.plugins_conf_dir
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
@@ -589,7 +589,7 @@ class CommandCore:
                     section = plugin_name
                 option = args[1]
                 value = args[2]
-                if not plugin_name in self.core.plugin_manager.plugins:
+                if plugin_name not in self.core.plugin_manager.plugins:
                     file_name = self.core.plugin_manager.plugins_conf_dir
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)

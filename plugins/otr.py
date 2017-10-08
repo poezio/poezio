@@ -544,7 +544,7 @@ class Plugin(BasePlugin):
         Retrieve or create an OTR context
         """
         jid = safeJID(jid)
-        if not jid.full in self.contexts:
+        if jid.full not in self.contexts:
             flags = POLICY_FLAGS.copy()
             require = self.config.get_by_tabname('require_encryption',
                                                  jid.bare, default=False)

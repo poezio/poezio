@@ -49,10 +49,10 @@ class Plugin(BasePlugin):
         self.tabs = {}
 
     def on_join(self, presence, tab):
-        if not tab in self.tabs:
+        if tab not in self.tabs:
             return
         nick = presence['from'].resource
-        if not nick in self.tabs[tab]:
+        if nick not in self.tabs[tab]:
             return
         for i in self.tabs[tab][nick]:
             tab.command_say("%s: %s" % (nick, i))
@@ -79,9 +79,9 @@ class Plugin(BasePlugin):
             return
         nick, msg = args
         tab = self.api.current_tab()
-        if not tab in self.tabs:
+        if tab not in self.tabs:
             self.tabs[tab] = {}
-        if not nick in self.tabs[tab]:
+        if nick not in self.tabs[tab]:
             self.tabs[tab][nick] = []
         self.tabs[tab][nick].append(msg)
         self.api.information('Message for %s queued' % nick, 'Info')
@@ -89,17 +89,17 @@ class Plugin(BasePlugin):
     def command_untell(self, args):
         """/untell <nick>"""
         tab = self.api.current_tab()
-        if not tab in self.tabs:
+        if tab not in self.tabs:
             return
         nick = args
-        if not nick in self.tabs[tab]:
+        if nick not in self.tabs[tab]:
             return
         del self.tabs[tab][nick]
         self.api.information('Messages for %s unqueued' % nick, 'Info')
 
     def completion_untell(self, the_input):
         tab = self.api.current_tab()
-        if not tab in self.tabs:
+        if tab not in self.tabs:
             return Completion(the_input.auto_completion, [], '')
         return Completion(the_input.auto_completion, list(self.tabs[tab]), '', quotify=False)
 

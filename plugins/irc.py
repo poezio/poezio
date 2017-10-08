@@ -355,12 +355,12 @@ class Plugin(BasePlugin):
             self.api.information('The current tab does not appear to be an IRC one', 'Warning')
             return None
         if isinstance(current, tabs.OneToOneTab):
-            if not '%' in current_jid.node:
+            if '%' not in current_jid.node:
                 server = current_jid.node
             else:
                 ignored, server = current_jid.node.rsplit('%', 1)
         elif isinstance(current, tabs.MucTab):
-            if not '%' in current_jid.node:
+            if '%' not in current_jid.node:
                 server = current_jid.node
             else:
                 ignored, server = current_jid.node.rsplit('%', 1)

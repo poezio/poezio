@@ -280,7 +280,7 @@ class Config(RawConfigParser):
         else:
             sections, result_lines = result
 
-        if not section in sections:
+        if section not in sections:
             result_lines.append('[%s]' % section)
             result_lines.append('%s = %s' % (option, value))
         else:
@@ -304,7 +304,7 @@ class Config(RawConfigParser):
         else:
             sections, result_lines = result
 
-        if not section in sections:
+        if section not in sections:
             log.error('Tried to remove the option %s from a non-'
                       'existing section (%s)', option, section)
             return True
