@@ -820,7 +820,7 @@ Options that change the behavior of poezio in a non-visual manner.
 
     beep_on
 
-        **Default value:** ``highlight private``
+        **Default value:** ``highlight private invite disconnect``
 
         The terminal can beep on various event. Put the event you want in a list
         (separated by spaces).

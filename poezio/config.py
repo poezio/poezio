@@ -32,7 +32,7 @@ DEFAULT_CONFIG = {
         'auto_reconnect': True,
         'autorejoin_delay': '5',
         'autorejoin': False,
-        'beep_on': 'highlight private invite',
+        'beep_on': 'highlight private invite disconnect',
         'ca_cert_path': '',
         'certificate': '',
         'certfile': '',

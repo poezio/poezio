@@ -1033,6 +1033,8 @@ class HandlerCore:
         """
         When we are disconnected from remote server
         """
+        if 'disconnect' in config.get('beep_on').split():
+            curses.beep()
         roster.connected = 0
         # Stop the ping plugin. It would try to send stanza on regular basis
         self.core.xmpp.plugin['xep_0199'].disable_keepalive()
