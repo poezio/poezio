@@ -365,7 +365,7 @@ class HandlerCore:
         try:
             metadata = msg['pubsub_event']['items']['item']['avatar_metadata']['items']
         except Exception:
-            log.exception('Failed getting metadata from 0084:')
+            log.debug('Failed getting metadata from 0084:', exc_info=True)
             return
         cache_dir = path.join(CACHE_DIR, 'avatars', jid)
         for info in metadata:
@@ -389,7 +389,7 @@ class HandlerCore:
                                                                                    timeout=60)
                     contact.avatar = result['pubsub']['items']['item']['avatar_data']['value']
                 except Exception:
-                    log.exception('Failed retrieving 0084 data from %s:', jid)
+                    log.debug('Failed retrieving 0084 data from %s:', jid, exc_info=True)
                     continue
                 log.debug('Received %s avatar: %s', jid, info['type'])
 
@@ -430,7 +430,7 @@ class HandlerCore:
             avatar = result['vcard_temp']['PHOTO']
             contact.avatar = avatar['BINVAL']
         except Exception:
-            log.exception('Failed retrieving vCard from %s:', jid)
+            log.debug('Failed retrieving vCard from %s:', jid, exc_info=True)
             return
         log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
 
