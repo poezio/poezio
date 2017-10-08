@@ -365,18 +365,42 @@ class HandlerCore:
         try:
             metadata = msg['pubsub_event']['items']['item']['avatar_metadata']['items']
         except Exception:
+            log.exception('Failed getting metadata from 0084:')
             return
+        cache_dir = path.join(CACHE_DIR, 'avatars', jid)
         for info in metadata:
+            avatar_hash = info['id']
+
+            # First check whether we have it in cache.
+            cached_path = path.join(cache_dir, avatar_hash)
+            try:
+                with open(cached_path, 'rb') as avatar_file:
+                    contact.avatar = avatar_file.read()
+                log.debug('Using cached avatar')
+                return
+            except OSError:
+                pass
+
+            # If we didn’t have any, query the data instead.
             if not info['url']:
                 try:
                     result = yield from self.core.xmpp['xep_0084'].retrieve_avatar(jid,
-                                                                                   info['id'],
+                                                                                   avatar_hash,
                                                                                    timeout=60)
                     contact.avatar = result['pubsub']['items']['item']['avatar_data']['value']
                 except Exception:
                     log.exception('Failed retrieving 0084 data from %s:', jid)
-                    return
+                    continue
                 log.debug('Received %s avatar: %s', jid, info['type'])
+
+                # Now we save the data on the file system to not have to request it again.
+                try:
+                    makedirs(cache_dir)
+                    with open(cached_path, 'wb') as avatar_file:
+                        avatar_file.write(contact.avatar)
+                except OSError:
+                    pass
+                return
 
     @asyncio.coroutine
     def on_vcard_avatar(self, pres):
