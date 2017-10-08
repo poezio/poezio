@@ -1312,7 +1312,10 @@ class HandlerCore:
     def _ssl_pop_tab(self, old_cert, new_cert):
         def cb(result):
             if result:
-                self.core.information('New certificate accepted.', 'Info')
+                self.core.information(
+                    'New certificate accepted:\nnew: %s\nold: %s' % (
+                        old_cert, new_cert),
+                    'Info')
                 log.debug('Setting certificate to %s', new_cert)
                 if not config.silent_set('certificate', new_cert):
                     self.core.information(
