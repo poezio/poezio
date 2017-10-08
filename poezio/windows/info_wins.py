@@ -165,8 +165,13 @@ class ConversationInfoWin(InfoWin):
         else:
             presence = resource.presence
         color = get_theme().color_show(presence)
+        if not presence:
+            presence = get_theme().CHAR_STATUS
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(get_theme().CHAR_STATUS, to_curses_attr(color))
+        self.addstr(presence, to_curses_attr(color))
+        if resource and resource.status:
+            shortened = resource.status[:20] + (resource.status[:20] and '..')
+            self.addstr(' %s' % shortened, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_information(self, contact):
