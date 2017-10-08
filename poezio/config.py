@@ -519,6 +519,7 @@ def check_create_cache_dir():
 
     try:
         makedirs(CACHE_DIR)
+        makedirs(path.join(CACHE_DIR, 'avatars'))
         makedirs(path.join(CACHE_DIR, 'images'))
     except OSError:
         pass

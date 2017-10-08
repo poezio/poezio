@@ -14,7 +14,7 @@ import sys
 import time
 from datetime import datetime
 from hashlib import sha1, sha512
-from os import path
+from os import path, makedirs
 
 from slixmpp import InvalidJID
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
@@ -384,7 +384,21 @@ class HandlerCore:
         contact = roster[jid]
         if not contact:
             return
-        log.debug('Received vCard avatar update from %s', jid)
+        avatar_hash = pres['vcard_temp_update']['photo']
+        log.debug('Received vCard avatar update from %s: %s', jid, avatar_hash)
+
+        # First check whether we have it in cache.
+        cache_dir = path.join(CACHE_DIR, 'avatars', jid)
+        cached_path = path.join(cache_dir, avatar_hash)
+        try:
+            with open(cached_path, 'rb') as avatar_file:
+                contact.avatar = avatar_file.read()
+            log.debug('Using cached avatar')
+            return
+        except OSError:
+            pass
+
+        # If we didn’t have any, query the vCard instead.
         try:
             result = yield from self.core.xmpp['xep_0054'].get_vcard(jid,
                                                                      cached=True,
@@ -395,6 +409,14 @@ class HandlerCore:
             log.exception('Failed retrieving vCard from %s:', jid)
             return
         log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
+
+        # Now we save the data on the file system to not have to request it again.
+        try:
+            makedirs(cache_dir)
+            with open(cached_path, 'wb') as avatar_file:
+                avatar_file.write(contact.avatar)
+        except OSError:
+            pass
 
     def on_nick_received(self, message):
         """
