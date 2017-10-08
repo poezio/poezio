@@ -120,6 +120,11 @@ class MucTab(ChatTab):
                 desc='Change the subject of the room.',
                 shortdesc='Change the subject.',
                 completion=self.completion_topic)
+        self.register_command('subject', self.command_topic,
+                usage='<subject>',
+                desc='Change the subject of the room.',
+                shortdesc='Change the subject.',
+                completion=self.completion_topic)
         self.register_command('query', self.command_query,
                 usage='<nick> [message]',
                 desc='Open a private conversation with <nick>. This nick'
