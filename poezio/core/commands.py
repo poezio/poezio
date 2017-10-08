@@ -861,7 +861,7 @@ class CommandCore:
         if args[1]:
             self.core.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
         else:
-            self.core.information('%s is now unbound' % args[0], 'Info')
+            self.core.information('%s is now reset to the default binding' % args[0], 'Info')
 
     @command_args_parser.raw
     def rawxml(self, args):
