@@ -324,9 +324,7 @@ class ConversationTab(OneToOneTab):
             self.state = 'normal'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        if (config.get_by_tabname('send_chat_states', self.general_jid)
-                and (not self.input.get_text()
-                    or not self.input.get_text().startswith('//'))):
+        if config.get_by_tabname('send_chat_states', self.general_jid):
             if resource:
                 self.send_chat_state('inactive')
         self.check_scrolled()

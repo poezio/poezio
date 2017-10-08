@@ -1035,8 +1035,7 @@ class MucTab(ChatTab):
             self.state = 'disconnected'
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        if (config.get_by_tabname('send_chat_states', self.general_jid) and
-                not self.input.get_text()):
+        if config.get_by_tabname('send_chat_states', self.general_jid):
             self.send_chat_state('inactive')
         self.check_scrolled()
 

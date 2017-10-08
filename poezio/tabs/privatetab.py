@@ -280,7 +280,7 @@ class PrivateTab(OneToOneTab):
         self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname('send_chat_states',
-                self.general_jid) and not self.input.get_text() and self.on:
+                self.general_jid) and self.on:
             self.send_chat_state('inactive')
         self.check_scrolled()
 
