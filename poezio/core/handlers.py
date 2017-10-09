@@ -13,9 +13,12 @@ import ssl
 import sys
 import time
 from datetime import datetime
-from hashlib import sha1, sha512
+from hashlib import sha256, sha512
 from os import path, makedirs
 
+import pyasn1.codec.der.decoder
+import pyasn1.codec.der.encoder
+import pyasn1_modules.rfc2459
 from slixmpp import InvalidJID
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
@@ -54,9 +57,9 @@ This can be part of a normal renewal process, but can also mean that \
 an attacker is performing a man-in-the-middle attack on your connection.
 When in doubt, check with your administrator using another channel.
 
-SHA-512 of the old certificate: %s
+SHA-256 of the old certificate (SPKI): %s
 
-SHA-512 of the new certificate: %s
+SHA-256 of the new certificate (SPKI): %s
 """
 
 HTTP_VERIF_TEXT = """
@@ -1357,24 +1360,26 @@ class HandlerCore:
             config.set_and_save('certificate', cert)
 
         der = ssl.PEM_cert_to_DER_cert(pem)
-        sha1_digest = sha1(der).hexdigest().upper()
-        sha1_found_cert = ':'.join(i + j for i, j in zip(sha1_digest[::2], sha1_digest[1::2]))
+        asn1 = pyasn1.codec.der.decoder.decode(der, asn1Spec=pyasn1_modules.rfc2459.Certificate())[0]
+        spki = asn1.getComponentByName("tbsCertificate").getComponentByName("subjectPublicKeyInfo")
+        spki_digest = sha256(pyasn1.codec.der.encoder.encode(spki)).hexdigest().upper()
+        spki_found_cert = ':'.join(i + j for i, j in zip(spki_digest[::2], spki_digest[1::2]))
         sha2_digest = sha512(der).hexdigest().upper()
         sha2_found_cert = ':'.join(i + j for i, j in zip(sha2_digest[::2], sha2_digest[1::2]))
 
         if cert:
-            if sha1_found_cert == cert:
-                log.debug('Current hash is SHA-1, moving to SHA-2 (%s)',
-                          sha2_found_cert)
-                config.set_and_save('certificate', sha2_found_cert)
+            if sha2_found_cert == cert:
+                log.debug('Current hash is cert hash, moving to SPKI hash (%s)',
+                          spki_found_cert)
+                config.set_and_save('certificate', spki_found_cert)
                 return
-            elif sha2_found_cert == cert:
+            elif spki_found_cert == cert:
                 return
             else:
-                self._ssl_pop_tab(cert, sha2_found_cert)
+                self._ssl_pop_tab(cert, spki_found_cert)
         else:
-            log.debug('First time. Setting certificate to %s', sha2_found_cert)
-            if not config.silent_set('certificate', sha2_found_cert):
+            log.debug('First time. Setting certificate to %s', spki_found_cert)
+            if not config.silent_set('certificate', spki_found_cert):
                 self.core.information('Unable to write in the config file', 'Error')
 
     def http_confirm(self, stanza):

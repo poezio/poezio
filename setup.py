@@ -106,7 +106,7 @@ setup(name="poezio",
                    ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG'])]
                   + find_doc('share/doc/poezio/source', 'source')
                   + find_doc('share/doc/poezio/html', 'build/html')),
-      install_requires=['slixmpp>=1.2.4', 'aiodns'],
+      install_requires=['slixmpp>=1.2.4', 'aiodns', 'pyasn1', 'pyasn1_modules'],
       extras_require={'OTR plugin': 'python-potr>=1.0',
                       'Screen autoaway plugin': 'pyinotify==0.9.4'})
 
