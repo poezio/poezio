@@ -27,7 +27,7 @@ class ImageWin(Win):
         self._resize(height, width, y, x)
         if self._image is None:
             return
-        _display_avatar(width, height)
+        self._display_avatar(width, height)
 
     def refresh(self, data):
         self._win.clear()
