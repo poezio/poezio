@@ -36,6 +36,7 @@ from poezio.core.structs import Completion, Status
 
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
+STATUS_XPATH = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
 
 
 class MucTab(ChatTab):
@@ -55,6 +56,7 @@ class MucTab(ChatTab):
         self.own_user = None
         self.name = jid
         self.password = password
+        self.presence_buffer = []
         self.users = []
         self.privates = [] # private conversations
         self.topic = ''
@@ -566,6 +568,7 @@ class MucTab(ChatTab):
                         current_status.show)
 
     def leave_room(self, message):
+        self.presence_buffer = []
         if self.joined:
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             char_quit = get_theme().CHAR_QUIT
@@ -1072,145 +1075,172 @@ class MucTab(ChatTab):
                                 0)
 
     def handle_presence(self, presence):
-        from_nick = presence['from'].resource
-        from_room = presence['from'].bare
-        xpath = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
+        """
+        Handle MUC presence
+        """
         status_codes = set()
-        for status_code in presence.xml.findall(xpath):
+        for status_code in presence.xml.findall(STATUS_XPATH):
             status_codes.add(status_code.attrib['code'])
-
-        # Check if it's not an error presence.
-        if presence['type'] == 'error':
-            return self.core.room_error(presence, from_room)
-        affiliation = presence['muc']['affiliation']
-        show = presence['show']
-        status = presence['status']
-        role = presence['muc']['role']
-        jid = presence['muc']['jid']
-        typ = presence['type']
-        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
-        if not self.joined:     # user in the room BEFORE us.
-            # ignore redondant presence message, see bug #1509
-            if (from_nick not in [user.nick for user in self.users]
-                    and typ != "unavailable"):
-                user_color = self.search_for_color(from_nick)
-                new_user = User(from_nick, affiliation, show,
-                                status, role, jid, deterministic, user_color)
-                bisect.insort_left(self.users, new_user)
-                self.core.events.trigger('muc_join', presence, self)
-                if '110' in status_codes or self.own_nick == from_nick:
-                    # second part of the condition is a workaround for old
-                    # ejabberd or every gateway in the world that just do
-                    # not send a 110 status code with the presence
-                    self.own_nick = from_nick
-                    self.own_user = new_user
-                    self.joined = True
-                    if self.name in self.core.initial_joins:
-                        self.core.initial_joins.remove(self.name)
-                        self._state = 'normal'
-                    elif self != self.core.current_tab():
-                        self._state = 'joined'
-                    if (self.core.current_tab() is self
-                            and self.core.status.show not in ('xa', 'away')):
-                        self.send_chat_state('active')
-                    new_user.color = get_theme().COLOR_OWN_NICK
-
-                    if config.get_by_tabname('display_user_color_in_join_part',
-                                             self.general_jid):
-                        color = dump_tuple(new_user.color)
-                    else:
-                        color = 3
-
-                    info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-                    warn_col = dump_tuple(get_theme().COLOR_WARNING_TEXT)
-                    spec_col = dump_tuple(get_theme().COLOR_JOIN_CHAR)
-                    enable_message = (
-                        '\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
-                        '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
-                        ' the room') % {
-                            'nick': from_nick,
-                            'spec': get_theme().CHAR_JOIN,
-                            'color_spec': spec_col,
-                            'nick_col': color,
-                            'info_col': info_col,
-                            }
-                    self.add_message(enable_message, typ=2)
-                    if '201' in status_codes:
-                        self.add_message(
-                                '\x19%(info_col)s}Info: The room '
-                                'has been created' %
-                                   {'info_col': info_col},
-                            typ=0)
-                    if '170' in status_codes:
-                        self.add_message(
-                                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                                ' This room is publicly logged' %
-                                    {'info_col': info_col,
-                                     'warn_col': warn_col},
-                            typ=0)
-                    if '100' in status_codes:
-                        self.add_message(
-                                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                                ' This room is not anonymous.' %
-                                    {'info_col': info_col,
-                                     'warn_col': warn_col},
-                            typ=0)
-                    if self.core.current_tab() is not self:
-                        self.refresh_tab_win()
-                        self.core.current_tab().input.refresh()
-                        self.core.doupdate()
-                    self.core.enable_private_tabs(self.name, enable_message)
-                    # Enable the self ping event, to regularly check if we
-                    # are still in the room.
-                    self.enable_self_ping_event()
-        else:
-            change_nick = '303' in status_codes
-            kick = '307' in status_codes and typ == 'unavailable'
-            ban = '301' in status_codes and typ == 'unavailable'
-            shutdown = '332' in status_codes and typ == 'unavailable'
-            non_member = '322' in status_codes and typ == 'unavailable'
-            user = self.get_user_by_name(from_nick)
-            # New user
-            if not user and typ != "unavailable":
-                user_color = self.search_for_color(from_nick)
-                self.core.events.trigger('muc_join', presence, self)
-                self.on_user_join(from_nick, affiliation, show, status, role,
-                                  jid, user_color)
-            # nick change
-            elif change_nick:
-                self.core.events.trigger('muc_nickchange', presence, self)
-                self.on_user_nick_change(presence, user, from_nick, from_room)
-            elif ban:
-                self.core.events.trigger('muc_ban', presence, self)
-                self.core.on_user_left_private_conversation(from_room,
-                                                            user, status)
-                self.on_user_banned(presence, user, from_nick)
-            # kick
-            elif kick:
-                self.core.events.trigger('muc_kick', presence, self)
-                self.core.on_user_left_private_conversation(from_room,
-                                                            user, status)
-                self.on_user_kicked(presence, user, from_nick)
-            elif shutdown:
-                self.core.events.trigger('muc_shutdown', presence, self)
-                self.on_muc_shutdown()
-            elif non_member:
-                self.core.events.trigger('muc_shutdown', presence, self)
-                self.on_non_member_kicked()
-            # user quit
-            elif typ == 'unavailable':
-                self.on_user_leave_groupchat(user, jid, status,
-                                             from_nick, from_room)
-            # status change
+        if not self.joined:
+            if '110' in status_codes:
+               self.process_presence_buffer(presence)
             else:
-                self.on_user_change_status(user, from_nick, from_room,
-                                           affiliation, role, show, status)
+                self.presence_buffer.append(presence)
+                return
+        else:
+            try:
+                self.handle_presence_joined(presence, status_codes)
+            except PresenceError:
+                self.core.room_error(presence, presence['from'].bare)
         if self.core.current_tab() is self:
             self.text_win.refresh()
             self.user_win.refresh_if_changed(self.users)
             self.info_header.refresh(self, self.text_win, user=self.own_user)
             self.input.refresh()
             self.core.doupdate()
+
+    def process_presence_buffer(self, last_presence):
+        """
+        Batch-process all the initial presences
+        """
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
+
+        for stanza in self.presence_buffer:
+            try:
+                self.handle_presence_unjoined(stanza, deterministic)
+            except PresenceError as e:
+                self.core.room_error(e.presence, e.presence['from'].bare)
+        self.handle_presence_unjoined(last_presence, deterministic, own=True)
+        self.users.sort()
+        # Enable the self ping event, to regularly check if we
+        # are still in the room.
+        self.enable_self_ping_event()
+        if self.core.current_tab() is not self:
+            self.refresh_tab_win()
+            self.core.current_tab().input.refresh()
+            self.core.doupdate()
+
+    def handle_presence_unjoined(self, presence, deterministic, own=False):
+        """
+        Presence received while we are not in the room (before code=110)
+        """
+        from_nick, from_room, affiliation, show, status, role, jid, typ = dissect_presence(presence)
+        user_color = self.search_for_color(from_nick)
+        new_user = User(from_nick, affiliation, show,
+                        status, role, jid, deterministic, user_color)
+        self.users.append(new_user)
+        self.core.events.trigger('muc_join', presence, self)
+        if own:
+            status_codes = set()
+            for status_code in presence.xml.findall(STATUS_XPATH):
+                status_codes.add(status_code.attrib['code'])
+            self.own_join(from_nick, new_user, status_codes)
+
+    def own_join(self, from_nick, new_user, status_codes):
+        """
+        Handle the last presence we received, entering the room
+        """
+        self.own_nick = from_nick
+        self.own_user = new_user
+        self.joined = True
+        if self.name in self.core.initial_joins:
+            self.core.initial_joins.remove(self.name)
+            self._state = 'normal'
+        elif self != self.core.current_tab():
+            self._state = 'joined'
+        if (self.core.current_tab() is self
+                and self.core.status.show not in ('xa', 'away')):
+            self.send_chat_state('active')
+        new_user.color = get_theme().COLOR_OWN_NICK
+
+        if config.get_by_tabname('display_user_color_in_join_part',
+                                 self.general_jid):
+            color = dump_tuple(new_user.color)
+        else:
+            color = 3
+
+        info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        warn_col = dump_tuple(get_theme().COLOR_WARNING_TEXT)
+        spec_col = dump_tuple(get_theme().COLOR_JOIN_CHAR)
+        enable_message = (
+            '\x19%(color_spec)s}%(spec)s\x19%(info_col)s} You '
+            '(\x19%(nick_col)s}%(nick)s\x19%(info_col)s}) joined'
+            ' the room') % {
+                'nick': from_nick,
+                'spec': get_theme().CHAR_JOIN,
+                'color_spec': spec_col,
+                'nick_col': color,
+                'info_col': info_col,
+                }
+        self.add_message(enable_message, typ=2)
+        self.core.enable_private_tabs(self.name, enable_message)
+        if '201' in status_codes:
+            self.add_message(
+                    '\x19%(info_col)s}Info: The room '
+                    'has been created' %
+                       {'info_col': info_col},
+                typ=0)
+        if '170' in status_codes:
+            self.add_message(
+                    '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                    ' This room is publicly logged' %
+                        {'info_col': info_col,
+                         'warn_col': warn_col},
+                typ=0)
+        if '100' in status_codes:
+            self.add_message(
+                    '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                    ' This room is not anonymous.' %
+                        {'info_col': info_col,
+                         'warn_col': warn_col},
+                typ=0)
+
+    def handle_presence_joined(self, presence, status_codes):
+        """
+        Handle new presences when we are already in the room
+        """
+        from_nick, from_room, affiliation, show, status, role, jid, typ = dissect_presence(presence)
+        change_nick = '303' in status_codes
+        kick = '307' in status_codes and typ == 'unavailable'
+        ban = '301' in status_codes and typ == 'unavailable'
+        shutdown = '332' in status_codes and typ == 'unavailable'
+        non_member = '322' in status_codes and typ == 'unavailable'
+        user = self.get_user_by_name(from_nick)
+        # New user
+        if not user and typ != "unavailable":
+            user_color = self.search_for_color(from_nick)
+            self.core.events.trigger('muc_join', presence, self)
+            self.on_user_join(from_nick, affiliation, show, status, role,
+                              jid, user_color)
+        # nick change
+        elif change_nick:
+            self.core.events.trigger('muc_nickchange', presence, self)
+            self.on_user_nick_change(presence, user, from_nick, from_room)
+        elif ban:
+            self.core.events.trigger('muc_ban', presence, self)
+            self.core.on_user_left_private_conversation(from_room,
+                                                        user, status)
+            self.on_user_banned(presence, user, from_nick)
+        # kick
+        elif kick:
+            self.core.events.trigger('muc_kick', presence, self)
+            self.core.on_user_left_private_conversation(from_room,
+                                                        user, status)
+            self.on_user_kicked(presence, user, from_nick)
+        elif shutdown:
+            self.core.events.trigger('muc_shutdown', presence, self)
+            self.on_muc_shutdown()
+        elif non_member:
+            self.core.events.trigger('muc_shutdown', presence, self)
+            self.on_non_member_kicked()
+        # user quit
+        elif typ == 'unavailable':
+            self.on_user_leave_groupchat(user, jid, status,
+                                         from_nick, from_room)
+        # status change
+        else:
+            self.on_user_change_status(user, from_nick, from_room,
+                                       affiliation, role, show, status)
 
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
@@ -1727,3 +1757,22 @@ class MucTab(ChatTab):
     def on_self_ping_failed(self, iq):
         self.command_cycle("the MUC server is not responding")
         self.core.refresh_window()
+
+class PresenceError(Exception): pass
+
+def dissect_presence(presence):
+    """
+    Extract relevant information from a presence
+    """
+    from_nick = presence['from'].resource
+    from_room = presence['from'].bare
+    # Check if it's not an error presence.
+    if presence['type'] == 'error':
+        raise PresenceError(presence)
+    affiliation = presence['muc']['affiliation']
+    show = presence['show']
+    status = presence['status']
+    role = presence['muc']['role']
+    jid = presence['muc']['jid']
+    typ = presence['type']
+    return from_nick, from_room, affiliation, show, status, role, jid, typ
