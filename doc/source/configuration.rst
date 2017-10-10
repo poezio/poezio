@@ -290,6 +290,13 @@ to understand what is :ref:`carbons <carbons-details>` or
 .. glossary::
     :sorted:
 
+
+    enable_avatars
+
+        **Default value:** ``true``
+
+        Display contact avatars in the roster.
+
     enable_carbons
 
         **Default value:** ``true``
