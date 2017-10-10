@@ -1212,7 +1212,9 @@ class MucTab(ChatTab):
             self.core.events.trigger('muc_join', presence, self)
             self.on_user_join(from_nick, affiliation, show, status, role,
                               jid, user_color)
-        # nick change
+        elif user is None:
+            log.error('BUG: User %s in %s is None', from_nick, self.name)
+            return
         elif change_nick:
             self.core.events.trigger('muc_nickchange', presence, self)
             self.on_user_nick_change(presence, user, from_nick, from_room)
@@ -1221,7 +1223,6 @@ class MucTab(ChatTab):
             self.core.on_user_left_private_conversation(from_room,
                                                         user, status)
             self.on_user_banned(presence, user, from_nick)
-        # kick
         elif kick:
             self.core.events.trigger('muc_kick', presence, self)
             self.core.on_user_left_private_conversation(from_room,
