@@ -293,7 +293,7 @@ to understand what is :ref:`carbons <carbons-details>` or
 
     enable_avatars
 
-        **Default value:** ``true``
+        **Default value:** ``false``
 
         Display contact avatars in the roster.
 

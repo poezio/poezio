@@ -50,7 +50,7 @@ DEFAULT_CONFIG = {
         'display_mood_notifications': False,
         'display_tune_notifications': False,
         'display_user_color_in_join_part': True,
-        'enable_avatars': True,
+        'enable_avatars': False,
         'enable_carbons': True,
         'enable_user_activity': True,
         'enable_user_gaming': True,
