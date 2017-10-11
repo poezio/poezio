@@ -66,13 +66,15 @@ class ConversationTab(OneToOneTab):
                      ' allow you to see his presence, and allow them to'
                      ' see your presence.',
                 shortdesc='Add a user to your roster.')
-        self.resize()
         self.update_commands()
         self.update_keys()
 
     @property
     def general_jid(self):
         return safeJID(self.name).bare
+
+    def get_info_header(self):
+        raise NotImplementedError
 
     @staticmethod
     def add_information_element(plugin_name, callback):
@@ -383,10 +385,14 @@ class DynamicConversationTab(ConversationTab):
         self.name = safeJID(jid).bare
         if resource:
             self.lock(resource)
-        self.info_header = windows.DynamicConversationInfoWin()
         ConversationTab.__init__(self, core, jid)
+        self.info_header = windows.DynamicConversationInfoWin()
         self.register_command('unlock', self.unlock_command,
                 shortdesc='Unlock the conversation from a particular resource.')
+        self.resize()
+
+    def get_info_header(self):
+        return self.info_header
 
     def lock(self, resource):
         """
@@ -486,6 +492,9 @@ class StaticConversationTab(ConversationTab):
     """
     def __init__(self, core, jid):
         assert(safeJID(jid).resource)
-        self.info_header = windows.ConversationInfoWin()
         ConversationTab.__init__(self, core, jid)
+        self.info_header = windows.ConversationInfoWin()
+        self.resize()
 
+    def get_info_header(self):
+        return self.info_header
