@@ -52,10 +52,7 @@ class PluginManager(object):
 
     def disable_plugins(self):
         for plugin in set(self.plugins.keys()):
-            try:
-                self.unload(plugin, notify=False)
-            except:
-                pass
+            self.unload(plugin, notify=False)
 
     def load(self, name, notify=True):
         """

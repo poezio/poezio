@@ -26,6 +26,7 @@ from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
 from poezio.roster import roster
+from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
@@ -116,7 +117,7 @@ class ConversationTab(OneToOneTab):
                     self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
                             nickname=self.core.own_nick)
                     replaced = True
-                except:
+                except CorrectionError:
                     log.error('Unable to correct a message', exc_info=True)
         else:
             del msg['replace']

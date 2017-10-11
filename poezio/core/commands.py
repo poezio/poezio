@@ -9,6 +9,8 @@ log = logging.getLogger(__name__)
 import os
 from xml.etree import cElementTree as ET
 
+from slixmpp.exceptions import XMPPError
+from slixmpp.xmlstream.xmlstream import NotConnectedError
 from slixmpp.xmlstream.stanzabase import StanzaBase
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
@@ -157,7 +159,7 @@ class CommandCore:
             pres = self.core.xmpp.make_presence(pto=jid, ptype=ptype, pstatus=status)
             self.core.events.trigger('send_normal_presence', pres)
             pres.send()
-        except:
+        except (XMPPError, NotConnectedError):
             self.core.information('Could not send directed presence', 'Error')
             log.debug('Could not send directed presence to %s', jid, exc_info=True)
             return

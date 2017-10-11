@@ -55,7 +55,7 @@ class CompletionCore:
         themes_dir = os.path.expanduser(themes_dir)
         try:
             names = os.listdir(themes_dir)
-        except OSError as e:
+        except OSError:
             log.error('Completion for /theme failed', exc_info=True)
             return False
         theme_files = [name[:-3] for name in names if name.endswith('.py') and name != '__init__.py']

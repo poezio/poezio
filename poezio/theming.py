@@ -487,7 +487,7 @@ def update_themes_dir(option=None, value=None):
     # system-wide import
     try:
         import poezio_themes
-    except:
+    except ImportError:
         pass
     else:
         if poezio_themes.__path__:

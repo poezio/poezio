@@ -116,7 +116,7 @@ class Plugin(BasePlugin):
     def command_done(self, arg="0"):
         try:
             id_ = int(arg)
-        except:
+        except ValueError:
             return
         if id_ not in self.tasks:
             return
