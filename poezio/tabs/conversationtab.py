@@ -263,7 +263,7 @@ class ConversationTab(OneToOneTab):
         self.text_win.rebuild_everything(self._text_buffer)
         if display_bar:
             self.upper_bar.resize(1, self.width, 0, 0)
-        self.info_header.resize(1, self.width,
+        self.get_info_header().resize(1, self.width,
                                 self.height - 2 - info_win_height
                                     - tab_win_height,
                                 0)
@@ -279,7 +279,7 @@ class ConversationTab(OneToOneTab):
 
         if display_bar:
             self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
-        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_information)
+        self.get_info_header().refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_information)
 
         if display_info_win:
             self.info_win.refresh()
@@ -287,7 +287,7 @@ class ConversationTab(OneToOneTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.get_dest_jid(), roster[self.get_dest_jid()],
+        self.get_info_header().refresh(self.get_dest_jid(), roster[self.get_dest_jid()],
                 self.text_win, self.chatstate, ConversationTab.additional_information)
         self.input.refresh()
 
@@ -354,7 +354,7 @@ class ConversationTab(OneToOneTab):
         if self.core.information_win_size >= self.height-3:
             return
         self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.get_info_header().resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
 
     def get_text_window(self):
         return self.text_win
@@ -464,7 +464,7 @@ class DynamicConversationTab(ConversationTab):
             displayed_jid = "%s/%s" % (self.name, self.locked_resource)
         else:
             displayed_jid = self.name
-        self.info_header.refresh(displayed_jid, roster[self.name],
+        self.get_info_header().refresh(displayed_jid, roster[self.name],
                                  self.text_win, self.chatstate,
                                  ConversationTab.additional_information)
         if display_info_win:
@@ -481,7 +481,7 @@ class DynamicConversationTab(ConversationTab):
             displayed_jid = "%s/%s" % (self.name, self.locked_resource)
         else:
             displayed_jid = self.name
-        self.info_header.refresh(displayed_jid, roster[self.name],
+        self.get_info_header().refresh(displayed_jid, roster[self.name],
                 self.text_win, self.chatstate, ConversationTab.additional_information)
         self.input.refresh()
 
