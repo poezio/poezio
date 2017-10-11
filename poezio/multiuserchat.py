@@ -14,6 +14,7 @@ slix plugin
 from xml.etree import cElementTree as ET
 
 from poezio.common import safeJID
+from slixmpp.exceptions import IqError, IqTimeout
 import logging
 log = logging.getLogger(__name__)
 
@@ -144,7 +145,7 @@ def set_user_role(xmpp, jid, nick, reason, role, callback=None):
         return iq.send(callback=callback)
     try:
         return iq.send()
-    except Exception as e:
+    except (IqError, IqTimeout) as e:
         return e.iq
 
 def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason=None, callback=None):
