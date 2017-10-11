@@ -104,6 +104,7 @@ def cut_text(string: str, width: int) -> List[Tuple[int, int]]:
 
         # This is one condition to end the line: an explicit \n is found
         if wc == '\n':
+            spos += 1
             retlist.append((start_pos, spos))
 
             # And then initiate a new line
