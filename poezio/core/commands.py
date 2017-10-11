@@ -210,7 +210,10 @@ class CommandCore:
             self.core.current_tab_nb = number
         else:
             matchs = []
-            for tab in self.core.tabs:
+            target_tabs = self.core.tabs[self.core.current_tab_nb+1:]
+            if not target_tabs:
+                target_tabs = self.core.tabs
+            for tab in target_tabs:
                 for tab_name in tab.matching_names():
                     if tab_name[1] and name in tab_name[1].lower():
                         matchs.append((tab_name[0], tab))
