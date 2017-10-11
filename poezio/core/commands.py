@@ -978,14 +978,14 @@ class CommandCore:
                                                        callback=cb)
 
     @command_args_parser.ignored
-    def self(self_):
+    def self_(self):
         """
         /self
         """
-        status = self_.core.get_status()
+        status = self.core.get_status()
         show, message = status.show, status.message
-        nick = self_.core.own_nick
-        jid = self_.core.xmpp.boundjid.full
+        nick = self.core.own_nick
+        jid = self.core.xmpp.boundjid.full
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
                 '\nYour default nickname is %s\nYou are running poezio %s' % (
                 jid,
@@ -993,7 +993,7 @@ class CommandCore:
                 show if show else 'available',
                 nick,
                 config_opts.version))
-        self_.core.information(info, 'Info')
+        self.core.information(info, 'Info')
 
 
     @command_args_parser.ignored

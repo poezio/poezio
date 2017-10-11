@@ -1922,7 +1922,7 @@ class Core(object):
                 usage='<key>',
                 shortdesc='Execute the action defined for <key>.',
                 completion=self.completion.runkey)
-        self.register_command('self', self.command.self,
+        self.register_command('self', self.command.self_,
                 shortdesc='Remind you of who you are.')
         self.register_command('last_activity', self.command.last_activity,
                 usage='<jid>',
