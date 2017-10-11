@@ -16,6 +16,7 @@ from poezio.windows.funcs import find_first_format_char
 from poezio.config import config
 from poezio.theming import to_curses_attr
 
+DEFAULT_ON_INPUT = lambda x: None
 
 class Input(Win):
     """
@@ -66,7 +67,7 @@ class Input(Win):
         self.view_pos = 0  # The position (in the text) of the
                            # first character displayed on the
                            # screen
-        self.on_input = None # callback called on any key pressed
+        self.on_input = DEFAULT_ON_INPUT # callback called on any key pressed
         self.color = None    # use this color on addstr
 
     def on_delete(self):
@@ -427,7 +428,7 @@ class Input(Win):
     def do_command(self, key, reset=True, raw=False):
         if key in self.key_func:
             res = self.key_func[key]()
-            if not raw and self.on_input:
+            if not raw and self.on_input is not DEFAULT_ON_INPUT:
                 self.on_input(self.get_text())
             return res
         if not raw and (not key or len(key) > 1):
@@ -439,7 +440,7 @@ class Input(Win):
         self.pos += len(key)
         if reset:
             self.rewrite_text()
-        if self.on_input:
+        if self.on_input is not DEFAULT_ON_INPUT:
             self.on_input(self.get_text())
 
         return True
@@ -693,7 +694,10 @@ class CommandInput(HistoryInput):
         HistoryInput.__init__(self)
         self.on_abort = on_abort
         self.on_success = on_success
-        self.on_input = on_input
+        if on_input:
+            self.on_input = on_input
+        else:
+            self.on_input = DEFAULT_ON_INPUT
         self.help_message = help_message
         self.key_func['^M'] = self.success
         self.key_func['^G'] = self.abort
@@ -705,7 +709,7 @@ class CommandInput(HistoryInput):
 
     def do_command(self, key, reset=True, raw=False):
         res = Input.do_command(self, key, reset=reset, raw=raw)
-        if self.on_input:
+        if self.on_input is not DEFAULT_ON_INPUT:
             self.on_input(self.get_text())
         return res
 
@@ -726,7 +730,7 @@ class CommandInput(HistoryInput):
         """
         call the success callback, passing the text as argument
         """
-        self.on_input = None
+        self.on_input = DEFAULT_ON_INPUT
         if self.search:
             self.history_enter()
         res = self.on_success(self.get_text())
@@ -736,7 +740,7 @@ class CommandInput(HistoryInput):
         """
         Call the abort callback, passing the text as argument
         """
-        self.on_input = None
+        self.on_input = DEFAULT_ON_INPUT
         return self.on_abort(self.get_text())
 
     def on_delete(self):
@@ -752,7 +756,7 @@ class CommandInput(HistoryInput):
         """
         self.on_abort = None
         self.on_success = None
-        self.on_input = None
+        self.on_input = DEFAULT_ON_INPUT
         self.key_func.clear()
 
     def key_enter(self):
