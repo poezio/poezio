@@ -1108,8 +1108,8 @@ class MucTab(ChatTab):
         for stanza in self.presence_buffer:
             try:
                 self.handle_presence_unjoined(stanza, deterministic)
-            except PresenceError as e:
-                self.core.room_error(e.presence, e.presence['from'].bare)
+            except PresenceError:
+                self.core.room_error(stanza, stanza['from'].bare)
         self.handle_presence_unjoined(last_presence, deterministic, own=True)
         self.users.sort()
         # Enable the self ping event, to regularly check if we
