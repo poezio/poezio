@@ -261,7 +261,7 @@ class Logger(object):
         else:
             try:
                 fd.flush()          # TODO do something better here?
-            except:
+            except OSError:
                 log.error('Unable to flush the log file (%s)',
                         os.path.join(log_dir, jid),
                         exc_info=True)

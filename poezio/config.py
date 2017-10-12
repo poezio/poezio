@@ -360,7 +360,7 @@ class Config(RawConfigParser):
             try:
                 with open(self.file_name, 'r', encoding='utf-8') as df:
                     lines_before = [line.strip() for line in df]
-            except:
+            except OSError:
                 log.error('Unable to read the config file %s',
                         self.file_name,
                         exc_info=True)

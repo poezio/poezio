@@ -172,8 +172,7 @@ def set_user_affiliation(xmpp, muc_jid, affiliation, nick=None, jid=None, reason
     try:
         return xmpp.plugin['xep_0045'].set_affiliation(str(muc_jid), str(jid) if jid else None, nick, affiliation)
     except:
-        import traceback
-        log.debug('Error setting the affiliation: %s', traceback.format_exc())
+        log.debug('Error setting the affiliation: %s', exc_info=True)
         return False
 
 def cancel_config(xmpp, room):

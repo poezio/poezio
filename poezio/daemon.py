@@ -57,7 +57,7 @@ class Executor(threading.Thread):
         if self.filename:
             try:
                 stdout = open(self.filename, self.redirection_mode)
-            except (OSError, IOError):
+            except OSError:
                 log.error('Could not open redirection file: %s', self.filename, exc_info=True)
                 return
         try:

@@ -266,17 +266,13 @@ class PluginManager(object):
         completion function that completes the name of the plugins, from
         all .py files in plugins_dir
         """
-        try:
-            names = set()
-            for path_ in self.load_path:
-                try:
-                    add = set(os.listdir(path_))
-                    names |= add
-                except:
-                    pass
-        except OSError as e:
-            self.core.information('Completion failed: %s' % e, 'Error')
-            return False
+        names = set()
+        for path_ in self.load_path:
+            try:
+                add = set(os.listdir(path_))
+                names |= add
+            except OSError:
+                pass
         plugins_files = [name[:-3] for name in names if name.endswith('.py')
                 and name != '__init__.py' and not name.startswith('.')]
         plugins_files.sort()
