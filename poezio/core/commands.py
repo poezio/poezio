@@ -211,19 +211,17 @@ class CommandCore:
                 return
             self.core.current_tab_nb = number
         else:
-            matchs = []
-            target_tabs = self.core.tabs[self.core.current_tab_nb+1:]
-            if not target_tabs:
-                target_tabs = self.core.tabs
+            match = None
+            target_tabs = self.core.tabs[self.core.current_tab_nb+1:] \
+                + self.core.tabs[:self.core.current_tab_nb]
             for tab in target_tabs:
                 for tab_name in tab.matching_names():
                     if tab_name[1] and name in tab_name[1].lower():
-                        matchs.append((tab_name[0], tab))
-            if not matchs:
+                        match = tab
+            if match is None:
                 self.core.previous_tab_nb = prev_nb
                 return
-            tab = min(matchs, key=lambda m: m[0])[1]
-            self.core.current_tab_nb = tab.nb
+            self.core.current_tab_nb = match.nb
         old_tab.on_lose_focus()
         self.core.current_tab().on_gain_focus()
         self.core.refresh_window()
