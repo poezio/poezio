@@ -218,6 +218,9 @@ class CommandCore:
                 for tab_name in tab.matching_names():
                     if tab_name[1] and name in tab_name[1].lower():
                         match = tab
+                        break
+                if match:
+                    break
             if match is None:
                 self.core.previous_tab_nb = prev_nb
                 return
