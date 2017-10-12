@@ -431,17 +431,20 @@ class ChatTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
+    message_type = 'chat'
     def __init__(self, core, jid=''):
         Tab.__init__(self, core)
         self.name = jid
         self.text_win = None
+        self.remote_wants_chatstates = False
+        self.directed_presence = None
         self._text_buffer = TextBuffer()
         self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
         self.timed_event_paused = None
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
-        self.last_sent_message = None
+        self.last_sent_message = {}
         self.key_func['M-v'] = self.move_separator
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
@@ -473,6 +476,10 @@ class ChatTab(Tab):
     @property
     def is_muc(self):
         return False
+
+    @property
+    def general_jid(self):
+        return NotImplementedError
 
     def load_logs(self, log_nb):
         logs = logger.get_logs(safeJID(self.name).bare, log_nb)
@@ -573,11 +580,15 @@ class ChatTab(Tab):
         self._text_buffer.messages = []
         self.text_win.rebuild_everything(self._text_buffer)
 
+    def check_send_chat_state(self):
+        "If we should send a chat state"
+        return True
+
     def send_chat_state(self, state, always_send=False):
         """
         Send an empty chatstate message
         """
-        if not self.is_muc or self.joined:
+        if self.check_send_chat_state():
             if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
                 return
             if (config.get_by_tabname('send_chat_states', self.general_jid)

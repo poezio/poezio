@@ -22,15 +22,9 @@ class FieldInput(object):
         self._field = field
         self.color = get_theme().COLOR_NORMAL_TEXT
 
-    def set_color(self, color):
-        self.color = color
-        self.refresh()
-
     def update_field_value(self, value):
         raise NotImplementedError
 
-    def resize(self, height, width, y, x):
-        self._resize(height, width, y, x)
 
     def is_dummy(self):
         return False
@@ -47,6 +41,20 @@ class FieldInput(object):
         Will be displayed at each refresh on a line at the bottom of the tab.
         """
         return ''
+
+class FieldInputMixin(FieldInput, Win):
+    "Mix both FieldInput and Win"
+    def __init__(self, field):
+        FieldInput.__init__(self, field)
+        Win.__init__(self)
+
+    def resize(self, height, width, y, x):
+        self._resize(height, width, y, x)
+
+    def set_color(self, color):
+        self.color = color
+        self.refresh()
+
 
 class ColoredLabel(Win):
     def __init__(self, text):
@@ -69,13 +77,12 @@ class ColoredLabel(Win):
         self._refresh()
 
 
-class DummyInput(FieldInput, Win):
+class DummyInput(FieldInputMixin):
     """
     Used for fields that do not require any input ('fixed')
     """
     def __init__(self, field):
-        FieldInput.__init__(self, field)
-        Win.__init__(self)
+        FieldInputMixin.__init__(self, field)
 
     def do_command(self, *args, **kwargs):
         return
@@ -86,10 +93,9 @@ class DummyInput(FieldInput, Win):
     def is_dummy(self):
         return True
 
-class BooleanWin(FieldInput, Win):
+class BooleanWin(FieldInputMixin):
     def __init__(self, field):
-        FieldInput.__init__(self, field)
-        Win.__init__(self)
+        FieldInputMixin.__init__(self, field)
         self.last_key = 'KEY_RIGHT'
         self.value = bool(field.get_value())
 
@@ -120,10 +126,9 @@ class BooleanWin(FieldInput, Win):
     def get_help_message(self):
         return '← and →: change the value between True and False'
 
-class TextMultiWin(FieldInput, Win):
+class TextMultiWin(FieldInputMixin):
     def __init__(self, field):
-        FieldInput.__init__(self, field)
-        Win.__init__(self)
+        FieldInputMixin.__init__(self, field)
         options = field.get_value()
         if isinstance(options, list):
             self.options = options
@@ -197,10 +202,9 @@ class TextMultiWin(FieldInput, Win):
             help_msg = 'Enter: finish editing this entry.'
         return help_msg
 
-class ListMultiWin(FieldInput, Win):
+class ListMultiWin(FieldInputMixin):
     def __init__(self, field):
-        FieldInput.__init__(self, field)
-        Win.__init__(self)
+        FieldInputMixin.__init__(self, field)
         values = field.get_value() or []
         self.options = [[option, True if option['value'] in values else False]\
                         for option in field.get_options()]
@@ -243,10 +247,9 @@ class ListMultiWin(FieldInput, Win):
     def get_help_message(self):
         return '←, →: Switch between the value. Space: select or unselect a value'
 
-class ListSingleWin(FieldInput, Win):
+class ListSingleWin(FieldInputMixin):
     def __init__(self, field):
-        FieldInput.__init__(self, field)
-        Win.__init__(self)
+        FieldInputMixin.__init__(self, field)
         # the option list never changes
         self.options = field.get_options()
         # val_pos is the position of the currently selected option
@@ -288,9 +291,9 @@ class ListSingleWin(FieldInput, Win):
     def get_help_message(self):
         return '←, →: Select a value amongst the others'
 
-class TextSingleWin(FieldInput, Input):
+class TextSingleWin(FieldInputMixin, Input):
     def __init__(self, field):
-        FieldInput.__init__(self, field)
+        FieldInputMixin.__init__(self, field)
         Input.__init__(self)
         self.text = field.get_value() if isinstance(field.get_value(), str)\
             else ""

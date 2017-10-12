@@ -208,6 +208,10 @@ class MucTab(ChatTab):
     def is_muc(self):
         return True
 
+    def check_send_chat_state(self):
+        "If we should send a chat state"
+        return self.joined
+
     @property
     def last_connection(self):
         last_message = self._text_buffer.last_message
