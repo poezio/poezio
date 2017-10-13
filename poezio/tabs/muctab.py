@@ -572,7 +572,6 @@ class MucTab(ChatTab):
                         current_status.show)
 
     def leave_room(self, message):
-        self.presence_buffer = []
         if self.joined:
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             char_quit = get_theme().CHAR_QUIT
@@ -1595,6 +1594,7 @@ class MucTab(ChatTab):
         Set the state of the room as not joined, so
         we can know if we can join it, send messages to it, etc
         """
+        self.presence_buffer = []
         self.users = []
         if self is not self.core.current_tab():
             self.state = 'disconnected'
