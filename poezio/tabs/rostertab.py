@@ -1239,7 +1239,7 @@ class RosterInfoTab(Tab):
     @refresh_wrapper.always
     def on_search_terminate(self, txt):
         curses.curs_set(0)
-        roster.contact_filter = None
+        roster.contact_filter = roster.DEFAULT_FILTER
         self.reset_help_message()
         roster.modified()
         return True

@@ -93,25 +93,25 @@ class RosterWin(Win):
             return
         log.debug('The roster has changed, rebuilding the cache…')
         # This is a search
-        if roster.contact_filter:
+        if roster.contact_filter is not roster.DEFAULT_FILTER:
             self.roster_cache = []
             sort = config.get('roster_sort', 'jid:show') or 'jid:show'
             for contact in roster.get_contacts_sorted_filtered(sort):
                 self.roster_cache.append(contact)
         else:
-            show_offline = config.get('roster_show_offline') or roster.contact_filter
+            show_offline = config.get('roster_show_offline')
             sort = config.get('roster_sort') or 'jid:show'
             group_sort = config.get('roster_group_sort') or 'name'
             self.roster_cache = []
             # build the cache
             for group in roster.get_groups(group_sort):
-                contacts_filtered = group.get_contacts(roster.contact_filter)
+                contacts_filtered = group.get_contacts()
                 if (not show_offline and group.get_nb_connected_contacts() == 0) or not contacts_filtered:
                     continue    # Ignore empty groups
                 self.roster_cache.append(group)
                 if group.folded:
                     continue # ignore folded groups
-                for contact in group.get_contacts(roster.contact_filter, sort):
+                for contact in group.get_contacts(sort=sort):
                     if not show_offline and len(contact) == 0:
                         continue # ignore offline contacts
                     self.roster_cache.append(contact)

@@ -21,21 +21,22 @@ from datetime import datetime
 from poezio.common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
 
-
 class Roster(object):
     """
     The proxy class to get the roster from slixmpp.
     Caches Contact and RosterGroup objects.
     """
 
+    DEFAULT_FILTER = (lambda x, y: None, None)
     def __init__(self):
         """
         node: the RosterSingle from slixmpp
         """
         self.__node = None
-        self.contact_filter = None # A tuple(function, *args)
-                                    # function to filter contacts,
-                                    # on search, for example
+
+        # A tuple(function, *args) function to filter contacts
+        # on search, for example
+        self.contact_filter = self.DEFAULT_FILTER
         self.folded_groups = set(config.get('folded_roster_groups',
                                             section='var').split(':'))
         self.groups = {}
@@ -170,7 +171,7 @@ class Roster(object):
         contact_list = []
         for contact in self.get_contacts():
             if contact.bare_jid != self.jid:
-                if self.contact_filter:
+                if self.contact_filter is not self.DEFAULT_FILTER:
                     if self.contact_filter[0](contact, self.contact_filter[1]):
                         contact_list.append(contact)
                 else:
@@ -297,8 +298,13 @@ class RosterGroup(object):
 
     def get_contacts(self, contact_filter=None, sort=''):
         """Return the group contacts, filtered and sorted"""
-        contact_list = self.contacts.copy() if not contact_filter\
-            else [contact for contact in self.contacts.copy() if contact_filter[0](contact, contact_filter[1])]
+        if contact_filter is Roster.DEFAULT_FILTER or contact_filter is None:
+            contact_list = self.contacts.copy()
+        else:
+            contact_list = [contact
+                for contact in self.contacts.copy()
+                    if contact_filter[0](contact, contact_filter[1])
+            ]
         contact_list = sorted(contact_list, key=SORTING_METHODS['name'])
 
         for sorting in sort.split(':'):
