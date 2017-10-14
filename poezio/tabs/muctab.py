@@ -222,6 +222,40 @@ class MucTab(ChatTab):
         muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
                           callback=callback)
 
+    @refresh_wrapper.conditional
+    def print_info(self, nick):
+        """Print information about a user"""
+        user = self.get_user_by_name(nick)
+        if not user:
+            return False
+
+        theme = get_theme()
+        inf = '\x19' + dump_tuple(theme.COLOR_INFORMATION_TEXT) + '}'
+        if user.jid:
+            user_jid = '%s (\x19%s}%s\x19o%s)' % (
+                            inf,
+                            dump_tuple(theme.COLOR_MUC_JID),
+                            user.jid,
+                            inf)
+        else:
+            user_jid = ''
+        info = ('\x19%(user_col)s}%(nick)s\x19o%(jid)s%(info)s: show: '
+                '\x19%(show_col)s}%(show)s\x19o%(info)s, affiliation: '
+                '\x19%(role_col)s}%(affiliation)s\x19o%(info)s, role: '
+                '\x19%(role_col)s}%(role)s\x19o%(status)s') % {
+                        'user_col': dump_tuple(user.color),
+                        'nick': nick,
+                        'jid': user_jid,
+                        'info': inf,
+                        'show_col': dump_tuple(theme.color_show(user.show)),
+                        'show': user.show or 'Available',
+                        'role_col': dump_tuple(theme.color_role(user.role)),
+                        'affiliation': user.affiliation or 'None',
+                        'role': user.role or 'None',
+                        'status': '\n%s' % user.status if user.status else ''}
+        self.add_message(info, typ=0)
+        return True
+
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
             self.key_func[key]()
@@ -1073,36 +1107,8 @@ class MucTab(ChatTab):
         if args is None:
             return self.core.command.help('info')
         nick = args[0]
-        user = self.get_user_by_name(nick)
-        if not user:
-            return self.core.information("Unknown user: %s" % nick, "Error")
-        theme = get_theme()
-        inf = '\x19' + dump_tuple(theme.COLOR_INFORMATION_TEXT) + '}'
-        if user.jid:
-            user_jid = '%s (\x19%s}%s\x19o%s)' % (
-                            inf,
-                            dump_tuple(theme.COLOR_MUC_JID),
-                            user.jid,
-                            inf)
-        else:
-            user_jid = ''
-        info = ('\x19%s}%s\x19o%s%s: show: \x19%s}%s\x19o%s, affiliation:'
-                ' \x19%s}%s\x19o%s, role: \x19%s}%s\x19o%s') % (
-                        dump_tuple(user.color),
-                        nick,
-                        user_jid,
-                        inf,
-                        dump_tuple(theme.color_show(user.show)),
-                        user.show or 'Available',
-                        inf,
-                        dump_tuple(theme.color_role(user.role)),
-                        user.affiliation or 'None',
-                        inf,
-                        dump_tuple(theme.color_role(user.role)),
-                        user.role or 'None',
-                        '\n%s' % user.status if user.status else '')
-        self.add_message(info, typ=0)
-        self.core.refresh_window()
+        if not self.print_info(nick):
+            self.core.information("Unknown user: %s" % nick, "Error")
 
     @command_args_parser.quoted(0)
     def command_configure(self, ignored):
