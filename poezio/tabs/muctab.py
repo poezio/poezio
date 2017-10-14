@@ -179,6 +179,49 @@ class MucTab(ChatTab):
         else:
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, message)
 
+    def change_affiliation(self, nick_or_jid, affiliation, reason=''):
+        """
+        Change the affiliation of a nick or JID
+        """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.information("Could not set affiliation '%s' for '%s'." % (
+                    affiliation, nick_or_jid), "Warning")
+        if not self.joined:
+            return
+
+        valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
+        if affiliation not in valid_affiliations:
+            return self.core.information('The affiliation must be one of ' + ', '.join(valid_affiliations),
+                                         'Error')
+        if nick_or_jid in [user.nick for user in self.users]:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           affiliation, nick=nick_or_jid,
+                                           callback=callback, reason=reason)
+        else:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           affiliation, jid=safeJID(nick_or_jid),
+                                           callback=callback, reason=reason)
+
+    def change_role(self, nick, role, reason=''):
+        """
+        Change the role of a nick
+        """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.information("Could not set role '%s' for '%s'." % (
+                    role, nick), "Warning")
+        valid_roles = ('none', 'visitor', 'participant', 'moderator')
+
+        if not self.joined or role not in valid_roles:
+            return self.core.information('The role must be one of ' + ', '.join(valid_roles),
+                                         'Error')
+
+        if not safeJID(self.name + '/' + nick):
+            return self.core.information('Invalid nick', 'Info')
+        muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
+                          callback=callback)
+
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
             self.key_func[key]()
@@ -1326,37 +1369,22 @@ class MucTab(ChatTab):
         if args is None:
             return self.core.command.help('kick')
         if len(args) == 2:
-            msg = ' "%s"' % args[1]
+            reason = args[1]
         else:
-            msg = ''
-        self.command_role('"'+args[0]+ '" none'+msg)
+            reason = ''
+        nick = args[0]
+        self.change_role(nick, 'none', reason)
 
     @command_args_parser.quoted(1, 1)
     def command_ban(self, args):
         """
         /ban <nick> [reason]
         """
-        def callback(iq):
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
         if args is None:
             return self.core.command.help('ban')
-        if len(args) > 1:
-            msg = args[1]
-        else:
-            msg = ''
         nick = args[0]
-
-        if nick in [user.nick for user in self.users]:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           'outcast', nick=nick,
-                                           callback=callback, reason=msg)
-        else:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           'outcast', jid=safeJID(nick),
-                                           callback=callback, reason=msg)
-        if not res:
-            self.core.information('Could not ban user', 'Error')
+        msg = args[1] if len(args) == 2 else ''
+        self.change_affiliation(nick, 'outcast', msg)
 
     @command_args_parser.quoted(2, 1, [''])
     def command_role(self, args):
@@ -1373,17 +1401,7 @@ class MucTab(ChatTab):
             return self.core.command.help('role')
 
         nick, role, reason = args[0], args[1].lower(), args[2]
-
-        valid_roles = ('none', 'visitor', 'participant', 'moderator')
-
-        if not self.joined or role not in valid_roles:
-            return self.core.information('The role must be one of ' + ', '.join(valid_roles),
-                                         'Error')
-
-        if not safeJID(self.name + '/' + nick):
-            return self.core.information('Invalid nick', 'Info')
-        muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
-                          callback=callback)
+        self.change_role(nick, role, reason)
 
     @command_args_parser.quoted(2)
     def command_affiliation(self, args):
@@ -1400,25 +1418,7 @@ class MucTab(ChatTab):
             return self.core.command.help('affiliation')
 
         nick, affiliation = args[0], args[1].lower()
-
-        if not self.joined:
-            return
-
-        valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
-        if affiliation not in valid_affiliations:
-            return self.core.information('The affiliation must be one of ' + ', '.join(valid_affiliations),
-                                         'Error')
-
-        if nick in [user.nick for user in self.users]:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           affiliation, nick=nick,
-                                           callback=callback)
-        else:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           affiliation, jid=safeJID(nick),
-                                           callback=callback)
-        if not res:
-            self.core.information('Could not set affiliation', 'Error')
+        self.change_affiliation(nick, affiliation)
 
     @command_args_parser.raw
     def command_say(self, line, correct=False):
