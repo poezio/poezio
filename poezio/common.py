@@ -38,9 +38,9 @@ def get_base64_from_file(path):
     size = os.path.getsize(path)
     if size > 16384:
         return (None, None, "File is too big")
-    fdes = open(path, 'rb')
-    data = fdes.read()
-    encoded = base64.encodestring(data)
+    with open(path, 'rb') as fdes:
+        data = fdes.read()
+    encoded = base64.encodebytes(data)
     sha1 = hashlib.sha1(data).hexdigest()
     mime_type = mimetypes.guess_type(path)[0]
     return (encoded, mime_type, sha1)
