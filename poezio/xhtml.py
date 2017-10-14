@@ -17,12 +17,14 @@ import hashlib
 import re
 from base64 import b64encode, b64decode
 from os import path
-from slixmpp.xmlstream import ET
 from urllib.parse import unquote
 
 from io import BytesIO
 from xml import sax
 from xml.sax import saxutils
+
+from slixmpp.xmlstream import ET
+from poezio.config import config
 
 digits = '0123456789' # never trust the modules
 
@@ -311,6 +313,7 @@ class XHTMLHandler(sax.ContentHandler):
 
         self.tmp_dir = tmp_dir
         self.extract_images = extract_images
+        self.enable_css_parsing = config.get('enable_css_parsing')
 
     @property
     def result(self):
@@ -336,7 +339,7 @@ class XHTMLHandler(sax.ContentHandler):
         attrs = {name: value for ((ns, name), value) in attrs.items() if ns is None}
         self.attrs.append(attrs)
 
-        if 'style' in attrs:
+        if 'style' in attrs and self.enable_css_parsing:
             style = _parse_css(attrs['style'])
             self.append_formatting(style)
 
@@ -420,7 +423,7 @@ class XHTMLHandler(sax.ContentHandler):
             builder.append('\n')
             self.is_pre = False
 
-        if 'style' in attrs:
+        if 'style' in attrs and self.enable_css_parsing:
             self.pop_formatting()
 
         if 'title' in attrs:

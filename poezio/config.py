@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
         'display_user_color_in_join_part': True,
         'enable_avatars': False,
         'enable_carbons': True,
+        'enable_css_parsing': True,
         'enable_user_activity': True,
         'enable_user_gaming': True,
         'enable_user_mood': True,
