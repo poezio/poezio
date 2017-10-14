@@ -282,6 +282,40 @@ class MucTab(ChatTab):
                 "\x19%s}The subject of the room is: \x19%s}%s %s" %
                     (info_text, norm_text, self.topic, user_string))
 
+    @refresh_wrapper.always
+    def recolor(self, random_colors=False):
+        """Recolor the current MUC users"""
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
+        if deterministic:
+            for user in self.users:
+                if user is self.own_user:
+                    continue
+                color = self.search_for_color(user.nick)
+                if color != '':
+                    continue
+                user.set_deterministic_color()
+            return
+        # Sort the user list by last talked, to avoid color conflicts
+        # on active participants
+        compare_users = lambda x: x.last_talked
+        sorted_users = sorted(self.users, key=compare_users, reverse=True)
+        full_sorted_users = sorted_users[:]
+        # search our own user, to remove it from the list
+        # Also remove users whose color is fixed
+        for user in full_sorted_users:
+            color = self.search_for_color(user.nick)
+            if user is self.own_user:
+                sorted_users.remove(user)
+            elif color != '':
+                sorted_users.remove(user)
+                user.change_color(color, deterministic)
+        colors = list(get_theme().LIST_COLOR_NICKNAMES)
+        if random_colors:
+            random.shuffle(colors)
+        for i, user in enumerate(sorted_users):
+            user.color = colors[i % len(colors)]
+        self.text_win.rebuild_everything(self._text_buffer)
+
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -1162,47 +1196,10 @@ class MucTab(ChatTab):
     def command_recolor(self, args):
         """
         /recolor [random]
-        Re-assign color to the participants of the room
+        Re-assigns color to the participants of the room
         """
-        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
-        if deterministic:
-            for user in self.users:
-                if user.nick == self.own_nick:
-                    continue
-                color = self.search_for_color(user.nick)
-                if color != '':
-                    continue
-                user.set_deterministic_color()
-            if args[0] == 'random':
-                self.core.information('"random" was provided, but poezio is '
-                                      'configured to use deterministic colors',
-                                      'Warning')
-            self.user_win.refresh(self.users)
-            self.input.refresh()
-            return
-        compare_users = lambda x: x.last_talked
-        users = list(self.users)
-        sorted_users = sorted(users, key=compare_users, reverse=True)
-        full_sorted_users = sorted_users[:]
-        # search our own user, to remove it from the list
-        # Also remove users whose color is fixed
-        for user in full_sorted_users:
-            color = self.search_for_color(user.nick)
-            if user.nick == self.own_nick:
-                sorted_users.remove(user)
-                user.color = get_theme().COLOR_OWN_NICK
-            elif color != '':
-                sorted_users.remove(user)
-                user.change_color(color, deterministic)
-        colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if args[0] == 'random':
-            random.shuffle(colors)
-        for i, user in enumerate(sorted_users):
-            user.color = colors[i % len(colors)]
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.user_win.refresh(self.users)
-        self.text_win.refresh()
-        self.input.refresh()
+        random_colors = args[0] == 'random'
+        self.recolor(random_colors)
 
     @command_args_parser.quoted(2, 2, [''])
     def command_color(self, args):
