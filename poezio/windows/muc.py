@@ -64,7 +64,7 @@ class UserList(Win):
         self._win.erase()
         asc_sort = (config.get('user_list_sort').lower() == 'asc')
         if asc_sort:
-            y, x = self._win.getmaxyx()
+            y, _ = self._win.getmaxyx()
             y -= 1
         else:
             y = 0
@@ -132,7 +132,7 @@ class Topic(Win):
         else:
             msg = self._message[:self.width-1]
         self.addstr(0, 0, msg, to_curses_attr(get_theme().COLOR_TOPIC_BAR))
-        (y, x) = self._win.getyx()
+        _, x = self._win.getyx()
         remaining_size = self.width - x
         if remaining_size:
             self.addnstr(' '*remaining_size, remaining_size,
