@@ -212,7 +212,7 @@ class HandlerCore:
         jid_from = message['from']
         for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name == jid_from.bare:
-                if message['type'] == 'chat':
+                if jid_from.resource:
                     self.on_groupchat_private_message(message)
                     return
         self.on_normal_message(message)
