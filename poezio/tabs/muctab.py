@@ -105,188 +105,10 @@ class MucTab(ChatTab):
             return last_message.time
         return None
 
-    @refresh_wrapper.always
-    def go_to_next_hl(self):
-        """
-        Go to the next HL in the room, or the last
-        """
-        self.text_win.next_highlight()
-
-    @refresh_wrapper.always
-    def go_to_prev_hl(self):
-        """
-        Go to the previous HL in the room, or the first
-        """
-        self.text_win.previous_highlight()
-
-    def completion_version(self, the_input):
-        """Completion for /version"""
-        compare_users = lambda x: x.last_talked
-        userlist = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
-            if user.nick != self.own_nick:
-                userlist.append(user.nick)
-        comp = []
-        for jid in (jid for jid in roster.jids() if len(roster[jid])):
-            for resource in roster[jid].resources:
-                comp.append(resource.jid)
-        comp.sort()
-        userlist.extend(comp)
-
-        return Completion(the_input.auto_completion, userlist, quotify=False)
-
-    def completion_info(self, the_input):
-        """Completion for /info"""
-        compare_users = lambda x: x.last_talked
-        userlist = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
-            userlist.append(user.nick)
-        return Completion(the_input.auto_completion, userlist, quotify=False)
-
-    def completion_nick(self, the_input):
-        """Completion for /nick"""
-        nicks = [os.environ.get('USER'),
-                 config.get('default_nick'),
-                 self.core.get_bookmark_nickname(self.name)]
-        nicks = [i for i in nicks if i]
-        return Completion(the_input.auto_completion, nicks, '', quotify=False)
-
-    def completion_recolor(self, the_input):
-        if the_input.get_argument_position() == 1:
-            return Completion(the_input.new_completion, ['random'], 1, '', quotify=False)
-        return True
-
-    def completion_color(self, the_input):
-        """Completion for /color"""
-        n = the_input.get_argument_position(quoted=True)
-        if n == 1:
-            userlist = [user.nick for user in self.users]
-            if self.own_nick in userlist:
-                userlist.remove(self.own_nick)
-            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
-        elif n == 2:
-            colors = [i for i in xhtml.colors if i]
-            colors.sort()
-            colors.append('unset')
-            colors.append('random')
-            return Completion(the_input.new_completion, colors, 2, '', quotify=False)
-
-    def completion_ignore(self, the_input):
-        """Completion for /ignore"""
-        userlist = [user.nick for user in self.users]
-        if self.own_nick in userlist:
-            userlist.remove(self.own_nick)
-        userlist.sort()
-        return Completion(the_input.auto_completion, userlist, quotify=False)
-
-    def completion_role(self, the_input):
-        """Completion for /role"""
-        n = the_input.get_argument_position(quoted=True)
-        if n == 1:
-            userlist = [user.nick for user in self.users]
-            if self.own_nick in userlist:
-                userlist.remove(self.own_nick)
-            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
-        elif n == 2:
-            possible_roles = ['none', 'visitor', 'participant', 'moderator']
-            return Completion(the_input.new_completion, possible_roles, 2, '',
-                                            quotify=True)
-
-    def completion_affiliation(self, the_input):
-        """Completion for /affiliation"""
-        n = the_input.get_argument_position(quoted=True)
-        if n == 1:
-            userlist = [user.nick for user in self.users]
-            if self.own_nick in userlist:
-                userlist.remove(self.own_nick)
-            jidlist = [user.jid.bare for user in self.users]
-            if self.core.xmpp.boundjid.bare in jidlist:
-                jidlist.remove(self.core.xmpp.boundjid.bare)
-            userlist.extend(jidlist)
-            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
-        elif n == 2:
-            possible_affiliations = ['none', 'member', 'admin',
-                                     'owner', 'outcast']
-            return Completion(the_input.new_completion, possible_affiliations, 2, '',
-                                            quotify=True)
-
-    @command_args_parser.quoted(1, 1, [''])
-    def command_invite(self, args):
-        """/invite <jid> [reason]"""
-        if args is None:
-            return self.core.command.help('invite')
-        jid, reason = args
-        self.core.command.invite('%s %s "%s"' % (jid, self.name, reason))
-
-    def completion_invite(self, the_input):
-        """Completion for /invite"""
-        n = the_input.get_argument_position(quoted=True)
-        if n == 1:
-            return Completion(the_input.new_completion, roster.jids(), 1, quotify=True)
-
-    def scroll_user_list_up(self):
-        self.user_win.scroll_up()
-        self.user_win.refresh(self.users)
-        self.input.refresh()
-
     def scroll_user_list_down(self):
         self.user_win.scroll_down()
         self.user_win.refresh(self.users)
         self.input.refresh()
-
-    @command_args_parser.quoted(1)
-    def command_info(self, args):
-        """
-        /info <nick>
-        """
-        if args is None:
-            return self.core.command.help('info')
-        nick = args[0]
-        user = self.get_user_by_name(nick)
-        if not user:
-            return self.core.information("Unknown user: %s" % nick, "Error")
-        theme = get_theme()
-        inf = '\x19' + dump_tuple(theme.COLOR_INFORMATION_TEXT) + '}'
-        if user.jid:
-            user_jid = '%s (\x19%s}%s\x19o%s)' % (
-                            inf,
-                            dump_tuple(theme.COLOR_MUC_JID),
-                            user.jid,
-                            inf)
-        else:
-            user_jid = ''
-        info = ('\x19%s}%s\x19o%s%s: show: \x19%s}%s\x19o%s, affiliation:'
-                ' \x19%s}%s\x19o%s, role: \x19%s}%s\x19o%s') % (
-                        dump_tuple(user.color),
-                        nick,
-                        user_jid,
-                        inf,
-                        dump_tuple(theme.color_show(user.show)),
-                        user.show or 'Available',
-                        inf,
-                        dump_tuple(theme.color_role(user.role)),
-                        user.affiliation or 'None',
-                        inf,
-                        dump_tuple(theme.color_role(user.role)),
-                        user.role or 'None',
-                        '\n%s' % user.status if user.status else '')
-        self.add_message(info, typ=0)
-        self.core.refresh_window()
-
-    @command_args_parser.quoted(0)
-    def command_configure(self, ignored):
-        """
-        /configure
-        """
-        def on_form_received(form):
-            if not form:
-                self.core.information(
-                    'Could not retrieve the configuration form',
-                    'Error')
-                return
-            self.core.open_new_form(form, self.cancel_config, self.send_config)
-
-        fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
 
     def cancel_config(self, form):
         """
@@ -301,12 +123,6 @@ class MucTab(ChatTab):
         """
         muc.configure_room(self.core.xmpp, self.name, form)
         self.core.close_tab()
-
-    @command_args_parser.raw
-    def command_cycle(self, msg):
-        """/cycle [reason]"""
-        self.leave_room(msg)
-        self.join()
 
     def join(self):
         """
@@ -323,139 +139,6 @@ class MucTab(ChatTab):
                            status=status.message,
                            show=status.show,
                            seconds=seconds)
-
-    @command_args_parser.quoted(0, 1, [''])
-    def command_recolor(self, args):
-        """
-        /recolor [random]
-        Re-assign color to the participants of the room
-        """
-        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
-        if deterministic:
-            for user in self.users:
-                if user.nick == self.own_nick:
-                    continue
-                color = self.search_for_color(user.nick)
-                if color != '':
-                    continue
-                user.set_deterministic_color()
-            if args[0] == 'random':
-                self.core.information('"random" was provided, but poezio is '
-                                      'configured to use deterministic colors',
-                                      'Warning')
-            self.user_win.refresh(self.users)
-            self.input.refresh()
-            return
-        compare_users = lambda x: x.last_talked
-        users = list(self.users)
-        sorted_users = sorted(users, key=compare_users, reverse=True)
-        full_sorted_users = sorted_users[:]
-        # search our own user, to remove it from the list
-        # Also remove users whose color is fixed
-        for user in full_sorted_users:
-            color = self.search_for_color(user.nick)
-            if user.nick == self.own_nick:
-                sorted_users.remove(user)
-                user.color = get_theme().COLOR_OWN_NICK
-            elif color != '':
-                sorted_users.remove(user)
-                user.change_color(color, deterministic)
-        colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if args[0] == 'random':
-            random.shuffle(colors)
-        for i, user in enumerate(sorted_users):
-            user.color = colors[i % len(colors)]
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.user_win.refresh(self.users)
-        self.text_win.refresh()
-        self.input.refresh()
-
-    @command_args_parser.quoted(2, 2, [''])
-    def command_color(self, args):
-        """
-        /color <nick> <color>
-        Fix a color for a nick.
-        Use "unset" instead of a color to remove the attribution.
-        User "random" to attribute a random color.
-        """
-        if args is None:
-            return self.core.command.help('color')
-        nick = args[0]
-        color = args[1].lower()
-        user = self.get_user_by_name(nick)
-        if color not in xhtml.colors and color not in ('unset', 'random'):
-            return self.core.information("Unknown color: %s" % color, 'Error')
-        if user and user.nick == self.own_nick:
-            return self.core.information("You cannot change the color of your"
-                                         " own nick.", 'Error')
-        if color == 'unset':
-            if config.remove_and_save(nick, 'muc_colors'):
-                self.core.information('Color for nick %s unset' % (nick))
-        else:
-            if color == 'random':
-                color = random.choice(list(xhtml.colors))
-            if user:
-                user.change_color(color)
-            config.set_and_save(nick, color, 'muc_colors')
-            nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
-            if nick_color_aliases:
-                # if any user in the room has a nick which is an alias of the
-                # nick, update its color
-                for tab in self.core.get_tabs(MucTab):
-                    for u in tab.users:
-                        nick_alias = re.sub('^_*', '', u.nick)
-                        nick_alias = re.sub('_*$', '', nick_alias)
-                        if nick_alias == nick:
-                            u.change_color(color)
-            self.text_win.rebuild_everything(self._text_buffer)
-            self.user_win.refresh(self.users)
-            self.text_win.refresh()
-            self.input.refresh()
-
-    @command_args_parser.quoted(1)
-    def command_version(self, args):
-        """
-        /version <jid or nick>
-        """
-        def callback(res):
-            if not res:
-                return self.core.information('Could not get the software '
-                                             'version from %s' % (jid,),
-                                             'Warning')
-            version = '%s is running %s version %s on %s' % (
-                         jid,
-                         res.get('name') or 'an unknown software',
-                         res.get('version') or 'unknown',
-                         res.get('os') or 'an unknown platform')
-            self.core.information(version, 'Info')
-        if args is None:
-            return self.core.command.help('version')
-        nick = args[0]
-        if nick in [user.nick for user in self.users]:
-            jid = safeJID(self.name).bare
-            jid = safeJID(jid + '/' + nick)
-        else:
-            jid = safeJID(nick)
-        fixes.get_version(self.core.xmpp, jid,
-                          callback=callback)
-
-    @command_args_parser.quoted(1)
-    def command_nick(self, args):
-        """
-        /nick <nickname>
-        """
-        if args is None:
-            return self.core.command.help('nick')
-        nick = args[0]
-        if not self.joined:
-            return self.core.information('/nick only works in joined rooms',
-                                         'Info')
-        current_status = self.core.get_status()
-        if not safeJID(self.name + '/' + nick):
-            return self.core.information('Invalid nick', 'Info')
-        muc.change_nick(self.core, self.name, nick,
-                        current_status.message,
-                        current_status.show)
 
     def leave_room(self, message):
         if self.joined:
@@ -496,374 +179,6 @@ class MucTab(ChatTab):
         else:
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick, message)
 
-    @command_args_parser.quoted(0, 1, [''])
-    def command_part(self, args):
-        """
-        /part [msg]
-        """
-        message = args[0]
-        self.leave_room(message)
-        if self == self.core.current_tab():
-            self.refresh()
-        self.core.doupdate()
-
-    @command_args_parser.raw
-    def command_close(self, msg):
-        """
-        /close [msg]
-        """
-        self.command_part(msg)
-        self.core.close_tab(self)
-
-    def on_close(self):
-        super().on_close()
-        self.command_part('')
-
-    @command_args_parser.quoted(1, 1)
-    def command_query(self, args):
-        """
-        /query <nick> [message]
-        """
-        if args is None:
-            return  self.core.command.help('query')
-        nick = args[0]
-        r = None
-        for user in self.users:
-            if user.nick == nick:
-                r = self.core.open_private_window(self.name, user.nick)
-        if r and len(args) == 2:
-            msg = args[1]
-            self.core.current_tab().command_say(
-                    xhtml.convert_simple_to_full_colors(msg))
-        if not r:
-            self.core.information("Cannot find user: %s" % nick, 'Error')
-
-    @command_args_parser.raw
-    def command_topic(self, subject):
-        """
-        /topic [new topic]
-        """
-        if not subject:
-            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            norm_text = dump_tuple(get_theme().COLOR_NORMAL_TEXT)
-            if self.topic_from:
-                user = self.get_user_by_name(self.topic_from)
-                if user:
-                    user_text = dump_tuple(user.color)
-                    user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
-                            info_text, user_text, user.nick, info_text)
-                else:
-                    user_string = self.topic_from
-            else:
-                user_string = ''
-
-            self._text_buffer.add_message(
-                    "\x19%s}The subject of the room is: \x19%s}%s %s" %
-                        (info_text, norm_text, self.topic, user_string))
-            self.refresh()
-            return
-
-        muc.change_subject(self.core.xmpp, self.name, subject)
-
-    @command_args_parser.quoted(0)
-    def command_names(self, args):
-        """
-        /names
-        """
-        if not self.joined:
-            return
-
-        aff = {
-                'owner': get_theme().CHAR_AFFILIATION_OWNER,
-                'admin': get_theme().CHAR_AFFILIATION_ADMIN,
-                'member': get_theme().CHAR_AFFILIATION_MEMBER,
-                'none': get_theme().CHAR_AFFILIATION_NONE,
-                }
-
-        colors = {}
-        colors["visitor"] = dump_tuple(get_theme().COLOR_USER_VISITOR)
-        colors["moderator"] = dump_tuple(get_theme().COLOR_USER_MODERATOR)
-        colors["participant"] = dump_tuple(get_theme().COLOR_USER_PARTICIPANT)
-        color_other = dump_tuple(get_theme().COLOR_USER_NONE)
-
-        buff = ['Users: %s \n' % len(self.users)]
-        for user in self.users:
-            affiliation = aff.get(user.affiliation,
-                                  get_theme().CHAR_AFFILIATION_NONE)
-            color = colors.get(user.role, color_other)
-            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
-                color, affiliation, dump_tuple(user.color), user.nick))
-
-        buff.append('\n')
-        message = ' '.join(buff)
-
-        self._text_buffer.add_message(message)
-        self.text_win.refresh()
-        self.input.refresh()
-
-    def completion_topic(self, the_input):
-        if the_input.get_argument_position() == 1:
-            return Completion(the_input.auto_completion, [self.topic], '', quotify=False)
-
-    def completion_quoted(self, the_input):
-        """Nick completion, but with quotes"""
-        if the_input.get_argument_position(quoted=True) == 1:
-            compare_users = lambda x: x.last_talked
-            word_list = []
-            for user in sorted(self.users, key=compare_users, reverse=True):
-                if user.nick != self.own_nick:
-                    word_list.append(user.nick)
-
-            return Completion(the_input.new_completion, word_list, 1, quotify=True)
-
-    @command_args_parser.quoted(1, 1)
-    def command_kick(self, args):
-        """
-        /kick <nick> [reason]
-        """
-        if args is None:
-            return self.core.command.help('kick')
-        if len(args) == 2:
-            msg = ' "%s"' % args[1]
-        else:
-            msg = ''
-        self.command_role('"'+args[0]+ '" none'+msg)
-
-    @command_args_parser.quoted(1, 1)
-    def command_ban(self, args):
-        """
-        /ban <nick> [reason]
-        """
-        def callback(iq):
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
-        if args is None:
-            return self.core.command.help('ban')
-        if len(args) > 1:
-            msg = args[1]
-        else:
-            msg = ''
-        nick = args[0]
-
-        if nick in [user.nick for user in self.users]:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           'outcast', nick=nick,
-                                           callback=callback, reason=msg)
-        else:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           'outcast', jid=safeJID(nick),
-                                           callback=callback, reason=msg)
-        if not res:
-            self.core.information('Could not ban user', 'Error')
-
-    @command_args_parser.quoted(2, 1, [''])
-    def command_role(self, args):
-        """
-        /role <nick> <role> [reason]
-        Changes the role of an user
-        roles can be: none, visitor, participant, moderator
-        """
-        def callback(iq):
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
-
-        if args is None:
-            return self.core.command.help('role')
-
-        nick, role, reason = args[0], args[1].lower(), args[2]
-
-        valid_roles = ('none', 'visitor', 'participant', 'moderator')
-
-        if not self.joined or role not in valid_roles:
-            return self.core.information('The role must be one of ' + ', '.join(valid_roles),
-                                         'Error')
-
-        if not safeJID(self.name + '/' + nick):
-            return self.core.information('Invalid nick', 'Info')
-        muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
-                          callback=callback)
-
-    @command_args_parser.quoted(2)
-    def command_affiliation(self, args):
-        """
-        /affiliation <nick> <role>
-        Changes the affiliation of an user
-        affiliations can be: outcast, none, member, admin, owner
-        """
-        def callback(iq):
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
-
-        if args is None:
-            return self.core.command.help('affiliation')
-
-        nick, affiliation = args[0], args[1].lower()
-
-        if not self.joined:
-            return
-
-        valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
-        if affiliation not in valid_affiliations:
-            return self.core.information('The affiliation must be one of ' + ', '.join(valid_affiliations),
-                                         'Error')
-
-        if nick in [user.nick for user in self.users]:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           affiliation, nick=nick,
-                                           callback=callback)
-        else:
-            res = muc.set_user_affiliation(self.core.xmpp, self.name,
-                                           affiliation, jid=safeJID(nick),
-                                           callback=callback)
-        if not res:
-            self.core.information('Could not set affiliation', 'Error')
-
-    @command_args_parser.raw
-    def command_say(self, line, correct=False):
-        """
-        /say <message>
-        Or normal input + enter
-        """
-        needed = 'inactive' if self.inactive else 'active'
-        msg = self.core.xmpp.make_message(self.name)
-        msg['type'] = 'groupchat'
-        msg['body'] = line
-        # trigger the event BEFORE looking for colors.
-        # This lets a plugin insert \x19xxx} colors, that will
-        # be converted in xhtml.
-        self.core.events.trigger('muc_say', msg, self)
-        if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
-            return
-        if msg['body'].find('\x19') != -1:
-            msg.enable('html')
-            msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
-            msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', self.general_jid)
-                and self.remote_wants_chatstates is not False):
-            msg['chat_state'] = needed
-        if correct:
-            msg['replace']['id'] = self.last_sent_message['id']
-        self.cancel_paused_delay()
-        self.core.events.trigger('muc_say_after', msg, self)
-        if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
-            return
-        self.last_sent_message = msg
-        msg.send()
-        self.chat_state = needed
-
-    @command_args_parser.raw
-    def command_xhtml(self, msg):
-        message = self.generate_xhtml_message(msg)
-        if message:
-            message['type'] = 'groupchat'
-            message.send()
-
-    @command_args_parser.quoted(1)
-    def command_ignore(self, args):
-        """
-        /ignore <nick>
-        """
-        if args is None:
-            return self.core.command.help('ignore')
-
-        nick = args[0]
-        user = self.get_user_by_name(nick)
-        if not user:
-            self.core.information('%s is not in the room' % nick)
-        elif user in self.ignores:
-            self.core.information('%s is already ignored' % nick)
-        else:
-            self.ignores.append(user)
-            self.core.information("%s is now ignored" % nick, 'info')
-
-    @command_args_parser.quoted(1)
-    def command_unignore(self, args):
-        """
-        /unignore <nick>
-        """
-        if args is None:
-            return self.core.command.help('unignore')
-
-        nick = args[0]
-        user = self.get_user_by_name(nick)
-        if not user:
-            self.core.information('%s is not in the room' % nick)
-        elif user not in self.ignores:
-            self.core.information('%s is not ignored' % nick)
-        else:
-            self.ignores.remove(user)
-            self.core.information('%s is now unignored' % nick)
-
-    def completion_unignore(self, the_input):
-        if the_input.get_argument_position() == 1:
-            users = [user.nick for user in self.ignores]
-            return Completion(the_input.auto_completion, users, quotify=False)
-
-    def resize(self):
-        """
-        Resize the whole window. i.e. all its sub-windows
-        """
-        self.need_resize = False
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
-            text_width = self.width
-        else:
-            text_width = (self.width // 10) * 9
-
-        if self.size.tab_degrade_y:
-            tab_win_height = 0
-            info_win_height = 0
-        else:
-            tab_win_height = Tab.tab_win_height()
-            info_win_height = self.core.information_win_size
-
-
-        self.user_win.resize(self.height - 3 - info_win_height
-                                - tab_win_height,
-                             self.width - (self.width // 10) * 9 - 1,
-                             1,
-                             (self.width // 10) * 9 + 1)
-        self.v_separator.resize(self.height - 3 - info_win_height - tab_win_height,
-                                1, 1, 9 * (self.width // 10))
-
-        self.topic_win.resize(1, self.width, 0, 0)
-
-        self.text_win.resize(self.height - 3 - info_win_height
-                                - tab_win_height,
-                             text_width, 1, 0)
-        self.text_win.rebuild_everything(self._text_buffer)
-        self.info_header.resize(1, self.width,
-                                self.height - 2 - info_win_height
-                                    - tab_win_height,
-                                0)
-        self.input.resize(1, self.width, self.height-1, 0)
-
-    def refresh(self):
-        if self.need_resize:
-            self.resize()
-        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
-            display_user_list = False
-        else:
-            display_user_list = True
-        display_info_win = not self.size.tab_degrade_y
-
-        self.topic_win.refresh(self.get_single_line_topic())
-        self.text_win.refresh()
-        if display_user_list:
-            self.v_separator.refresh()
-            self.user_win.refresh(self.users)
-        self.info_header.refresh(self, self.text_win, user=self.own_user)
-        self.refresh_tab_win()
-        if display_info_win:
-            self.info_win.refresh()
-        self.input.refresh()
-
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
             self.key_func[key]()
@@ -875,39 +190,6 @@ class MucTab(ChatTab):
                                       self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
         return False
-
-    def completion(self):
-        """
-        Called when Tab is pressed, complete the nickname in the input
-        """
-        if self.complete_commands(self.input):
-            return
-
-        # If we are not completing a command or a command argument,
-        # complete a nick
-        compare_users = lambda x: x.last_talked
-        word_list = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
-            if user.nick != self.own_nick:
-                word_list.append(user.nick)
-        after = config.get('after_completion') + ' '
-        input_pos = self.input.pos
-        if ' ' not in self.input.get_text()[:input_pos] or (
-                self.input.last_completion and
-                    self.input.get_text()[:input_pos] ==
-                    self.input.last_completion + after):
-            add_after = after
-        else:
-            if not config.get('add_space_after_completion'):
-                add_after = ''
-            else:
-                add_after = ' '
-        self.input.auto_completion(word_list, add_after, quotify=False)
-        empty_after = self.input.get_text() == ''
-        empty_after = empty_after or (self.input.get_text().startswith('/')
-                                      and not
-                                      self.input.get_text().startswith('//'))
-        self.send_composing_chat_state(empty_after)
 
     def get_nick(self):
         if not config.get('show_muc_jid'):
@@ -940,28 +222,6 @@ class MucTab(ChatTab):
         if self.joined and config.get_by_tabname('send_chat_states',
                 self.general_jid) and not self.input.get_text():
             self.send_chat_state('active')
-
-    def on_info_win_size_changed(self):
-        if self.core.information_win_size >= self.height-3:
-            return
-        if config.get("hide_user_list"):
-            text_width = self.width
-        else:
-            text_width = (self.width//10)*9
-        self.user_win.resize(self.height - 3 - self.core.information_win_size
-                                - Tab.tab_win_height(),
-                             self.width - (self.width // 10) * 9 - 1,
-                             1,
-                             (self.width // 10) * 9 + 1)
-        self.v_separator.resize(self.height - 3 - self.core.information_win_size - Tab.tab_win_height(),
-                                1, 1, 9 * (self.width // 10))
-        self.text_win.resize(self.height - 3 - self.core.information_win_size
-                                - Tab.tab_win_height(),
-                             text_width, 1, 0)
-        self.info_header.resize(1, self.width,
-                                self.height-2-self.core.information_win_size
-                                    - Tab.tab_win_height(),
-                                0)
 
     def handle_presence(self, presence):
         """
@@ -1503,34 +763,6 @@ class MucTab(ChatTab):
                 self.core.information('Unable to write in the log file',
                                       'Error')
 
-    def do_highlight(self, txt, time, nickname, corrected=False):
-        """
-        Set the tab color and returns the nick color
-        """
-        highlighted = False
-        if (not time or corrected) and nickname and nickname != self.own_nick and self.joined:
-
-            if re.search(r'\b' + self.own_nick.lower() + r'\b', txt.lower()):
-                if self.state != 'current':
-                    self.state = 'highlight'
-                highlighted = True
-            else:
-                highlight_words = config.get_by_tabname('highlight_on',
-                                                        self.general_jid)
-                highlight_words = highlight_words.split(':')
-                for word in highlight_words:
-                    if word and word.lower() in txt.lower():
-                        if self.state != 'current':
-                            self.state = 'highlight'
-                        highlighted = True
-                        break
-        if highlighted:
-            beep_on = config.get('beep_on').split()
-            if 'highlight' in beep_on and 'message' not in beep_on:
-                if not config.get_by_tabname('disable_beep', self.name):
-                    curses.beep()
-        return highlighted
-
     def get_user_by_name(self, nick):
         """
         Gets the user associated with the given nick, or None if not found
@@ -1648,6 +880,781 @@ class MucTab(ChatTab):
     def on_self_ping_failed(self, iq):
         self.command_cycle("the MUC server is not responding")
         self.core.refresh_window()
+
+########################## UI ONLY #####################################
+
+    @refresh_wrapper.always
+    def go_to_next_hl(self):
+        """
+        Go to the next HL in the room, or the last
+        """
+        self.text_win.next_highlight()
+
+    @refresh_wrapper.always
+    def go_to_prev_hl(self):
+        """
+        Go to the previous HL in the room, or the first
+        """
+        self.text_win.previous_highlight()
+
+    def scroll_user_list_up(self):
+        self.user_win.scroll_up()
+        self.user_win.refresh(self.users)
+        self.input.refresh()
+
+    def resize(self):
+        """
+        Resize the whole window. i.e. all its sub-windows
+        """
+        self.need_resize = False
+        if config.get('hide_user_list') or self.size.tab_degrade_x:
+            text_width = self.width
+        else:
+            text_width = (self.width // 10) * 9
+
+        if self.size.tab_degrade_y:
+            tab_win_height = 0
+            info_win_height = 0
+        else:
+            tab_win_height = Tab.tab_win_height()
+            info_win_height = self.core.information_win_size
+
+
+        self.user_win.resize(self.height - 3 - info_win_height
+                                - tab_win_height,
+                             self.width - (self.width // 10) * 9 - 1,
+                             1,
+                             (self.width // 10) * 9 + 1)
+        self.v_separator.resize(self.height - 3 - info_win_height - tab_win_height,
+                                1, 1, 9 * (self.width // 10))
+
+        self.topic_win.resize(1, self.width, 0, 0)
+
+        self.text_win.resize(self.height - 3 - info_win_height
+                                - tab_win_height,
+                             text_width, 1, 0)
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.info_header.resize(1, self.width,
+                                self.height - 2 - info_win_height
+                                    - tab_win_height,
+                                0)
+        self.input.resize(1, self.width, self.height-1, 0)
+
+    def refresh(self):
+        if self.need_resize:
+            self.resize()
+        log.debug('  TAB   Refresh: %s', self.__class__.__name__)
+        if config.get('hide_user_list') or self.size.tab_degrade_x:
+            display_user_list = False
+        else:
+            display_user_list = True
+        display_info_win = not self.size.tab_degrade_y
+
+        self.topic_win.refresh(self.get_single_line_topic())
+        self.text_win.refresh()
+        if display_user_list:
+            self.v_separator.refresh()
+            self.user_win.refresh(self.users)
+        self.info_header.refresh(self, self.text_win, user=self.own_user)
+        self.refresh_tab_win()
+        if display_info_win:
+            self.info_win.refresh()
+        self.input.refresh()
+
+    def on_info_win_size_changed(self):
+        if self.core.information_win_size >= self.height-3:
+            return
+        if config.get("hide_user_list"):
+            text_width = self.width
+        else:
+            text_width = (self.width//10)*9
+        self.user_win.resize(self.height - 3 - self.core.information_win_size
+                                - Tab.tab_win_height(),
+                             self.width - (self.width // 10) * 9 - 1,
+                             1,
+                             (self.width // 10) * 9 + 1)
+        self.v_separator.resize(self.height - 3 - self.core.information_win_size - Tab.tab_win_height(),
+                                1, 1, 9 * (self.width // 10))
+        self.text_win.resize(self.height - 3 - self.core.information_win_size
+                                - Tab.tab_win_height(),
+                             text_width, 1, 0)
+        self.info_header.resize(1, self.width,
+                                self.height-2-self.core.information_win_size
+                                    - Tab.tab_win_height(),
+                                0)
+    def do_highlight(self, txt, time, nickname, corrected=False):
+        """
+        Set the tab color and returns the nick color
+        """
+        highlighted = False
+        if (not time or corrected) and nickname and nickname != self.own_nick and self.joined:
+
+            if re.search(r'\b' + self.own_nick.lower() + r'\b', txt.lower()):
+                if self.state != 'current':
+                    self.state = 'highlight'
+                highlighted = True
+            else:
+                highlight_words = config.get_by_tabname('highlight_on',
+                                                        self.general_jid)
+                highlight_words = highlight_words.split(':')
+                for word in highlight_words:
+                    if word and word.lower() in txt.lower():
+                        if self.state != 'current':
+                            self.state = 'highlight'
+                        highlighted = True
+                        break
+        if highlighted:
+            beep_on = config.get('beep_on').split()
+            if 'highlight' in beep_on and 'message' not in beep_on:
+                if not config.get_by_tabname('disable_beep', self.name):
+                    curses.beep()
+        return highlighted
+
+########################## COMMANDS ####################################
+
+    @command_args_parser.quoted(1, 1, [''])
+    def command_invite(self, args):
+        """/invite <jid> [reason]"""
+        if args is None:
+            return self.core.command.help('invite')
+        jid, reason = args
+        self.core.command.invite('%s %s "%s"' % (jid, self.name, reason))
+
+    @command_args_parser.quoted(1)
+    def command_info(self, args):
+        """
+        /info <nick>
+        """
+        if args is None:
+            return self.core.command.help('info')
+        nick = args[0]
+        user = self.get_user_by_name(nick)
+        if not user:
+            return self.core.information("Unknown user: %s" % nick, "Error")
+        theme = get_theme()
+        inf = '\x19' + dump_tuple(theme.COLOR_INFORMATION_TEXT) + '}'
+        if user.jid:
+            user_jid = '%s (\x19%s}%s\x19o%s)' % (
+                            inf,
+                            dump_tuple(theme.COLOR_MUC_JID),
+                            user.jid,
+                            inf)
+        else:
+            user_jid = ''
+        info = ('\x19%s}%s\x19o%s%s: show: \x19%s}%s\x19o%s, affiliation:'
+                ' \x19%s}%s\x19o%s, role: \x19%s}%s\x19o%s') % (
+                        dump_tuple(user.color),
+                        nick,
+                        user_jid,
+                        inf,
+                        dump_tuple(theme.color_show(user.show)),
+                        user.show or 'Available',
+                        inf,
+                        dump_tuple(theme.color_role(user.role)),
+                        user.affiliation or 'None',
+                        inf,
+                        dump_tuple(theme.color_role(user.role)),
+                        user.role or 'None',
+                        '\n%s' % user.status if user.status else '')
+        self.add_message(info, typ=0)
+        self.core.refresh_window()
+
+    @command_args_parser.quoted(0)
+    def command_configure(self, ignored):
+        """
+        /configure
+        """
+        def on_form_received(form):
+            if not form:
+                self.core.information(
+                    'Could not retrieve the configuration form',
+                    'Error')
+                return
+            self.core.open_new_form(form, self.cancel_config, self.send_config)
+
+        fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
+
+    @command_args_parser.raw
+    def command_cycle(self, msg):
+        """/cycle [reason]"""
+        self.leave_room(msg)
+        self.join()
+
+    @command_args_parser.quoted(0, 1, [''])
+    def command_recolor(self, args):
+        """
+        /recolor [random]
+        Re-assign color to the participants of the room
+        """
+        deterministic = config.get_by_tabname('deterministic_nick_colors', self.name)
+        if deterministic:
+            for user in self.users:
+                if user.nick == self.own_nick:
+                    continue
+                color = self.search_for_color(user.nick)
+                if color != '':
+                    continue
+                user.set_deterministic_color()
+            if args[0] == 'random':
+                self.core.information('"random" was provided, but poezio is '
+                                      'configured to use deterministic colors',
+                                      'Warning')
+            self.user_win.refresh(self.users)
+            self.input.refresh()
+            return
+        compare_users = lambda x: x.last_talked
+        users = list(self.users)
+        sorted_users = sorted(users, key=compare_users, reverse=True)
+        full_sorted_users = sorted_users[:]
+        # search our own user, to remove it from the list
+        # Also remove users whose color is fixed
+        for user in full_sorted_users:
+            color = self.search_for_color(user.nick)
+            if user.nick == self.own_nick:
+                sorted_users.remove(user)
+                user.color = get_theme().COLOR_OWN_NICK
+            elif color != '':
+                sorted_users.remove(user)
+                user.change_color(color, deterministic)
+        colors = list(get_theme().LIST_COLOR_NICKNAMES)
+        if args[0] == 'random':
+            random.shuffle(colors)
+        for i, user in enumerate(sorted_users):
+            user.color = colors[i % len(colors)]
+        self.text_win.rebuild_everything(self._text_buffer)
+        self.user_win.refresh(self.users)
+        self.text_win.refresh()
+        self.input.refresh()
+
+    @command_args_parser.quoted(2, 2, [''])
+    def command_color(self, args):
+        """
+        /color <nick> <color>
+        Fix a color for a nick.
+        Use "unset" instead of a color to remove the attribution.
+        User "random" to attribute a random color.
+        """
+        if args is None:
+            return self.core.command.help('color')
+        nick = args[0]
+        color = args[1].lower()
+        user = self.get_user_by_name(nick)
+        if color not in xhtml.colors and color not in ('unset', 'random'):
+            return self.core.information("Unknown color: %s" % color, 'Error')
+        if user and user.nick == self.own_nick:
+            return self.core.information("You cannot change the color of your"
+                                         " own nick.", 'Error')
+        if color == 'unset':
+            if config.remove_and_save(nick, 'muc_colors'):
+                self.core.information('Color for nick %s unset' % (nick))
+        else:
+            if color == 'random':
+                color = random.choice(list(xhtml.colors))
+            if user:
+                user.change_color(color)
+            config.set_and_save(nick, color, 'muc_colors')
+            nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
+            if nick_color_aliases:
+                # if any user in the room has a nick which is an alias of the
+                # nick, update its color
+                for tab in self.core.get_tabs(MucTab):
+                    for u in tab.users:
+                        nick_alias = re.sub('^_*', '', u.nick)
+                        nick_alias = re.sub('_*$', '', nick_alias)
+                        if nick_alias == nick:
+                            u.change_color(color)
+            self.text_win.rebuild_everything(self._text_buffer)
+            self.user_win.refresh(self.users)
+            self.text_win.refresh()
+            self.input.refresh()
+
+    @command_args_parser.quoted(1)
+    def command_version(self, args):
+        """
+        /version <jid or nick>
+        """
+        def callback(res):
+            if not res:
+                return self.core.information('Could not get the software '
+                                             'version from %s' % (jid,),
+                                             'Warning')
+            version = '%s is running %s version %s on %s' % (
+                         jid,
+                         res.get('name') or 'an unknown software',
+                         res.get('version') or 'unknown',
+                         res.get('os') or 'an unknown platform')
+            self.core.information(version, 'Info')
+        if args is None:
+            return self.core.command.help('version')
+        nick = args[0]
+        if nick in [user.nick for user in self.users]:
+            jid = safeJID(self.name).bare
+            jid = safeJID(jid + '/' + nick)
+        else:
+            jid = safeJID(nick)
+        fixes.get_version(self.core.xmpp, jid,
+                          callback=callback)
+
+    @command_args_parser.quoted(1)
+    def command_nick(self, args):
+        """
+        /nick <nickname>
+        """
+        if args is None:
+            return self.core.command.help('nick')
+        nick = args[0]
+        if not self.joined:
+            return self.core.information('/nick only works in joined rooms',
+                                         'Info')
+        current_status = self.core.get_status()
+        if not safeJID(self.name + '/' + nick):
+            return self.core.information('Invalid nick', 'Info')
+        muc.change_nick(self.core, self.name, nick,
+                        current_status.message,
+                        current_status.show)
+
+    @command_args_parser.quoted(0, 1, [''])
+    def command_part(self, args):
+        """
+        /part [msg]
+        """
+        message = args[0]
+        self.leave_room(message)
+        if self == self.core.current_tab():
+            self.refresh()
+        self.core.doupdate()
+
+    @command_args_parser.raw
+    def command_close(self, msg):
+        """
+        /close [msg]
+        """
+        self.command_part(msg)
+        self.core.close_tab(self)
+
+    def on_close(self):
+        super().on_close()
+        self.command_part('')
+
+    @command_args_parser.quoted(1, 1)
+    def command_query(self, args):
+        """
+        /query <nick> [message]
+        """
+        if args is None:
+            return  self.core.command.help('query')
+        nick = args[0]
+        r = None
+        for user in self.users:
+            if user.nick == nick:
+                r = self.core.open_private_window(self.name, user.nick)
+        if r and len(args) == 2:
+            msg = args[1]
+            self.core.current_tab().command_say(
+                    xhtml.convert_simple_to_full_colors(msg))
+        if not r:
+            self.core.information("Cannot find user: %s" % nick, 'Error')
+
+    @command_args_parser.raw
+    def command_topic(self, subject):
+        """
+        /topic [new topic]
+        """
+        if not subject:
+            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            norm_text = dump_tuple(get_theme().COLOR_NORMAL_TEXT)
+            if self.topic_from:
+                user = self.get_user_by_name(self.topic_from)
+                if user:
+                    user_text = dump_tuple(user.color)
+                    user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
+                            info_text, user_text, user.nick, info_text)
+                else:
+                    user_string = self.topic_from
+            else:
+                user_string = ''
+
+            self._text_buffer.add_message(
+                    "\x19%s}The subject of the room is: \x19%s}%s %s" %
+                        (info_text, norm_text, self.topic, user_string))
+            self.refresh()
+            return
+
+        muc.change_subject(self.core.xmpp, self.name, subject)
+
+    @command_args_parser.quoted(0)
+    def command_names(self, args):
+        """
+        /names
+        """
+        if not self.joined:
+            return
+
+        aff = {
+                'owner': get_theme().CHAR_AFFILIATION_OWNER,
+                'admin': get_theme().CHAR_AFFILIATION_ADMIN,
+                'member': get_theme().CHAR_AFFILIATION_MEMBER,
+                'none': get_theme().CHAR_AFFILIATION_NONE,
+                }
+
+        colors = {}
+        colors["visitor"] = dump_tuple(get_theme().COLOR_USER_VISITOR)
+        colors["moderator"] = dump_tuple(get_theme().COLOR_USER_MODERATOR)
+        colors["participant"] = dump_tuple(get_theme().COLOR_USER_PARTICIPANT)
+        color_other = dump_tuple(get_theme().COLOR_USER_NONE)
+
+        buff = ['Users: %s \n' % len(self.users)]
+        for user in self.users:
+            affiliation = aff.get(user.affiliation,
+                                  get_theme().CHAR_AFFILIATION_NONE)
+            color = colors.get(user.role, color_other)
+            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' % (
+                color, affiliation, dump_tuple(user.color), user.nick))
+
+        buff.append('\n')
+        message = ' '.join(buff)
+
+        self._text_buffer.add_message(message)
+        self.text_win.refresh()
+        self.input.refresh()
+
+    @command_args_parser.quoted(1, 1)
+    def command_kick(self, args):
+        """
+        /kick <nick> [reason]
+        """
+        if args is None:
+            return self.core.command.help('kick')
+        if len(args) == 2:
+            msg = ' "%s"' % args[1]
+        else:
+            msg = ''
+        self.command_role('"'+args[0]+ '" none'+msg)
+
+    @command_args_parser.quoted(1, 1)
+    def command_ban(self, args):
+        """
+        /ban <nick> [reason]
+        """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.room_error(iq, self.name)
+        if args is None:
+            return self.core.command.help('ban')
+        if len(args) > 1:
+            msg = args[1]
+        else:
+            msg = ''
+        nick = args[0]
+
+        if nick in [user.nick for user in self.users]:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           'outcast', nick=nick,
+                                           callback=callback, reason=msg)
+        else:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           'outcast', jid=safeJID(nick),
+                                           callback=callback, reason=msg)
+        if not res:
+            self.core.information('Could not ban user', 'Error')
+
+    @command_args_parser.quoted(2, 1, [''])
+    def command_role(self, args):
+        """
+        /role <nick> <role> [reason]
+        Changes the role of an user
+        roles can be: none, visitor, participant, moderator
+        """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.room_error(iq, self.name)
+
+        if args is None:
+            return self.core.command.help('role')
+
+        nick, role, reason = args[0], args[1].lower(), args[2]
+
+        valid_roles = ('none', 'visitor', 'participant', 'moderator')
+
+        if not self.joined or role not in valid_roles:
+            return self.core.information('The role must be one of ' + ', '.join(valid_roles),
+                                         'Error')
+
+        if not safeJID(self.name + '/' + nick):
+            return self.core.information('Invalid nick', 'Info')
+        muc.set_user_role(self.core.xmpp, self.name, nick, reason, role,
+                          callback=callback)
+
+    @command_args_parser.quoted(2)
+    def command_affiliation(self, args):
+        """
+        /affiliation <nick> <role>
+        Changes the affiliation of an user
+        affiliations can be: outcast, none, member, admin, owner
+        """
+        def callback(iq):
+            if iq['type'] == 'error':
+                self.core.room_error(iq, self.name)
+
+        if args is None:
+            return self.core.command.help('affiliation')
+
+        nick, affiliation = args[0], args[1].lower()
+
+        if not self.joined:
+            return
+
+        valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
+        if affiliation not in valid_affiliations:
+            return self.core.information('The affiliation must be one of ' + ', '.join(valid_affiliations),
+                                         'Error')
+
+        if nick in [user.nick for user in self.users]:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           affiliation, nick=nick,
+                                           callback=callback)
+        else:
+            res = muc.set_user_affiliation(self.core.xmpp, self.name,
+                                           affiliation, jid=safeJID(nick),
+                                           callback=callback)
+        if not res:
+            self.core.information('Could not set affiliation', 'Error')
+
+    @command_args_parser.raw
+    def command_say(self, line, correct=False):
+        """
+        /say <message>
+        Or normal input + enter
+        """
+        needed = 'inactive' if self.inactive else 'active'
+        msg = self.core.xmpp.make_message(self.name)
+        msg['type'] = 'groupchat'
+        msg['body'] = line
+        # trigger the event BEFORE looking for colors.
+        # This lets a plugin insert \x19xxx} colors, that will
+        # be converted in xhtml.
+        self.core.events.trigger('muc_say', msg, self)
+        if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
+            return
+        if msg['body'].find('\x19') != -1:
+            msg.enable('html')
+            msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
+            msg['body'] = xhtml.clean_text(msg['body'])
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and self.remote_wants_chatstates is not False):
+            msg['chat_state'] = needed
+        if correct:
+            msg['replace']['id'] = self.last_sent_message['id']
+        self.cancel_paused_delay()
+        self.core.events.trigger('muc_say_after', msg, self)
+        if not msg['body']:
+            self.cancel_paused_delay()
+            self.text_win.refresh()
+            self.input.refresh()
+            return
+        self.last_sent_message = msg
+        msg.send()
+        self.chat_state = needed
+
+    @command_args_parser.raw
+    def command_xhtml(self, msg):
+        message = self.generate_xhtml_message(msg)
+        if message:
+            message['type'] = 'groupchat'
+            message.send()
+
+    @command_args_parser.quoted(1)
+    def command_ignore(self, args):
+        """
+        /ignore <nick>
+        """
+        if args is None:
+            return self.core.command.help('ignore')
+
+        nick = args[0]
+        user = self.get_user_by_name(nick)
+        if not user:
+            self.core.information('%s is not in the room' % nick)
+        elif user in self.ignores:
+            self.core.information('%s is already ignored' % nick)
+        else:
+            self.ignores.append(user)
+            self.core.information("%s is now ignored" % nick, 'info')
+
+    @command_args_parser.quoted(1)
+    def command_unignore(self, args):
+        """
+        /unignore <nick>
+        """
+        if args is None:
+            return self.core.command.help('unignore')
+
+        nick = args[0]
+        user = self.get_user_by_name(nick)
+        if not user:
+            self.core.information('%s is not in the room' % nick)
+        elif user not in self.ignores:
+            self.core.information('%s is not ignored' % nick)
+        else:
+            self.ignores.remove(user)
+            self.core.information('%s is now unignored' % nick)
+
+########################## COMPLETIONS #################################
+
+    def completion(self):
+        """
+        Called when Tab is pressed, complete the nickname in the input
+        """
+        if self.complete_commands(self.input):
+            return
+
+        # If we are not completing a command or a command argument,
+        # complete a nick
+        compare_users = lambda x: x.last_talked
+        word_list = []
+        for user in sorted(self.users, key=compare_users, reverse=True):
+            if user.nick != self.own_nick:
+                word_list.append(user.nick)
+        after = config.get('after_completion') + ' '
+        input_pos = self.input.pos
+        if ' ' not in self.input.get_text()[:input_pos] or (
+                self.input.last_completion and
+                    self.input.get_text()[:input_pos] ==
+                    self.input.last_completion + after):
+            add_after = after
+        else:
+            if not config.get('add_space_after_completion'):
+                add_after = ''
+            else:
+                add_after = ' '
+        self.input.auto_completion(word_list, add_after, quotify=False)
+        empty_after = self.input.get_text() == ''
+        empty_after = empty_after or (self.input.get_text().startswith('/')
+                                      and not
+                                      self.input.get_text().startswith('//'))
+        self.send_composing_chat_state(empty_after)
+
+    def completion_version(self, the_input):
+        """Completion for /version"""
+        compare_users = lambda x: x.last_talked
+        userlist = []
+        for user in sorted(self.users, key=compare_users, reverse=True):
+            if user.nick != self.own_nick:
+                userlist.append(user.nick)
+        comp = []
+        for jid in (jid for jid in roster.jids() if len(roster[jid])):
+            for resource in roster[jid].resources:
+                comp.append(resource.jid)
+        comp.sort()
+        userlist.extend(comp)
+
+        return Completion(the_input.auto_completion, userlist, quotify=False)
+
+    def completion_info(self, the_input):
+        """Completion for /info"""
+        compare_users = lambda x: x.last_talked
+        userlist = []
+        for user in sorted(self.users, key=compare_users, reverse=True):
+            userlist.append(user.nick)
+        return Completion(the_input.auto_completion, userlist, quotify=False)
+
+    def completion_nick(self, the_input):
+        """Completion for /nick"""
+        nicks = [os.environ.get('USER'),
+                 config.get('default_nick'),
+                 self.core.get_bookmark_nickname(self.name)]
+        nicks = [i for i in nicks if i]
+        return Completion(the_input.auto_completion, nicks, '', quotify=False)
+
+    def completion_recolor(self, the_input):
+        if the_input.get_argument_position() == 1:
+            return Completion(the_input.new_completion, ['random'], 1, '', quotify=False)
+        return True
+
+    def completion_color(self, the_input):
+        """Completion for /color"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            userlist = [user.nick for user in self.users]
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
+        elif n == 2:
+            colors = [i for i in xhtml.colors if i]
+            colors.sort()
+            colors.append('unset')
+            colors.append('random')
+            return Completion(the_input.new_completion, colors, 2, '', quotify=False)
+
+    def completion_ignore(self, the_input):
+        """Completion for /ignore"""
+        userlist = [user.nick for user in self.users]
+        if self.own_nick in userlist:
+            userlist.remove(self.own_nick)
+        userlist.sort()
+        return Completion(the_input.auto_completion, userlist, quotify=False)
+
+    def completion_role(self, the_input):
+        """Completion for /role"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            userlist = [user.nick for user in self.users]
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
+        elif n == 2:
+            possible_roles = ['none', 'visitor', 'participant', 'moderator']
+            return Completion(the_input.new_completion, possible_roles, 2, '',
+                                            quotify=True)
+
+    def completion_affiliation(self, the_input):
+        """Completion for /affiliation"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            userlist = [user.nick for user in self.users]
+            if self.own_nick in userlist:
+                userlist.remove(self.own_nick)
+            jidlist = [user.jid.bare for user in self.users]
+            if self.core.xmpp.boundjid.bare in jidlist:
+                jidlist.remove(self.core.xmpp.boundjid.bare)
+            userlist.extend(jidlist)
+            return Completion(the_input.new_completion, userlist, 1, '', quotify=True)
+        elif n == 2:
+            possible_affiliations = ['none', 'member', 'admin',
+                                     'owner', 'outcast']
+            return Completion(the_input.new_completion, possible_affiliations, 2, '',
+                                            quotify=True)
+
+    def completion_invite(self, the_input):
+        """Completion for /invite"""
+        n = the_input.get_argument_position(quoted=True)
+        if n == 1:
+            return Completion(the_input.new_completion, roster.jids(), 1, quotify=True)
+
+    def completion_topic(self, the_input):
+        if the_input.get_argument_position() == 1:
+            return Completion(the_input.auto_completion, [self.topic], '', quotify=False)
+
+    def completion_quoted(self, the_input):
+        """Nick completion, but with quotes"""
+        if the_input.get_argument_position(quoted=True) == 1:
+            compare_users = lambda x: x.last_talked
+            word_list = []
+            for user in sorted(self.users, key=compare_users, reverse=True):
+                if user.nick != self.own_nick:
+                    word_list.append(user.nick)
+
+            return Completion(the_input.new_completion, word_list, 1, quotify=True)
+
+    def completion_unignore(self, the_input):
+        if the_input.get_argument_position() == 1:
+            users = [user.nick for user in self.ignores]
+            return Completion(the_input.auto_completion, users, quotify=False)
+
+########################## REGISTER STUFF ##############################
 
     def register_keys(self):
         "Register tab-specific keys"
