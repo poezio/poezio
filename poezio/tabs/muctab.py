@@ -1304,12 +1304,12 @@ class MucTab(ChatTab):
         """
         /close [msg]
         """
-        self.command_part(msg)
+        self.leave_room(msg)
         self.core.close_tab(self)
 
     def on_close(self):
         super().on_close()
-        self.command_part('')
+        self.leave_room('')
 
     @command_args_parser.quoted(1, 1)
     def command_query(self, args):
