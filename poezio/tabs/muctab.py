@@ -256,6 +256,33 @@ class MucTab(ChatTab):
         self.add_message(info, typ=0)
         return True
 
+    def change_topic(self, topic):
+        """Change the current topic"""
+        muc.change_subject(self.core.xmpp, self.name, topic)
+
+    @refresh_wrapper.always
+    def show_topic(self):
+        """
+        Print the current topic
+        """
+        info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+        norm_text = dump_tuple(get_theme().COLOR_NORMAL_TEXT)
+        if self.topic_from:
+            user = self.get_user_by_name(self.topic_from)
+            if user:
+                user_text = dump_tuple(user.color)
+                user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
+                        info_text, user_text, user.nick, info_text)
+            else:
+                user_string = self.topic_from
+        else:
+            user_string = ''
+
+        self._text_buffer.add_message(
+                "\x19%s}The subject of the room is: \x19%s}%s %s" %
+                    (info_text, norm_text, self.topic, user_string))
+
+
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
             self.key_func[key]()
@@ -1312,26 +1339,9 @@ class MucTab(ChatTab):
         /topic [new topic]
         """
         if not subject:
-            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            norm_text = dump_tuple(get_theme().COLOR_NORMAL_TEXT)
-            if self.topic_from:
-                user = self.get_user_by_name(self.topic_from)
-                if user:
-                    user_text = dump_tuple(user.color)
-                    user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
-                            info_text, user_text, user.nick, info_text)
-                else:
-                    user_string = self.topic_from
-            else:
-                user_string = ''
-
-            self._text_buffer.add_message(
-                    "\x19%s}The subject of the room is: \x19%s}%s %s" %
-                        (info_text, norm_text, self.topic, user_string))
-            self.refresh()
-            return
-
-        muc.change_subject(self.core.xmpp, self.name, subject)
+            self.show_topic()
+        else:
+            self.change_topic(subject)
 
     @command_args_parser.quoted(0)
     def command_names(self, args):
