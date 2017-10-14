@@ -273,7 +273,9 @@ class MucTab(ChatTab):
         status_codes = set()
         for status_code in presence.xml.findall(STATUS_XPATH):
             status_codes.add(status_code.attrib['code'])
-        if not self.joined:
+        if presence['type'] == 'error':
+            self.core.room_error(presence, self.name)
+        elif not self.joined:
             if '110' in status_codes:
                self.process_presence_buffer(presence)
             else:
