@@ -68,7 +68,7 @@ class User(object):
     def change_color(self, color_name, deterministic=False):
         color = xhtml.colors.get(color_name)
         if color == None:
-            log.error('Unknown color "%s"' % color_name)
+            log.error('Unknown color "%s"', color_name)
             if deterministic:
                 self.set_deterministic_color()
             else:

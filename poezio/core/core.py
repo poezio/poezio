@@ -553,7 +553,7 @@ class Core(object):
         self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
 
     def exit(self, event=None):
-        log.debug("exit(%s)" % (event,))
+        log.debug("exit(%s)",  event)
         asyncio.get_event_loop().stop()
 
     def on_exception(self, typ, value, trace):
