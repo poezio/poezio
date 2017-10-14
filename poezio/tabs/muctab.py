@@ -105,11 +105,6 @@ class MucTab(ChatTab):
             return last_message.time
         return None
 
-    def scroll_user_list_down(self):
-        self.user_win.scroll_down()
-        self.user_win.refresh(self.users)
-        self.input.refresh()
-
     def cancel_config(self, form):
         """
         The user do not want to send his/her config, send an iq cancel
@@ -1037,10 +1032,15 @@ class MucTab(ChatTab):
         """
         self.text_win.previous_highlight()
 
+    @refresh_wrapper.always
     def scroll_user_list_up(self):
+        "Scroll up in the userlist"
         self.user_win.scroll_up()
-        self.user_win.refresh(self.users)
-        self.input.refresh()
+
+    @refresh_wrapper.always
+    def scroll_user_list_down(self):
+        "Scroll down in the userlist"
+        self.user_win.scroll_down()
 
     def resize(self):
         """
