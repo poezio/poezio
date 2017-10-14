@@ -47,26 +47,32 @@ class MucTab(ChatTab):
     message_type = 'groupchat'
     plugin_commands = {}
     plugin_keys = {}
+
     def __init__(self, core, jid, nick, password=None):
-        self.joined = False
         ChatTab.__init__(self, core, jid)
-        if self.joined == False:
-            self._state = 'disconnected'
+        self.joined = False
+        self._state = 'disconnected'
+        # our nick in the MUC
         self.own_nick = nick
+        # self User object
         self.own_user = None
         self.name = jid
         self.password = password
+        # buffered presences
         self.presence_buffer = []
+        # userlist
         self.users = []
-        self.privates = [] # private conversations
+        # private conversations
+        self.privates = []
         self.topic = ''
         self.topic_from = ''
-        self.remote_wants_chatstates = True
-        # Self ping event, so we can cancel it when we leave the room
-        self.self_ping_event = None
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
         # that’s not our problem.
+        self.remote_wants_chatstates = True
+        # Self ping event, so we can cancel it when we leave the room
+        self.self_ping_event = None
+        # UI stuff
         self.topic_win = windows.Topic()
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
@@ -74,131 +80,15 @@ class MucTab(ChatTab):
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
         self.input = windows.MessageInput()
-        self.ignores = []       # set of Users
+        # List of ignored users
+        self.ignores = []
         # keys
-        self.key_func['^I'] = self.completion
-        self.key_func['M-u'] = self.scroll_user_list_down
-        self.key_func['M-y'] = self.scroll_user_list_up
-        self.key_func['M-n'] = self.go_to_next_hl
-        self.key_func['M-p'] = self.go_to_prev_hl
-        # commands
-        self.register_command('ignore', self.command_ignore,
-                usage='<nickname>',
-                desc='Ignore a specified nickname.',
-                shortdesc='Ignore someone',
-                completion=self.completion_ignore)
-        self.register_command('unignore', self.command_unignore,
-                usage='<nickname>',
-                desc='Remove the specified nickname from the ignore list.',
-                shortdesc='Unignore someone.',
-                completion=self.completion_unignore)
-        self.register_command('kick', self.command_kick,
-                usage='<nick> [reason]',
-                desc='Kick the user with the specified nickname.'
-                     ' You also can give an optional reason.',
-                shortdesc='Kick someone.',
-                completion=self.completion_quoted)
-        self.register_command('ban', self.command_ban,
-                usage='<nick> [reason]',
-                desc='Ban the user with the specified nickname.'
-                     ' You also can give an optional reason.',
-                shortdesc='Ban someone',
-                completion=self.completion_quoted)
-        self.register_command('role', self.command_role,
-                usage='<nick> <role> [reason]',
-                desc='Set the role of an user. Roles can be:'
-                     ' none, visitor, participant, moderator.'
-                     ' You also can give an optional reason.',
-                shortdesc='Set the role of an user.',
-                completion=self.completion_role)
-        self.register_command('affiliation', self.command_affiliation,
-                usage='<nick or jid> <affiliation>',
-                desc='Set the affiliation of an user. Affiliations can be:'
-                     ' outcast, none, member, admin, owner.',
-                shortdesc='Set the affiliation of an user.',
-                completion=self.completion_affiliation)
-        self.register_command('topic', self.command_topic,
-                usage='<subject>',
-                desc='Change the subject of the room.',
-                shortdesc='Change the subject.',
-                completion=self.completion_topic)
-        self.register_command('subject', self.command_topic,
-                usage='<subject>',
-                desc='Change the subject of the room.',
-                shortdesc='Change the subject.',
-                completion=self.completion_topic)
-        self.register_command('query', self.command_query,
-                usage='<nick> [message]',
-                desc='Open a private conversation with <nick>. This nick'
-                     ' has to be present in the room you\'re currently in.'
-                     ' If you specified a message after the nickname, it '
-                     'will immediately be sent to this user.',
-                shortdesc='Query an user.',
-                completion=self.completion_quoted)
-        self.register_command('part', self.command_part,
-                usage='[message]',
-                desc='Disconnect from a room. You can'
-                     ' specify an optional message.',
-                shortdesc='Leave the room.')
-        self.register_command('close', self.command_close,
-                usage='[message]',
-                desc='Disconnect from a room and close the tab.'
-                     ' You can specify an optional message if '
-                     'you are still connected.',
-                shortdesc='Close the tab.')
-        self.register_command('nick', self.command_nick,
-                usage='<nickname>',
-                desc='Change your nickname in the current room.',
-                shortdesc='Change your nickname.',
-                completion=self.completion_nick)
-        self.register_command('recolor', self.command_recolor,
-                usage='[random]',
-                desc='Re-assign a color to all participants of the'
-                     ' current room, based on the last time they talked.'
-                     ' Use this if the participants currently talking '
-                     'have too many identical colors. Use /recolor random'
-                     ' for a non-deterministic result.',
-                shortdesc='Change the nicks colors.',
-                completion=self.completion_recolor)
-        self.register_command('color', self.command_color,
-                usage='<nick> <color>',
-                desc='Fix a color for a nick. Use "unset" instead of a color'
-                     ' to remove the attribution',
-                shortdesc='Fix a color for a nick.',
-                completion=self.completion_color)
-        self.register_command('cycle', self.command_cycle,
-                usage='[message]',
-                desc='Leave the current room and rejoin it immediately.',
-                shortdesc='Leave and re-join the room.')
-        self.register_command('info', self.command_info,
-                usage='<nickname>',
-                desc='Display some information about the user '
-                     'in the MUC: its/his/her role, affiliation,'
-                     ' status and status message.',
-                shortdesc='Show an user\'s infos.',
-                completion=self.completion_info)
-        self.register_command('configure', self.command_configure,
-                desc='Configure the current room, through a form.',
-                shortdesc='Configure the room.')
-        self.register_command('version', self.command_version,
-                usage='<jid or nick>',
-                desc='Get the software version of the given JID'
-                     ' or nick in room (usually its XMPP client'
-                     ' and Operating System).',
-                shortdesc='Get the software version of a jid.',
-                completion=self.completion_version)
-        self.register_command('names', self.command_names,
-                desc='Get the users in the room with their roles.',
-                shortdesc='List the users.')
-        self.register_command('invite', self.command_invite,
-                desc='Invite a contact to this room',
-                usage='<jid> [reason]',
-                shortdesc='Invite a contact to this room',
-                completion=self.completion_invite)
-
-        self.resize()
-        self.update_commands()
+        self.register_keys()
         self.update_keys()
+        # commands
+        self.register_commands()
+        self.update_commands()
+        self.resize()
 
     @property
     def general_jid(self):
@@ -1762,6 +1652,192 @@ class MucTab(ChatTab):
     def on_self_ping_failed(self, iq):
         self.command_cycle("the MUC server is not responding")
         self.core.refresh_window()
+
+    def register_keys(self):
+        "Register tab-specific keys"
+        self.key_func['^I'] = self.completion
+        self.key_func['M-u'] = self.scroll_user_list_down
+        self.key_func['M-y'] = self.scroll_user_list_up
+        self.key_func['M-n'] = self.go_to_next_hl
+        self.key_func['M-p'] = self.go_to_prev_hl
+
+    def register_commands(self):
+        "Register tab-specific commands"
+        self.register_commands_batch([
+            {
+                'name': 'ignore',
+                'func': self.command_ignore,
+                'usage': '<nickname>',
+                'desc': 'Ignore a specified nickname.',
+                'shortdesc': 'Ignore someone',
+                'completion': self.completion_unignore
+            },
+            {
+                'name': 'unignore',
+                'func': self.command_unignore,
+                'usage': '<nickname>',
+                'desc': 'Remove the specified nickname from the ignore list.',
+                'shortdesc': 'Unignore someone.',
+                'completion': self.completion_unignore
+            },
+            {
+                'name': 'kick',
+                'func': self.command_kick,
+                'usage': '<nick> [reason]',
+                'desc': ('Kick the user with the specified nickname.'
+                         ' You also can give an optional reason.'),
+                'shortdesc': 'Kick someone.',
+                'completion': self.completion_quoted
+            },
+            {
+                'name': 'ban',
+                'func': self.command_ban,
+                'usage': '<nick> [reason]',
+                'desc': ('Ban the user with the specified nickname.'
+                         ' You also can give an optional reason.'),
+                'shortdesc': 'Ban someone',
+                'completion': self.completion_quoted
+            },
+            {
+                'name': 'role',
+                'func': self.command_role,
+                'usage': '<nick> <role> [reason]',
+                'desc': ('Set the role of an user. Roles can be:'
+                         ' none, visitor, participant, moderator.'
+                         ' You also can give an optional reason.'),
+                'shortdesc': 'Set the role of an user.',
+                'completion': self.completion_role
+            },
+            {
+                'name': 'affiliation',
+                'func': self.command_affiliation,
+                'usage': '<nick or jid> <affiliation>',
+                'desc': ('Set the affiliation of an user. Affiliations can be:'
+                         ' outcast, none, member, admin, owner.'),
+                'shortdesc': 'Set the affiliation of an user.',
+                'completion': self.completion_affiliation
+            },
+            {
+                'name': 'topic',
+                'func': self.command_topic,
+                'usage': '<subject>',
+                'desc': 'Change the subject of the room.',
+                'shortdesc': 'Change the subject.',
+                'completion': self.completion_topic
+            },
+            {
+                'name': 'subject',
+                'func': self.command_topic,
+                'usage': '<subject>',
+                'desc': 'Change the subject of the room.',
+                'shortdesc': 'Change the subject.',
+                'completion': self.completion_topic
+            },
+            {
+                'name': 'query',
+                'func': self.command_query,
+                'usage': '<nick> [message]',
+                'desc': ('Open a private conversation with <nick>. This nick'
+                         ' has to be present in the room you\'re currently in.'
+                         ' If you specified a message after the nickname, it '
+                         'will immediately be sent to this user.'),
+                'shortdesc': 'Query a user.',
+                'completion': self.completion_quoted
+            },
+            {
+                'name': 'part',
+                'func': self.command_part,
+                'usage': '[message]',
+                'desc': ('Disconnect from a room. You can'
+                         ' specify an optional message.'),
+                'shortdesc': 'Leave the room.'
+            },
+            {
+                'name': 'close',
+                'func': self.command_close,
+                'usage': '[message]',
+                'desc': ('Disconnect from a room and close the tab.'
+                         ' You can specify an optional message if '
+                         'you are still connected.'),
+                'shortdesc': 'Close the tab.'
+            },
+            {
+                'name': 'nick',
+                'func': self.command_nick,
+                'usage': '<nickname>',
+                'desc': 'Change your nickname in the current room.',
+                'shortdesc': 'Change your nickname.',
+                'completion': self.completion_nick
+            },
+            {
+                'name':'recolor',
+                'func': self.command_recolor,
+                'usage': '[random]',
+                'desc': ('Re-assign a color to all participants of the'
+                         ' current room, based on the last time they talked.'
+                         ' Use this if the participants currently talking '
+                         'have too many identical colors. Use /recolor random'
+                         ' for a non-deterministic result.'),
+                'shortdesc': 'Change the nicks colors.',
+                'completion': self.completion_recolor
+            },
+            {
+                'name': 'color',
+                'func': self.command_color,
+                'usage': '<nick> <color>',
+                'desc': ('Fix a color for a nick. Use "unset" instead of a '
+                         'color to remove the attribution'),
+                'shortdesc': 'Fix a color for a nick.',
+                'completion': self.completion_recolor
+            },
+            {
+                'name': 'cycle',
+                'func': self.command_cycle,
+                'usage': '[message]',
+                'desc': 'Leave the current room and rejoin it immediately.',
+                'shortdesc': 'Leave and re-join the room.'
+            },
+            {
+                'name': 'info',
+                'func': self.command_info,
+                'usage': '<nickname>',
+                'desc': ('Display some information about the user '
+                         'in the MUC: its/his/her role, affiliation,'
+                         ' status and status message.'),
+                'shortdesc': 'Show an user\'s infos.',
+                'completion': self.completion_info
+            },
+            {
+                'name': 'configure',
+                'func': self.command_configure,
+                'desc': 'Configure the current room, through a form.',
+                'shortdesc': 'Configure the room.'
+            },
+            {
+                'name': 'version',
+                'func': self.command_version,
+                'usage': '<jid or nick>',
+                'desc': ('Get the software version of the given JID'
+                         ' or nick in room (usually its XMPP client'
+                         ' and Operating System).'),
+                'shortdesc': 'Get the software version of a jid.',
+                'completion': self.completion_version
+            },
+            {
+                'name': 'names',
+                'func': self.command_names,
+                'desc': 'Get the users in the room with their roles.',
+                'shortdesc': 'List the users.'
+            },
+            {
+                'name': 'invite',
+                'func': self.command_invite,
+                'desc': 'Invite a contact to this room',
+                'usage': '<jid> [reason]',
+                'shortdesc': 'Invite a contact to this room',
+                'completion': self.completion_invite
+            }
+        ])
 
 class PresenceError(Exception): pass
 

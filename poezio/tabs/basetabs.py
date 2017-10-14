@@ -183,6 +183,21 @@ class Tab(object):
         """
         return False
 
+    def register_commands_batch(self, commands):
+        """
+        Add several commands in a row, using a list of dictionaries
+        """
+        for command in commands:
+            name = command['name']
+            func = command['func']
+            desc = command.get('desc', '')
+            shortdesc = command.get('shortdesc', '')
+            completion = command.get('completion')
+            usage = command.get('usage', '')
+            self.register_command(name, func, desc=desc, shortdesc=shortdesc,
+                    completion=completion, usage=usage)
+
+
     def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
         """
         Add a command
