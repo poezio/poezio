@@ -2,8 +2,7 @@
 Test the functions in the `logger` module
 """
 
-import pytest
-from poezio.logger import LogInfo, LogMessage, parse_log_line
+from poezio.logger import LogMessage, parse_log_line
 
 def test_parse_message():
     line = 'MR 20170909T09:09:09Z 000 <nick>  body'

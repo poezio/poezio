@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from poezio import windows
-from poezio.bookmarks import Bookmark, BookmarkList, stanza_storage
+from poezio.bookmarks import Bookmark, BookmarkList
 from poezio.tabs import Tab
 from poezio.common import safeJID
 

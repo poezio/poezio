@@ -5,7 +5,6 @@ Test the completions methods on an altered input object.
 import string
 import pytest
 import random
-import os
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):

@@ -6,9 +6,8 @@ class ConfigShim(object):
 
 from poezio import config
 config.config = ConfigShim()
-from poezio import core
 
-from poezio.windows import Input, HistoryInput, MessageInput, CommandInput
+from poezio.windows import Input, HistoryInput, MessageInput
 
 @pytest.fixture
 def input():

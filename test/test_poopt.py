@@ -2,8 +2,6 @@
 Test of the poopt module
 """
 
-import pytest
-
 from poezio.poopt import cut_text
 
 def test_cut_text():
