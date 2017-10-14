@@ -69,7 +69,7 @@ class MucTab(ChatTab):
         # We send active, composing and paused states to the MUC because
         # the chatstate may or may not be filtered by the MUC,
         # that’s not our problem.
-        self.remote_wants_chatstates = True
+        self._remote_wants_chatstates = True
         # Self ping event, so we can cancel it when we leave the room
         self.self_ping_event = None
         # UI stuff

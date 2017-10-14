@@ -451,7 +451,7 @@ class ChatTab(Tab):
         Tab.__init__(self, core)
         self.name = jid
         self.text_win = None
-        self.remote_wants_chatstates = False
+        self._remote_wants_chatstates = False
         self.directed_presence = None
         self._text_buffer = TextBuffer()
         self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
@@ -487,6 +487,10 @@ class ChatTab(Tab):
         if logs:
             for message in logs:
                 self._text_buffer.add_message(**message)
+
+    @property
+    def remote_wants_chatstates(self):
+        return self._remote_wants_chatstates
 
     @property
     def general_jid(self):
