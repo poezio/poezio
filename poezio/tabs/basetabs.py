@@ -489,10 +489,6 @@ class ChatTab(Tab):
                 self._text_buffer.add_message(**message)
 
     @property
-    def is_muc(self):
-        return False
-
-    @property
     def general_jid(self):
         return NotImplementedError
 

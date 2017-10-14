@@ -94,10 +94,6 @@ class MucTab(ChatTab):
     def general_jid(self):
         return self.name
 
-    @property
-    def is_muc(self):
-        return True
-
     def check_send_chat_state(self):
         "If we should send a chat state"
         return self.joined
