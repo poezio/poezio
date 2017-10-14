@@ -482,6 +482,8 @@ class Input(Win):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
+            elif attr_char == 'i':
+                self._win.attron(curses.A_ITALIC)
             elif attr_char in string.digits and attr_char != '':
                 self._win.attron(to_curses_attr((int(attr_char), -1)))
             format_char = find_first_format_char(text, chars)

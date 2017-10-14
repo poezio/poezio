@@ -445,6 +445,8 @@ def to_curses_attr(color_tuple):
             curses_pair = curses_pair | curses.A_BOLD
         if 'u' in additional_val:
             curses_pair = curses_pair | curses.A_UNDERLINE
+        if 'i' in additional_val:
+            curses_pair = curses_pair | curses.A_ITALIC
         if 'a' in additional_val:
             curses_pair = curses_pair | curses.A_BLINK
     return curses_pair

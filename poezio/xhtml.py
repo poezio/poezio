@@ -531,6 +531,8 @@ def poezio_colors_to_html(string):
             check_property('font-weight', 'bold')
         elif attr_char == 'u':
             check_property('text-decoration', 'underline')
+        elif attr_char == 'i':
+            check_property('font-style', 'italic')
 
         if attr_char in digits:
             number_str = string[next_attr_char+1:string.find('}', next_attr_char)]

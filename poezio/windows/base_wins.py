@@ -95,7 +95,7 @@ class Win(object):
         \x191}Bonj\x192}our → 'Bonj' in red and 'our' in green
         next_attr_char is the \x19 delimiter
         attr_char is the char following it, it can be
-        one of 'u', 'b', 'c[0-9]'
+        one of 'u', 'b', 'i', 'c[0-9]'
         """
         if y is not None and x is not None:
             self.move(y, x)
@@ -113,6 +113,8 @@ class Win(object):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
+            elif attr_char == 'i':
+                self._win.attron(curses.A_ITALIC)
             if (attr_char in string.digits or attr_char == '-') and attr_char != '':
                 color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
                 if ',' in color_str:
@@ -125,6 +127,8 @@ class Win(object):
                             self._win.attron(curses.A_UNDERLINE)
                         elif char == 'b':
                             self._win.attron(curses.A_BOLD)
+                        elif char == 'i':
+                            self._win.attron(curses.A_ITALIC)
                     else:
                         # this will reset previous bold/uderline sequences if any was used
                         self._win.attroff(curses.A_UNDERLINE)

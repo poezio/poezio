@@ -43,6 +43,8 @@ def parse_attrs(text, previous=None):
             attrs.append('u')
         elif attr_char == 'b':
             attrs.append('b')
+        elif attr_char == 'i':
+            attrs.append('i')
         if attr_char in DIGITS and attr_char:
             color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
             if color_str:
