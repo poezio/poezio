@@ -372,7 +372,7 @@ class MucTab(ChatTab):
             self.core.room_error(presence, self.name)
         elif not self.joined:
             if '110' in status_codes:
-               self.process_presence_buffer(presence)
+                self.process_presence_buffer(presence)
             else:
                 self.presence_buffer.append(presence)
                 return
