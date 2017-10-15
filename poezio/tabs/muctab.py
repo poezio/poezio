@@ -311,6 +311,35 @@ class MucTab(ChatTab):
             user.color = colors[i % len(colors)]
         self.text_win.rebuild_everything(self._text_buffer)
 
+    @refresh_wrapper.conditional
+    def set_nick_color(self, nick, color):
+        "Set a custom color for a nick, permanently"
+        user = self.get_user_by_name(nick)
+        if color not in xhtml.colors and color not in ('unset', 'random'):
+            return False
+        if nick == self.own_nick:
+            return False
+        if color == 'unset':
+            if config.remove_and_save(nick, 'muc_colors'):
+                self.core.information('Color for nick %s unset' % (nick), 'Info')
+        else:
+            if color == 'random':
+                color = random.choice(list(xhtml.colors))
+            if user:
+                user.change_color(color)
+            config.set_and_save(nick, color, 'muc_colors')
+            nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
+            if nick_color_aliases:
+                # if any user in the room has a nick which is an alias of the
+                # nick, update its color
+                for tab in self.core.get_tabs(MucTab):
+                    for u in tab.users:
+                        nick_alias = re.sub('^_*', '', u.nick)
+                        nick_alias = re.sub('_*$', '', nick_alias)
+                        if nick_alias == nick:
+                            u.change_color(color)
+        self.text_win.rebuild_everything(self._text_buffer)
+        return True
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -1213,35 +1242,12 @@ class MucTab(ChatTab):
             return self.core.command.help('color')
         nick = args[0]
         color = args[1].lower()
-        user = self.get_user_by_name(nick)
-        if color not in xhtml.colors and color not in ('unset', 'random'):
-            return self.core.information("Unknown color: %s" % color, 'Error')
-        if user and user.nick == self.own_nick:
+        if nick == self.own_nick:
             return self.core.information("You cannot change the color of your"
                                          " own nick.", 'Error')
-        if color == 'unset':
-            if config.remove_and_save(nick, 'muc_colors'):
-                self.core.information('Color for nick %s unset' % (nick))
-        else:
-            if color == 'random':
-                color = random.choice(list(xhtml.colors))
-            if user:
-                user.change_color(color)
-            config.set_and_save(nick, color, 'muc_colors')
-            nick_color_aliases = config.get_by_tabname('nick_color_aliases', self.name)
-            if nick_color_aliases:
-                # if any user in the room has a nick which is an alias of the
-                # nick, update its color
-                for tab in self.core.get_tabs(MucTab):
-                    for u in tab.users:
-                        nick_alias = re.sub('^_*', '', u.nick)
-                        nick_alias = re.sub('_*$', '', nick_alias)
-                        if nick_alias == nick:
-                            u.change_color(color)
-            self.text_win.rebuild_everything(self._text_buffer)
-            self.user_win.refresh(self.users)
-            self.text_win.refresh()
-            self.input.refresh()
+        elif color not in xhtml.colors and color not in ('unset', 'random'):
+            return self.core.information("Unknown color: %s" % color, 'Error')
+        self.set_nick_color(nick, color)
 
     @command_args_parser.quoted(1)
     def command_version(self, args):
