@@ -100,6 +100,7 @@ class Win(object):
         if y is not None and x is not None:
             self.move(y, x)
         next_attr_char = text.find(FORMAT_CHAR)
+        has_italic = hasattr(curses, 'A_ITALIC')
         while next_attr_char != -1 and text:
             if next_attr_char + 1 < len(text):
                 attr_char = text[next_attr_char+1].lower()
@@ -113,7 +114,7 @@ class Win(object):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
-            elif attr_char == 'i':
+            elif attr_char == 'i' and has_italic:
                 self._win.attron(curses.A_ITALIC)
             if (attr_char in string.digits or attr_char == '-') and attr_char != '':
                 color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
@@ -127,7 +128,7 @@ class Win(object):
                             self._win.attron(curses.A_UNDERLINE)
                         elif char == 'b':
                             self._win.attron(curses.A_BOLD)
-                        elif char == 'i':
+                        elif char == 'i' and has_italic:
                             self._win.attron(curses.A_ITALIC)
                     else:
                         # this will reset previous bold/uderline sequences if any was used

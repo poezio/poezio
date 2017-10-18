@@ -467,6 +467,7 @@ class Input(Win):
         if y is not None and x is not None:
             self.move(y, x)
         format_char = find_first_format_char(text, chars)
+        has_italic = hasattr(curses, 'A_ITALIC')
         while format_char != -1:
             if text[format_char] == '\n':
                 attr_char = '|'
@@ -482,7 +483,7 @@ class Input(Win):
                 self._win.attron(curses.A_UNDERLINE)
             elif attr_char == 'b':
                 self._win.attron(curses.A_BOLD)
-            elif attr_char == 'i':
+            elif attr_char == 'i' and has_italic:
                 self._win.attron(curses.A_ITALIC)
             elif attr_char in string.digits and attr_char != '':
                 self._win.attron(to_curses_attr((int(attr_char), -1)))
