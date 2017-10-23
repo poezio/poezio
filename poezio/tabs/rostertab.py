@@ -376,12 +376,6 @@ class RosterInfoTab(Tab):
         """
         /block [jid]
         """
-        def callback(iq):
-            if iq['type'] == 'error':
-                return self.core.information('Could not block the contact.', 'Error')
-            elif iq['type'] == 'result':
-                return self.core.information('Contact blocked.', 'Info')
-
         item = self.roster_win.selected_row
         if args:
             jid = safeJID(args[0])
@@ -389,6 +383,13 @@ class RosterInfoTab(Tab):
             jid = item.bare_jid
         elif isinstance(item, Resource):
             jid = item.jid.bare
+
+        def callback(iq):
+            if iq['type'] == 'error':
+                return self.core.information('Could not block %s.' % jid, 'Error')
+            elif iq['type'] == 'result':
+                return self.core.information('Blocked %s.' % jid, 'Info')
+
         self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
 
     def completion_block(self, the_input):
