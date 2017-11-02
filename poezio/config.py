@@ -104,6 +104,7 @@ DEFAULT_CONFIG = {
         'roster_sort': 'jid:show',
         'save_status': True,
         'self_ping_interval': 0,
+        'self_ping_timeout': 60,
         'send_chat_states': True,
         'send_initial_presence': True,
         'send_os_info': True,

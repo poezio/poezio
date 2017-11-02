@@ -1091,12 +1091,13 @@ class MucTab(ChatTab):
             self.self_ping_event = None
 
     def send_self_ping(self):
+        timeout = config.get_by_tabname("self_ping_timeout", self.general_jid, default=60)
         to = self.name + "/" + self.own_nick
         self.core.xmpp.plugin['xep_0199'].send_ping(
             jid=to,
             callback=self.on_self_ping_result,
             timeout_callback=self.on_self_ping_failed,
-            timeout=60)
+            timeout=timeout)
 
     def on_self_ping_result(self, iq):
         if iq["type"] == "error" and iq["error"]["condition"] != "feature-not-implemented":
