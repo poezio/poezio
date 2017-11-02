@@ -1076,11 +1076,13 @@ class MucTab(ChatTab):
     def enable_self_ping_event(self):
         delay = config.get_by_tabname(
             "self_ping_delay", self.general_jid, default=0)
-        if delay <= 0:  # use 0 or some negative value to disable it
+        interval = int(config.get_by_tabname(
+            "self_ping_interval", self.general_jid, default=delay))
+        if interval <= 0:  # use 0 or some negative value to disable it
             return
         self.disable_self_ping_event()
         self.self_ping_event = timed_events.DelayedEvent(
-            delay, self.send_self_ping)
+            interval, self.send_self_ping)
         self.core.add_timed_event(self.self_ping_event)
 
     def disable_self_ping_event(self):
