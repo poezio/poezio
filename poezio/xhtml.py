@@ -24,6 +24,7 @@ from xml.sax import saxutils
 
 from slixmpp.xmlstream import ET
 from poezio.config import config
+from poezio.colors import ncurses_color_to_rgb
 
 digits = '0123456789'  # never trust the modules
 
@@ -212,6 +213,9 @@ def get_body_from_message_stanza(message,
     content = content if content else message['body']
     return content or " "
 
+def rgb_to_html(rgb):
+    r, g, b = rgb
+    return '#%02X%02X%02X' % (int(r*256), int(g*256), int(b*256))
 
 def ncurses_color_to_html(color):
     """
@@ -219,27 +223,7 @@ def ncurses_color_to_html(color):
     a string of the form #XXXXXX representing an
     html color.
     """
-    if color <= 15:
-        try:
-            (r, g, b) = curses.color_content(color)
-        except:  # fallback in faulty terminals (e.g. xterm)
-            (r, g, b) = curses.color_content(color % 8)
-        r = r / 1000 * 6 - 0.01
-        g = g / 1000 * 6 - 0.01
-        b = b / 1000 * 6 - 0.01
-    elif color <= 231:
-        color = color - 16
-        r = color % 6
-        color = color / 6
-        g = color % 6
-        color = color / 6
-        b = color % 6
-    else:
-        color -= 232
-        r = g = b = color / 24 * 6
-    return '#%02X%02X%02X' % (int(r * 256 / 6), int(g * 256 / 6),
-                              int(b * 256 / 6))
-
+    return rgb_to_html(ncurses_color_to_rgb(color))
 
 def _parse_css_color(name):
     if name[0] == '#':

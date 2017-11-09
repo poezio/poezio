@@ -75,6 +75,7 @@ import curses
 import functools
 import os
 from os import path
+from poezio import colors
 
 from importlib import machinery
 finder = machinery.PathFinder()
@@ -363,6 +364,10 @@ class Theme(object):
         'default': (7, -1),
     }
 
+    @property
+    def ccg_palette(self):
+        prepare_ccolor_palette(self)
+        return self.CCG_PALETTE
 
 # This is the default theme object, used if no theme is defined in the conf
 theme = Theme()
@@ -508,6 +513,30 @@ def update_themes_dir(option=None, value=None):
 
     log.debug('Theme load path: %s', load_path)
 
+def prepare_ccolor_palette(theme):
+    """
+    Prepare the Consistent Color Generation (XEP-0392) palette for a theme.
+    """
+    if hasattr(theme, "CCG_PALETTE"):
+        # theme overrides the palette
+        return
+
+    if any(bg != -1 for fg, bg in theme.LIST_COLOR_NICKNAMES):
+        # explicitly disable CCG, can’t handle dynamic background colors
+        theme.CCG_PALETTE = None
+        return
+
+    if not hasattr(theme, "CCG_Y"):
+        theme.CCG_Y = 0.5**0.45
+
+    theme.CCG_PALETTE = colors.generate_ccg_palette(
+        [
+            fg for fg, _ in theme.LIST_COLOR_NICKNAMES
+            # exclude grayscale
+            if fg < 232
+        ],
+        theme.CCG_Y,
+    )
 
 def reload_theme():
     theme_name = config.get('theme')
@@ -531,6 +560,7 @@ def reload_theme():
 
     if hasattr(new_theme, 'theme'):
         theme = new_theme.theme
+        prepare_ccolor_palette(theme)
     else:
         return 'No theme present in the theme file'
 

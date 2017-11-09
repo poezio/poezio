@@ -12,7 +12,7 @@ An user is a MUC participant, not a roster contact (see contact.py)
 from random import choice
 from datetime import timedelta, datetime
 from hashlib import md5
-from poezio import xhtml
+from poezio import xhtml, colors
 
 from poezio.theming import get_theme
 
@@ -41,6 +41,8 @@ class User(object):
         self.last_talked = datetime(1, 1, 1)  # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
+        self.jid = jid
+        self.chatstate = None
         if color != '':
             self.change_color(color, deterministic)
         else:
@@ -48,14 +50,20 @@ class User(object):
                 self.set_deterministic_color()
             else:
                 self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
-        self.jid = jid
-        self.chatstate = None
 
     def set_deterministic_color(self):
         theme = get_theme()
-        mod = len(theme.LIST_COLOR_NICKNAMES)
-        nick_pos = int(md5(self.nick.encode('utf-8')).hexdigest(), 16) % mod
-        self.color = theme.LIST_COLOR_NICKNAMES[nick_pos]
+        if theme.ccg_palette:
+            # use XEP-0392 CCG
+            fg_color = colors.ccg_text_to_color(
+                theme.ccg_palette,
+                self.jid.bare if self.jid and self.jid.bare else self.nick
+            )
+            self.color = fg_color, -1
+        else:
+            mod = len(theme.LIST_COLOR_NICKNAMES)
+            nick_pos = int(md5(self.nick.encode('utf-8')).hexdigest(), 16) % mod
+            self.color = theme.LIST_COLOR_NICKNAMES[nick_pos]
 
     def update(self, affiliation, show, status, role):
         self.affiliation = affiliation
