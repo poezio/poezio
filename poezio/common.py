@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Various useful functions.
 """
@@ -45,6 +44,7 @@ def get_base64_from_file(path):
     mime_type = mimetypes.guess_type(path)[0]
     return (encoded, mime_type, sha1)
 
+
 def _get_output_of_command(command):
     """
     Runs a command and returns its output.
@@ -54,9 +54,11 @@ def _get_output_of_command(command):
     :rtype: :py:class:`str`
     """
     try:
-        return subprocess.check_output(command.split()).decode('utf-8').split('\n')
+        return subprocess.check_output(
+            command.split()).decode('utf-8').split('\n')
     except subprocess.CalledProcessError:
         return None
+
 
 def _is_in_path(command, return_abs_path=False):
     """
@@ -81,6 +83,7 @@ def _is_in_path(command, return_abs_path=False):
             pass
     return False
 
+
 DISTRO_INFO = {
     'Arch Linux': '/etc/arch-release',
     'Aurox Linux': '/etc/aurox-release',
@@ -103,6 +106,7 @@ DISTRO_INFO = {
     'Redhat Linux': '/etc/redhat-release'
 }
 
+
 def get_os_info():
     """
     Returns a detailed and well formated string containing
@@ -116,10 +120,12 @@ def get_os_info():
         full_path_to_executable = _is_in_path(executable, return_abs_path=True)
         if full_path_to_executable:
             command = executable + params
-            process = subprocess.Popen([command], shell=True,
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE,
-                                       close_fds=True)
+            process = subprocess.Popen(
+                [command],
+                shell=True,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                close_fds=True)
             process.wait()
             output = process.stdout.readline().decode('utf-8').strip()
             # some distros put n/a in places, so remove those
@@ -136,7 +142,7 @@ def get_os_info():
                     text = _get_output_of_command(path_to_file)[0]
                 else:
                     fdes = open(path_to_file, encoding='utf-8')
-                    text = fdes.readline().strip() # get only first line
+                    text = fdes.readline().strip()  # get only first line
                     fdes.close()
                     if path_to_file.endswith('version'):
                         # sourcemage_version and slackware-version files
@@ -158,10 +164,11 @@ def get_os_info():
         # our last chance, ask uname and strip it
         uname_output = _get_output_of_command('uname -sr')
         if uname_output is not None:
-            os_info = uname_output[0] # only first line
+            os_info = uname_output[0]  # only first line
             return os_info
     os_info = 'N/A'
     return os_info
+
 
 def _datetime_tuple(timestamp):
     """
@@ -194,7 +201,7 @@ def _datetime_tuple(timestamp):
             tz_msg = timedelta(seconds=tz_mod * tz_msg)
             ret -= tz_msg
     except ValueError:
-        pass # ignore if we got a badly-formatted offset
+        pass  # ignore if we got a badly-formatted offset
     # convert UTC to local time, with DST etc.
     if time.daylight and time.localtime().tm_isdst:
         tz = timedelta(seconds=-time.altzone)
@@ -202,6 +209,7 @@ def _datetime_tuple(timestamp):
         tz = timedelta(seconds=-time.timezone)
     ret += tz
     return ret
+
 
 def get_utc_time(local_time=None):
     """
@@ -225,6 +233,7 @@ def get_utc_time(local_time=None):
 
     return utc_time
 
+
 def get_local_time(utc_time):
     """
     Get the local time from an UTC time
@@ -239,6 +248,7 @@ def get_local_time(utc_time):
     local_time = utc_time - tz
 
     return local_time
+
 
 def find_delayed_tag(message):
     """
@@ -266,6 +276,7 @@ def find_delayed_tag(message):
             date = None
     return (delayed, date)
 
+
 def shell_split(st):
     """
     Split a string correctly according to the quotes
@@ -288,6 +299,7 @@ def shell_split(st):
         w = sh.get_token()
     return ret
 
+
 def find_argument(pos, text, quoted=True):
     """
     Split an input into a list of arguments, return the number of the
@@ -308,6 +320,7 @@ def find_argument(pos, text, quoted=True):
     else:
         return _find_argument_unquoted(pos, text)
 
+
 def _find_argument_quoted(pos, text):
     """
     Get the number of the argument at position pos in
@@ -323,6 +336,7 @@ def _find_argument_quoted(pos, text):
         w = sh.get_token()
 
     return count + 1
+
 
 def _find_argument_unquoted(pos, text):
     """
@@ -340,6 +354,7 @@ def _find_argument_unquoted(pos, text):
             return i
         argnum = i
     return argnum + 1
+
 
 def parse_str_to_secs(duration=''):
     """
@@ -367,6 +382,7 @@ def parse_str_to_secs(duration=''):
     if tmp != '0':
         result += int(tmp)
     return result
+
 
 def parse_secs_to_str(duration=0):
     """
@@ -396,6 +412,7 @@ def parse_secs_to_str(duration=0):
     if not result:
         result = '0s'
     return result
+
 
 def format_tune_string(infos):
     """
@@ -434,6 +451,7 @@ def format_tune_string(infos):
         elems.append('[' + mins + ':' + secs + ']')
     return ' '.join(elems)
 
+
 def format_gaming_string(infos):
     """
     Construct a string from a dict containing "user gaming" information.
@@ -452,6 +470,7 @@ def format_gaming_string(infos):
         return '%s on %s' % (name, server_address)
     return name
 
+
 def safeJID(*args, **kwargs):
     """
     Construct a :py:class:`slixmpp.JID` object from a string.
@@ -463,4 +482,3 @@ def safeJID(*args, **kwargs):
         return JID(*args, **kwargs)
     except InvalidJID:
         return JID('')
-

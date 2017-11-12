@@ -10,6 +10,7 @@ from poezio.windows.data_forms import FieldInput, FieldInputMixin
 from poezio.theming import to_curses_attr, get_theme
 from poezio.common import safeJID
 
+
 class BookmarkJIDInput(FieldInput, Input):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -29,6 +30,7 @@ class BookmarkJIDInput(FieldInput, Input):
     def get_help_message(self):
         return 'Edit the text'
 
+
 class BookmarkMethodInput(FieldInputMixin):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -42,7 +44,7 @@ class BookmarkMethodInput(FieldInputMixin):
             if self.val_pos > 0:
                 self.val_pos -= 1
         elif key == 'KEY_RIGHT':
-            if self.val_pos < len(self.options)-1:
+            if self.val_pos < len(self.options) - 1:
                 self.val_pos += 1
         else:
             return
@@ -51,14 +53,14 @@ class BookmarkMethodInput(FieldInputMixin):
     def refresh(self):
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
-        self.addnstr(0, 0, ' '*self.width, self.width)
+        self.addnstr(0, 0, ' ' * self.width, self.width)
         if self.val_pos > 0:
             self.addstr(0, 0, '←')
-        if self.val_pos < len(self.options)-1:
-            self.addstr(0, self.width-1, '→')
+        if self.val_pos < len(self.options) - 1:
+            self.addstr(0, self.width - 1, '→')
         if self.options:
             option = self.options[self.val_pos]
-            self.addstr(0, self.width//2-len(option)//2, option)
+            self.addstr(0, self.width // 2 - len(option) // 2, option)
         self._win.attroff(to_curses_attr(self.color))
         self._refresh()
 
@@ -67,6 +69,7 @@ class BookmarkMethodInput(FieldInputMixin):
 
     def get_help_message(self):
         return '←, →: Select a value amongst the others'
+
 
 class BookmarkPasswordInput(FieldInput, Input):
     def __init__(self, field):
@@ -80,11 +83,12 @@ class BookmarkPasswordInput(FieldInput, Input):
         self._win.erase()
         if self.color:
             self._win.attron(to_curses_attr(self.color))
-        self.addstr('*'*len(self.text[self.view_pos:self.view_pos+self.width-1]))
+        self.addstr(
+            '*' * len(self.text[self.view_pos:self.view_pos + self.width - 1]))
         if self.color:
             (y, x) = self._win.getyx()
-            size = self.width-x
-            self.addnstr(' '*size, size, to_curses_attr(self.color))
+            size = self.width - x
+            self.addnstr(' ' * size, size, to_curses_attr(self.color))
         self.addstr(0, self.pos, '')
         if self.color:
             self._win.attroff(to_curses_attr(self.color))
@@ -95,6 +99,7 @@ class BookmarkPasswordInput(FieldInput, Input):
 
     def get_help_message(self):
         return 'Edit the secret text'
+
 
 class BookmarkAutojoinWin(FieldInputMixin):
     def __init__(self, field):
@@ -138,10 +143,9 @@ class BookmarksWin(Win):
         self._bookmarks = list(bookmarks)
         self.lines = []
         for bookmark in sorted(self._bookmarks, key=lambda x: x.jid):
-            self.lines.append((BookmarkJIDInput(bookmark),
-                               BookmarkPasswordInput(bookmark),
-                               BookmarkAutojoinWin(bookmark),
-                               BookmarkMethodInput(bookmark)))
+            self.lines.append(
+                (BookmarkJIDInput(bookmark), BookmarkPasswordInput(bookmark),
+                 BookmarkAutojoinWin(bookmark), BookmarkMethodInput(bookmark)))
 
     @property
     def current_input(self):
@@ -151,20 +155,23 @@ class BookmarksWin(Win):
     def current_input(self, value):
         if 0 <= self._current_input < len(self.lines):
             if 0 <= value < len(self.lines):
-                self.lines[self._current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+                self.lines[self._current_input][
+                    self.current_horizontal_input].set_color(
+                        get_theme().COLOR_NORMAL_TEXT)
                 self._current_input = value
         else:
             self._current_input = 0
 
     def add_bookmark(self, bookmark):
-        self.lines.append((BookmarkJIDInput(bookmark),
-                           BookmarkPasswordInput(bookmark),
-                           BookmarkAutojoinWin(bookmark),
-                           BookmarkMethodInput(bookmark)))
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines.append(
+            (BookmarkJIDInput(bookmark), BookmarkPasswordInput(bookmark),
+             BookmarkAutojoinWin(bookmark), BookmarkMethodInput(bookmark)))
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         self.current_horizontal_input = 0
         self.current_input = len(self.lines) - 1
-        if self.current_input - self.scroll_pos > self.height-1:
+        if self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos = self.current_input - self.height + 1
         self.refresh()
 
@@ -185,7 +192,7 @@ class BookmarksWin(Win):
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
-        while self.current_input - self.scroll_pos > self.height-1:
+        while self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos += 1
 
     def go_to_next_line_input(self):
@@ -193,39 +200,51 @@ class BookmarksWin(Win):
             return
         if self.current_input == len(self.lines) - 1:
             return
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         # Adjust the scroll position if the current_input would be outside
         # of the visible area
-        if self.current_input + 1 - self.scroll_pos > self.height-1:
+        if self.current_input + 1 - self.scroll_pos > self.height - 1:
             self.current_input += 1
             self.scroll_pos += 1
             self.refresh()
         else:
             self.current_input += 1
-            self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+            self.lines[self.current_input][
+                self.current_horizontal_input].set_color(
+                    get_theme().COLOR_SELECTED_ROW)
 
     def go_to_previous_line_input(self):
         if not self.lines:
             return
         if self.current_input == 0:
             return
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         self.current_input -= 1
         # Adjust the scroll position if the current_input would be outside
         # of the visible area
         if self.current_input < self.scroll_pos:
             self.scroll_pos = self.current_input
             self.refresh()
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_SELECTED_ROW)
 
     def go_to_next_horizontal_input(self):
         if not self.lines:
             return
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         self.current_horizontal_input += 1
         if self.current_horizontal_input > 3:
             self.current_horizontal_input = 0
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_SELECTED_ROW)
 
     def go_to_next_page(self):
         if not self.lines:
@@ -234,7 +253,9 @@ class BookmarksWin(Win):
         if self.current_input == len(self.lines) - 1:
             return
 
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         inc = min(self.height, len(self.lines) - self.current_input - 1)
 
         if self.current_input + inc - self.scroll_pos > self.height - 1:
@@ -243,7 +264,9 @@ class BookmarksWin(Win):
             self.refresh()
         else:
             self.current_input += inc
-            self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+            self.lines[self.current_input][
+                self.current_horizontal_input].set_color(
+                    get_theme().COLOR_SELECTED_ROW)
         return True
 
     def go_to_previous_page(self):
@@ -253,7 +276,9 @@ class BookmarksWin(Win):
         if self.current_input == 0:
             return
 
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
 
         dec = min(self.height, self.current_input)
         self.current_input -= dec
@@ -262,7 +287,9 @@ class BookmarksWin(Win):
         if self.current_input < self.scroll_pos:
             self.scroll_pos = self.current_input
             self.refresh()
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_SELECTED_ROW)
         return True
 
     def go_to_previous_horizontal_input(self):
@@ -270,24 +297,31 @@ class BookmarksWin(Win):
             return
         if self.current_horizontal_input == 0:
             return
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_NORMAL_TEXT)
         self.current_horizontal_input -= 1
-        self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.lines[
+            self.current_input][self.current_horizontal_input].set_color(
+                get_theme().COLOR_SELECTED_ROW)
 
     def on_input(self, key):
         if not self.lines:
             return
-        self.lines[self.current_input][self.current_horizontal_input].do_command(key)
+        self.lines[self.current_input][
+            self.current_horizontal_input].do_command(key)
 
     def refresh(self):
         # store the cursor status
         self._win.erase()
-        y = - self.scroll_pos
+        y = -self.scroll_pos
         for i in range(len(self.lines)):
-            self.lines[i][0].resize(1, self.width//3, y + 1, 0)
-            self.lines[i][1].resize(1, self.width//3, y + 1, self.width//3)
-            self.lines[i][2].resize(1, self.width//6, y + 1, 2*self.width//3)
-            self.lines[i][3].resize(1, self.width//6, y + 1, 5*self.width//6)
+            self.lines[i][0].resize(1, self.width // 3, y + 1, 0)
+            self.lines[i][1].resize(1, self.width // 3, y + 1, self.width // 3)
+            self.lines[i][2].resize(1, self.width // 6, y + 1,
+                                    2 * self.width // 3)
+            self.lines[i][3].resize(1, self.width // 6, y + 1,
+                                    5 * self.width // 6)
             y += 1
         self._refresh()
         for i, inp in enumerate(self.lines):
@@ -298,9 +332,12 @@ class BookmarksWin(Win):
             for j in range(4):
                 inp[j].refresh()
 
-        if self.lines and self.current_input < self.height-1:
-            self.lines[self.current_input][self.current_horizontal_input].set_color(get_theme().COLOR_SELECTED_ROW)
-            self.lines[self.current_input][self.current_horizontal_input].refresh()
+        if self.lines and self.current_input < self.height - 1:
+            self.lines[self.current_input][
+                self.current_horizontal_input].set_color(
+                    get_theme().COLOR_SELECTED_ROW)
+            self.lines[self.current_input][
+                self.current_horizontal_input].refresh()
         if not self.lines:
             curses.curs_set(0)
         else:
@@ -308,10 +345,10 @@ class BookmarksWin(Win):
 
     def refresh_current_input(self):
         if self.lines:
-            self.lines[self.current_input][self.current_horizontal_input].refresh()
+            self.lines[self.current_input][
+                self.current_horizontal_input].refresh()
 
     def save(self):
         for line in self.lines:
             for item in line:
                 item.save()
-

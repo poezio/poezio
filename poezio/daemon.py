@@ -5,7 +5,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 This file is a standalone program that reads commands on
 stdin and executes them (each line should be a command).
@@ -29,6 +28,7 @@ from subprocess import DEVNULL
 
 log = logging.getLogger(__name__)
 
+
 class Executor(threading.Thread):
     """
     Just a class to execute commands in a thread.  This way, the execution
@@ -37,6 +37,7 @@ class Executor(threading.Thread):
     WARNING: Be careful to properly escape what is untrusted by using
     shlex.quote for example.
     """
+
     def __init__(self, command, remote=False):
         threading.Thread.__init__(self)
         self.command = command
@@ -58,7 +59,10 @@ class Executor(threading.Thread):
             try:
                 stdout = open(self.filename, self.redirection_mode)
             except OSError:
-                log.error('Could not open redirection file: %s', self.filename, exc_info=True)
+                log.error(
+                    'Could not open redirection file: %s',
+                    self.filename,
+                    exc_info=True)
                 return
         try:
             subprocess.call(self.command, stdout=stdout, stderr=DEVNULL)
@@ -69,6 +73,7 @@ class Executor(threading.Thread):
             else:
                 log.error('Could not execute %s:', self.command, exc_info=True)
 
+
 def main():
     while True:
         line = sys.stdin.readline()
@@ -77,6 +82,7 @@ def main():
         command = shlex.split(line)
         e = Executor(command, remote=True)
         e.start()
+
 
 if __name__ == '__main__':
     main()

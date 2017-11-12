@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 The logger module that handles logging of the poezio
 conversations and roster changes
@@ -34,22 +33,29 @@ INFO_LOG_RE = re.compile(r'^MI (\d{4})(\d{2})(\d{2})T'
                          r'(\d{2}):(\d{2}):(\d{2})Z '
                          r'(\d+) (.*)$')
 
+
 class LogItem:
-    def __init__(self, year, month, day, hour, minute, second, nb_lines, message):
-        self.time = datetime(int(year), int(month), int(day), int(hour),
-                             int(minute), int(second))
+    def __init__(self, year, month, day, hour, minute, second, nb_lines,
+                 message):
+        self.time = datetime(
+            int(year),
+            int(month), int(day), int(hour), int(minute), int(second))
         self.nb_lines = int(nb_lines)
         self.text = message
+
 
 class LogInfo(LogItem):
     def __init__(self, *args):
         LogItem.__init__(self, *args)
 
+
 class LogMessage(LogItem):
-    def __init__(self, year, month, day, hour, minute, seconds, nb_lines, nick, message):
+    def __init__(self, year, month, day, hour, minute, seconds, nb_lines, nick,
+                 message):
         LogItem.__init__(self, year, month, day, hour, minute, seconds,
                          nb_lines, message)
         self.nick = nick
+
 
 def parse_log_line(msg):
     match = re.match(MESSAGE_LOG_RE, msg)
@@ -61,11 +67,13 @@ def parse_log_line(msg):
     log.debug('Error while parsing "%s"', msg)
     return None
 
+
 class Logger(object):
     """
     Appends things to files. Error/information/warning logs
     and also log the conversations to logfiles
     """
+
     def __init__(self):
         self._roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
@@ -76,7 +84,7 @@ class Logger(object):
             if opened_file:
                 try:
                     opened_file.close()
-                except: # Can't close? too bad
+                except:  # Can't close? too bad
                     pass
 
     def close(self, jid):
@@ -106,7 +114,7 @@ class Logger(object):
         try:
             makedirs(log_dir)
         except OSError as e:
-            if e.errno != 17: # file exists
+            if e.errno != 17:  # file exists
                 log.error('Unable to create the log dir', exc_info=True)
         except:
             log.error('Unable to create the log dir', exc_info=True)
@@ -118,9 +126,10 @@ class Logger(object):
             self._fds[room] = fd
             return fd
         except IOError:
-            log.error('Unable to open the log file (%s)',
-                    os.path.join(log_dir, room),
-                    exc_info=True)
+            log.error(
+                'Unable to open the log file (%s)',
+                os.path.join(log_dir, room),
+                exc_info=True)
 
     def get_logs(self, jid, nb=10):
         """
@@ -143,14 +152,16 @@ class Logger(object):
         try:
             fd = open(os.path.join(log_dir, jid), 'rb')
         except FileNotFoundError:
-            log.info('Non-existing log file (%s)',
-                     os.path.join(log_dir, jid),
-                     exc_info=True)
+            log.info(
+                'Non-existing log file (%s)',
+                os.path.join(log_dir, jid),
+                exc_info=True)
             return
         except OSError:
-            log.error('Unable to open the log file (%s)',
-                      os.path.join(log_dir, jid),
-                      exc_info=True)
+            log.error(
+                'Unable to open the log file (%s)',
+                os.path.join(log_dir, jid),
+                exc_info=True)
             return
         if not fd:
             return
@@ -161,22 +172,23 @@ class Logger(object):
         with fd:
             try:
                 m = mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ)
-            except Exception: # file probably empty
-                log.error('Unable to mmap the log file for (%s)',
-                        os.path.join(log_dir, jid),
-                        exc_info=True)
+            except Exception:  # file probably empty
+                log.error(
+                    'Unable to mmap the log file for (%s)',
+                    os.path.join(log_dir, jid),
+                    exc_info=True)
                 return
-            pos = m.rfind(b"\nM") # start of messages begin with MI or MR,
-                                  # after a \n
+            pos = m.rfind(b"\nM")  # start of messages begin with MI or MR,
+            # after a \n
             # number of message found so far
             count = 0
-            while pos != -1 and count < nb-1:
+            while pos != -1 and count < nb - 1:
                 count += 1
                 pos = m.rfind(b"\nM", 0, pos)
-            if pos == -1:       # If we don't have enough lines in the file
-                pos = 1         # 1, because we do -1 just on the next line
-                                # to get 0 (start of the file)
-            lines = m[pos-1:].decode(errors='replace').splitlines()
+            if pos == -1:  # If we don't have enough lines in the file
+                pos = 1  # 1, because we do -1 just on the next line
+                # to get 0 (start of the file)
+            lines = m[pos - 1:].decode(errors='replace').splitlines()
 
         messages = []
         color = '\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG)
@@ -184,7 +196,7 @@ class Logger(object):
         # now convert that data into actual Message objects
         idx = 0
         while idx < len(lines):
-            if lines[idx].startswith(' '): # should not happen ; skip
+            if lines[idx].startswith(' '):  # should not happen ; skip
                 idx += 1
                 log.debug('fail?')
                 continue
@@ -193,9 +205,11 @@ class Logger(object):
             if not isinstance(log_item, LogItem):
                 log.debug('wrong log format? %s', log_item)
                 continue
-            message = {'lines': [],
-                       'history': True,
-                       'time': common.get_local_time(log_item.time)}
+            message = {
+                'lines': [],
+                'history': True,
+                'time': common.get_local_time(log_item.time)
+            }
             size = log_item.nb_lines
             if isinstance(log_item, LogInfo):
                 message['lines'].append(color + log_item.text)
@@ -237,7 +251,8 @@ class Logger(object):
             if date is None:
                 str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
             else:
-                str_time = common.get_utc_time(date).strftime('%Y%m%dT%H:%M:%SZ')
+                str_time = common.get_utc_time(date).strftime(
+                    '%Y%m%dT%H:%M:%SZ')
             if typ == 1:
                 prefix = 'MR'
             else:
@@ -248,23 +263,27 @@ class Logger(object):
 
             if nick:
                 nick = '<' + nick + '>'
-                fd.write('%s %s %s %s  %s\n' % (prefix, str_time, nb_lines, nick, first_line))
+                fd.write('%s %s %s %s  %s\n' % (prefix, str_time, nb_lines,
+                                                nick, first_line))
             else:
-                fd.write('%s %s %s %s\n' % (prefix, str_time, nb_lines, first_line))
+                fd.write('%s %s %s %s\n' % (prefix, str_time, nb_lines,
+                                            first_line))
             for line in lines:
                 fd.write(' %s\n' % line)
         except:
-            log.error('Unable to write in the log file (%s)',
-                    os.path.join(log_dir, jid),
-                    exc_info=True)
+            log.error(
+                'Unable to write in the log file (%s)',
+                os.path.join(log_dir, jid),
+                exc_info=True)
             return False
         else:
             try:
-                fd.flush()          # TODO do something better here?
+                fd.flush()  # TODO do something better here?
             except OSError:
-                log.error('Unable to flush the log file (%s)',
-                        os.path.join(log_dir, jid),
-                        exc_info=True)
+                log.error(
+                    'Unable to flush the log file (%s)',
+                    os.path.join(log_dir, jid),
+                    exc_info=True)
                 return False
         return True
 
@@ -277,11 +296,13 @@ class Logger(object):
         self._check_and_create_log_dir('', open_fd=False)
         if not self._roster_logfile:
             try:
-                self._roster_logfile = open(os.path.join(log_dir, 'roster.log'), 'a')
+                self._roster_logfile = open(
+                    os.path.join(log_dir, 'roster.log'), 'a')
             except IOError:
-                log.error('Unable to create the log file (%s)',
-                        os.path.join(log_dir, 'roster.log'),
-                        exc_info=True)
+                log.error(
+                    'Unable to create the log file (%s)',
+                    os.path.join(log_dir, 'roster.log'),
+                    exc_info=True)
                 return False
         try:
             str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
@@ -289,20 +310,24 @@ class Logger(object):
             lines = message.split('\n')
             first_line = lines.pop(0)
             nb_lines = str(len(lines)).zfill(3)
-            self._roster_logfile.write('MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
+            self._roster_logfile.write('MI %s %s %s %s\n' %
+                                       (str_time, nb_lines, jid, first_line))
             for line in lines:
                 self._roster_logfile.write(' %s\n' % line)
             self._roster_logfile.flush()
         except:
-            log.error('Unable to write in the log file (%s)',
-                    os.path.join(log_dir, 'roster.log'),
-                    exc_info=True)
+            log.error(
+                'Unable to write in the log file (%s)',
+                os.path.join(log_dir, 'roster.log'),
+                exc_info=True)
             return False
         return True
+
 
 def create_logger():
     "Create the global logger object"
     global logger
     logger = Logger()
+
 
 logger = None

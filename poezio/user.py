@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Define the user class.
 An user is a MUC participant, not a roster contact (see contact.py)
@@ -20,22 +19,26 @@ from poezio.theming import get_theme
 import logging
 log = logging.getLogger(__name__)
 
-ROLE_DICT = {
-    '':0,
-    'none':0,
-    'visitor':1,
-    'participant':2,
-    'moderator':3
-    }
+ROLE_DICT = {'': 0, 'none': 0, 'visitor': 1, 'participant': 2, 'moderator': 3}
+
 
 class User(object):
     """
     keep trace of an user in a Room
     """
-    __slots__ = ('last_talked', 'jid', 'chatstate', 'affiliation', 'show', 'status', 'role', 'nick', 'color')
+    __slots__ = ('last_talked', 'jid', 'chatstate', 'affiliation', 'show',
+                 'status', 'role', 'nick', 'color')
 
-    def __init__(self, nick, affiliation, show, status, role, jid, deterministic=True, color=''):
-        self.last_talked = datetime(1, 1, 1) # The oldest possible time
+    def __init__(self,
+                 nick,
+                 affiliation,
+                 show,
+                 status,
+                 role,
+                 jid,
+                 deterministic=True,
+                 color=''):
+        self.last_talked = datetime(1, 1, 1)  # The oldest possible time
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
         if color != '':

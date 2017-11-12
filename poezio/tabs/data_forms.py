@@ -8,12 +8,14 @@ log = logging.getLogger(__name__)
 from poezio import windows
 from poezio.tabs import Tab
 
+
 class DataFormsTab(Tab):
     """
     A tab contaning various window type, displaying
     a form that the user needs to fill.
     """
     plugin_commands = {}
+
     def __init__(self, core, form, on_cancel, on_send, kwargs):
         Tab.__init__(self, core)
         self._form = form
@@ -24,7 +26,8 @@ class DataFormsTab(Tab):
         for field in self._form:
             self.fields.append(field)
         self.topic_win = windows.Topic()
-        self.form_win = windows.FormWin(form, self.height-4, self.width, 1, 0)
+        self.form_win = windows.FormWin(form, self.height - 4, self.width, 1,
+                                        0)
         self.help_win = windows.HelpText("Ctrl+Y: send form, Ctrl+G: cancel")
         self.help_win_dyn = windows.HelpText()
         self.key_func['KEY_UP'] = self.form_win.go_to_previous_input
@@ -72,4 +75,3 @@ class DataFormsTab(Tab):
         self.help_win.refresh()
         self.help_win_dyn.refresh(self.form_win.get_help_message())
         self.form_win.refresh()
-

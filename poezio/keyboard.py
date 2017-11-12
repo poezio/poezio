@@ -5,7 +5,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Functions to interact with the keyboard
 Mainly, read keys entered and return a string (most
@@ -27,6 +26,7 @@ log = logging.getLogger(__name__)
 # processing of keys)
 continuation_keys_callback = None
 
+
 def get_next_byte(s):
     """
     Read the next byte of the utf-8 char
@@ -40,7 +40,8 @@ def get_next_byte(s):
         return (None, None)
     if len(c) >= 4:
         return (None, c)
-    return (ord(c), c.encode('latin-1')) # returns a number and a bytes object
+    return (ord(c), c.encode('latin-1'))  # returns a number and a bytes object
+
 
 def get_char_list(s):
     ret_list = []
@@ -50,7 +51,7 @@ def get_char_list(s):
         except curses.error:
             # No input, this means a timeout occurs.
             return ret_list
-        except ValueError: # invalid input
+        except ValueError:  # invalid input
             log.debug('Invalid character entered.')
             return ret_list
         # Set to non-blocking. We try to read more bytes. If there are no
@@ -68,10 +69,11 @@ def get_char_list(s):
                         part = s.get_wch()
                         if part == '[':
                             # CTRL+arrow and meta+arrow keys have a long format
-                            part += s.get_wch() + s.get_wch() + s.get_wch() + s.get_wch()
+                            part += s.get_wch() + s.get_wch() + s.get_wch(
+                            ) + s.get_wch()
                     except curses.error:
                         pass
-                    except ValueError: # invalid input
+                    except ValueError:  # invalid input
                         log.debug('Invalid character entered.')
                     else:
                         key = 'M-%s' % part
@@ -92,6 +94,7 @@ def get_char_list(s):
             elif key == '\r':
                 key = '^M'
             ret_list.append(key)
+
 
 class Keyboard(object):
     def __init__(self):
@@ -131,6 +134,7 @@ class Keyboard(object):
                 ret_list.insert(0, char)
             self.escape = False
         return ret_list
+
 
 if __name__ == '__main__':
     import sys

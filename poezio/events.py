@@ -3,12 +3,12 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the EventHandler class.
 The list of available events is here:
 http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
+
 
 class EventHandler(object):
     """
@@ -17,6 +17,7 @@ class EventHandler(object):
     associated with an event name, and whenever that event is triggered,
     the callback is called.
     """
+
     def __init__(self):
         self.events = {
             'highlight': [],
@@ -43,7 +44,7 @@ class EventHandler(object):
             'send_normal_presence': [],
             'ignored_private': [],
             'tab_change': [],
-            }
+        }
 
     def add_event_handler(self, name, callback, position=0):
         """

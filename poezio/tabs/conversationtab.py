@@ -30,6 +30,7 @@ from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
+
 class ConversationTab(OneToOneTab):
     """
     The tab containg a normal conversation (not from a MUC)
@@ -39,12 +40,13 @@ class ConversationTab(OneToOneTab):
     plugin_keys = {}
     additional_information = {}
     message_type = 'chat'
+
     def __init__(self, core, jid):
         OneToOneTab.__init__(self, core, jid)
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'
-        self.name = jid        # a conversation tab is linked to one specific full jid OR bare jid
+        self.name = jid  # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
@@ -52,21 +54,30 @@ class ConversationTab(OneToOneTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.register_command('version', self.command_version,
-                desc='Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
-                shortdesc='Get the software version of the user.')
-        self.register_command('info', self.command_info,
-                shortdesc='Get the status of the contact.')
-        self.register_command('last_activity', self.command_last_activity,
-                usage='[jid]',
-                desc='Get the last activity of the given or the current contact.',
-                shortdesc='Get the activity.',
-                completion=self.core.completion.last_activity)
-        self.register_command('add', self.command_add,
-                desc='Add the current JID to your roster, ask them to'
-                     ' allow you to see his presence, and allow them to'
-                     ' see your presence.',
-                shortdesc='Add a user to your roster.')
+        self.register_command(
+            'version',
+            self.command_version,
+            desc=
+            'Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
+            shortdesc='Get the software version of the user.')
+        self.register_command(
+            'info',
+            self.command_info,
+            shortdesc='Get the status of the contact.')
+        self.register_command(
+            'last_activity',
+            self.command_last_activity,
+            usage='[jid]',
+            desc='Get the last activity of the given or the current contact.',
+            shortdesc='Get the activity.',
+            completion=self.core.completion.last_activity)
+        self.register_command(
+            'add',
+            self.command_add,
+            desc='Add the current JID to your roster, ask them to'
+            ' allow you to see his presence, and allow them to'
+            ' see your presence.',
+            shortdesc='Add a user to your roster.')
         self.update_commands()
         self.update_keys()
 
@@ -114,8 +125,12 @@ class ConversationTab(OneToOneTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', self.name):
                 try:
-                    self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'], jid=self.core.xmpp.boundjid,
-                            nickname=self.core.own_nick)
+                    self.modify_message(
+                        msg['body'],
+                        self.last_sent_message['id'],
+                        msg['id'],
+                        jid=self.core.xmpp.boundjid,
+                        nickname=self.core.own_nick)
                     replaced = True
                 except CorrectionError:
                     log.error('Unable to correct a message', exc_info=True)
@@ -125,8 +140,8 @@ class ConversationTab(OneToOneTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', self.general_jid) and
-                self.remote_wants_chatstates is not False):
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and self.remote_wants_chatstates is not False):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
@@ -138,12 +153,13 @@ class ConversationTab(OneToOneTab):
             self.input.refresh()
             return
         if not replaced:
-            self.add_message(msg['body'],
-                    nickname=self.core.own_nick,
-                    nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid,
-                    typ=1)
+            self.add_message(
+                msg['body'],
+                nickname=self.core.own_nick,
+                nick_color=get_theme().COLOR_OWN_NICK,
+                identifier=msg['id'],
+                jid=self.core.xmpp.boundjid,
+                typ=1)
 
         self.last_sent_message = msg
         if self.remote_supports_receipts:
@@ -164,9 +180,12 @@ class ConversationTab(OneToOneTab):
         def callback(iq):
             if iq['type'] != 'result':
                 if iq['error']['type'] == 'auth':
-                    self.core.information('You are not allowed to see the activity of this contact.', 'Error')
+                    self.core.information(
+                        'You are not allowed to see the activity of this contact.',
+                        'Error')
                 else:
-                    self.core.information('Error retrieving the activity', 'Error')
+                    self.core.information('Error retrieving the activity',
+                                          'Error')
                 return
             seconds = iq['last_activity']['seconds']
             status = iq['last_activity']['status']
@@ -174,19 +193,21 @@ class ConversationTab(OneToOneTab):
             msg = '\x19%s}The last activity of %s was %s ago%s'
             if not safeJID(from_).user:
                 msg = '\x19%s}The uptime of %s is %s.' % (
-                        dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                        from_,
-                        common.parse_secs_to_str(seconds))
+                    dump_tuple(get_theme().COLOR_INFORMATION_TEXT), from_,
+                    common.parse_secs_to_str(seconds))
             else:
                 msg = '\x19%s}The last activity of %s was %s ago%s' % (
                     dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                     from_,
                     common.parse_secs_to_str(seconds),
-                    (' and his/her last status was %s' % status) if status else '',)
+                    (' and his/her last status was %s' % status)
+                    if status else '',
+                )
             self.add_message(msg)
             self.core.refresh_window()
 
-        self.core.xmpp.plugin['xep_0012'].get_last_activity(self.get_dest_jid(), callback=callback)
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(
+            self.get_dest_jid(), callback=callback)
 
     @refresh_wrapper.conditional
     @command_args_parser.ignored
@@ -201,12 +222,20 @@ class ConversationTab(OneToOneTab):
         else:
             resource = None
         if resource:
-            status = ('Status: %s' % resource.status) if resource.status else ''
-            self._text_buffer.add_message("\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
-                'show': resource.presence or 'available', 'status': status, 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            status = (
+                'Status: %s' % resource.status) if resource.status else ''
+            self._text_buffer.add_message(
+                "\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
+                    'show': resource.presence or 'available',
+                    'status': status,
+                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                })
             return True
         else:
-            self._text_buffer.add_message("\x19%(info_col)s}No information available\x19o" % {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            self._text_buffer.add_message(
+                "\x19%(info_col)s}No information available\x19o" % {
+                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                })
             return True
 
     @command_args_parser.quoted(0, 1)
@@ -214,14 +243,18 @@ class ConversationTab(OneToOneTab):
         """
         /version [jid]
         """
+
         def callback(res):
             if not res:
-                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
-            version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or 'an unknown software',
-                                                             res.get('version') or 'unknown',
-                                                             res.get('os') or 'an unknown platform')
+                return self.core.information(
+                    'Could not get the software version from %s' % (jid, ),
+                    'Warning')
+            version = '%s is running %s version %s on %s' % (
+                jid, res.get('name') or 'an unknown software',
+                res.get('version') or 'unknown',
+                res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
+
         if args:
             return self.core.command.version(args[0])
         jid = safeJID(self.name)
@@ -229,8 +262,7 @@ class ConversationTab(OneToOneTab):
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
                 jid = resource.jid if resource else jid
-        fixes.get_version(self.core.xmpp, jid,
-                callback=callback)
+        fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     @command_args_parser.ignored
     def command_add(self):
@@ -258,16 +290,15 @@ class ConversationTab(OneToOneTab):
             tab_win_height = Tab.tab_win_height()
             bar_height = 1
 
-        self.text_win.resize(self.height - 2 - bar_height - info_win_height
-                                - tab_win_height,
-                             self.width, bar_height, 0)
+        self.text_win.resize(
+            self.height - 2 - bar_height - info_win_height - tab_win_height,
+            self.width, bar_height, 0)
         self.text_win.rebuild_everything(self._text_buffer)
         if display_bar:
             self.upper_bar.resize(1, self.width, 0, 0)
-        self.get_info_header().resize(1, self.width,
-                                self.height - 2 - info_win_height
-                                    - tab_win_height,
-                                0)
+        self.get_info_header().resize(
+            1, self.width, self.height - 2 - info_win_height - tab_win_height,
+            0)
         self.input.resize(1, self.width, self.height - 1, 0)
 
     def refresh(self):
@@ -279,8 +310,11 @@ class ConversationTab(OneToOneTab):
         self.text_win.refresh()
 
         if display_bar:
-            self.upper_bar.refresh(self.get_dest_jid(), roster[self.get_dest_jid()])
-        self.get_info_header().refresh(self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win, self.chatstate, ConversationTab.additional_information)
+            self.upper_bar.refresh(self.get_dest_jid(),
+                                   roster[self.get_dest_jid()])
+        self.get_info_header().refresh(
+            self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win,
+            self.chatstate, ConversationTab.additional_information)
 
         if display_info_win:
             self.info_win.refresh()
@@ -288,8 +322,9 @@ class ConversationTab(OneToOneTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.get_info_header().refresh(self.get_dest_jid(), roster[self.get_dest_jid()],
-                self.text_win, self.chatstate, ConversationTab.additional_information)
+        self.get_info_header().refresh(
+            self.get_dest_jid(), roster[self.get_dest_jid()], self.text_win,
+            self.chatstate, ConversationTab.additional_information)
         self.input.refresh()
 
     def get_nick(self):
@@ -307,7 +342,9 @@ class ConversationTab(OneToOneTab):
             self.key_func[key]()
             return False
         self.input.do_command(key, raw=raw)
-        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        empty_after = self.input.get_text() == '' or (
+            self.input.get_text().startswith('/')
+            and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
         return False
 
@@ -347,15 +384,18 @@ class ConversationTab(OneToOneTab):
         curses.curs_set(1)
         if (config.get_by_tabname('send_chat_states', self.general_jid)
                 and (not self.input.get_text()
-                    or not self.input.get_text().startswith('//'))):
+                     or not self.input.get_text().startswith('//'))):
             if resource:
                 self.send_chat_state('active')
 
     def on_info_win_size_changed(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height - 3:
             return
-        self.text_win.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
-        self.get_info_header().resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.text_win.resize(self.height - 3 - self.core.information_win_size -
+                             Tab.tab_win_height(), self.width, 1, 0)
+        self.get_info_header().resize(
+            1, self.width, self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), 0)
 
     def get_text_window(self):
         return self.text_win
@@ -375,12 +415,14 @@ class ConversationTab(OneToOneTab):
             res.append((0, contact.name))
         return res
 
+
 class DynamicConversationTab(ConversationTab):
     """
     A conversation tab associated with one bare JID that can be “locked” to
     a full jid, and unlocked, as described in the XEP-0296.
     Only one DynamicConversationTab can be opened for a given jid.
     """
+
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
         self.name = safeJID(jid).bare
@@ -388,8 +430,10 @@ class DynamicConversationTab(ConversationTab):
             self.lock(resource)
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.DynamicConversationInfoWin()
-        self.register_command('unlock', self.unlock_command,
-                shortdesc='Unlock the conversation from a particular resource.')
+        self.register_command(
+            'unlock',
+            self.unlock_command,
+            shortdesc='Unlock the conversation from a particular resource.')
         self.resize()
 
     def get_info_header(self):
@@ -399,7 +443,7 @@ class DynamicConversationTab(ConversationTab):
         """
         Lock the tab to the resource.
         """
-        assert(resource)
+        assert (resource)
         if resource != self.locked_resource:
             self.locked_resource = resource
             info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
@@ -407,10 +451,11 @@ class DynamicConversationTab(ConversationTab):
 
             message = ('%(info)sConversation locked to '
                        '%(jid_c)s%(jid)s/%(resource)s%(info)s.') % {
-                            'info': info,
-                            'jid_c': jid_c,
-                            'jid': self.name,
-                            'resource': resource}
+                           'info': info,
+                           'jid_c': jid_c,
+                           'jid': self.name,
+                           'resource': resource
+                       }
             self.add_message(message, typ=0)
             self.check_features()
 
@@ -432,9 +477,10 @@ class DynamicConversationTab(ConversationTab):
             if from_:
                 message = ('%(info)sConversation unlocked (received activity'
                            ' from %(jid_c)s%(jid)s%(info)s).') % {
-                                'info': info,
-                                'jid_c': jid_c,
-                                'jid': from_}
+                               'info': info,
+                               'jid_c': jid_c,
+                               'jid': from_
+                           }
                 self.add_message(message, typ=0)
             else:
                 message = '%sConversation unlocked.' % info
@@ -466,8 +512,8 @@ class DynamicConversationTab(ConversationTab):
         else:
             displayed_jid = self.name
         self.get_info_header().refresh(displayed_jid, roster[self.name],
-                                 self.text_win, self.chatstate,
-                                 ConversationTab.additional_information)
+                                       self.text_win, self.chatstate,
+                                       ConversationTab.additional_information)
         if display_info_win:
             self.info_win.refresh()
 
@@ -483,16 +529,19 @@ class DynamicConversationTab(ConversationTab):
         else:
             displayed_jid = self.name
         self.get_info_header().refresh(displayed_jid, roster[self.name],
-                self.text_win, self.chatstate, ConversationTab.additional_information)
+                                       self.text_win, self.chatstate,
+                                       ConversationTab.additional_information)
         self.input.refresh()
+
 
 class StaticConversationTab(ConversationTab):
     """
     A conversation tab associated with one Full JID. It cannot be locked to
     an different resource or unlocked.
     """
+
     def __init__(self, core, jid):
-        assert(safeJID(jid).resource)
+        assert (safeJID(jid).resource)
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.ConversationInfoWin()
         self.resize()

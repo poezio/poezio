@@ -2,8 +2,10 @@
 Module defining structures useful to the core class and related methods
 """
 
-__all__ = ['ERROR_AND_STATUS_CODES', 'DEPRECATED_ERRORS', 'POSSIBLE_SHOW',
-           'Status', 'Command', 'Completion']
+__all__ = [
+    'ERROR_AND_STATUS_CODES', 'DEPRECATED_ERRORS', 'POSSIBLE_SHOW', 'Status',
+    'Command', 'Completion'
+]
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
 ERROR_AND_STATUS_CODES = {
@@ -15,7 +17,7 @@ ERROR_AND_STATUS_CODES = {
     '407': 'You are not in the member list',
     '409': 'This nickname is already in use or has been reserved',
     '503': 'The maximum number of users has been reached',
-    }
+}
 
 # http://xmpp.org/extensions/xep-0086.html
 DEPRECATED_ERRORS = {
@@ -48,14 +50,18 @@ POSSIBLE_SHOW = {
     'xa': 'xa'
 }
 
+
 class Status:
     __slots__ = ('show', 'message')
+
     def __init__(self, show, message):
         self.show = show
         self.message = message
 
+
 class Command:
     __slots__ = ('func', 'desc', 'comp', 'short_desc', 'usage')
+
     def __init__(self, func, desc, comp, short_desc, usage):
         self.func = func
         self.desc = desc
@@ -63,11 +69,13 @@ class Command:
         self.short_desc = short_desc
         self.usage = usage
 
+
 class Completion:
     """
     A completion result essentially currying the input completion call.
     """
     __slots__ = ['func', 'args', 'kwargs', 'comp_list']
+
     def __init__(self, func, comp_list, *args, **kwargs):
         self.func = func
         self.comp_list = comp_list

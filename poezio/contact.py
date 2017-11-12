@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the Resource and Contact classes, which are used in
 the roster.
@@ -16,16 +15,18 @@ log = logging.getLogger(__name__)
 from poezio.common import safeJID
 from collections import defaultdict
 
+
 class Resource(object):
     """
     Defines a roster item.
     It's a precise resource.
     """
+
     def __init__(self, jid, data):
         """
         data: the dict to use as a source
         """
-        self._jid = jid         # Full jid
+        self._jid = jid  # Full jid
         self._data = data
 
     @property
@@ -52,12 +53,14 @@ class Resource(object):
             return False
         return self.jid == value.jid and self._data == value._data
 
+
 class Contact(object):
     """
     This a way to gather multiple resources from the same bare JID.
     This class contains zero or more Resource object and useful methods
     to get the resource with the highest priority, etc
     """
+
     def __init__(self, item):
         """
         item: a slixmpp RosterItem pointing to that contact
@@ -118,17 +121,17 @@ class Contact(object):
     @property
     def resources(self):
         """List of the available resources as Resource objects"""
-        return (Resource(
-            '%s%s' % (self.bare_jid, ('/' + key) if key else ''),
-            self.__item.resources[key]
-            ) for key in self.__item.resources.keys())
+        return (Resource('%s%s' % (self.bare_jid, ('/' + key)
+                                   if key else ''), self.__item.resources[key])
+                for key in self.__item.resources.keys())
 
     @property
     def subscription(self):
         return self.__item['subscription']
 
     def __contains__(self, value):
-        return value in self.__item.resources or safeJID(value).resource in self.__item.resources
+        return value in self.__item.resources or safeJID(
+            value).resource in self.__item.resources
 
     def __len__(self):
         """Number of resources"""

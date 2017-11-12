@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Various methods to convert
 shell colors to poezio colors,
@@ -26,7 +25,7 @@ from xml.sax import saxutils
 from slixmpp.xmlstream import ET
 from poezio.config import config
 
-digits = '0123456789' # never trust the modules
+digits = '0123456789'  # never trust the modules
 
 XHTML_NS = 'http://www.w3.org/1999/xhtml'
 
@@ -190,8 +189,11 @@ poezio_format_trim = re.compile(r'(\x19\d+}|\x19\d|\x19[buaio]|\x19o)+\x19o')
 
 xhtml_simple_attr_re = re.compile(r'\x19\d')
 
-def get_body_from_message_stanza(message, use_xhtml=False,
-                                 tmp_dir=None, extract_images=False):
+
+def get_body_from_message_stanza(message,
+                                 use_xhtml=False,
+                                 tmp_dir=None,
+                                 extract_images=False):
     """
     Returns a string with xhtml markups converted to
     poezio colors if there's an xhtml_im element, or
@@ -205,10 +207,11 @@ def get_body_from_message_stanza(message, use_xhtml=False,
     xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
     if xhtml_body is None:
         return message['body']
-    content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=tmp_dir,
-                                     extract_images=extract_images)
+    content = xhtml_to_poezio_colors(
+        xhtml_body, tmp_dir=tmp_dir, extract_images=extract_images)
     content = content if content else message['body']
     return content or " "
+
 
 def ncurses_color_to_html(color):
     """
@@ -219,8 +222,8 @@ def ncurses_color_to_html(color):
     if color <= 15:
         try:
             (r, g, b) = curses.color_content(color)
-        except: # fallback in faulty terminals (e.g. xterm)
-            (r, g, b) = curses.color_content(color%8)
+        except:  # fallback in faulty terminals (e.g. xterm)
+            (r, g, b) = curses.color_content(color % 8)
         r = r / 1000 * 6 - 0.01
         g = g / 1000 * 6 - 0.01
         b = b / 1000 * 6 - 0.01
@@ -234,7 +237,9 @@ def ncurses_color_to_html(color):
     else:
         color -= 232
         r = g = b = color / 24 * 6
-    return '#%02X%02X%02X' % (int(r*256/6), int(g*256/6), int(b*256/6))
+    return '#%02X%02X%02X' % (int(r * 256 / 6), int(g * 256 / 6),
+                              int(b * 256 / 6))
+
 
 def _parse_css_color(name):
     if name[0] == '#':
@@ -257,10 +262,11 @@ def _parse_css_color(name):
             if r == g == b:
                 return int(232 + 1.54 * r)
             mult = 0.3984
-        return 6*6*int(mult*r) + 6*int(mult*g) + int(mult*b) + 16
+        return 6 * 6 * int(mult * r) + 6 * int(mult * g) + int(mult * b) + 16
     if name in colors:
         return colors[name]
     return -1
+
 
 def _parse_css(css):
     shell = ''
@@ -272,7 +278,7 @@ def _parse_css(css):
         key = key.strip()
         value = value.strip()
         if key == 'background-color':
-            pass#shell += '\x191'
+            pass  #shell += '\x191'
         elif key == 'color':
             color = _parse_css_color(value)
             if color != -1:
@@ -292,13 +298,17 @@ def _parse_css(css):
                 shell += '\x19a'
     return shell
 
+
 def _trim(string):
     return re.sub(whitespace_re, ' ', string)
+
 
 def get_hash(data: bytes) -> str:
     # Currently using SHA-256, this might change in the future.
     # base64 gives shorter hashes than hex, so use that.
-    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=').replace(b'/', b'-').decode()
+    return b64encode(hashlib.sha256(data).digest()).rstrip(b'=').replace(
+        b'/', b'-').decode()
+
 
 class XHTMLHandler(sax.ContentHandler):
     def __init__(self, force_ns=False, tmp_dir=None, extract_images=False):
@@ -317,7 +327,8 @@ class XHTMLHandler(sax.ContentHandler):
 
     @property
     def result(self):
-        sanitized = re.sub(poezio_color_double, r'\1', ''.join(self.builder).strip())
+        sanitized = re.sub(poezio_color_double, r'\1',
+                           ''.join(self.builder).strip())
         return re.sub(poezio_format_trim, '\x19o', sanitized)
 
     def append_formatting(self, formatting):
@@ -336,7 +347,10 @@ class XHTMLHandler(sax.ContentHandler):
             return
 
         builder = self.builder
-        attrs = {name: value for ((ns, name), value) in attrs.items() if ns is None}
+        attrs = {
+            name: value
+            for ((ns, name), value) in attrs.items() if ns is None
+        }
         self.attrs.append(attrs)
 
         if 'style' in attrs and self.enable_css_parsing:
@@ -357,7 +371,9 @@ class XHTMLHandler(sax.ContentHandler):
             self.append_formatting('\x19i')
         elif name == 'img':
             if re.match(xhtml_data_re, attrs['src']) and self.extract_images:
-                type_, data = [i for i in re.split(xhtml_data_re, attrs['src']) if i]
+                type_, data = [
+                    i for i in re.split(xhtml_data_re, attrs['src']) if i
+                ]
                 bin_data = b64decode(unquote(data))
                 filename = get_hash(bin_data) + '.' + type_
                 filepath = path.join(self.tmp_dir, filename)
@@ -408,8 +424,10 @@ class XHTMLHandler(sax.ContentHandler):
         if name == 'a':
             self.pop_formatting()
             # do not display the link twice
-            text_elements = [x for x in self.builder[self.a_start:]
-                               if not x.startswith('\x19')]
+            text_elements = [
+                x for x in self.builder[self.a_start:]
+                if not x.startswith('\x19')
+            ]
             link_text = ''.join(text_elements).strip()
             if 'href' in attrs and attrs['href'] != link_text:
                 builder.append(' (%s)' % _trim(attrs['href']))
@@ -429,19 +447,22 @@ class XHTMLHandler(sax.ContentHandler):
         if 'title' in attrs:
             builder.append(' [' + attrs['title'] + ']')
 
-def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None, extract_images=None):
+
+def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None,
+                           extract_images=None):
     if isinstance(xml, str):
         xml = xml.encode('utf8')
     elif not isinstance(xml, bytes):
         xml = ET.tostring(xml)
 
-    handler = XHTMLHandler(force_ns=force, tmp_dir=tmp_dir,
-                           extract_images=extract_images)
+    handler = XHTMLHandler(
+        force_ns=force, tmp_dir=tmp_dir, extract_images=extract_images)
     parser = sax.make_parser()
     parser.setFeature(sax.handler.feature_namespaces, True)
     parser.setContentHandler(handler)
     parser.parse(BytesIO(xml))
     return handler.result
+
 
 def clean_text(s):
     """
@@ -451,6 +472,7 @@ def clean_text(s):
     s = re.sub(xhtml_attr_re, "", s)
     return s
 
+
 def clean_text_simple(string):
     """
     Remove all \x19 from the string formatted with simple colors:
@@ -458,9 +480,10 @@ def clean_text_simple(string):
     """
     pos = string.find('\x19')
     while pos != -1:
-        string = string[:pos] + string[pos+2:]
+        string = string[:pos] + string[pos + 2:]
         pos = string.find('\x19')
     return string
+
 
 def convert_simple_to_full_colors(text):
     """
@@ -469,14 +492,27 @@ def convert_simple_to_full_colors(text):
     """
     # TODO, have a single list of this. This is some sort of
     # dusplicate from windows.format_chars
-    mapping = str.maketrans({'\x0E': '\x19b', '\x0F': '\x19o', '\x10': '\x19u',
-                             '\x11': '\x191', '\x12': '\x192', '\x13': '\x193',
-                             '\x14': '\x194', '\x15': '\x195', '\x16': '\x196',
-                             '\x17': '\x197', '\x18': '\x198', '\x19': '\x199'})
+    mapping = str.maketrans({
+        '\x0E': '\x19b',
+        '\x0F': '\x19o',
+        '\x10': '\x19u',
+        '\x11': '\x191',
+        '\x12': '\x192',
+        '\x13': '\x193',
+        '\x14': '\x194',
+        '\x15': '\x195',
+        '\x16': '\x196',
+        '\x17': '\x197',
+        '\x18': '\x198',
+        '\x19': '\x199'
+    })
     text = text.translate(mapping)
+
     def add_curly_bracket(match):
         return match.group(0) + '}'
+
     return re.sub(xhtml_simple_attr_re, add_curly_bracket, text)
+
 
 number_to_color_names = {
     1: 'red',
@@ -488,8 +524,10 @@ number_to_color_names = {
     7: 'white'
 }
 
+
 def format_inline_css(_dict):
     return ''.join(('%s: %s;' % (key, value) for key, value in _dict.items()))
+
 
 def poezio_colors_to_html(string):
     """
@@ -514,11 +552,12 @@ def poezio_colors_to_html(string):
             build.append('</span>')
 
     while next_attr_char != -1:
-        attr_char = string[next_attr_char+1].lower()
+        attr_char = string[next_attr_char + 1].lower()
 
         if next_attr_char != 0 and string[:next_attr_char]:
             if current_attrs and not tag_open:
-                build.append('<span style="%s">' % format_inline_css(current_attrs))
+                build.append(
+                    '<span style="%s">' % format_inline_css(current_attrs))
                 tag_open = True
             build.append(saxutils.escape(string[:next_attr_char]))
 
@@ -535,15 +574,17 @@ def poezio_colors_to_html(string):
             check_property('font-style', 'italic')
 
         if attr_char in digits:
-            number_str = string[next_attr_char+1:string.find('}', next_attr_char)]
+            number_str = string[next_attr_char + 1:string.find(
+                '}', next_attr_char)]
             number = int(number_str)
             if number in number_to_color_names:
-                check_property('color', number_to_color_names.get(number, 'black'))
+                check_property('color',
+                               number_to_color_names.get(number, 'black'))
             else:
                 check_property('color', ncurses_color_to_html(number))
-            string = string[next_attr_char+len(number_str)+2:]
+            string = string[next_attr_char + len(number_str) + 2:]
         else:
-            string = string[next_attr_char+2:]
+            string = string[next_attr_char + 2:]
         next_attr_char = string.find('\x19')
 
     if current_attrs and not tag_open and string:

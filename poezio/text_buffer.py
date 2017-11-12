@@ -15,14 +15,26 @@ from datetime import datetime
 from poezio.config import config
 from poezio.theming import get_theme, dump_tuple
 
+
 class Message:
     __slots__ = ('txt', 'nick_color', 'time', 'str_time', 'nickname', 'user',
                  'identifier', 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
 
-    def __init__(self, txt, time, nickname, nick_color, history, user,
-                 identifier, str_time=None, highlight=False,
-                 old_message=None, revisions=0, jid=None, ack=0):
+    def __init__(self,
+                 txt,
+                 time,
+                 nickname,
+                 nick_color,
+                 history,
+                 user,
+                 identifier,
+                 str_time=None,
+                 highlight=False,
+                 old_message=None,
+                 revisions=0,
+                 jid=None,
+                 ack=0):
         """
         Create a new Message object with parameters, check for /me messages,
         and delayed messages
@@ -35,8 +47,9 @@ class Message:
         else:
             me = False
         if history:
-            txt = txt.replace('\x19o', '\x19o\x19%s}' %
-                                dump_tuple(get_theme().COLOR_LOG_MSG))
+            txt = txt.replace(
+                '\x19o',
+                '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
             str_time = time.strftime("%Y-%m-%d %H:%M:%S")
         else:
             if str_time is None:
@@ -87,17 +100,21 @@ class Message:
             rev -= 1
         return ''.join(acc)
 
+
 class CorrectionError(Exception):
     pass
 
+
 class AckError(Exception):
     pass
+
 
 class TextBuffer(object):
     """
     This class just keep trace of messages, in a list with various
     information and attributes.
     """
+
     def __init__(self, messages_nb_limit=None):
 
         if messages_nb_limit is None:
@@ -117,15 +134,33 @@ class TextBuffer(object):
     def last_message(self):
         return self.messages[-1] if self.messages else None
 
-    def add_message(self, txt, time=None, nickname=None,
-                    nick_color=None, history=None, user=None, highlight=False,
-                    identifier=None, str_time=None, jid=None, ack=0):
+    def add_message(self,
+                    txt,
+                    time=None,
+                    nickname=None,
+                    nick_color=None,
+                    history=None,
+                    user=None,
+                    highlight=False,
+                    identifier=None,
+                    str_time=None,
+                    jid=None,
+                    ack=0):
         """
         Create a message and add it to the text buffer
         """
-        msg = Message(txt, time, nickname, nick_color, history, user,
-                      identifier, str_time=str_time, highlight=highlight,
-                      jid=jid, ack=ack)
+        msg = Message(
+            txt,
+            time,
+            nickname,
+            nick_color,
+            history,
+            user,
+            identifier,
+            str_time=str_time,
+            highlight=highlight,
+            jid=jid,
+            ack=ack)
         self.messages.append(msg)
 
         while len(self.messages) > self._messages_nb_limit:
@@ -134,12 +169,14 @@ class TextBuffer(object):
         ret_val = 0
         show_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
-        for window in self._windows: # make the associated windows
-                                     # build the lines from the new message
-            nb = window.build_new_message(msg, history=history,
-                                          highlight=highlight,
-                                          timestamp=show_timestamps,
-                                          nick_size=nick_size)
+        for window in self._windows:  # make the associated windows
+            # build the lines from the new message
+            nb = window.build_new_message(
+                msg,
+                history=history,
+                highlight=highlight,
+                timestamp=show_timestamps,
+                nick_size=nick_size)
             if ret_val == 0:
                 ret_val = nb
             if window.pos != 0:
@@ -151,7 +188,7 @@ class TextBuffer(object):
         """
         Find a message in the text buffer from its message id
         """
-        for i in range(len(self.messages) -1, -1, -1):
+        for i in range(len(self.messages) - 1, -1, -1):
             msg = self.messages[i]
             if msg.identifier == old_id:
                 return i
@@ -175,16 +212,23 @@ class TextBuffer(object):
             return
         msg = self.messages[i]
         if msg.jid != jid:
-            raise AckError('Wrong JID for message id %s (was %s, expected %s)' %
-                            (old_id, msg.jid, jid))
+            raise AckError(
+                'Wrong JID for message id %s (was %s, expected %s)' %
+                (old_id, msg.jid, jid))
 
         msg.ack = value
         if append:
             msg.txt += append
         return msg
 
-    def modify_message(self, txt, old_id, new_id, highlight=False,
-                       time=None, user=None, jid=None):
+    def modify_message(self,
+                       txt,
+                       old_id,
+                       new_id,
+                       highlight=False,
+                       time=None,
+                       user=None,
+                       jid=None):
         """
         Correct a message in a text buffer.
         """
@@ -192,30 +236,39 @@ class TextBuffer(object):
         i = self._find_message(old_id)
 
         if i == -1:
-            log.debug('Message %s not found in text_buffer, abort replacement.',
-                      old_id)
+            log.debug(
+                'Message %s not found in text_buffer, abort replacement.',
+                old_id)
             raise CorrectionError("nothing to replace")
 
         msg = self.messages[i]
 
         if msg.user and msg.user is not user:
             raise CorrectionError("Different users")
-        elif len(msg.str_time) > 8: # ugly
+        elif len(msg.str_time) > 8:  # ugly
             raise CorrectionError("Delayed message")
         elif not msg.user and (msg.jid is None or jid is None):
             raise CorrectionError('Could not check the '
                                   'identity of the sender')
         elif not msg.user and msg.jid != jid:
             raise CorrectionError('Messages %s and %s have not been '
-                                  'sent by the same fullJID' %
-                                      (old_id, new_id))
+                                  'sent by the same fullJID' % (old_id,
+                                                                new_id))
 
         if not time:
             time = msg.time
-        message = Message(txt, time, msg.nickname, msg.nick_color, None,
-                          msg.user, new_id, highlight=highlight,
-                          old_message=msg, revisions=msg.revisions + 1,
-                          jid=jid)
+        message = Message(
+            txt,
+            time,
+            msg.nickname,
+            msg.nick_color,
+            None,
+            msg.user,
+            new_id,
+            highlight=highlight,
+            old_message=msg,
+            revisions=msg.revisions + 1,
+            jid=jid)
         self.messages[i] = message
         log.debug('Replacing message %s with %s.', old_id, new_id)
         return message

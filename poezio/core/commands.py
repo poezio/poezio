@@ -46,10 +46,8 @@ class CommandCore:
             buff = ['Global commands:']
             for name, command in self.core.commands.items():
                 if isinstance(command, Command):
-                    acc.append('  \x19%s}%s\x19o - %s' % (
-                                   color,
-                                   name,
-                                   command.short_desc))
+                    acc.append('  \x19%s}%s\x19o - %s' % (color, name,
+                                                          command.short_desc))
                 else:
                     acc.append('  \x19%s}%s\x19o' % (color, name))
             acc = sorted(acc)
@@ -59,10 +57,8 @@ class CommandCore:
             tab_commands = self.core.current_tab().commands
             for name, command in tab_commands.items():
                 if isinstance(command, Command):
-                    acc.append('  \x19%s}%s\x19o - %s' % (
-                                    color,
-                                    name,
-                                    command.short_desc))
+                    acc.append('  \x19%s}%s\x19o - %s' % (color, name,
+                                                          command.short_desc))
                 else:
                     acc.append('  \x19%s}%s\x19o' % (color, name))
             acc = sorted(acc)
@@ -93,11 +89,13 @@ class CommandCore:
         """
         /runkey <key>
         """
+
         def replace_line_breaks(key):
             "replace ^J with \n"
             if key == '^J':
                 return '\n'
             return key
+
         if args is None:
             return self.help('runkey')
         char = args[0]
@@ -135,7 +133,8 @@ class CommandCore:
             current.send_chat_state('inactive')
         for tab in self.core.tabs:
             if isinstance(tab, tabs.MucTab) and tab.joined:
-                muc.change_show(self.core.xmpp, tab.name, tab.own_nick, show, msg)
+                muc.change_show(self.core.xmpp, tab.name, tab.own_nick, show,
+                                msg)
             if hasattr(tab, 'directed_presence'):
                 del tab.directed_presence
         self.core.set_status(show, msg)
@@ -156,12 +155,14 @@ class CommandCore:
         if ptype == 'available':
             ptype = None
         try:
-            pres = self.core.xmpp.make_presence(pto=jid, ptype=ptype, pstatus=status)
+            pres = self.core.xmpp.make_presence(
+                pto=jid, ptype=ptype, pstatus=status)
             self.core.events.trigger('send_normal_presence', pres)
             pres.send()
         except (XMPPError, NotConnectedError):
             self.core.information('Could not send directed presence', 'Error')
-            log.debug('Could not send directed presence to %s', jid, exc_info=True)
+            log.debug(
+                'Could not send directed presence to %s', jid, exc_info=True)
             return
         tab = self.core.get_tab_by_name(jid)
         if tab:
@@ -184,7 +185,7 @@ class CommandCore:
         """/theme <theme name>"""
         if args is None:
             return self.help('theme')
-        self.set('theme %s' % (args[0],))
+        self.set('theme %s' % (args[0], ))
 
     @command_args_parser.quoted(1)
     def win(self, args):
@@ -254,10 +255,12 @@ class CommandCore:
                     if not old_tab and value == tab.name:
                         old_tab = tab
                 if not old_tab:
-                    self.core.information("Tab %s does not exist" % args[0], "Error")
+                    self.core.information("Tab %s does not exist" % args[0],
+                                          "Error")
                     return None
                 ref = old_tab.nb
             return ref
+
         old = get_nb_from_value(args[0])
         new = get_nb_from_value(args[1])
         if new is None or old is None:
@@ -281,19 +284,20 @@ class CommandCore:
             jid = safeJID(args[0])
         else:
             if not isinstance(self.core.current_tab(), tabs.MucTab):
-                return self.core.information('Please provide a server', 'Error')
+                return self.core.information('Please provide a server',
+                                             'Error')
             jid = safeJID(self.core.current_tab().name)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
-        self.core.xmpp.plugin['xep_0030'].get_items(jid=jid,
-                                                    callback=cb)
+        self.core.xmpp.plugin['xep_0030'].get_items(jid=jid, callback=cb)
 
     @command_args_parser.quoted(1)
     def version(self, args):
         """
         /version <jid>
         """
+
         def callback(res):
             "Callback for /version"
             if not res:
@@ -301,10 +305,9 @@ class CommandCore:
                                              ' version from %s' % jid,
                                              'Warning')
             version = '%s is running %s version %s on %s' % (
-                            jid,
-                            res.get('name') or 'an unknown software',
-                            res.get('version') or 'unknown',
-                            res.get('os') or 'an unknown platform')
+                jid, res.get('name') or 'an unknown software',
+                res.get('version') or 'unknown',
+                res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
 
         if args is None:
@@ -315,7 +318,8 @@ class CommandCore:
             fixes.get_version(self.core.xmpp, jid, callback=callback)
         elif jid in roster:
             for resource in roster[jid].resources:
-                fixes.get_version(self.core.xmpp, resource.jid, callback=callback)
+                fixes.get_version(
+                    self.core.xmpp, resource.jid, callback=callback)
 
     def _empty_join(self):
         tab = self.core.current_tab()
@@ -372,7 +376,7 @@ class CommandCore:
         else:
             room, nick = self._parse_join_jid(args[0])
         if not room and not nick:
-            return # nothing was parsed
+            return  # nothing was parsed
 
         room = room.lower()
         if nick == '':
@@ -467,11 +471,13 @@ class CommandCore:
             bookmark.nick = nick
         if password:
             bookmark.password = password
+
         def callback(iq):
             if iq["type"] != "error":
                 self.core.information('Bookmark added.', 'Info')
             else:
                 self.core.information("Could not add the bookmarks.", "Info")
+
         self.core.bookmarks.save_local()
         self.core.bookmarks.save_remote(self.core.xmpp, callback)
 
@@ -480,8 +486,7 @@ class CommandCore:
         for tab in self.core.get_tabs(tabs.MucTab):
             bookmark = self.core.bookmarks[tab.name]
             if not bookmark:
-                bookmark = Bookmark(tab.name, autojoin=True,
-                                    method=method)
+                bookmark = Bookmark(tab.name, autojoin=True, method=method)
                 new_bookmarks.append(bookmark)
             else:
                 bookmark.method = method
@@ -489,11 +494,14 @@ class CommandCore:
                 self.core.bookmarks.remove(bookmark)
         new_bookmarks.extend(self.core.bookmarks.bookmarks)
         self.core.bookmarks.set(new_bookmarks)
+
         def _cb(iq):
             if iq["type"] != "error":
                 self.core.information("Bookmarks saved.", "Info")
             else:
-                self.core.information("Could not save the remote bookmarks.", "Info")
+                self.core.information("Could not save the remote bookmarks.",
+                                      "Info")
+
         self.core.bookmarks.save_local()
         self.core.bookmarks.save_remote(self.core.xmpp, _cb)
 
@@ -520,7 +528,8 @@ class CommandCore:
             if success:
                 self.core.information('Bookmark deleted', 'Info')
             else:
-                self.core.information('Error while deleting the bookmark', 'Error')
+                self.core.information('Error while deleting the bookmark',
+                                      'Error')
 
         if not args:
             tab = self.core.current_tab()
@@ -546,15 +555,17 @@ class CommandCore:
             lines = []
             theme = get_theme()
             for section_name, section in config_dict.items():
-                lines.append('\x19%(section_col)s}[%(section)s]\x19o' %
-                        {
-                            'section': section_name,
-                            'section_col': dump_tuple(theme.COLOR_INFORMATION_TEXT),
-                        })
+                lines.append(
+                    '\x19%(section_col)s}[%(section)s]\x19o' % {
+                        'section': section_name,
+                        'section_col': dump_tuple(
+                            theme.COLOR_INFORMATION_TEXT),
+                    })
                 for option_name, option_value in section.items():
-                    lines.append('%s\x19%s}=\x19o%s' % (option_name,
-                                                        dump_tuple(theme.COLOR_REVISIONS_MESSAGE),
-                                                        option_value))
+                    lines.append('%s\x19%s}=\x19o%s' %
+                                 (option_name,
+                                  dump_tuple(theme.COLOR_REVISIONS_MESSAGE),
+                                  option_value))
             info = ('Current  options:\n%s' % '\n'.join(lines), 'Info')
         elif len(args) == 1:
             option = args[0]
@@ -573,7 +584,8 @@ class CommandCore:
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
-                    plugin_config = self.core.plugin_manager.plugins[plugin_name].config
+                    plugin_config = self.core.plugin_manager.plugins[
+                        plugin_name].config
                 value = plugin_config.get(option, default='', section=section)
                 info = ('%s=%s' % (option, value), 'Info')
             else:
@@ -600,14 +612,15 @@ class CommandCore:
                     file_name = os.path.join(file_name, plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
-                    plugin_config = self.core.plugin_manager.plugins[plugin_name].config
+                    plugin_config = self.core.plugin_manager.plugins[
+                        plugin_name].config
                 info = plugin_config.set_and_save(option, value, section)
             else:
                 if args[0] == '.':
                     name = safeJID(self.core.current_tab().name).bare
                     if not name:
-                        self.core.information('Invalid tab to use the "." argument.',
-                                              'Error')
+                        self.core.information(
+                            'Invalid tab to use the "." argument.', 'Error')
                         return
                     section = name
                 else:
@@ -679,35 +692,35 @@ class CommandCore:
         """
         /last_activity <jid>
         """
+
         def callback(iq):
             "Callback for the last activity"
             if iq['type'] != 'result':
                 if iq['error']['type'] == 'auth':
                     self.core.information('You are not allowed to see the '
-                                          'activity of this contact.',
-                                          'Error')
+                                          'activity of this contact.', 'Error')
                 else:
-                    self.core.information('Error retrieving the activity', 'Error')
+                    self.core.information('Error retrieving the activity',
+                                          'Error')
                 return
             seconds = iq['last_activity']['seconds']
             status = iq['last_activity']['status']
             from_ = iq['from']
             if not safeJID(from_).user:
                 msg = 'The uptime of %s is %s.' % (
-                        from_,
-                        common.parse_secs_to_str(seconds))
+                    from_, common.parse_secs_to_str(seconds))
             else:
                 msg = 'The last activity of %s was %s ago%s' % (
-                    from_,
-                    common.parse_secs_to_str(seconds),
-                    (' and his/her last status was %s' % status) if status else '')
+                    from_, common.parse_secs_to_str(seconds),
+                    (' and his/her last status was %s' % status)
+                    if status else '')
             self.core.information(msg, 'Info')
 
         if args is None:
             return self.help('last_activity')
         jid = safeJID(args[0])
-        self.core.xmpp.plugin['xep_0012'].get_last_activity(jid,
-                                                       callback=callback)
+        self.core.xmpp.plugin['xep_0012'].get_last_activity(
+            jid, callback=callback)
 
     @command_args_parser.quoted(0, 2)
     def mood(self, args):
@@ -719,15 +732,14 @@ class CommandCore:
 
         mood = args[0]
         if mood not in pep.MOODS:
-            return self.core.information('%s is not a correct value for a mood.'
-                                             % mood,
-                                          'Error')
+            return self.core.information(
+                '%s is not a correct value for a mood.' % mood, 'Error')
         if len(args) == 2:
             text = args[1]
         else:
             text = None
-        self.core.xmpp.plugin['xep_0107'].publish_mood(mood, text,
-                                                       callback=dumb_callback)
+        self.core.xmpp.plugin['xep_0107'].publish_mood(
+            mood, text, callback=dumb_callback)
 
     @command_args_parser.quoted(0, 3)
     def activity(self, args):
@@ -740,9 +752,8 @@ class CommandCore:
 
         general = args[0]
         if general not in pep.ACTIVITIES:
-            return self.core.information('%s is not a correct value for an activity'
-                                             % general,
-                                         'Error')
+            return self.core.information(
+                '%s is not a correct value for an activity' % general, 'Error')
         specific = None
         text = None
         if length == 2:
@@ -755,10 +766,9 @@ class CommandCore:
             text = args[2]
         if specific and specific not in pep.ACTIVITIES[general]:
             return self.core.information('%s is not a correct value '
-                                         'for an activity' % specific,
-                                         'Error')
-        self.core.xmpp.plugin['xep_0108'].publish_activity(general, specific, text,
-                                                           callback=dumb_callback)
+                                         'for an activity' % specific, 'Error')
+        self.core.xmpp.plugin['xep_0108'].publish_activity(
+            general, specific, text, callback=dumb_callback)
 
     @command_args_parser.quoted(0, 2)
     def gaming(self, args):
@@ -773,9 +783,8 @@ class CommandCore:
             address = args[1]
         else:
             address = None
-        return self.core.xmpp.plugin['xep_0196'].publish_gaming(name=name,
-                                                                server_address=address,
-                                                                callback=dumb_callback)
+        return self.core.xmpp.plugin['xep_0196'].publish_gaming(
+            name=name, server_address=address, callback=dumb_callback)
 
     @command_args_parser.quoted(2, 1, [None])
     def invite(self, args):
@@ -800,9 +809,9 @@ class CommandCore:
             return
         reason = args[1]
         del self.core.pending_invites[jid.bare]
-        self.core.xmpp.plugin['xep_0045'].decline_invite(jid.bare,
-                                                         self.core.pending_invites[jid.bare],
-                                                         reason)
+        self.core.xmpp.plugin['xep_0045'].decline_invite(
+            jid.bare, self.core.pending_invites[jid.bare], reason)
+
 
 ### Commands without a completion in this class ###
 
@@ -811,8 +820,8 @@ class CommandCore:
         """/invitations"""
         build = ""
         for invite in self.core.pending_invites:
-            build += "%s by %s" % (invite,
-                                   safeJID(self.core.pending_invites[invite]).bare)
+            build += "%s by %s" % (
+                invite, safeJID(self.core.pending_invites[invite]).bare)
         if self.core.pending_invites:
             build = "You are invited to the following rooms:\n" + build
         else:
@@ -838,7 +847,8 @@ class CommandCore:
         self.core.save_config()
         self.core.plugin_manager.disable_plugins()
         self.core.disconnect(msg)
-        self.core.xmpp.add_event_handler("disconnected", self.core.exit, disposable=True)
+        self.core.xmpp.add_event_handler(
+            "disconnected", self.core.exit, disposable=True)
 
     @command_args_parser.quoted(0, 1, [''])
     def destroy_room(self, args):
@@ -849,7 +859,8 @@ class CommandCore:
         if room:
             muc.destroy_room(self.core.xmpp, room)
         elif isinstance(self.core.current_tab(), tabs.MucTab) and not args[0]:
-            muc.destroy_room(self.core.xmpp, self.core.current_tab().general_jid)
+            muc.destroy_room(self.core.xmpp,
+                             self.core.current_tab().general_jid)
         else:
             self.core.information('Invalid JID: "%s"' % args[0], 'Error')
 
@@ -862,12 +873,15 @@ class CommandCore:
             return self.help('bind')
 
         if not config.silent_set(args[0], args[1], section='bindings'):
-            self.core.information('Unable to write in the config file', 'Error')
+            self.core.information('Unable to write in the config file',
+                                  'Error')
 
         if args[1]:
-            self.core.information('%s is now bound to %s' % (args[0], args[1]), 'Info')
+            self.core.information('%s is now bound to %s' % (args[0], args[1]),
+                                  'Info')
         else:
-            self.core.information('%s is now reset to the default binding' % args[0], 'Info')
+            self.core.information(
+                '%s is now reset to the default binding' % args[0], 'Info')
 
     @command_args_parser.raw
     def rawxml(self, args):
@@ -881,7 +895,8 @@ class CommandCore:
         stanza = args
         try:
             stanza = StanzaBase(self.core.xmpp, xml=ET.fromstring(stanza))
-            if stanza.xml.tag == 'iq' and stanza.xml.attrib.get('type') in ('get', 'set'):
+            if stanza.xml.tag == 'iq' and stanza.xml.attrib.get('type') in (
+                    'get', 'set'):
                 iq_id = stanza.xml.attrib.get('id')
                 if not iq_id:
                     iq_id = self.core.xmpp.new_id()
@@ -893,18 +908,15 @@ class CommandCore:
                     self.core.xmpp.remove_handler('Iq %s' % iq_id)
 
                 self.core.xmpp.register_handler(
-                        Callback('Iq %s' % iq_id,
-                            StanzaPath('iq@id=%s' % iq_id),
-                            iqfunc
-                            )
-                        )
+                    Callback('Iq %s' % iq_id,
+                             StanzaPath('iq@id=%s' % iq_id), iqfunc))
             stanza.send()
         except:
             self.core.information('Could not send custom stanza', 'Error')
-            log.debug('/rawxml: Could not send custom stanza (%s)',
-                      repr(stanza),
-                      exc_info=True)
-
+            log.debug(
+                '/rawxml: Could not send custom stanza (%s)',
+                repr(stanza),
+                exc_info=True)
 
     @command_args_parser.quoted(1, 256)
     def load(self, args):
@@ -928,9 +940,8 @@ class CommandCore:
         """
         /plugins
         """
-        self.core.information("Plugins currently in use: %s" %
-                                  repr(list(self.core.plugin_manager.plugins.keys())),
-                              'Info')
+        self.core.information("Plugins currently in use: %s" % repr(
+            list(self.core.plugin_manager.plugins.keys())), 'Info')
 
     @command_args_parser.quoted(1, 1)
     def message(self, args):
@@ -942,7 +953,8 @@ class CommandCore:
         jid = safeJID(args[0])
         if not jid.user and not jid.domain and not jid.resource:
             return self.core.information('Invalid JID.', 'Error')
-        tab = self.core.get_conversation_by_jid(jid.full, False, fallback_barejid=False)
+        tab = self.core.get_conversation_by_jid(
+            jid.full, False, fallback_barejid=False)
         muc = self.core.get_tab_by_name(jid.bare, typ=tabs.MucTab)
         if not tab and not muc:
             tab = self.core.open_conversation_window(jid.full, focus=True)
@@ -977,8 +989,8 @@ class CommandCore:
         list_tab = tabs.AdhocCommandsListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_list_received
-        self.core.xmpp.plugin['xep_0050'].get_commands(jid=jid, local=False,
-                                                       callback=cb)
+        self.core.xmpp.plugin['xep_0050'].get_commands(
+            jid=jid, local=False, callback=cb)
 
     @command_args_parser.ignored
     def self_(self):
@@ -990,14 +1002,10 @@ class CommandCore:
         nick = self.core.own_nick
         jid = self.core.xmpp.boundjid.full
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
-                '\nYour default nickname is %s\nYou are running poezio %s' % (
-                jid,
-                message if message else '',
-                show if show else 'available',
-                nick,
-                config_opts.version))
+                '\nYour default nickname is %s\nYou are running poezio %s' %
+                (jid, message if message else '', show
+                 if show else 'available', nick, config_opts.version))
         self.core.information(info, 'Info')
-
 
     @command_args_parser.ignored
     def reload(self):
@@ -1006,6 +1014,6 @@ class CommandCore:
         """
         self.core.reload_config()
 
+
 def dumb_callback(*args, **kwargs):
     "mock callback"
-

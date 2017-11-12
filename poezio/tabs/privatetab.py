@@ -27,6 +27,7 @@ from poezio.logger import logger
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
+
 class PrivateTab(OneToOneTab):
     """
     The tab containg a private conversation (someone from a MUC)
@@ -35,6 +36,7 @@ class PrivateTab(OneToOneTab):
     plugin_commands = {}
     additional_information = {}
     plugin_keys = {}
+
     def __init__(self, core, name, nick):
         OneToOneTab.__init__(self, core, name)
         self.own_nick = nick
@@ -46,12 +48,18 @@ class PrivateTab(OneToOneTab):
         # keys
         self.key_func['^I'] = self.completion
         # commands
-        self.register_command('info', self.command_info,
-                desc='Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.',
-                shortdesc='Info about the user.')
-        self.register_command('version', self.command_version,
-                desc='Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
-                shortdesc='Get the software version of a jid.')
+        self.register_command(
+            'info',
+            self.command_info,
+            desc=
+            'Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.',
+            shortdesc='Info about the user.')
+        self.register_command(
+            'version',
+            self.command_version,
+            desc=
+            'Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
+            shortdesc='Get the software version of a jid.')
         self.resize()
         self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
         self.on = True
@@ -61,7 +69,7 @@ class PrivateTab(OneToOneTab):
     def remote_user_color(self):
         user = self.parent_muc.get_user_by_name(safeJID(self.name).resource)
         if user:
-            return dump_tuple(user.color);
+            return dump_tuple(user.color)
         return super().remote_user_color()
 
     @property
@@ -87,14 +95,16 @@ class PrivateTab(OneToOneTab):
         del PrivateTab.additional_information[plugin_name]
 
     def load_logs(self, log_nb):
-        logs = logger.get_logs(safeJID(self.name).full.replace('/', '\\'), log_nb)
+        logs = logger.get_logs(
+            safeJID(self.name).full.replace('/', '\\'), log_nb)
         return logs
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
         Log the messages in the archives.
         """
-        if not logger.log_message(self.name, nickname, txt, date=time, typ=typ):
+        if not logger.log_message(
+                self.name, nickname, txt, date=time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
     def on_close(self):
@@ -120,7 +130,9 @@ class PrivateTab(OneToOneTab):
         else:
             add_after = ''
         self.input.auto_completion(word_list, add_after, quotify=False)
-        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        empty_after = self.input.get_text() == '' or (
+            self.input.get_text().startswith('/')
+            and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
     @command_args_parser.raw
@@ -145,8 +157,13 @@ class PrivateTab(OneToOneTab):
             msg['replace']['id'] = self.last_sent_message['id']
             if config.get_by_tabname('group_corrections', self.name):
                 try:
-                    self.modify_message(msg['body'], self.last_sent_message['id'], msg['id'],
-                            user=user, jid=self.core.xmpp.boundjid, nickname=self.own_nick)
+                    self.modify_message(
+                        msg['body'],
+                        self.last_sent_message['id'],
+                        msg['id'],
+                        user=user,
+                        jid=self.core.xmpp.boundjid,
+                        nickname=self.own_nick)
                     replaced = True
                 except:
                     log.error('Unable to correct a message', exc_info=True)
@@ -157,8 +174,8 @@ class PrivateTab(OneToOneTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', self.general_jid) and
-                self.remote_wants_chatstates is not False):
+        if (config.get_by_tabname('send_chat_states', self.general_jid)
+                and self.remote_wants_chatstates is not False):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:
@@ -170,13 +187,14 @@ class PrivateTab(OneToOneTab):
             self.input.refresh()
             return
         if not replaced:
-            self.add_message(msg['body'],
-                    nickname=self.own_nick or self.core.own_nick,
-                    forced_user=user,
-                    nick_color=get_theme().COLOR_OWN_NICK,
-                    identifier=msg['id'],
-                    jid=self.core.xmpp.boundjid,
-                    typ=1)
+            self.add_message(
+                msg['body'],
+                nickname=self.own_nick or self.core.own_nick,
+                forced_user=user,
+                nick_color=get_theme().COLOR_OWN_NICK,
+                identifier=msg['id'],
+                jid=self.core.xmpp.boundjid,
+                typ=1)
 
         self.last_sent_message = msg
         if self.remote_supports_receipts:
@@ -191,19 +209,22 @@ class PrivateTab(OneToOneTab):
         """
         /version
         """
+
         def callback(res):
             if not res:
-                return self.core.information('Could not get the software version from %s' % (jid,), 'Warning')
-            version = '%s is running %s version %s on %s' % (jid,
-                                                             res.get('name') or 'an unknown software',
-                                                             res.get('version') or 'unknown',
-                                                             res.get('os') or 'an unknown platform')
+                return self.core.information(
+                    'Could not get the software version from %s' % (jid, ),
+                    'Warning')
+            version = '%s is running %s version %s on %s' % (
+                jid, res.get('name') or 'an unknown software',
+                res.get('version') or 'unknown',
+                res.get('os') or 'an unknown platform')
             self.core.information(version, 'Info')
+
         if args:
             return self.core.command.version(args[0])
         jid = safeJID(self.name)
-        fixes.get_version(self.core.xmpp, jid,
-                callback=callback)
+        fixes.get_version(self.core.xmpp, jid, callback=callback)
 
     @command_args_parser.quoted(0, 1)
     def command_info(self, arg):
@@ -226,14 +247,14 @@ class PrivateTab(OneToOneTab):
             info_win_height = self.core.information_win_size
             tab_win_height = Tab.tab_win_height()
 
-        self.text_win.resize(self.height - 2 - info_win_height - tab_win_height,
-                             self.width, 0, 0)
+        self.text_win.resize(
+            self.height - 2 - info_win_height - tab_win_height, self.width, 0,
+            0)
         self.text_win.rebuild_everything(self._text_buffer)
-        self.info_header.resize(1, self.width,
-                                self.height - 2 - info_win_height
-                                    - tab_win_height,
-                                0)
-        self.input.resize(1, self.width, self.height-1, 0)
+        self.info_header.resize(
+            1, self.width, self.height - 2 - info_win_height - tab_win_height,
+            0)
+        self.input.resize(1, self.width, self.height - 1, 0)
 
     def refresh(self):
         if self.need_resize:
@@ -251,7 +272,8 @@ class PrivateTab(OneToOneTab):
         self.input.refresh()
 
     def refresh_info_header(self):
-        self.info_header.refresh(self.name, self.text_win, self.chatstate, PrivateTab.additional_information)
+        self.info_header.refresh(self.name, self.text_win, self.chatstate,
+                                 PrivateTab.additional_information)
         self.input.refresh()
 
     def get_nick(self):
@@ -264,7 +286,9 @@ class PrivateTab(OneToOneTab):
         self.input.do_command(key, raw=raw)
         if not self.on:
             return False
-        empty_after = self.input.get_text() == '' or (self.input.get_text().startswith('/') and not self.input.get_text().startswith('//'))
+        empty_after = self.input.get_text() == '' or (
+            self.input.get_text().startswith('/')
+            and not self.input.get_text().startswith('//'))
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
         if tab and tab.joined:
             self.send_composing_chat_state(empty_after)
@@ -279,8 +303,8 @@ class PrivateTab(OneToOneTab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname('send_chat_states',
-                self.general_jid) and self.on:
+        if tab and tab.joined and config.get_by_tabname(
+                'send_chat_states', self.general_jid) and self.on:
             self.send_chat_state('inactive')
         self.check_scrolled()
 
@@ -288,15 +312,20 @@ class PrivateTab(OneToOneTab):
         self.state = 'current'
         curses.curs_set(1)
         tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
-        if tab and tab.joined and config.get_by_tabname('send_chat_states',
-                self.general_jid,) and not self.input.get_text() and self.on:
+        if tab and tab.joined and config.get_by_tabname(
+                'send_chat_states',
+                self.general_jid,
+        ) and not self.input.get_text() and self.on:
             self.send_chat_state('active')
 
     def on_info_win_size_changed(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height - 3:
             return
-        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
+        self.text_win.resize(self.height - 2 - self.core.information_win_size -
+                             Tab.tab_win_height(), self.width, 0, 0)
+        self.info_header.resize(
+            1, self.width, self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), 0)
 
     def get_text_window(self):
         return self.text_win
@@ -307,13 +336,16 @@ class PrivateTab(OneToOneTab):
         The user changed her nick in the corresponding muc: update the tab’s name and
         display a message.
         """
-        self.add_message('\x19%(nick_col)s}%(old)s\x19%(info_col)s} is now '
-                         'known as \x19%(nick_col)s}%(new)s' % {
-                             'old':old_nick, 'new': user.nick,
-                             'nick_col': dump_tuple(user.color),
-                             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                         typ=2)
-        new_jid = safeJID(self.name).bare+'/'+user.nick
+        self.add_message(
+            '\x19%(nick_col)s}%(old)s\x19%(info_col)s} is now '
+            'known as \x19%(nick_col)s}%(new)s' % {
+                'old': old_nick,
+                'new': user.nick,
+                'nick_col': dump_tuple(user.color),
+                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            },
+            typ=2)
+        new_jid = safeJID(self.name).bare + '/' + user.nick
         self.name = new_jid
         return self.core.current_tab() is self
 
@@ -323,28 +355,36 @@ class PrivateTab(OneToOneTab):
         The user left the associated MUC
         """
         self.deactivate()
-        if config.get_by_tabname('display_user_color_in_join_part', self.general_jid):
+        if config.get_by_tabname('display_user_color_in_join_part',
+                                 self.general_jid):
             color = dump_tuple(user.color)
         else:
             color = dump_tuple(get_theme().COLOR_REMOTE_USER)
 
         if not status_message:
-            self.add_message('\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
-                             '%(nick)s\x19%(info_col)s} has left the room' % {
-                                 'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
-                                 'nick_col': color,
-                                 'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
-                                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                             typ=2)
+            self.add_message(
+                '\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
+                '%(nick)s\x19%(info_col)s} has left the room' % {
+                    'nick': user.nick,
+                    'spec': get_theme().CHAR_QUIT,
+                    'nick_col': color,
+                    'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
+                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                },
+                typ=2)
         else:
-            self.add_message('\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
-                             '%(nick)s\x19%(info_col)s} has left the room'
-                             ' (%(status)s)' % { 'status': status_message,
-                                 'nick': user.nick, 'spec': get_theme().CHAR_QUIT,
-                                 'nick_col': color,
-                                 'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
-                                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                             typ=2)
+            self.add_message(
+                '\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
+                '%(nick)s\x19%(info_col)s} has left the room'
+                ' (%(status)s)' % {
+                    'status': status_message,
+                    'nick': user.nick,
+                    'spec': get_theme().CHAR_QUIT,
+                    'nick_col': color,
+                    'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
+                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                },
+                typ=2)
         return self.core.current_tab() is self
 
     @refresh_wrapper.conditional
@@ -361,12 +401,16 @@ class PrivateTab(OneToOneTab):
             user = tab.get_user_by_name(nick)
             if user:
                 color = dump_tuple(user.color)
-        self.add_message('\x19%(join_col)s}%(spec)s \x19%(color)s}%(nick)s\x19'
-                         '%(info_col)s} joined the room' % {'nick':nick,
-                             'color': color, 'spec':get_theme().CHAR_JOIN,
-                             'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
-                             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
-                         typ=2)
+        self.add_message(
+            '\x19%(join_col)s}%(spec)s \x19%(color)s}%(nick)s\x19'
+            '%(info_col)s} joined the room' % {
+                'nick': nick,
+                'color': color,
+                'spec': get_theme().CHAR_JOIN,
+                'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
+                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            },
+            typ=2)
         return self.core.current_tab() is self
 
     def activate(self, reason=None):
@@ -386,7 +430,10 @@ class PrivateTab(OneToOneTab):
     def add_error(self, error_message):
         error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
                                     error_message)
-        self.add_message(error, highlight=True, nickname='Error',
-                         nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+        self.add_message(
+            error,
+            highlight=True,
+            nickname='Error',
+            nick_color=get_theme().COLOR_ERROR_MSG,
+            typ=2)
         self.core.refresh_window()
-

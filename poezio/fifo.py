@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 import os
 import threading
 
+
 class OpenTrick(threading.Thread):
     """
     A threaded trick to make the open for writing succeed.
@@ -22,6 +23,7 @@ class OpenTrick(threading.Thread):
 
     (we never read anything from it, obviously)
     """
+
     def __init__(self, path):
         threading.Thread.__init__(self)
         self.path = path
@@ -37,6 +39,7 @@ class Fifo(object):
     Mode is either 'r' or 'w', just like the mode for the open()
     function.
     """
+
     def __init__(self, path, mode):
         self.trick = None
         if not os.path.exists(path):
@@ -67,5 +70,5 @@ class Fifo(object):
             if self.trick:
                 self.trick.fd.close()
         except:
-            log.error('Unable to close descriptors for the fifo',
-                      exc_info=True)
+            log.error(
+                'Unable to close descriptors for the fifo', exc_info=True)

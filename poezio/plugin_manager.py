@@ -16,12 +16,14 @@ from poezio.config import config
 
 log = logging.getLogger(__name__)
 
+
 class PluginManager(object):
     """
     Plugin Manager
     Contains all the references to the plugins
     And keeps track of everything the plugin has done through the API.
     """
+
     def __init__(self, core):
         self.core = core
         # module name -> module object
@@ -65,7 +67,8 @@ class PluginManager(object):
             module = None
             loader = self.finder.find_module(name, self.load_path)
             if not loader:
-                self.core.information('Could not find plugin: %s' % name, 'Error')
+                self.core.information('Could not find plugin: %s' % name,
+                                      'Error')
                 return
             module = loader.load_module()
         except Exception as e:
@@ -90,8 +93,7 @@ class PluginManager(object):
             log.error('Error while loading the plugin %s', name, exc_info=True)
             if notify:
                 self.core.information('Unable to load the plugin %s: %s' %
-                                      (name, e),
-                                      'Error')
+                                      (name, e), 'Error')
             self.unload(name, notify=False)
         else:
             if notify:
@@ -106,8 +108,8 @@ class PluginManager(object):
                     del self.core.key_func[key]
                 for tab in list(self.tab_commands[name].keys()):
                     for command in self.tab_commands[name][tab][:]:
-                        self.del_tab_command(name, getattr(tabs, tab),
-                                             command[0])
+                        self.del_tab_command(name,
+                                             getattr(tabs, tab), command[0])
                     del self.tab_commands[name][tab]
                 for tab in list(self.tab_keys[name].keys()):
                     for key in self.tab_keys[name][tab][:]:
@@ -128,16 +130,21 @@ class PluginManager(object):
             except Exception as e:
                 log.debug("Could not unload plugin %s", name, exc_info=True)
                 self.core.information("Could not unload plugin %s: %s" %
-                                      (name, e),
-                                      'Error')
+                                      (name, e), 'Error')
 
-    def add_command(self, module_name, name, handler, help,
-                    completion=None, short='', usage=''):
+    def add_command(self,
+                    module_name,
+                    name,
+                    handler,
+                    help,
+                    completion=None,
+                    short='',
+                    usage=''):
         """
         Add a global command.
         """
         if name in self.core.commands:
-            raise Exception("Command '%s' already exists" % (name,))
+            raise Exception("Command '%s' already exists" % (name, ))
 
         commands = self.commands[module_name]
         commands[name] = Command(handler, help, completion, short, usage)
@@ -152,8 +159,15 @@ class PluginManager(object):
             if name in self.core.commands:
                 del self.core.commands[name]
 
-    def add_tab_command(self, module_name, tab_type, name, handler, help,
-                        completion=None, short='', usage=''):
+    def add_tab_command(self,
+                        module_name,
+                        tab_type,
+                        name,
+                        handler,
+                        help,
+                        completion=None,
+                        short='',
+                        usage=''):
         """
         Add a command only for a type of Tab.
         """
@@ -164,8 +178,8 @@ class PluginManager(object):
         if t not in commands:
             commands[t] = []
         commands[t].append((name, handler, help, completion))
-        tab_type.plugin_commands[name] = Command(handler, help,
-                                                      completion, short, usage)
+        tab_type.plugin_commands[name] = Command(handler, help, completion,
+                                                 short, usage)
         for tab in self.core.tabs:
             if isinstance(tab, tab_type):
                 tab.update_commands()
@@ -224,7 +238,7 @@ class PluginManager(object):
         already exists.
         """
         if key in self.core.key_func:
-            raise Exception("Key '%s' already exists" % (key,))
+            raise Exception("Key '%s' already exists" % (key, ))
         keys = self.keys[module_name]
         keys[key] = handler
         self.core.key_func[key] = handler
@@ -273,20 +287,31 @@ class PluginManager(object):
                 names |= add
             except OSError:
                 pass
-        plugins_files = [name[:-3] for name in names if name.endswith('.py')
-                and name != '__init__.py' and not name.startswith('.')]
+        plugins_files = [
+            name[:-3] for name in names
+            if name.endswith('.py') and name != '__init__.py'
+            and not name.startswith('.')
+        ]
         plugins_files.sort()
         position = the_input.get_argument_position(quoted=False)
-        return Completion(the_input.new_completion, plugins_files, position, '',
-                                        quotify=False)
+        return Completion(
+            the_input.new_completion,
+            plugins_files,
+            position,
+            '',
+            quotify=False)
 
     def completion_unload(self, the_input):
         """
         completion function that completes the name of loaded plugins
         """
         position = the_input.get_argument_position(quoted=False)
-        return Completion(the_input.new_completion, sorted(self.plugins.keys()), position,
-                                        '', quotify=False)
+        return Completion(
+            the_input.new_completion,
+            sorted(self.plugins.keys()),
+            position,
+            '',
+            quotify=False)
 
     def on_plugins_dir_change(self, new_value):
         self.plugins_dir = new_value
@@ -319,8 +344,10 @@ class PluginManager(object):
             try:
                 os.makedirs(self.plugins_conf_dir)
             except OSError:
-                log.error('Unable to create the plugin conf dir: %s',
-                        self.plugins_conf_dir, exc_info=True)
+                log.error(
+                    'Unable to create the plugin conf dir: %s',
+                    self.plugins_conf_dir,
+                    exc_info=True)
                 return False
         return True
 
@@ -346,8 +373,10 @@ class PluginManager(object):
             try:
                 os.makedirs(self.plugins_dir, exist_ok=True)
             except OSError:
-                log.error('Unable to create the plugins dir: %s',
-                        self.plugins_dir, exc_info=True)
+                log.error(
+                    'Unable to create the plugins dir: %s',
+                    self.plugins_dir,
+                    exc_info=True)
                 return False
         return True
 
@@ -358,8 +387,8 @@ class PluginManager(object):
 
         self.load_path = []
 
-        default_plugin_path = path.join(path.dirname(path.dirname(__file__)),
-                                        'plugins')
+        default_plugin_path = path.join(
+            path.dirname(path.dirname(__file__)), 'plugins')
 
         if os.access(default_plugin_path, os.R_OK | os.X_OK):
             self.load_path.insert(0, default_plugin_path)
@@ -374,4 +403,3 @@ class PluginManager(object):
         else:
             if poezio_plugins.__path__:
                 self.load_path.append(list(poezio_plugins.__path__)[0])
-

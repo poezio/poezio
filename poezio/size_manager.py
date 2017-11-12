@@ -12,8 +12,8 @@ THRESHOLD_HEIGHT_DEGRADE = 10
 FULL_WIDTH_DEGRADE = 66
 FULL_HEIGHT_DEGRADE = 10
 
-class SizeManager(object):
 
+class SizeManager(object):
     def __init__(self, core):
         self._core = core
 
@@ -36,4 +36,3 @@ class SizeManager(object):
     def core_degrade_y(self):
         y, x = self._core.stdscr.getmaxyx()
         return y < FULL_HEIGHT_DEGRADE
-

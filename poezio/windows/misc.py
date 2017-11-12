@@ -10,11 +10,13 @@ import curses
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 
+
 class VerticalSeparator(Win):
     """
     Just a one-column window, with just a line in it, that is
     refreshed only on resize, but never on refresh, for efficiency
     """
+
     def rewrite_line(self):
         self._win.vline(0, 0, curses.ACS_VLINE, self.height,
                         to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
@@ -54,4 +56,3 @@ class SimpleTextWin(Win):
         for y, line in enumerate(self.built_lines):
             self.addstr_colored(line, y, 0)
         self._refresh()
-

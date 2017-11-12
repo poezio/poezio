@@ -36,6 +36,7 @@ class RosterInfoTab(Tab):
     """
     plugin_commands = {}
     plugin_keys = {}
+
     def __init__(self, core):
         Tab.__init__(self, core)
         self.name = "Roster"
@@ -45,7 +46,8 @@ class RosterInfoTab(Tab):
         self.roster_win = windows.RosterWin()
         self.contact_info_win = windows.ContactInfoWin()
         self.avatar_win = windows.ImageWin()
-        self.default_help_message = windows.HelpText("Enter commands with “/”. “o”: toggle offline show")
+        self.default_help_message = windows.HelpText(
+            "Enter commands with “/”. “o”: toggle offline show")
         self.input = self.default_help_message
         self.state = 'normal'
         self.key_func['^I'] = self.completion
@@ -68,82 +70,110 @@ class RosterInfoTab(Tab):
             self.key_func["s"] = self.start_search
             self.key_func["S"] = self.start_search_slow
             self.key_func["n"] = self.change_contact_name
-            self.register_command('deny', self.command_deny,
-                    usage='[jid]',
-                    desc='Deny your presence to the provided JID (or the '
-                         'selected contact in your roster), who is asking'
-                         'you to be in his/here roster.',
-                    shortdesc='Deny a user your presence.',
-                    completion=self.completion_deny)
-            self.register_command('accept', self.command_accept,
-                    usage='[jid]',
-                    desc='Allow the provided JID (or the selected contact '
-                         'in your roster), to see your presence.',
-                    shortdesc='Allow a user your presence.',
-                    completion=self.completion_deny)
-            self.register_command('add', self.command_add,
-                    usage='<jid>',
-                    desc='Add the specified JID to your roster, ask them to'
-                         ' allow you to see his presence, and allow them to'
-                         ' see your presence.',
-                    shortdesc='Add a user to your roster.')
-            self.register_command('name', self.command_name,
-                    usage='<jid> [name]',
-                    shortdesc='Set the given JID\'s name.',
-                    completion=self.completion_name)
-            self.register_command('groupadd', self.command_groupadd,
-                    usage='[<jid> <group>]|<group>',
-                    desc='Add the given JID or selected line to the given group.',
-                    shortdesc='Add a user to a group',
-                    completion=self.completion_groupadd)
-            self.register_command('groupmove', self.command_groupmove,
-                    usage='<jid> <old group> <new group>',
-                    desc='Move the given JID from the old group to the new group.',
-                    shortdesc='Move a user to another group.',
-                    completion=self.completion_groupmove)
-            self.register_command('groupremove', self.command_groupremove,
-                    usage='<jid> <group>',
-                    desc='Remove the given JID from the given group.',
-                    shortdesc='Remove a user from a group.',
-                    completion=self.completion_groupremove)
-            self.register_command('remove', self.command_remove,
-                    usage='[jid]',
-                    desc='Remove the specified JID from your roster. This '
-                         'will unsubscribe you from its presence, cancel '
-                         'its subscription to yours, and remove the item '
-                         'from your roster.',
-                    shortdesc='Remove a user from your roster.',
-                    completion=self.completion_remove)
-            self.register_command('export', self.command_export,
-                    usage='[/path/to/file]',
-                    desc='Export your contacts into /path/to/file if '
-                         'specified, or $HOME/poezio_contacts if not.',
-                    shortdesc='Export your roster to a file.',
-                    completion=partial(self.completion_file, 1))
-            self.register_command('import', self.command_import,
-                    usage='[/path/to/file]',
-                    desc='Import your contacts from /path/to/file if '
-                         'specified, or $HOME/poezio_contacts if not.',
-                    shortdesc='Import your roster from a file.',
-                    completion=partial(self.completion_file, 1))
-            self.register_command('password', self.command_password,
-                    usage='<password>',
-                    shortdesc='Change your password')
-
-        self.register_command('reconnect', self.command_reconnect,
-                desc='Disconnect from the remote server if you are '
-                     'currently connected and then connect to it again.',
-                shortdesc='Disconnect and reconnect to the server.')
-        self.register_command('disconnect', self.command_disconnect,
-                desc='Disconnect from the remote server.',
-                shortdesc='Disconnect from the server.')
-        self.register_command('clear', self.command_clear,
-                shortdesc='Clear the info buffer.')
-        self.register_command('last_activity', self.command_last_activity,
+            self.register_command(
+                'deny',
+                self.command_deny,
+                usage='[jid]',
+                desc='Deny your presence to the provided JID (or the '
+                'selected contact in your roster), who is asking'
+                'you to be in his/here roster.',
+                shortdesc='Deny a user your presence.',
+                completion=self.completion_deny)
+            self.register_command(
+                'accept',
+                self.command_accept,
+                usage='[jid]',
+                desc='Allow the provided JID (or the selected contact '
+                'in your roster), to see your presence.',
+                shortdesc='Allow a user your presence.',
+                completion=self.completion_deny)
+            self.register_command(
+                'add',
+                self.command_add,
                 usage='<jid>',
-                desc='Informs you of the last activity of a JID.',
-                shortdesc='Get the activity of someone.',
-                completion=self.core.completion.last_activity)
+                desc='Add the specified JID to your roster, ask them to'
+                ' allow you to see his presence, and allow them to'
+                ' see your presence.',
+                shortdesc='Add a user to your roster.')
+            self.register_command(
+                'name',
+                self.command_name,
+                usage='<jid> [name]',
+                shortdesc='Set the given JID\'s name.',
+                completion=self.completion_name)
+            self.register_command(
+                'groupadd',
+                self.command_groupadd,
+                usage='[<jid> <group>]|<group>',
+                desc='Add the given JID or selected line to the given group.',
+                shortdesc='Add a user to a group',
+                completion=self.completion_groupadd)
+            self.register_command(
+                'groupmove',
+                self.command_groupmove,
+                usage='<jid> <old group> <new group>',
+                desc='Move the given JID from the old group to the new group.',
+                shortdesc='Move a user to another group.',
+                completion=self.completion_groupmove)
+            self.register_command(
+                'groupremove',
+                self.command_groupremove,
+                usage='<jid> <group>',
+                desc='Remove the given JID from the given group.',
+                shortdesc='Remove a user from a group.',
+                completion=self.completion_groupremove)
+            self.register_command(
+                'remove',
+                self.command_remove,
+                usage='[jid]',
+                desc='Remove the specified JID from your roster. This '
+                'will unsubscribe you from its presence, cancel '
+                'its subscription to yours, and remove the item '
+                'from your roster.',
+                shortdesc='Remove a user from your roster.',
+                completion=self.completion_remove)
+            self.register_command(
+                'export',
+                self.command_export,
+                usage='[/path/to/file]',
+                desc='Export your contacts into /path/to/file if '
+                'specified, or $HOME/poezio_contacts if not.',
+                shortdesc='Export your roster to a file.',
+                completion=partial(self.completion_file, 1))
+            self.register_command(
+                'import',
+                self.command_import,
+                usage='[/path/to/file]',
+                desc='Import your contacts from /path/to/file if '
+                'specified, or $HOME/poezio_contacts if not.',
+                shortdesc='Import your roster from a file.',
+                completion=partial(self.completion_file, 1))
+            self.register_command(
+                'password',
+                self.command_password,
+                usage='<password>',
+                shortdesc='Change your password')
+
+        self.register_command(
+            'reconnect',
+            self.command_reconnect,
+            desc='Disconnect from the remote server if you are '
+            'currently connected and then connect to it again.',
+            shortdesc='Disconnect and reconnect to the server.')
+        self.register_command(
+            'disconnect',
+            self.command_disconnect,
+            desc='Disconnect from the remote server.',
+            shortdesc='Disconnect from the server.')
+        self.register_command(
+            'clear', self.command_clear, shortdesc='Clear the info buffer.')
+        self.register_command(
+            'last_activity',
+            self.command_last_activity,
+            usage='<jid>',
+            desc='Informs you of the last activity of a JID.',
+            shortdesc='Get the activity of someone.',
+            completion=self.core.completion.last_activity)
 
         self.resize()
         self.update_commands()
@@ -151,54 +181,72 @@ class RosterInfoTab(Tab):
 
     def check_blocking(self, features):
         if 'urn:xmpp:blocking' in features and not self.core.xmpp.anon:
-            self.register_command('block', self.command_block,
-                    usage='[jid]',
-                    shortdesc='Prevent a JID from talking to you.',
-                    completion=self.completion_block)
-            self.register_command('unblock', self.command_unblock,
-                    usage='[jid]',
-                    shortdesc='Allow a JID to talk to you.',
-                    completion=self.completion_unblock)
-            self.register_command('list_blocks', self.command_list_blocks,
-                    shortdesc='Show the blocked contacts.')
-            self.core.xmpp.del_event_handler('session_start', self.check_blocking)
-            self.core.xmpp.add_event_handler('blocked_message', self.on_blocked_message)
+            self.register_command(
+                'block',
+                self.command_block,
+                usage='[jid]',
+                shortdesc='Prevent a JID from talking to you.',
+                completion=self.completion_block)
+            self.register_command(
+                'unblock',
+                self.command_unblock,
+                usage='[jid]',
+                shortdesc='Allow a JID to talk to you.',
+                completion=self.completion_unblock)
+            self.register_command(
+                'list_blocks',
+                self.command_list_blocks,
+                shortdesc='Show the blocked contacts.')
+            self.core.xmpp.del_event_handler('session_start',
+                                             self.check_blocking)
+            self.core.xmpp.add_event_handler('blocked_message',
+                                             self.on_blocked_message)
 
     def check_saslexternal(self, features):
         if 'urn:xmpp:saslcert:1' in features and not self.core.xmpp.anon:
-            self.register_command('certs', self.command_certs,
-                                  desc='List the fingerprints of certificates'
-                                       ' which can connect to your account.',
-                                  shortdesc='List allowed client certs.')
-            self.register_command('cert_add', self.command_cert_add,
-                                  desc='Add a client certificate to the authorized ones. '
-                                       'It must have an unique name and be contained in '
-                                       'a PEM file. [management] is a boolean indicating'
-                                       ' if a client connected using this certificate can'
-                                       ' manage the certificates itself.',
-                                  shortdesc='Add a client certificate.',
-                                  usage='<name> <certificate path> [management]',
-                                  completion=self.completion_cert_add)
-            self.register_command('cert_disable', self.command_cert_disable,
-                                  desc='Remove a certificate from the list '
-                                       'of allowed ones. Clients currently '
-                                       'using this certificate will not be '
-                                       'forcefully disconnected.',
-                                  shortdesc='Disable a certificate',
-                                  usage='<name>')
-            self.register_command('cert_revoke', self.command_cert_revoke,
-                                  desc='Remove a certificate from the list '
-                                       'of allowed ones. Clients currently '
-                                       'using this certificate will be '
-                                       'forcefully disconnected.',
-                                  shortdesc='Revoke a certificate',
-                                  usage='<name>')
-            self.register_command('cert_fetch', self.command_cert_fetch,
-                                  desc='Retrieve a certificate with its '
-                                       'name. It will be stored in <path>.',
-                                  shortdesc='Fetch a certificate',
-                                  usage='<name> <path>',
-                                  completion=self.completion_cert_fetch)
+            self.register_command(
+                'certs',
+                self.command_certs,
+                desc='List the fingerprints of certificates'
+                ' which can connect to your account.',
+                shortdesc='List allowed client certs.')
+            self.register_command(
+                'cert_add',
+                self.command_cert_add,
+                desc='Add a client certificate to the authorized ones. '
+                'It must have an unique name and be contained in '
+                'a PEM file. [management] is a boolean indicating'
+                ' if a client connected using this certificate can'
+                ' manage the certificates itself.',
+                shortdesc='Add a client certificate.',
+                usage='<name> <certificate path> [management]',
+                completion=self.completion_cert_add)
+            self.register_command(
+                'cert_disable',
+                self.command_cert_disable,
+                desc='Remove a certificate from the list '
+                'of allowed ones. Clients currently '
+                'using this certificate will not be '
+                'forcefully disconnected.',
+                shortdesc='Disable a certificate',
+                usage='<name>')
+            self.register_command(
+                'cert_revoke',
+                self.command_cert_revoke,
+                desc='Remove a certificate from the list '
+                'of allowed ones. Clients currently '
+                'using this certificate will be '
+                'forcefully disconnected.',
+                shortdesc='Revoke a certificate',
+                usage='<name>')
+            self.register_command(
+                'cert_fetch',
+                self.command_cert_fetch,
+                desc='Retrieve a certificate with its '
+                'name. It will be stored in <path>.',
+                shortdesc='Fetch a certificate',
+                usage='<name> <path>',
+                completion=self.completion_cert_fetch)
 
     @property
     def selected_row(self):
@@ -209,10 +257,11 @@ class RosterInfoTab(Tab):
         """
         /certs
         """
+
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information('Unable to retrieve the certificate list.',
-                                      'Error')
+                self.core.information(
+                    'Unable to retrieve the certificate list.', 'Error')
                 return
             certs = []
             for item in iq['sasl_certs']['items']:
@@ -222,7 +271,8 @@ class RosterInfoTab(Tab):
             if not certs:
                 return self.core.information('No certificates found', 'Info')
             msg = 'Certificates:\n'
-            msg += '\n'.join((('  %s%s' % (item[0] + (': ' if item[1] else ''), item[1])) for item in certs))
+            msg += '\n'.join((('  %s%s' % (item[0] + (': ' if item[1] else ''),
+                                           item[1])) for item in certs))
             self.core.information(msg, 'Info')
 
         self.core.xmpp.plugin['xep_0257'].get_certs(callback=cb, timeout=3)
@@ -234,9 +284,11 @@ class RosterInfoTab(Tab):
         """
         if not args or len(args) < 2:
             return self.core.command.help('cert_add')
+
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information('Unable to add the certificate.', 'Error')
+                self.core.information('Unable to add the certificate.',
+                                      'Error')
             else:
                 self.core.information('Certificate added.', 'Info')
 
@@ -245,9 +297,11 @@ class RosterInfoTab(Tab):
         try:
             with open(args[1]) as fd:
                 crt = fd.read()
-            crt = crt.replace(ssl.PEM_FOOTER, '').replace(ssl.PEM_HEADER, '').replace(' ', '').replace('\n', '')
+            crt = crt.replace(ssl.PEM_FOOTER, '').replace(
+                ssl.PEM_HEADER, '').replace(' ', '').replace('\n', '')
         except Exception as e:
-            self.core.information('Unable to read the certificate: %s' % e, 'Error')
+            self.core.information('Unable to read the certificate: %s' % e,
+                                  'Error')
             return
 
         if len(args) > 2:
@@ -263,8 +317,8 @@ class RosterInfoTab(Tab):
         else:
             management = True
 
-        self.core.xmpp.plugin['xep_0257'].add_cert(name, crt, callback=cb,
-                                                   allow_management=management)
+        self.core.xmpp.plugin['xep_0257'].add_cert(
+            name, crt, callback=cb, allow_management=management)
 
     def completion_cert_add(self, the_input):
         """
@@ -286,9 +340,11 @@ class RosterInfoTab(Tab):
         """
         if not args:
             return self.core.command.help('cert_disable')
+
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information('Unable to disable the certificate.', 'Error')
+                self.core.information('Unable to disable the certificate.',
+                                      'Error')
             else:
                 self.core.information('Certificate disabled.', 'Info')
 
@@ -303,16 +359,17 @@ class RosterInfoTab(Tab):
         """
         if not args:
             return self.core.command.help('cert_revoke')
+
         def cb(iq):
             if iq['type'] == 'error':
-                self.core.information('Unable to revoke the certificate.', 'Error')
+                self.core.information('Unable to revoke the certificate.',
+                                      'Error')
             else:
                 self.core.information('Certificate revoked.', 'Info')
 
         name = args[0]
 
         self.core.xmpp.plugin['xep_0257'].revoke_cert(name, callback=cb)
-
 
     @command_args_parser.quoted(2)
     def command_cert_fetch(self, args):
@@ -321,6 +378,7 @@ class RosterInfoTab(Tab):
         """
         if not args or len(args) < 2:
             return self.core.command.help('cert_fetch')
+
         def cb(iq):
             if iq['type'] == 'error':
                 self.core.information('Unable to fetch the certificate.',
@@ -364,11 +422,12 @@ class RosterInfoTab(Tab):
         """
         tab = self.core.get_conversation_by_jid(message['from'], False)
         if not tab:
-            log.debug('Received message from nonexistent tab: %s', message['from'])
+            log.debug('Received message from nonexistent tab: %s',
+                      message['from'])
         message = '\x19%(info_col)s}Cannot send message to %(jid)s: contact blocked' % {
-                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                'jid': message['from'],
-            }
+            'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+            'jid': message['from'],
+        }
         tab.add_message(message)
 
     @command_args_parser.quoted(0, 1)
@@ -386,7 +445,8 @@ class RosterInfoTab(Tab):
 
         def callback(iq):
             if iq['type'] == 'error':
-                return self.core.information('Could not block %s.' % jid, 'Error')
+                return self.core.information('Could not block %s.' % jid,
+                                             'Error')
             elif iq['type'] == 'result':
                 return self.core.information('Blocked %s.' % jid, 'Info')
 
@@ -398,16 +458,19 @@ class RosterInfoTab(Tab):
         """
         if the_input.get_argument_position() == 1:
             jids = roster.jids()
-            return Completion(the_input.new_completion, jids, 1, '', quotify=False)
+            return Completion(
+                the_input.new_completion, jids, 1, '', quotify=False)
 
     @command_args_parser.quoted(0, 1)
     def command_unblock(self, args):
         """
         /unblock [jid]
         """
+
         def callback(iq):
             if iq['type'] == 'error':
-                return self.core.information('Could not unblock the contact.', 'Error')
+                return self.core.information('Could not unblock the contact.',
+                                             'Error')
             elif iq['type'] == 'result':
                 return self.core.information('Contact unblocked.', 'Info')
 
@@ -424,6 +487,7 @@ class RosterInfoTab(Tab):
         """
         Completion for /unblock
         """
+
         def on_result(iq):
             if iq['type'] == 'error':
                 return
@@ -439,9 +503,11 @@ class RosterInfoTab(Tab):
         """
         /list_blocks
         """
+
         def callback(iq):
             if iq['type'] == 'error':
-                return self.core.information('Could not retrieve the blocklist.', 'Error')
+                return self.core.information(
+                    'Could not retrieve the blocklist.', 'Error')
             s = 'List of blocked JIDs:\n'
             items = (str(item) for item in iq['blocklist']['items'])
             jids = '\n'.join(items)
@@ -508,25 +574,23 @@ class RosterInfoTab(Tab):
 
         info_width = self.width - roster_width - 1
         if display_info:
-            self.v_separator.resize(self.height - 1 - tab_win_height,
-                                    1, 0, roster_width)
-            self.information_win.resize(self.height - 1 - tab_win_height
-                                            - contact_win_h,
-                                        info_width, 0, roster_width + 1,
-                                        self.core.information_buffer)
+            self.v_separator.resize(self.height - 1 - tab_win_height, 1, 0,
+                                    roster_width)
+            self.information_win.resize(
+                self.height - 1 - tab_win_height - contact_win_h, info_width,
+                0, roster_width + 1, self.core.information_buffer)
             if display_contact_win:
                 y = self.height - tab_win_height - contact_win_h - 1
                 avatar_width = contact_win_h * 2
                 self.contact_info_win.resize(contact_win_h,
-                                             info_width - avatar_width,
-                                             y, roster_width + 1)
-                self.avatar_win.resize(contact_win_h,
-                                       avatar_width,
-                                       y, self.width - avatar_width)
+                                             info_width - avatar_width, y,
+                                             roster_width + 1)
+                self.avatar_win.resize(contact_win_h, avatar_width, y,
+                                       self.width - avatar_width)
         self.roster_win.resize(self.height - 1 - Tab.tab_win_height(),
                                roster_width, 0, 0)
-        self.input.resize(1, self.width, self.height-1, 0)
-        self.default_help_message.resize(1, self.width, self.height-1, 0)
+        self.input.resize(1, self.width, self.height - 1, 0)
+        self.default_help_message.resize(1, self.width, self.height - 1, 0)
 
     def completion(self):
         # Check if we are entering a command (with the '/' key)
@@ -544,9 +608,10 @@ class RosterInfoTab(Tab):
         args = shell_split(text)
         n = the_input.get_argument_position()
         if n == complete_number:
-            if args[n-1] == '' or len(args) < n+1:
+            if args[n - 1] == '' or len(args) < n + 1:
                 home = os.getenv('HOME') or '/'
-                return Completion(the_input.new_completion, [home, '/tmp'], n, quotify=True)
+                return Completion(
+                    the_input.new_completion, [home, '/tmp'], n, quotify=True)
             path_ = args[n]
             if path.isdir(path_):
                 dir_ = path_
@@ -569,7 +634,8 @@ class RosterInfoTab(Tab):
                 if not name.startswith('.'):
                     end_list.append(value)
 
-            return Completion(the_input.new_completion, end_list, n, quotify=True)
+            return Completion(
+                the_input.new_completion, end_list, n, quotify=True)
 
     @command_args_parser.ignored
     def command_clear(self):
@@ -578,7 +644,8 @@ class RosterInfoTab(Tab):
         """
         self.core.information_buffer.messages = []
         self.information_win.rebuild_everything(self.core.information_buffer)
-        self.core.information_win.rebuild_everything(self.core.information_buffer)
+        self.core.information_win.rebuild_everything(
+            self.core.information_buffer)
         self.refresh()
 
     @command_args_parser.quoted(1)
@@ -586,14 +653,18 @@ class RosterInfoTab(Tab):
         """
         /password <password>
         """
+
         def callback(iq):
             if iq['type'] == 'result':
                 self.core.information('Password updated', 'Account')
                 if config.get('password'):
                     config.silent_set('password', args[0])
             else:
-                self.core.information('Unable to change the password', 'Account')
-        self.core.xmpp.plugin['xep_0077'].change_password(args[0], callback=callback)
+                self.core.information('Unable to change the password',
+                                      'Account')
+
+        self.core.xmpp.plugin['xep_0077'].change_password(
+            args[0], callback=callback)
 
     @command_args_parser.quoted(0, 1)
     def command_deny(self, args):
@@ -631,7 +702,8 @@ class RosterInfoTab(Tab):
             return
         jid = safeJID(safeJID(args[0]).bare)
         if not str(jid):
-            self.core.information('The provided JID (%s) is not valid' % (args[0],), 'Error')
+            self.core.information('The provided JID (%s) is not valid' %
+                                  (args[0], ), 'Error')
             return
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
@@ -644,10 +716,12 @@ class RosterInfoTab(Tab):
         """
         Set a name for the specified JID in your roster
         """
+
         def callback(iq):
             if not iq:
                 self.core.information('The name could not be set.', 'Error')
                 log.debug('Error in /name:\n%s', iq)
+
         if args is None:
             return self.core.command.help('name')
         jid = safeJID(args[0]).bare
@@ -662,8 +736,12 @@ class RosterInfoTab(Tab):
         if 'none' in groups:
             groups.remove('none')
         subscription = contact.subscription
-        self.core.xmpp.update_roster(jid, name=name, groups=groups,
-                                     subscription=subscription, callback=callback)
+        self.core.xmpp.update_roster(
+            jid,
+            name=name,
+            groups=groups,
+            subscription=subscription,
+            callback=callback)
 
     @command_args_parser.quoted(1, 1)
     def command_groupadd(self, args):
@@ -712,8 +790,12 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set.', 'Error')
                 log.debug('Error in groupadd:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
-                                     subscription=subscription, callback=callback)
+        self.core.xmpp.update_roster(
+            jid,
+            name=name,
+            groups=new_groups,
+            subscription=subscription,
+            callback=callback)
 
     @command_args_parser.quoted(3)
     def command_groupmove(self, args):
@@ -767,8 +849,12 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set', 'Error')
                 log.debug('Error in groupmove:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
-                                     subscription=subscription, callback=callback)
+        self.core.xmpp.update_roster(
+            jid,
+            name=name,
+            groups=new_groups,
+            subscription=subscription,
+            callback=callback)
 
     @command_args_parser.quoted(2)
     def command_groupremove(self, args):
@@ -808,8 +894,12 @@ class RosterInfoTab(Tab):
                 self.core.information('The group could not be set')
                 log.debug('Error in groupremove:\n%s', iq)
 
-        self.core.xmpp.update_roster(jid, name=name, groups=new_groups,
-                                     subscription=subscription, callback=callback)
+        self.core.xmpp.update_roster(
+            jid,
+            name=name,
+            groups=new_groups,
+            subscription=subscription,
+            callback=callback)
 
     @command_args_parser.quoted(0, 1)
     def command_remove(self, args):
@@ -842,7 +932,8 @@ class RosterInfoTab(Tab):
         else:
             filepath = path.join(getenv('HOME'), 'poezio_contacts')
         if not path.isfile(filepath):
-            self.core.information('The file %s does not exist' % filepath, 'Error')
+            self.core.information('The file %s does not exist' % filepath,
+                                  'Error')
             return
         try:
             handle = open(filepath, 'r', encoding='utf-8')
@@ -877,7 +968,8 @@ class RosterInfoTab(Tab):
         if roster.export(filepath):
             self.core.information('Contacts exported to %s' % filepath, 'Info')
         else:
-            self.core.information('Failed to export contacts to %s' % filepath, 'Info')
+            self.core.information('Failed to export contacts to %s' % filepath,
+                                  'Info')
 
     def completion_remove(self, the_input):
         """
@@ -898,10 +990,13 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return Completion(the_input.new_completion, jids, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
-            groups = sorted(group for group in roster.groups if group != 'none')
-            return Completion(the_input.new_completion, groups, n, '', quotify=True)
+            groups = sorted(
+                group for group in roster.groups if group != 'none')
+            return Completion(
+                the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_groupmove(self, the_input):
@@ -909,7 +1004,8 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return Completion(the_input.new_completion, jids, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
             contact = roster[args[1]]
             if not contact:
@@ -917,10 +1013,12 @@ class RosterInfoTab(Tab):
             groups = list(contact.groups)
             if 'none' in groups:
                 groups.remove('none')
-            return Completion(the_input.new_completion, groups, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, groups, n, '', quotify=True)
         elif n == 3:
             groups = sorted(group for group in roster.groups)
-            return Completion(the_input.new_completion, groups, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_groupremove(self, the_input):
@@ -928,7 +1026,8 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == 1:
             jids = sorted(jid for jid in roster.jids())
-            return Completion(the_input.new_completion, jids, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, jids, n, '', quotify=True)
         elif n == 2:
             contact = roster[args[1]]
             if contact is None:
@@ -938,7 +1037,8 @@ class RosterInfoTab(Tab):
                 groups.remove('none')
             except ValueError:
                 pass
-            return Completion(the_input.new_completion, groups, n, '', quotify=True)
+            return Completion(
+                the_input.new_completion, groups, n, '', quotify=True)
         return False
 
     def completion_deny(self, the_input):
@@ -946,8 +1046,9 @@ class RosterInfoTab(Tab):
         Complete the first argument from the list of the
         contact with ask=='subscribe'
         """
-        jids = sorted(str(contact.bare_jid) for contact in roster.contacts.values()
-             if contact.pending_in)
+        jids = sorted(
+            str(contact.bare_jid) for contact in roster.contacts.values()
+            if contact.pending_in)
         return Completion(the_input.new_completion, jids, 1, '', quotify=False)
 
     @command_args_parser.quoted(0, 1)
@@ -976,8 +1077,10 @@ class RosterInfoTab(Tab):
         roster.modified()
         self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
         self.core.xmpp.client_roster.send_last_presence()
-        if contact.subscription in ('from', 'none') and not contact.pending_out:
-            self.core.xmpp.send_presence(pto=jid, ptype='subscribe', pnick=self.core.own_nick)
+        if contact.subscription in ('from',
+                                    'none') and not contact.pending_out:
+            self.core.xmpp.send_presence(
+                pto=jid, ptype='subscribe', pnick=self.core.own_nick)
 
         self.core.information('%s is now authorized' % jid, 'Roster')
 
@@ -1027,7 +1130,8 @@ class RosterInfoTab(Tab):
         success = config.silent_set(option, str(not value))
         roster.modified()
         if not success:
-            self.core.information('Unable to write in the config file', 'Error')
+            self.core.information('Unable to write in the config file',
+                                  'Error')
         return True
 
     def on_slash(self):
@@ -1035,9 +1139,10 @@ class RosterInfoTab(Tab):
         '/' is pressed, we enter "input mode"
         """
         curses.curs_set(1)
-        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
-        self.input.resize(1, self.width, self.height-1, 0)
-        self.input.do_command("/") # we add the slash
+        self.input = windows.CommandInput("", self.reset_help_message,
+                                          self.execute_slash_command)
+        self.input.resize(1, self.width, self.height - 1, 0)
+        self.input.do_command("/")  # we add the slash
 
     def reset_help_message(self, _=None):
         self.input = self.default_help_message
@@ -1065,13 +1170,15 @@ class RosterInfoTab(Tab):
 
     @refresh_wrapper.conditional
     def move_cursor_down(self):
-        if isinstance(self.input, windows.Input) and not self.input.history_disabled:
+        if isinstance(self.input,
+                      windows.Input) and not self.input.history_disabled:
             return
         return self.roster_win.move_cursor_down()
 
     @refresh_wrapper.conditional
     def move_cursor_up(self):
-        if isinstance(self.input, windows.Input) and not self.input.history_disabled:
+        if isinstance(self.input,
+                      windows.Input) and not self.input.history_disabled:
             return
         return self.roster_win.move_cursor_up()
 
@@ -1156,9 +1263,11 @@ class RosterInfoTab(Tab):
             cont = selected_row
             res = selected_row.get_highest_priority_resource()
             acc = []
-            acc.append('Contact: %s (%s)' % (cont.bare_jid, res.presence if res else 'unavailable'))
+            acc.append('Contact: %s (%s)' % (cont.bare_jid, res.presence
+                                             if res else 'unavailable'))
             if res:
-                acc.append('%s connected resource%s' % (len(cont), '' if len(cont) == 1 else 's'))
+                acc.append('%s connected resource%s' %
+                           (len(cont), '' if len(cont) == 1 else 's'))
                 acc.append('Current status: %s' % res.status)
             if cont.tune:
                 acc.append('Tune: %s' % common.format_tune_string(cont.tune))
@@ -1167,21 +1276,20 @@ class RosterInfoTab(Tab):
             if cont.activity:
                 acc.append('Activity: %s' % cont.activity)
             if cont.gaming:
-                acc.append('Game: %s' % (common.format_gaming_string(cont.gaming)))
+                acc.append('Game: %s' %
+                           (common.format_gaming_string(cont.gaming)))
             msg = '\n'.join(acc)
         elif isinstance(selected_row, Resource):
             res = selected_row
             msg = 'Resource: %s (%s)\nCurrent status: %s\nPriority: %s' % (
-                    res.jid,
-                    res.presence,
-                    res.status,
-                    res.priority)
+                res.jid, res.presence, res.status, res.priority)
         elif isinstance(selected_row, RosterGroup):
             rg = selected_row
             msg = 'Group: %s [%s/%s] contacts online' % (
-                    rg.name,
-                    rg.get_nb_connected_contacts(),
-                    len(rg),)
+                rg.name,
+                rg.get_nb_connected_contacts(),
+                len(rg),
+            )
         else:
             msg = None
         if msg:
@@ -1210,8 +1318,10 @@ class RosterInfoTab(Tab):
         in it.
         """
         curses.curs_set(1)
-        self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter)
-        self.input.resize(1, self.width, self.height-1, 0)
+        self.input = windows.CommandInput("[Search]", self.on_search_terminate,
+                                          self.on_search_terminate,
+                                          self.set_roster_filter)
+        self.input.resize(1, self.width, self.height - 1, 0)
         self.input.disable_history()
         roster.modified()
         self.refresh()
@@ -1220,8 +1330,10 @@ class RosterInfoTab(Tab):
     @refresh_wrapper.always
     def start_search_slow(self):
         curses.curs_set(1)
-        self.input = windows.CommandInput("[Search]", self.on_search_terminate, self.on_search_terminate, self.set_roster_filter_slow)
-        self.input.resize(1, self.width, self.height-1, 0)
+        self.input = windows.CommandInput("[Search]", self.on_search_terminate,
+                                          self.on_search_terminate,
+                                          self.set_roster_filter_slow)
+        self.input.resize(1, self.width, self.height - 1, 0)
         self.input.disable_history()
         return True
 
@@ -1248,6 +1360,7 @@ class RosterInfoTab(Tab):
     def on_close(self):
         return
 
+
 def diffmatch(search, string):
     """
     Use difflib and a loop to check if search_pattern can
@@ -1259,9 +1372,11 @@ def diffmatch(search, string):
     l = len(search)
     ratio = 0.7
     for i in range(len(string) - l + 1):
-        if difflib.SequenceMatcher(None, search, string[i:i+l]).ratio() >= ratio:
+        if difflib.SequenceMatcher(None, search,
+                                   string[i:i + l]).ratio() >= ratio:
             return True
     return False
+
 
 def jid_and_name_match(contact, txt):
     """
@@ -1276,13 +1391,14 @@ def jid_and_name_match(contact, txt):
         return True
     return False
 
+
 def jid_and_name_match_slow(contact, txt):
     """
     A function used to know if a contact in the roster should
     be shown in the roster
     """
     if not txt:
-        return True             # Everything matches when search is empty
+        return True  # Everything matches when search is empty
     user = safeJID(contact.bare_jid).bare
     if diffmatch(txt, user):
         return True

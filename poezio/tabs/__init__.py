@@ -13,8 +13,10 @@ from poezio.tabs.adhoc_commands_list import AdhocCommandsListTab
 from poezio.tabs.data_forms import DataFormsTab
 from poezio.tabs.bookmarkstab import BookmarksTab
 
-__all__ = ['Tab', 'ChatTab', 'GapTab', 'OneToOneTab', 'STATE_PRIORITY',
-           'SHOW_NAME', 'RosterInfoTab', 'MucTab', 'NS_MUC_USER', 'PrivateTab',
-           'ConfirmTab', 'ConversationTab', 'StaticConversationTab',
-           'DynamicConversationTab', 'XMLTab', 'ListTab', 'MucListTab',
-           'AdhocCommandsListTab', 'DataFormsTab', 'BookmarksTab']
+__all__ = [
+    'Tab', 'ChatTab', 'GapTab', 'OneToOneTab', 'STATE_PRIORITY', 'SHOW_NAME',
+    'RosterInfoTab', 'MucTab', 'NS_MUC_USER', 'PrivateTab', 'ConfirmTab',
+    'ConversationTab', 'StaticConversationTab', 'DynamicConversationTab',
+    'XMLTab', 'ListTab', 'MucListTab', 'AdhocCommandsListTab', 'DataFormsTab',
+    'BookmarksTab'
+]

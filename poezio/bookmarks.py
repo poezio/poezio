@@ -40,8 +40,13 @@ log = logging.getLogger(__name__)
 
 
 class Bookmark(object):
-
-    def __init__(self, jid, name=None, autojoin=False, nick=None, password=None, method='local'):
+    def __init__(self,
+                 jid,
+                 name=None,
+                 autojoin=False,
+                 nick=None,
+                 password=None,
+                 method='local'):
         self.jid = jid
         self.name = name or jid
         self.autojoin = autojoin
@@ -61,9 +66,8 @@ class Bookmark(object):
         self._method = value
 
     def __repr__(self):
-        return '<%s%s|%s>' % (self.jid,
-                               ('/'+self.nick) if self.nick else '',
-                               self.method)
+        return '<%s%s|%s>' % (self.jid, ('/' + self.nick)
+                              if self.nick else '', self.method)
 
     def stanza(self):
         """
@@ -98,7 +102,8 @@ class Bookmark(object):
         """
         jid = el.get('jid')
         name = el.get('name')
-        autojoin = True if el.get('autojoin', 'false').lower() in ('true', '1') else False
+        autojoin = True if el.get('autojoin',
+                                  'false').lower() in ('true', '1') else False
         nick = None
         for n in el.iter('nick'):
             nick = n.text
@@ -121,8 +126,8 @@ class Bookmark(object):
         name = el['name']
         return Bookmark(jid, name, autojoin, nick, password, method='remote')
 
-class BookmarkList(object):
 
+class BookmarkList(object):
     def __init__(self):
         self.bookmarks = []
         preferred = config.get('use_bookmarks_method').lower()
@@ -191,17 +196,21 @@ class BookmarkList(object):
         method = 'xep_0049' if self.preferred == 'privatexml' else 'xep_0223'
 
         if method:
-            xmpp.plugin['xep_0048'].set_bookmarks(stanza_storage(self.bookmarks),
-                                                  method=method,
-                                                  callback=callback)
+            xmpp.plugin['xep_0048'].set_bookmarks(
+                stanza_storage(self.bookmarks),
+                method=method,
+                callback=callback)
+
     def save_local(self):
         """Save the local bookmarks."""
-        local = ''.join(bookmark.local() for bookmark in self if bookmark.method == 'local')
+        local = ''.join(bookmark.local() for bookmark in self
+                        if bookmark.method == 'local')
         config.set_and_save('rooms', local)
 
     def save(self, xmpp, core=None, callback=None):
         """Save all the bookmarks."""
         self.save_local()
+
         def _cb(iq):
             if callback:
                 callback(iq)
@@ -209,14 +218,17 @@ class BookmarkList(object):
                 core.information('Could not save remote bookmarks.', 'Error')
             elif core:
                 core.information('Bookmarks saved', 'Info')
+
         if config.get('use_remote_bookmarks'):
             self.save_remote(xmpp, _cb)
 
     def get_pep(self, xmpp, callback):
         """Add the remotely stored bookmarks via pep to the list."""
+
         def _cb(iq):
             if iq['type'] == 'result':
-                for conf in iq['pubsub']['items']['item']['bookmarks']['conferences']:
+                for conf in iq['pubsub']['items']['item']['bookmarks'][
+                        'conferences']:
                     if isinstance(conf, URL):
                         continue
                     b = Bookmark.parse(conf)
@@ -230,6 +242,7 @@ class BookmarkList(object):
         """
         Fetch the remote bookmarks stored via privatexml.
         """
+
         def _cb(iq):
             if iq['type'] == 'result':
                 for conf in iq['private']['bookmarks']['conferences']:
@@ -250,12 +263,15 @@ class BookmarkList(object):
         if force and not any(self.available_storage.values()):
             old_callback = callback
             method = 'pep' if self.preferred == 'pep' else 'privatexml'
+
             def new_callback(result):
                 if result['type'] != 'error':
                     self.available_storage[method] = True
                     old_callback(result)
                 else:
-                    information('No remote bookmark storage available', 'Warning')
+                    information('No remote bookmark storage available',
+                                'Warning')
+
             callback = new_callback
 
         if self.preferred == 'pep':
@@ -277,9 +293,16 @@ class BookmarkList(object):
                 nick = jid.resource
             else:
                 nick = None
-            passwd = config.get_by_tabname('password', jid.bare, fallback=False) or None
-            b = Bookmark(jid.bare, autojoin=True, nick=nick, password=passwd, method='local')
+            passwd = config.get_by_tabname(
+                'password', jid.bare, fallback=False) or None
+            b = Bookmark(
+                jid.bare,
+                autojoin=True,
+                nick=nick,
+                password=passwd,
+                method='local')
             self.append(b)
+
 
 def stanza_storage(bookmarks):
     """Generate a <storage/> stanza with the conference elements."""

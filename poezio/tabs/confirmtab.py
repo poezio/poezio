@@ -13,7 +13,13 @@ class ConfirmTab(Tab):
     plugin_commands = {}
     plugin_keys = {}
 
-    def __init__(self, core, name, text, short_message, callback, critical=False):
+    def __init__(self,
+                 core,
+                 name,
+                 text,
+                 short_message,
+                 callback,
+                 critical=False):
         """Parameters:
         name: The name of the tab
         text: the text shown in the tab
@@ -26,7 +32,8 @@ class ConfirmTab(Tab):
         Tab.__init__(self, core)
         self.state = 'highlight'
         self.name = name
-        self.default_help_message = windows.HelpText("Choose with arrow keys and press enter")
+        self.default_help_message = windows.HelpText(
+            "Choose with arrow keys and press enter")
         self.input = self.default_help_message
         self.infowin_top = windows.ConfirmStatusWin(short_message, critical)
         self.infowin_bottom = windows.ConfirmStatusWin(short_message, critical)
@@ -76,10 +83,12 @@ class ConfirmTab(Tab):
             tab_win_height = Tab.tab_win_height()
 
         self.infowin_top.resize(1, self.width, 0, 0)
-        self.infowin_bottom.resize(1, self.width, self.height - 2 - info_win_height - tab_win_height, 0)
+        self.infowin_bottom.resize(
+            1, self.width, self.height - 2 - info_win_height - tab_win_height,
+            0)
         self.dialog.resize(self.height - 3 - info_win_height - tab_win_height,
                            self.width, 1, 0)
-        self.input.resize(1, self.width, self.height-1, 0)
+        self.input.resize(1, self.width, self.height - 1, 0)
 
     def close(self, arg=None):
         self.done = True
@@ -95,8 +104,10 @@ class ConfirmTab(Tab):
             return self.key_func[key]()
 
     def on_info_win_size_changed(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height - 3:
             return
-        self.dialog.resize(self.height-3-self.core.information_win_size - Tab.tab_win_height(), self.width, 1, 0)
-        self.infowin_bottom.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-
+        self.dialog.resize(self.height - 3 - self.core.information_win_size -
+                           Tab.tab_win_height(), self.width, 1, 0)
+        self.infowin_bottom.resize(
+            1, self.width, self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), 0)

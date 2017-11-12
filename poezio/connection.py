@@ -4,14 +4,12 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 """
 Defines the Connection class
 """
 
 import logging
 log = logging.getLogger(__name__)
-
 
 import getpass
 import subprocess
@@ -25,12 +23,14 @@ from poezio import fixes
 from poezio.common import safeJID
 from poezio.config import config, options
 
+
 class Connection(slixmpp.ClientXMPP):
     """
     Receives everything from Jabber and emits the
     appropriate signals
     """
     __init = False
+
     def __init__(self):
         keyfile = config.get('keyfile')
         certfile = config.get('certfile')
@@ -43,27 +43,35 @@ class Connection(slixmpp.ClientXMPP):
             jid = '%s' % config.get('jid')
             password = config.get('password')
             eval_password = config.get('eval_password')
-            if not password and not eval_password and not (keyfile and certfile):
+            if not password and not eval_password and not (keyfile
+                                                           and certfile):
                 password = getpass.getpass()
             elif not password and not (keyfile and certfile):
-                sys.stderr.write("No password or certificates provided, using the eval_password command.\n")
-                process = subprocess.Popen(['sh', '-c', eval_password], stdin=subprocess.PIPE,
-                                                        stdout=subprocess.PIPE, close_fds=True)
+                sys.stderr.write(
+                    "No password or certificates provided, using the eval_password command.\n"
+                )
+                process = subprocess.Popen(
+                    ['sh', '-c', eval_password],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    close_fds=True)
                 code = process.wait()
                 if code != 0:
-                    sys.stderr.write('The eval_password command (%s) returned a '
-                                     'nonzero status code: %s.\n' % (eval_password, code))
+                    sys.stderr.write(
+                        'The eval_password command (%s) returned a '
+                        'nonzero status code: %s.\n' % (eval_password, code))
                     sys.stderr.write('Poezio will now exit\n')
                     sys.exit(code)
-                password = process.stdout.readline().decode('utf-8').strip('\n')
-        else: # anonymous auth
+                password = process.stdout.readline().decode('utf-8').strip(
+                    '\n')
+        else:  # anonymous auth
             self.anon = True
             jid = config.get('server')
             password = None
         jid = safeJID(jid)
         # TODO: use the system language
-        slixmpp.ClientXMPP.__init__(self, jid, password,
-                                      lang=config.get('lang'))
+        slixmpp.ClientXMPP.__init__(
+            self, jid, password, lang=config.get('lang'))
 
         force_encryption = config.get('force_encryption')
         if force_encryption:
@@ -75,18 +83,19 @@ class Connection(slixmpp.ClientXMPP):
         self.keyfile = config.get('keyfile')
         self.certfile = config.get('certfile')
         if keyfile and not certfile:
-            log.error('keyfile is present in configuration file without certfile')
+            log.error(
+                'keyfile is present in configuration file without certfile')
         elif certfile and not keyfile:
-            log.error('certfile is present in configuration file without keyfile')
+            log.error(
+                'certfile is present in configuration file without keyfile')
 
         self.core = None
         self.auto_reconnect = config.get('auto_reconnect')
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
         # for anything that came out after 2002
-        self.ciphers = config.get('ciphers',
-                                  'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
-                                    ':!SRP:!3DES:!aNULL')
+        self.ciphers = config.get('ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
+                                  ':!SRP:!3DES:!aNULL')
         self.ca_certs = config.get('ca_cert_path') or None
         interval = config.get('whitespace_interval')
         if int(interval) > 0:
@@ -116,7 +125,8 @@ class Connection(slixmpp.ClientXMPP):
         XEP_0184._filter_add_receipt_request = fixes._filter_add_receipt_request
         self.register_plugin('xep_0184')
         self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts')
-        self.plugin['xep_0184'].auto_request = config.get('request_message_receipts')
+        self.plugin['xep_0184'].auto_request = config.get(
+            'request_message_receipts')
 
         self.register_plugin('xep_0191')
         if config.get('enable_smacks'):
@@ -139,16 +149,15 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0196')
 
         if config.get('send_poezio_info'):
-            info = {'name':'poezio',
-                    'version': options.version}
+            info = {'name': 'poezio', 'version': options.version}
             if config.get('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(
-                    identities={('client', 'console', None, 'Poezio')})
+                identities={('client', 'console', None, 'Poezio')})
         else:
             info = {'name': '', 'version': ''}
             self.plugin['xep_0030'].set_identities(
-                    identities={('client', 'console', None, '')})
+                identities={('client', 'console', None, '')})
         self.register_plugin('xep_0092', pconfig=info)
         if config.get('send_time'):
             self.register_plugin('xep_0202')
@@ -212,10 +221,12 @@ class Connection(slixmpp.ClientXMPP):
             self.core.handler.outgoing_stanza(data)
         slixmpp.ClientXMPP.send_raw(self, data)
 
+
 class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
     """
     Callback to retrieve all the stanzas for the XML tab
     """
+
     def match(self, xml):
         "match everything"
         return True

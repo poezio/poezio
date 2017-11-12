@@ -13,11 +13,13 @@ from poezio.windows.base_wins import Win
 from poezio.windows.funcs import truncate_nick
 from poezio.theming import get_theme, to_curses_attr
 
+
 class InfoWin(Win):
     """
     Base class for all the *InfoWin, used in various tabs. For example
     MucInfoWin, etc. Provides some useful methods.
     """
+
     def __init__(self):
         Win.__init__(self)
 
@@ -29,12 +31,15 @@ class InfoWin(Win):
         """
         if window.pos > 0:
             plus = ' -MORE(%s)-' % window.pos
-            self.addstr(plus, to_curses_attr(get_theme().COLOR_SCROLLABLE_NUMBER))
+            self.addstr(plus,
+                        to_curses_attr(get_theme().COLOR_SCROLLABLE_NUMBER))
+
 
 class XMLInfoWin(InfoWin):
     """
     Info about the latest xml filter used and the state of the buffer.
     """
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -51,11 +56,13 @@ class XMLInfoWin(InfoWin):
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
 
+
 class PrivateInfoWin(InfoWin):
     """
     The line above the information window, displaying information
     about the MUC user we are talking to
     """
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -75,7 +82,8 @@ class PrivateInfoWin(InfoWin):
         value returned by the callbacks.
         """
         for key in information:
-            self.addstr(information[key](jid), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(information[key](jid),
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
         jid = safeJID(name)
@@ -86,13 +94,16 @@ class PrivateInfoWin(InfoWin):
 
     def write_chatstate(self, state):
         if state:
-            self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(' %s' % (state, ),
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
 
 class MucListInfoWin(InfoWin):
     """
     The live above the information window, displaying informatios
     about the muc server being listed
     """
+
     def __init__(self, message=''):
         InfoWin.__init__(self)
         self.message = message
@@ -101,13 +112,16 @@ class MucListInfoWin(InfoWin):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         if name:
-            self.addstr(name, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(name,
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         else:
-            self.addstr(self.message, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(self.message,
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         if window:
             self.print_scroll_position(window)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
+
 
 class ConversationInfoWin(InfoWin):
     """
@@ -154,7 +168,7 @@ class ConversationInfoWin(InfoWin):
         """
         for key in information:
             self.addstr(information[key](jid),
-                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_resource_information(self, resource):
         """
@@ -171,7 +185,8 @@ class ConversationInfoWin(InfoWin):
         self.addstr(presence, to_curses_attr(color))
         if resource and resource.status:
             shortened = resource.status[:20] + (resource.status[:20] and '…')
-            self.addstr(' %s' % shortened, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(' %s' % shortened,
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_information(self, contact):
@@ -179,23 +194,28 @@ class ConversationInfoWin(InfoWin):
         Write the information about the contact
         """
         if not contact:
-            self.addstr("(contact not in roster)", to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr("(contact not in roster)",
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
             return
         display_name = contact.name
         if display_name:
-            self.addstr('%s '%(display_name), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr('%s ' % (display_name),
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_contact_jid(self, jid):
         """
         Just write the jid that we are talking to
         """
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(jid.full, to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
+        self.addstr(jid.full,
+                    to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
         self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_chatstate(self, state):
         if state:
-            self.addstr(' %s' % (state,), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(' %s' % (state, ),
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
 
 class DynamicConversationInfoWin(ConversationInfoWin):
     def write_contact_jid(self, jid):
@@ -203,18 +223,23 @@ class DynamicConversationInfoWin(ConversationInfoWin):
         Just displays the resource in an other color
         """
         log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s",
-                jid.resource)
+                  jid.resource)
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(jid.bare, to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
+        self.addstr(jid.bare,
+                    to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
         if jid.resource:
-            self.addstr("/%s" % (jid.resource,), to_curses_attr(get_theme().COLOR_CONVERSATION_RESOURCE))
+            self.addstr("/%s" % (jid.resource, ),
+                        to_curses_attr(
+                            get_theme().COLOR_CONVERSATION_RESOURCE))
         self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
 
 class MucInfoWin(InfoWin):
     """
     The line just above the information window, displaying information
     about the MUC we are viewing
     """
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -233,12 +258,15 @@ class MucInfoWin(InfoWin):
 
     def write_room_name(self, room):
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(room.name, to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
+        self.addstr(room.name,
+                    to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
         self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_participants_number(self, room):
         self.addstr('{', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(str(len(room.users)), to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
+        self.addstr(
+            str(len(room.users)),
+            to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
         self.addstr('} ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_disconnected(self, room):
@@ -246,7 +274,8 @@ class MucInfoWin(InfoWin):
         Shows a message if the room is not joined
         """
         if not room.joined:
-            self.addstr(' -!- Not connected ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(' -!- Not connected ',
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_own_nick(self, room):
         """
@@ -255,7 +284,9 @@ class MucInfoWin(InfoWin):
         nick = room.own_nick
         if not nick:
             return
-        self.addstr(truncate_nick(nick, 13), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(
+            truncate_nick(nick, 13),
+            to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_role(self, room, user):
         """
@@ -269,10 +300,12 @@ class MucInfoWin(InfoWin):
         txt += user.role + ')'
         self.addstr(txt, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
+
 class ConversationStatusMessageWin(InfoWin):
     """
     The upper bar displaying the status message of the contact
     """
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -293,7 +326,9 @@ class ConversationStatusMessageWin(InfoWin):
         self._refresh()
 
     def write_status_message(self, resource):
-        self.addstr(resource.status, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(resource.status,
+                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
 
 class BookmarksInfoWin(InfoWin):
     def __init__(self):
@@ -307,7 +342,9 @@ class BookmarksInfoWin(InfoWin):
         self._refresh()
 
     def write_remote_status(self, preferred):
-        self.addstr('Remote storage: %s' % preferred, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr('Remote storage: %s' % preferred,
+                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+
 
 class ConfirmStatusWin(Win):
     def __init__(self, text, critical=False):
@@ -326,4 +363,3 @@ class ConfirmStatusWin(Win):
         self.addstr(self.text, c_color)
         self.finish_line(color)
         self._refresh()
-

@@ -18,6 +18,7 @@ from poezio.theming import to_curses_attr
 
 DEFAULT_ON_INPUT = lambda x: None
 
+
 class Input(Win):
     """
     The simplest Input possible, provides just a way to edit a single line
@@ -31,7 +32,8 @@ class Input(Win):
     in a very flexible way.
     """
     text_attributes = 'bou1234567t'
-    clipboard = '' # A common clipboard for all the inputs, this makes
+    clipboard = ''  # A common clipboard for all the inputs, this makes
+
     # it easy cut and paste text between various input
     def __init__(self):
         self.key_func = {
@@ -59,16 +61,16 @@ class Input(Win):
             '^?': self.key_backspace,
             "M-^?": self.delete_word,
             # '^J': self.add_line_break,
-            }
+        }
         Win.__init__(self)
         self.text = ''
-        self.pos = 0       # The position of the “cursor” in the text
-                           # (not only in the view)
+        self.pos = 0  # The position of the “cursor” in the text
+        # (not only in the view)
         self.view_pos = 0  # The position (in the text) of the
-                           # first character displayed on the
-                           # screen
-        self.on_input = DEFAULT_ON_INPUT # callback called on any key pressed
-        self.color = None    # use this color on addstr
+        # first character displayed on the
+        # screen
+        self.on_input = DEFAULT_ON_INPUT  # callback called on any key pressed
+        self.color = None  # use this color on addstr
 
     def on_delete(self):
         """
@@ -101,10 +103,10 @@ class Input(Win):
         """
         if self.pos == 0:
             return True
-        separators = string.punctuation+' '
-        while self.pos > 0 and self.text[self.pos-1] in separators:
+        separators = string.punctuation + ' '
+        while self.pos > 0 and self.text[self.pos - 1] in separators:
             self.key_left()
-        while self.pos > 0 and self.text[self.pos-1] not in separators:
+        while self.pos > 0 and self.text[self.pos - 1] not in separators:
             self.key_left()
         return True
 
@@ -114,10 +116,11 @@ class Input(Win):
         """
         if self.is_cursor_at_end():
             return True
-        separators = string.punctuation+' '
+        separators = string.punctuation + ' '
         while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_right()
-        while not self.is_cursor_at_end() and self.text[self.pos] not in separators:
+        while not self.is_cursor_at_end() and self.text[self.
+                                                        pos] not in separators:
             self.key_right()
         return True
 
@@ -125,10 +128,10 @@ class Input(Win):
         """
         Delete the word just before the cursor
         """
-        separators = string.punctuation+' '
-        while self.pos > 0 and self.text[self.pos-1] in separators:
+        separators = string.punctuation + ' '
+        while self.pos > 0 and self.text[self.pos - 1] in separators:
             self.key_backspace()
-        while self.pos > 0 and self.text[self.pos-1] not in separators:
+        while self.pos > 0 and self.text[self.pos - 1] not in separators:
             self.key_backspace()
         return True
 
@@ -136,10 +139,11 @@ class Input(Win):
         """
         Delete the word just after the cursor
         """
-        separators = string.punctuation+' '
+        separators = string.punctuation + ' '
         while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_dc()
-        while not self.is_cursor_at_end() and self.text[self.pos] not in separators:
+        while not self.is_cursor_at_end() and self.text[self.
+                                                        pos] not in separators:
             self.key_dc()
         return True
 
@@ -182,8 +186,8 @@ class Input(Win):
         """
         self.reset_completion()
         if self.is_cursor_at_end():
-            return True         # end of line, nothing to delete
-        self.text = self.text[:self.pos]+self.text[self.pos+1:]
+            return True  # end of line, nothing to delete
+        self.text = self.text[:self.pos] + self.text[self.pos + 1:]
         self.rewrite_text()
         return True
 
@@ -257,7 +261,12 @@ class Input(Win):
         self.normal_completion(word_list, add_after)
         return True
 
-    def new_completion(self, word_list, argument_position=-1, add_after='', quotify=True, override=False):
+    def new_completion(self,
+                       word_list,
+                       argument_position=-1,
+                       add_after='',
+                       quotify=True,
+                       override=False):
         """
         Complete the argument at position ``argument_postion`` in the input.
         If ``quotify`` is ``True``, then the completion will operate on block of words
@@ -277,11 +286,17 @@ class Input(Win):
         if argument_position == 0:
             self._new_completion_first(word_list)
         else:
-            self._new_completion_args(word_list, argument_position, add_after, quotify, override)
+            self._new_completion_args(word_list, argument_position, add_after,
+                                      quotify, override)
         self.rewrite_text()
         return True
 
-    def _new_completion_args(self, word_list, argument_position=-1, add_after='', quoted=True, override=False):
+    def _new_completion_args(self,
+                             word_list,
+                             argument_position=-1,
+                             add_after='',
+                             quoted=True,
+                             override=False):
         """
         Case for completing arguments with position ≠ 0
         """
@@ -319,12 +334,12 @@ class Input(Win):
 
         if argument_position >= len(words):
             if quoted and ' ' in self.hit_list[0]:
-                words.append('"'+self.hit_list[0]+'"')
+                words.append('"' + self.hit_list[0] + '"')
             else:
                 words.append(self.hit_list[0])
         else:
             if quoted and ' ' in self.hit_list[0]:
-                words[argument_position] = '"'+self.hit_list[0]+'"'
+                words[argument_position] = '"' + self.hit_list[0] + '"'
             else:
                 words[argument_position] = self.hit_list[0]
 
@@ -370,7 +385,7 @@ class Input(Win):
         command_stop = self.text.find(' ')
         if command_stop == -1 or self.pos <= command_stop:
             return 0
-        text = self.text[command_stop+1:]
+        text = self.text[command_stop + 1:]
         pos = self.pos - len(self.text) + len(text) - 1
         val = common.find_argument(pos, text, quoted=quoted) + 1
         return val
@@ -387,19 +402,22 @@ class Input(Win):
         Normal completion
         """
         pos = self.pos
-        if pos < len(self.text) and after.endswith(' ') and self.text[pos] == ' ':
-            after = after[:-1]  # remove the last space if we are already on a space
+        if pos < len(
+                self.text) and after.endswith(' ') and self.text[pos] == ' ':
+            after = after[:
+                          -1]  # remove the last space if we are already on a space
         if not self.last_completion:
             space_before_cursor = self.text.rfind(' ', 0, pos)
             if space_before_cursor != -1:
-                begin = self.text[space_before_cursor+1:pos]
+                begin = self.text[space_before_cursor + 1:pos]
             else:
                 begin = self.text[:pos]
-            hit_list = []       # list of matching hits
+            hit_list = []  # list of matching hits
             for word in word_list:
                 if word.lower().startswith(begin.lower()):
                     hit_list.append(word)
-                elif word.startswith('"') and word.lower()[1:].startswith(begin.lower()):
+                elif word.startswith('"') and word.lower()[1:].startswith(
+                        begin.lower()):
                     hit_list.append(word)
             if len(hit_list) == 0:
                 return
@@ -408,11 +426,11 @@ class Input(Win):
         else:
             begin = self.last_completion
             end = len(begin) + len(after)
-            self.hit_list.append(self.hit_list.pop(0)) # rotate list
+            self.hit_list.append(self.hit_list.pop(0))  # rotate list
 
-        self.text = self.text[:pos-end] + self.text[pos:]
+        self.text = self.text[:pos - end] + self.text[pos:]
         pos -= end
-        hit = self.hit_list[0] # take the first hit
+        hit = self.hit_list[0]  # take the first hit
         self.text = self.text[:pos] + hit + after + self.text[pos:]
         for _ in range(end):
             try:
@@ -432,11 +450,11 @@ class Input(Win):
                 self.on_input(self.get_text())
             return res
         if not raw and (not key or len(key) > 1):
-            return False   # ignore non-handled keyboard shortcuts
+            return False  # ignore non-handled keyboard shortcuts
         if reset:
             self.reset_completion()
         # Insert the char at the cursor position
-        self.text = self.text[:self.pos]+key+self.text[self.pos:]
+        self.text = self.text[:self.pos] + key + self.text[self.pos:]
         self.pos += len(key)
         if reset:
             self.rewrite_text()
@@ -472,11 +490,11 @@ class Input(Win):
             if text[format_char] == '\n':
                 attr_char = '|'
             else:
-                attr_char = self.text_attributes[
-                        format_chars.index(text[format_char])]
+                attr_char = self.text_attributes[format_chars.index(
+                    text[format_char])]
             self.addstr(text[:format_char])
             self.addstr(attr_char, curses.A_REVERSE)
-            text = text[format_char+1:]
+            text = text[format_char + 1:]
             if attr_char == 'o':
                 self._win.attrset(0)
             elif attr_char == 'u':
@@ -503,7 +521,9 @@ class Input(Win):
         self._win.erase()
         if self.color:
             self._win.attron(to_curses_attr(self.color))
-        displayed_text = text[self.view_pos:self.view_pos+self.width-1].replace('\t', '\x18')
+        displayed_text = text[self.view_pos:
+                              self.view_pos + self.width - 1].replace(
+                                  '\t', '\x18')
         self._win.attrset(0)
         self._addstr_colored_lite(displayed_text)
         # Fill the rest of the line with the input color
@@ -512,7 +532,8 @@ class Input(Win):
             size = self.width - x
             self.addnstr(' ' * size, size, to_curses_attr(self.color))
         self.addstr(0,
-                poopt.wcswidth(displayed_text[:self.pos-self.view_pos]), '')
+                    poopt.wcswidth(displayed_text[:self.pos - self.view_pos]),
+                    '')
         if self.color:
             self._win.attroff(to_curses_attr(self.color))
         curses.curs_set(1)
@@ -556,6 +577,7 @@ class Input(Win):
         txt = self.get_text()
         self.clear_text()
         return txt
+
 
 class HistoryInput(Input):
     """
@@ -641,13 +663,14 @@ class HistoryInput(Input):
         self.key_end()
         return True
 
+
 class MessageInput(HistoryInput):
     """
     The input featuring history and that is being used in
     Conversation, Muc and Private tabs
     Also letting the user enter colors or other text markups
     """
-    history = list()            # The history is common to all MessageInput
+    history = list()  # The history is common to all MessageInput
 
     def __init__(self):
         HistoryInput.__init__(self)
@@ -662,11 +685,13 @@ class MessageInput(HistoryInput):
         """
         Read one more char (c), add the corresponding char from formats_char to the text string
         """
+
         def cb(attr_char):
             if attr_char in self.text_attributes:
                 char = format_chars[self.text_attributes.index(attr_char)]
                 self.do_command(char, False)
                 self.rewrite_text()
+
         keyboard.continuation_keys_callback = cb
 
     def key_enter(self):
@@ -681,6 +706,7 @@ class MessageInput(HistoryInput):
             self.histo_pos = -1
         self.clear_text()
         return txt
+
 
 class CommandInput(HistoryInput):
     """
@@ -769,4 +795,3 @@ class CommandInput(HistoryInput):
                 # add the message to history, but avoid duplicates
                 self.history.insert(0, txt)
             self.histo_pos = -1
-

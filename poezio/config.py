@@ -144,14 +144,15 @@ DEFAULT_CONFIG = {
         'folded_roster_groups': '',
         'info_win_height': 2
     },
-    'muc_colors': {
-    }
+    'muc_colors': {}
 }
+
 
 class Config(RawConfigParser):
     """
     load/save the config to a file
     """
+
     def __init__(self, file_name, default=None):
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
@@ -198,8 +199,12 @@ class Config(RawConfigParser):
             return default
         return res
 
-    def get_by_tabname(self, option, tabname,
-                       fallback=True, fallback_server=True, default=''):
+    def get_by_tabname(self,
+                       option,
+                       tabname,
+                       fallback=True,
+                       fallback_server=True,
+                       default=''):
         """
         Try to get the value for the option. First we look in
         a section named `tabname`, if the option is not present
@@ -231,7 +236,6 @@ class Config(RawConfigParser):
         if fallback:
             return self.get(option, default)
         return default
-
 
     def __get(self, option, section=DEFSECTION, **kwargs):
         """
@@ -331,11 +335,7 @@ class Config(RawConfigParser):
             prefix, file = path.split(self.file_name)
             filename = path.join(prefix, '.%s.tmp' % file)
             fd = os.fdopen(
-                    os.open(
-                        filename,
-                        os.O_WRONLY | os.O_CREAT,
-                        0o600),
-                    'w')
+                os.open(filename, os.O_WRONLY | os.O_CREAT, 0o600), 'w')
             for line in lines:
                 fd.write('%s\n' % line)
             fd.close()
@@ -362,9 +362,10 @@ class Config(RawConfigParser):
                 with open(self.file_name, 'r', encoding='utf-8') as df:
                     lines_before = [line.strip() for line in df]
             except OSError:
-                log.error('Unable to read the config file %s',
-                        self.file_name,
-                        exc_info=True)
+                log.error(
+                    'Unable to read the config file %s',
+                    self.file_name,
+                    exc_info=True)
                 return tuple()
         else:
             lines_before = []
@@ -415,8 +416,7 @@ class Config(RawConfigParser):
                 else:
                     return ('Could not toggle option: %s.'
                             ' Current value is %s.' %
-                                (option, current or "empty"),
-                            'Warning')
+                            (option, current or "empty"), 'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
@@ -477,11 +477,12 @@ def find_line(lines, start, end, option):
     """
     current = start
     for line in lines[start:end]:
-        if (line.startswith('%s ' % option) or
-                line.startswith('%s=' % option)):
+        if (line.startswith('%s ' % option)
+                or line.startswith('%s=' % option)):
             return current
         current += 1
     return -1
+
 
 def file_ok(filepath):
     """
@@ -491,6 +492,7 @@ def file_ok(filepath):
     val = path.exists(filepath)
     val &= os.access(filepath, os.R_OK | os.W_OK)
     return bool(val)
+
 
 def check_create_config_dir():
     """
@@ -506,6 +508,7 @@ def check_create_config_dir():
     except OSError:
         pass
     return CONFIG_PATH
+
 
 def check_create_cache_dir():
     """
@@ -525,6 +528,7 @@ def check_create_cache_dir():
     except OSError:
         pass
 
+
 def check_config():
     """
     Check the config file and print results
@@ -533,7 +537,8 @@ def check_config():
     for option in DEFAULT_CONFIG['Poezio']:
         value = config.get(option)
         if value != DEFAULT_CONFIG['Poezio'][option]:
-            result['changed'].append((option, value, DEFAULT_CONFIG['Poezio'][option]))
+            result['changed'].append((option, value,
+                                      DEFAULT_CONFIG['Poezio'][option]))
         else:
             value = config.get(option, default='')
             upper = value.upper()
@@ -544,14 +549,18 @@ def check_config():
     result['changed'].sort(key=lambda x: x[0])
     result['missing'].sort()
     if result['changed']:
-        print('\033[1mOptions changed from the default configuration:\033[0m\n')
+        print(
+            '\033[1mOptions changed from the default configuration:\033[0m\n')
         for option, new_value, default in result['changed']:
-            print('    \033[1m%s\033[0m = \033[33m%s\033[0m (default: \033[32m%s\033[0m)' % (option, new_value, default))
+            print(
+                '    \033[1m%s\033[0m = \033[33m%s\033[0m (default: \033[32m%s\033[0m)'
+                % (option, new_value, default))
 
     if result['missing']:
         print('\n\033[1mMissing options:\033[0m (the defaults are used)\n')
         for option in result['missing']:
             print('    \033[31m%s\033[0m' % option)
+
 
 def run_cmdline_args(CONFIG_PATH):
     "Parse the command line arguments"
@@ -560,7 +569,8 @@ def run_cmdline_args(CONFIG_PATH):
 
     # Copy a default file if none exists
     if not path.isfile(options.filename):
-        default = path.join(path.dirname(__file__), '../data/default_config.cfg')
+        default = path.join(
+            path.dirname(__file__), '../data/default_config.cfg')
         other = pkg_resources.resource_filename('poezio', 'default_config.cfg')
         if path.isfile(default):
             copy2(default, options.filename)
@@ -577,6 +587,7 @@ def run_cmdline_args(CONFIG_PATH):
         global firstrun
         firstrun = True
 
+
 def create_global_config():
     "Create the global config object, or crash"
     try:
@@ -588,6 +599,7 @@ def create_global_config():
                          ' parse the config file.\n')
         traceback.print_exc(limit=0)
         sys.exit(1)
+
 
 def check_create_log_dir():
     "Create the poezio logging directory if it doesn’t exist"
@@ -610,28 +622,28 @@ def check_create_log_dir():
     except:
         pass
 
+
 def setup_logging():
     "Change the logging config according to the cmdline options and config"
     if config.get('log_errors'):
         LOGGING_CONFIG['root']['handlers'].append('error')
         LOGGING_CONFIG['handlers']['error'] = {
-                'level': 'ERROR',
-                'class': 'logging.FileHandler',
-                'filename': path.join(LOG_DIR, 'errors.log'),
-                'formatter': 'simple',
-            }
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': path.join(LOG_DIR, 'errors.log'),
+            'formatter': 'simple',
+        }
         logging.disable(logging.WARNING)
 
     if options.debug:
         LOGGING_CONFIG['root']['handlers'].append('debug')
         LOGGING_CONFIG['handlers']['debug'] = {
-                'level':'DEBUG',
-                'class':'logging.FileHandler',
-                'filename': options.debug,
-                'formatter': 'simple',
-            }
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': options.debug,
+            'formatter': 'simple',
+        }
         logging.disable(logging.NOTSET)
-
 
     if LOGGING_CONFIG['root']['handlers']:
         logging.config.dictConfig(LOGGING_CONFIG)
@@ -642,12 +654,14 @@ def setup_logging():
     global log
     log = logging.getLogger(__name__)
 
+
 def post_logging_setup():
     # common imports slixmpp, which creates then its loggers, so
     # it needs to be after logger configuration
     from poezio.common import safeJID as JID
     global safeJID
     safeJID = JID
+
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -657,12 +671,11 @@ LOGGING_CONFIG = {
             'format': '%(asctime)s %(levelname)s:%(module)s:%(message)s'
         }
     },
-    'handlers': {
-    },
+    'handlers': {},
     'root': {
-            'handlers': [],
-            'propagate': True,
-            'level': 'DEBUG',
+        'handlers': [],
+        'propagate': True,
+        'level': 'DEBUG',
     }
 }
 

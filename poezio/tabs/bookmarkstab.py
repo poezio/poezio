@@ -17,19 +17,17 @@ class BookmarksTab(Tab):
     a 4 widgets to set the jid/password/autojoin/storage method
     """
     plugin_commands = {}
+
     def __init__(self, core, bookmarks: BookmarkList):
         Tab.__init__(self, core)
         self.name = "Bookmarks"
         self.bookmarks = bookmarks
         self.new_bookmarks = []
         self.removed_bookmarks = []
-        self.header_win = windows.ColumnHeaderWin(('room@server/nickname',
-                                                   'password',
-                                                   'autojoin',
-                                                   'storage'))
-        self.bookmarks_win = windows.BookmarksWin(self.bookmarks,
-                                                  self.height-4,
-                                                  self.width, 1, 0)
+        self.header_win = windows.ColumnHeaderWin(
+            ('room@server/nickname', 'password', 'autojoin', 'storage'))
+        self.bookmarks_win = windows.BookmarksWin(
+            self.bookmarks, self.height - 4, self.width, 1, 0)
         self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '
                                          '↑↓: change lines, tab: change '
                                          'column, M-a: add bookmark, C-k'
@@ -46,7 +44,8 @@ class BookmarksTab(Tab):
         self.update_commands()
 
     def add_bookmark(self):
-        new_bookmark = Bookmark(safeJID('room@example.tld/nick'), method='local')
+        new_bookmark = Bookmark(
+            safeJID('room@example.tld/nick'), method='local')
         self.new_bookmarks.append(new_bookmark)
         self.bookmarks_win.add_bookmark(new_bookmark)
 
@@ -70,14 +69,16 @@ class BookmarksTab(Tab):
     def on_save(self):
         self.bookmarks_win.save()
         if find_duplicates(self.new_bookmarks):
-            self.core.information('Duplicate bookmarks in list (saving aborted)', 'Error')
+            self.core.information(
+                'Duplicate bookmarks in list (saving aborted)', 'Error')
             return
         for bm in self.new_bookmarks:
             if safeJID(bm.jid):
                 if not self.bookmarks[bm.jid]:
                     self.bookmarks.append(bm)
             else:
-                self.core.information('Invalid JID for bookmark: %s/%s' % (bm.jid, bm.nick), 'Error')
+                self.core.information('Invalid JID for bookmark: %s/%s' %
+                                      (bm.jid, bm.nick), 'Error')
                 return
 
         for bm in self.removed_bookmarks:
@@ -89,6 +90,7 @@ class BookmarksTab(Tab):
                 self.core.information('Bookmarks saved.', 'Info')
             else:
                 self.core.information('Remote bookmarks not saved.', 'Error')
+
         self.bookmarks.save(self.core.xmpp, callback=send_cb)
         self.core.close_tab(self)
         return True
@@ -105,19 +107,23 @@ class BookmarksTab(Tab):
     def resize(self):
         self.need_resize = False
         self.header_win.resize_columns({
-            'room@server/nickname': self.width//3,
-            'password': self.width//3,
-            'autojoin': self.width//6,
-            'storage': self.width//6
-            })
+            'room@server/nickname':
+            self.width // 3,
+            'password':
+            self.width // 3,
+            'autojoin':
+            self.width // 6,
+            'storage':
+            self.width // 6
+        })
         info_height = self.core.information_win_size
         tab_height = Tab.tab_win_height()
         self.header_win.resize(1, self.width, 0, 0)
         self.bookmarks_win.resize(self.height - 3 - tab_height - info_height,
-                             self.width, 1, 0)
+                                  self.width, 1, 0)
         self.help_win.resize(1, self.width, self.height - 1, 0)
         self.info_header.resize(1, self.width,
-                                 self.height - 2 - tab_height - info_height, 0)
+                                self.height - 2 - tab_height - info_height, 0)
 
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
@@ -125,9 +131,9 @@ class BookmarksTab(Tab):
         info_height = self.core.information_win_size
         tab_height = Tab.tab_win_height()
         self.bookmarks_win.resize(self.height - 3 - tab_height - info_height,
-                             self.width, 1, 0)
+                                  self.width, 1, 0)
         self.info_header.resize(1, self.width,
-                                 self.height - 2 - tab_height - info_height, 0)
+                                self.height - 2 - tab_height - info_height, 0)
 
     def refresh(self):
         if self.need_resize:
@@ -147,4 +153,3 @@ def find_duplicates(bm_list):
             return True
         jids.add(bookmark.jid)
     return False
-

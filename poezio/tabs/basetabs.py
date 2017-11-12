@@ -35,60 +35,61 @@ from poezio.decorators import command_args_parser
 
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
-        'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
-        'scrolled': lambda: get_theme().COLOR_TAB_SCROLLED,
-        'nonempty': lambda: get_theme().COLOR_TAB_NONEMPTY,
-        'joined': lambda: get_theme().COLOR_TAB_JOINED,
-        'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
-        'composing': lambda: get_theme().COLOR_TAB_COMPOSING,
-        'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
-        'private': lambda: get_theme().COLOR_TAB_PRIVATE,
-        'normal': lambda: get_theme().COLOR_TAB_NORMAL,
-        'current': lambda: get_theme().COLOR_TAB_CURRENT,
-        'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
-    }
+    'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
+    'scrolled': lambda: get_theme().COLOR_TAB_SCROLLED,
+    'nonempty': lambda: get_theme().COLOR_TAB_NONEMPTY,
+    'joined': lambda: get_theme().COLOR_TAB_JOINED,
+    'message': lambda: get_theme().COLOR_TAB_NEW_MESSAGE,
+    'composing': lambda: get_theme().COLOR_TAB_COMPOSING,
+    'highlight': lambda: get_theme().COLOR_TAB_HIGHLIGHT,
+    'private': lambda: get_theme().COLOR_TAB_PRIVATE,
+    'normal': lambda: get_theme().COLOR_TAB_NORMAL,
+    'current': lambda: get_theme().COLOR_TAB_CURRENT,
+    'attention': lambda: get_theme().COLOR_TAB_ATTENTION,
+}
 VERTICAL_STATE_COLORS = {
-        'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
-        'scrolled': lambda: get_theme().COLOR_VERTICAL_TAB_SCROLLED,
-        'nonempty': lambda: get_theme().COLOR_VERTICAL_TAB_NONEMPTY,
-        'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
-        'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
-        'composing': lambda: get_theme().COLOR_VERTICAL_TAB_COMPOSING,
-        'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
-        'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
-        'normal': lambda: get_theme().COLOR_VERTICAL_TAB_NORMAL,
-        'current': lambda: get_theme().COLOR_VERTICAL_TAB_CURRENT,
-        'attention': lambda: get_theme().COLOR_VERTICAL_TAB_ATTENTION,
-    }
-
+    'disconnected': lambda: get_theme().COLOR_VERTICAL_TAB_DISCONNECTED,
+    'scrolled': lambda: get_theme().COLOR_VERTICAL_TAB_SCROLLED,
+    'nonempty': lambda: get_theme().COLOR_VERTICAL_TAB_NONEMPTY,
+    'joined': lambda: get_theme().COLOR_VERTICAL_TAB_JOINED,
+    'message': lambda: get_theme().COLOR_VERTICAL_TAB_NEW_MESSAGE,
+    'composing': lambda: get_theme().COLOR_VERTICAL_TAB_COMPOSING,
+    'highlight': lambda: get_theme().COLOR_VERTICAL_TAB_HIGHLIGHT,
+    'private': lambda: get_theme().COLOR_VERTICAL_TAB_PRIVATE,
+    'normal': lambda: get_theme().COLOR_VERTICAL_TAB_NORMAL,
+    'current': lambda: get_theme().COLOR_VERTICAL_TAB_CURRENT,
+    'attention': lambda: get_theme().COLOR_VERTICAL_TAB_ATTENTION,
+}
 
 # priority of the different tab states when using Alt+e
 # higher means more priority, < 0 means not selectable
 STATE_PRIORITY = {
-        'normal': -1,
-        'current': -1,
-        'disconnected': 0,
-        'nonempty': 0.1,
-        'scrolled': 0.5,
-        'joined': 0.8,
-        'composing': 0.9,
-        'message': 1,
-        'highlight': 2,
-        'private': 2,
-        'attention': 3
-    }
+    'normal': -1,
+    'current': -1,
+    'disconnected': 0,
+    'nonempty': 0.1,
+    'scrolled': 0.5,
+    'joined': 0.8,
+    'composing': 0.9,
+    'message': 1,
+    'highlight': 2,
+    'private': 2,
+    'attention': 3
+}
 
 SHOW_NAME = {
-        'dnd': 'busy',
-        'away': 'away',
-        'xa': 'not available',
-        'chat': 'chatty',
-        '': 'available'
-    }
+    'dnd': 'busy',
+    'away': 'away',
+    'xa': 'not available',
+    'chat': 'chatty',
+    '': 'available'
+}
+
 
 class Tab(object):
     plugin_commands = {}
     plugin_keys = {}
+
     def __init__(self, core):
         self.core = core
         if not hasattr(self, 'name'):
@@ -99,10 +100,9 @@ class Tab(object):
         self._prev_state = None
 
         self.need_resize = False
-        self.key_func = {}      # each tab should add their keys in there
-                                # and use them in on_input
-        self.commands = {}      # and their own commands
-
+        self.key_func = {}  # each tab should add their keys in there
+        # and use them in on_input
+        self.commands = {}  # and their own commands
 
     @property
     def size(self):
@@ -148,9 +148,13 @@ class Tab(object):
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
                 value not in ('current', 'disconnected') and \
                 not (self._state == 'scrolled' and value == 'disconnected'):
-            log.debug("Did not set state because of lower priority, asked: %s, kept: %s", value, self._state)
-        elif self._state == 'disconnected' and value not in ('joined', 'current'):
-            log.debug('Did not set state because disconnected tabs remain visible')
+            log.debug(
+                "Did not set state because of lower priority, asked: %s, kept: %s",
+                value, self._state)
+        elif self._state == 'disconnected' and value not in ('joined',
+                                                             'current'):
+            log.debug(
+                'Did not set state because disconnected tabs remain visible')
         else:
             self._state = value
             if self._state == 'current':
@@ -194,11 +198,22 @@ class Tab(object):
             shortdesc = command.get('shortdesc', '')
             completion = command.get('completion')
             usage = command.get('usage', '')
-            self.register_command(name, func, desc=desc, shortdesc=shortdesc,
-                    completion=completion, usage=usage)
+            self.register_command(
+                name,
+                func,
+                desc=desc,
+                shortdesc=shortdesc,
+                completion=completion,
+                usage=usage)
 
-
-    def register_command(self, name, func, *, desc='', shortdesc='', completion=None, usage=''):
+    def register_command(self,
+                         name,
+                         func,
+                         *,
+                         desc='',
+                         shortdesc='',
+                         completion=None,
+                         usage=''):
         """
         Add a command
         """
@@ -234,7 +249,8 @@ class Tab(object):
                     whitespace = the_input.text.find(' ')
                     if whitespace == -1:
                         whitespace = len(the_input.text)
-                    the_input.text = the_input.text[:whitespace-1] + the_input.text[whitespace:]
+                    the_input.text = the_input.text[:whitespace -
+                                                    1] + the_input.text[whitespace:]
                     the_input.new_completion(words, 0)
                     hit_copy = set(the_input.hit_list)
                 if len(hit_copy) == 1:
@@ -249,10 +265,10 @@ class Tab(object):
                     command = self.commands[command_name]
                 elif command_name in self.core.commands:
                     command = self.core.commands[command_name]
-                else:           # Unknown command, cannot complete
+                else:  # Unknown command, cannot complete
                     return False
                 if command.comp is None:
-                    return False # There's no completion function
+                    return False  # There's no completion function
                 else:
                     comp = command.comp(the_input)
                     if comp:
@@ -269,11 +285,11 @@ class Tab(object):
         if txt.startswith('/') and not txt.startswith('//') and\
                 not txt.startswith('/me '):
             command = txt.strip().split()[0][1:]
-            arg = txt[2+len(command):] # jump the '/' and the ' '
+            arg = txt[2 + len(command):]  # jump the '/' and the ' '
             func = None
-            if command in self.commands: # check tab-specific commands
+            if command in self.commands:  # check tab-specific commands
                 func = self.commands[command].func
-            elif command in self.core.commands: # check global commands
+            elif command in self.core.commands:  # check global commands
                 func = self.core.commands[command].func
             else:
                 low = command.lower()
@@ -286,9 +302,8 @@ class Tab(object):
                         error_handled = self.missing_command_callback(low)
                     if not error_handled:
                         self.core.information("Unknown command (%s)" %
-                                              (command),
-                                              'Error')
-            if command in ('correct', 'say'): # hack
+                                              (command), 'Error')
+            if command in ('correct', 'say'):  # hack
                 arg = xhtml.convert_simple_to_full_colors(arg)
             else:
                 arg = xhtml.clean_text_simple(arg)
@@ -422,8 +437,8 @@ class Tab(object):
     def __del__(self):
         log.debug('------ Closing tab %s', self.__class__.__name__)
 
-class GapTab(Tab):
 
+class GapTab(Tab):
     def __bool__(self):
         return False
 
@@ -435,7 +450,9 @@ class GapTab(Tab):
         return ''
 
     def refresh(self):
-        log.debug('WARNING: refresh() called on a gap tab, this should not happen')
+        log.debug(
+            'WARNING: refresh() called on a gap tab, this should not happen')
+
 
 class ChatTab(Tab):
     """
@@ -447,6 +464,7 @@ class ChatTab(Tab):
     plugin_commands = {}
     plugin_keys = {}
     message_type = 'chat'
+
     def __init__(self, core, jid=''):
         Tab.__init__(self, core)
         self.name = jid
@@ -454,7 +472,7 @@ class ChatTab(Tab):
         self._remote_wants_chatstates = False
         self.directed_presence = None
         self._text_buffer = TextBuffer()
-        self.chatstate = None   # can be "active", "composing", "paused", "gone", "inactive"
+        self.chatstate = None  # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
         self.timed_event_paused = None
@@ -464,18 +482,24 @@ class ChatTab(Tab):
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
         self.key_func['^M'] = self.on_enter
-        self.register_command('say', self.command_say,
-                usage='<message>',
-                shortdesc='Send the message.')
-        self.register_command('xhtml', self.command_xhtml,
-                usage='<custom xhtml>',
-                shortdesc='Send custom XHTML.')
-        self.register_command('clear', self.command_clear,
-                shortdesc='Clear the current buffer.')
-        self.register_command('correct', self.command_correct,
-                desc='Fix the last message with whatever you want.',
-                shortdesc='Correct the last message.',
-                completion=self.completion_correct)
+        self.register_command(
+            'say',
+            self.command_say,
+            usage='<message>',
+            shortdesc='Send the message.')
+        self.register_command(
+            'xhtml',
+            self.command_xhtml,
+            usage='<custom xhtml>',
+            shortdesc='Send custom XHTML.')
+        self.register_command(
+            'clear', self.command_clear, shortdesc='Clear the current buffer.')
+        self.register_command(
+            'correct',
+            self.command_correct,
+            desc='Fix the last message with whatever you want.',
+            shortdesc='Correct the last message.',
+            completion=self.completion_correct)
         self.chat_state = None
         self.update_commands()
         self.update_keys()
@@ -508,22 +532,39 @@ class ChatTab(Tab):
         if not logger.log_message(name, nickname, txt, date=time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
-    def add_message(self, txt, time=None, nickname=None, forced_user=None,
-                    nick_color=None, identifier=None, jid=None, history=None,
-                    typ=1, highlight=False):
+    def add_message(self,
+                    txt,
+                    time=None,
+                    nickname=None,
+                    forced_user=None,
+                    nick_color=None,
+                    identifier=None,
+                    jid=None,
+                    history=None,
+                    typ=1,
+                    highlight=False):
         self.log_message(txt, nickname, time=time, typ=typ)
-        self._text_buffer.add_message(txt, time=time,
-                nickname=nickname,
-                highlight=highlight,
-                nick_color=nick_color,
-                history=history,
-                user=forced_user,
-                identifier=identifier,
-                jid=jid)
+        self._text_buffer.add_message(
+            txt,
+            time=time,
+            nickname=nickname,
+            highlight=highlight,
+            nick_color=nick_color,
+            history=history,
+            user=forced_user,
+            identifier=identifier,
+            jid=jid)
 
-    def modify_message(self, txt, old_id, new_id, user=None, jid=None, nickname=None):
+    def modify_message(self,
+                       txt,
+                       old_id,
+                       new_id,
+                       user=None,
+                       jid=None,
+                       nickname=None):
         self.log_message(txt, nickname, typ=1)
-        message = self._text_buffer.modify_message(txt, old_id, new_id, time=time, user=user, jid=jid)
+        message = self._text_buffer.modify_message(
+            txt, old_id, new_id, time=time, user=user, jid=jid)
         if message:
             self.text_win.modify_message(old_id, message)
             self.core.refresh_window()
@@ -535,7 +576,7 @@ class ChatTab(Tab):
         Complete the input with words recently said
         """
         # build the list of the recent words
-        char_we_dont_want = string.punctuation+' ’„“”…«»'
+        char_we_dont_want = string.punctuation + ' ’„“”…«»'
         words = list()
         for msg in self._text_buffer.messages[:-40:-1]:
             if not msg:
@@ -571,7 +612,8 @@ class ChatTab(Tab):
         if not arg:
             return
         try:
-            body = xhtml.clean_text(xhtml.xhtml_to_poezio_colors(arg, force=True))
+            body = xhtml.clean_text(
+                xhtml.xhtml_to_poezio_colors(arg, force=True))
             ET.fromstring(arg)
         except:
             self.core.information('Could not send custom xhtml', 'Error')
@@ -604,7 +646,8 @@ class ChatTab(Tab):
         Send an empty chatstate message
         """
         if self.check_send_chat_state():
-            if state in ('active', 'inactive', 'gone') and self.inactive and not always_send:
+            if state in ('active', 'inactive',
+                         'gone') and self.inactive and not always_send:
                 return
             if (config.get_by_tabname('send_chat_states', self.general_jid)
                     and self.remote_wants_chatstates is not False):
@@ -642,7 +685,8 @@ class ChatTab(Tab):
         # First, cancel the delay if it already exists, before rescheduling
         # it at a new date
         self.cancel_paused_delay()
-        new_event = timed_events.DelayedEvent(4, self.send_chat_state, 'paused')
+        new_event = timed_events.DelayedEvent(4, self.send_chat_state,
+                                              'paused')
         self.core.add_timed_event(new_event)
         self.timed_event_paused = new_event
 
@@ -671,7 +715,10 @@ class ChatTab(Tab):
 
     def completion_correct(self, the_input):
         if self.last_sent_message and the_input.get_argument_position() == 1:
-            return Completion(the_input.auto_completion, [self.last_sent_message['body']], '', quotify=False)
+            return Completion(
+                the_input.auto_completion, [self.last_sent_message['body']],
+                '',
+                quotify=False)
 
     @property
     def inactive(self):
@@ -703,23 +750,23 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        return self.text_win.scroll_up(self.text_win.height-1)
+        return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):
-        return self.text_win.scroll_down(self.text_win.height-1)
+        return self.text_win.scroll_down(self.text_win.height - 1)
 
     def on_half_scroll_up(self):
-        return self.text_win.scroll_up((self.text_win.height-1) // 2)
+        return self.text_win.scroll_up((self.text_win.height - 1) // 2)
 
     def on_half_scroll_down(self):
-        return self.text_win.scroll_down((self.text_win.height-1) // 2)
+        return self.text_win.scroll_down((self.text_win.height - 1) // 2)
 
     @refresh_wrapper.always
     def scroll_separator(self):
         self.text_win.scroll_to_separator()
 
-class OneToOneTab(ChatTab):
 
+class OneToOneTab(ChatTab):
     def __init__(self, core, jid=''):
         ChatTab.__init__(self, core, jid)
 
@@ -735,18 +782,18 @@ class OneToOneTab(ChatTab):
         self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
-        self.register_command('unquery', self.command_unquery,
-                shortdesc='Close the tab.')
-        self.register_command('close', self.command_unquery,
-                shortdesc='Close the tab.')
+        self.register_command(
+            'unquery', self.command_unquery, shortdesc='Close the tab.')
+        self.register_command(
+            'close', self.command_unquery, shortdesc='Close the tab.')
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)
 
     def update_status(self, status):
         old_status = self.__status
-        if not (old_status.show != status.show or
-                old_status.message != status.message):
+        if not (old_status.show != status.show
+                or old_status.message != status.message):
             return
         self.__status = status
         hide_status_change = config.get_by_tabname('hide_status_change',
@@ -820,16 +867,20 @@ class OneToOneTab(ChatTab):
                 message['chat_sate'] = 'active'
             message.send()
             body = xhtml.xhtml_to_poezio_colors(xhtml_data, force=True)
-            self._text_buffer.add_message(body, nickname=self.core.own_nick,
-                                          identifier=message['id'],)
+            self._text_buffer.add_message(
+                body,
+                nickname=self.core.own_nick,
+                identifier=message['id'],
+            )
             self.refresh()
 
     def check_features(self):
         "check the features supported by the other party"
         if safeJID(self.get_dest_jid()).resource:
             self.core.xmpp.plugin['xep_0030'].get_info(
-                    jid=self.get_dest_jid(), timeout=5,
-                    callback=self.features_checked)
+                jid=self.get_dest_jid(),
+                timeout=5,
+                callback=self.features_checked)
 
     @command_args_parser.raw
     def command_attention(self, message):
@@ -872,12 +923,14 @@ class OneToOneTab(ChatTab):
         "Check for the 'attention' features"
         if 'urn:xmpp:attention:0' in features:
             self.remote_supports_attention = True
-            self.register_command('attention', self.command_attention,
-                                  usage='[message]',
-                                  shortdesc='Request the attention.',
-                                  desc='Attention: Request the attention of '
-                                       'the contact. Can also send a message'
-                                       ' along with the attention.')
+            self.register_command(
+                'attention',
+                self.command_attention,
+                usage='[message]',
+                shortdesc='Request the attention.',
+                desc='Attention: Request the attention of '
+                'the contact. Can also send a message'
+                ' along with the attention.')
         else:
             self.remote_supports_attention = False
         return self.remote_supports_attention
@@ -888,10 +941,12 @@ class OneToOneTab(ChatTab):
             if 'correct' in self.commands:
                 del self.commands['correct']
         elif 'correct' not in self.commands:
-            self.register_command('correct', self.command_correct,
-                    desc='Fix the last message with whatever you want.',
-                    shortdesc='Correct the last message.',
-                    completion=self.completion_correct)
+            self.register_command(
+                'correct',
+                self.command_correct,
+                desc='Fix the last message with whatever you want.',
+                shortdesc='Correct the last message.',
+                completion=self.completion_correct)
         return 'correct' in self.commands
 
     def _feature_receipts(self, features):
@@ -905,8 +960,7 @@ class OneToOneTab(ChatTab):
     def features_checked(self, iq):
         "Features check callback"
         features = iq['disco_info'].get_features() or []
-        before = ('correct' in self.commands,
-                  self.remote_supports_attention,
+        before = ('correct' in self.commands, self.remote_supports_attention,
                   self.remote_supports_receipts)
         correct = self._feature_correct(features)
         attention = self._feature_attention(features)
@@ -918,7 +972,7 @@ class OneToOneTab(ChatTab):
             self.__initial_disco = True
 
         if not (correct or attention or receipts):
-            return # don’t display anything
+            return  # don’t display anything
 
         ok = get_theme().CHAR_OK
         nope = get_theme().CHAR_EMPTY
@@ -933,4 +987,3 @@ class OneToOneTab(ChatTab):
         msg = msg % (color, correct, attention, receipts)
         self.add_message(msg, typ=0)
         self.core.refresh_window()
-

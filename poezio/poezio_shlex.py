@@ -20,10 +20,12 @@ from io import StringIO
 
 __all__ = ["shlex", "split", "quote"]
 
+
 class shlex(object):
     """
     A custom version of the shlex in the stdlib to yield more information
     """
+
     def __init__(self, instream=None, infile=None, posix=True):
         if isinstance(instream, str):
             instream = StringIO(instream)
@@ -73,9 +75,9 @@ class shlex(object):
         self.lineno = 1
         if self.debug:
             if newfile is not None:
-                print('shlex: pushing to file %s' % (self.infile,))
+                print('shlex: pushing to file %s' % (self.infile, ))
             else:
-                print('shlex: pushing to stream %s' % (self.instream,))
+                print('shlex: pushing to stream %s' % (self.instream, ))
 
     def pop_source(self):
         "Pop the input source stack."
@@ -111,7 +113,7 @@ class shlex(object):
                 print("shlex: in state", repr(self.state), \
                       "I see character:", repr(nextchar))
             if self.state == '\0':
-                self.token = ''        # past end of file
+                self.token = ''  # past end of file
                 token_end = self.instream.tell()
                 break
             elif self.state == ' ':
@@ -124,7 +126,7 @@ class shlex(object):
                         print("shlex: I see whitespace in whitespace state")
                     if self.token or (self.posix and quoted):
                         token_end = self.instream.tell() - 1
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
                 elif nextchar in self.wordchars:
@@ -143,12 +145,12 @@ class shlex(object):
                     self.token = nextchar
                     if self.token or (self.posix and quoted):
                         token_end = self.instream.tell() - 1
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
             elif self.state == self.quotes:
                 quoted = True
-                if not nextchar:      # end of file
+                if not nextchar:  # end of file
                     if self.debug >= 2:
                         print("shlex: I see EOF in quotes state")
                     # XXX what error should be raised here?
@@ -169,7 +171,7 @@ class shlex(object):
                 else:
                     self.token = self.token + nextchar
             elif self.state == self.escape:
-                if not nextchar:      # end of file
+                if not nextchar:  # end of file
                     if self.debug >= 2:
                         print("shlex: I see EOF in escape state")
                     # XXX what error should be raised here?
@@ -182,7 +184,7 @@ class shlex(object):
                 self.state = escapedstate
             elif self.state == 'a':
                 if not nextchar:
-                    self.state = '\0'   # end of file
+                    self.state = '\0'  # end of file
                     token_end = self.instream.tell()
                     break
                 elif nextchar in self.whitespace:
@@ -191,7 +193,7 @@ class shlex(object):
                     self.state = ' '
                     if self.token or (self.posix and quoted):
                         token_end = self.instream.tell() - 1
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
                 elif nextchar in self.wordchars or nextchar == self.quotes \
@@ -204,7 +206,7 @@ class shlex(object):
                     self.state = ' '
                     if self.token:
                         token_end = self.instream.tell()
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
         result = self.token
@@ -244,6 +246,7 @@ class shlex(object):
             raise StopIteration
         return token
 
+
 def split(s, comments=False, posix=True):
     lex = shlex(s, posix=posix)
     lex.whitespace_split = True
@@ -253,6 +256,7 @@ def split(s, comments=False, posix=True):
 
 
 _find_unsafe = re.compile(r'[^\w@%+=:,./-]', re.ASCII).search
+
 
 def quote(s):
     """Return a shell-escaped version of the string *s*."""

@@ -20,11 +20,13 @@ from poezio.windows.roster_win import RosterWin, ContactInfoWin
 from poezio.windows.text_win import TextWin, XMLTextWin
 from poezio.windows.image import ImageWin
 
-__all__ = ['Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
-           'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin',
-           'MucListInfoWin', 'ConversationInfoWin', 'MucInfoWin',
-           'DynamicConversationInfoWin', 'ConversationStatusMessageWin',
-           'BookmarksInfoWin', 'ConfirmStatusWin', 'HelpText', 'Input',
-           'HistoryInput', 'MessageInput', 'CommandInput', 'ListWin',
-           'ColumnHeaderWin', 'VerticalSeparator', 'UserList', 'Topic',
-           'RosterWin', 'ContactInfoWin', 'TextWin', 'XMLTextWin', 'ImageWin']
+__all__ = [
+    'Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
+    'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin',
+    'MucListInfoWin', 'ConversationInfoWin', 'MucInfoWin',
+    'DynamicConversationInfoWin', 'ConversationStatusMessageWin',
+    'BookmarksInfoWin', 'ConfirmStatusWin', 'HelpText', 'Input',
+    'HistoryInput', 'MessageInput', 'CommandInput', 'ListWin',
+    'ColumnHeaderWin', 'VerticalSeparator', 'UserList', 'Topic', 'RosterWin',
+    'ContactInfoWin', 'TextWin', 'XMLTextWin', 'ImageWin'
+]

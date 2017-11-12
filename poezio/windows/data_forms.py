@@ -12,19 +12,20 @@ from poezio.windows.inputs import Input
 
 from poezio.theming import to_curses_attr, get_theme
 
+
 class FieldInput(object):
     """
     All input types in a data form should inherit this class,
     in addition with windows.Input or any relevant class from the
     'windows' library.
     """
+
     def __init__(self, field):
         self._field = field
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def update_field_value(self, value):
         raise NotImplementedError
-
 
     def is_dummy(self):
         return False
@@ -42,8 +43,10 @@ class FieldInput(object):
         """
         return ''
 
+
 class FieldInputMixin(FieldInput, Win):
     "Mix both FieldInput and Win"
+
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
@@ -81,6 +84,7 @@ class DummyInput(FieldInputMixin):
     """
     Used for fields that do not require any input ('fixed')
     """
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
 
@@ -92,6 +96,7 @@ class DummyInput(FieldInputMixin):
 
     def is_dummy(self):
         return True
+
 
 class BooleanWin(FieldInputMixin):
     def __init__(self, field):
@@ -108,8 +113,8 @@ class BooleanWin(FieldInputMixin):
     def refresh(self):
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
-        self.addnstr(0, 0, ' '*(8), self.width)
-        self.addstr(0, 2, "%s"%self.value)
+        self.addnstr(0, 0, ' ' * (8), self.width)
+        self.addstr(0, 2, "%s" % self.value)
         self.addstr(0, 8, '→')
         self.addstr(0, 0, '←')
         if self.last_key == 'KEY_RIGHT':
@@ -125,6 +130,7 @@ class BooleanWin(FieldInputMixin):
 
     def get_help_message(self):
         return '← and →: change the value between True and False'
+
 
 class TextMultiWin(FieldInputMixin):
     def __init__(self, field):
@@ -149,20 +155,22 @@ class TextMultiWin(FieldInputMixin):
                 if self.val_pos > 0:
                     self.val_pos -= 1
             elif key == 'KEY_RIGHT':
-                if self.val_pos < len(self.options)-1:
+                if self.val_pos < len(self.options) - 1:
                     self.val_pos += 1
             elif key == '^M':
                 self.edition_input = Input()
                 self.edition_input.color = self.color
-                self.edition_input.resize(self.height, self.width, self.y, self.x)
+                self.edition_input.resize(self.height, self.width, self.y,
+                                          self.x)
                 self.edition_input.text = self.options[self.val_pos]
                 self.edition_input.key_end()
         else:
             if key == '^M':
                 self.options[self.val_pos] = self.edition_input.get_text()
-                if not self.options[self.val_pos] and self.val_pos != len(self.options) -1:
+                if not self.options[self.val_pos] and self.val_pos != len(
+                        self.options) - 1:
                     del self.options[self.val_pos]
-                    if self.val_pos == len(self.options) -1:
+                    if self.val_pos == len(self.options) - 1:
                         self.val_pos -= 1
                 self.edition_input = None
                 if not self.options or self.options[-1] != '':
@@ -175,13 +183,13 @@ class TextMultiWin(FieldInputMixin):
         if not self.edition_input:
             self._win.erase()
             self._win.attron(to_curses_attr(self.color))
-            self.addnstr(0, 0, ' '*self.width, self.width)
+            self.addnstr(0, 0, ' ' * self.width, self.width)
             option = self.options[self.val_pos]
-            self.addstr(0, self.width//2-len(option)//2, option)
+            self.addstr(0, self.width // 2 - len(option) // 2, option)
             if self.val_pos > 0:
                 self.addstr(0, 0, '←')
-            if self.val_pos < len(self.options)-1:
-                self.addstr(0, self.width-1, '→')
+            if self.val_pos < len(self.options) - 1:
+                self.addstr(0, self.width - 1, '→')
             self._win.attroff(to_curses_attr(self.color))
             self._refresh()
         else:
@@ -194,13 +202,14 @@ class TextMultiWin(FieldInputMixin):
     def get_help_message(self):
         if not self.edition_input:
             help_msg = '← and →: browse the available entries. '
-            if self.val_pos == len(self.options)-1:
+            if self.val_pos == len(self.options) - 1:
                 help_msg += 'Enter: add an entry'
             else:
                 help_msg += 'Enter: edit this entry'
         else:
             help_msg = 'Enter: finish editing this entry.'
         return help_msg
+
 
 class ListMultiWin(FieldInputMixin):
     def __init__(self, field):
@@ -215,7 +224,7 @@ class ListMultiWin(FieldInputMixin):
             if self.val_pos > 0:
                 self.val_pos -= 1
         elif key == 'KEY_RIGHT':
-            if self.val_pos < len(self.options)-1:
+            if self.val_pos < len(self.options) - 1:
                 self.val_pos += 1
         elif key == ' ':
             self.options[self.val_pos][1] = not self.options[self.val_pos][1]
@@ -226,14 +235,15 @@ class ListMultiWin(FieldInputMixin):
     def refresh(self):
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
-        self.addnstr(0, 0, ' '*self.width, self.width)
+        self.addnstr(0, 0, ' ' * self.width, self.width)
         if self.val_pos > 0:
             self.addstr(0, 0, '←')
-        if self.val_pos < len(self.options)-1:
-            self.addstr(0, self.width-1, '→')
+        if self.val_pos < len(self.options) - 1:
+            self.addstr(0, self.width - 1, '→')
         if self.options:
             option = self.options[self.val_pos]
-            self.addstr(0, self.width//2-len(option)//2, option[0]['label'])
+            self.addstr(0, self.width // 2 - len(option) // 2,
+                        option[0]['label'])
             self.addstr(0, 2, '✔' if option[1] else '☐')
         self._win.attroff(to_curses_attr(self.color))
         self._refresh()
@@ -241,11 +251,14 @@ class ListMultiWin(FieldInputMixin):
     def reply(self):
         self._field['label'] = ''
         self._field.delOptions()
-        values = [option[0]['value'] for option in self.options if option[1] is True]
+        values = [
+            option[0]['value'] for option in self.options if option[1] is True
+        ]
         self._field.set_answer(values)
 
     def get_help_message(self):
         return '←, →: Switch between the value. Space: select or unselect a value'
+
 
 class ListSingleWin(FieldInputMixin):
     def __init__(self, field):
@@ -263,7 +276,7 @@ class ListSingleWin(FieldInputMixin):
             if self.val_pos > 0:
                 self.val_pos -= 1
         elif key == 'KEY_RIGHT':
-            if self.val_pos < len(self.options)-1:
+            if self.val_pos < len(self.options) - 1:
                 self.val_pos += 1
         else:
             return
@@ -272,14 +285,14 @@ class ListSingleWin(FieldInputMixin):
     def refresh(self):
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
-        self.addnstr(0, 0, ' '*self.width, self.width)
+        self.addnstr(0, 0, ' ' * self.width, self.width)
         if self.val_pos > 0:
             self.addstr(0, 0, '←')
-        if self.val_pos < len(self.options)-1:
-            self.addstr(0, self.width-1, '→')
+        if self.val_pos < len(self.options) - 1:
+            self.addstr(0, self.width - 1, '→')
         if self.options:
             option = self.options[self.val_pos]['label']
-            self.addstr(0, self.width//2-len(option)//2, option)
+            self.addstr(0, self.width // 2 - len(option) // 2, option)
         self._win.attroff(to_curses_attr(self.color))
         self._refresh()
 
@@ -290,6 +303,7 @@ class ListSingleWin(FieldInputMixin):
 
     def get_help_message(self):
         return '←, →: Select a value amongst the others'
+
 
 class TextSingleWin(FieldInputMixin, Input):
     def __init__(self, field):
@@ -307,6 +321,7 @@ class TextSingleWin(FieldInputMixin, Input):
     def get_help_message(self):
         return 'Edit the text'
 
+
 class TextPrivateWin(TextSingleWin):
     def __init__(self, field):
         TextSingleWin.__init__(self, field)
@@ -315,11 +330,12 @@ class TextPrivateWin(TextSingleWin):
         self._win.erase()
         if self.color:
             self._win.attron(to_curses_attr(self.color))
-        self.addstr('*'*len(self.text[self.view_pos:self.view_pos+self.width-1]))
+        self.addstr(
+            '*' * len(self.text[self.view_pos:self.view_pos + self.width - 1]))
         if self.color:
             (y, x) = self._win.getyx()
-            size = self.width-x
-            self.addnstr(' '*size, size, to_curses_attr(self.color))
+            size = self.width - x
+            self.addnstr(' ' * size, size, to_curses_attr(self.color))
         self.addstr(0, self.pos, '')
         if self.color:
             self._win.attroff(to_curses_attr(self.color))
@@ -328,6 +344,7 @@ class TextPrivateWin(TextSingleWin):
     def get_help_message(self):
         return 'Edit the secret text'
 
+
 class FormWin(object):
     """
     A window, with some subwins (the various inputs).
@@ -335,22 +352,24 @@ class FormWin(object):
     On resize, move and resize all the subwin and define how the text will be written
     On refresh, write all the text, and refresh all the subwins
     """
-    input_classes = {'boolean': BooleanWin,
-                     'fixed': DummyInput,
-                     'jid-multi': TextMultiWin,
-                     'jid-single': TextSingleWin,
-                     'list-multi': ListMultiWin,
-                     'list-single': ListSingleWin,
-                     'text-multi': TextMultiWin,
-                     'text-private': TextPrivateWin,
-                     'text-single': TextSingleWin,
-                     }
+    input_classes = {
+        'boolean': BooleanWin,
+        'fixed': DummyInput,
+        'jid-multi': TextMultiWin,
+        'jid-single': TextSingleWin,
+        'list-multi': ListMultiWin,
+        'list-single': ListSingleWin,
+        'text-multi': TextMultiWin,
+        'text-private': TextPrivateWin,
+        'text-single': TextSingleWin,
+    }
+
     def __init__(self, form, height, width, y, x):
         self._form = form
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         self.scroll_pos = 0
         self.current_input = 0
-        self.inputs = []        # dict list
+        self.inputs = []  # dict list
         for (name, field) in self._form.getFields().items():
             if field['type'] == 'hidden':
                 continue
@@ -363,9 +382,11 @@ class FormWin(object):
             if field['type'] == 'fixed':
                 label = field.get_value()
             inp = input_class(field)
-            self.inputs.append({'label':ColoredLabel(label),
-                                'description': desc,
-                                'input':inp})
+            self.inputs.append({
+                'label': ColoredLabel(label),
+                'description': desc,
+                'input': inp
+            })
 
     def resize(self, height, width, y, x):
         self.height = height
@@ -373,7 +394,7 @@ class FormWin(object):
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
-        while self.current_input - self.scroll_pos > self.height-1:
+        while self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos += 1
 
     def reply(self):
@@ -394,13 +415,17 @@ class FormWin(object):
             return
         if self.current_input == len(self.inputs) - 1:
             return
-        self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_NORMAL_TEXT)
-        self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.inputs[self.current_input]['input'].set_color(
+            get_theme().COLOR_NORMAL_TEXT)
+        self.inputs[self.current_input]['label'].set_color(
+            get_theme().COLOR_NORMAL_TEXT)
         self.current_input += 1
         jump = 0
-        while self.current_input+jump != len(self.inputs) - 1 and self.inputs[self.current_input+jump]['input'].is_dummy():
+        while self.current_input + jump != len(
+                self.inputs) - 1 and self.inputs[self.current_input
+                                                 + jump]['input'].is_dummy():
             jump += 1
-        if self.inputs[self.current_input+jump]['input'].is_dummy():
+        if self.inputs[self.current_input + jump]['input'].is_dummy():
             return
         self.current_input += jump
         # If moving made the current input out of the visible screen, we
@@ -408,24 +433,31 @@ class FormWin(object):
         # call refresh() if this is not the case, because
         # refresh_current_input() is always called anyway, so this is not
         # needed
-        if self.current_input - self.scroll_pos > self.height-1:
+        if self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos += 1
             self.refresh()
-        self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
-        self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.inputs[self.current_input]['input'].set_color(
+            get_theme().COLOR_SELECTED_ROW)
+        self.inputs[self.current_input]['label'].set_color(
+            get_theme().COLOR_SELECTED_ROW)
 
     def go_to_previous_input(self):
         if not self.inputs:
             return
         if self.current_input == 0:
             return
-        self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_NORMAL_TEXT)
-        self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_NORMAL_TEXT)
+        self.inputs[self.current_input]['input'].set_color(
+            get_theme().COLOR_NORMAL_TEXT)
+        self.inputs[self.current_input]['label'].set_color(
+            get_theme().COLOR_NORMAL_TEXT)
         self.current_input -= 1
         jump = 0
-        while self.current_input-jump > 0 and self.inputs[self.current_input+jump]['input'].is_dummy():
+        while self.current_input - jump > 0 and self.inputs[self.current_input
+                                                            +
+                                                            jump]['input'].is_dummy(
+                                                            ):
             jump += 1
-        if self.inputs[self.current_input+jump]['input'].is_dummy():
+        if self.inputs[self.current_input + jump]['input'].is_dummy():
             return
         # Adjust the scroll position if the current_input would be outside
         # of the visible area
@@ -433,8 +465,10 @@ class FormWin(object):
             self.scroll_pos = self.current_input
             self.refresh()
         self.current_input -= jump
-        self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
-        self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
+        self.inputs[self.current_input]['input'].set_color(
+            get_theme().COLOR_SELECTED_ROW)
+        self.inputs[self.current_input]['label'].set_color(
+            get_theme().COLOR_SELECTED_ROW)
 
     def on_input(self, key, raw=False):
         if not self.inputs:
@@ -448,8 +482,9 @@ class FormWin(object):
         for name, field in self._form.getFields().items():
             if field['type'] == 'hidden':
                 continue
-            self.inputs[i]['label'].resize(1, self.width//2, y + 1, 0)
-            self.inputs[i]['input'].resize(1, self.width//2, y+1, self.width//2)
+            self.inputs[i]['label'].resize(1, self.width // 2, y + 1, 0)
+            self.inputs[i]['input'].resize(1, self.width // 2, y + 1,
+                                           self.width // 2)
             # TODO: display the field description
             y += 1
             i += 1
@@ -462,17 +497,19 @@ class FormWin(object):
             inp['label'].refresh()
             inp['input'].refresh()
             inp['label'].refresh()
-        if self.inputs and self.current_input < self.height-1:
-            self.inputs[self.current_input]['input'].set_color(get_theme().COLOR_SELECTED_ROW)
+        if self.inputs and self.current_input < self.height - 1:
+            self.inputs[self.current_input]['input'].set_color(
+                get_theme().COLOR_SELECTED_ROW)
             self.inputs[self.current_input]['input'].refresh()
-            self.inputs[self.current_input]['label'].set_color(get_theme().COLOR_SELECTED_ROW)
+            self.inputs[self.current_input]['label'].set_color(
+                get_theme().COLOR_SELECTED_ROW)
             self.inputs[self.current_input]['label'].refresh()
 
     def refresh_current_input(self):
         self.inputs[self.current_input]['input'].refresh()
 
     def get_help_message(self):
-        if self.inputs and self.current_input < self.height-1 and self.inputs[self.current_input]['input']:
+        if self.inputs and self.current_input < self.height - 1 and self.inputs[self.
+                                                                                current_input]['input']:
             return self.inputs[self.current_input]['input'].get_help_message()
         return ''
-

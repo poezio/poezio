@@ -4,7 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
 '''This is a template module just for instruction. And poopt.'''
 
 from typing import List, Tuple
@@ -24,6 +23,7 @@ libc = ffi.dlopen(None)
 #    ctypedef Py_UCS4 wchar_t
 #    int wcwidth(wchar_t c)
 
+
 # Just checking if the return value is -1.  In some (all?) implementations,
 # wcwidth("😆") returns -1 while it should return 1.  In these cases, we
 # return 1 instead because this is by far the most probable real value.
@@ -39,6 +39,7 @@ def xwcwidth(c: str) -> int:
     if res == -1 and c != '\x19':
         return 1
     return res
+
 
 # cut_text: takes a string and returns a tuple of int.
 #
@@ -141,8 +142,9 @@ def cut_text(string: str, width: int) -> List[Tuple[int, int]]:
         # char's columns to the line's columns
         columns += cols
     # We are at the end of the string, append the last line, not finished
-    retlist.append((start_pos, spos+1))
+    retlist.append((start_pos, spos + 1))
     return retlist
+
 
 # wcswidth: An emulation of the POSIX wcswidth(3) function using xwcwidth.
 def wcswidth(string: str) -> int:
@@ -154,6 +156,7 @@ def wcswidth(string: str) -> int:
     for wc in string:
         columns += xwcwidth(wc)
     return columns
+
 
 # cut_by_columns: takes a python string and a number of columns, returns a
 # python string truncated to take at most that many columns

@@ -17,13 +17,15 @@ from poezio.roster import roster
 
 from poezio.core.structs import POSSIBLE_SHOW, Completion
 
+
 class CompletionCore:
     def __init__(self, core):
         self.core = core
 
     def help(self, the_input):
         """Completion for /help."""
-        commands = sorted(self.core.commands.keys()) + sorted(self.core.current_tab().commands.keys())
+        commands = sorted(self.core.commands.keys()) + sorted(
+            self.core.current_tab().commands.keys())
         return Completion(the_input.new_completion, commands, 1, quotify=False)
 
     def status(self, the_input):
@@ -31,8 +33,11 @@ class CompletionCore:
         Completion of /status
         """
         if the_input.get_argument_position() == 1:
-            return Completion(the_input.new_completion, [status for status in POSSIBLE_SHOW], 1, ' ', quotify=False)
-
+            return Completion(
+                the_input.new_completion, [status for status in POSSIBLE_SHOW],
+                1,
+                ' ',
+                quotify=False)
 
     def presence(self, the_input):
         """
@@ -40,29 +45,38 @@ class CompletionCore:
         """
         arg = the_input.get_argument_position()
         if arg == 1:
-            return Completion(the_input.auto_completion, [jid for jid in roster.jids()], '', quotify=True)
+            return Completion(
+                the_input.auto_completion, [jid for jid in roster.jids()],
+                '',
+                quotify=True)
         elif arg == 2:
-            return Completion(the_input.auto_completion, [status for status in POSSIBLE_SHOW], '', quotify=True)
-
+            return Completion(
+                the_input.auto_completion,
+                [status for status in POSSIBLE_SHOW],
+                '',
+                quotify=True)
 
     def theme(self, the_input):
         """ Completion for /theme"""
         themes_dir = config.get('themes_dir')
-        themes_dir = (themes_dir or
-                      os.path.join(os.environ.get('XDG_DATA_HOME') or
-                                   os.path.join(os.environ.get('HOME'), '.local', 'share'),
-                                   'poezio', 'themes'))
+        themes_dir = (themes_dir or os.path.join(
+            os.environ.get('XDG_DATA_HOME')
+            or os.path.join(os.environ.get('HOME'), '.local', 'share'),
+            'poezio', 'themes'))
         themes_dir = os.path.expanduser(themes_dir)
         try:
             names = os.listdir(themes_dir)
         except OSError:
             log.error('Completion for /theme failed', exc_info=True)
             return False
-        theme_files = [name[:-3] for name in names if name.endswith('.py') and name != '__init__.py']
+        theme_files = [
+            name[:-3] for name in names
+            if name.endswith('.py') and name != '__init__.py'
+        ]
         if 'default' not in theme_files:
             theme_files.append('default')
-        return Completion(the_input.new_completion, theme_files, 1, '', quotify=False)
-
+        return Completion(
+            the_input.new_completion, theme_files, 1, '', quotify=False)
 
     def win(self, the_input):
         """Completion for /win"""
@@ -71,7 +85,6 @@ class CompletionCore:
             l.extend(tab.matching_names())
         l = [i[1] for i in l]
         return Completion(the_input.new_completion, l, 1, '', quotify=False)
-
 
     def join(self, the_input):
         """
@@ -97,7 +110,9 @@ class CompletionCore:
 
         relevant_rooms = []
         relevant_rooms.extend(sorted(self.core.pending_invites.keys()))
-        bookmarks = [(str(elem.jid) if not elem.nick else '%s/%s' % (elem.jid, elem.nick))  for elem in self.core.bookmarks]
+        bookmarks = [(str(elem.jid)
+                      if not elem.nick else '%s/%s' % (elem.jid, elem.nick))
+                     for elem in self.core.bookmarks]
         to_suggest = []
         for bookmark in bookmarks:
             tab = self.core.get_tab_by_name(bookmark, tabs.MucTab)
@@ -113,31 +128,39 @@ class CompletionCore:
             serv_list = []
             for tab in self.core.get_tabs(tabs.MucTab):
                 if tab.joined:
-                    serv_list.append('%s@%s' % (jid.user, safeJID(tab.name).host))
+                    serv_list.append('%s@%s' % (jid.user,
+                                                safeJID(tab.name).host))
             serv_list.extend(relevant_rooms)
-            return Completion(the_input.new_completion, serv_list, 1, quotify=True)
+            return Completion(
+                the_input.new_completion, serv_list, 1, quotify=True)
         elif args[1].startswith('/'):
             # we completing only a resource
-            return Completion(the_input.new_completion, ['/%s' % self.core.own_nick], 1, quotify=True)
+            return Completion(
+                the_input.new_completion, ['/%s' % self.core.own_nick],
+                1,
+                quotify=True)
         else:
-            return Completion(the_input.new_completion, relevant_rooms, 1, quotify=True)
-
+            return Completion(
+                the_input.new_completion, relevant_rooms, 1, quotify=True)
 
     def version(self, the_input):
         """Completion for /version"""
-        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
-        return Completion(the_input.new_completion, sorted(comp), 1, quotify=False)
-
+        comp = reduce(lambda x, y: x + [i.jid for i in y],
+                      (roster[jid].resources for jid in roster.jids()
+                       if len(roster[jid])), [])
+        return Completion(
+            the_input.new_completion, sorted(comp), 1, quotify=False)
 
     def list(self, the_input):
         """Completion for /list"""
         muc_serv_list = []
-        for tab in self.core.get_tabs(tabs.MucTab):   # TODO, also from an history
+        for tab in self.core.get_tabs(
+                tabs.MucTab):  # TODO, also from an history
             if tab.name not in muc_serv_list:
                 muc_serv_list.append(safeJID(tab.name).server)
         if muc_serv_list:
-            return Completion(the_input.new_completion, muc_serv_list, 1, quotify=False)
-
+            return Completion(
+                the_input.new_completion, muc_serv_list, 1, quotify=False)
 
     def move_tab(self, the_input):
         """Completion for /move_tab"""
@@ -145,8 +168,8 @@ class CompletionCore:
         if n == 1:
             nodes = [tab.name for tab in self.core.tabs if tab]
             nodes.remove('Roster')
-            return Completion(the_input.new_completion, nodes, 1, ' ', quotify=True)
-
+            return Completion(
+                the_input.new_completion, nodes, 1, ' ', quotify=True)
 
     def runkey(self, the_input):
         """
@@ -157,14 +180,14 @@ class CompletionCore:
         list_.extend(self.core.current_tab().key_func.keys())
         return Completion(the_input.new_completion, list_, 1, quotify=False)
 
-
     def bookmark(self, the_input):
         """Completion for /bookmark"""
         args = common.shell_split(the_input.text)
         n = the_input.get_argument_position(quoted=True)
 
         if n == 2:
-            return Completion(the_input.new_completion, ['true', 'false'], 2, quotify=True)
+            return Completion(
+                the_input.new_completion, ['true', 'false'], 2, quotify=True)
         if n >= 3:
             return False
 
@@ -175,7 +198,8 @@ class CompletionCore:
         if jid.server and (jid.resource or jid.full.endswith('/')):
             tab = self.core.get_tab_by_name(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
-            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            default = os.environ.get('USER') if os.environ.get(
+                'USER') else 'poezio'
             nick = config.get('default_nick')
             if not nick:
                 if default not in nicks:
@@ -184,36 +208,43 @@ class CompletionCore:
                 if nick not in nicks:
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
-            return Completion(the_input.new_completion, jids_list, 1, quotify=True)
+            return Completion(
+                the_input.new_completion, jids_list, 1, quotify=True)
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.sort()
         muc_list.append('*')
         return Completion(the_input.new_completion, muc_list, 1, quotify=True)
 
-
     def remove_bookmark(self, the_input):
         """Completion for /remove_bookmark"""
-        return Completion(the_input.new_completion, [bm.jid for bm in self.core.bookmarks], 1, quotify=False)
-
+        return Completion(
+            the_input.new_completion, [bm.jid for bm in self.core.bookmarks],
+            1,
+            quotify=False)
 
     def decline(self, the_input):
         """Completion for /decline"""
         n = the_input.get_argument_position(quoted=True)
         if n == 1:
-            return Completion(the_input.auto_completion, sorted(self.core.pending_invites.keys()), 1, '', quotify=True)
-
+            return Completion(
+                the_input.auto_completion,
+                sorted(self.core.pending_invites.keys()),
+                1,
+                '',
+                quotify=True)
 
     def bind(self, the_input):
         n = the_input.get_argument_position()
         if n == 1:
-            args = [key for key in self.core.key_func if not key.startswith('_')]
+            args = [
+                key for key in self.core.key_func if not key.startswith('_')
+            ]
         elif n == 2:
             args = [key for key in self.core.key_func]
         else:
             return False
 
         return Completion(the_input.new_completion, args, n, '', quotify=False)
-
 
     def message(self, the_input):
         """Completion for /message"""
@@ -231,14 +262,17 @@ class CompletionCore:
                 l.append(jid)
         return Completion(the_input.new_completion, l, 1, '', quotify=True)
 
-
     def invite(self, the_input):
         """Completion for /invite"""
         n = the_input.get_argument_position(quoted=True)
         if n == 1:
-            comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
+            comp = reduce(lambda x, y: x + [i.jid for i in y],
+                          (roster[jid].resources for jid in roster.jids()
+                           if len(roster[jid])), [])
             comp = sorted(comp)
-            bares = sorted(roster[contact].bare_jid for contact in roster.jids() if len(roster[contact]))
+            bares = sorted(
+                roster[contact].bare_jid for contact in roster.jids()
+                if len(roster[contact]))
             off = sorted(jid for jid in roster.jids() if jid not in bares)
             comp = comp + bares + off
             return Completion(the_input.new_completion, comp, n, quotify=True)
@@ -248,15 +282,19 @@ class CompletionCore:
                 if tab.joined:
                     rooms.append(tab.name)
             rooms.sort()
-            return Completion(the_input.new_completion, rooms, n, '', quotify=True)
-
+            return Completion(
+                the_input.new_completion, rooms, n, '', quotify=True)
 
     def activity(self, the_input):
         """Completion for /activity"""
         n = the_input.get_argument_position(quoted=True)
         args = common.shell_split(the_input.text)
         if n == 1:
-            return Completion(the_input.new_completion, sorted(pep.ACTIVITIES.keys()), n, quotify=True)
+            return Completion(
+                the_input.new_completion,
+                sorted(pep.ACTIVITIES.keys()),
+                n,
+                quotify=True)
         elif n == 2:
             if args[1] in pep.ACTIVITIES:
                 l = list(pep.ACTIVITIES[args[1]])
@@ -264,13 +302,15 @@ class CompletionCore:
                 l.sort()
                 return Completion(the_input.new_completion, l, n, quotify=True)
 
-
     def mood(self, the_input):
         """Completion for /mood"""
         n = the_input.get_argument_position(quoted=True)
         if n == 1:
-            return Completion(the_input.new_completion, sorted(pep.MOODS.keys()), 1, quotify=True)
-
+            return Completion(
+                the_input.new_completion,
+                sorted(pep.MOODS.keys()),
+                1,
+                quotify=True)
 
     def last_activity(self, the_input):
         """
@@ -279,9 +319,11 @@ class CompletionCore:
         n = the_input.get_argument_position(quoted=False)
         if n >= 2:
             return False
-        comp = reduce(lambda x, y: x + [i.jid for i in y], (roster[jid].resources for jid in roster.jids() if len(roster[jid])), [])
-        return Completion(the_input.new_completion, sorted(comp), 1, '', quotify=False)
-
+        comp = reduce(lambda x, y: x + [i.jid for i in y],
+                      (roster[jid].resources for jid in roster.jids()
+                       if len(roster[jid])), [])
+        return Completion(
+            the_input.new_completion, sorted(comp), 1, '', quotify=False)
 
     def server_cycle(self, the_input):
         """Completion for /server_cycle"""
@@ -290,7 +332,6 @@ class CompletionCore:
             serv = safeJID(tab.name).server
             serv_list.add(serv)
         return Completion(the_input.new_completion, sorted(serv_list), 1, ' ')
-
 
     def set(self, the_input):
         """Completion for /set"""
@@ -302,9 +343,13 @@ class CompletionCore:
             if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    return Completion(the_input.new_completion, [], n, quotify=True)
+                    return Completion(
+                        the_input.new_completion, [], n, quotify=True)
                 plugin = self.core.plugin_manager.plugins[plugin_name]
-                end_list = ['%s|%s' % (plugin_name, section) for section in plugin.config.sections()]
+                end_list = [
+                    '%s|%s' % (plugin_name, section)
+                    for section in plugin.config.sections()
+                ]
             else:
                 end_list = set(config.options('Poezio'))
                 end_list.update(config.default.get('Poezio', {}))
@@ -314,11 +359,13 @@ class CompletionCore:
             if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    return Completion(the_input.new_completion, [''], n, quotify=True)
+                    return Completion(
+                        the_input.new_completion, [''], n, quotify=True)
                 plugin = self.core.plugin_manager.plugins[plugin_name]
                 end_list = set(plugin.config.options(section or plugin_name))
                 if plugin.config.default:
-                    end_list.update(plugin.config.default.get(section or plugin_name, {}))
+                    end_list.update(
+                        plugin.config.default.get(section or plugin_name, {}))
                 end_list = list(end_list)
                 end_list.sort()
             elif not config.has_option('Poezio', args[1]):
@@ -333,9 +380,14 @@ class CompletionCore:
             if '|' in args[1]:
                 plugin_name, section = args[1].split('|')[:2]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    return Completion(the_input.new_completion, [''], n, quotify=True)
+                    return Completion(
+                        the_input.new_completion, [''], n, quotify=True)
                 plugin = self.core.plugin_manager.plugins[plugin_name]
-                end_list = [str(plugin.config.get(args[2], '', section or plugin_name)), '']
+                end_list = [
+                    str(
+                        plugin.config.get(args[2], '', section
+                                          or plugin_name)), ''
+                ]
             else:
                 if not config.has_section(args[1]):
                     end_list = ['']
@@ -344,7 +396,6 @@ class CompletionCore:
         else:
             return False
         return Completion(the_input.new_completion, end_list, n, quotify=True)
-
 
     def set_default(self, the_input):
         """ Completion for /set_default
@@ -357,11 +408,13 @@ class CompletionCore:
             return Completion(self.set, the_input)
         return False
 
-
     def toggle(self, the_input):
         "Completion for /toggle"
-        return Completion(the_input.new_completion, config.options('Poezio'), 1, quotify=False)
-
+        return Completion(
+            the_input.new_completion,
+            config.options('Poezio'),
+            1,
+            quotify=False)
 
     def bookmark_local(self, the_input):
         """Completion for /bookmark_local"""
@@ -377,7 +430,8 @@ class CompletionCore:
         if jid.server and (jid.resource or jid.full.endswith('/')):
             tab = self.core.get_tab_by_name(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
-            default = os.environ.get('USER') if os.environ.get('USER') else 'poezio'
+            default = os.environ.get('USER') if os.environ.get(
+                'USER') else 'poezio'
             nick = config.get('default_nick')
             if not nick:
                 if default not in nicks:
@@ -386,8 +440,8 @@ class CompletionCore:
                 if nick not in nicks:
                     nicks.append(nick)
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
-            return Completion(the_input.new_completion, jids_list, 1, quotify=True)
+            return Completion(
+                the_input.new_completion, jids_list, 1, quotify=True)
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.append('*')
         return Completion(the_input.new_completion, muc_list, 1, quotify=True)
-

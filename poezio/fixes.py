@@ -12,6 +12,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
     def _cb(iq):
         ident = lambda x: x[0]
@@ -20,7 +21,9 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
             on_true()
         if not res and on_false is not None:
             on_false()
+
     xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
+
 
 def get_version(xmpp, jid, callback=None, **kwargs):
     def handle_result(res):
@@ -31,6 +34,7 @@ def get_version(xmpp, jid, callback=None, **kwargs):
         if callback:
             callback(ret)
         return ret
+
     iq = xmpp.make_iq_get(ito=jid)
     iq['query'] = 'jabber:iq:version'
     result = iq.send(callback=handle_result if callback else None)
@@ -42,7 +46,8 @@ def get_room_form(xmpp, room, callback):
     def _cb(result):
         if result["type"] == "error":
             return callback(None)
-        xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
+        xform = result.xml.find(
+            '{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
         if xform is None:
             return callback(None)
         form = xmpp.plugin['xep_0004'].build_form(xform)
@@ -52,6 +57,7 @@ def get_room_form(xmpp, room, callback):
     query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
     iq.append(query)
     iq.send(callback=_cb)
+
 
 def _filter_add_receipt_request(self, stanza):
     """
@@ -94,4 +100,3 @@ def _filter_add_receipt_request(self, stanza):
 
     stanza['request_receipt'] = True
     return stanza
-

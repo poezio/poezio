@@ -28,6 +28,7 @@ def monkey_patch_asyncio_slixmpp():
         if self._idle:
             handle = self._idle.popleft()
             handle._run()
+
     cls = asyncio.get_event_loop().__class__
     cls._idle = collections.deque()
     cls.idle_call = idle_call
@@ -35,8 +36,8 @@ def monkey_patch_asyncio_slixmpp():
     cls._run_once = my_run_once
 
     spawn_event = slixmpp.xmlstream.XMLStream._spawn_event
+
     def patchy(self, xml):
         self.loop.idle_call(functools.partial(spawn_event, self, xml))
+
     slixmpp.xmlstream.XMLStream._spawn_event = patchy
-
-

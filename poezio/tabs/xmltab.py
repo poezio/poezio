@@ -25,7 +25,6 @@ from poezio.common import safeJID
 
 
 class MatchJID(object):
-
     def __init__(self, jid, dest=''):
         self.jid = jid
         self.dest = dest
@@ -46,12 +45,14 @@ class MatchJID(object):
     def __repr__(self):
         return '%s%s%s' % (self.dest, ': ' if self.dest else '', self.jid)
 
+
 MATCHERS_MAPPINGS = {
-        MatchJID: ('JID', repr),
-        matcher.MatcherId: ('ID', lambda obj: obj._criteria),
-        matcher.MatchXMLMask: ('XMLMask', lambda obj: tostring(obj._criteria)),
-        matcher.MatchXPath: ('XPath', lambda obj: obj._criteria)
+    MatchJID: ('JID', repr),
+    matcher.MatcherId: ('ID', lambda obj: obj._criteria),
+    matcher.MatchXMLMask: ('XMLMask', lambda obj: tostring(obj._criteria)),
+    matcher.MatchXPath: ('XPath', lambda obj: obj._criteria)
 }
+
 
 class XMLTab(Tab):
     def __init__(self, core):
@@ -68,41 +69,57 @@ class XMLTab(Tab):
         self.core_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
 
-        self.register_command('close', self.close,
-                shortdesc="Close this tab.")
-        self.register_command('clear', self.command_clear,
-                shortdesc='Clear the current buffer.')
-        self.register_command('filter_reset', self.command_filter_reset,
-                shortdesc='Reset the stanza filter.')
-        self.register_command('filter_id', self.command_filter_id,
-                usage='<id>',
-                desc='Show only the stanzas with the id <id>.',
-                shortdesc='Filter by id.')
-        self.register_command('filter_xpath', self.command_filter_xpath,
-                usage='<xpath>',
-                desc='Show only the stanzas matching the xpath <xpath>.'
-                     ' Any occurrences of %n will be replaced by jabber:client.',
-                shortdesc='Filter by XPath.')
-        self.register_command('filter_jid', self.command_filter_jid,
-                usage='<jid>',
-                desc='Show only the stanzas matching the jid <jid> in from= or to=.',
-                shortdesc='Filter by JID.')
-        self.register_command('filter_from', self.command_filter_from,
-                usage='<jid>',
-                desc='Show only the stanzas matching the jid <jid> in from=.',
-                shortdesc='Filter by JID from.')
-        self.register_command('filter_to', self.command_filter_to,
-                usage='<jid>',
-                desc='Show only the stanzas matching the jid <jid> in to=.',
-                shortdesc='Filter by JID to.')
-        self.register_command('filter_xmlmask', self.command_filter_xmlmask,
-                usage='<xml mask>',
-                desc='Show only the stanzas matching the given xml mask.',
-                shortdesc='Filter by xml mask.')
-        self.register_command('dump', self.command_dump,
-                usage='<filename>',
-                desc='Writes the content of the XML buffer into a file.',
-                shortdesc='Write in a file.')
+        self.register_command('close', self.close, shortdesc="Close this tab.")
+        self.register_command(
+            'clear', self.command_clear, shortdesc='Clear the current buffer.')
+        self.register_command(
+            'filter_reset',
+            self.command_filter_reset,
+            shortdesc='Reset the stanza filter.')
+        self.register_command(
+            'filter_id',
+            self.command_filter_id,
+            usage='<id>',
+            desc='Show only the stanzas with the id <id>.',
+            shortdesc='Filter by id.')
+        self.register_command(
+            'filter_xpath',
+            self.command_filter_xpath,
+            usage='<xpath>',
+            desc='Show only the stanzas matching the xpath <xpath>.'
+            ' Any occurrences of %n will be replaced by jabber:client.',
+            shortdesc='Filter by XPath.')
+        self.register_command(
+            'filter_jid',
+            self.command_filter_jid,
+            usage='<jid>',
+            desc=
+            'Show only the stanzas matching the jid <jid> in from= or to=.',
+            shortdesc='Filter by JID.')
+        self.register_command(
+            'filter_from',
+            self.command_filter_from,
+            usage='<jid>',
+            desc='Show only the stanzas matching the jid <jid> in from=.',
+            shortdesc='Filter by JID from.')
+        self.register_command(
+            'filter_to',
+            self.command_filter_to,
+            usage='<jid>',
+            desc='Show only the stanzas matching the jid <jid> in to=.',
+            shortdesc='Filter by JID to.')
+        self.register_command(
+            'filter_xmlmask',
+            self.command_filter_xmlmask,
+            usage='<xml mask>',
+            desc='Show only the stanzas matching the given xml mask.',
+            shortdesc='Filter by xml mask.')
+        self.register_command(
+            'dump',
+            self.command_dump,
+            usage='<filename>',
+            desc='Writes the content of the XML buffer into a file.',
+            shortdesc='Write in a file.')
         self.input = self.default_help_message
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
@@ -120,8 +137,10 @@ class XMLTab(Tab):
             self.filter_type = ''
             self.filter = ''
             return
-        filter_types = map(lambda x: MATCHERS_MAPPINGS[type(x)][0], self.filters)
-        filter_strings = map(lambda x: MATCHERS_MAPPINGS[type(x)][1](x), self.filters)
+        filter_types = map(lambda x: MATCHERS_MAPPINGS[type(x)][0],
+                           self.filters)
+        filter_strings = map(lambda x: MATCHERS_MAPPINGS[type(x)][1](x),
+                             self.filters)
         self.filter_type = ','.join(filter_types)
         self.filter = ','.join(filter_strings)
 
@@ -138,7 +157,8 @@ class XMLTab(Tab):
         new_messages = []
         for msg in messages:
             try:
-                if msg.txt.strip() and self.match_stanza(ElementBase(ET.fromstring(clean_text(msg.txt)))):
+                if msg.txt.strip() and self.match_stanza(
+                        ElementBase(ET.fromstring(clean_text(msg.txt)))):
                     new_messages.append(msg)
             except ET.ParseError:
                 log.debug('Malformed XML : %s', msg.txt, exc_info=True)
@@ -212,7 +232,9 @@ class XMLTab(Tab):
     def command_filter_xpath(self, xpath):
         """/filter_xpath <xpath>"""
         try:
-            self.update_filters(matcher.MatchXPath(xpath.replace('%n', self.core.xmpp.default_ns)))
+            self.update_filters(
+                matcher.MatchXPath(
+                    xpath.replace('%n', self.core.xmpp.default_ns)))
             self.refresh()
         except:
             self.core.information('Invalid XML Path', 'Error')
@@ -239,22 +261,25 @@ class XMLTab(Tab):
             xml = self.filtered_buffer.messages[:]
         else:
             xml = self.core_buffer.messages[:]
-        text = '\n'.join(('%s %s %s' % (msg.str_time, msg.nickname, clean_text(msg.txt)) for msg in xml))
+        text = '\n'.join(('%s %s %s' % (msg.str_time, msg.nickname,
+                                        clean_text(msg.txt)) for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
             with open(filename, 'w') as fd:
                 fd.write(text)
         except Exception as e:
-            self.core.information('Could not write the XML dump: %s' % e, 'Error')
+            self.core.information('Could not write the XML dump: %s' % e,
+                                  'Error')
 
     def on_slash(self):
         """
         '/' is pressed, activate the input
         """
         curses.curs_set(1)
-        self.input = windows.CommandInput("", self.reset_help_message, self.execute_slash_command)
-        self.input.resize(1, self.width, self.height-1, 0)
-        self.input.do_command("/") # we add the slash
+        self.input = windows.CommandInput("", self.reset_help_message,
+                                          self.execute_slash_command)
+        self.input.resize(1, self.width, self.height - 1, 0)
+        self.input.do_command("/")  # we add the slash
 
     @refresh_wrapper.always
     def reset_help_message(self, _=None):
@@ -266,10 +291,10 @@ class XMLTab(Tab):
         return True
 
     def on_scroll_up(self):
-        return self.text_win.scroll_up(self.text_win.height-1)
+        return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):
-        return self.text_win.scroll_down(self.text_win.height-1)
+        return self.text_win.scroll_down(self.text_win.height - 1)
 
     @command_args_parser.ignored
     def command_clear(self):
@@ -314,11 +339,9 @@ class XMLTab(Tab):
         self.text_win.resize(self.height - info_win_size - tab_win_height - 2,
                              self.width, 0, 0)
         self.text_win.rebuild_everything(self.core_buffer)
-        self.info_header.resize(1, self.width,
-                                self.height - 2 - info_win_size
-                                    - tab_win_height,
-                                0)
-        self.input.resize(1, self.width, self.height-1, 0)
+        self.info_header.resize(
+            1, self.width, self.height - 2 - info_win_size - tab_win_height, 0)
+        self.input.resize(1, self.width, self.height - 1, 0)
 
     def refresh(self):
         if self.need_resize:
@@ -350,9 +373,10 @@ class XMLTab(Tab):
         self.core.xml_tab = False
 
     def on_info_win_size_changed(self):
-        if self.core.information_win_size >= self.height-3:
+        if self.core.information_win_size >= self.height - 3:
             return
-        self.text_win.resize(self.height-2-self.core.information_win_size - Tab.tab_win_height(), self.width, 0, 0)
-        self.info_header.resize(1, self.width, self.height-2-self.core.information_win_size - Tab.tab_win_height(), 0)
-
-
+        self.text_win.resize(self.height - 2 - self.core.information_win_size -
+                             Tab.tab_win_height(), self.width, 0, 0)
+        self.info_header.resize(
+            1, self.width, self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), 0)

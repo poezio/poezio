@@ -66,8 +66,7 @@ class Core(object):
         self.stdscr = None
         status = config.get('status')
         status = POSSIBLE_SHOW.get(status, None)
-        self.status = Status(show=status,
-                message=config.get('status_message'))
+        self.status = Status(show=status, message=config.get('status_message'))
         self.running = True
         self.xmpp = connection.Connection()
         self.xmpp.core = self
@@ -81,7 +80,8 @@ class Core(object):
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
-        self.information_win_size = config.get('info_win_height', section='var')
+        self.information_win_size = config.get(
+            'info_win_height', section='var')
         self.information_win = windows.TextWin(300)
         self.information_buffer.add_window(self.information_win)
         self.left_tab_win = None
@@ -164,7 +164,7 @@ class Core(object):
             'M-D': self.scroll_info_up,
             'M-C': self.scroll_info_down,
             'M-k': self.escape_next_key,
-        ######## actions mappings ##########
+            ######## actions mappings ##########
             '_noop': lambda *args, **kwargs: None,
             '_bookmark': self.command.bookmark,
             '_bookmark_local': self.command.bookmark_local,
@@ -188,25 +188,30 @@ class Core(object):
             '_show_plugins': self.command.plugins,
             '_show_xmltab': self.command.xml_tab,
             '_toggle_pane': self.toggle_left_pane,
-        ###### status actions ######
+            ###### status actions ######
             '_available': lambda: self.command.status('available'),
             '_away': lambda: self.command.status('away'),
             '_chat': lambda: self.command.status('chat'),
             '_dnd': lambda: self.command.status('dnd'),
             '_xa': lambda: self.command.status('xa'),
-        ##### Custom actions ########
+            ##### Custom actions ########
             '_exc_': self.try_execute,
         }
         self.key_func.update(key_func)
 
         # Add handlers
         self.xmpp.add_event_handler('connected', self.handler.on_connected)
-        self.xmpp.add_event_handler('connection_failed', self.handler.on_failed_connection)
-        self.xmpp.add_event_handler('disconnected', self.handler.on_disconnected)
-        self.xmpp.add_event_handler('stream_error', self.handler.on_stream_error)
-        self.xmpp.add_event_handler('failed_all_auth', self.handler.on_failed_all_auth)
+        self.xmpp.add_event_handler('connection_failed',
+                                    self.handler.on_failed_connection)
+        self.xmpp.add_event_handler('disconnected',
+                                    self.handler.on_disconnected)
+        self.xmpp.add_event_handler('stream_error',
+                                    self.handler.on_stream_error)
+        self.xmpp.add_event_handler('failed_all_auth',
+                                    self.handler.on_failed_all_auth)
         self.xmpp.add_event_handler('no_auth', self.handler.on_no_auth)
-        self.xmpp.add_event_handler("session_start", self.handler.on_session_start)
+        self.xmpp.add_event_handler("session_start",
+                                    self.handler.on_session_start)
         self.xmpp.add_event_handler("session_start",
                                     self.handler.on_session_start_features)
         self.xmpp.add_event_handler("groupchat_presence",
@@ -215,8 +220,9 @@ class Core(object):
                                     self.handler.on_groupchat_message)
         self.xmpp.add_event_handler("groupchat_invite",
                                     self.handler.on_groupchat_invitation)
-        self.xmpp.add_event_handler("groupchat_direct_invite",
-                                    self.handler.on_groupchat_direct_invitation)
+        self.xmpp.add_event_handler(
+            "groupchat_direct_invite",
+            self.handler.on_groupchat_direct_invitation)
         self.xmpp.add_event_handler("groupchat_decline",
                                     self.handler.on_groupchat_decline)
         self.xmpp.add_event_handler("groupchat_config_status",
@@ -224,13 +230,17 @@ class Core(object):
         self.xmpp.add_event_handler("groupchat_subject",
                                     self.handler.on_groupchat_subject)
         self.xmpp.add_event_handler("message", self.handler.on_message)
-        self.xmpp.add_event_handler("message_error", self.handler.on_error_message)
-        self.xmpp.add_event_handler("receipt_received", self.handler.on_receipt)
+        self.xmpp.add_event_handler("message_error",
+                                    self.handler.on_error_message)
+        self.xmpp.add_event_handler("receipt_received",
+                                    self.handler.on_receipt)
         self.xmpp.add_event_handler("got_online", self.handler.on_got_online)
         self.xmpp.add_event_handler("got_offline", self.handler.on_got_offline)
-        self.xmpp.add_event_handler("roster_update", self.handler.on_roster_update)
+        self.xmpp.add_event_handler("roster_update",
+                                    self.handler.on_roster_update)
         self.xmpp.add_event_handler("changed_status", self.handler.on_presence)
-        self.xmpp.add_event_handler("presence_error", self.handler.on_presence_error)
+        self.xmpp.add_event_handler("presence_error",
+                                    self.handler.on_presence_error)
         self.xmpp.add_event_handler("roster_subscription_request",
                                     self.handler.on_subscription_request)
         self.xmpp.add_event_handler("roster_subscription_authorized",
@@ -252,8 +262,10 @@ class Core(object):
                                     self.handler.on_chatstate_inactive)
         self.xmpp.add_event_handler("attention", self.handler.on_attention)
         self.xmpp.add_event_handler("ssl_cert", self.handler.validate_ssl)
-        self.xmpp.add_event_handler("ssl_invalid_chain", self.handler.ssl_invalid_chain)
-        self.xmpp.add_event_handler('carbon_received', self.handler.on_carbon_received)
+        self.xmpp.add_event_handler("ssl_invalid_chain",
+                                    self.handler.ssl_invalid_chain)
+        self.xmpp.add_event_handler('carbon_received',
+                                    self.handler.on_carbon_received)
         self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
         self.xmpp.add_event_handler('http_confirm', self.handler.http_confirm)
 
@@ -315,14 +327,11 @@ class Core(object):
                                        self.xmpp.set_keepalive_values)
         self.add_configuration_handler("connection_check_interval",
                                        self.xmpp.set_keepalive_values)
-        self.add_configuration_handler("themes_dir",
-                                       theming.update_themes_dir)
-        self.add_configuration_handler("theme",
-                                       self.on_theme_config_change)
+        self.add_configuration_handler("themes_dir", theming.update_themes_dir)
+        self.add_configuration_handler("theme", self.on_theme_config_change)
         self.add_configuration_handler("use_bookmarks_method",
                                        self.on_bookmarks_method_config_change)
-        self.add_configuration_handler("password",
-                                       self.on_password_change)
+        self.add_configuration_handler("password", self.on_password_change)
         self.add_configuration_handler("enable_vertical_tab_list",
                                        self.on_vertical_tab_list_config_change)
         self.add_configuration_handler("vertical_tab_list_size",
@@ -394,14 +403,15 @@ class Core(object):
         """
         Called when the request_message_receipts option changes
         """
-        self.xmpp.plugin['xep_0184'].auto_request = config.get(option,
-                                                               default=True)
+        self.xmpp.plugin['xep_0184'].auto_request = config.get(
+            option, default=True)
 
     def on_ack_receipts_config_change(self, option, value):
         """
         Called when the ack_message_receipts option changes
         """
-        self.xmpp.plugin['xep_0184'].auto_ack = config.get(option, default=True)
+        self.xmpp.plugin['xep_0184'].auto_ack = config.get(
+            option, default=True)
 
     def on_plugins_dir_config_change(self, option, value):
         """
@@ -437,7 +447,6 @@ class Core(object):
         Set the new password in the slixmpp.ClientXMPP object
         """
         self.xmpp.password = value
-
 
     def on_nick_determinism_changed(self, option, value):
         """If we change the value to true, we call /recolor on all the MucTabs, to
@@ -501,10 +510,10 @@ class Core(object):
         """
         sig = args[0]
         signals = {
-                1: 'SIGHUP',
-                13: 'SIGPIPE',
-                15: 'SIGTERM',
-                }
+            1: 'SIGHUP',
+            13: 'SIGPIPE',
+            15: 'SIGTERM',
+        }
 
         log.error("%s received. Exiting…", signals[sig])
         if config.get('enable_user_mood'):
@@ -547,13 +556,12 @@ class Core(object):
                 'The online help is here http://doc.poez.io/\n'
                 'No room is joined by default, but you can join poezio’s'
                 ' room (with /join poezio@muc.poez.io), where you can'
-                ' ask for help or tell us how great it is.',
-                'Help')
+                ' ask for help or tell us how great it is.', 'Help')
         self.refresh_window()
         self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
 
     def exit(self, event=None):
-        log.debug("exit(%s)",  event)
+        log.debug("exit(%s)", event)
         asyncio.get_event_loop().stop()
 
     def on_exception(self, typ, value, trace):
@@ -592,11 +600,13 @@ class Core(object):
         """
         main loop waiting for the user to press a key
         """
+
         def replace_line_breaks(key):
             "replace ^J with \n"
             if key == '^J':
                 return '\n'
             return key
+
         def separate_chars_from_bindings(char_list):
             """
             returns a list of lists. For example if you give
@@ -638,7 +648,7 @@ class Core(object):
         log.debug("Input is readable.")
         big_char_list = [replace_key_with_bound(key)\
                          for key in self.read_keyboard()]
-        log.debug("Got from keyboard: %s", (big_char_list,))
+        log.debug("Got from keyboard: %s", (big_char_list, ))
 
         # whether to refresh after ALL keys have been handled
         for char_list in separate_chars_from_bindings(big_char_list):
@@ -651,7 +661,8 @@ class Core(object):
                     except ValueError:
                         pass
                     else:
-                        if self.current_tab().nb == nb and config.get('go_to_previous_tab_on_alt_number'):
+                        if self.current_tab().nb == nb and config.get(
+                                'go_to_previous_tab_on_alt_number'):
                             self.go_to_previous_tab()
                         else:
                             self.command.win('%d' % nb)
@@ -673,12 +684,10 @@ class Core(object):
         """
         ok = roster.save_to_config_file()
         ok = ok and config.silent_set('info_win_height',
-                                      self.information_win_size,
-                                      'var')
+                                      self.information_win_size, 'var')
         if not ok:
             self.information('Unable to save runtime preferences'
-                             ' in the config file',
-                             'Error')
+                             ' in the config file', 'Error')
 
     def on_roster_enter_key(self, roster_row):
         """
@@ -690,9 +699,8 @@ class Core(object):
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
-            if not self.get_conversation_by_jid(roster_row.jid,
-                                                False,
-                                                fallback_barejid=False):
+            if not self.get_conversation_by_jid(
+                    roster_row.jid, False, fallback_barejid=False):
                 self.open_conversation_window(roster_row.jid)
             else:
                 self.focus_tab_named(roster_row.jid)
@@ -716,7 +724,6 @@ class Core(object):
         """
         self.do_command(text, True)
 
-
 ##################### Anything related to command execution ###################
 
     def execute(self, line):
@@ -727,15 +734,14 @@ class Core(object):
             return
         if line.startswith('/'):
             command = line.strip().split()[0][1:]
-            arg = line[2+len(command):] # jump the '/' and the ' '
+            arg = line[2 + len(command):]  # jump the '/' and the ' '
             # example. on "/link 0 open", command = "link" and arg = "0 open"
             if command in self.commands:
                 func = self.commands[command].func
                 func(arg)
                 return
             else:
-                self.information("Unknown command (%s)" % (command),
-                                 'Error')
+                self.information("Unknown command (%s)" % (command), 'Error')
 
     def exec_command(self, command):
         """
@@ -770,16 +776,15 @@ class Core(object):
             fifo_path = config.get('remote_fifo_path')
             if not self.remote_fifo:
                 try:
-                    self.remote_fifo = Fifo(os.path.join(fifo_path,
-                                                         'poezio.fifo'),
-                                            'w')
+                    self.remote_fifo = Fifo(
+                        os.path.join(fifo_path, 'poezio.fifo'), 'w')
                 except (OSError, IOError) as exc:
-                    log.error('Could not open the fifo for writing (%s)',
-                               os.path.join(fifo_path, './', 'poezio.fifo'),
-                               exc_info=True)
+                    log.error(
+                        'Could not open the fifo for writing (%s)',
+                        os.path.join(fifo_path, './', 'poezio.fifo'),
+                        exc_info=True)
                     self.information('Could not open the fifo '
-                                     'file for writing: %s' % exc,
-                                     'Error')
+                                     'file for writing: %s' % exc, 'Error')
                     return
 
             args = (pipes.quote(arg.replace('\n', ' ')) for arg in command)
@@ -787,10 +792,11 @@ class Core(object):
             try:
                 self.remote_fifo.write(command_str)
             except (IOError) as exc:
-                log.error('Could not write in the fifo (%s): %s',
-                            os.path.join(fifo_path, './', 'poezio.fifo'),
-                            repr(command),
-                            exc_info=True)
+                log.error(
+                    'Could not write in the fifo (%s): %s',
+                    os.path.join(fifo_path, './', 'poezio.fifo'),
+                    repr(command),
+                    exc_info=True)
                 self.information('Could not execute %s: %s' % (command, exc),
                                  'Error')
                 self.remote_fifo = None
@@ -799,11 +805,11 @@ class Core(object):
             try:
                 executor.start()
             except ValueError as exc:
-                log.error('Could not execute command (%s)',
-                          repr(command),
-                          exc_info=True)
+                log.error(
+                    'Could not execute command (%s)',
+                    repr(command),
+                    exc_info=True)
                 self.information('%s' % exc, 'Error')
-
 
     def do_command(self, key, raw):
         """
@@ -824,7 +830,6 @@ class Core(object):
         else:
             self.current_tab().on_input(key, raw)
 
-
     def try_execute(self, line):
         """
         Try to execute a command in the current tab
@@ -835,7 +840,6 @@ class Core(object):
         except:
             log.error('Execute failed (%s)', line, exc_info=True)
 
-
 ########################## TImed Events #######################################
 
     def remove_timed_event(self, event):
@@ -844,9 +848,8 @@ class Core(object):
 
     def add_timed_event(self, event):
         """Add a new timed event"""
-        event.handler = asyncio.get_event_loop().call_later(event.delay,
-                                                            event.callback,
-                                                            *event.args)
+        event.handler = asyncio.get_event_loop().call_later(
+            event.delay, event.callback, *event.args)
 
 ####################### XMPP-related actions ##################################
 
@@ -894,7 +897,10 @@ class Core(object):
         if reconnect:
             # Add a one-time event to reconnect as soon as we are
             # effectively disconnected
-            self.xmpp.add_event_handler('disconnected', lambda event: self.xmpp.connect(), disposable=True)
+            self.xmpp.add_event_handler(
+                'disconnected',
+                lambda event: self.xmpp.connect(),
+                disposable=True)
 
     def send_message(self, msg):
         """
@@ -913,20 +919,19 @@ class Core(object):
         or a mediated one if it does not.
         TODO: allow passwords
         """
+
         def callback(iq):
             if not iq:
                 return
             if 'jabber:x:conference' in iq['disco_info'].get_features():
                 self.xmpp.plugin['xep_0249'].send_invitation(
-                        jid,
-                        room,
-                        reason=reason)
-            else: # fallback
-                self.xmpp.plugin['xep_0045'].invite(room, jid,
-                        reason=reason or '')
+                    jid, room, reason=reason)
+            else:  # fallback
+                self.xmpp.plugin['xep_0045'].invite(
+                    room, jid, reason=reason or '')
 
-        self.xmpp.plugin['xep_0030'].get_info(jid=jid, timeout=5,
-                                              callback=callback)
+        self.xmpp.plugin['xep_0030'].get_info(
+            jid=jid, timeout=5, callback=callback)
 
     def get_error_message(self, stanza, deprecated=False):
         """
@@ -951,16 +956,22 @@ class Core(object):
                     body = condition or 'Unknown error'
         if code:
             message = '%(from)s: %(code)s - %(msg)s: %(body)s' % {
-                      'from': sender, 'msg': msg, 'body': body, 'code': code}
+                'from': sender,
+                'msg': msg,
+                'body': body,
+                'code': code
+            }
         else:
             message = '%(from)s: %(msg)s: %(body)s' % {
-                      'from': sender, 'msg': msg, 'body': body}
+                'from': sender,
+                'msg': msg,
+                'body': body
+            }
         return message
-
 
 ####################### Tab logic-related things ##############################
 
-    ### Tab getters ###
+### Tab getters ###
 
     def get_tabs(self, cls=None):
         "Get all the tabs of a type"
@@ -1002,8 +1013,8 @@ class Core(object):
                     # We create a dynamic conversation with the bare Jid if
                     # nothing was found (and we lock it to the resource
                     # later)
-                    conversation = self.open_conversation_window(jid.bare,
-                                                                 False)
+                    conversation = self.open_conversation_window(
+                        jid.bare, False)
                 else:
                     conversation = None
         return conversation
@@ -1062,7 +1073,8 @@ class Core(object):
         if not target:
             if new_pos < len(self.tabs):
                 old_tab = self.tabs[old_pos]
-                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab(self)
+                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab(
+                    self)
             else:
                 self.tabs.append(self.tabs[old_pos])
                 self.tabs[old_pos] = tabs.GapTab(self)
@@ -1139,6 +1151,7 @@ class Core(object):
         Read 2 more chars and go to the tab
         with the given number
         """
+
         def read_next_digit(digit):
             try:
                 int(digit)
@@ -1156,6 +1169,7 @@ class Core(object):
                 else:
                     # We need to read more digits
                     keyboard.continuation_keys_callback = read_next_digit
+
         keyboard.continuation_keys_callback = read_next_digit
 
     def go_to_roster(self):
@@ -1164,7 +1178,7 @@ class Core(object):
 
     def go_to_previous_tab(self):
         "Go to the previous tab"
-        self.command.win('%s' % (self.previous_tab_nb,))
+        self.command.win('%s' % (self.previous_tab_nb, ))
 
     def go_to_important_room(self):
         """
@@ -1183,15 +1197,14 @@ class Core(object):
             else:
                 tab_refs[tab.state].append(tab)
         # sort the state by priority and remove those with negative priority
-        states = sorted(tab_refs.keys(),
-                        key=(lambda x: priority.get(x, 0)),
-                        reverse=True)
+        states = sorted(
+            tab_refs.keys(), key=(lambda x: priority.get(x, 0)), reverse=True)
         states = [state for state in states if priority.get(state, -1) >= 0]
 
         for state in states:
             for tab in tab_refs[state]:
-                if (tab.nb < self.current_tab_nb and
-                    tab_refs[state][-1].nb > self.current_tab_nb):
+                if (tab.nb < self.current_tab_nb
+                        and tab_refs[state][-1].nb > self.current_tab_nb):
                     continue
                 self.command.win('%s' % tab.nb)
                 return
@@ -1202,7 +1215,7 @@ class Core(object):
         for tab in self.tabs:
             if tab.name == tab_name:
                 if (type_ and (isinstance(tab, type_))) or not type_:
-                    self.command.win('%s' % (tab.nb,))
+                    self.command.win('%s' % (tab.nb, ))
                 return True
         return False
 
@@ -1249,7 +1262,7 @@ class Core(object):
         """
         Open a Private conversation in a MUC and focus if needed.
         """
-        complete_jid = room_name+'/'+user_nick
+        complete_jid = room_name + '/' + user_nick
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name == complete_jid:
@@ -1301,12 +1314,14 @@ class Core(object):
         if tab:
             tab.rename_user(old_nick, user)
 
-    def on_user_left_private_conversation(self, room_name, user, status_message):
+    def on_user_left_private_conversation(self, room_name, user,
+                                          status_message):
         """
         The user left the MUC: add a message in the associated
         private conversation
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, user.nick), tabs.PrivateTab)
+        tab = self.get_tab_by_name('%s/%s' % (room_name, user.nick),
+                                   tabs.PrivateTab)
         if tab:
             tab.user_left(status_message, user)
 
@@ -1315,7 +1330,8 @@ class Core(object):
         The user joined a MUC: add a message in the associated
         private conversation
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, nick), tabs.PrivateTab)
+        tab = self.get_tab_by_name('%s/%s' % (room_name, nick),
+                                   tabs.PrivateTab)
         if tab:
             tab.user_rejoined(nick)
 
@@ -1352,10 +1368,10 @@ class Core(object):
         if tab is None:
             tab = self.current_tab()
         if isinstance(tab, tabs.RosterInfoTab):
-            return              # The tab 0 should NEVER be closed
+            return  # The tab 0 should NEVER be closed
         tab.on_close()
-        del tab.key_func      # Remove self references
-        del tab.commands      # and make the object collectable
+        del tab.key_func  # Remove self references
+        del tab.commands  # and make the object collectable
         nb = tab.nb
         if was_current:
             if self.previous_tab_nb != nb:
@@ -1365,7 +1381,7 @@ class Core(object):
             if nb >= len(self.tabs) - 1:
                 self.tabs.remove(tab)
                 nb -= 1
-                while not self.tabs[nb]: # remove the trailing gaps
+                while not self.tabs[nb]:  # remove the trailing gaps
                     self.tabs.pop()
                     nb -= 1
             else:
@@ -1397,7 +1413,6 @@ class Core(object):
             if self.current_tab() is tab:
                 self.refresh_window()
 
-
 ####################### Curses and ui-related stuff ###########################
 
     def doupdate(self):
@@ -1412,18 +1427,21 @@ class Core(object):
         """
         filter_types = config.get('information_buffer_type_filter').split(':')
         if typ.lower() in filter_types:
-            log.debug('Did not show the message:\n\t%s> %s \n\tdue to information_popup_type_filter configuration', typ, msg)
+            log.debug(
+                'Did not show the message:\n\t%s> %s \n\tdue to information_popup_type_filter configuration',
+                typ, msg)
             return False
         filter_messages = config.get('filter_info_messages').split(':')
         for words in filter_messages:
             if words and words in msg:
-                log.debug('Did not show the message:\n\t%s> %s \n\tdue to filter_info_messages configuration', typ, msg)
+                log.debug(
+                    'Did not show the message:\n\t%s> %s \n\tdue to filter_info_messages configuration',
+                    typ, msg)
                 return False
         colors = get_theme().INFO_COLORS
         color = colors.get(typ.lower(), colors.get('default', None))
-        nb_lines = self.information_buffer.add_message(msg,
-                                                       nickname=typ,
-                                                       nick_color=color)
+        nb_lines = self.information_buffer.add_message(
+            msg, nickname=typ, nick_color=color)
         popup_on = config.get('information_buffer_popup_on').split()
         if isinstance(self.current_tab(), tabs.RosterInfoTab):
             self.refresh_window()
@@ -1449,8 +1467,8 @@ class Core(object):
         curses.start_color()
         curses.use_default_colors()
         theming.reload_theme()
-        curses.ungetch(" ")    # H4X: without this, the screen is
-        stdscr.getkey()        # erased on the first "getkey()"
+        curses.ungetch(" ")  # H4X: without this, the screen is
+        stdscr.getkey()  # erased on the first "getkey()"
 
     def reset_curses(self):
         """
@@ -1604,9 +1622,8 @@ class Core(object):
         if time <= 0 or size <= 0:
             return
         result = self.grow_information_win(size)
-        timed_event = timed_events.DelayedEvent(time,
-                        self.shrink_information_win,
-                        result)
+        timed_event = timed_events.DelayedEvent(
+            time, self.shrink_information_win, result)
         self.add_timed_event(timed_event)
         self.refresh_window()
 
@@ -1627,12 +1644,10 @@ class Core(object):
             self.information_win_size = tabs.Tab.height - 6
         if tabs.Tab.height < 6:
             self.information_win_size = 0
-        height = (tabs.Tab.height - 1 - self.information_win_size
-                        - tabs.Tab.tab_win_height())
-        self.information_win.resize(self.information_win_size,
-                                    tabs.Tab.width,
-                                    height,
-                                    0)
+        height = (tabs.Tab.height - 1 - self.information_win_size -
+                  tabs.Tab.tab_win_height())
+        self.information_win.resize(self.information_win_size, tabs.Tab.width,
+                                    height, 0)
 
     def resize_global_info_bar(self):
         """
@@ -1645,16 +1660,15 @@ class Core(object):
                 return
             try:
                 height, _ = self.stdscr.getmaxyx()
-                truncated_win = self.stdscr.subwin(height,
-                        config.get('vertical_tab_list_size'),
-                        0, 0)
+                truncated_win = self.stdscr.subwin(
+                    height, config.get('vertical_tab_list_size'), 0, 0)
             except:
                 log.error('Curses error on infobar resize', exc_info=True)
                 return
-            self.left_tab_win = windows.VerticalGlobalInfoBar(self, truncated_win)
+            self.left_tab_win = windows.VerticalGlobalInfoBar(
+                self, truncated_win)
         elif not self.size.core_degrade_y:
-            self.tab_win.resize(1, tabs.Tab.width,
-                                tabs.Tab.height - 2, 0)
+            self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
             self.left_tab_win = None
 
     def add_message_to_text_buffer(self, buff, txt, nickname=None):
@@ -1663,7 +1677,8 @@ class Core(object):
         (in the Info tab of the info window in the RosterTab)
         """
         if not buff:
-            self.information('Trying to add a message in no room: %s' % txt, 'Error')
+            self.information('Trying to add a message in no room: %s' % txt,
+                             'Error')
             return
         buff.add_message(txt, nickname=nickname)
 
@@ -1683,11 +1698,11 @@ class Core(object):
         # the screen that they can occupy, and we draw the tab list on the
         # remaining space, on the left
         height, width = self.stdscr.getmaxyx()
-        if (config.get('enable_vertical_tab_list') and
-                not self.size.core_degrade_x):
+        if (config.get('enable_vertical_tab_list')
+                and not self.size.core_degrade_x):
             try:
                 scr = self.stdscr.subwin(0,
-                        config.get('vertical_tab_list_size'))
+                                         config.get('vertical_tab_list_size'))
             except:
                 log.error('Curses error on resize', exc_info=True)
                 return
@@ -1739,227 +1754,300 @@ class Core(object):
         """
         Register the commands when poezio starts
         """
-        self.register_command('help', self.command.help,
-                usage='[command]',
-                shortdesc='\\_o< KOIN KOIN KOIN',
-                completion=self.completion.help)
-        self.register_command('join', self.command.join,
-                usage="[room_name][@server][/nick] [password]",
-                desc="Join the specified room. You can specify a nickname "
-                     "after a slash (/). If no nickname is specified, you will"
-                     " use the default_nick in the configuration file. You can"
-                     " omit the room name: you will then join the room you\'re"
-                     " looking at (useful if you were kicked). You can also "
-                     "provide a room_name without specifying a server, the "
-                     "server of the room you're currently in will be used. You"
-                     " can also provide a password to join the room.\nExamples"
-                     ":\n/join room@server.tld\n/join room@server.tld/John\n"
-                     "/join room2\n/join /me_again\n/join\n/join room@server"
-                     ".tld/my_nick password\n/join / password",
-                shortdesc='Join a room',
-                completion=self.completion.join)
-        self.register_command('exit', self.command.quit,
-                desc='Just disconnect from the server and exit poezio.',
-                shortdesc='Exit poezio.')
-        self.register_command('quit', self.command.quit,
-                desc='Just disconnect from the server and exit poezio.',
-                shortdesc='Exit poezio.')
-        self.register_command('next', self.rotate_rooms_right,
-                shortdesc='Go to the next room.')
-        self.register_command('prev', self.rotate_rooms_left,
-                shortdesc='Go to the previous room.')
-        self.register_command('win', self.command.win,
-                usage='<number or name>',
-                shortdesc='Go to the specified room',
-                completion=self.completion.win)
+        self.register_command(
+            'help',
+            self.command.help,
+            usage='[command]',
+            shortdesc='\\_o< KOIN KOIN KOIN',
+            completion=self.completion.help)
+        self.register_command(
+            'join',
+            self.command.join,
+            usage="[room_name][@server][/nick] [password]",
+            desc="Join the specified room. You can specify a nickname "
+            "after a slash (/). If no nickname is specified, you will"
+            " use the default_nick in the configuration file. You can"
+            " omit the room name: you will then join the room you\'re"
+            " looking at (useful if you were kicked). You can also "
+            "provide a room_name without specifying a server, the "
+            "server of the room you're currently in will be used. You"
+            " can also provide a password to join the room.\nExamples"
+            ":\n/join room@server.tld\n/join room@server.tld/John\n"
+            "/join room2\n/join /me_again\n/join\n/join room@server"
+            ".tld/my_nick password\n/join / password",
+            shortdesc='Join a room',
+            completion=self.completion.join)
+        self.register_command(
+            'exit',
+            self.command.quit,
+            desc='Just disconnect from the server and exit poezio.',
+            shortdesc='Exit poezio.')
+        self.register_command(
+            'quit',
+            self.command.quit,
+            desc='Just disconnect from the server and exit poezio.',
+            shortdesc='Exit poezio.')
+        self.register_command(
+            'next', self.rotate_rooms_right, shortdesc='Go to the next room.')
+        self.register_command(
+            'prev',
+            self.rotate_rooms_left,
+            shortdesc='Go to the previous room.')
+        self.register_command(
+            'win',
+            self.command.win,
+            usage='<number or name>',
+            shortdesc='Go to the specified room',
+            completion=self.completion.win)
         self.commands['w'] = self.commands['win']
-        self.register_command('move_tab', self.command.move_tab,
-                usage='<source> <destination>',
-                desc="Insert the <source> tab at the position of "
-                     "<destination>. This will make the following tabs shift in"
-                     " some cases (refer to the documentation). A tab can be "
-                     "designated by its number or by the beginning of its "
-                     "address. You can use \".\" as a shortcut for the current "
-                     "tab.",
-                shortdesc='Move a tab.',
-                completion=self.completion.move_tab)
-        self.register_command('destroy_room', self.command.destroy_room,
-                usage='[room JID]',
-                desc='Try to destroy the room [room JID], or the current'
-                     ' tab if it is a multi-user chat and [room JID] is '
-                     'not given.',
-                shortdesc='Destroy a room.',
-                completion=None)
-        self.register_command('show', self.command.status,
-                usage='<availability> [status message]',
-                desc="Sets your availability and (optionally) your status "
-                     "message. The <availability> argument is one of \"available"
-                     ", chat, away, afk, dnd, busy, xa\" and the optional "
-                     "[status message] argument will be your status message.",
-                shortdesc='Change your availability.',
-                completion=self.completion.status)
+        self.register_command(
+            'move_tab',
+            self.command.move_tab,
+            usage='<source> <destination>',
+            desc="Insert the <source> tab at the position of "
+            "<destination>. This will make the following tabs shift in"
+            " some cases (refer to the documentation). A tab can be "
+            "designated by its number or by the beginning of its "
+            "address. You can use \".\" as a shortcut for the current "
+            "tab.",
+            shortdesc='Move a tab.',
+            completion=self.completion.move_tab)
+        self.register_command(
+            'destroy_room',
+            self.command.destroy_room,
+            usage='[room JID]',
+            desc='Try to destroy the room [room JID], or the current'
+            ' tab if it is a multi-user chat and [room JID] is '
+            'not given.',
+            shortdesc='Destroy a room.',
+            completion=None)
+        self.register_command(
+            'show',
+            self.command.status,
+            usage='<availability> [status message]',
+            desc="Sets your availability and (optionally) your status "
+            "message. The <availability> argument is one of \"available"
+            ", chat, away, afk, dnd, busy, xa\" and the optional "
+            "[status message] argument will be your status message.",
+            shortdesc='Change your availability.',
+            completion=self.completion.status)
         self.commands['status'] = self.commands['show']
-        self.register_command('bookmark_local', self.command.bookmark_local,
-                usage="[roomname][/nick] [password]",
-                desc="Bookmark Local: Bookmark locally the specified room "
-                     "(you will then auto-join it on each poezio start). This"
-                     " commands uses almost the same syntaxe as /join. Type "
-                     "/help join for syntax examples. Note that when typing "
-                     "\"/bookmark\" on its own, the room will be bookmarked "
-                     "with the nickname you\'re currently using in this room "
-                     "(instead of default_nick)",
-                shortdesc='Bookmark a room locally.',
-                completion=self.completion.bookmark_local)
-        self.register_command('bookmark', self.command.bookmark,
-                usage="[roomname][/nick] [autojoin] [password]",
-                desc="Bookmark: Bookmark online the specified room (you "
-                     "will then auto-join it on each poezio start if autojoin"
-                     " is specified and is 'true'). This commands uses almost"
-                     " the same syntax as /join. Type /help join for syntax "
-                     "examples. Note that when typing \"/bookmark\" alone, the"
-                     " room will be bookmarked with the nickname you\'re "
-                     "currently using in this room (instead of default_nick).",
-                shortdesc="Bookmark a room online.",
-                completion=self.completion.bookmark)
-        self.register_command('set', self.command.set,
-                usage="[plugin|][section] <option> [value]",
-                desc="Set the value of an option in your configuration file."
-                     " You can, for example, change your default nickname by "
-                     "doing `/set default_nick toto` or your resource with `/set"
-                     " resource blabla`. You can also set options in specific "
-                     "sections with `/set bindings M-i ^i` or in specific plugin"
-                     " with `/set mpd_client| host 127.0.0.1`. `toggle` can be "
-                     "used as a special value to toggle a boolean option.",
-                shortdesc="Set the value of an option",
-                completion=self.completion.set)
-        self.register_command('set_default', self.command.set_default,
-                usage="[section] <option>",
-                desc="Set the default value of an option. For example, "
-                     "`/set_default resource` will reset the resource "
-                     "option. You can also reset options in specific "
-                     "sections by doing `/set_default section option`.",
-                shortdesc="Set the default value of an option",
-                completion=self.completion.set_default)
-        self.register_command('toggle', self.command.toggle,
-                usage='<option>',
-                desc='Shortcut for /set <option> toggle',
-                shortdesc='Toggle an option',
-                completion=self.completion.toggle)
-        self.register_command('theme', self.command.theme,
-                usage='[theme name]',
-                desc="Reload the theme defined in the config file. If theme"
-                     "_name is provided, set that theme before reloading it.",
-                shortdesc='Load a theme',
-                completion=self.completion.theme)
-        self.register_command('list', self.command.list,
-                usage='[server]',
-                desc="Get the list of public rooms"
-                     " on the specified server.",
-                shortdesc='List the rooms.',
-                completion=self.completion.list)
-        self.register_command('message', self.command.message,
-                usage='<jid> [optional message]',
-                desc="Open a conversation with the specified JID (even if it"
-                     " is not in our roster), and send a message to it, if the "
-                     "message is specified.",
-                shortdesc='Send a message',
-                completion=self.completion.message)
-        self.register_command('version', self.command.version,
-                usage='<jid>',
-                desc="Get the software version of the given JID (usually its"
-                     " XMPP client and Operating System).",
-                shortdesc='Get the software version of a JID.',
-                completion=self.completion.version)
-        self.register_command('server_cycle', self.command.server_cycle,
-                usage='[domain] [message]',
-                desc='Disconnect and reconnect in all the rooms in domain.',
-                shortdesc='Cycle a range of rooms',
-                completion=self.completion.server_cycle)
-        self.register_command('bind', self.command.bind,
-                usage='<key> <equ>',
-                desc="Bind a key to another key or to a “command”. For "
-                     "example \"/bind ^H KEY_UP\" makes Control + h do the"
-                     " same same as the Up key.",
-                completion=self.completion.bind,
-                shortdesc='Bind a key to another key.')
-        self.register_command('load', self.command.load,
-                usage='<plugin> [<otherplugin> …]',
-                shortdesc='Load the specified plugin(s)',
-                completion=self.plugin_manager.completion_load)
-        self.register_command('unload', self.command.unload,
-                usage='<plugin> [<otherplugin> …]',
-                shortdesc='Unload the specified plugin(s)',
-                completion=self.plugin_manager.completion_unload)
-        self.register_command('plugins', self.command.plugins,
-                shortdesc='Show the plugins in use.')
-        self.register_command('presence', self.command.presence,
-                usage='<JID> [type] [status]',
-                desc="Send a directed presence to <JID> and using"
-                     " [type] and [status] if provided.",
-                shortdesc='Send a directed presence.',
-                completion=self.completion.presence)
-        self.register_command('rawxml', self.command.rawxml,
-                usage='<xml>',
-                shortdesc='Send a custom xml stanza.')
-        self.register_command('invite', self.command.invite,
-                usage='<jid> <room> [reason]',
-                desc='Invite jid in room with reason.',
-                shortdesc='Invite someone in a room.',
-                completion=self.completion.invite)
-        self.register_command('invitations', self.command.invitations,
-                shortdesc='Show the pending invitations.')
-        self.register_command('bookmarks', self.command.bookmarks,
-                shortdesc='Show the current bookmarks.')
-        self.register_command('remove_bookmark', self.command.remove_bookmark,
-                usage='[jid]',
-                desc="Remove the specified bookmark, or the "
-                     "bookmark on the current tab, if any.",
-                shortdesc='Remove a bookmark',
-                completion=self.completion.remove_bookmark)
-        self.register_command('xml_tab', self.command.xml_tab,
-                shortdesc='Open an XML tab.')
-        self.register_command('runkey', self.command.runkey,
-                usage='<key>',
-                shortdesc='Execute the action defined for <key>.',
-                completion=self.completion.runkey)
-        self.register_command('self', self.command.self_,
-                shortdesc='Remind you of who you are.')
-        self.register_command('last_activity', self.command.last_activity,
-                usage='<jid>',
-                desc='Informs you of the last activity of a JID.',
-                shortdesc='Get the activity of someone.',
-                completion=self.completion.last_activity)
-        self.register_command('ad-hoc', self.command.adhoc,
-                usage='<jid>',
-                shortdesc='List available ad-hoc commands on the given jid')
-        self.register_command('reload', self.command.reload,
-                shortdesc='Reload the config. You can achieve the same by '
-                          'sending SIGUSR1 to poezio.')
+        self.register_command(
+            'bookmark_local',
+            self.command.bookmark_local,
+            usage="[roomname][/nick] [password]",
+            desc="Bookmark Local: Bookmark locally the specified room "
+            "(you will then auto-join it on each poezio start). This"
+            " commands uses almost the same syntaxe as /join. Type "
+            "/help join for syntax examples. Note that when typing "
+            "\"/bookmark\" on its own, the room will be bookmarked "
+            "with the nickname you\'re currently using in this room "
+            "(instead of default_nick)",
+            shortdesc='Bookmark a room locally.',
+            completion=self.completion.bookmark_local)
+        self.register_command(
+            'bookmark',
+            self.command.bookmark,
+            usage="[roomname][/nick] [autojoin] [password]",
+            desc="Bookmark: Bookmark online the specified room (you "
+            "will then auto-join it on each poezio start if autojoin"
+            " is specified and is 'true'). This commands uses almost"
+            " the same syntax as /join. Type /help join for syntax "
+            "examples. Note that when typing \"/bookmark\" alone, the"
+            " room will be bookmarked with the nickname you\'re "
+            "currently using in this room (instead of default_nick).",
+            shortdesc="Bookmark a room online.",
+            completion=self.completion.bookmark)
+        self.register_command(
+            'set',
+            self.command.set,
+            usage="[plugin|][section] <option> [value]",
+            desc="Set the value of an option in your configuration file."
+            " You can, for example, change your default nickname by "
+            "doing `/set default_nick toto` or your resource with `/set"
+            " resource blabla`. You can also set options in specific "
+            "sections with `/set bindings M-i ^i` or in specific plugin"
+            " with `/set mpd_client| host 127.0.0.1`. `toggle` can be "
+            "used as a special value to toggle a boolean option.",
+            shortdesc="Set the value of an option",
+            completion=self.completion.set)
+        self.register_command(
+            'set_default',
+            self.command.set_default,
+            usage="[section] <option>",
+            desc="Set the default value of an option. For example, "
+            "`/set_default resource` will reset the resource "
+            "option. You can also reset options in specific "
+            "sections by doing `/set_default section option`.",
+            shortdesc="Set the default value of an option",
+            completion=self.completion.set_default)
+        self.register_command(
+            'toggle',
+            self.command.toggle,
+            usage='<option>',
+            desc='Shortcut for /set <option> toggle',
+            shortdesc='Toggle an option',
+            completion=self.completion.toggle)
+        self.register_command(
+            'theme',
+            self.command.theme,
+            usage='[theme name]',
+            desc="Reload the theme defined in the config file. If theme"
+            "_name is provided, set that theme before reloading it.",
+            shortdesc='Load a theme',
+            completion=self.completion.theme)
+        self.register_command(
+            'list',
+            self.command.list,
+            usage='[server]',
+            desc="Get the list of public rooms"
+            " on the specified server.",
+            shortdesc='List the rooms.',
+            completion=self.completion.list)
+        self.register_command(
+            'message',
+            self.command.message,
+            usage='<jid> [optional message]',
+            desc="Open a conversation with the specified JID (even if it"
+            " is not in our roster), and send a message to it, if the "
+            "message is specified.",
+            shortdesc='Send a message',
+            completion=self.completion.message)
+        self.register_command(
+            'version',
+            self.command.version,
+            usage='<jid>',
+            desc="Get the software version of the given JID (usually its"
+            " XMPP client and Operating System).",
+            shortdesc='Get the software version of a JID.',
+            completion=self.completion.version)
+        self.register_command(
+            'server_cycle',
+            self.command.server_cycle,
+            usage='[domain] [message]',
+            desc='Disconnect and reconnect in all the rooms in domain.',
+            shortdesc='Cycle a range of rooms',
+            completion=self.completion.server_cycle)
+        self.register_command(
+            'bind',
+            self.command.bind,
+            usage='<key> <equ>',
+            desc="Bind a key to another key or to a “command”. For "
+            "example \"/bind ^H KEY_UP\" makes Control + h do the"
+            " same same as the Up key.",
+            completion=self.completion.bind,
+            shortdesc='Bind a key to another key.')
+        self.register_command(
+            'load',
+            self.command.load,
+            usage='<plugin> [<otherplugin> …]',
+            shortdesc='Load the specified plugin(s)',
+            completion=self.plugin_manager.completion_load)
+        self.register_command(
+            'unload',
+            self.command.unload,
+            usage='<plugin> [<otherplugin> …]',
+            shortdesc='Unload the specified plugin(s)',
+            completion=self.plugin_manager.completion_unload)
+        self.register_command(
+            'plugins',
+            self.command.plugins,
+            shortdesc='Show the plugins in use.')
+        self.register_command(
+            'presence',
+            self.command.presence,
+            usage='<JID> [type] [status]',
+            desc="Send a directed presence to <JID> and using"
+            " [type] and [status] if provided.",
+            shortdesc='Send a directed presence.',
+            completion=self.completion.presence)
+        self.register_command(
+            'rawxml',
+            self.command.rawxml,
+            usage='<xml>',
+            shortdesc='Send a custom xml stanza.')
+        self.register_command(
+            'invite',
+            self.command.invite,
+            usage='<jid> <room> [reason]',
+            desc='Invite jid in room with reason.',
+            shortdesc='Invite someone in a room.',
+            completion=self.completion.invite)
+        self.register_command(
+            'invitations',
+            self.command.invitations,
+            shortdesc='Show the pending invitations.')
+        self.register_command(
+            'bookmarks',
+            self.command.bookmarks,
+            shortdesc='Show the current bookmarks.')
+        self.register_command(
+            'remove_bookmark',
+            self.command.remove_bookmark,
+            usage='[jid]',
+            desc="Remove the specified bookmark, or the "
+            "bookmark on the current tab, if any.",
+            shortdesc='Remove a bookmark',
+            completion=self.completion.remove_bookmark)
+        self.register_command(
+            'xml_tab', self.command.xml_tab, shortdesc='Open an XML tab.')
+        self.register_command(
+            'runkey',
+            self.command.runkey,
+            usage='<key>',
+            shortdesc='Execute the action defined for <key>.',
+            completion=self.completion.runkey)
+        self.register_command(
+            'self', self.command.self_, shortdesc='Remind you of who you are.')
+        self.register_command(
+            'last_activity',
+            self.command.last_activity,
+            usage='<jid>',
+            desc='Informs you of the last activity of a JID.',
+            shortdesc='Get the activity of someone.',
+            completion=self.completion.last_activity)
+        self.register_command(
+            'ad-hoc',
+            self.command.adhoc,
+            usage='<jid>',
+            shortdesc='List available ad-hoc commands on the given jid')
+        self.register_command(
+            'reload',
+            self.command.reload,
+            shortdesc='Reload the config. You can achieve the same by '
+            'sending SIGUSR1 to poezio.')
 
         if config.get('enable_user_activity'):
-            self.register_command('activity', self.command.activity,
-                    usage='[<general> [specific] [text]]',
-                    desc='Send your current activity to your contacts '
-                         '(use the completion). Nothing means '
-                         '"stop broadcasting an activity".',
-                    shortdesc='Send your activity.',
-                    completion=self.completion.activity)
+            self.register_command(
+                'activity',
+                self.command.activity,
+                usage='[<general> [specific] [text]]',
+                desc='Send your current activity to your contacts '
+                '(use the completion). Nothing means '
+                '"stop broadcasting an activity".',
+                shortdesc='Send your activity.',
+                completion=self.completion.activity)
         if config.get('enable_user_mood'):
-            self.register_command('mood', self.command.mood,
-                    usage='[<mood> [text]]',
-                    desc='Send your current mood to your contacts '
-                         '(use the completion). Nothing means '
-                         '"stop broadcasting a mood".',
-                    shortdesc='Send your mood.',
-                    completion=self.completion.mood)
+            self.register_command(
+                'mood',
+                self.command.mood,
+                usage='[<mood> [text]]',
+                desc='Send your current mood to your contacts '
+                '(use the completion). Nothing means '
+                '"stop broadcasting a mood".',
+                shortdesc='Send your mood.',
+                completion=self.completion.mood)
         if config.get('enable_user_gaming'):
-            self.register_command('gaming', self.command.gaming,
-                    usage='[<game name> [server address]]',
-                    desc='Send your current gaming activity to '
-                         'your contacts. Nothing means "stop '
-                         'broadcasting a gaming activity".',
-                    shortdesc='Send your gaming activity.',
-                    completion=None)
+            self.register_command(
+                'gaming',
+                self.command.gaming,
+                usage='[<game name> [server address]]',
+                desc='Send your current gaming activity to '
+                'your contacts. Nothing means "stop '
+                'broadcasting a gaming activity".',
+                shortdesc='Send your gaming activity.',
+                completion=None)
+
 
 ####################### Random things to move #################################
 
@@ -1971,22 +2059,26 @@ class Core(object):
             tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
             nick = bm.nick if bm.nick else self.own_nick
             if not tab:
-                self.open_new_room(bm.jid, nick, focus=False,
-                                   password=bm.password)
+                self.open_new_room(
+                    bm.jid, nick, focus=False, password=bm.password)
             self.initial_joins.append(bm.jid)
             # do not join rooms that do not have autojoin
             # but display them anyway
             if bm.autojoin:
-                muc.join_groupchat(self, bm.jid, nick,
-                        passwd=bm.password,
-                        status=self.status.message,
-                        show=self.status.show)
+                muc.join_groupchat(
+                    self,
+                    bm.jid,
+                    nick,
+                    passwd=bm.password,
+                    status=self.status.message,
+                    show=self.status.show)
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features
         pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
         self.bookmarks.available_storage['private'] = private
         self.bookmarks.available_storage['pep'] = pep_
+
         def _join_remote_only(iq):
             if iq['type'] == 'error':
                 type_ = iq['error']['type']
@@ -1998,8 +2090,10 @@ class Core(object):
                 return
             remote_bookmarks = self.bookmarks.remote()
             self.join_initial_rooms(remote_bookmarks)
+
         if not self.xmpp.anon and config.get('use_remote_bookmarks'):
-            self.bookmarks.get_remote(self.xmpp, self.information, _join_remote_only)
+            self.bookmarks.get_remote(self.xmpp, self.information,
+                                      _join_remote_only)
 
     def room_error(self, error, room_name):
         """
@@ -2009,20 +2103,28 @@ class Core(object):
         if not tab:
             return
         error_message = self.get_error_message(error)
-        tab.add_message(error_message, highlight=True, nickname='Error',
-                        nick_color=get_theme().COLOR_ERROR_MSG, typ=2)
+        tab.add_message(
+            error_message,
+            highlight=True,
+            nickname='Error',
+            nick_color=get_theme().COLOR_ERROR_MSG,
+            typ=2)
         code = error['error']['code']
         if code == '401':
             msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
             tab.add_message(msg, typ=2)
         if code == '409':
             if config.get('alternative_nickname') != '':
-                self.command.join('%s/%s'% (tab.name, tab.own_nick+config.get('alternative_nickname')))
+                self.command.join(
+                    '%s/%s' %
+                    (tab.name,
+                     tab.own_nick + config.get('alternative_nickname')))
             else:
                 if not tab.joined:
-                    tab.add_message('You can join the room with an other nick, by typing "/join /other_nick"', typ=2)
+                    tab.add_message(
+                        'You can join the room with an other nick, by typing "/join /other_nick"',
+                        typ=2)
         self.refresh_window()
-
 
 
 class KeyDict(dict):
@@ -2030,10 +2132,12 @@ class KeyDict(dict):
     A dict, with a wrapper for get() that will return a custom value
     if the key starts with _exc_
     """
+
     def get(self, k, d=None):
         if isinstance(k, str) and k.startswith('_exc_') and len(k) > 5:
             return lambda: dict.get(self, '_exc_')(k[5:])
         return dict.get(self, k, d)
+
 
 def replace_key_with_bound(key):
     """
@@ -2044,5 +2148,3 @@ def replace_key_with_bound(key):
     if not bind:
         bind = key
     return bind
-
-

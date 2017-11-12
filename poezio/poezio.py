@@ -4,8 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
-
 """
 Starting point of poezio. Launches both the Connection and Gui
 """
@@ -15,6 +13,7 @@ import os
 import signal
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 def test_curses():
     """
@@ -74,9 +73,9 @@ def main():
 
     from poezio import core
 
-    signal.signal(signal.SIGINT, signal.SIG_IGN) # ignore ctrl-c
+    signal.signal(signal.SIGINT, signal.SIG_IGN)  # ignore ctrl-c
     cocore = core.Core()
-    signal.signal(signal.SIGUSR1, cocore.sigusr_handler) # reload the config
+    signal.signal(signal.SIGUSR1, cocore.sigusr_handler)  # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)
     if options.debug:
@@ -84,6 +83,7 @@ def main():
     cocore.start()
 
     from slixmpp.exceptions import IqError, IqTimeout
+
     def swallow_iqerrors(loop, context):
         """Do not log unhandled iq errors and timeouts"""
         if not isinstance(context['exception'], (IqError, IqTimeout)):

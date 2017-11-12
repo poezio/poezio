@@ -22,6 +22,7 @@ FORMAT_CHAR = '\x19'
 # I guess. But maybe we can find better chars that are even less risky.
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18'
 
+
 class DummyWin(object):
     def __getattribute__(self, name):
         if name != '__bool__':
@@ -103,7 +104,7 @@ class Win(object):
         has_italic = hasattr(curses, 'A_ITALIC')
         while next_attr_char != -1 and text:
             if next_attr_char + 1 < len(text):
-                attr_char = text[next_attr_char+1].lower()
+                attr_char = text[next_attr_char + 1].lower()
             else:
                 attr_char = str()
             if next_attr_char != 0:
@@ -116,8 +117,10 @@ class Win(object):
                 self._win.attron(curses.A_BOLD)
             elif attr_char == 'i' and has_italic:
                 self._win.attron(curses.A_ITALIC)
-            if (attr_char in string.digits or attr_char == '-') and attr_char != '':
-                color_str = text[next_attr_char+1:text.find('}', next_attr_char)]
+            if (attr_char in string.digits
+                    or attr_char == '-') and attr_char != '':
+                color_str = text[next_attr_char + 1:text.find(
+                    '}', next_attr_char)]
                 if ',' in color_str:
                     tup, char = read_tuple(color_str)
                     self._win.attron(to_curses_attr(tup))
@@ -136,9 +139,9 @@ class Win(object):
                         self._win.attroff(curses.A_BOLD)
                 elif color_str:
                     self._win.attron(to_curses_attr((int(color_str), -1)))
-                text = text[next_attr_char+len(color_str)+2:]
+                text = text[next_attr_char + len(color_str) + 2:]
             else:
-                text = text[next_attr_char+2:]
+                text = text[next_attr_char + 2:]
             next_attr_char = text.find(FORMAT_CHAR)
         self.addstr(text)
 
@@ -149,6 +152,6 @@ class Win(object):
         (y, x) = self._win.getyx()
         size = self.width - x
         if color:
-            self.addnstr(' '*size, size, to_curses_attr(color))
+            self.addnstr(' ' * size, size, to_curses_attr(color))
         else:
-            self.addnstr(' '*size, size)
+            self.addnstr(' ' * size, size)

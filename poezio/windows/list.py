@@ -16,12 +16,13 @@ class ListWin(Win):
     A list (with no depth, so not for the roster) that can be
     scrolled up and down, with one selected line at a time
     """
+
     def __init__(self, columns, with_headers=True):
         Win.__init__(self)
-        self._columns = columns # a dict {'column_name': tuple_index}
-        self._columns_sizes = {} # a dict {'column_name': size}
-        self.sorted_by = (None, None) # for example: ('name', '↑')
-        self.lines = []         # a list of dicts
+        self._columns = columns  # a dict {'column_name': tuple_index}
+        self._columns_sizes = {}  # a dict {'column_name': size}
+        self.sorted_by = (None, None)  # for example: ('name', '↑')
+        self.lines = []  # a list of dicts
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
 
@@ -55,8 +56,8 @@ class ListWin(Win):
         elif asc:
             self.lines.sort(key=lambda x: x[self._columns[col_name]])
         else:
-            self.lines.sort(key=lambda x: x[self._columns[col_name]],
-                            reverse=True)
+            self.lines.sort(
+                key=lambda x: x[self._columns[col_name]], reverse=True)
         self.refresh()
         curses.doupdate()
 
@@ -87,7 +88,7 @@ class ListWin(Win):
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
-        lines = self.lines[self._starting_pos:self._starting_pos+self.height]
+        lines = self.lines[self._starting_pos:self._starting_pos + self.height]
         for y, line in enumerate(lines):
             x = 0
             for col in self._columns.items():
@@ -96,12 +97,13 @@ class ListWin(Win):
                 except KeyError:
                     txt = ''
                 size = self._columns_sizes[col[0]]
-                txt += ' ' * (size-len(txt))
+                txt += ' ' * (size - len(txt))
                 if not txt:
                     continue
                 if line is self.lines[self._selected_row]:
                     self.addstr(y, x, txt[:size],
-                                to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                                to_curses_attr(
+                                    get_theme().COLOR_INFORMATION_BAR))
                 else:
                     self.addstr(y, x, txt[:size])
                 x += size
@@ -138,7 +140,7 @@ class ListWin(Win):
             return
         self._selected_row += self.height
         if self._selected_row > len(self.lines) - 1:
-            self._selected_row = len(self.lines) -1
+            self._selected_row = len(self.lines) - 1
         while self._selected_row >= self._starting_pos + self.height:
             self._starting_pos += self.height // 2
         if self._starting_pos < 0:
@@ -155,10 +157,12 @@ class ListWin(Win):
             self._starting_pos -= self.height // 2
         return True
 
+
 class ColumnHeaderWin(Win):
     """
     A class displaying the column's names
     """
+
     def __init__(self, columns):
         Win.__init__(self)
         self._columns = columns
@@ -186,11 +190,14 @@ class ColumnHeaderWin(Win):
                     txt += get_theme().CHAR_COLUMN_DESC
             #⇓⇑↑↓⇧⇩▲▼
             size = self._columns_sizes[col]
-            txt += ' ' * (size-len(txt))
+            txt += ' ' * (size - len(txt))
             if col in self._column_sel:
-                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
+                self.addstr(0, x, txt,
+                            to_curses_attr(
+                                get_theme().COLOR_COLUMN_HEADER_SEL))
             else:
-                self.addstr(0, x, txt, to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
+                self.addstr(0, x, txt,
+                            to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
             x += size
         self._refresh()
 
@@ -214,7 +221,7 @@ class ColumnHeaderWin(Win):
         if self._column_sel in self._columns:
             index = self._columns.index(self._column_sel)
             if index > 1:
-                index = index -1
+                index = index - 1
             else:
                 index = 0
         else:
@@ -225,12 +232,11 @@ class ColumnHeaderWin(Win):
     def sel_column_right(self):
         if self._column_sel in self._columns:
             index = self._columns.index(self._column_sel)
-            if index < len(self._columns)-2:
-                index = index +1
+            if index < len(self._columns) - 2:
+                index = index + 1
             else:
-                index = len(self._columns) -1
+                index = len(self._columns) - 1
         else:
             index = len(self._columns) - 1
         self._column_sel = self._columns[index]
         self.refresh()
-

@@ -21,6 +21,7 @@ from poezio.theming import to_curses_attr, get_theme, dump_tuple
 # text_end are the position delimiting the text in this line.
 class Line:
     __slots__ = ('msg', 'start_pos', 'end_pos', 'prepend')
+
     def __init__(self, msg, start_pos, end_pos, prepend):
         self.msg = msg
         self.start_pos = start_pos
@@ -35,7 +36,7 @@ class BaseTextWin(Win):
         Win.__init__(self)
         self.lines_nb_limit = lines_nb_limit
         self.pos = 0
-        self.built_lines = []   # Each new message is built and kept here.
+        self.built_lines = []  # Each new message is built and kept here.
         # on resize, we rebuild all the messages
 
         self.lock = False
@@ -73,13 +74,20 @@ class BaseTextWin(Win):
             self.pos = 0
         return self.pos != pos
 
-    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False, nick_size=10):
+    def build_new_message(self,
+                          message,
+                          history=None,
+                          clean=True,
+                          highlight=False,
+                          timestamp=False,
+                          nick_size=10):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        lines = self.build_message(message, timestamp=timestamp, nick_size=nick_size)
+        lines = self.build_message(
+            message, timestamp=timestamp, nick_size=nick_size)
         if self.lock:
             self.lock_buffer.extend(lines)
         else:
@@ -143,15 +151,21 @@ class BaseTextWin(Win):
         with_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
         for message in room.messages:
-            self.build_new_message(message, clean=False, timestamp=with_timestamps, nick_size=nick_size)
+            self.build_new_message(
+                message,
+                clean=False,
+                timestamp=with_timestamps,
+                nick_size=nick_size)
             if self.separator_after is message:
                 self.build_new_message(None)
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
 
     def __del__(self):
-        log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
+        log.debug('** TextWin: deleting %s built lines',
+                  (len(self.built_lines)))
         del self.built_lines
+
 
 class TextWin(BaseTextWin):
     def __init__(self, lines_nb_limit=None):
@@ -179,8 +193,8 @@ class TextWin(BaseTextWin):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the next highlight…')
-        if (not self.highlights or self.hl_pos != self.hl_pos or
-                self.hl_pos >= len(self.highlights) - 1):
+        if (not self.highlights or self.hl_pos != self.hl_pos
+                or self.hl_pos >= len(self.highlights) - 1):
             self.hl_pos = float('nan')
             self.pos = 0
             return
@@ -196,7 +210,7 @@ class TextWin(BaseTextWin):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                self.highlights = self.highlights[self.hl_pos+1:]
+                self.highlights = self.highlights[self.hl_pos + 1:]
                 if not self.highlights:
                     self.hl_pos = float('nan')
                     self.pos = 0
@@ -230,7 +244,7 @@ class TextWin(BaseTextWin):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                self.highlights = self.highlights[self.hl_pos+1:]
+                self.highlights = self.highlights[self.hl_pos + 1:]
                 if not self.highlights:
                     self.hl_pos = float('nan')
                     self.pos = 0
@@ -247,7 +261,8 @@ class TextWin(BaseTextWin):
         present, scroll at the top of the window
         """
         if None in self.built_lines:
-            self.pos = len(self.built_lines) - self.built_lines.index(None) - self.height + 1
+            self.pos = len(self.built_lines) - self.built_lines.index(
+                None) - self.height + 1
             if self.pos < 0:
                 self.pos = 0
         else:
@@ -257,7 +272,8 @@ class TextWin(BaseTextWin):
         # Make “next highlight” work afterwards. This makes it easy to
         # review all the highlights since the separator was placed, in
         # the correct order.
-        self.hl_pos = len(self.highlights) - self.nb_of_highlights_after_separator - 1
+        self.hl_pos = len(
+            self.highlights) - self.nb_of_highlights_after_separator - 1
         log.debug("self.hl_pos = %s", self.hl_pos)
 
     def remove_line_separator(self):
@@ -282,13 +298,20 @@ class TextWin(BaseTextWin):
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 
-    def build_new_message(self, message, history=None, clean=True, highlight=False, timestamp=False, nick_size=10):
+    def build_new_message(self,
+                          message,
+                          history=None,
+                          clean=True,
+                          highlight=False,
+                          timestamp=False,
+                          nick_size=10):
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        lines = self.build_message(message, timestamp=timestamp, nick_size=nick_size)
+        lines = self.build_message(
+            message, timestamp=timestamp, nick_size=nick_size)
         if self.lock:
             self.lock_buffer.extend(lines)
         else:
@@ -316,8 +339,8 @@ class TextWin(BaseTextWin):
         if not txt:
             return []
         if len(message.str_time) > 8:
-            default_color = (FORMAT_CHAR + dump_tuple(get_theme().COLOR_LOG_MSG)
-                             + '}')
+            default_color = (
+                FORMAT_CHAR + dump_tuple(get_theme().COLOR_LOG_MSG) + '}')
         else:
             default_color = None
         ret = []
@@ -329,11 +352,11 @@ class TextWin(BaseTextWin):
             else:
                 offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
         if nick:
-            offset += poopt.wcswidth(nick) + 2 # + nick + '> ' length
+            offset += poopt.wcswidth(nick) + 2  # + nick + '> ' length
         if message.revisions > 0:
             offset += ceil(log10(message.revisions + 1))
         if message.me:
-            offset += 1 # '* ' before and ' ' after
+            offset += 1  # '* ' before and ' ' after
         if timestamp:
             if message.str_time:
                 offset += 1 + len(message.str_time)
@@ -341,11 +364,15 @@ class TextWin(BaseTextWin):
                 offset += 1
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
-        lines = poopt.cut_text(txt, self.width-offset-1)
+        lines = poopt.cut_text(txt, self.width - offset - 1)
         prepend = default_color if default_color else ''
         attrs = []
         for line in lines:
-            saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
+            saved = Line(
+                msg=message,
+                start_pos=line[0],
+                end_pos=line[1],
+                prepend=prepend)
             attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
             if attrs:
                 prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
@@ -364,7 +391,7 @@ class TextWin(BaseTextWin):
         if self.pos == 0:
             lines = self.built_lines[-self.height:]
         else:
-            lines = self.built_lines[-self.height-self.pos:-self.pos]
+            lines = self.built_lines[-self.height - self.pos:-self.pos]
         with_timestamps = config.get("show_timestamps")
         nick_size = config.get("max_nick_length")
         self._win.move(0, 0)
@@ -374,14 +401,17 @@ class TextWin(BaseTextWin):
             if line:
                 msg = line.msg
                 if line.start_pos == 0:
-                    offset = self.write_pre_msg(msg, with_timestamps, nick_size)
+                    offset = self.write_pre_msg(msg, with_timestamps,
+                                                nick_size)
                 elif y == 0:
-                    offset = self.compute_offset(msg, with_timestamps, nick_size)
-                self.write_text(y, offset, line.prepend
-                                + line.msg.txt[line.start_pos:line.end_pos])
+                    offset = self.compute_offset(msg, with_timestamps,
+                                                 nick_size)
+                self.write_text(
+                    y, offset,
+                    line.prepend + line.msg.txt[line.start_pos:line.end_pos])
             else:
                 self.write_line_separator(y)
-            if y != self.height-1:
+            if y != self.height - 1:
                 self.addstr('\n')
         self._win.attrset(0)
         self._refresh()
@@ -391,7 +421,7 @@ class TextWin(BaseTextWin):
         if with_timestamps and msg.str_time:
             offset += poopt.wcswidth(msg.str_time) + 1
 
-        if not msg.nickname: # not a message, nothing to do afterwards
+        if not msg.nickname:  # not a message, nothing to do afterwards
             return offset
 
         nick = truncate_nick(msg.nickname, nick_size)
@@ -410,13 +440,12 @@ class TextWin(BaseTextWin):
         offset += self.write_revisions(msg)
         return offset
 
-
     def write_pre_msg(self, msg, with_timestamps, nick_size):
         offset = 0
         if with_timestamps:
             offset += self.write_time(msg.str_time)
 
-        if not msg.nickname: # not a message, nothing to do afterwards
+        if not msg.nickname:  # not a message, nothing to do afterwards
             return offset
 
         nick = truncate_nick(msg.nickname, nick_size)
@@ -448,7 +477,8 @@ class TextWin(BaseTextWin):
 
     def write_revisions(self, msg):
         if msg.revisions:
-            self._win.attron(to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
+            self._win.attron(
+                to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
             self.addstr('%d' % msg.revisions)
             self._win.attrset(0)
             return ceil(log10(msg.revisions + 1))
@@ -457,8 +487,7 @@ class TextWin(BaseTextWin):
     def write_line_separator(self, y):
         char = get_theme().CHAR_NEW_TEXT_SEPARATOR
         self.addnstr(y, 0,
-                     char * (self.width // len(char) - 1),
-                     self.width,
+                     char * (self.width // len(char) - 1), self.width,
                      to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
     def write_ack(self):
@@ -505,22 +534,25 @@ class TextWin(BaseTextWin):
         """
         with_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
-        for i in range(len(self.built_lines)-1, -1, -1):
+        for i in range(len(self.built_lines) - 1, -1, -1):
             if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
                 index = i
                 while index >= 0 and self.built_lines[index] and self.built_lines[index].msg.identifier == old_id:
                     self.built_lines.pop(index)
                     index -= 1
                 index += 1
-                lines = self.build_message(message, timestamp=with_timestamps, nick_size=nick_size)
+                lines = self.build_message(
+                    message, timestamp=with_timestamps, nick_size=nick_size)
                 for line in lines:
                     self.built_lines.insert(index, line)
                     index += 1
                 break
 
     def __del__(self):
-        log.debug('** TextWin: deleting %s built lines', (len(self.built_lines)))
+        log.debug('** TextWin: deleting %s built lines',
+                  (len(self.built_lines)))
         del self.built_lines
+
 
 class XMLTextWin(BaseTextWin):
     def __init__(self):
@@ -534,7 +566,7 @@ class XMLTextWin(BaseTextWin):
         if self.pos == 0:
             lines = self.built_lines[-self.height:]
         else:
-            lines = self.built_lines[-self.height-self.pos:-self.pos]
+            lines = self.built_lines[-self.height - self.pos:-self.pos]
         self._win.move(0, 0)
         self._win.erase()
         for y, line in enumerate(lines):
@@ -548,7 +580,7 @@ class XMLTextWin(BaseTextWin):
                     self.write_time(msg.str_time)
                     self.write_prefix(msg.nickname, color)
                     self.addstr(' ')
-            if y != self.height-1:
+            if y != self.height - 1:
                 self.addstr('\n')
         self._win.attrset(0)
         for y, line in enumerate(lines):
@@ -563,9 +595,10 @@ class XMLTextWin(BaseTextWin):
             # space
             offset += 1
 
-            self.write_text(y, offset, line.prepend
-                            + line.msg.txt[line.start_pos:line.end_pos])
-            if y != self.height-1:
+            self.write_text(
+                y, offset,
+                line.prepend + line.msg.txt[line.start_pos:line.end_pos])
+            if y != self.height - 1:
                 self.addstr('\n')
         self._win.attrset(0)
         self._refresh()
@@ -577,18 +610,22 @@ class XMLTextWin(BaseTextWin):
         nick = truncate_nick(message.nickname, nick_size)
         offset = 0
         if nick:
-            offset += poopt.wcswidth(nick) + 1 # + nick + ' ' length
+            offset += poopt.wcswidth(nick) + 1  # + nick + ' ' length
         if message.str_time:
             offset += 1 + len(message.str_time)
         if get_theme().CHAR_TIME_LEFT and message.str_time:
             offset += 1
         if get_theme().CHAR_TIME_RIGHT and message.str_time:
             offset += 1
-        lines = poopt.cut_text(txt, self.width-offset-1)
+        lines = poopt.cut_text(txt, self.width - offset - 1)
         prepend = default_color if default_color else ''
         attrs = []
         for line in lines:
-            saved = Line(msg=message, start_pos=line[0], end_pos=line[1], prepend=prepend)
+            saved = Line(
+                msg=message,
+                start_pos=line[0],
+                end_pos=line[1],
+                prepend=prepend)
             attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
             if attrs:
                 prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
@@ -604,4 +641,3 @@ class XMLTextWin(BaseTextWin):
         self._win.attron(to_curses_attr(color))
         self.addstr(truncate_nick(nickname))
         self._win.attroff(to_curses_attr(color))
-

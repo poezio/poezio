@@ -4,6 +4,7 @@ Module containing various decorators
 
 from poezio import common
 
+
 class RefreshWrapper(object):
     def __init__(self):
         self.core = None
@@ -13,49 +14,60 @@ class RefreshWrapper(object):
         Decorator to refresh the UI if the wrapped function
         returns True
         """
+
         def wrap(*args, **kwargs):
             ret = func(*args, **kwargs)
             if self.core and ret:
                 self.core.refresh_window()
             return ret
+
         return wrap
 
     def always(self, func):
         """
         Decorator that refreshs the UI no matter what after the function
         """
+
         def wrap(*args, **kwargs):
             ret = func(*args, **kwargs)
             if self.core:
                 self.core.refresh_window()
             return ret
+
         return wrap
 
     def update(self, func):
         """
         Decorator that only updates the screen
         """
+
         def wrap(*args, **kwargs):
             ret = func(*args, **kwargs)
             if self.core:
                 self.core.doupdate()
             return ret
+
         return wrap
 
+
 refresh_wrapper = RefreshWrapper()
+
 
 class CommandArgParser(object):
     """Modify the string argument of the function into a list of strings
     containing the right number of extracted arguments, or None if we don’t
     have enough.
     """
+
     @staticmethod
     def raw(func):
         """Just call the function with a single string, which is the original string
         untouched
         """
+
         def wrap(self, args, *a, **kw):
             return func(self, args, *a, **kw)
+
         return wrap
 
     @staticmethod
@@ -63,14 +75,17 @@ class CommandArgParser(object):
         """
         Call the function without any argument
         """
+
         def wrap(self, args=None, *a, **kw):
             return func(self, *a, **kw)
+
         return wrap
 
     @staticmethod
-    def quoted(mandatory, optional=0, defaults=None,
+    def quoted(mandatory,
+               optional=0,
+               defaults=None,
                ignore_trailing_arguments=False):
-
         """The function receives a list with a number of arguments that is between
         the numbers `mandatory` and `optional`.
 
@@ -115,6 +130,7 @@ class CommandArgParser(object):
         """
         if defaults is None:
             defaults = []
+
         def first(func):
             def second(self, args, *a, **kw):
                 default_args = defaults
@@ -138,7 +154,10 @@ class CommandArgParser(object):
                 if args and res and not ignore_trailing_arguments:
                     res[-1] += " " + " ".join(args)
                 return func(self, res, *a, **kw)
+
             return second
+
         return first
+
 
 command_args_parser = CommandArgParser()

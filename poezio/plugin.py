@@ -13,12 +13,14 @@ import traceback
 import logging
 log = logging.getLogger(__name__)
 
+
 class PluginConfig(config.Config):
     """
     Plugin configuration object.
     They are accessible inside the plugin with self.config
     and behave like the core Config object.
     """
+
     def __init__(self, filename, module_name, default=None):
         config.Config.__init__(self, filename, default=default)
         self.module_name = module_name
@@ -81,8 +83,10 @@ class SafetyMetaclass(type):
                     raise
                 elif SafetyMetaclass.core:
                     log.error('Error in a plugin', exc_info=True)
-                    SafetyMetaclass.core.information(traceback.format_exc(), 'Error')
+                    SafetyMetaclass.core.information(traceback.format_exc(),
+                                                     'Error')
                     return None
+
         return helper
 
     def __new__(meta, name, bases, class_dict):
@@ -92,10 +96,12 @@ class SafetyMetaclass(type):
                     class_dict[k] = SafetyMetaclass.safe_func(v)
         return type.__new__(meta, name, bases, class_dict)
 
+
 class PluginWrap(object):
     """
     A wrapper to implicitly pass the module name to PluginAPI
     """
+
     def __init__(self, api, module):
         self.api = api
         self.module = module
@@ -104,6 +110,7 @@ class PluginWrap(object):
         api = object.__getattribute__(self, 'api')
         module = object.__getattribute__(self, 'module')
         return partial(getattr(api, name), module)
+
 
 class PluginAPI(object):
     """
@@ -368,6 +375,7 @@ class PluginAPI(object):
         """
         self.core.xmpp.del_event_handler(event_name, handler)
 
+
 class BasePlugin(object, metaclass=SafetyMetaclass):
     """
     Class that all plugins derive from.
@@ -379,10 +387,10 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         self.core = core
         # More hack; luckily we'll never have more than one core object
         SafetyMetaclass.core = core
-        conf = os.path.join(plugins_conf_dir, self.__module__+'.cfg')
+        conf = os.path.join(plugins_conf_dir, self.__module__ + '.cfg')
         try:
-            self.config = PluginConfig(conf, self.__module__,
-                                       default=self.default_config)
+            self.config = PluginConfig(
+                conf, self.__module__, default=self.default_config)
         except Exception:
             log.debug('Error while creating the plugin config', exc_info=True)
             self.config = PluginConfig(conf, self.__module__)
@@ -419,13 +427,24 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     def unload(self):
         self.cleanup()
 
-    def add_command(self, name, handler, help, completion=None, short='', usage=''):
+    def add_command(self,
+                    name,
+                    handler,
+                    help,
+                    completion=None,
+                    short='',
+                    usage=''):
         """
         Add a global command.
         You cannot overwrite the existing commands.
         """
-        return self.api.add_command(name, handler, help,
-                completion=completion, short=short, usage=usage)
+        return self.api.add_command(
+            name,
+            handler,
+            help,
+            completion=completion,
+            short=short,
+            usage=usage)
 
     def del_command(self, name):
         """
@@ -458,12 +477,25 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         return self.api.del_tab_key(tab_type, key)
 
-    def add_tab_command(self, tab_type, name, handler, help, completion=None, short='', usage=''):
+    def add_tab_command(self,
+                        tab_type,
+                        name,
+                        handler,
+                        help,
+                        completion=None,
+                        short='',
+                        usage=''):
         """
         Add a command only for a type of tab.
         """
-        return self.api.add_tab_command(tab_type, name, handler, help,
-                completion=completion, short=short, usage=usage)
+        return self.api.add_tab_command(
+            tab_type,
+            name,
+            handler,
+            help,
+            completion=completion,
+            short=short,
+            usage=usage)
 
     def del_tab_command(self, tab_type, name):
         """

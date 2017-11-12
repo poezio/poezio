@@ -4,8 +4,6 @@
 #
 # Poezio is free software: you can redistribute it and/or modify
 # it under the terms of the zlib license. See the COPYING file.
-
-
 """
 Defines the Roster and RosterGroup classes
 """
@@ -21,6 +19,7 @@ from datetime import datetime
 from poezio.common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
 
+
 class Roster(object):
     """
     The proxy class to get the roster from slixmpp.
@@ -28,6 +27,7 @@ class Roster(object):
     """
 
     DEFAULT_FILTER = (lambda x, y: None, None)
+
     def __init__(self):
         """
         node: the RosterSingle from slixmpp
@@ -37,8 +37,8 @@ class Roster(object):
         # A tuple(function, *args) function to filter contacts
         # on search, for example
         self.contact_filter = self.DEFAULT_FILTER
-        self.folded_groups = set(config.get('folded_roster_groups',
-                                            section='var').split(':'))
+        self.folded_groups = set(
+            config.get('folded_roster_groups', section='var').split(':'))
         self.groups = {}
         self.contacts = {}
         self.length = 0
@@ -121,9 +121,8 @@ class Roster(object):
     def get_groups(self, sort=''):
         """Return a list of the RosterGroups"""
         group_list = sorted(
-                (group for group in self.groups.values() if group),
-                key=lambda x: x.name.lower() if x.name else ''
-            )
+            (group for group in self.groups.values() if group),
+            key=lambda x: x.name.lower() if x.name else '')
 
         for sorting in sort.split(':'):
             if sorting == 'reverse':
@@ -137,7 +136,8 @@ class Roster(object):
         """Return a group or create it if not present"""
         if name in self.groups:
             return self.groups[name]
-        self.groups[name] = RosterGroup(name, folded=name in self.folded_groups)
+        self.groups[name] = RosterGroup(
+            name, folded=name in self.folded_groups)
 
     def add(self, jid):
         """Subscribe to a jid"""
@@ -216,7 +216,8 @@ class Roster(object):
 
         for group in contact.groups:
             if group not in self.groups:
-                self.groups[group] = RosterGroup(group, folded=group in self.folded_groups)
+                self.groups[group] = RosterGroup(
+                    group, folded=group in self.folded_groups)
                 self.groups[group].add(contact)
 
     def __len__(self):
@@ -230,10 +231,10 @@ class Roster(object):
     def __repr__(self):
         ret = '== Roster:\nContacts:\n'
         for contact in self.contacts.values():
-            ret += '%s\n' % (contact,)
+            ret += '%s\n' % (contact, )
         ret += 'Groups\n'
         for group in self.groups:
-            ret += '%s\n' % (group,)
+            ret += '%s\n' % (group, )
         return ret + '\n'
 
     def export(self, path):
@@ -242,7 +243,10 @@ class Roster(object):
             return False
         try:
             f = open(path, 'w+', encoding='utf-8')
-            f.writelines([str(i) + "\n" for i in self.contacts if self[i] and (self[i].subscription == "both" or self[i].ask)])
+            f.writelines([
+                str(i) + "\n" for i in self.contacts
+                if self[i] and (self[i].subscription == "both" or self[i].ask)
+            ])
             f.close()
             return True
         except OSError:
@@ -263,12 +267,13 @@ class RosterGroup(object):
     It can be Friends/Family etc, but also can be
     Online/Offline or whatever
     """
+
     def __init__(self, name, contacts=None, folded=False):
         if not contacts:
             contacts = []
         self.contacts = set(contacts)
         self.name = name if name is not None else ''
-        self.folded = folded    # if the group content is to be shown
+        self.folded = folded  # if the group content is to be shown
 
     def __iter__(self):
         """Iterate over the contacts"""
@@ -301,9 +306,9 @@ class RosterGroup(object):
         if contact_filter is Roster.DEFAULT_FILTER or contact_filter is None:
             contact_list = self.contacts.copy()
         else:
-            contact_list = [contact
-                for contact in self.contacts.copy()
-                    if contact_filter[0](contact, contact_filter[1])
+            contact_list = [
+                contact for contact in self.contacts.copy()
+                if contact_filter[0](contact, contact_filter[1])
             ]
         contact_list = sorted(contact_list, key=SORTING_METHODS['name'])
 
@@ -329,10 +334,12 @@ class RosterGroup(object):
         """Return the number of connected contacts"""
         return len([1 for contact in self.contacts if len(contact)])
 
+
 def create_roster():
     "Create the global roster object"
     global roster
     roster = Roster()
+
 
 # Shared roster object
 roster = None
