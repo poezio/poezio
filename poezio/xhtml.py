@@ -215,7 +215,7 @@ def get_body_from_message_stanza(message,
 
 def rgb_to_html(rgb):
     r, g, b = rgb
-    return '#%02X%02X%02X' % (int(r*256), int(g*256), int(b*256))
+    return '#%02X%02X%02X' % (round(r*255), round(g*255), round(b*255))
 
 def ncurses_color_to_html(color):
     """

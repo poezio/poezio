@@ -13,20 +13,20 @@ def ncurses_color_to_rgb(color):
             (r, g, b) = curses.color_content(color)
         except:  # fallback in faulty terminals (e.g. xterm)
             (r, g, b) = curses.color_content(color%8)
-        r = r / 1000 * 6 - 0.01
-        g = g / 1000 * 6 - 0.01
-        b = b / 1000 * 6 - 0.01
+        r = r / 1000 * 5
+        g = g / 1000 * 5
+        b = b / 1000 * 5
     elif color <= 231:
         color = color - 16
         r = color % 6
-        color = color / 6
+        color = color // 6
         g = color % 6
-        color = color / 6
+        color = color // 6
         b = color % 6
     else:
         color -= 232
-        r = g = b = color / 24 * 6
-    return r / 6, g / 6, b / 6
+        r = g = b = color / 24 * 5
+    return r / 5, g / 5, b / 5
 
 def rgb_to_ycbcr(r, g, b):
     y = K_R * r + K_G * g + K_B * b
