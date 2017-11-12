@@ -68,7 +68,7 @@ Commands and completion
 Commands are quite straightforward: those are methods that take a string as a
 parameter, and they do stuff.
 
-From an user point of view, the methods are entered like that:
+From a user point of view, the methods are entered like that:
 
 .. code-block:: none
 
