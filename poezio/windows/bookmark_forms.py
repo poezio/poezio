@@ -6,7 +6,7 @@ import curses
 from poezio.windows import base_wins
 from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
-from poezio.windows.data_forms import FieldInput
+from poezio.windows.data_forms import FieldInput, FieldInputMixin
 from poezio.theming import to_curses_attr, get_theme
 from poezio.common import safeJID
 
@@ -29,7 +29,7 @@ class BookmarkJIDInput(FieldInput, Input):
     def get_help_message(self):
         return 'Edit the text'
 
-class BookmarkMethodInput(FieldInput, Win):
+class BookmarkMethodInput(FieldInputMixin):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
@@ -96,7 +96,7 @@ class BookmarkPasswordInput(FieldInput, Input):
     def get_help_message(self):
         return 'Edit the secret text'
 
-class BookmarkAutojoinWin(FieldInput, Win):
+class BookmarkAutojoinWin(FieldInputMixin):
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
