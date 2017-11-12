@@ -117,3 +117,6 @@ Table of all XEPs implemented in poezio.
 |0380      |Explicit Message         |90%                  |
 |          |Encryption               |                     |
 +----------+-------------------------+---------------------+
+|0392      |Consistent Color         |100%                 |
+|          |Generation               |                     |
++----------+-------------------------+---------------------+
