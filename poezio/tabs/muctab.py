@@ -201,7 +201,7 @@ class MucTab(ChatTab):
                                          ', '.join(valid_affiliations),
                                          'Error')
         if nick_or_jid in [user.nick for user in self.users]:
-            res = muc.set_user_affiliation(
+            muc.set_user_affiliation(
                 self.core.xmpp,
                 self.name,
                 affiliation,
@@ -209,7 +209,7 @@ class MucTab(ChatTab):
                 callback=callback,
                 reason=reason)
         else:
-            res = muc.set_user_affiliation(
+            muc.set_user_affiliation(
                 self.core.xmpp,
                 self.name,
                 affiliation,
@@ -463,7 +463,7 @@ class MucTab(ChatTab):
         """
         Presence received while we are not in the room (before code=110)
         """
-        from_nick, from_room, affiliation, show, status, role, jid, typ = dissect_presence(
+        from_nick, _, affiliation, show, status, role, jid, typ = dissect_presence(
             presence)
         user_color = self.search_for_color(from_nick)
         new_user = User(from_nick, affiliation, show, status, role, jid,
