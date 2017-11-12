@@ -277,6 +277,10 @@ class Theme(object):
             (212, -1), (213, -1), (214, -1), (215, -1), (216, -1), (217, -1),
             (218, -1), (219, -1), (220, -1), (221, -1), (222, -1), (223, -1),
             (224, -1), (225, -1), (226, -1), (227, -1)]
+    # XEP-0392 consistent color generation palette placeholder
+    # it’s generated on first use when accessing the ccg_palette property
+    CCG_PALETTE = None
+    CCG_Y = 0.5**0.45
 
     # yapf: enable
 
@@ -517,17 +521,13 @@ def prepare_ccolor_palette(theme):
     """
     Prepare the Consistent Color Generation (XEP-0392) palette for a theme.
     """
-    if hasattr(theme, "CCG_PALETTE"):
-        # theme overrides the palette
+    if theme.CCG_PALETTE is not None:
         return
 
     if any(bg != -1 for fg, bg in theme.LIST_COLOR_NICKNAMES):
         # explicitly disable CCG, can’t handle dynamic background colors
-        theme.CCG_PALETTE = None
+        theme.CCG_PALETTE = {}
         return
-
-    if not hasattr(theme, "CCG_Y"):
-        theme.CCG_Y = 0.5**0.45
 
     theme.CCG_PALETTE = colors.generate_ccg_palette(
         [
