@@ -10,4 +10,6 @@ test:
     - python3 setup.py build
     - python3 setup.py install
     - popd
-    - python3 setup.py test
+    - pip3 install pytest pyasn1-modules
+    - python3 setup.py install
+    - py.test test/
