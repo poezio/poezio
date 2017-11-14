@@ -1,3 +1,5 @@
+image: ubuntu:latest
+
 build_image:
   tags:
     - docker
@@ -7,11 +9,12 @@ build_image:
 test:
   tags:
     - docker
-  image: ubuntu:latest
   script:
+    - export LANG=en_US.UTF-8
     - apt update
     - apt install -y python3 cython3 git python3-setuptools python3-pip
     - git clone git://git.louiz.org/slixmpp
+    - pip install --upgrade pip
     - pip3 install pytest pyasn1-modules --upgrade
     - pushd slixmpp
     - python3 setup.py build
