@@ -5,14 +5,15 @@ import math
 # BT.601 (YCbCr) constants, see XEP-0392
 K_R = 0.299
 K_G = 0.587
-K_B = 1-K_R-K_G
+K_B = 1 - K_R - K_G
+
 
 def ncurses_color_to_rgb(color):
     if color <= 15:
         try:
             (r, g, b) = curses.color_content(color)
         except:  # fallback in faulty terminals (e.g. xterm)
-            (r, g, b) = curses.color_content(color%8)
+            (r, g, b) = curses.color_content(color % 8)
         r = r / 1000 * 5
         g = g / 1000 * 5
         b = b / 1000 * 5
@@ -28,11 +29,13 @@ def ncurses_color_to_rgb(color):
         r = g = b = color / 24 * 5
     return r / 5, g / 5, b / 5
 
+
 def rgb_to_ycbcr(r, g, b):
     y = K_R * r + K_G * g + K_B * b
     cr = (r - y) / (1 - K_R) / 2
     cb = (b - y) / (1 - K_B) / 2
     return y, cb, cr
+
 
 def generate_ccg_palette(curses_palette, reference_y):
     cbcr_palette = {}
@@ -56,11 +59,13 @@ def generate_ccg_palette(curses_palette, reference_y):
         for angle, (_, curses_color) in cbcr_palette.items()
     }
 
+
 def text_to_angle(text):
     hf = hashlib.sha1()
     hf.update(text.encode("utf-8"))
     hue = int.from_bytes(hf.digest()[:2], "little")
     return hue / 65535 * math.pi * 2
+
 
 def angle_to_cbcr_edge(angle):
     cr = math.sin(angle)
@@ -69,14 +74,16 @@ def angle_to_cbcr_edge(angle):
         factor = 0.5 / abs(cr)
     else:
         factor = 0.5 / abs(cb)
-    return cb*factor, cr*factor
+    return cb * factor, cr * factor
+
 
 def cbcr_to_angle(cb, cr):
     magn = math.sqrt(cb**2 + cr**2)
     if magn > 0:
         cr /= magn
         cb /= magn
-    return math.atan2(cr, cb) % (2*math.pi)
+    return math.atan2(cr, cb) % (2 * math.pi)
+
 
 def ccg_palette_lookup(palette, angle):
     # try quick lookup first
@@ -96,6 +103,7 @@ def ccg_palette_lookup(palette, angle):
             best = color
 
     return best
+
 
 def ccg_text_to_color(palette, text):
     angle = text_to_angle(text)

@@ -213,9 +213,11 @@ def get_body_from_message_stanza(message,
     content = content if content else message['body']
     return content or " "
 
+
 def rgb_to_html(rgb):
     r, g, b = rgb
-    return '#%02X%02X%02X' % (round(r*255), round(g*255), round(b*255))
+    return '#%02X%02X%02X' % (round(r * 255), round(g * 255), round(b * 255))
+
 
 def ncurses_color_to_html(color):
     """
@@ -224,6 +226,7 @@ def ncurses_color_to_html(color):
     html color.
     """
     return rgb_to_html(ncurses_color_to_rgb(color))
+
 
 def _parse_css_color(name):
     if name[0] == '#':

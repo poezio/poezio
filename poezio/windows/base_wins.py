@@ -101,7 +101,8 @@ class Win(object):
         if y is not None and x is not None:
             self.move(y, x)
         next_attr_char = text.find(FORMAT_CHAR)
-        attr_italic = curses.A_ITALIC if hasattr(curses, 'A_ITALIC') else curses.A_REVERSE
+        attr_italic = curses.A_ITALIC if hasattr(
+            curses, 'A_ITALIC') else curses.A_REVERSE
         while next_attr_char != -1 and text:
             if next_attr_char + 1 < len(text):
                 attr_char = text[next_attr_char + 1].lower()

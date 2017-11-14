@@ -1076,8 +1076,9 @@ class MucTab(ChatTab):
     def enable_self_ping_event(self):
         delay = config.get_by_tabname(
             "self_ping_delay", self.general_jid, default=0)
-        interval = int(config.get_by_tabname(
-            "self_ping_interval", self.general_jid, default=delay))
+        interval = int(
+            config.get_by_tabname(
+                "self_ping_interval", self.general_jid, default=delay))
         if interval <= 0:  # use 0 or some negative value to disable it
             return
         self.disable_self_ping_event()
@@ -1091,7 +1092,8 @@ class MucTab(ChatTab):
             self.self_ping_event = None
 
     def send_self_ping(self):
-        timeout = config.get_by_tabname("self_ping_timeout", self.general_jid, default=60)
+        timeout = config.get_by_tabname(
+            "self_ping_timeout", self.general_jid, default=60)
         to = self.name + "/" + self.own_nick
         self.core.xmpp.plugin['xep_0199'].send_ping(
             jid=to,

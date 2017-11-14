@@ -485,7 +485,8 @@ class Input(Win):
         if y is not None and x is not None:
             self.move(y, x)
         format_char = find_first_format_char(text, chars)
-        attr_italic = curses.A_ITALIC if hasattr(curses, 'A_ITALIC') else curses.A_REVERSE
+        attr_italic = curses.A_ITALIC if hasattr(
+            curses, 'A_ITALIC') else curses.A_REVERSE
         while format_char != -1:
             if text[format_char] == '\n':
                 attr_char = '|'

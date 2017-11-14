@@ -373,6 +373,7 @@ class Theme(object):
         prepare_ccolor_palette(self)
         return self.CCG_PALETTE
 
+
 # This is the default theme object, used if no theme is defined in the conf
 theme = Theme()
 
@@ -467,7 +468,8 @@ def to_curses_attr(color_tuple):
         if 'u' in additional_val:
             curses_pair = curses_pair | curses.A_UNDERLINE
         if 'i' in additional_val:
-            curses_pair = curses_pair | (curses.A_ITALIC if hasattr(curses, 'A_ITALIC') else curses.A_REVERSE)
+            curses_pair = curses_pair | (curses.A_ITALIC if hasattr(
+                curses, 'A_ITALIC') else curses.A_REVERSE)
         if 'a' in additional_val:
             curses_pair = curses_pair | curses.A_BLINK
     return curses_pair
@@ -517,6 +519,7 @@ def update_themes_dir(option=None, value=None):
 
     log.debug('Theme load path: %s', load_path)
 
+
 def prepare_ccolor_palette(theme):
     """
     Prepare the Consistent Color Generation (XEP-0392) palette for a theme.
@@ -537,6 +540,7 @@ def prepare_ccolor_palette(theme):
         ],
         theme.CCG_Y,
     )
+
 
 def reload_theme():
     theme_name = config.get('theme')

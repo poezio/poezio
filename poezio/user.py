@@ -56,13 +56,13 @@ class User(object):
         if theme.ccg_palette:
             # use XEP-0392 CCG
             fg_color = colors.ccg_text_to_color(
-                theme.ccg_palette,
-                self.jid.bare if self.jid and self.jid.bare else self.nick
-            )
+                theme.ccg_palette, self.jid.bare
+                if self.jid and self.jid.bare else self.nick)
             self.color = fg_color, -1
         else:
             mod = len(theme.LIST_COLOR_NICKNAMES)
-            nick_pos = int(md5(self.nick.encode('utf-8')).hexdigest(), 16) % mod
+            nick_pos = int(md5(self.nick.encode('utf-8')).hexdigest(),
+                           16) % mod
             self.color = theme.LIST_COLOR_NICKNAMES[nick_pos]
 
     def update(self, affiliation, show, status, role):
