@@ -33,6 +33,9 @@ def test_poezio_colors_to_html():
     text = '\x19bcoucou\x19o toto \x194}titi'
     assert poezio_colors_to_html(text) == base + '<span style="font-weight: bold;">coucou</span> toto <span style="color: blue;">titi</span>' + end
 
+    text = '\x19icoucou'
+    assert poezio_colors_to_html(text) == base + '<span style="font-style: italic;">coucou</span>' + end
+
 def test_xhtml_to_poezio_colors():
     start = b'<body xmlns="http://www.w3.org/1999/xhtml"><p>'
     end = b'</p></body>'
@@ -44,6 +47,9 @@ def test_xhtml_to_poezio_colors():
 
     xhtml = start + b'<a href="http://perdu.com">http://perdu.com</a>' + end
     assert xhtml_to_poezio_colors(xhtml) == '\x19uhttp://perdu.com\x19o'
+
+    xhtml = start + b'<span style="font-style: italic">Test</span>' + end
+    assert xhtml_to_poezio_colors(xhtml) == '\x19iTest\x19o'
 
     xhtml = b'<div style="font-weight:bold">Allo <div style="color:red">test <div style="color: blue">test2</div></div></div>'
     assert xhtml_to_poezio_colors(xhtml, force=True) == '\x19bAllo \x19196}test \x1921}test2\x19o'

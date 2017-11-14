@@ -491,7 +491,8 @@ def convert_simple_to_full_colors(text):
         '\x16': '\x196',
         '\x17': '\x197',
         '\x18': '\x198',
-        '\x19': '\x199'
+        '\x19': '\x199',
+        '\x1A': '\x19i'
     })
     text = text.translate(mapping)
 
