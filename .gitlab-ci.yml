@@ -1,13 +1,29 @@
-test:
-  tags:
-    - docker
-  image: ubuntu:latest
+stages:
+  - build
+  - test
+
+build-ubuntu:
+  stage: build
+  image: poezio/build-base:latest
   script:
-    - apt update
-    - apt install -y python3 cython3 git python3-setuptools python3-pyasn1
+    - python3 setup.py sdist
+    - python3 setup.py bdist
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - dist/
+
+test-ubuntu:
+  stage: test
+  image: poezio/test-base:latest
+  script:
     - git clone git://git.louiz.org/slixmpp
+    - pip3 install --upgrade pip
+    - pip3 install pytest pyasn1-modules --upgrade
     - pushd slixmpp
     - python3 setup.py build
     - python3 setup.py install
     - popd
-    - python3 setup.py test
+    - python3 setup.py install
+    - py.test -v test/
+    - pylint -E poezio
