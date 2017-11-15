@@ -3,10 +3,11 @@ test:
   tags:
     - docker
   script:
+    - apt update
+    - apt install -y python3 cython3 git python3-setuptools python3-pip locales
+    - locale-gen en_US.UTF-8
     - export LC_ALL=en_US.UTF-8
     - export LANG=en_US.UTF-8
-    - apt update
-    - apt install -y python3 cython3 git python3-setuptools python3-pip
     - git clone git://git.louiz.org/slixmpp
     - pip3 install --upgrade pip
     - pip3 install pytest pyasn1-modules --upgrade
