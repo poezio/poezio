@@ -17,3 +17,6 @@ test:
     - popd
     - python3 setup.py install
     - py.test test/
+    - pip3 install -e git+https://github.com/PyCQA/astroid.git#egg=astroid
+    - pip3 install -e git+https://github.com/PyCQA/pylint.git#egg=pylint
+    - pylint -E poezio
