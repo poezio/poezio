@@ -1,13 +1,8 @@
 test:
-  image: ubuntu:latest
+  image: poezio/test-base:latest
   tags:
     - docker
   script:
-    - apt update
-    - apt install -y python3 cython3 git python3-setuptools python3-pip python3-dev gcc locales
-    - locale-gen en_US.UTF-8
-    - export LC_ALL=en_US.UTF-8
-    - export LANG=en_US.UTF-8
     - git clone git://git.louiz.org/slixmpp
     - pip3 install --upgrade pip
     - pip3 install pytest pyasn1-modules --upgrade
