@@ -1,7 +1,20 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: poezio/build-base:latest
+  script:
+    - python setup.py sdist
+    - python setup.py bdist
+  artifacts:
+    expire_in: 4 weeks
+    paths: dist/
+
 test:
+  stage: test
   image: poezio/test-base:latest
-  tags:
-    - docker
   script:
     - git clone git://git.louiz.org/slixmpp
     - pip3 install --upgrade pip
