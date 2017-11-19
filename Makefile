@@ -1,7 +1,9 @@
 TMPDIR=/tmp/
 
+PYTHON ?= python3
+
 all: Makefile
-	python3 setup.py build_ext --inplace
+	$(PYTHON) setup.py build_ext --inplace
 
 clean:
 	find ./ -name \*.pyc -delete
@@ -16,7 +18,7 @@ clean:
 	rm -f poezio/*.so
 
 install: all
-	python3 setup.py install --root=$(DESTDIR) --optimize=1
+	$(PYTHON) setup.py install --root=$(DESTDIR) --optimize=1
 
 doc:
 	make -C doc/ html
