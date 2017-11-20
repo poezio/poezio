@@ -2,6 +2,13 @@ stages:
   - build
   - test
 
+build-doc:
+  stage: build
+  image: poezio/build-base:latest
+  script:
+    - apt-get install -y make
+    - pip3 install sphinx
+    - make doc
 
 build-ubuntu:
   stage: build
