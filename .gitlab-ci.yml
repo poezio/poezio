@@ -2,6 +2,7 @@ stages:
   - build
   - test
 
+
 build-ubuntu:
   stage: build
   image: poezio/build-base:latest
@@ -12,6 +13,13 @@ build-ubuntu:
     expire_in: 2 weeks
     paths:
       - dist/
+
+security-check:
+  stage: test
+  image: python:3
+  script:
+    - pip3 install safety
+    - safety check -r requirements.txt
 
 test-ubuntu:
   stage: test
