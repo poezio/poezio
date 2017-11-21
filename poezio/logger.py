@@ -171,60 +171,14 @@ class Logger(object):
         # do that efficiently, instead of seek()s and read()s which are costly.
         with fd:
             try:
-                m = mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ)
+                lines = get_lines_from_fd(fd, nb=nb)
             except Exception:  # file probably empty
                 log.error(
                     'Unable to mmap the log file for (%s)',
                     os.path.join(log_dir, jid),
                     exc_info=True)
                 return
-            pos = m.rfind(b"\nM")  # start of messages begin with MI or MR,
-            # after a \n
-            # number of message found so far
-            count = 0
-            while pos != -1 and count < nb - 1:
-                count += 1
-                pos = m.rfind(b"\nM", 0, pos)
-            if pos == -1:  # If we don't have enough lines in the file
-                pos = 1  # 1, because we do -1 just on the next line
-                # to get 0 (start of the file)
-            lines = m[pos - 1:].decode(errors='replace').splitlines()
-
-        messages = []
-        color = '\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG)
-
-        # now convert that data into actual Message objects
-        idx = 0
-        while idx < len(lines):
-            if lines[idx].startswith(' '):  # should not happen ; skip
-                idx += 1
-                log.debug('fail?')
-                continue
-            log_item = parse_log_line(lines[idx])
-            idx += 1
-            if not isinstance(log_item, LogItem):
-                log.debug('wrong log format? %s', log_item)
-                continue
-            message = {
-                'lines': [],
-                'history': True,
-                'time': common.get_local_time(log_item.time)
-            }
-            size = log_item.nb_lines
-            if isinstance(log_item, LogInfo):
-                message['lines'].append(color + log_item.text)
-            elif isinstance(log_item, LogMessage):
-                message['nickname'] = log_item.nick
-                message['lines'].append(color + log_item.text)
-            while size != 0 and idx < len(lines):
-                message['lines'].append(lines[idx][1:])
-                size -= 1
-                idx += 1
-            message['txt'] = '\n'.join(message['lines'])
-            del message['lines']
-            messages.append(message)
-
-        return messages
+        return parse_log_lines(lines)
 
     def log_message(self, jid, nick, msg, date=None, typ=1):
         """
@@ -234,11 +188,10 @@ class Logger(object):
               1 = Message
               2 = Status/whatever
         """
-        if not typ:
-            return True
-
-        jid = str(jid).replace('/', '\\')
         if not config.get_by_tabname('use_log', jid):
+            return True
+        logged_msg = build_log_message(nick, msg, date=date, typ=typ)
+        if not logged_msg:
             return True
         if jid in self._fds.keys():
             fd = self._fds[jid]
@@ -247,30 +200,8 @@ class Logger(object):
         if not fd:
             return True
         try:
-            msg = clean_text(msg)
-            if date is None:
-                str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
-            else:
-                str_time = common.get_utc_time(date).strftime(
-                    '%Y%m%dT%H:%M:%SZ')
-            if typ == 1:
-                prefix = 'MR'
-            else:
-                prefix = 'MI'
-            lines = msg.split('\n')
-            first_line = lines.pop(0)
-            nb_lines = str(len(lines)).zfill(3)
-
-            if nick:
-                nick = '<' + nick + '>'
-                fd.write('%s %s %s %s  %s\n' % (prefix, str_time, nb_lines,
-                                                nick, first_line))
-            else:
-                fd.write('%s %s %s %s\n' % (prefix, str_time, nb_lines,
-                                            first_line))
-            for line in lines:
-                fd.write(' %s\n' % line)
-        except:
+            fd.write(logged_msg)
+        except OSError:
             log.error(
                 'Unable to write in the log file (%s)',
                 os.path.join(log_dir, jid),
@@ -322,6 +253,97 @@ class Logger(object):
                 exc_info=True)
             return False
         return True
+
+
+def build_log_message(nick, msg, date=None, typ=1):
+    """
+    Create a log message from a nick, a message, optionally a date and type
+    message types:
+        0 = Don’t log
+        1 = Message
+        2 = Status/whatever
+    """
+    if not typ:
+        return ''
+
+    msg = clean_text(msg)
+    if date is None:
+        str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
+    else:
+        str_time = common.get_utc_time(date).strftime('%Y%m%dT%H:%M:%SZ')
+    if typ == 1:
+        prefix = 'MR'
+    else:
+        prefix = 'MI'
+    lines = msg.split('\n')
+    first_line = lines.pop(0)
+    nb_lines = str(len(lines)).zfill(3)
+    if nick:
+        nick = '<' + nick + '>'
+        logged_msg = '%s %s %s %s  %s\n' % (prefix, str_time, nb_lines, nick,
+                                            first_line)
+    else:
+        logged_msg = '%s %s %s %s\n' % (prefix, str_time, nb_lines, first_line)
+    return logged_msg + ''.join(' %s\n' % line for line in lines)
+
+
+def get_lines_from_fd(fd, nb=10):
+    """
+    Get the last log lines from a fileno
+    """
+    with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
+        pos = m.rfind(b"\nM")  # start of messages begin with MI or MR,
+        # after a \n
+        # number of message found so far
+        count = 0
+        while pos != -1 and count < nb - 1:
+            count += 1
+            pos = m.rfind(b"\nM", 0, pos)
+        if pos == -1:  # If we don't have enough lines in the file
+            pos = 1  # 1, because we do -1 just on the next line
+            # to get 0 (start of the file)
+        lines = m[pos - 1:].decode(errors='replace').splitlines()
+    return lines
+
+
+def parse_log_lines(lines):
+    """
+    Parse raw log lines into poezio log objects
+    """
+    messages = []
+    color = '\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG)
+
+    # now convert that data into actual Message objects
+    idx = 0
+    while idx < len(lines):
+        if lines[idx].startswith(' '):  # should not happen ; skip
+            idx += 1
+            log.debug('fail?')
+            continue
+        log_item = parse_log_line(lines[idx])
+        idx += 1
+        if not isinstance(log_item, LogItem):
+            log.debug('wrong log format? %s', log_item)
+            continue
+        message = {
+            'lines': [],
+            'history': True,
+            'time': common.get_local_time(log_item.time)
+        }
+        size = log_item.nb_lines
+        if isinstance(log_item, LogInfo):
+            message['lines'].append(color + log_item.text)
+        elif isinstance(log_item, LogMessage):
+            message['nickname'] = log_item.nick
+            message['lines'].append(color + log_item.text)
+        while size != 0 and idx < len(lines):
+            message['lines'].append(lines[idx][1:])
+            size -= 1
+            idx += 1
+        message['txt'] = '\n'.join(message['lines'])
+        del message['lines']
+        messages.append(message)
+    return messages
 
 
 def create_logger():

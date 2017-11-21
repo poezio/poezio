@@ -24,7 +24,7 @@ doc:
 	make -C doc/ html
 
 test:
-	py.test -v test/
+	py.test test/
 
 release:
 	rm -fr $(TMPDIR)/poezio-$(version)
