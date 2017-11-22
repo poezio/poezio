@@ -465,6 +465,8 @@ class MucTab(ChatTab):
         """
         from_nick, _, affiliation, show, status, role, jid, typ = dissect_presence(
             presence)
+        if typ == 'unavailable':
+            return
         user_color = self.search_for_color(from_nick)
         new_user = User(from_nick, affiliation, show, status, role, jid,
                         deterministic, user_color)
