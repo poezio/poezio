@@ -45,8 +45,13 @@ class CompletionCore:
         """
         arg = the_input.get_argument_position()
         if arg == 1:
+            to_suggest = []
+            for bookmark in self.core.bookmarks:
+                tab = self.core.get_tab_by_name(bookmark.jid, tabs.MucTab)
+                if tab is not None and tab.joined:
+                    to_suggest.append(bookmark.jid)
             return Completion(
-                the_input.auto_completion, [jid for jid in roster.jids()],
+                the_input.auto_completion, roster.jids() + to_suggest,
                 '',
                 quotify=True)
         elif arg == 2:
