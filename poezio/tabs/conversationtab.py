@@ -417,8 +417,9 @@ class ConversationTab(OneToOneTab):
 
 class DynamicConversationTab(ConversationTab):
     """
-    A conversation tab associated with one bare JID that can be “locked” to
-    a full jid, and unlocked, as described in the XEP-0296.
+    A conversation tab associated with one bare JID.  It used to
+    support resource locking (as described in XEP-0296), but that was a
+    bad idea so it has been removed.
     Only one DynamicConversationTab can be opened for a given jid.
     """
 
