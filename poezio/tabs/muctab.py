@@ -65,10 +65,6 @@ class MucTab(ChatTab):
         self.privates = []
         self.topic = ''
         self.topic_from = ''
-        # We send active, composing and paused states to the MUC because
-        # the chatstate may or may not be filtered by the MUC,
-        # that’s not our problem.
-        self._remote_wants_chatstates = True
         # Self ping event, so we can cancel it when we leave the room
         self.self_ping_event = None
         # UI stuff
@@ -1548,8 +1544,7 @@ class MucTab(ChatTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', self.general_jid)
-                and self.remote_wants_chatstates is not False):
+        if config.get_by_tabname('send_chat_states', self.general_jid):
             msg['chat_state'] = needed
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']

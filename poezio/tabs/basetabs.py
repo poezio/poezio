@@ -469,7 +469,6 @@ class ChatTab(Tab):
         Tab.__init__(self, core)
         self.name = jid
         self.text_win = None
-        self._remote_wants_chatstates = False
         self.directed_presence = None
         self._text_buffer = TextBuffer()
         self.chatstate = None  # can be "active", "composing", "paused", "gone", "inactive"
@@ -514,7 +513,7 @@ class ChatTab(Tab):
 
     @property
     def remote_wants_chatstates(self):
-        return self._remote_wants_chatstates
+        return True
 
     @property
     def general_jid(self):
@@ -649,8 +648,7 @@ class ChatTab(Tab):
             if state in ('active', 'inactive',
                          'gone') and self.inactive and not always_send:
                 return
-            if (config.get_by_tabname('send_chat_states', self.general_jid)
-                    and self.remote_wants_chatstates is not False):
+            if config.get_by_tabname('send_chat_states', self.general_jid):
                 msg = self.core.xmpp.make_message(self.get_dest_jid())
                 msg['type'] = self.message_type
                 msg['chat_state'] = state
@@ -664,8 +662,7 @@ class ChatTab(Tab):
         on the the current status of the input
         """
         name = self.general_jid
-        if (config.get_by_tabname('send_chat_states', name)
-                and self.remote_wants_chatstates):
+        if config.get_by_tabname('send_chat_states', name):
             needed = 'inactive' if self.inactive else 'active'
             self.cancel_paused_delay()
             if not empty_after:
@@ -775,10 +772,6 @@ class OneToOneTab(ChatTab):
 
         # Set to true once the first disco is done
         self.__initial_disco = False
-        # change this to True or False when
-        # we know that the remote user wants chatstates, or not.
-        # None means we don’t know yet, and we send only "active" chatstates
-        self._remote_wants_chatstates = None
         self.remote_supports_attention = True
         self.remote_supports_receipts = True
         self.check_features()
@@ -816,25 +809,11 @@ class OneToOneTab(ChatTab):
 
     @property
     def remote_wants_chatstates(self):
-        return self._remote_wants_chatstates
+        return True
 
     @remote_wants_chatstates.setter
     def remote_wants_chatstates(self, value):
-        old_value = self._remote_wants_chatstates
-        self._remote_wants_chatstates = value
-        if (old_value is None and value != None) or \
-                (old_value != value and value != None):
-            ok = get_theme().CHAR_OK
-            nope = get_theme().CHAR_EMPTY
-            support = ok if value else nope
-            if value:
-                msg = '\x19%s}Contact supports chat states [%s].'
-            else:
-                msg = '\x19%s}Contact does not support chat states [%s].'
-            color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            msg = msg % (color, support)
-            self.add_message(msg, typ=0)
-            self.core.refresh_window()
+        pass
 
     def ack_message(self, msg_id, msg_jid):
         """
@@ -863,8 +842,7 @@ class OneToOneTab(ChatTab):
             message['type'] = 'chat'
             if self.remote_supports_receipts:
                 message._add_receipt = True
-            if self.remote_wants_chatstates:
-                message['chat_sate'] = 'active'
+            message['chat_sate'] = 'active'
             message.send()
             body = xhtml.xhtml_to_poezio_colors(xhtml_data, force=True)
             self._text_buffer.add_message(

@@ -140,8 +140,7 @@ class ConversationTab(OneToOneTab):
             msg.enable('html')
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
-        if (config.get_by_tabname('send_chat_states', self.general_jid)
-                and self.remote_wants_chatstates is not False):
+        if config.get_by_tabname('send_chat_states', self.general_jid):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
         if attention and self.remote_supports_attention:

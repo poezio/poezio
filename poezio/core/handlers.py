@@ -369,11 +369,6 @@ class HandlerCore:
                 jid=jid,
                 typ=1)
 
-        if conversation.remote_wants_chatstates is None and not delayed:
-            if message['chat_state']:
-                conversation.remote_wants_chatstates = True
-            else:
-                conversation.remote_wants_chatstates = False
         if not own and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
                 curses.beep()
@@ -819,11 +814,6 @@ class HandlerCore:
                 jid=message['from'],
                 typ=1)
 
-        if tab.remote_wants_chatstates is None:
-            if message['chat_state']:
-                tab.remote_wants_chatstates = True
-            else:
-                tab.remote_wants_chatstates = False
         if 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
@@ -865,7 +855,6 @@ class HandlerCore:
         tab = self.core.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
-        tab.remote_wants_chatstates = True
         self.core.events.trigger('normal_chatstate', message, tab)
         tab.chatstate = state
         if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
@@ -885,7 +874,6 @@ class HandlerCore:
         tab = self.core.get_tab_by_name(message['from'].full, tabs.PrivateTab)
         if not tab:
             return
-        tab.remote_wants_chatstates = True
         self.core.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.core.current_tab():
@@ -1044,8 +1032,6 @@ class HandlerCore:
         contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
         # reset chat states status on presence error
         tab = self.core.get_tab_by_name(jid.full, tabs.ConversationTab)
-        if tab:
-            tab.remote_wants_chatstates = None
 
     def on_got_offline(self, presence):
         """
