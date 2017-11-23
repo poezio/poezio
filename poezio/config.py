@@ -33,6 +33,7 @@ DEFAULT_CONFIG = {
         'autorejoin_delay': '5',
         'autorejoin': False,
         'beep_on': 'highlight private invite disconnect',
+        'bookmark_on_join': True,
         'ca_cert_path': '',
         'certificate': '',
         'certfile': '',
