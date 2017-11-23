@@ -45,6 +45,7 @@ class Plugin(BasePlugin):
                 usage='',
                 help='List currently queued messages')
         self.api.add_event_handler('muc_join', self.on_join)
+        self.api.add_event_handler('muc_nickchange', self.on_join)
         # {tab -> {nick -> [messages]}
         self.tabs = {}
 
