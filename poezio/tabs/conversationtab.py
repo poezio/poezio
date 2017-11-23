@@ -4,9 +4,9 @@ Module for the ConversationTabs
 A ConversationTab is a direct chat between two JIDs, outside of a room.
 
 There are two different instances of a ConversationTab:
-- A DynamicConversationTab that implements XEP-0296 (best practices for
-    resource locking), which means it will switch the resource it is
-    focused on depending on the presences received. This is the default.
+- A DynamicConversationTab that used to implement XEP-0296 (best
+    practices for resource locking), which now stays on the bare JID at
+    any time. This is the default.
 - A StaticConversationTab that will stay focused on one resource all
     the time.
 
@@ -426,73 +426,30 @@ class DynamicConversationTab(ConversationTab):
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
         self.name = safeJID(jid).bare
-        if resource:
-            self.lock(resource)
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.DynamicConversationInfoWin()
         self.register_command(
             'unlock',
             self.unlock_command,
-            shortdesc='Unlock the conversation from a particular resource.')
+            shortdesc='Deprecated, do nothing.')
         self.resize()
 
     def get_info_header(self):
         return self.info_header
 
     def lock(self, resource):
-        """
-        Lock the tab to the resource.
-        """
-        assert (resource)
-        if resource != self.locked_resource:
-            self.locked_resource = resource
-            info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
-
-            message = ('%(info)sConversation locked to '
-                       '%(jid_c)s%(jid)s/%(resource)s%(info)s.') % {
-                           'info': info,
-                           'jid_c': jid_c,
-                           'jid': self.name,
-                           'resource': resource
-                       }
-            self.add_message(message, typ=0)
-            self.check_features()
+        pass
 
     def unlock_command(self, arg=None):
-        self.unlock()
-        self.refresh_info_header()
+        pass
 
     def unlock(self, from_=None):
-        """
-        Unlock the tab from a resource. It is now “associated” with the bare
-        jid.
-        """
-        self.remote_wants_chatstates = None
-        if self.locked_resource != None:
-            self.locked_resource = None
-            info = '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            jid_c = '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID)
-
-            if from_:
-                message = ('%(info)sConversation unlocked (received activity'
-                           ' from %(jid_c)s%(jid)s%(info)s).') % {
-                               'info': info,
-                               'jid_c': jid_c,
-                               'jid': from_
-                           }
-                self.add_message(message, typ=0)
-            else:
-                message = '%sConversation unlocked.' % info
-                self.add_message(message, typ=0)
+        pass
 
     def get_dest_jid(self):
         """
-        Returns the full jid (using the locked resource), or the bare jid if
-        the conversation is not locked.
+        Returns the bare jid.
         """
-        if self.locked_resource:
-            return "%s/%s" % (self.name, self.locked_resource)
         return self.name
 
     def refresh(self):
@@ -507,10 +464,7 @@ class DynamicConversationTab(ConversationTab):
         self.text_win.refresh()
         if display_bar:
             self.upper_bar.refresh(self.name, roster[self.name])
-        if self.locked_resource:
-            displayed_jid = "%s/%s" % (self.name, self.locked_resource)
-        else:
-            displayed_jid = self.name
+        displayed_jid = self.name
         self.get_info_header().refresh(displayed_jid, roster[self.name],
                                        self.text_win, self.chatstate,
                                        ConversationTab.additional_information)
@@ -524,10 +478,7 @@ class DynamicConversationTab(ConversationTab):
         """
         Different from the parent class only for the info_header object.
         """
-        if self.locked_resource:
-            displayed_jid = "%s/%s" % (self.name, self.locked_resource)
-        else:
-            displayed_jid = self.name
+        displayed_jid = self.name
         self.get_info_header().refresh(displayed_jid, roster[self.name],
                                        self.text_win, self.chatstate,
                                        ConversationTab.additional_information)
