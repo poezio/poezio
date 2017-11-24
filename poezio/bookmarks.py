@@ -297,6 +297,7 @@ class BookmarkList(object):
                 'password', jid.bare, fallback=False) or None
             b = Bookmark(
                 jid.bare,
+                jid.user,
                 autojoin=True,
                 nick=nick,
                 password=passwd,
