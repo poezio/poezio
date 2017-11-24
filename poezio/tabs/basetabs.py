@@ -772,13 +772,17 @@ class OneToOneTab(ChatTab):
 
         # Set to true once the first disco is done
         self.__initial_disco = False
-        self.remote_supports_attention = True
-        self.remote_supports_receipts = True
         self.check_features()
         self.register_command(
             'unquery', self.command_unquery, shortdesc='Close the tab.')
         self.register_command(
             'close', self.command_unquery, shortdesc='Close the tab.')
+        self.register_command(
+            'attention', self.command_attention,
+            usage='[message]',
+            shortdesc='Request the attention.',
+            desc='Attention: Request the attention of the contact.  Can also '
+                 'send a message along with the attention.')
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)
@@ -840,8 +844,7 @@ class OneToOneTab(ChatTab):
         message = self.generate_xhtml_message(xhtml_data)
         if message:
             message['type'] = 'chat'
-            if self.remote_supports_receipts:
-                message._add_receipt = True
+            message._add_receipt = True
             message['chat_sate'] = 'active'
             message.send()
             body = xhtml.xhtml_to_poezio_colors(xhtml_data, force=True)
@@ -897,71 +900,6 @@ class OneToOneTab(ChatTab):
         self.core.information(msg, 'Info')
         return True
 
-    def _feature_attention(self, features):
-        "Check for the 'attention' features"
-        if 'urn:xmpp:attention:0' in features:
-            self.remote_supports_attention = True
-            self.register_command(
-                'attention',
-                self.command_attention,
-                usage='[message]',
-                shortdesc='Request the attention.',
-                desc='Attention: Request the attention of '
-                'the contact. Can also send a message'
-                ' along with the attention.')
-        else:
-            self.remote_supports_attention = False
-        return self.remote_supports_attention
-
-    def _feature_correct(self, features):
-        "Check for the 'correction' feature"
-        if 'urn:xmpp:message-correct:0' not in features:
-            if 'correct' in self.commands:
-                del self.commands['correct']
-        elif 'correct' not in self.commands:
-            self.register_command(
-                'correct',
-                self.command_correct,
-                desc='Fix the last message with whatever you want.',
-                shortdesc='Correct the last message.',
-                completion=self.completion_correct)
-        return 'correct' in self.commands
-
-    def _feature_receipts(self, features):
-        "Check for the 'receipts' feature"
-        if 'urn:xmpp:receipts' in features:
-            self.remote_supports_receipts = True
-        else:
-            self.remote_supports_receipts = False
-        return self.remote_supports_receipts
-
     def features_checked(self, iq):
         "Features check callback"
         features = iq['disco_info'].get_features() or []
-        before = ('correct' in self.commands, self.remote_supports_attention,
-                  self.remote_supports_receipts)
-        correct = self._feature_correct(features)
-        attention = self._feature_attention(features)
-        receipts = self._feature_receipts(features)
-
-        if (correct, attention, receipts) == before and self.__initial_disco:
-            return
-        else:
-            self.__initial_disco = True
-
-        if not (correct or attention or receipts):
-            return  # don’t display anything
-
-        ok = get_theme().CHAR_OK
-        nope = get_theme().CHAR_EMPTY
-
-        correct = ok if correct else nope
-        attention = ok if attention else nope
-        receipts = ok if receipts else nope
-
-        msg = ('\x19%s}Contact supports: correction [%s], '
-               'attention [%s], receipts [%s].')
-        color = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-        msg = msg % (color, correct, attention, receipts)
-        self.add_message(msg, typ=0)
-        self.core.refresh_window()

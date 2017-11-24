@@ -143,7 +143,7 @@ class ConversationTab(OneToOneTab):
         if config.get_by_tabname('send_chat_states', self.general_jid):
             needed = 'inactive' if self.inactive else 'active'
             msg['chat_state'] = needed
-        if attention and self.remote_supports_attention:
+        if attention:
             msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
         if not msg['body']:
@@ -161,8 +161,7 @@ class ConversationTab(OneToOneTab):
                 typ=1)
 
         self.last_sent_message = msg
-        if self.remote_supports_receipts:
-            msg._add_receipt = True
+        msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
         self.text_win.refresh()
