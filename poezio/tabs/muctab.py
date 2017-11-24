@@ -374,9 +374,13 @@ class MucTab(ChatTab):
         return False
 
     def get_nick(self):
-        if not config.get('show_muc_jid'):
-            return safeJID(self.name).user
-        return self.name
+        if config.get('show_muc_jid'):
+            return self.name
+        bookmark = self.core.bookmarks[self.name]
+        if bookmark is not None and bookmark.name:
+            return bookmark.name
+        # TODO: send the disco#info identity name here, if it exists.
+        return safeJID(self.name).user
 
     def get_text_window(self):
         return self.text_win
