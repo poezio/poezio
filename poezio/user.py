@@ -56,8 +56,7 @@ class User(object):
         if theme.ccg_palette:
             # use XEP-0392 CCG
             fg_color = colors.ccg_text_to_color(
-                theme.ccg_palette, self.jid.bare
-                if self.jid and self.jid.bare else self.nick)
+                theme.ccg_palette, self.nick)
             self.color = fg_color, -1
         else:
             mod = len(theme.LIST_COLOR_NICKNAMES)
