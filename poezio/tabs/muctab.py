@@ -650,32 +650,36 @@ class MucTab(ChatTab):
     def on_user_nick_change(self, presence, user, from_nick, from_room):
         new_nick = presence.xml.find('{%s}x/{%s}item' %
                                      (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
+        old_color = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
             self.core.handler.on_muc_own_nickchange(self)
+            user.change_nick(new_nick)
         else:
-            color = config.get_by_tabname(new_nick, 'muc_colors')
-            if color != '':
-                deterministic = config.get_by_tabname(
-                    'deterministic_nick_colors', self.name)
+            user.change_nick(new_nick)
+            deterministic = config.get_by_tabname(
+                'deterministic_nick_colors', self.name)
+            color = config.get_by_tabname(new_nick, 'muc_colors') or None
+            if color or deterministic:
                 user.change_color(color, deterministic)
-        user.change_nick(new_nick)
         self.users.remove(user)
         bisect.insort_left(self.users, user)
 
         if config.get_by_tabname('display_user_color_in_join_part',
                                  self.general_jid):
             color = dump_tuple(user.color)
+            old_color = dump_tuple(old_color)
         else:
-            color = 3
+            old_color = color = 3
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         self.add_message(
-            '\x19%(color)s}%(old)s\x19%(info_col)s} is'
+            '\x19%(old_color)s}%(old)s\x19%(info_col)s} is'
             ' now known as \x19%(color)s}%(new)s' % {
                 'old': from_nick,
                 'new': new_nick,
                 'color': color,
+                'old_color': old_color,
                 'info_col': info_col
             },
             typ=2)
