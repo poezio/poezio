@@ -362,6 +362,12 @@ to understand what is :ref:`carbons <carbons-details>` or
         sender intended it as such. See :ref:`Message Correction <correct-feature>` for
         more information.
 
+    bookmark_on_join
+
+        **Default value:** ``true``
+
+        If ``true``, poezio will bookmark automatically every room that is joined with
+        a manual ``/join`` command.
 
     force_remote_bookmarks
 
@@ -427,6 +433,14 @@ to understand what is :ref:`carbons <carbons-details>` or
         XHTML-IM is an XMPP extension letting users send messages containing
         XHTML and CSS formating. We can use this to make colored text for example.
         Set to ``true`` if you want to see colored (and otherwise formatted) messages.
+
+    enable_css_parsing
+
+        **Default value:** ``true``
+
+        When parsing XHTML-IM content, only keep semantic elements, and not inline
+        text styles.
+        Only useful if :term:`enable_xhtml_im` is enabled.
 
     request_message_receipts
 
@@ -723,12 +737,13 @@ or the way messages are displayed.
 
     show_muc_jid
 
-        **Default value:** ``true``
+        **Default value:** ``false``
 
-        Set this to ``false`` if you want to display only the “user” part of the
-        chatroom jid. E.g. if you have **poezio@muc.poez.io**, it will be
-        displayed as **poezio**. This will be used only if :term:`use_tab_nicks`
-        is set to ``true``.
+        If set to ``false``, poezio will first display the bookmark name, or if
+        empty the user part of the address (before the ``@``) when displaying the
+        chatroom tab name. So ``poezio@muc.poez.io`` will get shortened to
+        ``poezio`` unless this option is set to ``true``.
+        This will be used only if :term:`use_tab_nicks` is set to ``true``.
 
     show_roster_jids
 
