@@ -2115,10 +2115,8 @@ class Core(object):
             tab.add_message(msg, typ=2)
         if code == '409':
             if config.get('alternative_nickname') != '':
-                self.command.join(
-                    '%s/%s' %
-                    (tab.name,
-                     tab.own_nick + config.get('alternative_nickname')))
+                tab.own_nick += config.get('alternative_nickname')
+                tab.join()
             else:
                 if not tab.joined:
                     tab.add_message(
