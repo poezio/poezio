@@ -1,6 +1,6 @@
 stages:
-  - build
   - test
+  - build
 
 build-doc:
   stage: build
