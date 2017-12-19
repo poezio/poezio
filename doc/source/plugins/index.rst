@@ -283,6 +283,11 @@ Plugin index
 
         Roll one or several dice using message corrections.
 
+    Disco
+        :ref:`Documentation <disco-plugin>`
+
+        Add a ``/disco`` command to display the disco#info of a JID.
+
     vCard
         :ref:`Documentation <vcard-plugin>`
 
@@ -331,6 +336,7 @@ Plugin index
     cyber
     csi
     dice
+    disco
     marquee
     server_part
     vcard
