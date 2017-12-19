@@ -35,7 +35,7 @@ class Plugin(BasePlugin):
             if field['type'] == 'hidden' and field['var'] == 'FORM_TYPE':
                 value = field['value']
                 if 'http://jabber.org/network/serverinfo' not in value:
-                    self.api.error('Unknown form type “%s”' % value, 'Form')
+                    self.api.information('Unknown form type “%s”' % value, 'Error')
                     return
                 break
         server_info = []
