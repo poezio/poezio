@@ -364,7 +364,7 @@ to understand what is :ref:`carbons <carbons-details>` or
 
     bookmark_on_join
 
-        **Default value:** ``true``
+        **Default value:** ``false``
 
         If ``true``, poezio will bookmark automatically every room that is joined with
         a manual ``/join`` command.
