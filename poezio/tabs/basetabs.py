@@ -716,6 +716,7 @@ class ChatTab(Tab):
                 the_input.auto_completion, [self.last_sent_message['body']],
                 '',
                 quotify=False)
+        return True
 
     @property
     def inactive(self):
