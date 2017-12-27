@@ -852,7 +852,9 @@ class OneToOneTab(ChatTab):
             self._text_buffer.add_message(
                 body,
                 nickname=self.core.own_nick,
+                nick_color=get_theme().COLOR_OWN_NICK,
                 identifier=message['id'],
+                jid=self.core.xmpp.boundjid
             )
             self.refresh()
 
