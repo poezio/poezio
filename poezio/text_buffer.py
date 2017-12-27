@@ -211,6 +211,8 @@ class TextBuffer(object):
         if i == -1:
             return
         msg = self.messages[i]
+        if msg.ack == 1:  # Message was already acked
+            return False
         if msg.jid != jid:
             raise AckError(
                 'Wrong JID for message id %s (was %s, expected %s)' %
