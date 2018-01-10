@@ -1,7 +1,7 @@
 """
 A MucListTab is a tab listing the rooms on a conference server.
 
-It has no functionnality except scrolling the list, and allowing the
+It has no functionality except scrolling the list, and allowing the
 user to join the rooms.
 """
 import logging

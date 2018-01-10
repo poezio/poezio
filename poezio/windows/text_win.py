@@ -189,7 +189,7 @@ class TextWin(BaseTextWin):
         """
         Go to the next highlight in the buffer.
         (depending on which highlight was selected before)
-        if the buffer is already positionned on the last, of if there are no
+        if the buffer is already positioned on the last, of if there are no
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the next highlight…')
@@ -225,7 +225,7 @@ class TextWin(BaseTextWin):
         """
         Go to the previous highlight in the buffer.
         (depending on which highlight was selected before)
-        if the buffer is already positionned on the first, or if there are no
+        if the buffer is already positioned on the first, or if there are no
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the previous highlight…')
@@ -294,7 +294,7 @@ class TextWin(BaseTextWin):
         if None not in self.built_lines:
             self.built_lines.append(None)
             self.nb_of_highlights_after_separator = 0
-            log.debug("Reseting number of highlights after separator")
+            log.debug("Resetting number of highlights after separator")
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 

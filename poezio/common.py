@@ -109,7 +109,7 @@ DISTRO_INFO = {
 
 def get_os_info():
     """
-    Returns a detailed and well formated string containing
+    Returns a detailed and well formatted string containing
     information about the operating system
 
     :rtype: str

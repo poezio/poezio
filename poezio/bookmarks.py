@@ -10,7 +10,7 @@ bookmarks, both local and remote.
 
 Poezio start scenario:
 
-- upon inital connection, poezio will disco#info the server
+- upon initial connection, poezio will disco#info the server
 - the available storage methods will be stored in the available_storage dict
     (either 'pep' or 'privatexml')
 - if only one is available, poezio will set the use_bookmarks_method config option

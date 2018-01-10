@@ -1242,7 +1242,7 @@ class HandlerCore:
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: A configuration change not privacy-related occured.'
+                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.'
                     % {
                         'info_col': dump_tuple(
                             get_theme().COLOR_INFORMATION_TEXT)
@@ -1584,7 +1584,7 @@ class HandlerCore:
 
         if status == 'error':
             return self.core.information(
-                "An error occured while executing the command")
+                "An error occurred while executing the command")
 
         if status == 'executing':
             if not form:
@@ -1616,7 +1616,7 @@ class HandlerCore:
         self.core.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
         error_message = self.core.get_error_message(iq)
         self.core.information(
-            "An error occured while executing the command: %s" %
+            "An error occurred while executing the command: %s" %
             (error_message), 'Error')
 
     def _cancel_adhoc_command(self, form, session):

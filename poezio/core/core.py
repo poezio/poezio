@@ -580,7 +580,7 @@ class Core(object):
         catches SIGWINCH itself. In its signal handler, it updates the
         windows structures (for example the size, etc) and it
         ungetch(KEY_RESIZE). That way, the next time we call getch() we know
-        that a resize occured and we can act on it. BUT poezio doesn’t call
+        that a resize occurred and we can act on it. BUT poezio doesn’t call
         getch() until it knows it will return something. The problem is we
         can’t know that, because stdin is not affected by this KEY_RESIZE
         value (it is only inserted in a ncurses internal fifo that we can’t
@@ -1615,7 +1615,7 @@ class Core(object):
 
     def _pop_information_win_up(self, size, time):
         """
-        Temporarly increase the size of the information win of size lines
+        Temporarily increase the size of the information win of size lines
         during time seconds.
         After that delay, the size will decrease from size lines.
         """

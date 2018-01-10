@@ -5,7 +5,7 @@ A text buffer contains a list of intermediate representations of messages
 (not xml stanzas, but neither the Lines used in windows.py.
 
 Each text buffer can be linked to multiple windows, that will be rendered
-independantly by their TextWins.
+independently by their TextWins.
 """
 
 import logging
