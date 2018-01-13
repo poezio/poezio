@@ -122,7 +122,7 @@ class Logger(object):
         if not open_fd:
             return
         try:
-            fd = open(os.path.join(log_dir, room), 'a')
+            fd = open(os.path.join(log_dir, room), 'a', encoding='utf-8')
             self._fds[room] = fd
             return fd
         except IOError:
@@ -150,7 +150,7 @@ class Logger(object):
         self._check_and_create_log_dir(jid, open_fd=False)
 
         try:
-            fd = open(os.path.join(log_dir, jid), 'rb')
+            fd = open(os.path.join(log_dir, jid), 'rb', encoding='utf-8')
         except FileNotFoundError:
             log.info(
                 'Non-existing log file (%s)',
@@ -228,7 +228,8 @@ class Logger(object):
         if not self._roster_logfile:
             try:
                 self._roster_logfile = open(
-                    os.path.join(log_dir, 'roster.log'), 'a')
+                    os.path.join(log_dir, 'roster.log'), 'a',
+                    encoding='utf-8')
             except IOError:
                 log.error(
                     'Unable to create the log file (%s)',
