@@ -46,3 +46,10 @@ test-ubuntu:
     - python3 setup.py install
     - py.test -v test/
     - pylint -E poezio
+
+formatting-check:
+  stage: test
+  image: poezio/test-base:latest
+  script:
+    - pip3 install yapf
+    - [ -n "$(yapf -dpr poezio)" ] && echo "yapf check failure" && exit 1
