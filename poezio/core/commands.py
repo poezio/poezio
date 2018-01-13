@@ -407,7 +407,8 @@ class CommandCore:
                 tab.join()
 
         if config.get('bookmark_on_join'):
-            method = 'remote' if config.get('use_remote_bookmarks') else 'local'
+            method = 'remote' if config.get(
+                'use_remote_bookmarks') else 'local'
             self._add_bookmark('%s/%s' % (room, nick), True, password, method)
 
         if tab == self.core.current_tab():
@@ -912,8 +913,8 @@ class CommandCore:
                     self.core.xmpp.remove_handler('Iq %s' % iq_id)
 
                 self.core.xmpp.register_handler(
-                    Callback('Iq %s' % iq_id,
-                             StanzaPath('iq@id=%s' % iq_id), iqfunc))
+                    Callback('Iq %s' % iq_id, StanzaPath('iq@id=%s' % iq_id),
+                             iqfunc))
             stanza.send()
         except:
             self.core.information('Could not send custom stanza', 'Error')

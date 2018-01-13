@@ -132,8 +132,8 @@ class RosterWin(Win):
         log.debug('Refresh: %s', self.__class__.__name__)
         self.build_roster_cache(roster)
         # make sure we are within bounds
-        self.move_cursor_up((self.roster_len + self.pos)
-                            if self.pos >= self.roster_len else 0)
+        self.move_cursor_up((
+            self.roster_len + self.pos) if self.pos >= self.roster_len else 0)
         if not self.roster_cache:
             self.selected_row = None
         self._win.erase()
@@ -206,8 +206,9 @@ class RosterWin(Win):
         else:
             self.addstr(y, 0, '[-] ')
         contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
-        self.addstr(
-            y, 4, self.truncate_name(group.name, len(contacts) + 4) + contacts)
+        self.addstr(y, 4,
+                    self.truncate_name(group.name,
+                                       len(contacts) + 4) + contacts)
         if colored:
             self._win.attroff(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         self.finish_line()
@@ -320,8 +321,7 @@ class RosterWin(Win):
         color = get_theme().color_show(resource.presence)
         self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
         if colored:
-            self.addstr(y, 8,
-                        self.truncate_name(str(resource.jid), 6),
+            self.addstr(y, 8, self.truncate_name(str(resource.jid), 6),
                         to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         else:
             self.addstr(y, 8, self.truncate_name(str(resource.jid), 6))

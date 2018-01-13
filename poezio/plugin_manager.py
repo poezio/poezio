@@ -108,8 +108,8 @@ class PluginManager(object):
                     del self.core.key_func[key]
                 for tab in list(self.tab_commands[name].keys()):
                     for command in self.tab_commands[name][tab][:]:
-                        self.del_tab_command(name,
-                                             getattr(tabs, tab), command[0])
+                        self.del_tab_command(name, getattr(tabs, tab),
+                                             command[0])
                     del self.tab_commands[name][tab]
                 for tab in list(self.tab_keys[name].keys()):
                     for key in self.tab_keys[name][tab][:]:

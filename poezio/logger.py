@@ -38,8 +38,8 @@ class LogItem:
     def __init__(self, year, month, day, hour, minute, second, nb_lines,
                  message):
         self.time = datetime(
-            int(year),
-            int(month), int(day), int(hour), int(minute), int(second))
+            int(year), int(month), int(day), int(hour), int(minute),
+            int(second))
         self.nb_lines = int(nb_lines)
         self.text = message
 
@@ -228,8 +228,7 @@ class Logger(object):
         if not self._roster_logfile:
             try:
                 self._roster_logfile = open(
-                    os.path.join(log_dir, 'roster.log'), 'a',
-                    encoding='utf-8')
+                    os.path.join(log_dir, 'roster.log'), 'a', encoding='utf-8')
             except IOError:
                 log.error(
                     'Unable to create the log file (%s)',

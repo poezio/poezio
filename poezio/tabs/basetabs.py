@@ -779,11 +779,12 @@ class OneToOneTab(ChatTab):
         self.register_command(
             'close', self.command_unquery, shortdesc='Close the tab.')
         self.register_command(
-            'attention', self.command_attention,
+            'attention',
+            self.command_attention,
             usage='[message]',
             shortdesc='Request the attention.',
             desc='Attention: Request the attention of the contact.  Can also '
-                 'send a message along with the attention.')
+            'send a message along with the attention.')
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)
@@ -854,8 +855,7 @@ class OneToOneTab(ChatTab):
                 nickname=self.core.own_nick,
                 nick_color=get_theme().COLOR_OWN_NICK,
                 identifier=message['id'],
-                jid=self.core.xmpp.boundjid
-            )
+                jid=self.core.xmpp.boundjid)
             self.refresh()
 
     def check_features(self):

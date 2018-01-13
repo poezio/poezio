@@ -37,6 +37,7 @@ Poezio is currently unable to read your input or draw its interface properly,\
  so it will now exit.""")
     return False
 
+
 def test_env():
     """
     Check if the environment has the right variables set

@@ -428,9 +428,7 @@ class DynamicConversationTab(ConversationTab):
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.DynamicConversationInfoWin()
         self.register_command(
-            'unlock',
-            self.unlock_command,
-            shortdesc='Deprecated, do nothing.')
+            'unlock', self.unlock_command, shortdesc='Deprecated, do nothing.')
         self.resize()
 
     def get_info_header(self):

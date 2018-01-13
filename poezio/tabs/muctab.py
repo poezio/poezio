@@ -658,8 +658,8 @@ class MucTab(ChatTab):
             user.change_nick(new_nick)
         else:
             user.change_nick(new_nick)
-            deterministic = config.get_by_tabname(
-                'deterministic_nick_colors', self.name)
+            deterministic = config.get_by_tabname('deterministic_nick_colors',
+                                                  self.name)
             color = config.get_by_tabname(new_nick, 'muc_colors') or None
             if color or deterministic:
                 user.change_color(color, deterministic)

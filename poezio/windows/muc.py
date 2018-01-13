@@ -75,8 +75,7 @@ class UserList(Win):
         for user in users[self.pos:self.pos + self.height]:
             self.draw_role_affiliation(y, user)
             self.draw_status_chatstate(y, user)
-            self.addstr(y, 2,
-                        poopt.cut_by_columns(user.nick, self.width - 2),
+            self.addstr(y, 2, poopt.cut_by_columns(user.nick, self.width - 2),
                         to_curses_attr(user.color))
             if asc_sort:
                 y -= 1

@@ -269,8 +269,7 @@ class Core(object):
         self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
         self.xmpp.add_event_handler('http_confirm', self.handler.http_confirm)
 
-        all_stanzas = Callback('custom matcher',
-                               connection.MatchAll(None),
+        all_stanzas = Callback('custom matcher', connection.MatchAll(None),
                                self.handler.incoming_stanza)
         self.xmpp.register_handler(all_stanzas)
         if config.get('enable_avatars'):

@@ -51,7 +51,8 @@ class CompletionCore:
                 if tab is not None and tab.joined:
                     to_suggest.append(bookmark.jid)
             return Completion(
-                the_input.auto_completion, roster.jids() + to_suggest,
+                the_input.auto_completion,
+                roster.jids() + to_suggest,
                 '',
                 quotify=True)
         elif arg == 2:
@@ -275,9 +276,9 @@ class CompletionCore:
                           (roster[jid].resources for jid in roster.jids()
                            if len(roster[jid])), [])
             comp = sorted(comp)
-            bares = sorted(
-                roster[contact].bare_jid for contact in roster.jids()
-                if len(roster[contact]))
+            bares = sorted(roster[contact].bare_jid
+                           for contact in roster.jids()
+                           if len(roster[contact]))
             off = sorted(jid for jid in roster.jids() if jid not in bares)
             comp = comp + bares + off
             return Completion(the_input.new_completion, comp, n, quotify=True)

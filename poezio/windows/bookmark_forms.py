@@ -143,9 +143,10 @@ class BookmarksWin(Win):
         self._bookmarks = list(bookmarks)
         self.lines = []
         for bookmark in sorted(self._bookmarks, key=lambda x: x.jid):
-            self.lines.append(
-                (BookmarkJIDInput(bookmark), BookmarkPasswordInput(bookmark),
-                 BookmarkAutojoinWin(bookmark), BookmarkMethodInput(bookmark)))
+            self.lines.append((BookmarkJIDInput(bookmark),
+                               BookmarkPasswordInput(bookmark),
+                               BookmarkAutojoinWin(bookmark),
+                               BookmarkMethodInput(bookmark)))
 
     @property
     def current_input(self):
@@ -163,9 +164,10 @@ class BookmarksWin(Win):
             self._current_input = 0
 
     def add_bookmark(self, bookmark):
-        self.lines.append(
-            (BookmarkJIDInput(bookmark), BookmarkPasswordInput(bookmark),
-             BookmarkAutojoinWin(bookmark), BookmarkMethodInput(bookmark)))
+        self.lines.append((BookmarkJIDInput(bookmark),
+                           BookmarkPasswordInput(bookmark),
+                           BookmarkAutojoinWin(bookmark),
+                           BookmarkMethodInput(bookmark)))
         self.lines[
             self.current_input][self.current_horizontal_input].set_color(
                 get_theme().COLOR_NORMAL_TEXT)

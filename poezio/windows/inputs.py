@@ -532,9 +532,8 @@ class Input(Win):
             (_, x) = self._win.getyx()
             size = self.width - x
             self.addnstr(' ' * size, size, to_curses_attr(self.color))
-        self.addstr(0,
-                    poopt.wcswidth(displayed_text[:self.pos - self.view_pos]),
-                    '')
+        self.addstr(0, poopt.wcswidth(
+            displayed_text[:self.pos - self.view_pos]), '')
         if self.color:
             self._win.attroff(to_curses_attr(self.color))
         curses.curs_set(1)

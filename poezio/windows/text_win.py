@@ -486,8 +486,7 @@ class TextWin(BaseTextWin):
 
     def write_line_separator(self, y):
         char = get_theme().CHAR_NEW_TEXT_SEPARATOR
-        self.addnstr(y, 0,
-                     char * (self.width // len(char) - 1), self.width,
+        self.addnstr(y, 0, char * (self.width // len(char) - 1), self.width,
                      to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
 
     def write_ack(self):

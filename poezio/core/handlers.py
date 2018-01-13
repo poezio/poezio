@@ -1078,11 +1078,12 @@ class HandlerCore:
         roster.modified()
         if not logger.log_roster_change(jid.bare, 'got online'):
             self.core.information('Unable to write in the log file', 'Error')
-        resource = Resource(jid.full, {
-            'priority': presence.get_priority() or 0,
-            'status': presence['status'],
-            'show': presence['show'],
-        })
+        resource = Resource(
+            jid.full, {
+                'priority': presence.get_priority() or 0,
+                'status': presence['status'],
+                'show': presence['show'],
+            })
         self.core.events.trigger('normal_presence', presence, resource)
         name = contact.name if contact.name else jid.bare
         self.core.add_information_message_to_conversation_tab(

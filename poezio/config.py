@@ -337,7 +337,12 @@ class Config(RawConfigParser):
             prefix, file = path.split(self.file_name)
             filename = path.join(prefix, '.%s.tmp' % file)
             fd = os.fdopen(
-                os.open(filename, os.O_WRONLY | os.O_CREAT, 0o600,), 'w',
+                os.open(
+                    filename,
+                    os.O_WRONLY | os.O_CREAT,
+                    0o600,
+                ),
+                'w',
                 encoding='utf-8')
             for line in lines:
                 fd.write('%s\n' % line)

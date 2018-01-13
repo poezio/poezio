@@ -203,7 +203,8 @@ def set_user_affiliation(xmpp,
         return iq.send(callback=callback)
     try:
         return xmpp.plugin['xep_0045'].set_affiliation(
-            str(muc_jid), str(jid) if jid else None, nick, affiliation)
+            str(muc_jid),
+            str(jid) if jid else None, nick, affiliation)
     except:
         log.debug('Error setting the affiliation: %s', exc_info=True)
         return False
