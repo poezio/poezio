@@ -1,11 +1,11 @@
 def run():
-    from poezio.poezio import test_curses, main
+    from poezio.poezio import main, test_curses, test_env
 
-    if test_curses():
-        main()
-    else:
+    if not test_curses() or not test_env():
         import sys
         sys.exit(1)
+    else:
+        main()
     return 0
 
 

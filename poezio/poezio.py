@@ -37,6 +37,20 @@ Poezio is currently unable to read your input or draw its interface properly,\
  so it will now exit.""")
     return False
 
+def test_env():
+    """
+    Check if the environment has the right variables set
+    """
+    unset = set()
+    for i in ('HOME', 'PATH', 'TERM'):
+        if not os.environ.get(i):
+            unset.add(i)
+    if unset:
+        variables = ', '.join('$%s' % i for i in unset)
+        print('ERROR: %s not set' % variables)
+        return False
+    return True
+
 
 def main():
     """
