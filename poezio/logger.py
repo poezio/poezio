@@ -150,7 +150,7 @@ class Logger(object):
         self._check_and_create_log_dir(jid, open_fd=False)
 
         try:
-            fd = open(os.path.join(log_dir, jid), 'rb', encoding='utf-8')
+            fd = open(os.path.join(log_dir, jid), 'rb')
         except FileNotFoundError:
             log.info(
                 'Non-existing log file (%s)',
