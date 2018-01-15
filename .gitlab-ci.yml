@@ -52,4 +52,5 @@ formatting-check:
   image: poezio/test-base:latest
   script:
     - pip3 install yapf
+    - yapf -dpr poezio
     - "[ -n \"$(yapf -dpr poezio)\" ] && echo 'Formatting check failed, please run yapf' && exit 1 || echo 'Formatting check succeeded'"
