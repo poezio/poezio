@@ -720,8 +720,7 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
-            self.core.current_tab().input.refresh()
-            self.core.doupdate()
+            self.core.current_tab().refresh_input()
             if config.get_by_tabname('autorejoin', self.general_jid):
                 delay = config.get_by_tabname('autorejoin_delay',
                                               self.general_jid)
@@ -799,8 +798,7 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
-            self.core.current_tab().input.refresh()
-            self.core.doupdate()
+            self.core.current_tab().refresh_input()
             # try to auto-rejoin
             if config.get_by_tabname('autorejoin', self.general_jid):
                 delay = config.get_by_tabname('autorejoin_delay',

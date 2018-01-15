@@ -323,6 +323,12 @@ class Tab(object):
         elif not self.size.core_degrade_y:
             self.core.tab_win.refresh()
 
+    def refresh_input(self):
+        """Refresh the current input if any"""
+        if self.input is not None:
+            self.input.refresh()
+            self.core.doupdate()
+
     def refresh(self):
         """
         Called on each screen refresh (when something has changed)
