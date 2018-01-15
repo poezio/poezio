@@ -288,9 +288,8 @@ class PluginManager(object):
             except OSError:
                 pass
         plugins_files = [
-            name[:-3] for name in names
-            if name.endswith('.py') and name != '__init__.py'
-            and not name.startswith('.')
+            name[:-3] for name in names if name.endswith('.py')
+            and name != '__init__.py' and not name.startswith('.')
         ]
         plugins_files.sort()
         position = the_input.get_argument_position(quoted=False)
