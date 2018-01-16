@@ -456,7 +456,7 @@ class MucTab(ChatTab):
         self.enable_self_ping_event()
         if self.core.current_tab() is not self:
             self.refresh_tab_win()
-            self.core.current_tab().input.refresh()
+            self.core.current_tab().refresh_input()
             self.core.doupdate()
 
     def handle_presence_unjoined(self, presence, deterministic, own=False):
