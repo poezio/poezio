@@ -1450,7 +1450,7 @@ class Core(object):
         else:
             if self.information_win_size != 0:
                 self.information_win.refresh()
-                self.current_tab().input.refresh()
+                self.current_tab().refresh_input()
         return True
 
     def _init_curses(self, stdscr):
