@@ -427,10 +427,11 @@ class HandlerCore:
 
                 # Now we save the data on the file system to not have to request it again.
                 try:
-                    makedirs(cache_dir)
+                    makedirs(cache_dir, exist_ok=True)
                     with open(cached_path, 'wb') as avatar_file:
                         avatar_file.write(contact.avatar)
                 except OSError:
+                    log.debug('Failed writing %s avatar to cache:', jid, exc_info=True)
                     pass
                 return
 
@@ -467,10 +468,11 @@ class HandlerCore:
 
         # Now we save the data on the file system to not have to request it again.
         try:
-            makedirs(cache_dir)
+            makedirs(cache_dir, exist_ok=True)
             with open(cached_path, 'wb') as avatar_file:
                 avatar_file.write(contact.avatar)
         except OSError:
+            log.debug('Failed writing %s avatar to cache:', jid, exc_info=True)
             pass
 
     def on_nick_received(self, message):
