@@ -76,6 +76,7 @@ DEFAULT_CONFIG = {
         'highlight_on': '',
         'ignore_certificate': False,
         'ignore_private': False,
+        'image_use_half_blocks': False,
         'information_buffer_popup_on': 'error roster warning help info',
         'information_buffer_type_filter': '',
         'jid': '',

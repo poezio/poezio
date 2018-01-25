@@ -14,6 +14,7 @@ except ImportError:
 from poezio.windows.base_wins import Win
 from poezio.theming import to_curses_attr
 from poezio.xhtml import _parse_css_color
+from poezio.config import config
 
 
 class ImageWin(Win):
@@ -24,6 +25,10 @@ class ImageWin(Win):
     def __init__(self):
         self._image = None
         Win.__init__(self)
+        if config.get('image_use_half_blocks'):
+            self._display_avatar = self._display_avatar_half_blocks
+        else:
+            self._display_avatar = self._display_avatar_full_blocks
 
     def resize(self, height: int, width: int, y: int, x: int):
         self._resize(height, width, y, x)
@@ -61,7 +66,7 @@ class ImageWin(Win):
             width = int(new_width)
         return width, height
 
-    def _display_avatar(self, width: int, height: int):
+    def _display_avatar_half_blocks(self, width: int, height: int):
         original_height = height
         original_width = width
         size = self._compute_size(self._image.size, width, height)
@@ -81,3 +86,21 @@ class ImageWin(Win):
                 r, g, b = line2[x * 3:(x + 1) * 3]
                 bot_color = _parse_css_color('#%02x%02x%02x' % (r, g, b))
                 self.addstr('▄', to_curses_attr((bot_color, top_color)))
+
+    def _display_avatar_full_blocks(self, width: int, height: int):
+        original_height = height
+        original_width = width
+        width, height = self._compute_size(self._image.size, width, height)
+        height //= 2
+        size = width, height
+        image2 = self._image.resize(size, resample=Image.BILINEAR)
+        data = image2.tobytes()
+        start_y = (original_height - height) // 2
+        start_x = (original_width - width) // 2
+        for y in range(height):
+            line = data[y * width * 3:(y + 1) * width * 3]
+            self.move(start_y + y, start_x)
+            for x in range(0, width * 3, 3):
+                r, g, b = line[x:x + 3]
+                color = _parse_css_color('#%02x%02x%02x' % (r, g, b))
+                self.addstr('█', to_curses_attr((color, -1)))
