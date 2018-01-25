@@ -88,10 +88,10 @@ class ImageWin(Win):
             line1 = two_lines[:width * 3]
             line2 = two_lines[width * 3:]
             self.move(start_y + y, start_x)
-            for x in range(width):
-                r, g, b = line1[x * 3:(x + 1) * 3]
+            for x in range(0, width * 3, 3):
+                r, g, b = line1[x:x + 3]
                 top_color = _parse_css_color('#%02x%02x%02x' % (r, g, b))
-                r, g, b = line2[x * 3:(x + 1) * 3]
+                r, g, b = line2[x:x + 3]
                 bot_color = _parse_css_color('#%02x%02x%02x' % (r, g, b))
                 self.addstr('▄', to_curses_attr((bot_color, top_color)))
 
