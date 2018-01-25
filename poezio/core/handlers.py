@@ -13,7 +13,7 @@ import ssl
 import sys
 import time
 from datetime import datetime
-from hashlib import sha256, sha512
+from hashlib import sha1, sha256, sha512
 from os import path, makedirs
 
 import pyasn1.codec.der.decoder
@@ -415,8 +415,10 @@ class HandlerCore:
                     result = yield from self.core.xmpp[
                         'xep_0084'].retrieve_avatar(
                             jid, avatar_hash, timeout=60)
-                    contact.avatar = result['pubsub']['items']['item'][
-                        'avatar_data']['value']
+                    avatar = result['pubsub']['items']['item']['avatar_data']['value']
+                    if sha1(avatar).hexdigest().lower() != avatar_hash.lower():
+                        raise Exception('Avatar sha1 doesn’t match 0084 hash.')
+                    contact.avatar = avatar
                 except Exception:
                     log.debug(
                         'Failed retrieving 0084 data from %s:',
@@ -460,7 +462,10 @@ class HandlerCore:
             result = yield from self.core.xmpp['xep_0054'].get_vcard(
                 jid, cached=True, timeout=60)
             avatar = result['vcard_temp']['PHOTO']
-            contact.avatar = avatar['BINVAL']
+            binval = avatar['BINVAL']
+            if sha1(binval).hexdigest().lower() != avatar_hash.lower():
+                raise Exception('Avatar sha1 doesn’t match 0153 hash.')
+            contact.avatar = binval
         except Exception:
             log.debug('Failed retrieving vCard from %s:', jid, exc_info=True)
             return
