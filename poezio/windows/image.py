@@ -12,7 +12,7 @@ except ImportError:
     HAS_PIL = False
 
 from poezio.windows.base_wins import Win
-from poezio.theming import to_curses_attr
+from poezio.theming import get_theme, to_curses_attr
 from poezio.xhtml import _parse_css_color
 from poezio.config import config
 
@@ -37,21 +37,29 @@ class ImageWin(Win):
         self._display_avatar(width, height)
 
     def refresh(self, data):
-        self._win.clear()
-        if data is None or not HAS_PIL:
-            self._image = None
-            self._display_border()
-        else:
+        self._win.erase()
+        if data is not None and HAS_PIL:
             image_file = BytesIO(data)
-            self._image = Image.open(image_file).convert('RGB')
-            self._display_avatar(self.width, self.height)
+            try:
+                image = Image.open(image_file)
+            except OSError:
+                self._display_border()
+            else:
+                self._image = image.convert('RGB')
+                self._display_avatar(self.width, self.height)
+        else:
+            self._display_border()
         self._refresh()
 
     def _display_border(self):
+        self._image = None
+        attribute = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
+        self._win.attron(attribute)
         self._win.border(curses.ACS_VLINE, curses.ACS_VLINE, curses.ACS_HLINE,
                          curses.ACS_HLINE, curses.ACS_ULCORNER,
                          curses.ACS_URCORNER, curses.ACS_LLCORNER,
                          curses.ACS_LRCORNER)
+        self._win.attroff(attribute)
 
     @staticmethod
     def _compute_size(image_size, width: int, height: int):
