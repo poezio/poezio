@@ -415,7 +415,8 @@ class HandlerCore:
                     result = yield from self.core.xmpp[
                         'xep_0084'].retrieve_avatar(
                             jid, avatar_hash, timeout=60)
-                    avatar = result['pubsub']['items']['item']['avatar_data']['value']
+                    avatar = result['pubsub']['items']['item']['avatar_data'][
+                        'value']
                     if sha1(avatar).hexdigest().lower() != avatar_hash.lower():
                         raise Exception('Avatar sha1 doesn’t match 0084 hash.')
                     contact.avatar = avatar
@@ -433,7 +434,10 @@ class HandlerCore:
                     with open(cached_path, 'wb') as avatar_file:
                         avatar_file.write(contact.avatar)
                 except OSError:
-                    log.debug('Failed writing %s avatar to cache:', jid, exc_info=True)
+                    log.debug(
+                        'Failed writing %s avatar to cache:',
+                        jid,
+                        exc_info=True)
                     pass
                 return
 
