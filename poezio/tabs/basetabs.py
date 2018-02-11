@@ -245,14 +245,6 @@ class Tab(object):
                 # Otherwise we would need to add a useless space before being
                 # able to complete the arguments.
                 hit_copy = set(the_input.hit_list)
-                while not hit_copy:
-                    whitespace = the_input.text.find(' ')
-                    if whitespace == -1:
-                        whitespace = len(the_input.text)
-                    the_input.text = the_input.text[:whitespace -
-                                                    1] + the_input.text[whitespace:]
-                    the_input.new_completion(words, 0)
-                    hit_copy = set(the_input.hit_list)
                 if len(hit_copy) == 1:
                     the_input.do_command(' ')
                     the_input.reset_completion()
