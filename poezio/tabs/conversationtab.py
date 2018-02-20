@@ -231,9 +231,8 @@ class ConversationTab(OneToOneTab):
             return True
         else:
             self._text_buffer.add_message(
-                "\x19%(info_col)s}No information available\x19o" % {
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-                })
+                "\x19%(info_col)s}No information available\x19o" %
+                {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
             return True
 
     @command_args_parser.quoted(0, 1)

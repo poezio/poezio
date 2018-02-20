@@ -81,13 +81,14 @@ The status of a tab is represented by its color:
 
 You can go from one tab to another in many ways:
 
-* ``Ctrl+n`` and ``Ctrl+p``
+* ``Ctrl+n`` (next tab) and ``Ctrl+p`` (previous tab)
 * :term:`/win` command
 * :term:`/next` and :term:`/prev` commands
-* ``Alt`` + a number
-* ``Alt+j`` followed by a two-digits number
+* ``Alt`` + a number (to go to the tab with that number)
+* ``Alt+j`` followed by a two-digits number (same)
 * ``Alt+e``, this will jump to the next tab with the highest priority. Priority
   applies in this order: private message > highlight message > normal message.
+* :term:`/close` command to close a tab and go back to the previous one
 
 .. _rostertab:
 
@@ -163,7 +164,7 @@ This tab contains a multi-user conversation.
    - **Blue**: participant
    - **Grey**: visitor
 
-   The nicks have a random color given by poezio (which can be changed with :term:`/recolor`)
+   The nicks have a fixed color assigned using XEP-0392_.
 
 #. Your information in that chatroom (the name of the room, your nick, your role
    and affiliation).
@@ -278,3 +279,4 @@ have autojoin set to True.
     :alt: Bookmarks tab screenshot
 
 .. _XEP-0070: https://xmpp.org/extensions/xep-0070.html
+.. _XEP-0392: https://xmpp.org/extensions/xep-0392.html

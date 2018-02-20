@@ -523,16 +523,18 @@ class MucTab(ChatTab):
         if '170' in status_codes:
             self.add_message(
                 '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                ' This room is publicly logged' %
-                {'info_col': info_col,
-                 'warn_col': warn_col},
+                ' This room is publicly logged' % {
+                    'info_col': info_col,
+                    'warn_col': warn_col
+                },
                 typ=0)
         if '100' in status_codes:
             self.add_message(
                 '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                ' This room is not anonymous.' %
-                {'info_col': info_col,
-                 'warn_col': warn_col},
+                ' This room is not anonymous.' % {
+                    'info_col': info_col,
+                    'warn_col': warn_col
+                },
                 typ=0)
 
     def handle_presence_joined(self, presence, status_codes):
