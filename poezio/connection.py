@@ -174,6 +174,14 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0319')
         self.register_plugin('xep_0334')
         self.register_plugin('xep_0352')
+        try:
+            self.register_plugin('xep_0363')
+        except SyntaxError:
+            log.error('Failed to load HTTP File Upload plugin, it can only be '
+                      'used on Python 3.5+')
+        except slixmpp.plugins.base.PluginNotFound:
+            log.error('Failed to load HTTP File Upload plugin, it can only be '
+                      'used with aiohttp installed')
         self.register_plugin('xep_0380')
         self.init_plugins()
 

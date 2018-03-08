@@ -293,6 +293,11 @@ Plugin index
 
         Add a ``/vcard`` command to retrieve and display a vCard.
 
+    Upload
+        :ref:`Documentation <upload-plugin>`
+
+        Add an ``/upload`` command to upload a file.
+
 .. toctree::
     :hidden:
 
@@ -340,3 +345,4 @@ Plugin index
     marquee
     server_part
     vcard
+    upload
