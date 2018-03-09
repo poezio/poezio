@@ -28,6 +28,8 @@ from poezio import tabs
 class Plugin(BasePlugin):
 
     def init(self):
+        if not self.core.xmpp['xep_0363']:
+            raise Exception('slixmpp XEP-0363 plugin failed to load')
         for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
             self.api.add_tab_command(_class, 'upload', self.command_upload,
                     usage='<filename>',
