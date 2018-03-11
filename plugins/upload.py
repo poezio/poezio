@@ -17,6 +17,7 @@ This plugin adds a command to the chat tabs.
 
 """
 import asyncio
+import traceback
 from os.path import expanduser
 from glob import glob
 
@@ -41,8 +42,10 @@ class Plugin(BasePlugin):
     def async_upload(self, filename):
         try:
             url = yield from self.core.xmpp['xep_0363'].upload_file(filename)
-        except Exception as e:
-            self.api.information('Failed to upload the file: %s(%s)' % (type(e), e), 'Error')
+        except Exception:
+            exception = traceback.format_exc()
+            self.api.information('Failed to upload file: %s' % exception, 'Error')
+            return
         self.core.insert_input_text(url)
 
     @command_args_parser.quoted(1)
