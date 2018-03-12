@@ -11,6 +11,21 @@ from poezio.theming import to_curses_attr, get_theme
 from poezio.common import safeJID
 
 
+class BookmarkNameInput(FieldInput, Input):
+    def __init__(self, field):
+        FieldInput.__init__(self, field)
+        Input.__init__(self)
+        self.text = field.name
+        self.pos = len(self.text)
+        self.color = get_theme().COLOR_NORMAL_TEXT
+
+    def save(self):
+        self._field.name = self.get_text()
+
+    def get_help_message(self):
+        return 'Edit the text'
+
+
 class BookmarkJIDInput(FieldInput, Input):
     def __init__(self, field):
         FieldInput.__init__(self, field)
@@ -24,7 +39,6 @@ class BookmarkJIDInput(FieldInput, Input):
     def save(self):
         jid = safeJID(self.get_text())
         self._field.jid = jid.bare
-        self._field.name = jid.bare
         self._field.nick = jid.resource
 
     def get_help_message(self):
@@ -143,7 +157,8 @@ class BookmarksWin(Win):
         self._bookmarks = list(bookmarks)
         self.lines = []
         for bookmark in sorted(self._bookmarks, key=lambda x: x.jid):
-            self.lines.append((BookmarkJIDInput(bookmark),
+            self.lines.append((BookmarkNameInput(bookmark),
+                               BookmarkJIDInput(bookmark),
                                BookmarkPasswordInput(bookmark),
                                BookmarkAutojoinWin(bookmark),
                                BookmarkMethodInput(bookmark)))
@@ -164,7 +179,8 @@ class BookmarksWin(Win):
             self._current_input = 0
 
     def add_bookmark(self, bookmark):
-        self.lines.append((BookmarkJIDInput(bookmark),
+        self.lines.append((BookmarkNameInput(bookmark),
+                           BookmarkJIDInput(bookmark),
                            BookmarkPasswordInput(bookmark),
                            BookmarkAutojoinWin(bookmark),
                            BookmarkMethodInput(bookmark)))
@@ -318,12 +334,11 @@ class BookmarksWin(Win):
         self._win.erase()
         y = -self.scroll_pos
         for i in range(len(self.lines)):
-            self.lines[i][0].resize(1, self.width // 3, y + 1, 0)
-            self.lines[i][1].resize(1, self.width // 3, y + 1, self.width // 3)
-            self.lines[i][2].resize(1, self.width // 6, y + 1,
-                                    2 * self.width // 3)
-            self.lines[i][3].resize(1, self.width // 6, y + 1,
-                                    5 * self.width // 6)
+            self.lines[i][0].resize(1, self.width // 4, y + 1, 0)
+            self.lines[i][1].resize(1, self.width // 4, y + 1, self.width // 4)
+            self.lines[i][2].resize(1, self.width // 6, y + 1, 3 * self.width // 6)
+            self.lines[i][3].resize(1, self.width // 6, y + 1, 4 * self.width // 6)
+            self.lines[i][4].resize(1, self.width // 6, y + 1, 5 * self.width // 6)
             y += 1
         self._refresh()
         for i, inp in enumerate(self.lines):

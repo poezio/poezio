@@ -25,7 +25,7 @@ class BookmarksTab(Tab):
         self.new_bookmarks = []
         self.removed_bookmarks = []
         self.header_win = windows.ColumnHeaderWin(
-            ('room@server/nickname', 'password', 'autojoin', 'storage'))
+            ('name', 'room@server/nickname', 'password', 'autojoin', 'storage'))
         self.bookmarks_win = windows.BookmarksWin(
             self.bookmarks, self.height - 4, self.width, 1, 0)
         self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '
@@ -107,10 +107,12 @@ class BookmarksTab(Tab):
     def resize(self):
         self.need_resize = False
         self.header_win.resize_columns({
+            'name':
+            self.width // 4,
             'room@server/nickname':
-            self.width // 3,
+            self.width // 4,
             'password':
-            self.width // 3,
+            self.width // 6,
             'autojoin':
             self.width // 6,
             'storage':
