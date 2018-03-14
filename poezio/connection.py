@@ -16,12 +16,15 @@ import subprocess
 import sys
 
 import slixmpp
+from slixmpp.xmlstream import ET
 from slixmpp.plugins.xep_0184 import XEP_0184
+from slixmpp.plugins.xep_0030 import DiscoInfo
+from slixmpp.util import FileSystemCache
 
 from poezio import common
 from poezio import fixes
 from poezio.common import safeJID
-from poezio.config import config, options
+from poezio.config import config, options, CACHE_DIR
 
 
 class Connection(slixmpp.ClientXMPP):
@@ -104,6 +107,12 @@ class Connection(slixmpp.ClientXMPP):
             self.whitespace_keepalive = False
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0012')
+        # Must be loaded before 0030.
+        self.register_plugin('xep_0115', {
+            'caps_node': 'https://poez.io',
+            'cache': FileSystemCache(CACHE_DIR, 'caps', encode=str,
+                                     decode=lambda x: DiscoInfo(ET.fromstring(x))),
+        })
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0045')
         self.register_plugin('xep_0048')
@@ -117,7 +126,6 @@ class Connection(slixmpp.ClientXMPP):
         self.plugin['xep_0077'].create_account = False
         self.register_plugin('xep_0084')
         self.register_plugin('xep_0085')
-        self.register_plugin('xep_0115')
         self.register_plugin('xep_0153')
 
         # monkey-patch xep_0184 to avoid requesting receipts for messages
