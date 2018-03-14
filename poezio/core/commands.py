@@ -16,7 +16,6 @@ from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
 
 from poezio import common
-from poezio import fixes
 from poezio import pep
 from poezio import tabs
 from poezio.bookmarks import Bookmark
@@ -297,29 +296,16 @@ class CommandCore:
         """
         /version <jid>
         """
-
-        def callback(res):
-            "Callback for /version"
-            if not res:
-                return self.core.information('Could not get the software'
-                                             ' version from %s' % jid,
-                                             'Warning')
-            version = '%s is running %s version %s on %s' % (
-                jid, res.get('name') or 'an unknown software',
-                res.get('version') or 'unknown',
-                res.get('os') or 'an unknown platform')
-            self.core.information(version, 'Info')
-
         if args is None:
             return self.help('version')
-
         jid = safeJID(args[0])
         if jid.resource or jid not in roster or not roster[jid].resources:
-            fixes.get_version(self.core.xmpp, jid, callback=callback)
+            self.core.xmpp.plugin['xep_0092'].get_version(
+                jid, callback=self.core.handler.on_version_result)
         elif jid in roster:
             for resource in roster[jid].resources:
-                fixes.get_version(
-                    self.core.xmpp, resource.jid, callback=callback)
+                self.core.xmpp.plugin['xep_0092'].get_version(
+                    resource.jid, callback=self.core.handler.on_version_result)
 
     def _empty_join(self):
         tab = self.core.current_tab()

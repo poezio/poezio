@@ -913,6 +913,25 @@ class HandlerCore:
             _composing_tab_state(tab, state)
             self.core.refresh_tab_win()
 
+    def on_version_result(self, iq):
+        """
+        Handle the result of a /version command.
+        """
+        jid = iq['from']
+        if iq['type'] == 'error':
+            error_condition = iq['error']['condition']
+            error_text = iq['error']['text']
+            reply = '%s: %s' % (error_condition, error_text) if error_text else error_condition
+            return self.core.information('Could not get the software '
+                                         'version from %s: %s' % (jid, reply),
+                                         'Warning')
+        res = iq['software_version']
+        version = '%s is running %s version %s on %s' % (
+            jid, res.get('name', 'an unknown software'),
+            res.get('version', 'unknown'),
+            res.get('os', 'an unknown platform'))
+        self.core.information(version, 'Info')
+
     ### subscription-related handlers ###
 
     def on_roster_update(self, iq):

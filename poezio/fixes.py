@@ -25,23 +25,6 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
     xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
 
 
-def get_version(xmpp, jid, callback=None, **kwargs):
-    def handle_result(res):
-        if res and res['type'] != 'error':
-            ret = res['software_version'].values
-        else:
-            ret = False
-        if callback:
-            callback(ret)
-        return ret
-
-    iq = xmpp.make_iq_get(ito=jid)
-    iq['query'] = 'jabber:iq:version'
-    result = iq.send(callback=handle_result if callback else None)
-    if not callback:
-        return handle_result(result)
-
-
 def get_room_form(xmpp, room, callback):
     def _cb(result):
         if result["type"] == "error":

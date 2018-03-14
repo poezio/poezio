@@ -19,7 +19,6 @@ import curses
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
-from poezio import fixes
 from poezio import windows
 from poezio import xhtml
 from poezio.common import safeJID
@@ -240,18 +239,6 @@ class ConversationTab(OneToOneTab):
         """
         /version [jid]
         """
-
-        def callback(res):
-            if not res:
-                return self.core.information(
-                    'Could not get the software version from %s' % (jid, ),
-                    'Warning')
-            version = '%s is running %s version %s on %s' % (
-                jid, res.get('name') or 'an unknown software',
-                res.get('version') or 'unknown',
-                res.get('os') or 'an unknown platform')
-            self.core.information(version, 'Info')
-
         if args:
             return self.core.command.version(args[0])
         jid = safeJID(self.name)
@@ -259,7 +246,8 @@ class ConversationTab(OneToOneTab):
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
                 jid = resource.jid if resource else jid
-        fixes.get_version(self.core.xmpp, jid, callback=callback)
+        self.core.xmpp.plugin['xep_0092'].get_version(
+            jid, callback=self.core.handler.on_version_result)
 
     @command_args_parser.ignored
     def command_add(self):

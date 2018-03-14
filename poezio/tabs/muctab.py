@@ -1340,18 +1340,6 @@ class MucTab(ChatTab):
         """
         /version <jid or nick>
         """
-
-        def callback(res):
-            if not res:
-                return self.core.information('Could not get the software '
-                                             'version from %s' % (jid, ),
-                                             'Warning')
-            version = '%s is running %s version %s on %s' % (
-                jid, res.get('name') or 'an unknown software',
-                res.get('version') or 'unknown',
-                res.get('os') or 'an unknown platform')
-            self.core.information(version, 'Info')
-
         if args is None:
             return self.core.command.help('version')
         nick = args[0]
@@ -1360,7 +1348,8 @@ class MucTab(ChatTab):
             jid = safeJID(jid + '/' + nick)
         else:
             jid = safeJID(nick)
-        fixes.get_version(self.core.xmpp, jid, callback=callback)
+        self.core.xmpp.plugin['xep_0092'].get_version(
+            jid, callback=self.core.handler.on_version_result)
 
     @command_args_parser.quoted(1)
     def command_nick(self, args):
