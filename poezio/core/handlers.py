@@ -14,7 +14,7 @@ import sys
 import time
 from datetime import datetime
 from hashlib import sha1, sha256, sha512
-from os import path, makedirs
+from os import path
 
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
