@@ -18,6 +18,7 @@ import sys
 import time
 
 from slixmpp.xmlstream.handler import Callback
+from slixmpp.util import FileSystemPerJidCache
 
 from poezio import connection
 from poezio import decorators
@@ -30,7 +31,7 @@ from poezio import windows
 
 from poezio.bookmarks import BookmarkList
 from poezio.common import safeJID
-from poezio.config import config, firstrun
+from poezio.config import config, firstrun, CACHE_DIR
 from poezio.contact import Contact, Resource
 from poezio.daemon import Executor
 from poezio.fifo import Fifo
@@ -76,6 +77,7 @@ class Core(object):
         self.bookmarks = BookmarkList()
         self.debug = False
         self.remote_fifo = None
+        self.avatar_cache = FileSystemPerJidCache(CACHE_DIR, 'avatars', binary=True)
         # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.

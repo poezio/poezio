@@ -395,19 +395,15 @@ class HandlerCore:
         except Exception:
             log.debug('Failed getting metadata from 0084:', exc_info=True)
             return
-        cache_dir = path.join(CACHE_DIR, 'avatars', jid)
         for info in metadata:
             avatar_hash = info['id']
 
             # First check whether we have it in cache.
-            cached_path = path.join(cache_dir, avatar_hash)
-            try:
-                with open(cached_path, 'rb') as avatar_file:
-                    contact.avatar = avatar_file.read()
-                log.debug('Using cached avatar')
+            cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+            if cached_avatar:
+                contact.avatar = cached_avatar
+                log.debug('Using cached avatar for %s', jid)
                 return
-            except OSError:
-                pass
 
             # If we didn’t have any, query the data instead.
             if not info['url']:
@@ -429,16 +425,11 @@ class HandlerCore:
                 log.debug('Received %s avatar: %s', jid, info['type'])
 
                 # Now we save the data on the file system to not have to request it again.
-                try:
-                    makedirs(cache_dir, exist_ok=True)
-                    with open(cached_path, 'wb') as avatar_file:
-                        avatar_file.write(contact.avatar)
-                except OSError:
+                if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
                     log.debug(
-                        'Failed writing %s avatar to cache:',
+                        'Failed writing %s’s avatar to cache:',
                         jid,
                         exc_info=True)
-                    pass
                 return
 
     @asyncio.coroutine
@@ -451,15 +442,11 @@ class HandlerCore:
         log.debug('Received vCard avatar update from %s: %s', jid, avatar_hash)
 
         # First check whether we have it in cache.
-        cache_dir = path.join(CACHE_DIR, 'avatars', jid)
-        cached_path = path.join(cache_dir, avatar_hash)
-        try:
-            with open(cached_path, 'rb') as avatar_file:
-                contact.avatar = avatar_file.read()
-            log.debug('Using cached avatar')
+        cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+        if cached_avatar:
+            contact.avatar = cached_avatar
+            log.debug('Using cached avatar for %s', jid)
             return
-        except OSError:
-            pass
 
         # If we didn’t have any, query the vCard instead.
         try:
@@ -476,13 +463,8 @@ class HandlerCore:
         log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
 
         # Now we save the data on the file system to not have to request it again.
-        try:
-            makedirs(cache_dir, exist_ok=True)
-            with open(cached_path, 'wb') as avatar_file:
-                avatar_file.write(contact.avatar)
-        except OSError:
-            log.debug('Failed writing %s avatar to cache:', jid, exc_info=True)
-            pass
+        if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
+            log.debug('Failed writing %s’s avatar to cache:', jid, exc_info=True)
 
     def on_nick_received(self, message):
         """
