@@ -129,9 +129,8 @@ class HandlerCore:
         Carbon <sent/> received
         """
 
-        def ignore_message(sent):
-            log.debug('%s has category conference, ignoring carbon',
-                      sent['to'].server)
+        def groupchat_private_message(sent):
+            self.on_groupchat_private_message(sent, sent=True)
 
         def send_message(sent):
             sent['from'] = self.core.xmpp.boundjid.full
@@ -144,7 +143,7 @@ class HandlerCore:
                 self.core.xmpp,
                 sent['to'].server,
                 identity='conference',
-                on_true=functools.partial(ignore_message, sent),
+                on_true=functools.partial(groupchat_private_message, sent),
                 on_false=functools.partial(send_message, sent))
         else:
             send_message(sent)
