@@ -36,6 +36,30 @@ def find_doc(before, path):
         _files.append((join(before, relative_root), files_path))
     return _files
 
+def check_include(library_name, header):
+    command = [os.environ.get('PKG_CONFIG', 'pkg-config'), '--cflags', library_name]
+    try:
+        cflags = check_output(command).decode('utf-8').split()
+    except FileNotFoundError:
+        print('pkg-config not found.')
+        return False
+    except CalledProcessError:
+        # pkg-config already prints the missing libraries on stderr.
+        return False
+    command = [os.environ.get('CC', 'cc')] + cflags + ['-E', '-']
+    with TemporaryFile('w+') as c_file:
+        c_file.write('#include <%s>' % header)
+        c_file.seek(0)
+        try:
+            return call(command, stdin=c_file, stdout=DEVNULL, stderr=DEVNULL) == 0
+        except FileNotFoundError:
+            print('%s headers not found.' % library_name)
+            return False
+
+if not check_include('python3', 'Python.h'):
+    import sys
+    sys.exit(0)
+
 module_poopt = Extension('poezio.poopt',
                     extra_compile_args=['-Wno-declaration-after-statement'],
                     sources=['poezio/pooptmodule.c'])
