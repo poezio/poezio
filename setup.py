@@ -8,6 +8,7 @@ except ImportError:
     sys.exit(1)
 
 import os
+import subprocess
 
 current_dir = os.path.dirname(__file__)
 
@@ -38,11 +39,11 @@ def find_doc(before, path):
 def check_include(library_name, header):
     command = [os.environ.get('PKG_CONFIG', 'pkg-config'), '--cflags', library_name]
     try:
-        cflags = check_output(command).decode('utf-8').split()
+        cflags = subprocess.check_output(command).decode('utf-8').split()
     except FileNotFoundError:
         print('pkg-config not found.')
         return False
-    except CalledProcessError:
+    except subprocess.CalledProcessError:
         # pkg-config already prints the missing libraries on stderr.
         return False
     command = [os.environ.get('CC', 'cc')] + cflags + ['-E', '-']
@@ -50,7 +51,7 @@ def check_include(library_name, header):
         c_file.write('#include <%s>' % header)
         c_file.seek(0)
         try:
-            return call(command, stdin=c_file, stdout=DEVNULL, stderr=DEVNULL) == 0
+            return subprocess.call(command, stdin=c_file, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
         except FileNotFoundError:
             print('%s headers not found.' % library_name)
             return False
@@ -72,7 +73,6 @@ if not os.path.exists(os.path.join(current_dir, 'poezio', 'default_config.cfg'))
 git_dir = os.path.join(current_dir, '.git')
 if os.path.exists(git_dir):
     try:
-        import subprocess
         result = subprocess.Popen(['git', '--git-dir', git_dir, 'describe'],
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.DEVNULL)
