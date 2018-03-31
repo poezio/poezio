@@ -7,10 +7,9 @@ except ImportError:
     import sys
     sys.exit(1)
 
-from os.path import basename, dirname, exists, join
-from os import link, walk, unlink
+import os
 
-current_dir = dirname(__file__)
+current_dir = os.path.dirname(__file__)
 
 def get_relative_dir(folder, stopper):
     """
@@ -18,22 +17,22 @@ def get_relative_dir(folder, stopper):
     the filetree.
     """
     acc = []
-    last = basename(folder)
+    last = os.path.basename(folder)
     while last != stopper:
         acc.append(last)
-        folder = dirname(folder)
-        last = basename(folder)
-    return join(*acc[::-1]) if acc else ''
+        folder = os.path.dirname(folder)
+        last = os.path.basename(folder)
+    return os.path.join(*acc[::-1]) if acc else ''
 
 def find_doc(before, path):
     _files = []
-    stop = basename(path)
-    for root, dirs, files in walk(join(current_dir, 'doc', path)):
+    stop = os.path.basename(path)
+    for root, dirs, files in os.walk(os.path.join(current_dir, 'doc', path)):
         files_path = []
         relative_root = get_relative_dir(root, stop)
         for name in files:
-            files_path.append(join(root, name))
-        _files.append((join(before, relative_root), files_path))
+            files_path.append(os.path.join(root, name))
+        _files.append((os.path.join(before, relative_root), files_path))
     return _files
 
 def check_include(library_name, header):
@@ -65,13 +64,13 @@ module_poopt = Extension('poezio.poopt',
                     sources=['poezio/pooptmodule.c'])
 
 # Create a link to the config file (for packaging purposes)
-if not exists(join(current_dir, 'poezio', 'default_config.cfg')):
-    link(join(current_dir, 'data', 'default_config.cfg'),
-         join(current_dir, 'poezio', 'default_config.cfg'))
+if not os.path.exists(os.path.join(current_dir, 'poezio', 'default_config.cfg')):
+    os.link(os.path.join(current_dir, 'data', 'default_config.cfg'),
+         os.path.join(current_dir, 'poezio', 'default_config.cfg'))
 
 # identify the git version
-git_dir = join(current_dir, '.git')
-if exists(git_dir):
+git_dir = os.path.join(current_dir, '.git')
+if os.path.exists(git_dir):
     try:
         import subprocess
         result = subprocess.Popen(['git', '--git-dir', git_dir, 'describe'],
@@ -136,8 +135,8 @@ setup(name="poezio",
                       'Avoiding cython': 'cffi'})
 
 # Remove the link afterwards
-if (exists(join(current_dir, 'poezio', 'default_config.cfg')) and
-        exists(join(current_dir, 'data', 'default_config.cfg'))):
+if (os.path.exists(os.path.join(current_dir, 'poezio', 'default_config.cfg')) and
+        os.path.exists(os.path.join(current_dir, 'data', 'default_config.cfg'))):
 
-    unlink(join(current_dir, 'poezio', 'default_config.cfg'))
+    os.unlink(os.path.join(current_dir, 'poezio', 'default_config.cfg'))
 
