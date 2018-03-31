@@ -9,6 +9,7 @@ except ImportError:
 
 import os
 import subprocess
+from tempfile import TemporaryFile
 
 current_dir = os.path.dirname(__file__)
 
