@@ -228,7 +228,7 @@ class HandlerCore:
         for tab in self.core.get_tabs(tabs.MucTab):
             if tab.name == jid_from.bare:
                 if jid_from.resource:
-                    self.on_groupchat_private_message(message)
+                    self.on_groupchat_private_message(message, sent=False)
                     return
         self.on_normal_message(message)
 
@@ -737,13 +737,13 @@ class HandlerCore:
             if tab.parent_muc == muc:
                 tab.own_nick = muc.own_nick
 
-    def on_groupchat_private_message(self, message):
+    def on_groupchat_private_message(self, message, sent):
         """
         We received a Private Message (from someone in a Muc)
         """
-        jid = message['from']
-        nick_from = jid.resource
-        if not nick_from:
+        jid = message['to'] if sent else message['from']
+        with_nick = jid.resource
+        if not with_nick:
             self.on_groupchat_message(message)
             return
 
@@ -762,16 +762,16 @@ class HandlerCore:
         ignore = config.get_by_tabname('ignore_private', room_from)
         if not tab:  # It's the first message we receive: create the tab
             if body and not ignore:
-                tab = self.core.open_private_window(room_from, nick_from,
+                tab = self.core.open_private_window(room_from, with_nick,
                                                     False)
-        if ignore:
+        sender_nick = (tab.own_nick or self.core.own_nick) if sent else with_nick
+        if ignore and not sent:
             self.core.events.trigger('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
             if msg and body:
                 self.core.xmpp.send_message(
                     mto=jid.full, mbody=msg, mtype='chat')
             return
-        tab.last_remote_message = datetime.now()
         self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(
             message,
@@ -781,7 +781,7 @@ class HandlerCore:
         if not body or not tab:
             return
         replaced = False
-        user = tab.parent_muc.get_user_by_name(nick_from)
+        user = tab.parent_muc.get_user_by_name(with_nick)
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
             if replaced_id is not '' and config.get_by_tabname(
@@ -793,7 +793,7 @@ class HandlerCore:
                         message['id'],
                         user=user,
                         jid=message['from'],
-                        nickname=nick_from)
+                        nickname=sender_nick)
                     replaced = True
                 except CorrectionError:
                     log.debug('Unable to correct a message', exc_info=True)
@@ -801,19 +801,24 @@ class HandlerCore:
             tab.add_message(
                 body,
                 time=None,
-                nickname=nick_from,
+                nickname=sender_nick,
+                nick_color=get_theme().COLOR_OWN_NICK if sent else None,
                 forced_user=user,
                 identifier=message['id'],
                 jid=message['from'],
                 typ=1)
+        if sent:
+            tab.last_sent_message = msg
+        else:
+            tab.last_remote_message = datetime.now()
 
-        if 'private' in config.get('beep_on').split():
+        if not sent and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
         if tab is self.core.current_tab():
             self.core.refresh_window()
         else:
-            tab.state = 'private'
+            tab.state = 'normal' if sent else 'private'
             self.core.refresh_tab_win()
 
     ### Chatstates ###
