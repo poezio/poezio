@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
         for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
             self.api.add_tab_command(tab_t, 'embed', self.embed_image_url,
                                      help='Embed an image url into the contact\'s client',
-                                     usage='[image url]')
+                                     usage='<image_url>')
 
     def embed_image_url(self, args):
         tab = self.api.current_tab()
