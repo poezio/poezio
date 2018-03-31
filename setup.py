@@ -58,7 +58,7 @@ def check_include(library_name, header):
 
 if not check_include('python3', 'Python.h'):
     import sys
-    sys.exit(0)
+    sys.exit(2)
 
 module_poopt = Extension('poezio.poopt',
                     extra_compile_args=['-Wno-declaration-after-statement'],
