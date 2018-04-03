@@ -137,8 +137,9 @@ class HandlerCore:
             self.on_normal_message(sent)
 
         sent = message['carbon_sent']
-        if (sent['to'].bare not in roster
-                or roster[sent['to'].bare].subscription == 'none'):
+        # todo: implement proper MUC detection logic
+        if (sent['to'].resource and (sent['to'].bare not in roster
+                or roster[sent['to'].bare].subscription == 'none')):
             fixes.has_identity(
                 self.core.xmpp,
                 sent['to'].server,
