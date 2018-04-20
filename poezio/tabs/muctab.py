@@ -546,6 +546,7 @@ class MucTab(ChatTab):
         kick = '307' in status_codes and typ == 'unavailable'
         ban = '301' in status_codes and typ == 'unavailable'
         shutdown = '332' in status_codes and typ == 'unavailable'
+        server_initiated = '333' in status_codes and typ == 'unavailable'
         non_member = '322' in status_codes and typ == 'unavailable'
         user = self.get_user_by_name(from_nick)
         # New user
@@ -565,7 +566,7 @@ class MucTab(ChatTab):
             self.core.on_user_left_private_conversation(
                 from_room, user, status)
             self.on_user_banned(presence, user, from_nick)
-        elif kick:
+        elif kick and not server_initiated:
             self.core.events.trigger('muc_kick', presence, self)
             self.core.on_user_left_private_conversation(
                 from_room, user, status)
