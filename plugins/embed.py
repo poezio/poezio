@@ -14,7 +14,6 @@ Usage
 """
 
 from poezio import tabs
-from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.theming import get_theme
 
