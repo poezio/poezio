@@ -21,6 +21,7 @@ import pkg_resources
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from os import environ, makedirs, path, remove
 from shutil import copy2
+from pathlib import Path
 from poezio.args import parse_args
 
 DEFAULT_CONFIG = {
@@ -508,7 +509,7 @@ def check_create_config_dir():
     create the configuration directory if it doesn't exist
     """
     config_home = environ.get("XDG_CONFIG_HOME")
-    if not config_home:
+    if config_home is None or not Path(config_home).is_absolute():
         config_home = path.join(environ.get('HOME'), '.config')
     CONFIG_PATH = path.join(config_home, 'poezio')
 
@@ -526,7 +527,7 @@ def check_create_cache_dir():
     """
     global CACHE_DIR
     cache_home = environ.get("XDG_CACHE_HOME")
-    if not cache_home:
+    if cache_home is None or not Path(cache_home).is_absolute():
         cache_home = path.join(environ.get('HOME'), '.cache')
     CACHE_DIR = path.join(cache_home, 'poezio')
 
@@ -618,12 +619,11 @@ def check_create_log_dir():
 
     if not LOG_DIR:
 
-        data_dir = environ.get('XDG_DATA_HOME')
-        if not data_dir:
-            home = environ.get('HOME')
-            data_dir = path.join(home, '.local', 'share')
+        data_home = environ.get('XDG_DATA_HOME')
+        if data_home is None or not Path(data_home).is_absolute():
+            data_home = path.join(environ.get('HOME'), '.local', 'share')
 
-        LOG_DIR = path.join(data_dir, 'poezio', 'logs')
+        LOG_DIR = path.join(data_home, 'poezio', 'logs')
 
     LOG_DIR = path.expanduser(LOG_DIR)
 
