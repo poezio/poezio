@@ -44,6 +44,7 @@ DEFAULT_CONFIG = {
         'create_gaps': False,
         'custom_host': '',
         'custom_port': '',
+        'data_dir': '',
         'default_nick': '',
         'deterministic_nick_colors': True,
         'nick_color_aliases': True,
@@ -612,20 +613,35 @@ def create_global_config():
         sys.exit(1)
 
 
+def check_create_data_dir():
+    """Create the poezio data directory if it doesn't exist"""
+    global DATA_DIR
+    DATA_DIR = config.get('data_dir')
+
+    if not DATA_DIR:
+        data_home = environ.get('XDG_DATA_HOME')
+        if data_home is None or not Path(data_home).is_absolute():
+            data_home = path.join(environ.get('HOME'), '.local', 'share')
+
+        DATA_DIR = path.join(data_home, 'poezio')
+
+    DATA_DIR = path.expanduser(DATA_DIR)
+    try:
+        makedirs(DATA_DIR)
+    except:
+        pass
+
+
 def check_create_log_dir():
     "Create the poezio logging directory if it doesn’t exist"
     global LOG_DIR
     LOG_DIR = config.get('log_dir')
 
+    if not LOG_DIR and not DATA_DIR:
+        check_create_data_dir()
+
     if not LOG_DIR:
-
-        data_home = environ.get('XDG_DATA_HOME')
-        if data_home is None or not Path(data_home).is_absolute():
-            data_home = path.join(environ.get('HOME'), '.local', 'share')
-
-        LOG_DIR = path.join(data_home, 'poezio', 'logs')
-
-    LOG_DIR = path.expanduser(LOG_DIR)
+        LOG_DIR = path.join(DATA_DIR, 'logs')
 
     try:
         makedirs(LOG_DIR)
@@ -704,6 +720,9 @@ options = None
 
 # delayed import from common.py
 safeJID = None
+
+# the global data dir
+DATA_DIR = ''
 
 # the global log dir
 LOG_DIR = ''
