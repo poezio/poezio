@@ -507,10 +507,10 @@ def check_create_config_dir():
     """
     create the configuration directory if it doesn't exist
     """
-    CONFIG_HOME = environ.get("XDG_CONFIG_HOME")
-    if not CONFIG_HOME:
-        CONFIG_HOME = path.join(environ.get('HOME'), '.config')
-    CONFIG_PATH = path.join(CONFIG_HOME, 'poezio')
+    config_home = environ.get("XDG_CONFIG_HOME")
+    if not config_home:
+        config_home = path.join(environ.get('HOME'), '.config')
+    CONFIG_PATH = path.join(config_home, 'poezio')
 
     try:
         makedirs(CONFIG_PATH)
@@ -525,10 +525,10 @@ def check_create_cache_dir():
     also create the subdirectories
     """
     global CACHE_DIR
-    CACHE_HOME = environ.get("XDG_CACHE_HOME")
-    if not CACHE_HOME:
-        CACHE_HOME = path.join(environ.get('HOME'), '.cache')
-    CACHE_DIR = path.join(CACHE_HOME, 'poezio')
+    cache_home = environ.get("XDG_CACHE_HOME")
+    if not cache_home:
+        cache_home = path.join(environ.get('HOME'), '.cache')
+    CACHE_DIR = path.join(cache_home, 'poezio')
 
     try:
         makedirs(CACHE_DIR)
