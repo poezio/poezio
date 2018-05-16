@@ -473,6 +473,7 @@ class ChatTab(Tab):
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
         self.timed_event_paused = None
+        self.timed_event_not_paused = None
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
         self.last_sent_message = {}
         self.key_func['M-v'] = self.move_separator
@@ -684,6 +685,10 @@ class ChatTab(Tab):
                                               'paused')
         self.core.add_timed_event(new_event)
         self.timed_event_paused = new_event
+        new_event = timed_events.DelayedEvent(30, self.send_chat_state,
+                                              'inactive' if self.inactive else 'active')
+        self.core.add_timed_event(new_event)
+        self.timed_event_paused = new_event
 
     def cancel_paused_delay(self):
         """
@@ -694,6 +699,8 @@ class ChatTab(Tab):
         if self.timed_event_paused is not None:
             self.core.remove_timed_event(self.timed_event_paused)
             self.timed_event_paused = None
+            self.core.remove_timed_event(self.timed_event_not_paused)
+            self.timed_event_not_paused = None
 
     @command_args_parser.raw
     def command_correct(self, line):
