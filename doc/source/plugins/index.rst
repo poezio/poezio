@@ -108,6 +108,11 @@ Plugin index
 
         Lists old versions of a corrected message.
 
+    Embed
+        :ref:`Documentation <embed-plugin>`
+
+        Send an URL annotating it as embedded.
+
     Exec
         :ref:`Documentation <exec-plugin>`
 
@@ -306,6 +311,7 @@ Plugin index
     amsg
     day_change
     display_corrections
+    embed
     exec
     figlet
     gpg
