@@ -688,7 +688,7 @@ class ChatTab(Tab):
         new_event = timed_events.DelayedEvent(30, self.send_chat_state,
                                               'inactive' if self.inactive else 'active')
         self.core.add_timed_event(new_event)
-        self.timed_event_paused = new_event
+        self.timed_event_not_paused = new_event
 
     def cancel_paused_delay(self):
         """
