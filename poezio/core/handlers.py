@@ -241,6 +241,14 @@ class HandlerCore:
                     return
         self.on_normal_message(message)
 
+    def on_encrypted_message(self, message):
+        """
+        When receiving an encrypted message
+        """
+        if message["body"]:
+            return # Already being handled by on_message.
+        self.on_message(message)
+
     def on_error_message(self, message):
         """
         When receiving any message with type="error"
