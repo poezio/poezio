@@ -234,6 +234,7 @@ class Core:
             ('groupchat_subject', self.handler.on_groupchat_subject),
             ('http_confirm', self.handler.http_confirm),
             ('message', self.handler.on_message),
+            ('message_encryption', self.handler.on_encrypted_message),
             ('message_error', self.handler.on_error_message),
             ('message_xform', self.handler.on_data_form),
             ('no_auth', self.handler.on_no_auth),
