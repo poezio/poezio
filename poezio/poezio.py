@@ -63,6 +63,7 @@ def main():
     config_path = config.check_create_config_dir()
     config.run_cmdline_args(config_path)
     config.create_global_config()
+    config.check_create_data_dir()
     config.check_create_log_dir()
     config.check_create_cache_dir()
     config.setup_logging()
