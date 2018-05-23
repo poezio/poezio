@@ -77,6 +77,7 @@ class Plugin(BasePlugin):
         """Display contextual information depending on currenttab."""
         tab = self.api.current_tab()
         self.info('OMEMO!')
+        self.info("My device id: %d" % self.xmpp['xep_0384'].my_device_id())
 
     def command_enable(self, _args):
         pass
@@ -121,4 +122,5 @@ class Plugin(BasePlugin):
 
         self.info('Foo2')
         if self.xmpp['xep_0384'].is_encrypted(message):
-            self.xmpp['xep_0384'].decrypt_message(message)
+            _always_none, body = self.xmpp['xep_0384'].decrypt_message(message)
+            message['body'] = body.decode("utf8")
