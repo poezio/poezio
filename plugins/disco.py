@@ -31,23 +31,19 @@ class Plugin(BasePlugin):
         self.api.information('\n'.join(identities), 'Identities')
         features = sorted(str(feature) for feature in info['features'])
         self.api.information('\n'.join(features), 'Features')
-        for field in info['form']['fields']:
-            if field['type'] == 'hidden' and field['var'] == 'FORM_TYPE':
-                value = field['value']
-                if 'http://jabber.org/network/serverinfo' not in value:
-                    self.api.information('Unknown form type “%s”' % value, 'Error')
-                    return
-                break
+        title = 'Server Info'
         server_info = []
         for field in info['form']:
             var = field['var']
             if field['type'] == 'hidden' and var == 'FORM_TYPE':
+                title = field['value'][0]
                 continue
             sep = '\n  ' + len(var) * ' '
-            value = sep.join(field.get_value(convert=False))
+            field_value = field.get_value(convert=False)
+            value = sep.join(field_value) if isinstance(field_value, list) else field_value
             server_info.append('%s: %s' % (var, value))
         if server_info:
-            self.api.information('\n'.join(server_info), 'Server Info')
+            self.api.information('\n'.join(server_info), title)
 
     def command_disco(self, jid):
         try:
