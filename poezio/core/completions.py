@@ -291,6 +291,16 @@ class CompletionCore:
             return Completion(
                 the_input.new_completion, rooms, n, '', quotify=True)
 
+    def impromptu(self, the_input):
+        """Completion for /impromptu"""
+        n = the_input.get_argument_position(quoted=True)
+        bares = sorted(roster[contact].bare_jid
+                       for contact in roster.jids()
+                       if len(roster[contact]))
+        off = sorted(jid for jid in roster.jids() if jid not in bares)
+        comp = bares + off
+        return Completion(the_input.new_completion, comp, n, quotify=True)
+
     def activity(self, the_input):
         """Completion for /activity"""
         n = the_input.get_argument_position(quoted=True)

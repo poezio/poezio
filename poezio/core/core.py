@@ -16,6 +16,7 @@ import os
 import pipes
 import sys
 import time
+import uuid
 
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.util import FileSystemPerJidCache
@@ -933,6 +934,28 @@ class Core(object):
 
         self.xmpp.plugin['xep_0030'].get_info(
             jid=jid, timeout=5, callback=callback)
+
+    def impromptu(self, jids):
+        """
+        Generates a new "Impromptu" room with a random localpart on the muc
+        component of the user who initiated the request. One the room is
+        created and the first user has joined, send invites for specified
+        contacts to join in.
+        """
+
+        # Use config.default_muc as muc component if available, otherwise
+        # find muc component by disco#items-ing the user domain. If not, give
+        # up
+        muc = 'chat.cluxia.eu'
+
+        nick = self.own_nick
+        room = uuid.uuid4().hex + '@' + muc
+
+        self.open_new_room(room, nick).join()
+        self.information('Room %s created' % room, 'Info')
+
+        for jid in jids:
+            self.invite(jid, room)
 
     def get_error_message(self, stanza, deprecated=False):
         """
@@ -1974,6 +1997,13 @@ class Core(object):
             desc='Invite jid in room with reason.',
             shortdesc='Invite someone in a room.',
             completion=self.completion.invite)
+        self.register_command(
+            'impromptu',
+            self.command.impromptu,
+            usage='<jid> [<jid> ...]',
+            desc='Invite people into an impromptu room',
+            shortdesc='Invite someone in a room.',
+            completion=self.completion.impromptu)
         self.register_command(
             'invitations',
             self.command.invitations,
