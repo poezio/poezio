@@ -763,6 +763,20 @@ class CommandCore:
         self.core.invite(to.full, room, reason=reason)
         self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
+    @command_args_parser.quoted(1, 0)
+    def impromptu(self, args):
+        """/impromptu <jid> [<jid> ...]"""
+
+        if args is None:
+            return self.help('impromptu')
+
+        jids = []
+        for jid in common.shell_split(' '.join(args)):
+            jids.append(safeJID(jid).bare)
+
+        self.core.impromptu(jids)
+        self.core.information('Invited %s to a random room' % (' '.join(jids)), 'Info')
+
     @command_args_parser.quoted(1, 1, [''])
     def decline(self, args):
         """/decline <room@server.tld> [reason]"""
