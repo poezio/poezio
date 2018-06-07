@@ -53,6 +53,23 @@ def test_env():
     return True
 
 
+def test_unicode():
+    import poopt
+    try:
+        poopt.wcswidth('✔')
+    except UnicodeError:
+        print("""\
+ERROR: The current system is misconfigured for Unicode.
+
+Check your locale setup, especially the $LANG environment variable and \
+whether it matches a locale built on your system.  Also check that it is a \
+.UTF-8 locale, and not using some legacy encoding.
+
+Poezio is unable to display characters properly, so it will now exit.""")
+        return False
+    return True
+
+
 def main():
     """
     Entry point.
