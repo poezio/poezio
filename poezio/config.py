@@ -49,6 +49,7 @@ DEFAULT_CONFIG = {
         'custom_host': '',
         'custom_port': '',
         'default_nick': '',
+        'default_muc_service': '',
         'deterministic_nick_colors': True,
         'device_id': '',
         'nick_color_aliases': True,
