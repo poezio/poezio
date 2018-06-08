@@ -877,10 +877,12 @@ class Core:
         contacts to join in.
         """
 
-        # Use config.default_muc as muc component if available, otherwise
-        # find muc component by disco#items-ing the user domain. If not, give
-        # up
-        default_muc = 'chat.cluxia.eu'
+        # Use config.default_muc_service as muc component if available,
+        # otherwise find muc component by disco#items-ing the user domain. If
+        # not, give up
+        default_muc = config.get('default_muc_service')
+        if not default_muc:
+            return
 
         nick = self.own_nick
         room = uuid.uuid4().hex + '@' + default_muc
