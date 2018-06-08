@@ -943,10 +943,12 @@ class Core(object):
         contacts to join in.
         """
 
-        # Use config.default_muc as muc component if available, otherwise
-        # find muc component by disco#items-ing the user domain. If not, give
-        # up
-        muc = 'chat.cluxia.eu'
+        # Use config.default_muc_service as muc component if available,
+        # otherwise find muc component by disco#items-ing the user domain. If
+        # not, give up
+        muc = config.get('default_muc_service')
+        if not muc:
+            return
 
         nick = self.own_nick
         room = uuid.uuid4().hex + '@' + muc
