@@ -46,6 +46,7 @@ DEFAULT_CONFIG = {
         'custom_port': '',
         'data_dir': '',
         'default_nick': '',
+        'default_muc': '',
         'deterministic_nick_colors': True,
         'nick_color_aliases': True,
         'display_activity_notifications': False,

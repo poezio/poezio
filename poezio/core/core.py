@@ -946,7 +946,9 @@ class Core(object):
         # Use config.default_muc as muc component if available, otherwise
         # find muc component by disco#items-ing the user domain. If not, give
         # up
-        muc = 'chat.cluxia.eu'
+        muc = config.get('default_muc')
+        if not muc:
+            return
 
         nick = self.own_nick
         room = uuid.uuid4().hex + '@' + muc
