@@ -267,14 +267,9 @@ def build_log_message(nick, msg, date=None, typ=1):
         return ''
 
     msg = clean_text(msg)
-    if date is None:
-        str_time = common.get_utc_time().strftime('%Y%m%dT%H:%M:%SZ')
-    else:
-        str_time = common.get_utc_time(date).strftime('%Y%m%dT%H:%M:%SZ')
-    if typ == 1:
-        prefix = 'MR'
-    else:
-        prefix = 'MI'
+    time = common.get_utc_time() if date is None else common.get_utc_time(date)
+    str_time = time.strftime('%Y%m%dT%H:%M:%SZ')
+    prefix = 'MR' if typ == 1 else 'MI'
     lines = msg.split('\n')
     first_line = lines.pop(0)
     nb_lines = str(len(lines)).zfill(3)
