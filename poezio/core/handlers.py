@@ -1404,7 +1404,7 @@ class HandlerCore:
         """
         When a data form is received
         """
-        self.core.information('%s' % message)
+        self.core.information(str(message))
 
     def on_attention(self, message):
         """
@@ -1430,11 +1430,11 @@ class HandlerCore:
         """
         if self.core.xml_tab:
             if PYGMENTS:
-                xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+                xhtml_text = highlight(str(stanza), LEXER, FORMATTER)
                 poezio_colored = xhtml.xhtml_to_poezio_colors(
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
-                poezio_colored = '%s' % stanza
+                poezio_colored = str(stanza)
             self.core.add_message_to_text_buffer(
                 self.core.xml_buffer,
                 poezio_colored,
@@ -1459,11 +1459,11 @@ class HandlerCore:
         """
         if self.core.xml_tab:
             if PYGMENTS:
-                xhtml_text = highlight('%s' % stanza, LEXER, FORMATTER)
+                xhtml_text = highlight(str(stanza), LEXER, FORMATTER)
                 poezio_colored = xhtml.xhtml_to_poezio_colors(
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
-                poezio_colored = '%s' % stanza
+                poezio_colored = str(stanza)
             self.core.add_message_to_text_buffer(
                 self.core.xml_buffer,
                 poezio_colored,

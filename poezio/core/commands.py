@@ -895,7 +895,7 @@ class CommandCore:
 
                 def iqfunc(iq):
                     "handler for an iq reply"
-                    self.core.information('%s' % iq, 'Iq')
+                    self.core.information(str(iq), 'Iq')
                     self.core.xmpp.remove_handler('Iq %s' % iq_id)
 
                 self.core.xmpp.register_handler(

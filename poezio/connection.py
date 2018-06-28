@@ -43,7 +43,7 @@ class Connection(slixmpp.ClientXMPP):
             # many features will be handled differently
             # depending on this setting
             self.anon = False
-            jid = '%s' % config.get('jid')
+            jid = config.get('jid')
             password = config.get('password')
             eval_password = config.get('eval_password')
             if not password and not eval_password and not (keyfile

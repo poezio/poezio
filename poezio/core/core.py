@@ -810,7 +810,7 @@ class Core(object):
                     'Could not execute command (%s)',
                     repr(command),
                     exc_info=True)
-                self.information('%s' % exc, 'Error')
+                self.information(str(exc), 'Error')
 
     def do_command(self, key, raw):
         """
@@ -1179,7 +1179,7 @@ class Core(object):
 
     def go_to_previous_tab(self):
         "Go to the previous tab"
-        self.command.win('%s' % (self.previous_tab_nb, ))
+        self.command.win(str(self.previous_tab_nb))
 
     def go_to_important_room(self):
         """
@@ -1207,7 +1207,7 @@ class Core(object):
                 if (tab.nb < self.current_tab_nb
                         and tab_refs[state][-1].nb > self.current_tab_nb):
                     continue
-                self.command.win('%s' % tab.nb)
+                self.command.win(str(tab.nb))
                 return
         return
 
@@ -1216,7 +1216,7 @@ class Core(object):
         for tab in self.tabs:
             if tab.name == tab_name:
                 if (type_ and (isinstance(tab, type_))) or not type_:
-                    self.command.win('%s' % (tab.nb, ))
+                    self.command.win(str(tab.nb))
                 return True
         return False
 
@@ -1267,7 +1267,7 @@ class Core(object):
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name == complete_jid:
-                self.command.win('%s' % tab.nb)
+                self.command.win(str(tab.nb))
                 return tab
         # create the new tab
         tab = self.get_tab_by_name(room_name, tabs.MucTab)

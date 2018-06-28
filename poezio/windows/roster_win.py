@@ -274,11 +274,11 @@ class RosterWin(Win):
                     contact.subscription, keep=show_roster_sub))
 
         if not show_roster_jids and contact.name:
-            display_name = '%s' % contact.name
+            display_name = contact.name
         elif contact.name and contact.name != contact.bare_jid:
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
         else:
-            display_name = '%s' % (contact.bare_jid, )
+            display_name = contact.bare_jid
 
         display_name = self.truncate_name(display_name, added) + nb
 
