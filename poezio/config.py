@@ -47,6 +47,7 @@ DEFAULT_CONFIG = {
         'data_dir': '',
         'default_nick': '',
         'deterministic_nick_colors': True,
+        'device_id': '',
         'nick_color_aliases': True,
         'display_activity_notifications': False,
         'display_gaming_notifications': False,

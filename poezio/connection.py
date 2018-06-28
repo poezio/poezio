@@ -14,6 +14,8 @@ log = logging.getLogger(__name__)
 import getpass
 import subprocess
 import sys
+import base64
+import random
 
 import slixmpp
 from slixmpp.xmlstream import ET
@@ -37,6 +39,13 @@ class Connection(slixmpp.ClientXMPP):
     def __init__(self):
         keyfile = config.get('keyfile')
         certfile = config.get('certfile')
+
+        device_id = config.get('device_id')
+        if not device_id:
+            rng = random.SystemRandom()
+            device_id = base64.urlsafe_b64encode(
+                rng.getrandbits(24).to_bytes(3, 'little')).decode('ascii')
+            config.set_and_save('device_id', device_id)
 
         if config.get('jid'):
             # Field used to know if we are anonymous or not.
@@ -72,6 +81,7 @@ class Connection(slixmpp.ClientXMPP):
             jid = config.get('server')
             password = None
         jid = safeJID(jid)
+        jid.resource = '%s-%s' % (jid.resource, device_id) if jid.resource else 'poezio-%s' % device_id
         # TODO: use the system language
         slixmpp.ClientXMPP.__init__(
             self, jid, password, lang=config.get('lang'))
