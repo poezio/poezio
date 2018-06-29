@@ -44,6 +44,7 @@ from poezio.theming import get_theme
 from poezio import keyboard, xdg
 
 from poezio.core.completions import CompletionCore
+from poezio.core.tabs import Tabs
 from poezio.core.commands import CommandCore
 from poezio.core.handlers import HandlerCore
 from poezio.core.structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
@@ -94,8 +95,7 @@ class Core:
         self.xml_tab = None
         self.xml_buffer = TextBuffer()
 
-        self.tabs = []
-        self._current_tab_nb = 0
+        self.tabs = Tabs()
         self.previous_tab_nb = 0
 
         own_nick = config.get('default_nick')
@@ -398,8 +398,7 @@ class Core:
         Called when the option create_gaps is changed.
         Remove all gaptabs if switching from gaps to nogaps.
         """
-        if value.lower() == "false":
-            self.tabs = [tab for tab in self.tabs if tab]
+        self.tabs.update_gaps(value.lower() == "false")
 
     def on_request_receipts_config_change(self, option, value):
         """
@@ -652,7 +651,7 @@ class Core:
                     except ValueError:
                         pass
                     else:
-                        if self.current_tab().nb == nb and config.get(
+                        if self.tabs.current_tab.nb == nb and config.get(
                                 'go_to_previous_tab_on_alt_number'):
                             self.go_to_previous_tab()
                         else:
@@ -706,9 +705,9 @@ class Core:
         Messages are namedtuples of the form
         ('txt nick_color time str_time nickname user')
         """
-        if not isinstance(self.current_tab(), tabs.ChatTab):
+        if not isinstance(self.tabs.current_tab, tabs.ChatTab):
             return None
-        return self.current_tab().get_conversation_messages()
+        return self.tabs.current_tab.get_conversation_messages()
 
     def insert_input_text(self, text):
         """
@@ -821,7 +820,7 @@ class Core:
             keyboard.continuation_keys_callback = None
             cb(key)
         else:
-            self.current_tab().on_input(key, raw)
+            self.tabs.current_tab.on_input(key, raw)
 
     def try_execute(self, line):
         """
@@ -829,7 +828,7 @@ class Core:
         """
         line = '/' + line
         try:
-            self.current_tab().execute_command(line)
+            self.tabs.current_tab.execute_command(line)
         except:
             log.error('Execute failed (%s)', line, exc_info=True)
 
@@ -902,9 +901,9 @@ class Core:
         conversation.
         Returns False if the current tab is not a conversation tab
         """
-        if not isinstance(self.current_tab(), tabs.ChatTab):
+        if not isinstance(self.tabs.current_tab, tabs.ChatTab):
             return False
-        self.current_tab().command_say(msg)
+        self.tabs.current_tab.command_say(msg)
         return True
 
     def invite(self, jid, room, reason=None):
@@ -970,15 +969,8 @@ class Core:
     def get_tabs(self, cls=None):
         "Get all the tabs of a type"
         if cls is None:
-            cls = tabs.Tab
-        return [tab for tab in self.tabs if isinstance(tab, cls)]
-
-    def current_tab(self):
-        """
-        returns the current room, the one we are viewing
-        """
-        self.current_tab_nb = self.current_tab_nb
-        return self.tabs[self.current_tab_nb]
+            return self.tabs.get_tabs()
+        return self.tabs.by_class(cls)
 
     def get_conversation_by_jid(self, jid, create=True, fallback_barejid=True):
         """
@@ -992,16 +984,16 @@ class Core:
         jid = safeJID(jid)
         # We first check if we have a static conversation opened
         # with this precise resource
-        conversation = self.get_tab_by_name(jid.full,
-                                            tabs.StaticConversationTab)
+        conversation = self.tabs.by_name_and_class(jid.full,
+                                                   tabs.StaticConversationTab)
         if jid.bare == jid.full and not conversation:
-            conversation = self.get_tab_by_name(jid.full,
-                                                tabs.DynamicConversationTab)
+            conversation = self.tabs.by_name_and_class(
+                jid.full, tabs.DynamicConversationTab)
 
         if not conversation and fallback_barejid:
             # If not, we search for a conversation with the bare jid
-            conversation = self.get_tab_by_name(jid.bare,
-                                                tabs.DynamicConversationTab)
+            conversation = self.tabs.by_name_and_class(
+                jid.bare, tabs.DynamicConversationTab)
             if not conversation:
                 if create:
                     # We create a dynamic conversation with the bare Jid if
@@ -1013,23 +1005,6 @@ class Core:
                     conversation = None
         return conversation
 
-    def get_tab_by_name(self, name, typ=None):
-        """
-        Get the tab with the given name.
-        If typ is provided, return a tab of this type only
-        """
-        for tab in self.tabs:
-            if tab.name == name:
-                if (typ and isinstance(tab, typ)) or\
-                        not typ:
-                    return tab
-        return None
-
-    def get_tab_by_number(self, number):
-        if 0 <= number < len(self.tabs):
-            return self.tabs[number]
-        return None
-
     def add_tab(self, new_tab, focus=False):
         """
         Appends the new_tab in the tab list and
@@ -1039,82 +1014,12 @@ class Core:
         if focus:
             self.command.win("%s" % new_tab.nb)
 
-    def insert_tab_nogaps(self, old_pos, new_pos):
-        """
-        Move tabs without creating gaps
-        old_pos: old position of the tab
-        new_pos: desired position of the tab
-        """
-        tab = self.tabs[old_pos]
-        if new_pos < old_pos:
-            self.tabs.pop(old_pos)
-            self.tabs.insert(new_pos, tab)
-        elif new_pos > old_pos:
-            self.tabs.insert(new_pos, tab)
-            self.tabs.remove(tab)
-        else:
-            return False
-        return True
-
-    def insert_tab_gaps(self, old_pos, new_pos):
-        """
-        Move tabs and create gaps in the eventual remaining space
-        old_pos: old position of the tab
-        new_pos: desired position of the tab
-        """
-        tab = self.tabs[old_pos]
-        target = None if new_pos >= len(self.tabs) else self.tabs[new_pos]
-        if not target:
-            if new_pos < len(self.tabs):
-                old_tab = self.tabs[old_pos]
-                self.tabs[new_pos], self.tabs[old_pos] = old_tab, tabs.GapTab(
-                    self)
-            else:
-                self.tabs.append(self.tabs[old_pos])
-                self.tabs[old_pos] = tabs.GapTab(self)
-        else:
-            if new_pos > old_pos:
-                self.tabs.insert(new_pos, tab)
-                self.tabs[old_pos] = tabs.GapTab(self)
-            elif new_pos < old_pos:
-                self.tabs[old_pos] = tabs.GapTab(self)
-                self.tabs.insert(new_pos, tab)
-            else:
-                return False
-            i = self.tabs.index(tab)
-            done = False
-            # Remove the first Gap on the right in the list
-            # in order to prevent global shifts when there is empty space
-            while not done:
-                i += 1
-                if i >= len(self.tabs):
-                    done = True
-                elif not self.tabs[i]:
-                    self.tabs.pop(i)
-                    done = True
-        # Remove the trailing gaps
-        i = len(self.tabs) - 1
-        while isinstance(self.tabs[i], tabs.GapTab):
-            self.tabs.pop()
-            i -= 1
-        return True
-
     def insert_tab(self, old_pos, new_pos=99999):
         """
         Insert a tab at a position, changing the number of the following tabs
         returns False if it could not move the tab, True otherwise
         """
-        if old_pos <= 0 or old_pos >= len(self.tabs):
-            return False
-        elif new_pos <= 0:
-            return False
-        elif new_pos == old_pos:
-            return False
-        elif not self.tabs[old_pos]:
-            return False
-        if config.get('create_gaps'):
-            return self.insert_tab_gaps(old_pos, new_pos)
-        return self.insert_tab_nogaps(old_pos, new_pos)
+        self.tabs.insert_tab(old_pos, new_pos, config.get('create_gaps'))
 
     ### Move actions (e.g. go to next room) ###
 
@@ -1122,22 +1027,18 @@ class Core:
         """
         rotate the rooms list to the right
         """
-        self.current_tab().on_lose_focus()
-        self.current_tab_nb += 1
-        while not self.tabs[self.current_tab_nb]:
-            self.current_tab_nb += 1
-        self.current_tab().on_gain_focus()
+        self.tabs.current_tab.on_lose_focus()
+        self.tabs.next()
+        self.tabs.current_tab.on_gain_focus()
         self.refresh_window()
 
     def rotate_rooms_left(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.current_tab().on_lose_focus()
-        self.current_tab_nb -= 1
-        while not self.tabs[self.current_tab_nb]:
-            self.current_tab_nb -= 1
-        self.current_tab().on_gain_focus()
+        self.tabs.current_tab.on_lose_focus()
+        self.tabs.prev()
+        self.tabs.current_tab.on_gain_focus()
         self.refresh_window()
 
     def go_to_room_number(self):
@@ -1183,7 +1084,7 @@ class Core:
         priority = tabs.STATE_PRIORITY
         tab_refs = {}
         # put all the active tabs in a dict of lists by state
-        for tab in self.tabs:
+        for tab in self.tabs.get_tabs():
             if not tab:
                 continue
             if tab.state not in tab_refs:
@@ -1197,8 +1098,8 @@ class Core:
 
         for state in states:
             for tab in tab_refs[state]:
-                if (tab.nb < self.current_tab_nb
-                        and tab_refs[state][-1].nb > self.current_tab_nb):
+                if (tab.nb < self.tabs.current_tab_intex and
+                        tab_refs[state][-1].nb > self.tabs.current_tab_index):
                     continue
                 self.command.win(str(tab.nb))
                 return
@@ -1206,33 +1107,14 @@ class Core:
 
     def focus_tab_named(self, tab_name, type_=None):
         """Returns True if it found a tab to focus on"""
-        for tab in self.tabs:
-            if tab.name == tab_name:
-                if (type_ and (isinstance(tab, type_))) or not type_:
-                    self.command.win(str(tab.nb))
-                return True
-        return False
-
-    @property
-    def current_tab_nb(self):
-        """Wrapper for the current tab number"""
-        return self._current_tab_nb
-
-    @current_tab_nb.setter
-    def current_tab_nb(self, value):
-        """
-        Prevents the tab number from going over the total number of opened
-        tabs, or under 0
-        """
-        old = self._current_tab_nb
-        if value >= len(self.tabs):
-            self._current_tab_nb = 0
-        elif value < 0:
-            self._current_tab_nb = len(self.tabs) - 1
+        if type_ is None:
+            tab = self.tabs.by_name(tab_name)
         else:
-            self._current_tab_nb = value
-        if old != self._current_tab_nb and self.tabs[self._current_tab_nb]:
-            self.events.trigger('tab_change', old, self._current_tab_nb)
+            tab = self.tabs.by_name_and_class(tab_name, type_)
+        if tab:
+            self.command_win(str(tab.nb))
+            return True
+        return False
 
     ### Opening actions ###
 
@@ -1263,7 +1145,7 @@ class Core:
                 self.command.win(str(tab.nb))
                 return tab
         # create the new tab
-        tab = self.get_tab_by_name(room_name, tabs.MucTab)
+        tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
         if not tab:
             return None
         new_tab = tabs.PrivateTab(self, complete_jid, tab.own_nick)
@@ -1303,8 +1185,8 @@ class Core:
         this updates the name of all the opened private conversations
         with him/her
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, old_nick),
-                                   tabs.PrivateTab)
+        tab = self.tabs.by_name_and_class('%s/%s' % (room_name, old_nick),
+                                          tabs.PrivateTab)
         if tab:
             tab.rename_user(old_nick, user)
 
@@ -1314,8 +1196,8 @@ class Core:
         The user left the MUC: add a message in the associated
         private conversation
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, user.nick),
-                                   tabs.PrivateTab)
+        tab = self.tabs.by_name_and_class('%s/%s' % (room_name, user.nick),
+                                          tabs.PrivateTab)
         if tab:
             tab.user_left(status_message, user)
 
@@ -1324,8 +1206,8 @@ class Core:
         The user joined a MUC: add a message in the associated
         private conversation
         """
-        tab = self.get_tab_by_name('%s/%s' % (room_name, nick),
-                                   tabs.PrivateTab)
+        tab = self.tabs.by_name_and_class('%s/%s' % (room_name, nick),
+                                          tabs.PrivateTab)
         if tab:
             tab.user_rejoined(nick)
 
@@ -1350,7 +1232,7 @@ class Core:
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid, status):
-        tab = self.get_tab_by_name(jid, tabs.ChatTab)
+        tab = self.tabs.by_name_and_class(jid, tabs.ChatTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
 
@@ -1360,35 +1242,16 @@ class Core:
         """
         was_current = tab is None
         if tab is None:
-            tab = self.current_tab()
+            tab = self.tabs.current_tab
         if isinstance(tab, tabs.RosterInfoTab):
             return  # The tab 0 should NEVER be closed
         tab.on_close()
         del tab.key_func  # Remove self references
         del tab.commands  # and make the object collectable
-        nb = tab.nb
-        if was_current:
-            if self.previous_tab_nb != nb:
-                self.current_tab_nb = self.previous_tab_nb
-                self.previous_tab_nb = 0
-        if config.get('create_gaps'):
-            if nb >= len(self.tabs) - 1:
-                self.tabs.remove(tab)
-                nb -= 1
-                while not self.tabs[nb]:  # remove the trailing gaps
-                    self.tabs.pop()
-                    nb -= 1
-            else:
-                self.tabs[nb] = tabs.GapTab(self)
-        else:
-            self.tabs.remove(tab)
+        self.tabs.delete(tab, gap=config.get('create_gaps'))
         logger.close(tab.name)
-        if self.current_tab_nb >= len(self.tabs):
-            self.current_tab_nb = len(self.tabs) - 1
-        while not self.tabs[self.current_tab_nb]:
-            self.current_tab_nb -= 1
         if was_current:
-            self.current_tab().on_gain_focus()
+            self.tabs.current_tab.on_gain_focus()
         self.refresh_window()
         import gc
         gc.collect()
@@ -1401,10 +1264,10 @@ class Core:
         Search for a ConversationTab with the given jid (full or bare),
         if yes, add the given message to it
         """
-        tab = self.get_tab_by_name(jid, tabs.ConversationTab)
+        tab = self.tabs.by_name_and_class(jid, tabs.ConversationTab)
         if tab is not None:
             tab.add_message(msg, typ=2)
-            if self.current_tab() is tab:
+            if self.tabs.current_tab is tab:
                 self.refresh_window()
 
 ####################### Curses and ui-related stuff ###########################
@@ -1437,7 +1300,7 @@ class Core:
         nb_lines = self.information_buffer.add_message(
             msg, nickname=typ, nick_color=color)
         popup_on = config.get('information_buffer_popup_on').split()
-        if isinstance(self.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
             self.refresh_window()
         elif typ != '' and typ.lower() in popup_on:
             popup_time = config.get('popup_time') + (nb_lines - 1) * 2
@@ -1445,7 +1308,7 @@ class Core:
         else:
             if self.information_win_size != 0:
                 self.information_win.refresh()
-                self.current_tab().refresh_input()
+                self.tabs.current_tab.refresh_input()
         return True
 
     def _init_curses(self, stdscr):
@@ -1479,8 +1342,8 @@ class Core:
         Refresh everything
         """
         nocursor = curses.curs_set(0)
-        self.current_tab().state = 'current'
-        self.current_tab().refresh()
+        self.tabs.current_tab.state = 'current'
+        self.tabs.current_tab.refresh()
         self.doupdate()
         curses.curs_set(nocursor)
 
@@ -1488,7 +1351,7 @@ class Core:
         """
         Refresh the window containing the tab list
         """
-        self.current_tab().refresh_tab_win()
+        self.tabs.current_tab.refresh_tab_win()
         self.refresh_input()
         self.doupdate()
 
@@ -1496,8 +1359,8 @@ class Core:
         """
         Refresh the input if it exists
         """
-        if self.current_tab().input:
-            self.current_tab().input.refresh()
+        if self.tabs.current_tab.input:
+            self.tabs.current_tab.input.refresh()
         self.doupdate()
 
     def scroll_page_down(self):
@@ -1505,7 +1368,7 @@ class Core:
         Scroll a page down, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_scroll_down():
+        if self.tabs.current_tab.on_scroll_down():
             self.refresh_window()
             return True
 
@@ -1514,7 +1377,7 @@ class Core:
         Scroll a page up, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_scroll_up():
+        if self.tabs.current_tab.on_scroll_up():
             self.refresh_window()
             return True
 
@@ -1523,7 +1386,7 @@ class Core:
         Scroll a line up, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_line_up():
+        if self.tabs.current_tab.on_line_up():
             self.refresh_window()
             return True
 
@@ -1532,7 +1395,7 @@ class Core:
         Scroll a line down, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_line_down():
+        if self.tabs.current_tab.on_line_down():
             self.refresh_window()
             return True
 
@@ -1541,7 +1404,7 @@ class Core:
         Scroll half a screen down, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_half_scroll_up():
+        if self.tabs.current_tab.on_half_scroll_up():
             self.refresh_window()
             return True
 
@@ -1550,7 +1413,7 @@ class Core:
         Scroll half a screen down, if possible.
         Returns True on success, None on failure.
         """
-        if self.current_tab().on_half_scroll_down():
+        if self.tabs.current_tab.on_half_scroll_down():
             self.refresh_window()
             return True
 
@@ -1558,8 +1421,8 @@ class Core:
         """
         Expand the information win a number of lines
         """
-        if self.information_win_size >= self.current_tab().height -5 or \
-                self.information_win_size+nb >= self.current_tab().height-4 or\
+        if self.information_win_size >= self.tabs.current_tab.height -5 or \
+                self.information_win_size+nb >= self.tabs.current_tab.height-4 or\
                 self.size.core_degrade_y:
             return 0
         self.information_win_size += nb
@@ -1588,10 +1451,10 @@ class Core:
         Scroll the information buffer up
         """
         self.information_win.scroll_up(self.information_win.height)
-        if not isinstance(self.current_tab(), tabs.RosterInfoTab):
+        if not isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
             self.information_win.refresh()
         else:
-            info = self.current_tab().information_win
+            info = self.tabs.current_tab.information_win
             info.scroll_up(info.height)
             self.refresh_window()
 
@@ -1600,10 +1463,10 @@ class Core:
         Scroll the information buffer down
         """
         self.information_win.scroll_down(self.information_win.height)
-        if not isinstance(self.current_tab(), tabs.RosterInfoTab):
+        if not isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
             self.information_win.refresh()
         else:
-            info = self.current_tab().information_win
+            info = self.tabs.current_tab.information_win
             info.scroll_down(info.height)
             self.refresh_window()
 
@@ -1710,7 +1573,8 @@ class Core:
                 tab.need_resize = True
             else:
                 tab.resize()
-        if self.tabs:
+
+        if len(self.tabs):
             self.full_screen_redraw()
 
     def read_keyboard(self):
@@ -2050,7 +1914,7 @@ class Core:
         for bm in bookmarks:
             if not (bm.autojoin or config.get('open_all_bookmarks')):
                 continue
-            tab = self.get_tab_by_name(bm.jid, tabs.MucTab)
+            tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
             nick = bm.nick if bm.nick else self.own_nick
             if not tab:
                 self.open_new_room(
@@ -2093,7 +1957,7 @@ class Core:
         """
         Display the error in the tab
         """
-        tab = self.get_tab_by_name(room_name, tabs.MucTab)
+        tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
         if not tab:
             return
         error_message = self.get_error_message(error)

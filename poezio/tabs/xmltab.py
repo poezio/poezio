@@ -286,7 +286,7 @@ class XMLTab(Tab):
     def reset_help_message(self, _=None):
         if self.closed:
             return True
-        if self.core.current_tab() is self:
+        if self.core.tabs.current_tab is self:
             curses.curs_set(0)
         self.input = self.default_help_message
         return True

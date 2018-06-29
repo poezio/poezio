@@ -60,7 +60,8 @@ class PrivateTab(OneToOneTab):
             'Get the software version of the current interlocutor (usually its XMPP client and Operating System).',
             shortdesc='Get the software version of a jid.')
         self.resize()
-        self.parent_muc = self.core.get_tab_by_name(safeJID(name).bare, MucTab)
+        self.parent_muc = self.core.tabs.by_name_and_class(
+            safeJID(name).bare, MucTab)
         self.on = True
         self.update_commands()
         self.update_keys()
@@ -275,7 +276,7 @@ class PrivateTab(OneToOneTab):
         empty_after = self.input.get_text() == '' or (
             self.input.get_text().startswith('/')
             and not self.input.get_text().startswith('//'))
-        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined:
             self.send_composing_chat_state(empty_after)
         return False
@@ -288,7 +289,7 @@ class PrivateTab(OneToOneTab):
 
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', self.general_jid) and self.on:
             self.send_chat_state('inactive')
@@ -297,7 +298,7 @@ class PrivateTab(OneToOneTab):
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
-        tab = self.core.get_tab_by_name(safeJID(self.name).bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states',
                 self.general_jid,
@@ -334,7 +335,7 @@ class PrivateTab(OneToOneTab):
             typ=2)
         new_jid = safeJID(self.name).bare + '/' + user.nick
         self.name = new_jid
-        return self.core.current_tab() is self
+        return self.core.tabs.current_tab is self
 
     @refresh_wrapper.conditional
     def user_left(self, status_message, user):
@@ -372,7 +373,7 @@ class PrivateTab(OneToOneTab):
                     'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
                 },
                 typ=2)
-        return self.core.current_tab() is self
+        return self.core.tabs.current_tab is self
 
     @refresh_wrapper.conditional
     def user_rejoined(self, nick):
@@ -398,7 +399,7 @@ class PrivateTab(OneToOneTab):
                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             },
             typ=2)
-        return self.core.current_tab() is self
+        return self.core.tabs.current_tab is self
 
     def activate(self, reason=None):
         self.on = True

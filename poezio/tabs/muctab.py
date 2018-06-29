@@ -429,7 +429,7 @@ class MucTab(ChatTab):
                 self.handle_presence_joined(presence, status_codes)
             except PresenceError:
                 self.core.room_error(presence, presence['from'].bare)
-        if self.core.current_tab() is self:
+        if self.core.tabs.current_tab is self:
             self.text_win.refresh()
             self.user_win.refresh_if_changed(self.users)
             self.info_header.refresh(self, self.text_win, user=self.own_user)
@@ -453,9 +453,9 @@ class MucTab(ChatTab):
         # Enable the self ping event, to regularly check if we
         # are still in the room.
         self.enable_self_ping_event()
-        if self.core.current_tab() is not self:
+        if self.core.tabs.current_tab is not self:
             self.refresh_tab_win()
-            self.core.current_tab().refresh_input()
+            self.core.tabs.current_tab.refresh_input()
             self.core.doupdate()
 
     def handle_presence_unjoined(self, presence, deterministic, own=False):
@@ -487,9 +487,9 @@ class MucTab(ChatTab):
         if self.name in self.core.initial_joins:
             self.core.initial_joins.remove(self.name)
             self._state = 'normal'
-        elif self != self.core.current_tab():
+        elif self != self.core.tabs.current_tab:
             self._state = 'joined'
-        if (self.core.current_tab() is self
+        if (self.core.tabs.current_tab is self
                 and self.core.status.show not in ('xa', 'away')):
             self.send_chat_state('active')
         new_user.color = get_theme().COLOR_OWN_NICK
@@ -721,7 +721,7 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
-            self.core.current_tab().refresh_input()
+            self.core.tabs.current_tab.refresh_input()
             if config.get_by_tabname('autorejoin', self.general_jid):
                 delay = config.get_by_tabname('autorejoin_delay',
                                               self.general_jid)
@@ -799,7 +799,7 @@ class MucTab(ChatTab):
             self.core.disable_private_tabs(self.name, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
-            self.core.current_tab().refresh_input()
+            self.core.tabs.current_tab.refresh_input()
             # try to auto-rejoin
             if config.get_by_tabname('autorejoin', self.general_jid):
                 delay = config.get_by_tabname('autorejoin_delay',
@@ -972,7 +972,7 @@ class MucTab(ChatTab):
         """
         self.presence_buffer = []
         self.users = []
-        if self is not self.core.current_tab():
+        if self is not self.core.tabs.current_tab:
             self.state = 'disconnected'
         self.joined = False
         self.disable_self_ping_event()
@@ -1376,7 +1376,7 @@ class MucTab(ChatTab):
         """
         message = args[0]
         self.leave_room(message)
-        if self == self.core.current_tab():
+        if self == self.core.tabs.current_tab:
             self.refresh()
         self.core.doupdate()
 
@@ -1406,7 +1406,7 @@ class MucTab(ChatTab):
                 r = self.core.open_private_window(self.name, user.nick)
         if r and len(args) == 2:
             msg = args[1]
-            self.core.current_tab().command_say(
+            self.core.tabs.current_tab.command_say(
                 xhtml.convert_simple_to_full_colors(msg))
         if not r:
             self.core.information("Cannot find user: %s" % nick, 'Error')

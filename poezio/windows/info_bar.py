@@ -26,18 +26,12 @@ class GlobalInfoBar(Win):
         self.addstr(0, 0, "[",
                     to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-        create_gaps = config.get('create_gaps')
         show_names = config.get('show_tab_names')
         show_nums = config.get('show_tab_numbers')
         use_nicks = config.get('use_tab_nicks')
         show_inactive = config.get('show_inactive_tabs')
-        # ignore any remaining gap tabs if the feature is not enabled
-        if create_gaps:
-            sorted_tabs = self.core.tabs[:]
-        else:
-            sorted_tabs = [tab for tab in self.core.tabs if tab]
 
-        for nb, tab in enumerate(sorted_tabs):
+        for nb, tab in enumerate(self.core.tabs):
             if not tab: continue
             color = tab.color
             if not show_inactive and color is get_theme().COLOR_TAB_NORMAL:
