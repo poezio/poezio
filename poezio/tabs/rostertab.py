@@ -271,8 +271,9 @@ class RosterInfoTab(Tab):
             if not certs:
                 return self.core.information('No certificates found', 'Info')
             msg = 'Certificates:\n'
-            msg += '\n'.join((('  %s%s' % (item[0] + (': ' if item[1] else ''),
-                                           item[1])) for item in certs))
+            msg += '\n'.join(
+                (('  %s%s' % (item[0] + (': ' if item[1] else ''), item[1]))
+                 for item in certs))
             self.core.information(msg, 'Info')
 
         self.core.xmpp.plugin['xep_0257'].get_certs(callback=cb, timeout=3)
@@ -702,8 +703,8 @@ class RosterInfoTab(Tab):
             return
         jid = safeJID(safeJID(args[0]).bare)
         if not str(jid):
-            self.core.information('The provided JID (%s) is not valid' %
-                                  (args[0], ), 'Error')
+            self.core.information(
+                'The provided JID (%s) is not valid' % (args[0], ), 'Error')
             return
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
@@ -1146,7 +1147,7 @@ class RosterInfoTab(Tab):
 
     def reset_help_message(self, _=None):
         self.input = self.default_help_message
-        if self.core.current_tab() is self:
+        if self.core.tabs.current_tab is self:
             curses.curs_set(0)
             self.input.refresh()
             self.core.doupdate()
@@ -1266,8 +1267,9 @@ class RosterInfoTab(Tab):
             acc.append('Contact: %s (%s)' % (cont.bare_jid, res.presence
                                              if res else 'unavailable'))
             if res:
-                acc.append('%s connected resource%s' %
-                           (len(cont), '' if len(cont) == 1 else 's'))
+                acc.append(
+                    '%s connected resource%s' % (len(cont), ''
+                                                 if len(cont) == 1 else 's'))
                 acc.append('Current status: %s' % res.status)
             if cont.tune:
                 acc.append('Tune: %s' % common.format_tune_string(cont.tune))
@@ -1276,8 +1278,8 @@ class RosterInfoTab(Tab):
             if cont.activity:
                 acc.append('Activity: %s' % cont.activity)
             if cont.gaming:
-                acc.append('Game: %s' %
-                           (common.format_gaming_string(cont.gaming)))
+                acc.append(
+                    'Game: %s' % (common.format_gaming_string(cont.gaming)))
             msg = '\n'.join(acc)
         elif isinstance(selected_row, Resource):
             res = selected_row

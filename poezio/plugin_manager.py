@@ -92,8 +92,8 @@ class PluginManager(object):
         except Exception as e:
             log.error('Error while loading the plugin %s', name, exc_info=True)
             if notify:
-                self.core.information('Unable to load the plugin %s: %s' %
-                                      (name, e), 'Error')
+                self.core.information(
+                    'Unable to load the plugin %s: %s' % (name, e), 'Error')
             self.unload(name, notify=False)
         else:
             if notify:
@@ -129,8 +129,8 @@ class PluginManager(object):
                     self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 log.debug("Could not unload plugin %s", name, exc_info=True)
-                self.core.information("Could not unload plugin %s: %s" %
-                                      (name, e), 'Error')
+                self.core.information(
+                    "Could not unload plugin %s: %s" % (name, e), 'Error')
 
     def add_command(self,
                     module_name,

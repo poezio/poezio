@@ -214,9 +214,8 @@ class TextBuffer(object):
         if msg.ack == 1:  # Message was already acked
             return False
         if msg.jid != jid:
-            raise AckError(
-                'Wrong JID for message id %s (was %s, expected %s)' %
-                (old_id, msg.jid, jid))
+            raise AckError('Wrong JID for message id %s (was %s, expected %s)'
+                           % (old_id, msg.jid, jid))
 
         msg.ack = value
         if append:
@@ -253,9 +252,9 @@ class TextBuffer(object):
             raise CorrectionError('Could not check the '
                                   'identity of the sender')
         elif not msg.user and msg.jid != jid:
-            raise CorrectionError('Messages %s and %s have not been '
-                                  'sent by the same fullJID' % (old_id,
-                                                                new_id))
+            raise CorrectionError(
+                'Messages %s and %s have not been '
+                'sent by the same fullJID' % (old_id, new_id))
 
         if not time:
             time = msg.time

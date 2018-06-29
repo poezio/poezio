@@ -241,8 +241,8 @@ class Logger(object):
             lines = message.split('\n')
             first_line = lines.pop(0)
             nb_lines = str(len(lines)).zfill(3)
-            self._roster_logfile.write('MI %s %s %s %s\n' %
-                                       (str_time, nb_lines, jid, first_line))
+            self._roster_logfile.write(
+                'MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
             for line in lines:
                 self._roster_logfile.write(' %s\n' % line)
             self._roster_logfile.flush()

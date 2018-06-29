@@ -522,9 +522,8 @@ class Input(Win):
         self._win.erase()
         if self.color:
             self._win.attron(to_curses_attr(self.color))
-        displayed_text = text[self.view_pos:
-                              self.view_pos + self.width - 1].replace(
-                                  '\t', '\x18')
+        displayed_text = text[self.view_pos:self.view_pos + self.width -
+                              1].replace('\t', '\x18')
         self._win.attrset(0)
         self._addstr_colored_lite(displayed_text)
         # Fill the rest of the line with the input color

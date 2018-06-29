@@ -101,9 +101,9 @@ class ListWin(Win):
                 if not txt:
                     continue
                 if line is self.lines[self._selected_row]:
-                    self.addstr(y, x, txt[:size],
-                                to_curses_attr(
-                                    get_theme().COLOR_INFORMATION_BAR))
+                    self.addstr(
+                        y, x, txt[:size],
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
                 else:
                     self.addstr(y, x, txt[:size])
                 x += size
@@ -192,9 +192,9 @@ class ColumnHeaderWin(Win):
             size = self._columns_sizes[col]
             txt += ' ' * (size - len(txt))
             if col in self._column_sel:
-                self.addstr(0, x, txt,
-                            to_curses_attr(
-                                get_theme().COLOR_COLUMN_HEADER_SEL))
+                self.addstr(
+                    0, x, txt,
+                    to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
             else:
                 self.addstr(0, x, txt,
                             to_curses_attr(get_theme().COLOR_COLUMN_HEADER))

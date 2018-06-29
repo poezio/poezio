@@ -81,7 +81,9 @@ class Connection(slixmpp.ClientXMPP):
             jid = config.get('server')
             password = None
         jid = safeJID(jid)
-        jid.resource = '%s-%s' % (jid.resource, device_id) if jid.resource else 'poezio-%s' % device_id
+        jid.resource = '%s-%s' % (
+            jid.resource,
+            device_id) if jid.resource else 'poezio-%s' % device_id
         # TODO: use the system language
         slixmpp.ClientXMPP.__init__(
             self, jid, password, lang=config.get('lang'))
@@ -107,8 +109,9 @@ class Connection(slixmpp.ClientXMPP):
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
         # for anything that came out after 2002
-        self.ciphers = config.get('ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
-                                  ':!SRP:!3DES:!aNULL')
+        self.ciphers = config.get(
+            'ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
+            ':!SRP:!3DES:!aNULL')
         self.ca_certs = config.get('ca_cert_path') or None
         interval = config.get('whitespace_interval')
         if int(interval) > 0:
@@ -118,11 +121,17 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0004')
         self.register_plugin('xep_0012')
         # Must be loaded before 0030.
-        self.register_plugin('xep_0115', {
-            'caps_node': 'https://poez.io',
-            'cache': FileSystemCache(CACHE_DIR, 'caps', encode=str,
-                                     decode=lambda x: DiscoInfo(ET.fromstring(x))),
-        })
+        self.register_plugin(
+            'xep_0115', {
+                'caps_node':
+                'https://poez.io',
+                'cache':
+                FileSystemCache(
+                    CACHE_DIR,
+                    'caps',
+                    encode=str,
+                    decode=lambda x: DiscoInfo(ET.fromstring(x))),
+            })
         self.register_plugin('xep_0030')
         self.register_plugin('xep_0045')
         self.register_plugin('xep_0048')

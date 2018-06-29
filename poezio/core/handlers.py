@@ -85,7 +85,8 @@ class HandlerCore:
             if not iq:
                 return
             features = iq['disco_info']['features']
-            rostertab = self.core.get_tab_by_name('Roster', tabs.RosterInfoTab)
+            rostertab = self.core.tabs.by_name_and_class(
+                'Roster', tabs.RosterInfoTab)
             rostertab.check_blocking(features)
             rostertab.check_saslexternal(features)
             if (config.get('enable_carbons')
@@ -138,8 +139,9 @@ class HandlerCore:
 
         sent = message['carbon_sent']
         # todo: implement proper MUC detection logic
-        if (sent['to'].resource and (sent['to'].bare not in roster
-                or roster[sent['to'].bare].subscription == 'none')):
+        if (sent['to'].resource
+                and (sent['to'].bare not in roster
+                     or roster[sent['to'].bare].subscription == 'none')):
             fixes.has_identity(
                 self.core.xmpp,
                 sent['to'].server,
@@ -243,8 +245,8 @@ class HandlerCore:
                     self.core.room_error(message, jid_from.bare)
                 else:
                     text = self.core.get_error_message(message)
-                    p_tab = self.core.get_tab_by_name(jid_from.full,
-                                                      tabs.PrivateTab)
+                    p_tab = self.core.tabs.by_name_and_class(
+                        jid_from.full, tabs.PrivateTab)
                     if p_tab:
                         p_tab.add_error(text)
                     else:
@@ -372,7 +374,7 @@ class HandlerCore:
         if not own and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
                 curses.beep()
-        if self.core.current_tab() is not conversation:
+        if self.core.tabs.current_tab is not conversation:
             if not own:
                 conversation.state = 'private'
                 self.core.refresh_tab_win()
@@ -399,7 +401,8 @@ class HandlerCore:
             avatar_hash = info['id']
 
             # First check whether we have it in cache.
-            cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+            cached_avatar = self.core.avatar_cache.retrieve_by_jid(
+                jid, avatar_hash)
             if cached_avatar:
                 contact.avatar = cached_avatar
                 log.debug('Using cached avatar for %s', jid)
@@ -425,7 +428,8 @@ class HandlerCore:
                 log.debug('Received %s avatar: %s', jid, info['type'])
 
                 # Now we save the data on the file system to not have to request it again.
-                if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
+                if not self.core.avatar_cache.store_by_jid(
+                        jid, avatar_hash, contact.avatar):
                     log.debug(
                         'Failed writing %s’s avatar to cache:',
                         jid,
@@ -442,7 +446,8 @@ class HandlerCore:
         log.debug('Received vCard avatar update from %s: %s', jid, avatar_hash)
 
         # First check whether we have it in cache.
-        cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+        cached_avatar = self.core.avatar_cache.retrieve_by_jid(
+            jid, avatar_hash)
         if cached_avatar:
             contact.avatar = cached_avatar
             log.debug('Using cached avatar for %s', jid)
@@ -463,8 +468,10 @@ class HandlerCore:
         log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
 
         # Now we save the data on the file system to not have to request it again.
-        if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
-            log.debug('Failed writing %s’s avatar to cache:', jid, exc_info=True)
+        if not self.core.avatar_cache.store_by_jid(jid, avatar_hash,
+                                                   contact.avatar):
+            log.debug(
+                'Failed writing %s’s avatar to cache:', jid, exc_info=True)
 
     def on_nick_received(self, message):
         """
@@ -514,9 +521,9 @@ class HandlerCore:
                 'display_gaming_notifications', contact.bare_jid):
             if contact.gaming:
                 self.core.information(
-                    '%s is playing %s' %
-                    (contact.bare_jid,
-                     common.format_gaming_string(contact.gaming)), 'Gaming')
+                    '%s is playing %s' % (contact.bare_jid,
+                                          common.format_gaming_string(
+                                              contact.gaming)), 'Gaming')
             else:
                 self.core.information(contact.bare_jid + ' stopped playing.',
                                       'Gaming')
@@ -597,8 +604,9 @@ class HandlerCore:
         if old_activity != contact.activity and config.get_by_tabname(
                 'display_activity_notifications', contact.bare_jid):
             if contact.activity:
-                self.core.information('Activity from ' + contact.bare_jid +
-                                      ': ' + contact.activity, 'Activity')
+                self.core.information(
+                    'Activity from ' + contact.bare_jid + ': ' +
+                    contact.activity, 'Activity')
             else:
                 self.core.information(
                     contact.bare_jid + ' stopped doing his/her activity.',
@@ -630,9 +638,9 @@ class HandlerCore:
             contact.tune = {}
 
         if contact.tune:
-            logger.log_roster_change(message['from'].bare,
-                                     'is now listening to %s' %
-                                     common.format_tune_string(contact.tune))
+            logger.log_roster_change(
+                message['from'].bare, 'is now listening to %s' %
+                common.format_tune_string(contact.tune))
 
         if old_tune != contact.tune and config.get_by_tabname(
                 'display_tune_notifications', contact.bare_jid):
@@ -656,7 +664,7 @@ class HandlerCore:
             self.core.room_error(message, room_from)
             return
 
-        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         if not tab:
             self.core.information(
                 "message received for a non-existing room: %s" % (room_from))
@@ -714,14 +722,14 @@ class HandlerCore:
         if message['from'].resource == tab.own_nick:
             tab.last_sent_message = message
 
-        if tab is self.core.current_tab():
+        if tab is self.core.tabs.current_tab:
             tab.text_win.refresh()
             tab.info_header.refresh(tab, tab.text_win, user=tab.own_user)
             tab.input.refresh()
             self.core.doupdate()
         elif tab.state != old_state:
             self.core.refresh_tab_win()
-            current = self.core.current_tab()
+            current = self.core.tabs.current_tab
             if hasattr(current, 'input') and current.input:
                 current.input.refresh()
             self.core.doupdate()
@@ -756,7 +764,7 @@ class HandlerCore:
             use_xhtml=use_xhtml,
             tmp_dir=tmp_dir,
             extract_images=extract_images)
-        tab = self.core.get_tab_by_name(
+        tab = self.core.tabs.by_name_and_class(
             jid.full,
             tabs.PrivateTab)  # get the tab with the private conversation
         ignore = config.get_by_tabname('ignore_private', room_from)
@@ -764,7 +772,8 @@ class HandlerCore:
             if body and not ignore:
                 tab = self.core.open_private_window(room_from, with_nick,
                                                     False)
-        sender_nick = (tab.own_nick or self.core.own_nick) if sent else with_nick
+        sender_nick = (tab.own_nick
+                       or self.core.own_nick) if sent else with_nick
         if ignore and not sent:
             self.core.events.trigger('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
@@ -815,7 +824,7 @@ class HandlerCore:
         if not sent and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
-        if tab is self.core.current_tab():
+        if tab is self.core.tabs.current_tab:
             self.core.refresh_window()
         else:
             tab.state = 'normal' if sent else 'private'
@@ -841,8 +850,8 @@ class HandlerCore:
     def _on_chatstate(self, message, state):
         if message['type'] == 'chat':
             if not self._on_chatstate_normal_conversation(message, state):
-                tab = self.core.get_tab_by_name(message['from'].full,
-                                                tabs.PrivateTab)
+                tab = self.core.tabs.by_name_and_class(message['from'].full,
+                                                       tabs.PrivateTab)
                 if not tab:
                     return
                 self._on_chatstate_private_conversation(message, state)
@@ -857,7 +866,7 @@ class HandlerCore:
         tab.chatstate = state
         if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
             tab.unlock()
-        if tab == self.core.current_tab():
+        if tab == self.core.tabs.current_tab:
             tab.refresh_info_header()
             self.core.doupdate()
         else:
@@ -869,12 +878,13 @@ class HandlerCore:
         """
         Chatstate received in a private conversation from a MUC
         """
-        tab = self.core.get_tab_by_name(message['from'].full, tabs.PrivateTab)
+        tab = self.core.tabs.by_name_and_class(message['from'].full,
+                                               tabs.PrivateTab)
         if not tab:
             return
         self.core.events.trigger('private_chatstate', message, tab)
         tab.chatstate = state
-        if tab == self.core.current_tab():
+        if tab == self.core.tabs.current_tab:
             tab.refresh_info_header()
             self.core.doupdate()
         else:
@@ -887,11 +897,11 @@ class HandlerCore:
         """
         nick = message['mucnick']
         room_from = message.get_mucroom()
-        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         if tab and tab.get_user_by_name(nick):
             self.core.events.trigger('muc_chatstate', message, tab)
             tab.get_user_by_name(nick).chatstate = state
-        if tab == self.core.current_tab():
+        if tab == self.core.tabs.current_tab:
             if not self.core.size.tab_degrade_x:
                 tab.user_win.refresh(tab.users)
             tab.input.refresh()
@@ -908,15 +918,16 @@ class HandlerCore:
         if iq['type'] == 'error':
             error_condition = iq['error']['condition']
             error_text = iq['error']['text']
-            reply = '%s: %s' % (error_condition, error_text) if error_text else error_condition
-            return self.core.information('Could not get the software '
-                                         'version from %s: %s' % (jid, reply),
-                                         'Warning')
+            reply = '%s: %s' % (error_condition,
+                                error_text) if error_text else error_condition
+            return self.core.information(
+                'Could not get the software '
+                'version from %s: %s' % (jid, reply), 'Warning')
         res = iq['software_version']
         version = '%s is running %s version %s on %s' % (
             jid, res.get('name', 'an unknown software'),
-            res.get('version', 'unknown'),
-            res.get('os', 'an unknown platform'))
+            res.get('version', 'unknown'), res.get('os',
+                                                   'an unknown platform'))
         self.core.information(version, 'Info')
 
     ### subscription-related handlers ###
@@ -937,7 +948,7 @@ class HandlerCore:
                 else:
                     roster.update_contact_groups(jid)
         roster.update_size()
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_subscription_request(self, presence):
@@ -960,7 +971,7 @@ class HandlerCore:
                 'tab to accept or reject the query.' % jid, 'Roster')
             self.core.get_tab_by_number(0).state = 'highlight'
             roster.modified()
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_subscription_authorized(self, presence):
@@ -975,7 +986,7 @@ class HandlerCore:
 
         roster.modified()
 
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_subscription_remove(self, presence):
@@ -988,7 +999,7 @@ class HandlerCore:
         self.core.information(
             '%s does not want to receive your status anymore.' % jid, 'Roster')
         self.core.get_tab_by_number(0).state = 'highlight'
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_subscription_removed(self, presence):
@@ -1007,7 +1018,7 @@ class HandlerCore:
                 '%s does not want you to receive his/her/its status anymore.' %
                 jid, 'Roster')
         self.core.get_tab_by_number(0).state = 'highlight'
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     ### Presence-related handlers ###
@@ -1034,9 +1045,9 @@ class HandlerCore:
         if tab:
             tab.update_status(
                 Status(show=presence['show'], message=presence['status']))
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
-        elif self.core.current_tab() == tab:
+        elif self.core.tabs.current_tab == tab:
             tab.refresh()
             self.core.doupdate()
 
@@ -1047,8 +1058,7 @@ class HandlerCore:
             return
         roster.modified()
         contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
-        # reset chat states status on presence error
-        tab = self.core.get_tab_by_name(jid.full, tabs.ConversationTab)
+        # TODO:  reset chat states status on presence error
 
     def on_got_offline(self, presence):
         """
@@ -1076,7 +1086,7 @@ class HandlerCore:
         self.core.information('\x193}%s \x195}is \x191}offline' % name,
                               'Roster')
         roster.modified()
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_got_online(self, presence):
@@ -1116,7 +1126,7 @@ class HandlerCore:
                     "\x193}%s \x195}is \x194}online\x195}" % name, "Roster")
             self.core.add_information_message_to_conversation_tab(
                 jid.bare, '\x195}%s is \x194}online' % name)
-        if isinstance(self.core.current_tab(), tabs.RosterInfoTab):
+        if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
     def on_groupchat_presence(self, presence):
@@ -1126,7 +1136,7 @@ class HandlerCore:
         presence information of the concerned user
         """
         from_room = presence['from'].bare
-        tab = self.core.get_tab_by_name(from_room, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(from_room, tabs.MucTab)
         if tab:
             self.core.events.trigger('muc_presence', presence, tab)
             tab.handle_presence(presence)
@@ -1137,8 +1147,8 @@ class HandlerCore:
         """
         We cannot contact the remote server
         """
-        self.core.information("Connection to remote server failed: %s" %
-                              (error, ), 'Error')
+        self.core.information(
+            "Connection to remote server failed: %s" % (error, ), 'Error')
 
     @asyncio.coroutine
     def on_disconnected(self, event):
@@ -1238,11 +1248,11 @@ class HandlerCore:
         Those are received when a room configuration change occurs.
         """
         room_from = message['from']
-        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         status_codes = {
             s.attrib['code']
-            for s in message.xml.findall('{%s}x/{%s}status' % (
-                tabs.NS_MUC_USER, tabs.NS_MUC_USER))
+            for s in message.xml.findall('{%s}x/{%s}status' %
+                                         (tabs.NS_MUC_USER, tabs.NS_MUC_USER))
         }
         if '101' in status_codes:
             self.core.information(
@@ -1332,7 +1342,7 @@ class HandlerCore:
         """
         nick_from = message['mucnick']
         room_from = message.get_mucroom()
-        tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         subject = message['subject']
         if subject is None or not tab:
             return
@@ -1353,9 +1363,8 @@ class HandlerCore:
                     after = ''
                 if user:
                     user_col = dump_tuple(user.color)
-                    user_string = '\x19%s}%s\x19%s}%s' % (user_col, nick_from,
-                                                          fmt['info_col'],
-                                                          after)
+                    user_string = '\x19%s}%s\x19%s}%s' % (
+                        user_col, nick_from, fmt['info_col'], after)
                 else:
                     user_string = '\x19%s}%s%s' % (fmt['info_col'], nick_from,
                                                    after)
@@ -1375,8 +1384,8 @@ class HandlerCore:
                     typ=2)
         tab.topic = subject
         tab.topic_from = nick_from
-        if self.core.get_tab_by_name(room_from,
-                                     tabs.MucTab) is self.core.current_tab():
+        if self.core.tabs.by_name_and_class(
+                room_from, tabs.MucTab) is self.core.tabs.current_tab:
             self.core.refresh_window()
 
     def on_receipt(self, message):
@@ -1388,8 +1397,9 @@ class HandlerCore:
         if not msg_id:
             return
 
-        conversation = self.core.get_tab_by_name(jid.full, tabs.OneToOneTab)
-        conversation = conversation or self.core.get_tab_by_name(
+        conversation = self.core.tabs.by_name_and_class(
+            jid.full, tabs.OneToOneTab)
+        conversation = conversation or self.core.tabs.by_name_and_class(
             jid.bare, tabs.OneToOneTab)
         if not conversation:
             log.error("Received ack from non-existing chat tab: %s", jid)
@@ -1449,8 +1459,8 @@ class HandlerCore:
             except:
                 log.debug('', exc_info=True)
 
-            if isinstance(self.core.current_tab(), tabs.XMLTab):
-                self.core.current_tab().refresh()
+            if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
+                self.core.tabs.current_tab.refresh()
                 self.core.doupdate()
 
     def incoming_stanza(self, stanza):
@@ -1476,8 +1486,8 @@ class HandlerCore:
                         nickname=get_theme().CHAR_XML_IN)
             except:
                 log.debug('', exc_info=True)
-            if isinstance(self.core.current_tab(), tabs.XMLTab):
-                self.core.current_tab().refresh()
+            if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
+                self.core.tabs.current_tab.refresh()
                 self.core.doupdate()
 
     def ssl_invalid_chain(self, tb):

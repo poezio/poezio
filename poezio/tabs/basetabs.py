@@ -92,6 +92,7 @@ class Tab(object):
 
     def __init__(self, core):
         self.core = core
+        self.nb = 0
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
         self.input = None
@@ -107,13 +108,6 @@ class Tab(object):
     @property
     def size(self):
         return self.core.size
-
-    @property
-    def nb(self):
-        for index, tab in enumerate(self.core.tabs):
-            if tab == self:
-                return index
-        return len(self.core.tabs)
 
     @staticmethod
     def tab_win_height():
@@ -293,8 +287,8 @@ class Tab(object):
                     if self.missing_command_callback is not None:
                         error_handled = self.missing_command_callback(low)
                     if not error_handled:
-                        self.core.information("Unknown command (%s)" %
-                                              (command), 'Error')
+                        self.core.information(
+                            "Unknown command (%s)" % (command), 'Error')
             if command in ('correct', 'say'):  # hack
                 arg = xhtml.convert_simple_to_full_colors(arg)
             else:
@@ -685,8 +679,9 @@ class ChatTab(Tab):
                                               'paused')
         self.core.add_timed_event(new_event)
         self.timed_event_paused = new_event
-        new_event = timed_events.DelayedEvent(30, self.send_chat_state,
-                                              'inactive' if self.inactive else 'active')
+        new_event = timed_events.DelayedEvent(
+            30, self.send_chat_state, 'inactive'
+            if self.inactive else 'active')
         self.core.add_timed_event(new_event)
         self.timed_event_not_paused = new_event
 

@@ -204,7 +204,7 @@ class PluginAPI(object):
 
         :returns: The current tab.
         """
-        return self.core.current_tab()
+        return self.core.tabs.current_tab
 
     def get_status(self, _):
         """
@@ -221,7 +221,7 @@ class PluginAPI(object):
 
         :param str line: The command to run.
         """
-        return self.core.current_tab().execute_command(*args, **kwargs)
+        return self.core.tabs.current_tab.execute_command(*args, **kwargs)
 
     def all_tabs(self, _):
         """

@@ -316,16 +316,18 @@ class Config(RawConfigParser):
             sections, result_lines = result
 
         if section not in sections:
-            log.error('Tried to remove the option %s from a non-'
-                      'existing section (%s)', option, section)
+            log.error(
+                'Tried to remove the option %s from a non-'
+                'existing section (%s)', option, section)
             return True
         else:
             begin, end = sections[section]
             pos = find_line(result_lines, begin, end, option)
 
             if pos is -1:
-                log.error('Tried to remove a non-existing option %s'
-                          ' from section %s', option, section)
+                log.error(
+                    'Tried to remove a non-existing option %s'
+                    ' from section %s', option, section)
                 return True
             else:
                 del result_lines[pos]
@@ -426,9 +428,10 @@ class Config(RawConfigParser):
                 elif current.lower() == "true":
                     value = "false"
                 else:
-                    return ('Could not toggle option: %s.'
-                            ' Current value is %s.' %
-                            (option, current or "empty"), 'Warning')
+                    return (
+                        'Could not toggle option: %s.'
+                        ' Current value is %s.' % (option, current or "empty"),
+                        'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:

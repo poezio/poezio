@@ -261,8 +261,9 @@ class XMLTab(Tab):
             xml = self.filtered_buffer.messages[:]
         else:
             xml = self.core_buffer.messages[:]
-        text = '\n'.join(('%s %s %s' % (msg.str_time, msg.nickname,
-                                        clean_text(msg.txt)) for msg in xml))
+        text = '\n'.join(
+            ('%s %s %s' % (msg.str_time, msg.nickname, clean_text(msg.txt))
+             for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
             with open(filename, 'w') as fd:
@@ -285,7 +286,7 @@ class XMLTab(Tab):
     def reset_help_message(self, _=None):
         if self.closed:
             return True
-        if self.core.current_tab() is self:
+        if self.core.tabs.current_tab is self:
             curses.curs_set(0)
         self.input = self.default_help_message
         return True
@@ -375,8 +376,9 @@ class XMLTab(Tab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
             return
-        self.text_win.resize(self.height - 2 - self.core.information_win_size -
-                             Tab.tab_win_height(), self.width, 0, 0)
+        self.text_win.resize(
+            self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), self.width, 0, 0)
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)

@@ -228,9 +228,9 @@ class DynamicConversationInfoWin(ConversationInfoWin):
         self.addstr(jid.bare,
                     to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
         if jid.resource:
-            self.addstr("/%s" % (jid.resource, ),
-                        to_curses_attr(
-                            get_theme().COLOR_CONVERSATION_RESOURCE))
+            self.addstr(
+                "/%s" % (jid.resource, ),
+                to_curses_attr(get_theme().COLOR_CONVERSATION_RESOURCE))
         self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
 

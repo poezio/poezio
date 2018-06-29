@@ -562,8 +562,8 @@ def poezio_colors_to_html(string):
             check_property('font-style', 'italic')
 
         if attr_char in digits:
-            number_str = string[next_attr_char + 1:string.find(
-                '}', next_attr_char)]
+            number_str = string[next_attr_char +
+                                1:string.find('}', next_attr_char)]
             number = int(number_str)
             if number in number_to_color_names:
                 check_property('color',
