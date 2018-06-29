@@ -58,7 +58,7 @@ class AdhocCommandsListTab(ListTab):
                  for item in get_items()]
         self.listview.set_lines(items)
         self.info_header.message = 'Ad-hoc commands of JID %s' % self.name
-        if self.core.current_tab() is self:
+        if self.core.tabs.current_tab is self:
             self.refresh()
         else:
             self.state = 'highlight'

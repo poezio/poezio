@@ -53,7 +53,7 @@ class CommandCore:
             buff.extend(acc)
             acc = []
             buff.append('Tab-specific commands:')
-            tab_commands = self.core.current_tab().commands
+            tab_commands = self.core.tabs.current_tab.commands
             for name, command in tab_commands.items():
                 if isinstance(command, Command):
                     acc.append('  \x19%s}%s\x19o - %s' % (color, name,
@@ -68,7 +68,7 @@ class CommandCore:
         else:
             command = args[0].lstrip('/').strip()
 
-            tab_commands = self.core.current_tab().commands
+            tab_commands = self.core.tabs.current_tab.commands
             if command in tab_commands:
                 tup = tab_commands[command]
             elif command in self.core.commands:
@@ -126,7 +126,7 @@ class CommandCore:
         pres['type'] = show
         self.core.events.trigger('send_normal_presence', pres)
         pres.send()
-        current = self.core.current_tab()
+        current = self.core.tabs.current_tab
         is_muctab = isinstance(current, tabs.MucTab)
         if is_muctab and current.joined and show in ('away', 'xa'):
             current.send_chat_state('inactive')
@@ -149,8 +149,8 @@ class CommandCore:
             return self.help('presence')
 
         jid, ptype, status = args[0], args[1], args[2]
-        if jid == '.' and isinstance(self.core.current_tab(), tabs.ChatTab):
-            jid = self.core.current_tab().name
+        if jid == '.' and isinstance(self.core.tabs.current_tab, tabs.ChatTab):
+            jid = self.core.tabs.current_tab.name
         if ptype == 'available':
             ptype = None
         try:
@@ -163,7 +163,7 @@ class CommandCore:
             log.debug(
                 'Could not send directed presence to %s', jid, exc_info=True)
             return
-        tab = self.core.get_tab_by_name(jid)
+        tab = self.core.tabs.by_name_and_class(jid)
         if tab:
             if ptype in ('xa', 'away'):
                 tab.directed_presence = False
@@ -171,13 +171,13 @@ class CommandCore:
             else:
                 tab.directed_presence = True
                 chatstate = 'active'
-            if tab == self.core.current_tab():
+            if tab == self.core.tabs.current_tab:
                 tab.send_chat_state(chatstate, True)
             if isinstance(tab, tabs.MucTab):
                 for private in tab.privates:
                     private.directed_presence = tab.directed_presence
-                if self.core.current_tab() in tab.privates:
-                    self.core.current_tab().send_chat_state(chatstate, True)
+                if self.core.tabs.current_tab in tab.privates:
+                    self.core.tabs.current_tab.send_chat_state(chatstate, True)
 
     @command_args_parser.quoted(1)
     def theme(self, args=None):
@@ -200,33 +200,23 @@ class CommandCore:
         except ValueError:
             number = -1
             name = name.lower()
-        if number != -1 and self.core.current_tab_nb == number:
+        if number != -1 and self.core.tabs.current_tab == number:
             return
         prev_nb = self.core.previous_tab_nb
-        self.core.previous_tab_nb = self.core.current_tab_nb
-        old_tab = self.core.current_tab()
+        self.core.previous_tab_nb = self.core.tabs.current_tab
+        old_tab = self.core.tabs.current_tab
         if 0 <= number < len(self.core.tabs):
             if not self.core.tabs[number]:
                 self.core.previous_tab_nb = prev_nb
                 return
-            self.core.current_tab_nb = number
+            self.core.tabs.set_current_index(number)
         else:
-            match = None
-            target_tabs = self.core.tabs[self.core.current_tab_nb+1:] \
-                + self.core.tabs[:self.core.current_tab_nb]
-            for tab in target_tabs:
-                for tab_name in tab.matching_names():
-                    if tab_name[1] and name in tab_name[1].lower():
-                        match = tab
-                        break
-                if match:
-                    break
+            match = self.core.tabs.find_match(name)
             if match is None:
-                self.core.previous_tab_nb = prev_nb
                 return
-            self.core.current_tab_nb = match.nb
+            self.core.tabs.set_current_tab(match)
         old_tab.on_lose_focus()
-        self.core.current_tab().on_gain_focus()
+        self.core.tabs.current_tab.on_gain_focus()
         self.core.refresh_window()
 
     @command_args_parser.quoted(2)
@@ -237,7 +227,7 @@ class CommandCore:
         if args is None:
             return self.help('move_tab')
 
-        current_tab = self.core.current_tab()
+        current_tab = self.core.tabs.current_tab
         if args[0] == '.':
             args[0] = current_tab.nb
         if args[1] == '.':
@@ -267,8 +257,6 @@ class CommandCore:
         result = self.core.insert_tab(old, new)
         if not result:
             self.core.information('Unable to move the tab.', 'Info')
-        else:
-            self.core.current_tab_nb = self.core.tabs.index(current_tab)
         self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
@@ -282,10 +270,10 @@ class CommandCore:
         elif args:
             jid = safeJID(args[0])
         else:
-            if not isinstance(self.core.current_tab(), tabs.MucTab):
+            if not isinstance(self.core.tabs.current_tab, tabs.MucTab):
                 return self.core.information('Please provide a server',
                                              'Error')
-            jid = safeJID(self.core.current_tab().name)
+            jid = safeJID(self.core.tabs.current_tab.name)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
@@ -308,7 +296,7 @@ class CommandCore:
                     resource.jid, callback=self.core.handler.on_version_result)
 
     def _empty_join(self):
-        tab = self.core.current_tab()
+        tab = self.core.tabs.current_tab
         if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
             return (None, None)
         room = safeJID(tab.name).bare
@@ -332,7 +320,7 @@ class CommandCore:
 
         # happens with /join /nickname, which is OK
         if info.bare == '':
-            tab = self.core.current_tab()
+            tab = self.core.tabs.current_tab
             if not isinstance(tab, tabs.MucTab):
                 room, set_nick = (None, None)
             else:
@@ -345,7 +333,7 @@ class CommandCore:
             # use the server of the current room if available
             # check if the current room's name has a server
             if room.find('@') == -1 and not server_root:
-                tab = self.core.current_tab()
+                tab = self.core.tabs.current_tab
                 if isinstance(tab, tabs.MucTab):
                     if tab.name.find('@') != -1:
                         domain = safeJID(tab.name).domain
@@ -377,13 +365,13 @@ class CommandCore:
         if room in self.core.pending_invites:
             del self.core.pending_invites[room]
 
-        tab = self.core.get_tab_by_name(room, tabs.MucTab)
+        tab = self.core.tabs.by_name_and_class(room, tabs.MucTab)
         # New tab
         if tab is None:
             tab = self.core.open_new_room(room, nick, password=password)
             tab.join()
         else:
-            self.core.focus_tab_named(tab.name)
+            self.core.focus_tab(tab)
             if tab.own_nick == nick and tab.joined:
                 self.core.information('/join: Nothing to do.', 'Info')
             else:
@@ -397,7 +385,7 @@ class CommandCore:
                 'use_remote_bookmarks') else 'local'
             self._add_bookmark('%s/%s' % (room, nick), True, password, method)
 
-        if tab == self.core.current_tab():
+        if tab == self.core.tabs.current_tab:
             tab.refresh()
             self.core.doupdate()
 
@@ -406,7 +394,7 @@ class CommandCore:
         """
         /bookmark_local [room][/nick] [password]
         """
-        if not args and not isinstance(self.core.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.core.tabs.current_tab, tabs.MucTab):
             return
         password = args[1] if len(args) > 1 else None
         jid = args[0] if args else None
@@ -418,7 +406,7 @@ class CommandCore:
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
-        if not args and not isinstance(self.core.current_tab(), tabs.MucTab):
+        if not args and not isinstance(self.core.tabs.current_tab, tabs.MucTab):
             return
         jid = args[0] if args else ''
         password = args[2] if len(args) > 2 else None
@@ -436,7 +424,7 @@ class CommandCore:
     def _add_bookmark(self, jid, autojoin, password, method):
         nick = None
         if not jid:
-            tab = self.core.current_tab()
+            tab = self.core.tabs.current_tab
             roomname = tab.name
             if tab.joined and tab.own_nick != self.core.own_nick:
                 nick = tab.own_nick
@@ -448,7 +436,7 @@ class CommandCore:
             info = safeJID(jid)
             roomname, nick = info.bare, info.resource
             if roomname == '':
-                tab = self.core.current_tab()
+                tab = self.core.tabs.current_tab
                 if not isinstance(tab, tabs.MucTab):
                     return
                 roomname = tab.name
@@ -499,14 +487,14 @@ class CommandCore:
     @command_args_parser.ignored
     def bookmarks(self):
         """/bookmarks"""
-        tab = self.core.get_tab_by_name('Bookmarks', tabs.BookmarksTab)
-        old_tab = self.core.current_tab()
+        tab = self.core.tabs.by_name_and_class('Bookmarks', tabs.BookmarksTab)
+        old_tab = self.core.tabs.current_tab
         if tab:
-            self.core.current_tab_nb = tab.nb
+            self.core.tabs.set_current_tab(tab)
         else:
             tab = tabs.BookmarksTab(self.core, self.core.bookmarks)
             self.core.tabs.append(tab)
-            self.core.current_tab_nb = tab.nb
+            self.core.tabs.set_current_tab(tab)
         old_tab.on_lose_focus()
         tab.on_gain_focus()
         self.core.refresh_window()
@@ -523,7 +511,7 @@ class CommandCore:
                                       'Error')
 
         if not args:
-            tab = self.core.current_tab()
+            tab = self.core.tabs.current_tab
             if isinstance(tab, tabs.MucTab) and self.core.bookmarks[tab.name]:
                 self.core.bookmarks.remove(tab.name)
                 self.core.bookmarks.save(self.core.xmpp, callback=cb)
@@ -608,7 +596,7 @@ class CommandCore:
                 info = plugin_config.set_and_save(option, value, section)
             else:
                 if args[0] == '.':
-                    name = safeJID(self.core.current_tab().name).bare
+                    name = safeJID(self.core.tabs.current_tab.name).bare
                     if not name:
                         self.core.information(
                             'Invalid tab to use the "." argument.', 'Error')
@@ -662,7 +650,7 @@ class CommandCore:
         Do a /cycle on each room of the given server.
         If none, do it on the current tab
         """
-        tab = self.core.current_tab()
+        tab = self.core.tabs.current_tab
         message = ""
         if args:
             domain = args[0]
@@ -849,9 +837,9 @@ class CommandCore:
         room = safeJID(args[0]).bare
         if room:
             muc.destroy_room(self.core.xmpp, room)
-        elif isinstance(self.core.current_tab(), tabs.MucTab) and not args[0]:
+        elif isinstance(self.core.tabs.current_tab, tabs.MucTab) and not args[0]:
             muc.destroy_room(self.core.xmpp,
-                             self.core.current_tab().general_jid)
+                             self.core.tabs.current_tab.general_jid)
         else:
             self.core.information('Invalid JID: "%s"' % args[0], 'Error')
 
@@ -946,20 +934,20 @@ class CommandCore:
             return self.core.information('Invalid JID.', 'Error')
         tab = self.core.get_conversation_by_jid(
             jid.full, False, fallback_barejid=False)
-        muc = self.core.get_tab_by_name(jid.bare, typ=tabs.MucTab)
+        muc = self.core.tabs.by_name_and_class(jid.bare, typ=tabs.MucTab)
         if not tab and not muc:
             tab = self.core.open_conversation_window(jid.full, focus=True)
         elif muc:
             if jid.resource:
-                tab = self.core.get_tab_by_name(jid.full, typ=tabs.PrivateTab)
+                tab = self.core.tabs.by_name_and_class(jid.full, typ=tabs.PrivateTab)
                 if tab:
-                    self.core.focus_tab_named(tab.name)
+                    self.core.focus_tab(tab)
                 else:
                     tab = self.core.open_private_window(jid.bare, jid.resource)
             else:
                 tab = muc
         else:
-            self.core.focus_tab_named(tab.name)
+            self.core.focus_tab(tab)
         if len(args) == 2:
             tab.command_say(args[1])
 

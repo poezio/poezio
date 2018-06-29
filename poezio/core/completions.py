@@ -25,7 +25,7 @@ class CompletionCore:
     def help(self, the_input):
         """Completion for /help."""
         commands = sorted(self.core.commands.keys()) + sorted(
-            self.core.current_tab().commands.keys())
+            self.core.tabs.current_tab.commands.keys())
         return Completion(the_input.new_completion, commands, 1, quotify=False)
 
     def status(self, the_input):
@@ -47,7 +47,7 @@ class CompletionCore:
         if arg == 1:
             to_suggest = []
             for bookmark in self.core.bookmarks:
-                tab = self.core.get_tab_by_name(bookmark.jid, tabs.MucTab)
+                tab = self.core.tabs.by_name_and_class(bookmark.jid, tabs.MucTab)
                 if tab is not None and tab.joined:
                     to_suggest.append(bookmark.jid)
             return Completion(
@@ -121,7 +121,7 @@ class CompletionCore:
                      for elem in self.core.bookmarks]
         to_suggest = []
         for bookmark in bookmarks:
-            tab = self.core.get_tab_by_name(bookmark, tabs.MucTab)
+            tab = self.core.tabs.by_name_and_class(bookmark, tabs.MucTab)
             if not tab or (tab and not tab.joined):
                 to_suggest.append(bookmark)
         relevant_rooms.extend(sorted(to_suggest))
@@ -183,7 +183,7 @@ class CompletionCore:
         """
         list_ = []
         list_.extend(self.core.key_func.keys())
-        list_.extend(self.core.current_tab().key_func.keys())
+        list_.extend(self.core.tabs.current_tab.key_func.keys())
         return Completion(the_input.new_completion, list_, 1, quotify=False)
 
     def bookmark(self, the_input):
@@ -202,7 +202,7 @@ class CompletionCore:
         jid = safeJID(args[1])
 
         if jid.server and (jid.resource or jid.full.endswith('/')):
-            tab = self.core.get_tab_by_name(jid.bare, tabs.MucTab)
+            tab = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
                 'USER') else 'poezio'
@@ -434,7 +434,7 @@ class CompletionCore:
         jid = safeJID(args[1])
 
         if jid.server and (jid.resource or jid.full.endswith('/')):
-            tab = self.core.get_tab_by_name(jid.bare, tabs.MucTab)
+            tab = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
                 'USER') else 'poezio'
