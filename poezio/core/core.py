@@ -948,6 +948,12 @@ class Core(object):
         # not, give up
         muc = config.get('default_muc_service')
         if not muc:
+            self.information(
+                "Error finding a MUC service to join. If your server does not "
+                "provide one, set 'default_muc_service' manually to a MUC "
+                "service that allows room creation."
+                'Error'
+            )
             return
 
         nick = self.own_nick
