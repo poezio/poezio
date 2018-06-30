@@ -157,15 +157,11 @@ class Tabs:
             self._current_tab = self._tabs[0]
 
     def _inc_cursor(self):
-        self._current_index += 1
-        if self._current_index >= len(self._tabs):
-            self._current_index = 0
+        self._current_index = (self._current_index + 1) % len(self._tabs)
         self._current_tab = self._tabs[self._current_index]
 
     def _dec_cursor(self):
-        self._current_index -= 1
-        if self._current_index < 0:
-            self._current_index = len(self._tabs) - 1
+        self._current_index = (self._current_index - 1) % len(self._tabs)
         self._current_tab = self._tabs[self._current_index]
 
     def _store_previous(self):
@@ -212,18 +208,24 @@ class Tabs:
 
         self._tab_types[type(tab)].remove(tab)
         del self._tab_names[tab.name]
-        self._collect_trailing_gaptabs()
-        self._update_numbers()
-        if is_current:
-            self._restore_previous_tab()
+
+        if gap:
+            self._collect_trailing_gaptabs()
+        else:
+            self._update_numbers()
+
         if tab is self._previous_tab:
             self._previous_tab = None
+        if is_current:
+            self._restore_previous_tab()
         self._validate_current_index()
 
     def _restore_previous_tab(self):
         if self._previous_tab:
             if not self.set_current_tab(self._previous_tab):
                 self.set_current_index(0)
+        else:
+            self.set_current_index(0)
 
     def _validate_current_index(self):
         if not 0 <= self._current_index < len(
@@ -240,6 +242,7 @@ class Tabs:
     def _update_numbers(self):
         for i, tab in enumerate(self._tabs):
             tab.nb = i
+        self._current_index = self._current_tab.nb
 
     # Moving tabs around #
 

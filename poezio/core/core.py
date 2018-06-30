@@ -1109,7 +1109,7 @@ class Core(object):
 
         for state in states:
             for tab in tab_refs[state]:
-                if (tab.nb < self.tabs.current_tab_intex and
+                if (tab.nb < self.tabs.current_tab_index and
                         tab_refs[state][-1].nb > self.tabs.current_tab_index):
                     continue
                 self.command.win(str(tab.nb))
