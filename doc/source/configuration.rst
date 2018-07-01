@@ -653,7 +653,7 @@ or the way messages are displayed.
         A list of message types that should make the information buffer grow
         Possible values: ``error``, ``roster``, ``warning``, ``info``, ``help``
 
-    information_popup_type_filter
+    information_buffer_type_filter
 
         **Default value:** ``[empty]``
 
