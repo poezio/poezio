@@ -877,27 +877,41 @@ class Core:
         contacts to join in.
         """
 
-        # Use config.default_muc_service as muc component if available,
-        # otherwise find muc component by disco#items-ing the user domain. If
-        # not, give up
-        default_muc = config.get('default_muc_service')
-        if not default_muc:
-            self.information(
-                "Error finding a MUC service to join. If your server does not "
-                "provide one, set 'default_muc_service' manually to a MUC "
-                "service that allows room creation.",
-                'Error'
+        def callback(results):
+            muc_from_identity = ''
+
+            for info in results:
+                for identity in info['disco_info']['identities']:
+                    if identity[0] == 'conference' and identity[1] == 'text':
+                        muc_from_identity = info['from'].bare
+
+            # Use config.default_muc_service as muc component if available,
+            # otherwise find muc component by disco#items-ing the user domain.
+            # If not, give up
+            default_muc = config.get('default_muc_service', muc_from_identity)
+            if not default_muc:
+                self.information(
+                    "Error finding a MUC service to join. If your server does not "
+                    "provide one, set 'default_muc_service' manually to a MUC "
+                    "service that allows room creation.",
+                    'Error'
+                )
+                return
+
+            nick = self.own_nick
+            room = uuid.uuid4().hex + '@' + default_muc
+
+            self.open_new_room(room, nick).join()
+            self.information('Room %s created' % room, 'Info')
+
+            for jid in jids:
+                self.invite(jid, room)
+
+        asyncio.ensure_future(
+            self.xmpp['xep_0030'].get_info_from_domain(
+                callback=callback,
             )
-            return
-
-        nick = self.own_nick
-        room = uuid.uuid4().hex + '@' + default_muc
-
-        self.open_new_room(room, nick).join()
-        self.information('Room %s created' % room, 'Info')
-
-        for jid in jids:
-            self.invite(jid, room)
+        )
 
     def get_error_message(self, stanza, deprecated: bool = False):
         """
