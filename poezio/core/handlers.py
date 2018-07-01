@@ -382,8 +382,7 @@ class HandlerCore:
         else:
             self.core.refresh_window()
 
-    @asyncio.coroutine
-    def on_0084_avatar(self, msg):
+    async def on_0084_avatar(self, msg):
         jid = msg['from'].bare
         contact = roster[jid]
         if not contact:
@@ -408,7 +407,7 @@ class HandlerCore:
             # If we didn’t have any, query the data instead.
             if not info['url']:
                 try:
-                    result = yield from self.core.xmpp[
+                    result = await self.core.xmpp[
                         'xep_0084'].retrieve_avatar(
                             jid, avatar_hash, timeout=60)
                     avatar = result['pubsub']['items']['item']['avatar_data'][
@@ -432,8 +431,7 @@ class HandlerCore:
                         exc_info=True)
                 return
 
-    @asyncio.coroutine
-    def on_vcard_avatar(self, pres):
+    async def on_vcard_avatar(self, pres):
         jid = pres['from'].bare
         contact = roster[jid]
         if not contact:
@@ -450,7 +448,7 @@ class HandlerCore:
 
         # If we didn’t have any, query the vCard instead.
         try:
-            result = yield from self.core.xmpp['xep_0054'].get_vcard(
+            result = await self.core.xmpp['xep_0054'].get_vcard(
                 jid, cached=True, timeout=60)
             avatar = result['vcard_temp']['PHOTO']
             binval = avatar['BINVAL']
@@ -1140,8 +1138,7 @@ class HandlerCore:
         self.core.information("Connection to remote server failed: %s" %
                               (error, ), 'Error')
 
-    @asyncio.coroutine
-    def on_disconnected(self, event):
+    async def on_disconnected(self, event):
         """
         When we are disconnected from remote server
         """
@@ -1162,7 +1159,7 @@ class HandlerCore:
                 and self.core.last_stream_error[1]['condition'] in (
                     'conflict', 'host-unknown')):
             return
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
         self.core.information("Auto-reconnecting.", 'Info')
         self.core.xmpp.start()
 
