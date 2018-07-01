@@ -217,6 +217,8 @@ class Core(object):
                                     self.handler.on_session_start)
         self.xmpp.add_event_handler("session_start",
                                     self.handler.on_session_start_features)
+        self.xmpp.add_event_handler("session_start",
+                                    self.handler.find_identities)
         self.xmpp.add_event_handler("groupchat_presence",
                                     self.handler.on_groupchat_presence)
         self.xmpp.add_event_handler("groupchat_message",
@@ -946,24 +948,39 @@ class Core(object):
         # Use config.default_muc_service as muc component if available,
         # otherwise find muc component by disco#items-ing the user domain. If
         # not, give up
-        muc = config.get('default_muc_service')
-        if not muc:
-            self.information(
-                "Error finding a MUC service to join. If your server does not "
-                "provide one, set 'default_muc_service' manually to a MUC "
-                "service that allows room creation.",
-                'Error'
+
+        def callback(results):
+            muc_from_identity = ''
+
+            for info in results:
+                for identity in info['disco_info']['identities']:
+                    if identity[0] == 'conference' and identity[1] == 'text':
+                        muc_from_identity = info['from'].bare
+
+            muc = config.get('default_muc_service', muc_from_identity)
+            if not muc:
+                self.information(
+                    "Error finding a MUC service to join. If your server does not "
+                    "provide one, set 'default_muc_service' manually to a MUC "
+                    "service that allows room creation.",
+                    'Error'
+                )
+                return
+
+            nick = self.own_nick
+            room = uuid.uuid4().hex + '@' + muc
+
+            self.open_new_room(room, nick).join()
+            self.information('Room %s created' % room, 'Info')
+
+            for jid in jids:
+                self.invite(jid, room)
+
+        asyncio.ensure_future(
+            self.xmpp['xep_0030'].get_info_from_domain(
+                callback=callback,
             )
-            return
-
-        nick = self.own_nick
-        room = uuid.uuid4().hex + '@' + muc
-
-        self.open_new_room(room, nick).join()
-        self.information('Room %s created' % room, 'Info')
-
-        for jid in jids:
-            self.invite(jid, room)
+        )
 
     def get_error_message(self, stanza, deprecated=False):
         """
