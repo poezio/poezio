@@ -327,11 +327,9 @@ class PluginManager(object):
         """
         plugins_conf_dir = config.get('plugins_conf_dir')
         if not plugins_conf_dir:
-            config_home = os.environ.get('XDG_CONFIG_HOME')
-            if not config_home:
-                config_home = path.join(os.environ.get('HOME'), '.config')
-            plugins_conf_dir = path.join(config_home, 'poezio', 'plugins')
-        self.plugins_conf_dir = path.expanduser(plugins_conf_dir)
+            self.plugins_conf_dir = config.get_default_config_dir() / 'plugins'
+        else:
+            self.plugins_conf_dir = Path(plugins_conf_dir).expanduser()
         self.check_create_plugins_conf_dir()
 
     def check_create_plugins_conf_dir(self):
@@ -341,7 +339,7 @@ class PluginManager(object):
         """
         if not os.access(self.plugins_conf_dir, os.R_OK | os.X_OK):
             try:
-                os.makedirs(self.plugins_conf_dir)
+                self.plugins_conf_dir.mkdir(parents=True, exist_ok=True)
             except OSError:
                 log.error(
                     'Unable to create the plugin conf dir: %s',
