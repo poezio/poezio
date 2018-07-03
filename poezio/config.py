@@ -506,20 +506,20 @@ def file_ok(filepath):
     return bool(val)
 
 
-def check_create_config_dir():
+def get_default_config_dir():
     """
-    create the configuration directory if it doesn't exist
+    returns the default configuration directory path
     """
-    config_home = environ.get("XDG_CONFIG_HOME")
-    if config_home is None or not Path(config_home).is_absolute():
-        config_home = path.join(environ.get('HOME'), '.config')
-    CONFIG_PATH = path.join(config_home, 'poezio')
-
     try:
-        makedirs(CONFIG_PATH)
-    except OSError:
+        config_home = Path(environ.get('XDG_CONFIG_HOME'))
+    except TypeError:
+        # XDG_CONFIG_HOME isn’t defined, fallback to ~/.config
         pass
-    return CONFIG_PATH
+    else:
+        if config_home.is_absolute():
+            return config_home / 'poezio'
+    # HOME has already been checked to be non-None in test_env().
+    return Path.home() / '.config' / 'poezio'
 
 
 def check_create_cache_dir():
@@ -575,27 +575,32 @@ def check_config():
             print('    \033[31m%s\033[0m' % option)
 
 
-def run_cmdline_args(CONFIG_PATH):
+def run_cmdline_args():
     "Parse the command line arguments"
     global options
+    CONFIG_PATH = get_default_config_dir()
     options = parse_args(CONFIG_PATH)
 
     # Copy a default file if none exists
-    if not path.isfile(options.filename):
-        default = path.join(
-            path.dirname(__file__), '../data/default_config.cfg')
-        other = pkg_resources.resource_filename('poezio', 'default_config.cfg')
-        if path.isfile(default):
+    if not options.filename.is_file():
+        try:
+            options.filename.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            sys.stderr.write('Poezio was unable to create the config directory: %s\n' % e)
+            sys.exit(1)
+        default = Path(__file__).parent / '..' / 'data' / 'default_config.cfg'
+        other = Path(pkg_resources.resource_filename('poezio', 'default_config.cfg'))
+        if default.is_file():
             copy2(default, options.filename)
-        elif path.isfile(other):
+        elif other.is_file():
             copy2(other, options.filename)
 
         # Inside the nixstore and possibly other distributions, the reference
         # file is readonly, so is the copy.
         # Make it writable by the user who just created it.
-        if os.path.exists(options.filename):
-            os.chmod(options.filename,
-                     os.stat(options.filename).st_mode | stat.S_IWUSR)
+        if options.filename.exists():
+            options.filename.chmod(
+                     options.filename.stat().st_mode | stat.S_IWUSR)
 
         global firstrun
         firstrun = True

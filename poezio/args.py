@@ -3,11 +3,11 @@ Module related to the argument parsing
 
 There is a fallback to the deprecated optparse if argparse is not found
 """
-from os import path
+from pathlib import Path
 from argparse import ArgumentParser, SUPPRESS
 
 
-def parse_args(CONFIG_PATH=''):
+def parse_args(CONFIG_PATH: Path):
     """
     Parse the arguments from the command line
     """
@@ -28,7 +28,8 @@ def parse_args(CONFIG_PATH=''):
         "-f",
         "--file",
         dest="filename",
-        default=path.join(CONFIG_PATH, 'poezio.cfg'),
+        default=CONFIG_PATH / 'poezio.cfg',
+        type=Path,
         help="The config file you want to use",
         metavar="CONFIG_FILE")
     parser.add_argument(
