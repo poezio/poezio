@@ -307,7 +307,7 @@ class XHTMLHandler(sax.ContentHandler):
         # do not care about xhtml-in namespace
         self.force_ns = force_ns
 
-        self.tmp_image_dir = tmp_image_dir
+        self.tmp_image_dir = Path(tmp_image_dir) if tmp_image_dir else None
         self.enable_css_parsing = config.get('enable_css_parsing')
 
     @property
@@ -361,9 +361,10 @@ class XHTMLHandler(sax.ContentHandler):
                 ]
                 bin_data = b64decode(unquote(data))
                 filename = get_hash(bin_data) + '.' + type_
-                filepath = path.join(self.tmp_image_dir, filename)
+                filepath = self.tmp_image_dir / filename
                 if not path.exists(filepath):
                     try:
+                        self.tmp_image_dir.mkdir(parents=True, exist_ok=True)
                         with open(filepath, 'wb') as fd:
                             fd.write(bin_data)
                         builder.append('[file stored as %s]' % filename)
