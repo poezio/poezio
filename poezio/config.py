@@ -19,7 +19,7 @@ import sys
 import pkg_resources
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
-from os import environ, makedirs, path, remove
+from os import path, remove
 from shutil import copy2
 from pathlib import Path
 from poezio.args import parse_args
@@ -591,27 +591,17 @@ def create_global_config():
         sys.exit(1)
 
 
-def check_create_log_dir():
-    "Create the poezio logging directory if it doesn’t exist"
-    global LOG_DIR
-
-    LOG_DIR = config.get('log_dir')
-    LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else xdg.DATA_HOME / 'logs'
-
-    try:
-        makedirs(LOG_DIR)
-    except:
-        pass
-
-
 def setup_logging():
     "Change the logging config according to the cmdline options and config"
+    global LOG_DIR
+    LOG_DIR = config.get('log_dir')
+    LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else xdg.DATA_HOME / 'logs'
     if config.get('log_errors'):
         LOGGING_CONFIG['root']['handlers'].append('error')
         LOGGING_CONFIG['handlers']['error'] = {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': path.join(LOG_DIR, 'errors.log'),
+            'filename': LOG_DIR / 'errors.log',
             'formatter': 'simple',
         }
         logging.disable(logging.WARNING)
