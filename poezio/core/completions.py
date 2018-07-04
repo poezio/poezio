@@ -6,11 +6,13 @@ import logging
 log = logging.getLogger(__name__)
 
 import os
+from pathlib import Path
 from functools import reduce
 
 from poezio import common
 from poezio import pep
 from poezio import tabs
+from poezio import xdg
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.roster import roster
@@ -65,20 +67,15 @@ class CompletionCore:
     def theme(self, the_input):
         """ Completion for /theme"""
         themes_dir = config.get('themes_dir')
-        themes_dir = (themes_dir or os.path.join(
-            os.environ.get('XDG_DATA_HOME')
-            or os.path.join(os.environ.get('HOME'), '.local', 'share'),
-            'poezio', 'themes'))
-        themes_dir = os.path.expanduser(themes_dir)
+        themes_dir = Path(themes_dir).expanduser() if themes_dir else xdg.DATA_HOME / 'themes'
         try:
-            names = os.listdir(themes_dir)
+            theme_files = [
+                name.stem for name in themes_dir.iterdir()
+                if name.suffix == '.py' and name.name != '__init__.py'
+            ]
         except OSError:
             log.error('Completion for /theme failed', exc_info=True)
             return False
-        theme_files = [
-            name[:-3] for name in names
-            if name.endswith('.py') and name != '__init__.py'
-        ]
         if 'default' not in theme_files:
             theme_files.append('default')
         return Completion(
