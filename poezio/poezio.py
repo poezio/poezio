@@ -81,7 +81,6 @@ def main():
     config.create_global_config()
     config.check_create_data_dir()
     config.check_create_log_dir()
-    config.check_create_cache_dir()
     config.setup_logging()
     config.post_logging_setup()
 

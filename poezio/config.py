@@ -516,26 +516,6 @@ def get_image_cache():
     return xdg.CACHE_HOME / 'images'
 
 
-def check_create_cache_dir():
-    """
-    create the cache directory if it doesn't exist
-    also create the subdirectories
-    """
-    global CACHE_DIR
-    cache_home = environ.get("XDG_CACHE_HOME")
-    if cache_home is None or not Path(cache_home).is_absolute():
-        cache_home = path.join(environ.get('HOME'), '.cache')
-    CACHE_DIR = path.join(cache_home, 'poezio')
-
-    try:
-        makedirs(CACHE_DIR)
-        makedirs(path.join(CACHE_DIR, 'avatars'))
-        makedirs(path.join(CACHE_DIR, 'images'))
-        makedirs(path.join(CACHE_DIR, 'caps'))
-    except OSError:
-        pass
-
-
 def check_config():
     """
     Check the config file and print results
@@ -725,6 +705,3 @@ DATA_DIR = ''
 
 # the global log dir
 LOG_DIR = ''
-
-# the global cache dir
-CACHE_DIR = ''

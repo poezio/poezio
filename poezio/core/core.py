@@ -31,7 +31,7 @@ from poezio import windows
 
 from poezio.bookmarks import BookmarkList
 from poezio.common import safeJID
-from poezio.config import config, firstrun, CACHE_DIR
+from poezio.config import config, firstrun
 from poezio.contact import Contact, Resource
 from poezio.daemon import Executor
 from poezio.fifo import Fifo
@@ -41,7 +41,7 @@ from poezio.roster import roster
 from poezio.size_manager import SizeManager
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme
-from poezio import keyboard
+from poezio import keyboard, xdg
 
 from poezio.core.completions import CompletionCore
 from poezio.core.commands import CommandCore
@@ -77,7 +77,7 @@ class Core(object):
         self.bookmarks = BookmarkList()
         self.debug = False
         self.remote_fifo = None
-        self.avatar_cache = FileSystemPerJidCache(CACHE_DIR, 'avatars', binary=True)
+        self.avatar_cache = FileSystemPerJidCache(xdg.CACHE_HOME, 'avatars', binary=True)
         # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.

@@ -25,8 +25,9 @@ from slixmpp.util import FileSystemCache
 
 from poezio import common
 from poezio import fixes
+from poezio import xdg
 from poezio.common import safeJID
-from poezio.config import config, options, CACHE_DIR
+from poezio.config import config, options
 
 
 class Connection(slixmpp.ClientXMPP):
@@ -120,7 +121,7 @@ class Connection(slixmpp.ClientXMPP):
         # Must be loaded before 0030.
         self.register_plugin('xep_0115', {
             'caps_node': 'https://poez.io',
-            'cache': FileSystemCache(CACHE_DIR, 'caps', encode=str,
+            'cache': FileSystemCache(xdg.CACHE_HOME, 'caps', encode=str,
                                      decode=lambda x: DiscoInfo(ET.fromstring(x))),
         })
         self.register_plugin('xep_0030')
