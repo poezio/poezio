@@ -507,6 +507,15 @@ def file_ok(filepath):
     return bool(val)
 
 
+def get_image_cache():
+    if not config.get('extract_inline_images'):
+        return None
+    tmp_dir = config.get('tmp_image_dir')
+    if tmp_dir:
+        return Path(tmp_dir)
+    return xdg.CACHE_HOME / 'images'
+
+
 def check_create_cache_dir():
     """
     create the cache directory if it doesn't exist

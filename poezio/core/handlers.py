@@ -30,7 +30,7 @@ from poezio import tabs
 from poezio import xhtml
 from poezio import multiuserchat as muc
 from poezio.common import safeJID
-from poezio.config import config, CACHE_DIR
+from poezio.config import config
 from poezio.core.structs import Status
 from poezio.contact import Resource
 from poezio.logger import logger
@@ -274,9 +274,7 @@ class HandlerCore:
 
         use_xhtml = config.get_by_tabname('enable_xhtml_im',
                                           message['from'].bare)
-        tmp_dir = None
-        if config.get('extract_inline_images'):
-            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+        tmp_dir = config.get_image_cache()
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
@@ -668,9 +666,7 @@ class HandlerCore:
 
         self.core.events.trigger('muc_msg', message, tab)
         use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
-        tmp_dir = None
-        if config.get('extract_inline_images'):
-            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+        tmp_dir = config.get_image_cache()
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
@@ -746,9 +742,7 @@ class HandlerCore:
 
         room_from = jid.bare
         use_xhtml = config.get_by_tabname('enable_xhtml_im', jid.bare)
-        tmp_dir = None
-        if config.get('extract_inline_images'):
-            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
+        tmp_dir = config.get_image_cache()
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
