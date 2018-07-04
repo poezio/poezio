@@ -274,13 +274,13 @@ class HandlerCore:
 
         use_xhtml = config.get_by_tabname('enable_xhtml_im',
                                           message['from'].bare)
-        tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
-        extract_images = config.get('extract_inline_images')
+        tmp_dir = None
+        if config.get('extract_inline_images'):
+            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
-            tmp_dir=tmp_dir,
-            extract_images=extract_images)
+            extract_images_to=tmp_dir)
         if not body:
             if not self.core.xmpp.plugin['xep_0380'].has_eme(message):
                 return
@@ -336,8 +336,7 @@ class HandlerCore:
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
-            tmp_dir=tmp_dir,
-            extract_images=extract_images)
+            extract_images_to=tmp_dir)
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
@@ -669,13 +668,13 @@ class HandlerCore:
 
         self.core.events.trigger('muc_msg', message, tab)
         use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
-        tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
-        extract_images = config.get('extract_inline_images')
+        tmp_dir = None
+        if config.get('extract_inline_images'):
+            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
-            tmp_dir=tmp_dir,
-            extract_images=extract_images)
+            extract_images_to=tmp_dir)
         if not body:
             return
 
@@ -747,13 +746,13 @@ class HandlerCore:
 
         room_from = jid.bare
         use_xhtml = config.get_by_tabname('enable_xhtml_im', jid.bare)
-        tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
-        extract_images = config.get('extract_inline_images')
+        tmp_dir = None
+        if config.get('extract_inline_images'):
+            tmp_dir = config.get('tmp_image_dir') or path.join(CACHE_DIR, 'images')
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
-            tmp_dir=tmp_dir,
-            extract_images=extract_images)
+            extract_images_to=tmp_dir)
         tab = self.core.get_tab_by_name(
             jid.full,
             tabs.PrivateTab)  # get the tab with the private conversation
@@ -774,8 +773,7 @@ class HandlerCore:
         body = xhtml.get_body_from_message_stanza(
             message,
             use_xhtml=use_xhtml,
-            tmp_dir=tmp_dir,
-            extract_images=extract_images)
+            extract_images_to=tmp_dir)
         if not body or not tab:
             return
         replaced = False
