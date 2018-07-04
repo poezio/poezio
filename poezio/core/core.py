@@ -321,9 +321,9 @@ class Core(object):
         self.add_configuration_handler("ack_message_receipts",
                                        self.on_ack_receipts_config_change)
         self.add_configuration_handler("plugins_dir",
-                                       self.on_plugins_dir_config_change)
+                                       self.plugin_manager.on_plugins_dir_change)
         self.add_configuration_handler("plugins_conf_dir",
-                                       self.on_plugins_conf_dir_config_change)
+                                       self.plugin_manager.on_plugins_conf_dir_change)
         self.add_configuration_handler("connection_timeout_delay",
                                        self.xmpp.set_keepalive_values)
         self.add_configuration_handler("connection_check_interval",
@@ -414,25 +414,11 @@ class Core(object):
         self.xmpp.plugin['xep_0184'].auto_ack = config.get(
             option, default=True)
 
-    def on_plugins_dir_config_change(self, option, value):
-        """
-        Called when the plugins_dir option is changed
-        """
-        path = os.path.expanduser(value)
-        self.plugin_manager.on_plugins_dir_change(path)
-
     def on_vertical_tab_list_config_change(self, option, value):
         """
         Called when the enable_vertical_tab_list option is changed
         """
         self.call_for_resize()
-
-    def on_plugins_conf_dir_config_change(self, option, value):
-        """
-        Called when the plugins_conf_dir option is changed
-        """
-        path = os.path.expanduser(value)
-        self.plugin_manager.on_plugins_conf_dir_change(path)
 
     def on_theme_config_change(self, option, value):
         """

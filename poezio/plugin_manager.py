@@ -313,13 +313,13 @@ class PluginManager(object):
             '',
             quotify=False)
 
-    def on_plugins_dir_change(self, new_value):
-        self.plugins_dir = new_value
+    def on_plugins_dir_change(self, _, new_value):
+        self.plugins_dir = Path(new_value).expanduser()
         self.check_create_plugins_dir()
         self.fill_load_path()
 
-    def on_plugins_conf_dir_change(self, new_value):
-        self.plugins_conf_dir = new_value
+    def on_plugins_conf_dir_change(self, _, new_value):
+        self.plugins_conf_dir = Path(new_value).expanduser()
         self.check_create_plugins_conf_dir()
 
     def initial_set_plugins_conf_dir(self):
