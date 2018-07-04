@@ -79,7 +79,6 @@ def main():
     from poezio import config
     config.run_cmdline_args()
     config.create_global_config()
-    config.check_create_data_dir()
     config.check_create_log_dir()
     config.setup_logging()
     config.post_logging_setup()
