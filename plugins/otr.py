@@ -188,6 +188,7 @@ from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, N
 
 from poezio import common
 from poezio import xhtml
+from poezio import xdg
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.plugin import BasePlugin
@@ -195,9 +196,6 @@ from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
-
-OTR_DIR = os.path.join(os.getenv('XDG_DATA_HOME') or
-                       '~/.local/share', 'poezio', 'otr')
 
 POLICY_FLAGS = {
     'ALLOW_V1':False,
@@ -471,15 +469,14 @@ class Plugin(BasePlugin):
 
     def init(self):
         # set the default values from the config
-        global OTR_DIR
-        OTR_DIR = os.path.expanduser(self.config.get('keys_dir', '') or OTR_DIR)
+        keys_dir = self.config.get('keys_dir', '')
+        otr_dir = Path(keys_dir).expanduser() if keys_dir else xdg.DATA_HOME / 'otr'
         try:
-            os.makedirs(OTR_DIR)
+            otr_dir.mkdir(parents=True, exists_ok=True)
         except OSError as e:
-            if e.errno != 17:
-                self.api.information('The OTR-specific folder could not '
-                                     'be created. Poezio will be unable '
-                                     'to save keys and trusts', 'OTR')
+            self.api.information('The OTR-specific folder could not '
+                                 'be created: %s. Poezio will be unable '
+                                 'to save keys and trusts' % e, 'OTR')
 
         except:
             self.api.information('The OTR-specific folder could not '
@@ -496,7 +493,7 @@ class Plugin(BasePlugin):
 
         self.core.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:otr:0')
 
-        self.account = PoezioAccount(self.core.xmpp.boundjid.bare, OTR_DIR)
+        self.account = PoezioAccount(self.core.xmpp.boundjid.bare, otr_dir)
         self.account.load_trusts()
         self.contexts = {}
         usage = '<start|refresh|end|fpr|ourfpr|drop|trust|untrust>'
