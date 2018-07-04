@@ -23,6 +23,7 @@ from os import environ, makedirs, path, remove
 from shutil import copy2
 from pathlib import Path
 from poezio.args import parse_args
+from poezio import xdg
 
 DEFAULT_CONFIG = {
     'Poezio': {
@@ -506,22 +507,6 @@ def file_ok(filepath):
     return bool(val)
 
 
-def get_default_config_dir():
-    """
-    returns the default configuration directory path
-    """
-    try:
-        config_home = Path(environ.get('XDG_CONFIG_HOME'))
-    except TypeError:
-        # XDG_CONFIG_HOME isn’t defined, fallback to ~/.config
-        pass
-    else:
-        if config_home.is_absolute():
-            return config_home / 'poezio'
-    # HOME has already been checked to be non-None in test_env().
-    return Path.home() / '.config' / 'poezio'
-
-
 def check_create_cache_dir():
     """
     create the cache directory if it doesn't exist
@@ -578,8 +563,7 @@ def check_config():
 def run_cmdline_args():
     "Parse the command line arguments"
     global options
-    CONFIG_PATH = get_default_config_dir()
-    options = parse_args(CONFIG_PATH)
+    options = parse_args(xdg.CONFIG_HOME)
 
     # Copy a default file if none exists
     if not options.filename.is_file():

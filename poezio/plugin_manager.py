@@ -7,9 +7,10 @@ plugin env.
 
 import os
 from os import path
+from pathlib import Path
 import logging
 
-from poezio import tabs
+from poezio import tabs, xdg
 from poezio.core.structs import Command, Completion
 from poezio.plugin import PluginAPI
 from poezio.config import config
@@ -326,10 +327,7 @@ class PluginManager(object):
         Create the plugins_conf_dir
         """
         plugins_conf_dir = config.get('plugins_conf_dir')
-        if not plugins_conf_dir:
-            self.plugins_conf_dir = config.get_default_config_dir() / 'plugins'
-        else:
-            self.plugins_conf_dir = Path(plugins_conf_dir).expanduser()
+        self.plugins_conf_dir = Path(plugins_conf_dir).expanduser() if plugins_conf_dir else xdg.CONFIG_HOME / 'plugins'
         self.check_create_plugins_conf_dir()
 
     def check_create_plugins_conf_dir(self):
@@ -353,12 +351,7 @@ class PluginManager(object):
         Set the plugins_dir on start
         """
         plugins_dir = config.get('plugins_dir')
-        plugins_dir = plugins_dir or\
-            path.join(os.environ.get('XDG_DATA_HOME') or\
-                             path.join(os.environ.get('HOME'),
-                                          '.local', 'share'),
-                         'poezio', 'plugins')
-        self.plugins_dir = path.expanduser(plugins_dir)
+        plugins_dir = Path(plugins_dir).expanduser() if plugins_dir else xdg.DATA_HOME / 'plugins'
         self.check_create_plugins_dir()
 
     def check_create_plugins_dir(self):
