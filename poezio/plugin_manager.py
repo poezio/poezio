@@ -351,7 +351,7 @@ class PluginManager(object):
         Set the plugins_dir on start
         """
         plugins_dir = config.get('plugins_dir')
-        plugins_dir = Path(plugins_dir).expanduser() if plugins_dir else xdg.DATA_HOME / 'plugins'
+        self.plugins_dir = Path(plugins_dir).expanduser() if plugins_dir else xdg.DATA_HOME / 'plugins'
         self.check_create_plugins_dir()
 
     def check_create_plugins_dir(self):
