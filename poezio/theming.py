@@ -74,8 +74,9 @@ except ImportError:
 import curses
 import functools
 import os
+from pathlib import Path
 from os import path
-from poezio import colors
+from poezio import colors, xdg
 
 from importlib import machinery
 finder = machinery.PathFinder()
@@ -493,18 +494,12 @@ def update_themes_dir(option=None, value=None):
         load_path.append(default_dir)
 
     # import from the user-defined prefs
-    themes_dir = path.expanduser(
-        value or config.get('themes_dir') or path.join(
-            os.environ.get('XDG_DATA_HOME')
-            or path.join(os.environ.get('HOME'), '.local', 'share'), 'poezio',
-            'themes'))
+    themes_dir = config.get('themes_dir')
+    themes_dir = Path(themes_dir).expanduser() if themes_dir else xdg.DATA_HOME / 'themes'
     try:
-        os.makedirs(themes_dir)
-    except OSError as e:
-        if e.errno != 17:
-            log.error('Unable to create the themes dir (%s)', themes_dir)
-        else:
-            load_path.append(themes_dir)
+        themes_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        log.exception('Unable to create the themes dir (%s):', themes_dir)
     else:
         load_path.append(themes_dir)
 
