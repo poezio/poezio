@@ -761,14 +761,15 @@ class Core(object):
         if config.get('exec_remote'):
             # We just write the command in the fifo
             fifo_path = config.get('remote_fifo_path')
+            filename = os.path.join(fifo_path, 'poezio.fifo')
             if not self.remote_fifo:
                 try:
                     self.remote_fifo = Fifo(
-                        os.path.join(fifo_path, 'poezio.fifo'), 'w')
+                        filename, 'w')
                 except (OSError, IOError) as exc:
                     log.error(
                         'Could not open the fifo for writing (%s)',
-                        os.path.join(fifo_path, './', 'poezio.fifo'),
+                        filename,
                         exc_info=True)
                     self.information('Could not open the fifo '
                                      'file for writing: %s' % exc, 'Error')
@@ -778,10 +779,10 @@ class Core(object):
             command_str = ' '.join(args) + '\n'
             try:
                 self.remote_fifo.write(command_str)
-            except (IOError) as exc:
+            except IOError as exc:
                 log.error(
                     'Could not write in the fifo (%s): %s',
-                    os.path.join(fifo_path, './', 'poezio.fifo'),
+                    filename,
                     repr(command),
                     exc_info=True)
                 self.information('Could not execute %s: %s' % (command, exc),
