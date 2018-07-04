@@ -10,9 +10,7 @@ conversations and roster changes
 """
 
 import mmap
-import os
 import re
-from os import makedirs
 from datetime import datetime
 
 from poezio import common
@@ -112,23 +110,23 @@ class Logger(object):
         if not config.get_by_tabname('use_log', room):
             return
         try:
-            makedirs(log_dir)
+            log_dir.mkdir(parents=True, exists_ok=True)
         except OSError as e:
-            if e.errno != 17:  # file exists
-                log.error('Unable to create the log dir', exc_info=True)
+            log.error('Unable to create the log dir', exc_info=True)
         except:
             log.error('Unable to create the log dir', exc_info=True)
             return
         if not open_fd:
             return
+        filename = log_dir / room
         try:
-            fd = open(os.path.join(log_dir, room), 'a', encoding='utf-8')
+            fd = open(filename, 'a', encoding='utf-8')
             self._fds[room] = fd
             return fd
         except IOError:
             log.error(
                 'Unable to open the log file (%s)',
-                os.path.join(log_dir, room),
+                filename,
                 exc_info=True)
 
     def get_logs(self, jid, nb=10):
@@ -149,18 +147,19 @@ class Logger(object):
 
         self._check_and_create_log_dir(jid, open_fd=False)
 
+        filename = log_dir / jid
         try:
-            fd = open(os.path.join(log_dir, jid), 'rb')
+            fd = open(filename, 'rb')
         except FileNotFoundError:
             log.info(
                 'Non-existing log file (%s)',
-                os.path.join(log_dir, jid),
+                filename,
                 exc_info=True)
             return
         except OSError:
             log.error(
                 'Unable to open the log file (%s)',
-                os.path.join(log_dir, jid),
+                filename,
                 exc_info=True)
             return
         if not fd:
@@ -175,7 +174,7 @@ class Logger(object):
             except Exception:  # file probably empty
                 log.error(
                     'Unable to mmap the log file for (%s)',
-                    os.path.join(log_dir, jid),
+                    filename,
                     exc_info=True)
                 return
         return parse_log_lines(lines)
@@ -199,12 +198,13 @@ class Logger(object):
             fd = self._check_and_create_log_dir(jid)
         if not fd:
             return True
+        filename = log_dir / jid
         try:
             fd.write(logged_msg)
         except OSError:
             log.error(
                 'Unable to write in the log file (%s)',
-                os.path.join(log_dir, jid),
+                filename,
                 exc_info=True)
             return False
         else:
@@ -213,7 +213,7 @@ class Logger(object):
             except OSError:
                 log.error(
                     'Unable to flush the log file (%s)',
-                    os.path.join(log_dir, jid),
+                    filename,
                     exc_info=True)
                 return False
         return True
@@ -225,14 +225,15 @@ class Logger(object):
         if not config.get_by_tabname('use_log', jid):
             return True
         self._check_and_create_log_dir('', open_fd=False)
+        filename = log_dir / 'roster.log'
         if not self._roster_logfile:
             try:
                 self._roster_logfile = open(
-                    os.path.join(log_dir, 'roster.log'), 'a', encoding='utf-8')
+                    filename, 'a', encoding='utf-8')
             except IOError:
                 log.error(
                     'Unable to create the log file (%s)',
-                    os.path.join(log_dir, 'roster.log'),
+                    filename,
                     exc_info=True)
                 return False
         try:
@@ -249,7 +250,7 @@ class Logger(object):
         except:
             log.error(
                 'Unable to write in the log file (%s)',
-                os.path.join(log_dir, 'roster.log'),
+                filename,
                 exc_info=True)
             return False
         return True
