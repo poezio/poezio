@@ -168,7 +168,7 @@ class Config(RawConfigParser):
         self.default = default
 
     def read_file(self):
-        RawConfigParser.read(self, self.file_name, encoding='utf-8')
+        RawConfigParser.read(self, str(self.file_name), encoding='utf-8')
         # Check config integrity and fix it if it’s wrong
         # only when the object is the main config
         if self.__class__ is Config:
