@@ -19,7 +19,7 @@ import sys
 import pkg_resources
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
-from os import path, remove
+from os import remove
 from shutil import copy2
 from pathlib import Path
 from poezio.args import parse_args
@@ -338,19 +338,17 @@ class Config(RawConfigParser):
         before copying it to the final destination
         """
         try:
-            prefix, file = path.split(self.file_name)
-            filename = path.join(prefix, '.%s.tmp' % file)
-            fd = os.fdopen(
-                os.open(
-                    filename,
-                    os.O_WRONLY | os.O_CREAT,
-                    0o600,
-                ),
-                'w',
-                encoding='utf-8')
-            for line in lines:
-                fd.write('%s\n' % line)
-            fd.close()
+            filename = self.file_name.parent / ('.%s.tmp' % self.file_name.name)
+            with os.fdopen(
+                    os.open(
+                        filename,
+                        os.O_WRONLY | os.O_CREAT,
+                        0o600,
+                    ),
+                    'w',
+                    encoding='utf-8') as fd:
+                for line in lines:
+                    fd.write('%s\n' % line)
             copy2(filename, self.file_name)
             remove(filename)
         except:
@@ -501,7 +499,7 @@ def file_ok(filepath):
     Returns True if the file exists and is readable and writeable,
     False otherwise.
     """
-    val = path.exists(filepath)
+    val = filepath.exists()
     val &= os.access(filepath, os.R_OK | os.W_OK)
     return bool(val)
 
