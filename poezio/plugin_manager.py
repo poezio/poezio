@@ -335,7 +335,7 @@ class PluginManager(object):
         Create the plugins config directory if it does not exist.
         Returns True on success, False on failure.
         """
-        if not os.access(self.plugins_conf_dir, os.R_OK | os.X_OK):
+        if not os.access(str(self.plugins_conf_dir), os.R_OK | os.X_OK):
             try:
                 self.plugins_conf_dir.mkdir(parents=True, exist_ok=True)
             except OSError:
@@ -359,9 +359,9 @@ class PluginManager(object):
         Create the plugins directory if it does not exist.
         Returns True on success, False on failure.
         """
-        if not os.access(self.plugins_dir, os.R_OK | os.X_OK):
+        if not os.access(str(self.plugins_dir), os.R_OK | os.X_OK):
             try:
-                os.makedirs(self.plugins_dir, exist_ok=True)
+                self.plugins_dir.mkdir(parents=True, exist_ok=True)
             except OSError:
                 log.error(
                     'Unable to create the plugins dir: %s',
@@ -383,8 +383,8 @@ class PluginManager(object):
         if os.access(default_plugin_path, os.R_OK | os.X_OK):
             self.load_path.insert(0, default_plugin_path)
 
-        if os.access(self.plugins_dir, os.R_OK | os.X_OK):
-            self.load_path.append(self.plugins_dir)
+        if os.access(str(self.plugins_dir), os.R_OK | os.X_OK):
+            self.load_path.append(str(self.plugins_dir))
 
         try:
             import poezio_plugins
