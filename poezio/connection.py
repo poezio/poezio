@@ -121,7 +121,7 @@ class Connection(slixmpp.ClientXMPP):
         # Must be loaded before 0030.
         self.register_plugin('xep_0115', {
             'caps_node': 'https://poez.io',
-            'cache': FileSystemCache(xdg.CACHE_HOME, 'caps', encode=str,
+            'cache': FileSystemCache(str(xdg.CACHE_HOME), 'caps', encode=str,
                                      decode=lambda x: DiscoInfo(ET.fromstring(x))),
         })
         self.register_plugin('xep_0030')

@@ -599,7 +599,7 @@ def setup_logging():
         LOGGING_CONFIG['handlers']['error'] = {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': LOG_DIR / 'errors.log',
+            'filename': str(LOG_DIR / 'errors.log'),
             'formatter': 'simple',
         }
         logging.disable(logging.WARNING)

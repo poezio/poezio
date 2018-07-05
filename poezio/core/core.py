@@ -77,7 +77,7 @@ class Core(object):
         self.bookmarks = BookmarkList()
         self.debug = False
         self.remote_fifo = None
-        self.avatar_cache = FileSystemPerJidCache(xdg.CACHE_HOME, 'avatars', binary=True)
+        self.avatar_cache = FileSystemPerJidCache(str(xdg.CACHE_HOME), 'avatars', binary=True)
         # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.
