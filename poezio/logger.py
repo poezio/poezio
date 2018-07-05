@@ -110,7 +110,7 @@ class Logger(object):
         if not config.get_by_tabname('use_log', room):
             return
         try:
-            log_dir.mkdir(parents=True, exists_ok=True)
+            log_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
             log.error('Unable to create the log dir', exc_info=True)
         except:
