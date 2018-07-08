@@ -42,7 +42,7 @@ class PluginConfig(config.Config):
 
     def read(self):
         """Read the config file"""
-        RawConfigParser.read(self, self.file_name)
+        RawConfigParser.read(self, str(self.file_name))
         if not self.has_section(self.module_name):
             self.add_section(self.module_name)
 
@@ -60,9 +60,8 @@ class PluginConfig(config.Config):
     def write(self):
         """Write the config to the disk"""
         try:
-            fp = open(self.file_name, 'w')
-            RawConfigParser.write(self, fp)
-            fp.close()
+            with self.file_name.open('w') as fp:
+                RawConfigParser.write(self, fp)
             return True
         except IOError:
             return False
