@@ -477,6 +477,9 @@ class Core(object):
                 if new_value != old_value:
                     self.trigger_configuration_change(option, new_value)
         log.debug("Config reloaded.")
+        for name, plugin in self.plugin_manager.plugins.items():
+            plugin.config.read_file()
+            log.debug("Config reloaded for plugin %s", name)
         # in case some roster options have changed
         roster.modified()
 
