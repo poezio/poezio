@@ -368,7 +368,7 @@ class Config(RawConfigParser):
         """
         if file_ok(self.file_name):
             try:
-                with open(self.file_name, 'r', encoding='utf-8') as df:
+                with self.file_name.open('r', encoding='utf-8') as df:
                     lines_before = [line.strip() for line in df]
             except OSError:
                 log.error(
