@@ -349,8 +349,7 @@ class Config(RawConfigParser):
                     encoding='utf-8') as fd:
                 for line in lines:
                     fd.write('%s\n' % line)
-            copy2(filename, self.file_name)
-            remove(filename)
+            filename.replace(self.file_name)
         except:
             success = False
             log.error('Unable to save the config file.', exc_info=True)
