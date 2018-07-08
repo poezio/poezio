@@ -15,6 +15,7 @@ import os
 import ssl
 from os import getenv, path
 from functools import partial
+from pathlib import Path
 
 from poezio import common
 from poezio import windows
@@ -612,27 +613,27 @@ class RosterInfoTab(Tab):
                 home = os.getenv('HOME') or '/'
                 return Completion(
                     the_input.new_completion, [home, '/tmp'], n, quotify=True)
-            path_ = args[n]
-            if path.isdir(path_):
+            path_ = Path(args[n])
+            if path_.is_dir():
                 dir_ = path_
                 base = ''
             else:
-                dir_ = path.dirname(path_)
-                base = path.basename(path_)
+                dir_ = path_.parent
+                base = path_.name
             try:
-                names = os.listdir(dir_)
+                names = list(dir_.iterdir())
             except OSError:
                 names = []
-            names_filtered = [name for name in names if name.startswith(base)]
+            names_filtered = [name for name in names if str(name).startswith(base)]
             if names_filtered:
                 names = names_filtered
             if not names:
                 names = [path_]
             end_list = []
             for name in names:
-                value = os.path.join(dir_, name)
-                if not name.startswith('.'):
-                    end_list.append(value)
+                if not str(name).startswith('.'):
+                    value = dir_ / name
+                    end_list.append(str(value))
 
             return Completion(
                 the_input.new_completion, end_list, n, quotify=True)
