@@ -341,7 +341,7 @@ class Config(RawConfigParser):
             filename = self.file_name.parent / ('.%s.tmp' % self.file_name.name)
             with os.fdopen(
                     os.open(
-                        filename,
+                        str(filename),
                         os.O_WRONLY | os.O_CREAT,
                         0o600,
                     ),
@@ -500,7 +500,7 @@ def file_ok(filepath):
     False otherwise.
     """
     val = filepath.exists()
-    val &= os.access(filepath, os.R_OK | os.W_OK)
+    val &= os.access(str(filepath), os.R_OK | os.W_OK)
     return bool(val)
 
 
