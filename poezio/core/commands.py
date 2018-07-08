@@ -6,7 +6,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-import os
 from xml.etree import cElementTree as ET
 
 from slixmpp.exceptions import XMPPError
@@ -571,8 +570,7 @@ class CommandCore:
                     section = plugin_name
                 option = args[1]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    file_name = self.core.plugin_manager.plugins_conf_dir
-                    file_name = os.path.join(file_name, plugin_name + '.cfg')
+                    file_name = self.core.plugin_manager.plugins_conf_dir / (plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
                     plugin_config = self.core.plugin_manager.plugins[
@@ -599,8 +597,7 @@ class CommandCore:
                 option = args[1]
                 value = args[2]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    file_name = self.core.plugin_manager.plugins_conf_dir
-                    file_name = os.path.join(file_name, plugin_name + '.cfg')
+                    file_name = self.core.plugin_manager.plugins_conf_dir / (plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
                     plugin_config = self.core.plugin_manager.plugins[
