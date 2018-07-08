@@ -3,7 +3,6 @@ Define the PluginConfig and Plugin classes, plus the SafetyMetaclass.
 These are used in the plugin system added in poezio 0.7.5
 (see plugin_manager.py)
 """
-import os
 from functools import partial
 from configparser import RawConfigParser
 from poezio.timed_events import TimedEvent, DelayedEvent
@@ -387,7 +386,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         self.core = core
         # More hack; luckily we'll never have more than one core object
         SafetyMetaclass.core = core
-        conf = os.path.join(plugins_conf_dir, self.__module__ + '.cfg')
+        conf = plugins_conf_dir / (self.__module__ + '.cfg')
         try:
             self.config = PluginConfig(
                 conf, self.__module__, default=self.default_config)
