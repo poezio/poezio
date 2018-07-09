@@ -17,6 +17,7 @@ import re
 from base64 import b64encode, b64decode
 from os import path
 from urllib.parse import unquote
+from pathlib import Path
 
 from io import BytesIO
 from xml import sax
