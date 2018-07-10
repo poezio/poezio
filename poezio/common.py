@@ -9,6 +9,7 @@ Various useful functions.
 """
 
 from datetime import datetime, timedelta
+from pathlib import Path
 from slixmpp import JID, InvalidJID
 from poezio.poezio_shlex import shlex
 
@@ -61,25 +62,25 @@ def _is_in_path(command, return_abs_path=False):
 
 
 DISTRO_INFO = {
-    'Arch Linux': '/etc/arch-release',
-    'Aurox Linux': '/etc/aurox-release',
-    'Conectiva Linux': '/etc/conectiva-release',
-    'CRUX': '/usr/bin/crux',
-    'Debian GNU/Linux': '/etc/debian_version',
-    'Fedora Linux': '/etc/fedora-release',
-    'Gentoo Linux': '/etc/gentoo-release',
-    'Linux from Scratch': '/etc/lfs-release',
-    'Mandrake Linux': '/etc/mandrake-release',
-    'Slackware Linux': '/etc/slackware-version',
-    'Solaris/Sparc': '/etc/release',
-    'Source Mage': '/etc/sourcemage_version',
-    'SUSE Linux': '/etc/SuSE-release',
-    'Sun JDS': '/etc/sun-release',
-    'PLD Linux': '/etc/pld-release',
-    'Yellow Dog Linux': '/etc/yellowdog-release',
+    'Arch Linux': Path('/etc/arch-release'),
+    'Aurox Linux': Path('/etc/aurox-release'),
+    'Conectiva Linux': Path('/etc/conectiva-release'),
+    'CRUX': Path('/usr/bin/crux'),
+    'Debian GNU/Linux': Path('/etc/debian_version'),
+    'Fedora Linux': Path('/etc/fedora-release'),
+    'Gentoo Linux': Path('/etc/gentoo-release'),
+    'Linux from Scratch': Path('/etc/lfs-release'),
+    'Mandrake Linux': Path('/etc/mandrake-release'),
+    'Slackware Linux': Path('/etc/slackware-version'),
+    'Solaris/Sparc': Path('/etc/release'),
+    'Source Mage': Path('/etc/sourcemage_version'),
+    'SUSE Linux': Path('/etc/SuSE-release'),
+    'Sun JDS': Path('/etc/sun-release'),
+    'PLD Linux': Path('/etc/pld-release'),
+    'Yellow Dog Linux': Path('/etc/yellowdog-release'),
     # many distros use the /etc/redhat-release for compatibility
     # so Redhat is the last
-    'Redhat Linux': '/etc/redhat-release'
+    'Redhat Linux': Path('/etc/redhat-release')
 }
 
 
@@ -111,27 +112,26 @@ def get_os_info():
         # lsb_release executable not available, so parse files
         for distro_name in DISTRO_INFO:
             path_to_file = DISTRO_INFO[distro_name]
-            if os.path.exists(path_to_file):
-                if os.access(path_to_file, os.X_OK):
+            if path_to_file.exists():
+                if os.access(str(path_to_file), os.X_OK):
                     # the file is executable (f.e. CRUX)
                     # yes, then run it and get the first line of output.
-                    text = _get_output_of_command(path_to_file)[0]
+                    text = _get_output_of_command(str(path_to_file))[0]
                 else:
-                    fdes = open(path_to_file, encoding='utf-8')
-                    text = fdes.readline().strip()  # get only first line
-                    fdes.close()
-                    if path_to_file.endswith('version'):
+                    with path_to_file.open(encoding='utf-8') as fdes:
+                        text = fdes.readline().strip()  # get only first line
+                    basename = path_to_file.name
+                    if basename.endswith('version'):
                         # sourcemage_version and slackware-version files
                         # have all the info we need (name and version of distro)
-                        if not os.path.basename(path_to_file).startswith(
-                                'sourcemage') or not\
-                                os.path.basename(path_to_file).startswith('slackware'):
+                        if not basename.startswith('sourcemage') or not\
+                                basename.startswith('slackware'):
                             text = distro_name + ' ' + text
-                    elif path_to_file.endswith('aurox-release') or \
-                            path_to_file.endswith('arch-release'):
+                    elif basename == 'aurox-release' or \
+                            basename == 'arch-release':
                         # file doesn't have version
                         text = distro_name
-                    elif path_to_file.endswith('lfs-release'):
+                    elif basename == 'lfs-release':
                         # file just has version
                         text = distro_name + ' ' + text
                 os_info = text.replace('\n', '')
