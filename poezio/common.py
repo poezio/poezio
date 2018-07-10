@@ -21,30 +21,6 @@ import time
 import string
 
 
-def get_base64_from_file(path):
-    """
-    Convert the content of a file to base64
-
-    :param str path: The path of the file to convert.
-    :return: A tuple of (encoded data, mime type, sha1 hash) if
-        the file exists and does not exceeds the upper size limit of 16384.
-    :return: (None, None, error message) if it fails
-    :rtype: :py:class:`tuple`
-
-    """
-    if not os.path.isfile(path):
-        return (None, None, "File does not exist")
-    size = os.path.getsize(path)
-    if size > 16384:
-        return (None, None, "File is too big")
-    with open(path, 'rb') as fdes:
-        data = fdes.read()
-    encoded = base64.encodebytes(data)
-    sha1 = hashlib.sha1(data).hexdigest()
-    mime_type = mimetypes.guess_type(path)[0]
-    return (encoded, mime_type, sha1)
-
-
 def _get_output_of_command(command):
     """
     Runs a command and returns its output.
