@@ -73,12 +73,12 @@ class Message:
 
     def _other_elems(self):
         "Helper for the repr_message function"
-        acc = ['Message(']
+        acc = []
         fields = list(self.__slots__)
         fields.remove('old_message')
         for field in fields:
             acc.append('%s=%s' % (field, repr(getattr(self, field))))
-        return ', '.join(acc) + ', old_message='
+        return 'Message(%s, %s' % (', '.join(acc), 'old_message=')
 
     def __repr__(self):
         """
