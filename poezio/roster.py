@@ -20,7 +20,7 @@ from poezio.common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
 
 
-class Roster(object):
+class Roster:
     """
     The proxy class to get the roster from slixmpp.
     Caches Contact and RosterGroup objects.
@@ -261,7 +261,7 @@ class Roster(object):
         return True
 
 
-class RosterGroup(object):
+class RosterGroup:
     """
     A RosterGroup is a group containing contacts
     It can be Friends/Family etc, but also can be

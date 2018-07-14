@@ -15,7 +15,7 @@ Once created, they must be added to the list of checked events with
 import datetime
 
 
-class DelayedEvent(object):
+class DelayedEvent:
     """
     A TimedEvent, but with the date calculated from now + a delay in seconds.
     Use it if you want an event to happen in, e.g. 6 seconds.

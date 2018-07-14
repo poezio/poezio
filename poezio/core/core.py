@@ -50,7 +50,7 @@ from poezio.core.structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
 
 
-class Core(object):
+class Core:
     """
     “Main” class of poezion
     """

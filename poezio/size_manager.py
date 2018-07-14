@@ -13,7 +13,7 @@ FULL_WIDTH_DEGRADE = 66
 FULL_HEIGHT_DEGRADE = 10
 
 
-class SizeManager(object):
+class SizeManager:
     def __init__(self, core):
         self._core = core
 

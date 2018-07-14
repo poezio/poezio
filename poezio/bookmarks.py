@@ -39,7 +39,7 @@ from poezio.config import config
 log = logging.getLogger(__name__)
 
 
-class Bookmark(object):
+class Bookmark:
     def __init__(self,
                  jid,
                  name=None,
@@ -127,7 +127,7 @@ class Bookmark(object):
         return Bookmark(jid, name, autojoin, nick, password, method='remote')
 
 
-class BookmarkList(object):
+class BookmarkList:
     def __init__(self):
         self.bookmarks = []
         preferred = config.get('use_bookmarks_method').lower()

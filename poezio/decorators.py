@@ -5,7 +5,7 @@ Module containing various decorators
 from poezio import common
 
 
-class RefreshWrapper(object):
+class RefreshWrapper:
     def __init__(self):
         self.core = None
 
@@ -53,7 +53,7 @@ class RefreshWrapper(object):
 refresh_wrapper = RefreshWrapper()
 
 
-class CommandArgParser(object):
+class CommandArgParser:
     """Modify the string argument of the function into a list of strings
     containing the right number of extracted arguments, or None if we don’t
     have enough.

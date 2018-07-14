@@ -109,7 +109,7 @@ class AckError(Exception):
     pass
 
 
-class TextBuffer(object):
+class TextBuffer:
     """
     This class just keep trace of messages, in a list with various
     information and attributes.

@@ -16,7 +16,7 @@ from poezio.common import safeJID
 from collections import defaultdict
 
 
-class Resource(object):
+class Resource:
     """
     Defines a roster item.
     It's a precise resource.
@@ -54,7 +54,7 @@ class Resource(object):
         return self.jid == value.jid and self._data == value._data
 
 
-class Contact(object):
+class Contact:
     """
     This a way to gather multiple resources from the same bare JID.
     This class contains zero or more Resource object and useful methods

@@ -86,7 +86,7 @@ SHOW_NAME = {
 }
 
 
-class Tab(object):
+class Tab:
     plugin_commands = {}
     plugin_keys = {}
 

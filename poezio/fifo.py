@@ -33,7 +33,7 @@ class OpenTrick(threading.Thread):
         self.fd = open(self.path, 'r', encoding='utf-8')
 
 
-class Fifo(object):
+class Fifo:
     """
     Just a simple file handler, writing and reading in a fifo.
     Mode is either 'r' or 'w', just like the mode for the open()

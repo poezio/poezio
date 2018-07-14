@@ -13,7 +13,7 @@ from poezio.windows.inputs import Input
 from poezio.theming import to_curses_attr, get_theme
 
 
-class FieldInput(object):
+class FieldInput:
     """
     All input types in a data form should inherit this class,
     in addition with windows.Input or any relevant class from the
@@ -345,7 +345,7 @@ class TextPrivateWin(TextSingleWin):
         return 'Edit the secret text'
 
 
-class FormWin(object):
+class FormWin:
     """
     A window, with some subwins (the various inputs).
     On init, create all the subwins.

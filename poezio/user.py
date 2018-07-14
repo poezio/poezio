@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 ROLE_DICT = {'': 0, 'none': 0, 'visitor': 1, 'participant': 2, 'moderator': 3}
 
 
-class User(object):
+class User:
     """
     keep trace of an user in a Room
     """

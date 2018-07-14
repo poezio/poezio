@@ -10,7 +10,7 @@ http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
 
 
-class EventHandler(object):
+class EventHandler:
     """
     A class keeping a list of possible events that are triggered
     by poezio. You (a plugin for example) can add an event handler

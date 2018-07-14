@@ -95,7 +95,7 @@ class SafetyMetaclass(type):
         return type.__new__(meta, name, bases, class_dict)
 
 
-class PluginWrap(object):
+class PluginWrap:
     """
     A wrapper to implicitly pass the module name to PluginAPI
     """
@@ -110,7 +110,7 @@ class PluginWrap(object):
         return partial(getattr(api, name), module)
 
 
-class PluginAPI(object):
+class PluginAPI:
     """
     The public API exposed to the plugins.
     Its goal is to limit the use of the raw Core object

@@ -66,7 +66,7 @@ def parse_log_line(msg):
     return None
 
 
-class Logger(object):
+class Logger:
     """
     Appends things to files. Error/information/warning logs
     and also log the conversations to logfiles

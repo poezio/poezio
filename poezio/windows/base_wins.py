@@ -23,7 +23,7 @@ FORMAT_CHAR = '\x19'
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x1A'
 
 
-class DummyWin(object):
+class DummyWin:
     def __getattribute__(self, name):
         if name != '__bool__':
             return lambda *args, **kwargs: (0, 0)
@@ -34,7 +34,7 @@ class DummyWin(object):
         return False
 
 
-class Win(object):
+class Win:
     def __init__(self):
         self._win = None
         self.height, self.width = 0, 0

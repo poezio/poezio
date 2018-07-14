@@ -24,7 +24,7 @@ from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.common import safeJID
 
 
-class MatchJID(object):
+class MatchJID:
     def __init__(self, jid, dest=''):
         self.jid = jid
         self.dest = dest

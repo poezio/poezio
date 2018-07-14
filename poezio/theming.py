@@ -82,7 +82,7 @@ from importlib import machinery
 finder = machinery.PathFinder()
 
 
-class Theme(object):
+class Theme:
     """
     The theme class, from which all themes should inherit.
     All of the following values can be replaced in subclasses, in

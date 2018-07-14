@@ -18,7 +18,7 @@ from poezio.config import config
 log = logging.getLogger(__name__)
 
 
-class PluginManager(object):
+class PluginManager:
     """
     Plugin Manager
     Contains all the references to the plugins

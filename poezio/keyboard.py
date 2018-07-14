@@ -96,7 +96,7 @@ def get_char_list(s):
             ret_list.append(key)
 
 
-class Keyboard(object):
+class Keyboard:
     def __init__(self):
         self.escape = False
 
