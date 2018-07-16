@@ -501,7 +501,7 @@ def update_themes_dir(option=None, value=None):
     except OSError:
         log.exception('Unable to create the themes dir (%s):', themes_dir)
     else:
-        load_path.append(themes_dir)
+        load_path.append(str(themes_dir))
 
     # system-wide import
     try:
