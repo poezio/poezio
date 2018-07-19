@@ -594,14 +594,20 @@ def setup_logging():
     LOG_DIR = config.get('log_dir')
     LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else xdg.DATA_HOME / 'logs'
     if config.get('log_errors'):
-        LOGGING_CONFIG['root']['handlers'].append('error')
-        LOGGING_CONFIG['handlers']['error'] = {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'errors.log'),
-            'formatter': 'simple',
-        }
-        logging.disable(logging.WARNING)
+        try:
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            # We can’t really log any error here, because logging isn’t setup yet.
+            pass
+        else:
+            LOGGING_CONFIG['root']['handlers'].append('error')
+            LOGGING_CONFIG['handlers']['error'] = {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': str(LOG_DIR / 'errors.log'),
+                'formatter': 'simple',
+            }
+            logging.disable(logging.WARNING)
 
     if options.debug:
         LOGGING_CONFIG['root']['handlers'].append('debug')
