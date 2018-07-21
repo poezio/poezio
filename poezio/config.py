@@ -560,9 +560,9 @@ def run_cmdline_args():
         default = Path(__file__).parent / '..' / 'data' / 'default_config.cfg'
         other = Path(pkg_resources.resource_filename('poezio', 'default_config.cfg'))
         if default.is_file():
-            copy2(default, options.filename)
+            copy2(str(default), str(options.filename))
         elif other.is_file():
-            copy2(other, options.filename)
+            copy2(str(other), str(options.filename))
 
         # Inside the nixstore and possibly other distributions, the reference
         # file is readonly, so is the copy.
