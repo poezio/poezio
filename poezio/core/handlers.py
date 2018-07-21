@@ -165,6 +165,8 @@ class HandlerCore:
             xml=message.xml.find(
                 '{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'
             ))
+        # TODO: find out why pylint thinks "inviter" is a list
+        #pylint: disable=no-member
         inviter = invite['from']
         reason = invite['reason']
         password = invite['password']
@@ -1520,6 +1522,7 @@ class HandlerCore:
         der = ssl.PEM_cert_to_DER_cert(pem)
         asn1 = pyasn1.codec.der.decoder.decode(
             der, asn1Spec=pyasn1_modules.rfc2459.Certificate())[0]
+        #pylint: disable=no-member
         spki = asn1.getComponentByName("tbsCertificate").getComponentByName(
             "subjectPublicKeyInfo")
         spki_digest = sha256(
