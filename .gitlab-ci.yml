@@ -4,19 +4,18 @@ stages:
 
 build-doc:
   stage: build
-  image: poezio/build-base:latest
   script:
-    - apt-get install -y make
-    - pip3 install sphinx
+    - pip3 install sphinx --user
     - make doc
   artifacts:
     expire_in: 2 weeks
     paths:
       - doc/build/html
+  only:
+    - master
 
 build-ubuntu:
   stage: build
-  image: poezio/build-base:latest
   script:
     - python3 setup.py sdist
     - python3 setup.py bdist
@@ -24,33 +23,34 @@ build-ubuntu:
     expire_in: 2 weeks
     paths:
       - dist/
+  only:
+    - master
 
 security-check:
   stage: test
   image: python:3
   script:
-    - pip3 install safety
-    - safety check -r requirements.txt
+    - pip3 install safety --user
+    - ~/.local/bin/safety check -r requirements.txt
 
 test-ubuntu:
   stage: test
-  image: poezio/test-base:latest
   script:
     - git clone git://git.louiz.org/slixmpp
-    - pip3 install --upgrade pip
-    - pip3 install pytest pyasn1-modules --upgrade
+    - pip3 install --upgrade pip --user
+    - pip3 install pytest pyasn1-modules --upgrade --user
     - pushd slixmpp
     - python3 setup.py build
-    - python3 setup.py install
+    - python3 setup.py install --user
     - popd
-    - python3 setup.py install
+    - python3 setup.py install --user
     - py.test -v test/
     - pylint -E poezio
 
 formatting-check:
   stage: test
-  image: poezio/test-base:latest
+  image: python:3
   script:
-    - pip3 install yapf
-    - yapf -dpr poezio
-    - "[ -n \"$(yapf -dpr poezio)\" ] && echo 'Formatting check failed, please run yapf' && exit 1 || echo 'Formatting check succeeded'"
+    - pip3 install yapf --user
+    - ~/.local/bin/yapf -dpr poezio
+    - "[ -n \"$(~/.local/bin/yapf -dpr poezio)\" ] && echo 'Formatting check failed, please run yapf' && exit 1 || echo 'Formatting check succeeded'"
