@@ -141,20 +141,16 @@ class Tabs:
             self._tab_names[tab.name] = tab
         self._update_numbers()
 
-    def replace_tabs(self, new_tabs: List[tabs.Tab]):
+    def replace_tabs(self, new_tabs: List[tabs.Tab]) -> bool:
         """
         Replace the current tab list with another, and
         rebuild the mappings.
         """
+        if self._current_tab not in new_tabs:
+            return False
         self._tabs = new_tabs
         self._rebuild()
-        current_tab = self.current_tab
-        try:
-            idx = self._tabs.index(current_tab)
-            self._current_index = idx
-        except ValueError:
-            self._current_index = 0
-            self._current_tab = self._tabs[0]
+        return True
 
     def _inc_cursor(self):
         self._current_index = (self._current_index + 1) % len(self._tabs)

@@ -80,18 +80,18 @@ TAB_TO_TEXT = {
     tabs.GapTab: 'empty'
 }
 
-def parse_config(config):
+def parse_config(tab_config):
     result = {}
-    for option in config.options('reorder'):
+    for option in tab_config.options('reorder'):
         if not option.isdecimal():
             continue
         pos = int(option)
         if pos in result or pos <= 0:
-            return
+            return None
 
-        typ, name = config.get(option, default=':').split(':', maxsplit=1)
+        typ, name = tab_config.get(option, default=':').split(':', maxsplit=1)
         if typ not in TEXT_TO_TAB:
-            return
+            return None
         result[pos] = (TEXT_TO_TAB[typ], name)
 
     return result
@@ -132,25 +132,22 @@ class Plugin(BasePlugin):
         """
         /reorder
         """
-        self.core.go_to_roster()
-        self.core.current_tab_nb = 0
-
         tabs_spec = parse_config(self.config)
         if not tabs_spec:
             return self.api.information('Invalid reorder config', 'Error')
 
-        old_tabs = self.core.tabs[1:]
-        roster = self.core.tabs[0]
+        old_tabs = self.core.tabs.get_tabs()
+        roster = old_tabs.pop(0)
 
         create_gaps = config.get('create_gaps')
 
-        new_tabs = []
+        new_tabs = [roster]
         last = 0
         for pos in sorted(tabs_spec):
             if create_gaps and pos > last + 1:
-                new_tabs += [tabs.GapTab(self.core) for i in range(pos - last)]
+                new_tabs += [tabs.GapTab(self.core) for i in range(pos - last - 1)]
             cls, name = tabs_spec[pos]
-            tab = self.core.get_tab_by_name(name, typ=cls)
+            tab = self.core.tabs.by_name_and_class(name, cls=cls)
             if tab and tab in old_tabs:
                 new_tabs.append(tab)
                 old_tabs.remove(tab)
@@ -164,9 +161,5 @@ class Plugin(BasePlugin):
             if tab:
                 new_tabs.append(tab)
 
-        self.core.tabs.clear()
-        self.core.tabs.append(roster)
-        self.core.tabs += new_tabs
-
+        self.core.tabs.replace_tabs(new_tabs)
         self.core.refresh_window()
-
