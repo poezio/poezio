@@ -54,7 +54,7 @@ def test_env():
 
 
 def test_unicode():
-    import poopt
+    from . import poopt
     try:
         poopt.wcswidth('✔')
     except UnicodeError:
