@@ -37,6 +37,12 @@ class Tabs:
         '_current_index', '_current_tab', '_tabs', '_tab_types', '_tab_names',
         '_previous_tab'
     ]
+    _current_index: int
+    _current_tab: Optional[tabs.Tab]
+    _previous_tab: Optional[tabs.Tab]
+    _tabs: List[tabs.Tab]
+    _tab_types: Dict[Type[tabs.Tab], List[tabs.Tab]]
+    _tab_names: Dict[str, tabs.Tab]
 
     def __init__(self):
         """
@@ -45,13 +51,12 @@ class Tabs:
         once. Otherwise, mayhem is expected.
         """
         # cursor
-        self._current_index: int = 0
-        self._previous_tab: Optional[tabs.Tab] = None
-        self._current_tab: Optional[tabs.Tab] = None
-        self._tabs: List[tabs.Tab] = []
-        self._tab_types: Dict[Type[tabs.Tab], List[tabs.Tab]] = defaultdict(
-            list)
-        self._tab_names: Dict[str, tabs.Tab] = dict()
+        self._current_index = 0
+        self._previous_tab = None
+        self._current_tab = None
+        self._tabs = []
+        self._tab_types = defaultdict(list)
+        self._tab_names = dict()
 
     def __len__(self):
         return len(self._tabs)
