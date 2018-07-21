@@ -4,19 +4,20 @@ stages:
 
 build-doc:
   stage: build
-  image: poezio/build-base:latest
+  image: python:3
   script:
-    - apt-get install -y make
     - pip3 install sphinx
     - make doc
   artifacts:
     expire_in: 2 weeks
     paths:
       - doc/build/html
+  only:
+    - master
 
 build-ubuntu:
   stage: build
-  image: poezio/build-base:latest
+  image: python:3
   script:
     - python3 setup.py sdist
     - python3 setup.py bdist
@@ -24,6 +25,8 @@ build-ubuntu:
     expire_in: 2 weeks
     paths:
       - dist/
+  only:
+    - master
 
 security-check:
   stage: test
@@ -32,24 +35,37 @@ security-check:
     - pip3 install safety
     - safety check -r requirements.txt
 
-test-ubuntu:
+test-pytest:
   stage: test
-  image: poezio/test-base:latest
+  image: python:3-alpine
   script:
+    - apk add git gcc python3-dev musl-dev libffi
     - git clone git://git.louiz.org/slixmpp
     - pip3 install --upgrade pip
-    - pip3 install pytest pyasn1-modules --upgrade
-    - pushd slixmpp
-    - python3 setup.py build
+    - pip3 install pylint pytest pyasn1-modules cffi --upgrade
+    - cd slixmpp
     - python3 setup.py install
-    - popd
+    - cd ..
     - python3 setup.py install
     - py.test -v test/
+
+test-pylint:
+  stage: test
+  image: python:3-alpine
+  script:
+    - apk add git gcc python3-dev musl-dev libffi
+    - git clone git://git.louiz.org/slixmpp
+    - pip3 install --upgrade pip
+    - pip3 install pylint pytest pyasn1-modules cffi --upgrade
+    - cd slixmpp
+    - python3 setup.py install
+    - cd ..
+    - python3 setup.py install
     - pylint -E poezio
 
 formatting-check:
   stage: test
-  image: poezio/test-base:latest
+  image: python:3
   script:
     - pip3 install yapf
     - yapf -dpr poezio
