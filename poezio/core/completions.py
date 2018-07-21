@@ -256,16 +256,15 @@ class CompletionCore:
         n = the_input.get_argument_position(quoted=True)
         if n >= 2:
             return False
-        l = []
-        for jid in roster.jids():
-            if len(roster[jid]):
-                l.append(jid)
-                for resource in roster[jid].resources:
-                    l.append(resource.jid)
-        for jid in roster.jids():
-            if not len(roster[jid]):
-                l.append(jid)
-        return Completion(the_input.new_completion, l, 1, '', quotify=True)
+        online = []
+        offline = []
+        for jid in sorted(roster.jids()):
+            if len(roster[jid]) > 0:
+                online.append(jid)
+            else:
+                offline.append(jid)
+        return Completion(
+            the_input.new_completion, online + offline, 1, '', quotify=True)
 
     def invite(self, the_input):
         """Completion for /invite"""

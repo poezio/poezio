@@ -1099,8 +1099,8 @@ class Core:
 
         for state in states:
             for tab in tab_refs[state]:
-                if (tab.nb < self.tabs.current_index and
-                        tab_refs[state][-1].nb > self.tabs.current_index):
+                if (tab.nb < self.tabs.current_index
+                        and tab_refs[state][-1].nb > self.tabs.current_index):
                     continue
                 self.command.win(str(tab.nb))
                 return
