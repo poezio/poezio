@@ -2,17 +2,18 @@
 Test the config module
 """
 
-import tempfile
-import pytest
 import os
+import tempfile
+from pathlib import Path
 
+import pytest
 
 from poezio import config
 
 @pytest.yield_fixture(scope="module")
 def config_obj():
     file_ = tempfile.NamedTemporaryFile(delete=False)
-    conf = config.Config(file_name=file_.name)
+    conf = config.Config(file_name=Path(file_.name))
     yield conf
     del conf
     os.unlink(file_.name)
