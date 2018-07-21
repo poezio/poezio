@@ -86,6 +86,7 @@ class BaseTextWin(Win):
         Return the number of lines that are built for the given
         message.
         """
+        #pylint: disable=assignment-from-no-return
         lines = self.build_message(
             message, timestamp=timestamp, nick_size=nick_size)
         if self.lock:
