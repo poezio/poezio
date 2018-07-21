@@ -398,7 +398,7 @@ class Core:
         Called when the option create_gaps is changed.
         Remove all gaptabs if switching from gaps to nogaps.
         """
-        self.tabs.update_gaps(value.lower() == "false")
+        self.tabs.update_gaps(value.lower() != "false")
 
     def on_request_receipts_config_change(self, option, value):
         """
@@ -1019,7 +1019,8 @@ class Core:
         Insert a tab at a position, changing the number of the following tabs
         returns False if it could not move the tab, True otherwise
         """
-        self.tabs.insert_tab(old_pos, new_pos, config.get('create_gaps'))
+        return self.tabs.insert_tab(old_pos, new_pos,
+                                    config.get('create_gaps'))
 
     ### Move actions (e.g. go to next room) ###
 
