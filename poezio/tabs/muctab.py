@@ -193,9 +193,9 @@ class MucTab(ChatTab):
 
         valid_affiliations = ('outcast', 'none', 'member', 'admin', 'owner')
         if affiliation not in valid_affiliations:
-            return self.core.information('The affiliation must be one of ' +
-                                         ', '.join(valid_affiliations),
-                                         'Error')
+            return self.core.information(
+                'The affiliation must be one of ' +
+                ', '.join(valid_affiliations), 'Error')
         if nick_or_jid in [user.nick for user in self.users]:
             muc.set_user_affiliation(
                 self.core.xmpp,
@@ -220,8 +220,9 @@ class MucTab(ChatTab):
 
         def callback(iq):
             if iq['type'] == 'error':
-                self.core.information("Could not set role '%s' for '%s'." %
-                                      (role, nick), "Warning")
+                self.core.information(
+                    "Could not set role '%s' for '%s'." % (role, nick),
+                    "Warning")
 
         valid_roles = ('none', 'visitor', 'participant', 'moderator')
 
@@ -281,10 +282,8 @@ class MucTab(ChatTab):
             user = self.get_user_by_name(self.topic_from)
             if user:
                 user_text = dump_tuple(user.color)
-                user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (info_text,
-                                                                    user_text,
-                                                                    user.nick,
-                                                                    info_text)
+                user_string = '\x19%s}(set by \x19%s}%s\x19%s})' % (
+                    info_text, user_text, user.nick, info_text)
             else:
                 user_string = self.topic_from
         else:
@@ -650,8 +649,8 @@ class MucTab(ChatTab):
         self.core.on_user_rejoined_private_conversation(self.name, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
-        new_nick = presence.xml.find('{%s}x/{%s}item' %
-                                     (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
+        new_nick = presence.xml.find(
+            '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
         old_color = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
@@ -959,9 +958,8 @@ class MucTab(ChatTab):
                           role != user.role):
             # display the message in the room
             self._text_buffer.add_message(msg)
-        self.core.on_user_changed_status_in_private('%s/%s' % (from_room,
-                                                               from_nick),
-                                                    Status(show, status))
+        self.core.on_user_changed_status_in_private(
+            '%s/%s' % (from_room, from_nick), Status(show, status))
         self.users.remove(user)
         # finally, effectively change the user status
         user.update(affiliation, show, status, role)
@@ -1178,8 +1176,9 @@ class MucTab(ChatTab):
             info_win_height = self.core.information_win_size
 
         self.user_win.resize(
-            self.height - 3 - info_win_height - tab_win_height, self.width -
-            (self.width // 10) * 9 - 1, 1, (self.width // 10) * 9 + 1)
+            self.height - 3 - info_win_height - tab_win_height,
+            self.width - (self.width // 10) * 9 - 1, 1,
+            (self.width // 10) * 9 + 1)
         self.v_separator.resize(
             self.height - 3 - info_win_height - tab_win_height, 1, 1,
             9 * (self.width // 10))
@@ -1223,15 +1222,16 @@ class MucTab(ChatTab):
             text_width = self.width
         else:
             text_width = (self.width // 10) * 9
-        self.user_win.resize(self.height - 3 - self.core.information_win_size -
-                             Tab.tab_win_height(),
-                             self.width - (self.width // 10) * 9 - 1, 1,
-                             (self.width // 10) * 9 + 1)
+        self.user_win.resize(
+            self.height - 3 - self.core.information_win_size -
+            Tab.tab_win_height(), self.width - (self.width // 10) * 9 - 1, 1,
+            (self.width // 10) * 9 + 1)
         self.v_separator.resize(
             self.height - 3 - self.core.information_win_size -
             Tab.tab_win_height(), 1, 1, 9 * (self.width // 10))
-        self.text_win.resize(self.height - 3 - self.core.information_win_size -
-                             Tab.tab_win_height(), text_width, 1, 0)
+        self.text_win.resize(
+            self.height - 3 - self.core.information_win_size -
+            Tab.tab_win_height(), text_width, 1, 0)
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
@@ -1329,8 +1329,9 @@ class MucTab(ChatTab):
         nick = args[0]
         color = args[1].lower()
         if nick == self.own_nick:
-            return self.core.information("You cannot change the color of your"
-                                         " own nick.", 'Error')
+            return self.core.information(
+                "You cannot change the color of your"
+                " own nick.", 'Error')
         elif color not in xhtml.colors and color not in ('unset', 'random'):
             return self.core.information("Unknown color: %s" % color, 'Error')
         self.set_nick_color(nick, color)
@@ -1446,9 +1447,9 @@ class MucTab(ChatTab):
             affiliation = aff.get(user.affiliation,
                                   get_theme().CHAR_AFFILIATION_NONE)
             color = colors.get(user.role, color_other)
-            buff.append('\x19%s}%s\x19o\x19%s}%s\x19o' %
-                        (color, affiliation, dump_tuple(user.color),
-                         user.nick))
+            buff.append(
+                '\x19%s}%s\x19o\x19%s}%s\x19o' %
+                (color, affiliation, dump_tuple(user.color), user.nick))
 
         buff.append('\n')
         message = ' '.join(buff)

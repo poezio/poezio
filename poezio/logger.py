@@ -125,9 +125,7 @@ class Logger:
             return fd
         except IOError:
             log.error(
-                'Unable to open the log file (%s)',
-                filename,
-                exc_info=True)
+                'Unable to open the log file (%s)', filename, exc_info=True)
 
     def get_logs(self, jid, nb=10):
         """
@@ -151,16 +149,11 @@ class Logger:
         try:
             fd = filename.open('rb')
         except FileNotFoundError:
-            log.info(
-                'Non-existing log file (%s)',
-                filename,
-                exc_info=True)
+            log.info('Non-existing log file (%s)', filename, exc_info=True)
             return
         except OSError:
             log.error(
-                'Unable to open the log file (%s)',
-                filename,
-                exc_info=True)
+                'Unable to open the log file (%s)', filename, exc_info=True)
             return
         if not fd:
             return
@@ -228,8 +221,7 @@ class Logger:
         filename = log_dir / 'roster.log'
         if not self._roster_logfile:
             try:
-                self._roster_logfile = filename.open(
-                    'a', encoding='utf-8')
+                self._roster_logfile = filename.open('a', encoding='utf-8')
             except IOError:
                 log.error(
                     'Unable to create the log file (%s)',
@@ -242,8 +234,8 @@ class Logger:
             lines = message.split('\n')
             first_line = lines.pop(0)
             nb_lines = str(len(lines)).zfill(3)
-            self._roster_logfile.write('MI %s %s %s %s\n' %
-                                       (str_time, nb_lines, jid, first_line))
+            self._roster_logfile.write(
+                'MI %s %s %s %s\n' % (str_time, nb_lines, jid, first_line))
             for line in lines:
                 self._roster_logfile.write(' %s\n' % line)
             self._roster_logfile.flush()

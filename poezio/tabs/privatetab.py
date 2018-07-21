@@ -307,8 +307,9 @@ class PrivateTab(OneToOneTab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
             return
-        self.text_win.resize(self.height - 2 - self.core.information_win_size -
-                             Tab.tab_win_height(), self.width, 0, 0)
+        self.text_win.resize(
+            self.height - 2 - self.core.information_win_size -
+            Tab.tab_win_height(), self.width, 0, 0)
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)

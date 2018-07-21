@@ -67,7 +67,8 @@ class CompletionCore:
     def theme(self, the_input):
         """ Completion for /theme"""
         themes_dir = config.get('themes_dir')
-        themes_dir = Path(themes_dir).expanduser() if themes_dir else xdg.DATA_HOME / 'themes'
+        themes_dir = Path(themes_dir).expanduser(
+        ) if themes_dir else xdg.DATA_HOME / 'themes'
         try:
             theme_files = [
                 name.stem for name in themes_dir.iterdir()
@@ -131,8 +132,8 @@ class CompletionCore:
             serv_list = []
             for tab in self.core.get_tabs(tabs.MucTab):
                 if tab.joined:
-                    serv_list.append('%s@%s' % (jid.user,
-                                                safeJID(tab.name).host))
+                    serv_list.append(
+                        '%s@%s' % (jid.user, safeJID(tab.name).host))
             serv_list.extend(relevant_rooms)
             return Completion(
                 the_input.new_completion, serv_list, 1, quotify=True)

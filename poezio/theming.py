@@ -495,7 +495,8 @@ def update_themes_dir(option=None, value=None):
 
     # import from the user-defined prefs
     themes_dir = config.get('themes_dir')
-    themes_dir = Path(themes_dir).expanduser() if themes_dir else xdg.DATA_HOME / 'themes'
+    themes_dir = Path(
+        themes_dir).expanduser() if themes_dir else xdg.DATA_HOME / 'themes'
     try:
         themes_dir.mkdir(parents=True, exist_ok=True)
     except OSError:

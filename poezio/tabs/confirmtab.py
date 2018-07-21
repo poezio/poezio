@@ -106,8 +106,9 @@ class ConfirmTab(Tab):
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
             return
-        self.dialog.resize(self.height - 3 - self.core.information_win_size -
-                           Tab.tab_win_height(), self.width, 1, 0)
+        self.dialog.resize(
+            self.height - 3 - self.core.information_win_size -
+            Tab.tab_win_height(), self.width, 1, 0)
         self.infowin_bottom.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)

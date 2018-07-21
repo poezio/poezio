@@ -552,10 +552,10 @@ class CommandCore:
                             theme.COLOR_INFORMATION_TEXT),
                     })
                 for option_name, option_value in section.items():
-                    lines.append('%s\x19%s}=\x19o%s' %
-                                 (option_name,
-                                  dump_tuple(theme.COLOR_REVISIONS_MESSAGE),
-                                  option_value))
+                    lines.append(
+                        '%s\x19%s}=\x19o%s' %
+                        (option_name, dump_tuple(
+                            theme.COLOR_REVISIONS_MESSAGE), option_value))
             info = ('Current  options:\n%s' % '\n'.join(lines), 'Info')
         elif len(args) == 1:
             option = args[0]
@@ -570,7 +570,8 @@ class CommandCore:
                     section = plugin_name
                 option = args[1]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    file_name = self.core.plugin_manager.plugins_conf_dir / (plugin_name + '.cfg')
+                    file_name = self.core.plugin_manager.plugins_conf_dir / (
+                        plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
                     plugin_config = self.core.plugin_manager.plugins[
@@ -597,7 +598,8 @@ class CommandCore:
                 option = args[1]
                 value = args[2]
                 if plugin_name not in self.core.plugin_manager.plugins:
-                    file_name = self.core.plugin_manager.plugins_conf_dir / (plugin_name + '.cfg')
+                    file_name = self.core.plugin_manager.plugins_conf_dir / (
+                        plugin_name + '.cfg')
                     plugin_config = PluginConfig(file_name, plugin_name)
                 else:
                     plugin_config = self.core.plugin_manager.plugins[
@@ -685,8 +687,9 @@ class CommandCore:
             "Callback for the last activity"
             if iq['type'] != 'result':
                 if iq['error']['type'] == 'auth':
-                    self.core.information('You are not allowed to see the '
-                                          'activity of this contact.', 'Error')
+                    self.core.information(
+                        'You are not allowed to see the '
+                        'activity of this contact.', 'Error')
                 else:
                     self.core.information('Error retrieving the activity',
                                           'Error')
@@ -753,8 +756,9 @@ class CommandCore:
             specific = args[1]
             text = args[2]
         if specific and specific not in pep.ACTIVITIES[general]:
-            return self.core.information('%s is not a correct value '
-                                         'for an activity' % specific, 'Error')
+            return self.core.information(
+                '%s is not a correct value '
+                'for an activity' % specific, 'Error')
         self.core.xmpp.plugin['xep_0108'].publish_activity(
             general, specific, text, callback=dumb_callback)
 
@@ -928,8 +932,9 @@ class CommandCore:
         """
         /plugins
         """
-        self.core.information("Plugins currently in use: %s" % repr(
-            list(self.core.plugin_manager.plugins.keys())), 'Info')
+        self.core.information(
+            "Plugins currently in use: %s" % repr(
+                list(self.core.plugin_manager.plugins.keys())), 'Info')
 
     @command_args_parser.quoted(1, 1)
     def message(self, args):

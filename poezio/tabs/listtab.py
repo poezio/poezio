@@ -173,8 +173,9 @@ class ListTab(Tab):
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
-        self.listview.resize(self.height - 3 - self.core.information_win_size -
-                             Tab.tab_win_height(), self.width, 1, 0)
+        self.listview.resize(
+            self.height - 3 - self.core.information_win_size -
+            Tab.tab_win_height(), self.width, 1, 0)
 
     def on_lose_focus(self):
         self.state = 'normal'

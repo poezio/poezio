@@ -25,7 +25,8 @@ class BookmarksTab(Tab):
         self.new_bookmarks = []
         self.removed_bookmarks = []
         self.header_win = windows.ColumnHeaderWin(
-            ('name', 'room@server/nickname', 'password', 'autojoin', 'storage'))
+            ('name', 'room@server/nickname', 'password', 'autojoin',
+             'storage'))
         self.bookmarks_win = windows.BookmarksWin(
             self.bookmarks, self.height - 4, self.width, 1, 0)
         self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '
@@ -77,8 +78,9 @@ class BookmarksTab(Tab):
                 if not self.bookmarks[bm.jid]:
                     self.bookmarks.append(bm)
             else:
-                self.core.information('Invalid JID for bookmark: %s/%s' %
-                                      (bm.jid, bm.nick), 'Error')
+                self.core.information(
+                    'Invalid JID for bookmark: %s/%s' % (bm.jid, bm.nick),
+                    'Error')
                 return
 
         for bm in self.removed_bookmarks:

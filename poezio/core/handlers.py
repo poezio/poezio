@@ -138,8 +138,9 @@ class HandlerCore:
 
         sent = message['carbon_sent']
         # todo: implement proper MUC detection logic
-        if (sent['to'].resource and (sent['to'].bare not in roster
-                or roster[sent['to'].bare].subscription == 'none')):
+        if (sent['to'].resource
+                and (sent['to'].bare not in roster
+                     or roster[sent['to'].bare].subscription == 'none')):
             fixes.has_identity(
                 self.core.xmpp,
                 sent['to'].server,
@@ -276,9 +277,7 @@ class HandlerCore:
                                           message['from'].bare)
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
-            message,
-            use_xhtml=use_xhtml,
-            extract_images_to=tmp_dir)
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body:
             if not self.core.xmpp.plugin['xep_0380'].has_eme(message):
                 return
@@ -332,9 +331,7 @@ class HandlerCore:
         if not message['body']:
             return
         body = xhtml.get_body_from_message_stanza(
-            message,
-            use_xhtml=use_xhtml,
-            extract_images_to=tmp_dir)
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         delayed, date = common.find_delayed_tag(message)
 
         def try_modify():
@@ -395,7 +392,8 @@ class HandlerCore:
             avatar_hash = info['id']
 
             # First check whether we have it in cache.
-            cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+            cached_avatar = self.core.avatar_cache.retrieve_by_jid(
+                jid, avatar_hash)
             if cached_avatar:
                 contact.avatar = cached_avatar
                 log.debug('Using cached avatar for %s', jid)
@@ -404,9 +402,8 @@ class HandlerCore:
             # If we didn’t have any, query the data instead.
             if not info['url']:
                 try:
-                    result = await self.core.xmpp[
-                        'xep_0084'].retrieve_avatar(
-                            jid, avatar_hash, timeout=60)
+                    result = await self.core.xmpp['xep_0084'].retrieve_avatar(
+                        jid, avatar_hash, timeout=60)
                     avatar = result['pubsub']['items']['item']['avatar_data'][
                         'value']
                     if sha1(avatar).hexdigest().lower() != avatar_hash.lower():
@@ -421,7 +418,8 @@ class HandlerCore:
                 log.debug('Received %s avatar: %s', jid, info['type'])
 
                 # Now we save the data on the file system to not have to request it again.
-                if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
+                if not self.core.avatar_cache.store_by_jid(
+                        jid, avatar_hash, contact.avatar):
                     log.debug(
                         'Failed writing %s’s avatar to cache:',
                         jid,
@@ -437,7 +435,8 @@ class HandlerCore:
         log.debug('Received vCard avatar update from %s: %s', jid, avatar_hash)
 
         # First check whether we have it in cache.
-        cached_avatar = self.core.avatar_cache.retrieve_by_jid(jid, avatar_hash)
+        cached_avatar = self.core.avatar_cache.retrieve_by_jid(
+            jid, avatar_hash)
         if cached_avatar:
             contact.avatar = cached_avatar
             log.debug('Using cached avatar for %s', jid)
@@ -458,8 +457,10 @@ class HandlerCore:
         log.debug('Received %s avatar: %s', jid, avatar['TYPE'])
 
         # Now we save the data on the file system to not have to request it again.
-        if not self.core.avatar_cache.store_by_jid(jid, avatar_hash, contact.avatar):
-            log.debug('Failed writing %s’s avatar to cache:', jid, exc_info=True)
+        if not self.core.avatar_cache.store_by_jid(jid, avatar_hash,
+                                                   contact.avatar):
+            log.debug(
+                'Failed writing %s’s avatar to cache:', jid, exc_info=True)
 
     def on_nick_received(self, message):
         """
@@ -509,9 +510,9 @@ class HandlerCore:
                 'display_gaming_notifications', contact.bare_jid):
             if contact.gaming:
                 self.core.information(
-                    '%s is playing %s' %
-                    (contact.bare_jid,
-                     common.format_gaming_string(contact.gaming)), 'Gaming')
+                    '%s is playing %s' % (contact.bare_jid,
+                                          common.format_gaming_string(
+                                              contact.gaming)), 'Gaming')
             else:
                 self.core.information(contact.bare_jid + ' stopped playing.',
                                       'Gaming')
@@ -592,8 +593,9 @@ class HandlerCore:
         if old_activity != contact.activity and config.get_by_tabname(
                 'display_activity_notifications', contact.bare_jid):
             if contact.activity:
-                self.core.information('Activity from ' + contact.bare_jid +
-                                      ': ' + contact.activity, 'Activity')
+                self.core.information(
+                    'Activity from ' + contact.bare_jid + ': ' +
+                    contact.activity, 'Activity')
             else:
                 self.core.information(
                     contact.bare_jid + ' stopped doing his/her activity.',
@@ -625,9 +627,9 @@ class HandlerCore:
             contact.tune = {}
 
         if contact.tune:
-            logger.log_roster_change(message['from'].bare,
-                                     'is now listening to %s' %
-                                     common.format_tune_string(contact.tune))
+            logger.log_roster_change(
+                message['from'].bare, 'is now listening to %s' %
+                common.format_tune_string(contact.tune))
 
         if old_tune != contact.tune and config.get_by_tabname(
                 'display_tune_notifications', contact.bare_jid):
@@ -668,9 +670,7 @@ class HandlerCore:
         use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
-            message,
-            use_xhtml=use_xhtml,
-            extract_images_to=tmp_dir)
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body:
             return
 
@@ -744,9 +744,7 @@ class HandlerCore:
         use_xhtml = config.get_by_tabname('enable_xhtml_im', jid.bare)
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
-            message,
-            use_xhtml=use_xhtml,
-            extract_images_to=tmp_dir)
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         tab = self.core.get_tab_by_name(
             jid.full,
             tabs.PrivateTab)  # get the tab with the private conversation
@@ -755,7 +753,8 @@ class HandlerCore:
             if body and not ignore:
                 tab = self.core.open_private_window(room_from, with_nick,
                                                     False)
-        sender_nick = (tab.own_nick or self.core.own_nick) if sent else with_nick
+        sender_nick = (tab.own_nick
+                       or self.core.own_nick) if sent else with_nick
         if ignore and not sent:
             self.core.events.trigger('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
@@ -765,9 +764,7 @@ class HandlerCore:
             return
         self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(
-            message,
-            use_xhtml=use_xhtml,
-            extract_images_to=tmp_dir)
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body or not tab:
             return
         replaced = False
@@ -898,15 +895,16 @@ class HandlerCore:
         if iq['type'] == 'error':
             error_condition = iq['error']['condition']
             error_text = iq['error']['text']
-            reply = '%s: %s' % (error_condition, error_text) if error_text else error_condition
-            return self.core.information('Could not get the software '
-                                         'version from %s: %s' % (jid, reply),
-                                         'Warning')
+            reply = '%s: %s' % (error_condition,
+                                error_text) if error_text else error_condition
+            return self.core.information(
+                'Could not get the software '
+                'version from %s: %s' % (jid, reply), 'Warning')
         res = iq['software_version']
         version = '%s is running %s version %s on %s' % (
             jid, res.get('name', 'an unknown software'),
-            res.get('version', 'unknown'),
-            res.get('os', 'an unknown platform'))
+            res.get('version', 'unknown'), res.get('os',
+                                                   'an unknown platform'))
         self.core.information(version, 'Info')
 
     ### subscription-related handlers ###
@@ -1127,8 +1125,8 @@ class HandlerCore:
         """
         We cannot contact the remote server
         """
-        self.core.information("Connection to remote server failed: %s" %
-                              (error, ), 'Error')
+        self.core.information(
+            "Connection to remote server failed: %s" % (error, ), 'Error')
 
     async def on_disconnected(self, event):
         """
@@ -1230,8 +1228,8 @@ class HandlerCore:
         tab = self.core.get_tab_by_name(room_from, tabs.MucTab)
         status_codes = {
             s.attrib['code']
-            for s in message.xml.findall('{%s}x/{%s}status' % (
-                tabs.NS_MUC_USER, tabs.NS_MUC_USER))
+            for s in message.xml.findall('{%s}x/{%s}status' %
+                                         (tabs.NS_MUC_USER, tabs.NS_MUC_USER))
         }
         if '101' in status_codes:
             self.core.information(
@@ -1342,9 +1340,8 @@ class HandlerCore:
                     after = ''
                 if user:
                     user_col = dump_tuple(user.color)
-                    user_string = '\x19%s}%s\x19%s}%s' % (user_col, nick_from,
-                                                          fmt['info_col'],
-                                                          after)
+                    user_string = '\x19%s}%s\x19%s}%s' % (
+                        user_col, nick_from, fmt['info_col'], after)
                 else:
                     user_string = '\x19%s}%s%s' % (fmt['info_col'], nick_from,
                                                    after)

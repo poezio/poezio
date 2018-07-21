@@ -422,8 +422,8 @@ class FormWin:
         self.current_input += 1
         jump = 0
         while self.current_input + jump != len(
-                self.inputs) - 1 and self.inputs[self.current_input
-                                                 + jump]['input'].is_dummy():
+                self.inputs) - 1 and self.inputs[self.current_input +
+                                                 jump]['input'].is_dummy():
             jump += 1
         if self.inputs[self.current_input + jump]['input'].is_dummy():
             return

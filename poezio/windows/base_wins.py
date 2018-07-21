@@ -120,8 +120,8 @@ class Win:
                 self._win.attron(attr_italic)
             if (attr_char in string.digits
                     or attr_char == '-') and attr_char != '':
-                color_str = text[next_attr_char + 1:text.find(
-                    '}', next_attr_char)]
+                color_str = text[next_attr_char +
+                                 1:text.find('}', next_attr_char)]
                 if ',' in color_str:
                     tup, char = read_tuple(color_str)
                     self._win.attron(to_curses_attr(tup))

@@ -208,8 +208,7 @@ def get_body_from_message_stanza(message,
     xhtml_body = xhtml.find('{http://www.w3.org/1999/xhtml}body')
     if xhtml_body is None:
         return message['body']
-    content = xhtml_to_poezio_colors(
-        xhtml_body, tmp_dir=extract_images_to)
+    content = xhtml_to_poezio_colors(xhtml_body, tmp_dir=extract_images_to)
     content = content if content else message['body']
     return content or " "
 
@@ -356,7 +355,8 @@ class XHTMLHandler(sax.ContentHandler):
         elif name == 'em':
             self.append_formatting('\x19i')
         elif name == 'img':
-            if re.match(xhtml_data_re, attrs['src']) and self.tmp_image_dir is not None:
+            if re.match(xhtml_data_re,
+                        attrs['src']) and self.tmp_image_dir is not None:
                 type_, data = [
                     i for i in re.split(xhtml_data_re, attrs['src']) if i
                 ]
@@ -441,8 +441,7 @@ def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None):
     elif not isinstance(xml, bytes):
         xml = ET.tostring(xml)
 
-    handler = XHTMLHandler(
-        force_ns=force, tmp_image_dir=tmp_dir)
+    handler = XHTMLHandler(force_ns=force, tmp_image_dir=tmp_dir)
     parser = sax.make_parser()
     parser.setFeature(sax.handler.feature_namespaces, True)
     parser.setContentHandler(handler)
@@ -561,8 +560,8 @@ def poezio_colors_to_html(string):
             check_property('font-style', 'italic')
 
         if attr_char in digits:
-            number_str = string[next_attr_char + 1:string.find(
-                '}', next_attr_char)]
+            number_str = string[next_attr_char +
+                                1:string.find('}', next_attr_char)]
             number = int(number_str)
             if number in number_to_color_names:
                 check_property('color',

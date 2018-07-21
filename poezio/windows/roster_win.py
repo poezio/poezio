@@ -146,8 +146,8 @@ class RosterWin(Win):
             self.scroll_down(self.pos - self.start_pos - self.height +
                              (self.height // 2))
         # draw the roster from the cache
-        roster_view = self.roster_cache[self.start_pos - 1:
-                                        self.start_pos + self.height]
+        roster_view = self.roster_cache[self.start_pos - 1:self.start_pos +
+                                        self.height]
 
         options = {
             'show_roster_sub': config.get('show_roster_subscriptions'),
@@ -190,9 +190,10 @@ class RosterWin(Win):
         """
         The header at the top
         """
-        self.addstr('Roster: %s/%s contacts' %
-                    (roster.get_nb_connected_contacts(), len(roster)),
-                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(
+            'Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(),
+                                        len(roster)),
+            to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
     def draw_group(self, y, group, colored):
@@ -206,9 +207,10 @@ class RosterWin(Win):
         else:
             self.addstr(y, 0, '[-] ')
         contacts = " (%s/%s)" % (group.get_nb_connected_contacts(), len(group))
-        self.addstr(y, 4,
-                    self.truncate_name(group.name,
-                                       len(contacts) + 4) + contacts)
+        self.addstr(
+            y, 4,
+            self.truncate_name(group.name,
+                               len(contacts) + 4) + contacts)
         if colored:
             self._win.attroff(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
         self.finish_line()

@@ -93,8 +93,8 @@ class PluginManager:
         except Exception as e:
             log.error('Error while loading the plugin %s', name, exc_info=True)
             if notify:
-                self.core.information('Unable to load the plugin %s: %s' %
-                                      (name, e), 'Error')
+                self.core.information(
+                    'Unable to load the plugin %s: %s' % (name, e), 'Error')
             self.unload(name, notify=False)
         else:
             if notify:
@@ -130,8 +130,8 @@ class PluginManager:
                     self.core.information('Plugin %s unloaded' % name, 'Info')
             except Exception as e:
                 log.debug("Could not unload plugin %s", name, exc_info=True)
-                self.core.information("Could not unload plugin %s: %s" %
-                                      (name, e), 'Error')
+                self.core.information(
+                    "Could not unload plugin %s: %s" % (name, e), 'Error')
 
     def add_command(self,
                     module_name,
@@ -327,7 +327,8 @@ class PluginManager:
         Create the plugins_conf_dir
         """
         plugins_conf_dir = config.get('plugins_conf_dir')
-        self.plugins_conf_dir = Path(plugins_conf_dir).expanduser() if plugins_conf_dir else xdg.CONFIG_HOME / 'plugins'
+        self.plugins_conf_dir = Path(plugins_conf_dir).expanduser(
+        ) if plugins_conf_dir else xdg.CONFIG_HOME / 'plugins'
         self.check_create_plugins_conf_dir()
 
     def check_create_plugins_conf_dir(self):
@@ -351,7 +352,8 @@ class PluginManager:
         Set the plugins_dir on start
         """
         plugins_dir = config.get('plugins_dir')
-        self.plugins_dir = Path(plugins_dir).expanduser() if plugins_dir else xdg.DATA_HOME / 'plugins'
+        self.plugins_dir = Path(plugins_dir).expanduser(
+        ) if plugins_dir else xdg.DATA_HOME / 'plugins'
         self.check_create_plugins_dir()
 
     def check_create_plugins_dir(self):

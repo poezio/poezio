@@ -316,16 +316,18 @@ class Config(RawConfigParser):
             sections, result_lines = result
 
         if section not in sections:
-            log.error('Tried to remove the option %s from a non-'
-                      'existing section (%s)', option, section)
+            log.error(
+                'Tried to remove the option %s from a non-'
+                'existing section (%s)', option, section)
             return True
         else:
             begin, end = sections[section]
             pos = find_line(result_lines, begin, end, option)
 
             if pos is -1:
-                log.error('Tried to remove a non-existing option %s'
-                          ' from section %s', option, section)
+                log.error(
+                    'Tried to remove a non-existing option %s'
+                    ' from section %s', option, section)
                 return True
             else:
                 del result_lines[pos]
@@ -338,7 +340,8 @@ class Config(RawConfigParser):
         before copying it to the final destination
         """
         try:
-            filename = self.file_name.parent / ('.%s.tmp' % self.file_name.name)
+            filename = self.file_name.parent / (
+                '.%s.tmp' % self.file_name.name)
             with os.fdopen(
                     os.open(
                         str(filename),
@@ -423,9 +426,10 @@ class Config(RawConfigParser):
                 elif current.lower() == "true":
                     value = "false"
                 else:
-                    return ('Could not toggle option: %s.'
-                            ' Current value is %s.' %
-                            (option, current or "empty"), 'Warning')
+                    return (
+                        'Could not toggle option: %s.'
+                        ' Current value is %s.' % (option, current or "empty"),
+                        'Warning')
         if self.has_section(section):
             RawConfigParser.set(self, section, option, value)
         else:
@@ -555,10 +559,12 @@ def run_cmdline_args():
         try:
             options.filename.parent.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            sys.stderr.write('Poezio was unable to create the config directory: %s\n' % e)
+            sys.stderr.write(
+                'Poezio was unable to create the config directory: %s\n' % e)
             sys.exit(1)
         default = Path(__file__).parent / '..' / 'data' / 'default_config.cfg'
-        other = Path(pkg_resources.resource_filename('poezio', 'default_config.cfg'))
+        other = Path(
+            pkg_resources.resource_filename('poezio', 'default_config.cfg'))
         if default.is_file():
             copy2(str(default), str(options.filename))
         elif other.is_file():
@@ -568,8 +574,8 @@ def run_cmdline_args():
         # file is readonly, so is the copy.
         # Make it writable by the user who just created it.
         if options.filename.exists():
-            options.filename.chmod(
-                     options.filename.stat().st_mode | stat.S_IWUSR)
+            options.filename.chmod(options.filename.stat().st_mode
+                                   | stat.S_IWUSR)
 
         global firstrun
         firstrun = True

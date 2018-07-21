@@ -77,7 +77,8 @@ class Core:
         self.bookmarks = BookmarkList()
         self.debug = False
         self.remote_fifo = None
-        self.avatar_cache = FileSystemPerJidCache(str(xdg.CACHE_HOME), 'avatars', binary=True)
+        self.avatar_cache = FileSystemPerJidCache(
+            str(xdg.CACHE_HOME), 'avatars', binary=True)
         # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.
@@ -320,10 +321,10 @@ class Core:
                                        self.on_request_receipts_config_change)
         self.add_configuration_handler("ack_message_receipts",
                                        self.on_ack_receipts_config_change)
-        self.add_configuration_handler("plugins_dir",
-                                       self.plugin_manager.on_plugins_dir_change)
-        self.add_configuration_handler("plugins_conf_dir",
-                                       self.plugin_manager.on_plugins_conf_dir_change)
+        self.add_configuration_handler(
+            "plugins_dir", self.plugin_manager.on_plugins_dir_change)
+        self.add_configuration_handler(
+            "plugins_conf_dir", self.plugin_manager.on_plugins_conf_dir_change)
         self.add_configuration_handler("connection_timeout_delay",
                                        self.xmpp.set_keepalive_values)
         self.add_configuration_handler("connection_check_interval",
@@ -676,8 +677,9 @@ class Core:
         ok = ok and config.silent_set('info_win_height',
                                       self.information_win_size, 'var')
         if not ok:
-            self.information('Unable to save runtime preferences'
-                             ' in the config file', 'Error')
+            self.information(
+                'Unable to save runtime preferences'
+                ' in the config file', 'Error')
 
     def on_roster_enter_key(self, roster_row):
         """
@@ -767,15 +769,15 @@ class Core:
             filename = os.path.join(fifo_path, 'poezio.fifo')
             if not self.remote_fifo:
                 try:
-                    self.remote_fifo = Fifo(
-                        filename, 'w')
+                    self.remote_fifo = Fifo(filename, 'w')
                 except (OSError, IOError) as exc:
                     log.error(
                         'Could not open the fifo for writing (%s)',
                         filename,
                         exc_info=True)
-                    self.information('Could not open the fifo '
-                                     'file for writing: %s' % exc, 'Error')
+                    self.information(
+                        'Could not open the fifo '
+                        'file for writing: %s' % exc, 'Error')
                     return
 
             args = (pipes.quote(arg.replace('\n', ' ')) for arg in command)
@@ -862,8 +864,9 @@ class Core:
             msg = msg.replace('\n', '|') if msg else ''
             ok = ok and config.silent_set('status_message', msg)
             if not ok:
-                self.information('Unable to save the status in '
-                                 'the config file', 'Error')
+                self.information(
+                    'Unable to save the status in '
+                    'the config file', 'Error')
 
     def get_bookmark_nickname(self, room_name):
         """
@@ -1420,8 +1423,7 @@ class Core:
         if typ.lower() in filter_types:
             log.debug(
                 'Did not show the message:\n\t%s> %s \n\tdue to '
-                'information_buffer_type_filter configuration',
-                typ, msg)
+                'information_buffer_type_filter configuration', typ, msg)
             return False
         filter_messages = config.get('filter_info_messages').split(':')
         for words in filter_messages:
@@ -2076,9 +2078,9 @@ class Core:
                 type_ = iq['error']['type']
                 condition = iq['error']['condition']
                 if not (type_ == 'cancel' and condition == 'item-not-found'):
-                    self.information('Unable to fetch the remote'
-                                     ' bookmarks; %s: %s' % (type_, condition),
-                                     'Error')
+                    self.information(
+                        'Unable to fetch the remote'
+                        ' bookmarks; %s: %s' % (type_, condition), 'Error')
                 return
             remote_bookmarks = self.bookmarks.remote()
             self.join_initial_rooms(remote_bookmarks)
