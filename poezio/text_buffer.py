@@ -11,9 +11,11 @@ independently by their TextWins.
 import logging
 log = logging.getLogger(__name__)
 
+from typing import Union, Optional, List, Tuple
 from datetime import datetime
 from poezio.config import config
 from poezio.theming import get_theme, dump_tuple
+from poezio.windows import BaseTextWin
 
 
 class Message:
@@ -22,24 +24,24 @@ class Message:
                  'jid', 'ack')
 
     def __init__(self,
-                 txt,
-                 time,
-                 nickname,
-                 nick_color,
-                 history,
-                 user,
-                 identifier,
-                 str_time=None,
-                 highlight=False,
-                 old_message=None,
-                 revisions=0,
-                 jid=None,
-                 ack=0):
+                 txt: str,
+                 time: Optional[datetime],
+                 nickname: Optional[str],
+                 nick_color: Optional[Tuple],
+                 history: bool,
+                 user: Optional[str],
+                 identifier: Optional[str],
+                 str_time: Optional[str] = None,
+                 highlight: bool = False,
+                 old_message: Optional[Message] = None,
+                 revisions: int = 0,
+                 jid: Optional[str] = None,
+                 ack: int = 0) -> None:
         """
         Create a new Message object with parameters, check for /me messages,
         and delayed messages
         """
-        time = time or datetime.now()
+        time = time if time is not None else datetime.now()
         if txt.startswith('/me '):
             me = True
             txt = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_ME_MESSAGE),
@@ -71,7 +73,7 @@ class Message:
         self.jid = jid
         self.ack = ack
 
-    def _other_elems(self):
+    def _other_elems(self) -> str:
         "Helper for the repr_message function"
         acc = []
         fields = list(self.__slots__)
@@ -80,7 +82,7 @@ class Message:
             acc.append('%s=%s' % (field, repr(getattr(self, field))))
         return 'Message(%s, %s' % (', '.join(acc), 'old_message=')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         repr() for the Message class, for debug purposes, since the default
         repr() is recursive, so it can stack overflow given too many revisions
@@ -115,37 +117,37 @@ class TextBuffer:
     information and attributes.
     """
 
-    def __init__(self, messages_nb_limit=None):
+    def __init__(self, messages_nb_limit: Optional[int] = None) -> None:
 
         if messages_nb_limit is None:
             messages_nb_limit = config.get('max_messages_in_memory')
-        self._messages_nb_limit = messages_nb_limit
+        self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
-        self.messages = []
+        self.messages = []  # type: List[Message]
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self._windows = []
+        self._windows = []  # type: List[BaseTextWin]
 
-    def add_window(self, win):
+    def add_window(self, win: BaseTextWin) -> None:
         self._windows.append(win)
 
     @property
-    def last_message(self):
+    def last_message(self) -> Optional[Message]:
         return self.messages[-1] if self.messages else None
 
     def add_message(self,
-                    txt,
-                    time=None,
-                    nickname=None,
-                    nick_color=None,
-                    history=None,
-                    user=None,
-                    highlight=False,
-                    identifier=None,
-                    str_time=None,
-                    jid=None,
-                    ack=0):
+                    txt: str,
+                    time: Optional[datetime] = None,
+                    nickname: Optional[str] = None,
+                    nick_color: Optional[Tuple] = None,
+                    history: bool = False,
+                    user: Optional[str] = None,
+                    highlight: bool = False,
+                    identifier: Optional[str] = None,
+                    str_time: Optional[str] = None,
+                    jid: Optional[str] = None,
+                    ack: int = 0) -> int:
         """
         Create a message and add it to the text buffer
         """
@@ -184,7 +186,7 @@ class TextBuffer:
 
         return min(ret_val, 1)
 
-    def _find_message(self, old_id):
+    def _find_message(self, old_id: str) -> int:
         """
         Find a message in the text buffer from its message id
         """
@@ -194,22 +196,22 @@ class TextBuffer:
                 return i
         return -1
 
-    def ack_message(self, old_id, jid):
+    def ack_message(self, old_id: str, jid: str) -> Union[None, bool, Message]:
         """Mark a message as acked"""
         return self._edit_ack(1, old_id, jid)
 
-    def nack_message(self, error, old_id, jid):
+    def nack_message(self, error: str, old_id: str, jid: str) -> Union[None, bool, Message]:
         """Mark a message as errored"""
         return self._edit_ack(-1, old_id, jid, append=error)
 
-    def _edit_ack(self, value, old_id, jid, append=''):
+    def _edit_ack(self, value: int, old_id: str, jid: str, append: str = '') -> Union[None, bool, Message]:
         """
         Edit the ack status of a message, and optionally
         append some text.
         """
         i = self._find_message(old_id)
         if i == -1:
-            return
+            return None
         msg = self.messages[i]
         if msg.ack == 1:  # Message was already acked
             return False
@@ -223,13 +225,13 @@ class TextBuffer:
         return msg
 
     def modify_message(self,
-                       txt,
-                       old_id,
-                       new_id,
-                       highlight=False,
-                       time=None,
-                       user=None,
-                       jid=None):
+                       txt: str,
+                       old_id: str,
+                       new_id: str,
+                       highlight: bool = False,
+                       time: Optional[datetime] = None,
+                       user: Optional[str] = None,
+                       jid: Optional[str] = None):
         """
         Correct a message in a text buffer.
         """
@@ -263,7 +265,7 @@ class TextBuffer:
             time,
             msg.nickname,
             msg.nick_color,
-            None,
+            False,
             msg.user,
             new_id,
             highlight=highlight,
@@ -274,7 +276,7 @@ class TextBuffer:
         log.debug('Replacing message %s with %s.', old_id, new_id)
         return message
 
-    def del_window(self, win):
+    def del_window(self, win: BaseTextWin) -> None:
         self._windows.remove(win)
 
     def __del__(self):
