@@ -23,7 +23,7 @@ PyObject *ErrorObject;
 
 /**
    Just checking if the return value is -1.  In some (all?) implementations,
-   wcwidth("😆") returns -1 while it should return 1.  In these cases, we
+   wcwidth("😆") returns -1 while it should return 2.  In these cases, we
    return 1 instead because this is by far the most probable real value.
    Since the string is received from python, and the unicode character is
    extracted with mbrtowc(), and supposing these two compononents are not
