@@ -92,6 +92,7 @@ class Logger:
             self._fds[jid].close()
             log.debug('Log file for %s closed.', jid)
             del self._fds[jid]
+        return None
 
     def reload_all(self) -> None:
         """Close and reload all the file handles (on SIGHUP)"""
@@ -102,6 +103,7 @@ class Logger:
         for room in self._fds:
             self._fds[room] = self._check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
+        return None
 
     def _check_and_create_log_dir(self, room: str, open_fd: bool = True) -> Optional[TextIO]:
         """
@@ -109,16 +111,16 @@ class Logger:
         exists. if not, create it
         """
         if not config.get_by_tabname('use_log', room):
-            return
+            return None
         try:
             log_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
             log.error('Unable to create the log dir', exc_info=True)
         except:
             log.error('Unable to create the log dir', exc_info=True)
-            return
+            return None
         if not open_fd:
-            return
+            return None
         filename = log_dir / room
         try:
             fd = filename.open('a', encoding='utf-8')
@@ -127,6 +129,7 @@ class Logger:
         except IOError:
             log.error(
                 'Unable to open the log file (%s)', filename, exc_info=True)
+        return None
 
     def get_logs(self, jid: str, nb: int = 10) -> Optional[List[Dict[str, Any]]]:
         """
@@ -136,13 +139,13 @@ class Logger:
         nb lines”.
         """
         if config.get_by_tabname('load_log', jid) <= 0:
-            return
+            return None
 
         if not config.get_by_tabname('use_log', jid):
-            return
+            return None
 
         if nb <= 0:
-            return
+            return None
 
         self._check_and_create_log_dir(jid, open_fd=False)
 
@@ -151,13 +154,13 @@ class Logger:
             fd = filename.open('rb')
         except FileNotFoundError:
             log.info('Non-existing log file (%s)', filename, exc_info=True)
-            return
+            return None
         except OSError:
             log.error(
                 'Unable to open the log file (%s)', filename, exc_info=True)
-            return
+            return None
         if not fd:
-            return
+            return None
 
         # read the needed data from the file, we just search nb messages by
         # searching "\nM" nb times from the end of the file.  We use mmap to
@@ -170,7 +173,7 @@ class Logger:
                     'Unable to mmap the log file for (%s)',
                     filename,
                     exc_info=True)
-                return
+                return None
         return parse_log_lines(lines)
 
     def log_message(self, jid: str, nick: str, msg: str, date: Optional[datetime] = None, typ: int = 1) -> bool:
