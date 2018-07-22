@@ -11,7 +11,7 @@ conversations and roster changes
 
 import mmap
 import re
-from typing import List, Dict, Optional, TextIO, BinaryIO, Any
+from typing import List, Dict, Optional, IO, Any
 from datetime import datetime
 
 from poezio import common
@@ -74,9 +74,9 @@ class Logger:
     """
 
     def __init__(self):
-        self._roster_logfile = None  # Optional[TextIO]
+        self._roster_logfile = None  # Optional[IO[Any]]
         # a dict of 'groupchatname': file-object (opened)
-        self._fds = {}  # type: Dict[str, TextIO]
+        self._fds = {}  # type: Dict[str, IO[Any]]
 
     def __del__(self):
         for opened_file in self._fds.values():
@@ -105,7 +105,7 @@ class Logger:
             log.debug('Log handle for %s re-created', room)
         return None
 
-    def _check_and_create_log_dir(self, room: str, open_fd: bool = True) -> Optional[TextIO]:
+    def _check_and_create_log_dir(self, room: str, open_fd: bool = True) -> Optional[IO[Any]]:
         """
         Check that the directory where we want to log the messages
         exists. if not, create it
@@ -279,7 +279,7 @@ def build_log_message(nick: str, msg: str, date: Optional[datetime] = None, typ:
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
-def get_lines_from_fd(fd: BinaryIO, nb: int = 10) -> List[str]:
+def get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     """
     Get the last log lines from a fileno
     """
