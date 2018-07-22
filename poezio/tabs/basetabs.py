@@ -569,7 +569,7 @@ class ChatTab(Tab):
         """
         # build the list of the recent words
         char_we_dont_want = string.punctuation + ' ’„“”…«»'
-        words = list()
+        words = []
         for msg in self._text_buffer.messages[:-40:-1]:
             if not msg:
                 continue

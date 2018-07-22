@@ -583,7 +583,7 @@ class HistoryInput(Input):
     An input with colors and stuff, plus an history
     ^R allows to search inside the history (as in a shell)
     """
-    history = list()
+    history = []
 
     def __init__(self):
         Input.__init__(self)
@@ -593,7 +593,7 @@ class HistoryInput(Input):
         self.key_func['^R'] = self.toggle_search
         self.search = False
         if config.get('separate_history'):
-            self.history = list()
+            self.history = []
 
     def toggle_search(self):
         if self.help_message:
@@ -669,7 +669,7 @@ class MessageInput(HistoryInput):
     Conversation, Muc and Private tabs
     Also letting the user enter colors or other text markups
     """
-    history = list()  # The history is common to all MessageInput
+    history = []  # The history is common to all MessageInput
 
     def __init__(self):
         HistoryInput.__init__(self)
@@ -716,7 +716,7 @@ class CommandInput(HistoryInput):
     HelpMessage when a command is started
     The on_input callback
     """
-    history = list()
+    history = []
 
     def __init__(self, help_message, on_abort, on_success, on_input=None):
         HistoryInput.__init__(self)
