@@ -686,4 +686,4 @@ options = None
 safeJID = None  # type: Optional[Callable]
 
 # the global log dir
-LOG_DIR = ''
+LOG_DIR = Path()
