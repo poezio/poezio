@@ -192,9 +192,10 @@ class Logger:
         if jid in self._fds.keys():
             fd = self._fds[jid]
         else:
-            fd = self._check_and_create_log_dir(jid)
-        if not fd:
-            return True
+            option_fd = self._check_and_create_log_dir(jid)
+            if option_fd is None:
+                return True
+            fd = option_fd
         filename = log_dir / jid
         try:
             fd.write(logged_msg)
