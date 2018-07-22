@@ -8,7 +8,7 @@ import sys
 
 class Plugin(BasePlugin):
     def init(self):
-        self.on_tab_change(0, self.core.current_tab_nb)
+        self.on_tab_change(None, new_tab=self.core.tabs.current_tab)
         self.api.add_event_handler('tab_change', self.on_tab_change)
 
     def cleanup(self):
@@ -16,8 +16,6 @@ class Plugin(BasePlugin):
         sys.stdout.write("\x1b]0;poezio\x07")
         sys.stdout.flush()
 
-    def on_tab_change(self, old, new):
-        new_tab = self.core.get_tab_by_number(new)
+    def on_tab_change(self, old_tab, new_tab):
         sys.stdout.write("\x1b]0;{}\x07".format(new_tab.name))
         sys.stdout.flush()
-

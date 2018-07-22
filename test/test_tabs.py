@@ -4,6 +4,9 @@ Tests for the Tabs list module
 
 from poezio.core.tabs import Tabs
 from poezio.tabs import GapTab
+from poezio.events import EventHandler
+
+h = EventHandler()
 
 class DummyTab:
     count = 0
@@ -18,7 +21,7 @@ class DummyTab:
 
 def test_append():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     tabs.append(dummy)
     assert tabs[0] is dummy
@@ -35,7 +38,7 @@ def test_append():
 
 def test_delete():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     tabs.append(dummy)
@@ -50,7 +53,7 @@ def test_delete():
 
 def test_delete_restore_previous():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()
@@ -71,7 +74,7 @@ def test_delete_restore_previous():
 
 def test_delete_other_tab():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()
@@ -91,7 +94,7 @@ def test_delete_other_tab():
 
 def test_insert_and_gaps():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()
@@ -114,7 +117,7 @@ def test_insert_and_gaps():
 
 def test_replace_tabs():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()
@@ -129,7 +132,7 @@ def test_replace_tabs():
 
 def test_prev_next():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()
@@ -155,7 +158,7 @@ def test_prev_next():
 
 def test_set_current():
     DummyTab.reset()
-    tabs = Tabs()
+    tabs = Tabs(h)
     dummy = DummyTab()
     dummy2 = DummyTab()
     dummy3 = DummyTab()

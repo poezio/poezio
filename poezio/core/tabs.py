@@ -27,6 +27,7 @@ disabled.
 from typing import List, Dict, Type, Optional, Union
 from collections import defaultdict
 from poezio import tabs
+from poezio.events import EventHandler
 
 
 class Tabs:
@@ -34,11 +35,16 @@ class Tabs:
     Tab list class
     """
     __slots__ = [
-        '_current_index', '_current_tab', '_tabs', '_tab_types', '_tab_names',
-        '_previous_tab'
+        '_current_index',
+        '_current_tab',
+        '_tabs',
+        '_tab_types',
+        '_tab_names',
+        '_previous_tab',
+        '_events',
     ]
 
-    def __init__(self):
+    def __init__(self, events: EventHandler):
         """
         Initialize the Tab List. Even though the list is initially
         empty, all methods are only valid once append() has been called
@@ -53,6 +59,7 @@ class Tabs:
         self._tab_types = defaultdict(
             list)  # type: Dict[Type[tabs.Tab], List[tabs.Tab]]
         self._tab_names = dict()  # type: Dict[str, tabs.Tab]
+        self._events = events  # type: EventHandler
 
     def __len__(self):
         return len(self._tabs)
@@ -78,11 +85,7 @@ class Tabs:
         """Set the current tab index"""
         if 0 <= value < len(self._tabs):
             tab = self._tabs[value]
-            if not isinstance(tab, tabs.GapTab):
-                self._store_previous()
-                self._current_index = tab.nb
-                self._current_tab = tab
-                return True
+            return self.set_current_tab(tab)
         return False
 
     @property
@@ -97,6 +100,10 @@ class Tabs:
             self._store_previous()
             self._current_index = tab.nb
             self._current_tab = tab
+            self._events.trigger(
+                'tab_change',
+                old_tab=self._previous_tab,
+                new_tab=self._current_tab)
             return True
         return False
 
@@ -170,6 +177,10 @@ class Tabs:
         self._inc_cursor()
         while isinstance(self.current_tab, tabs.GapTab):
             self._inc_cursor()
+        self._events.trigger(
+            'tab_change',
+            old_tab=self._previous_tab,
+            new_tab=self._current_tab)
 
     def prev(self):
         """Go to the left of the tab list (circular)"""
@@ -177,6 +188,10 @@ class Tabs:
         self._dec_cursor()
         while isinstance(self.current_tab, tabs.GapTab):
             self._dec_cursor()
+        self._events.trigger(
+            'tab_change',
+            old_tab=self._previous_tab,
+            new_tab=self._current_tab)
 
     def append(self, tab: tabs.Tab):
         """

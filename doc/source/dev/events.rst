@@ -12,8 +12,8 @@ The following events are poezio-only events, for Slixmpp events, check out
         - **tab:** :py:class:`~tabs.MucTab` source of the event
 
     tab_change
-        - **old_tab_nb:** :py:class:`int` Old current tab number.
-        - **new_tab_nb:** :py:class:`int` New current tab number.
+        - **old_tab:** :py:class:`int` Old current tab.
+        - **new_tab:** :py:class:`int` New current tab.
 
         Triggered whenever the user switches between tabs.
 

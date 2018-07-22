@@ -26,19 +26,18 @@ class Plugin(BasePlugin):
         """
         /closeall
         """
-        current = self.core.current_tab()
+        current = self.api.current_tab()
         if not isinstance(current, (tabs.RosterInfoTab, tabs.MucTab)):
             self.core.go_to_roster()
-            current = self.core.current_tab()
+            current = self.api.current_tab()
 
         def filter_func(x):
             return not isinstance(x, (tabs.RosterInfoTab, tabs.MucTab))
 
-        matching_tabs = list(filter(filter_func, self.core.tabs))
+        matching_tabs = list(filter(filter_func, self.core.tabs.get_tabs()))
         length = len(matching_tabs)
         for tab in matching_tabs:
             self.core.close_tab(tab)
-        self.core.current_tab_nb = current.nb
         self.api.information('%s tabs closed.' % length, 'Info')
         self.core.refresh_window()
 

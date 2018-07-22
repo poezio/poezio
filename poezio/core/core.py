@@ -95,7 +95,11 @@ class Core:
         self.xml_tab = None
         self.xml_buffer = TextBuffer()
 
-        self.tabs = Tabs()
+        self.plugins_autoloaded = False
+        self.plugin_manager = PluginManager(self)
+        self.events = events.EventHandler()
+
+        self.tabs = Tabs(self.events)
         self.previous_tab_nb = 0
 
         own_nick = config.get('default_nick')
@@ -103,10 +107,6 @@ class Core:
         own_nick = own_nick or os.environ.get('USER')
         own_nick = own_nick or 'poezio'
         self.own_nick = own_nick
-
-        self.plugins_autoloaded = False
-        self.plugin_manager = PluginManager(self)
-        self.events = events.EventHandler()
 
         self.size = SizeManager(self)
 
