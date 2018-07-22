@@ -12,16 +12,17 @@ https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 from pathlib import Path
 from os import environ
+from typing import Dict
 
 # $HOME has already been checked to not be None in test_env().
 DEFAULT_PATHS = {
     'XDG_CONFIG_HOME': Path.home() / '.config',
     'XDG_DATA_HOME': Path.home() / '.local' / 'share',
     'XDG_CACHE_HOME': Path.home() / '.cache',
-}
+}  # type: Dict[str, Path]
 
 
-def _get_directory(variable: str):
+def _get_directory(variable: str) -> Path:
     """
     returns the default configuration directory path
     """

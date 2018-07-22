@@ -10,19 +10,18 @@ Various useful functions.
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from slixmpp import JID, InvalidJID
-from poezio.poezio_shlex import shlex
+from typing import Dict, List, Optional, Tuple, Union
 
-import base64
 import os
-import mimetypes
-import hashlib
 import subprocess
 import time
 import string
 
+from slixmpp import JID, InvalidJID, Message
+from poezio.poezio_shlex import shlex
 
-def _get_output_of_command(command):
+
+def _get_output_of_command(command: str) -> Optional[List[str]]:
     """
     Runs a command and returns its output.
 
@@ -37,7 +36,7 @@ def _get_output_of_command(command):
         return None
 
 
-def _is_in_path(command, return_abs_path=False):
+def _is_in_path(command: str, return_abs_path=False) -> Union[bool, str]:
     """
     Check if *command* is in the $PATH or not.
 
@@ -53,8 +52,7 @@ def _is_in_path(command, return_abs_path=False):
             if command in os.listdir(directory):
                 if return_abs_path:
                     return os.path.join(directory, command)
-                else:
-                    return True
+                return True
         except OSError:
             # If the user has non directories in his path
             pass
@@ -84,7 +82,7 @@ DISTRO_INFO = {
 }
 
 
-def get_os_info():
+def get_os_info() -> str:
     """
     Returns a detailed and well formatted string containing
     information about the operating system
@@ -146,7 +144,7 @@ def get_os_info():
     return os_info
 
 
-def _datetime_tuple(timestamp):
+def _datetime_tuple(timestamp: str) -> datetime:
     """
     Convert a timestamp using strptime and the format: %Y%m%dT%H:%M:%S.
 
@@ -172,10 +170,10 @@ def _datetime_tuple(timestamp):
     try:
         if tz_msg and tz_msg != 'Z':
             tz_mod = -1 if tz_msg[0] == '-' else 1
-            tz_msg = time.strptime(tz_msg[1:], '%H%M')
-            tz_msg = tz_msg.tm_hour * 3600 + tz_msg.tm_min * 60
-            tz_msg = timedelta(seconds=tz_mod * tz_msg)
-            ret -= tz_msg
+            tz_parsed = time.strptime(tz_msg[1:], '%H%M')
+            tz_seconds = tz_parsed.tm_hour * 3600 + tz_parsed.tm_min * 60
+            delta = timedelta(seconds=tz_mod * tz_seconds)
+            ret -= delta
     except ValueError:
         pass  # ignore if we got a badly-formatted offset
     # convert UTC to local time, with DST etc.
@@ -187,7 +185,7 @@ def _datetime_tuple(timestamp):
     return ret
 
 
-def get_utc_time(local_time=None):
+def get_utc_time(local_time: Optional[datetime] = None) -> datetime:
     """
     Get the current UTC time
 
@@ -210,7 +208,7 @@ def get_utc_time(local_time=None):
     return utc_time
 
 
-def get_local_time(utc_time):
+def get_local_time(utc_time: datetime) -> datetime:
     """
     Get the local time from an UTC time
     """
@@ -226,7 +224,7 @@ def get_local_time(utc_time):
     return local_time
 
 
-def find_delayed_tag(message):
+def find_delayed_tag(message: Message) -> Tuple[bool, datetime]:
     """
     Check if a message is delayed or not.
 
@@ -253,7 +251,7 @@ def find_delayed_tag(message):
     return (delayed, date)
 
 
-def shell_split(st):
+def shell_split(st: str) -> List[str]:
     """
     Split a string correctly according to the quotes
     around the elements.
@@ -276,7 +274,7 @@ def shell_split(st):
     return ret
 
 
-def find_argument(pos, text, quoted=True):
+def find_argument(pos: int, text: str, quoted=True) -> int:
     """
     Split an input into a list of arguments, return the number of the
     argument selected by pos.
@@ -293,11 +291,10 @@ def find_argument(pos, text, quoted=True):
     """
     if quoted:
         return _find_argument_quoted(pos, text)
-    else:
-        return _find_argument_unquoted(pos, text)
+    return _find_argument_unquoted(pos, text)
 
 
-def _find_argument_quoted(pos, text):
+def _find_argument_quoted(pos: int, text: str) -> int:
     """
     Get the number of the argument at position pos in
     a string with possibly quoted text.
@@ -314,7 +311,7 @@ def _find_argument_quoted(pos, text):
     return count + 1
 
 
-def _find_argument_unquoted(pos, text):
+def _find_argument_unquoted(pos: int, text: str) -> int:
     """
     Get the number of the argument at position pos in
     a string without interpreting quotes.
@@ -332,7 +329,7 @@ def _find_argument_unquoted(pos, text):
     return argnum + 1
 
 
-def parse_str_to_secs(duration=''):
+def parse_str_to_secs(duration='') -> int:
     """
     Parse a string of with a number of d, h, m, s.
 
@@ -360,7 +357,7 @@ def parse_str_to_secs(duration=''):
     return result
 
 
-def parse_secs_to_str(duration=0):
+def parse_secs_to_str(duration=0) -> str:
     """
     Do the reverse operation of :py:func:`parse_str_to_secs`.
 
@@ -390,7 +387,7 @@ def parse_secs_to_str(duration=0):
     return result
 
 
-def format_tune_string(infos):
+def format_tune_string(infos: Dict[str, str]) -> str:
     """
     Contruct a string from a dict created from an "User tune" event.
 
@@ -417,18 +414,18 @@ def format_tune_string(infos):
     rating = infos.get('rating')
     if rating:
         elems.append('[ ' + rating + '/10 ]')
-    length = infos.get('length')
-    if length:
-        length = int(length)
+    length_str = infos.get('length')
+    if length_str:
+        length = int(length_str)
         secs = length % 60
         mins = length // 60
-        secs = str(secs).zfill(2)
-        mins = str(mins).zfill(2)
-        elems.append('[' + mins + ':' + secs + ']')
+        secs_str = str(secs).zfill(2)
+        mins_str = str(mins).zfill(2)
+        elems.append('[' + mins_str + ':' + secs_str + ']')
     return ' '.join(elems)
 
 
-def format_gaming_string(infos):
+def format_gaming_string(infos: Dict[str, str]) -> str:
     """
     Construct a string from a dict containing "user gaming" information.
     (for now, only use address and name)
@@ -447,7 +444,7 @@ def format_gaming_string(infos):
     return name
 
 
-def safeJID(*args, **kwargs):
+def safeJID(*args, **kwargs) -> JID:
     """
     Construct a :py:class:`slixmpp.JID` object from a string.
 

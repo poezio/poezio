@@ -9,6 +9,8 @@ The list of available events is here:
 http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
 
+from typing import Callable, Dict, List
+
 
 class EventHandler:
     """
@@ -44,9 +46,10 @@ class EventHandler:
             'send_normal_presence': [],
             'ignored_private': [],
             'tab_change': [],
-        }
+        }  # type: Dict[str, List[Callable]]
 
-    def add_event_handler(self, name, callback, position=0):
+    def add_event_handler(self, name: str, callback: Callable,
+                          position=0) -> bool:
         """
         Add a callback to a given event.
         Note that if that event name doesn’t exist, it just returns False.
@@ -64,7 +67,7 @@ class EventHandler:
 
         return True
 
-    def trigger(self, name, *args, **kwargs):
+    def trigger(self, name: str, *args, **kwargs):
         """
         Call all the callbacks associated to the given event name.
         """
@@ -74,7 +77,7 @@ class EventHandler:
         for callback in callbacks:
             callback(*args, **kwargs)
 
-    def del_event_handler(self, name, callback):
+    def del_event_handler(self, name: str, callback: Callable):
         """
         Remove the callback from the list of callbacks of the given event
         """

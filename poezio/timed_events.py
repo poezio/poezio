@@ -12,7 +12,8 @@ Once created, they must be added to the list of checked events with
 :py:func:`.PluginAPI.add_timed_event` (within a plugin).
 """
 
-import datetime
+from datetime import datetime
+from typing import Callable
 
 
 class DelayedEvent:
@@ -21,7 +22,7 @@ class DelayedEvent:
     Use it if you want an event to happen in, e.g. 6 seconds.
     """
 
-    def __init__(self, delay, callback, *args):
+    def __init__(self, delay: int, callback: Callable, *args) -> None:
         """
         Create a new DelayedEvent.
 
@@ -43,7 +44,7 @@ class TimedEvent(DelayedEvent):
     The callback and its arguments should be passed as the lasts arguments.
     """
 
-    def __init__(self, date, callback, *args):
+    def __init__(self, date: datetime, callback: Callable, *args) -> None:
         """
         Create a new timed event.
 
@@ -51,6 +52,6 @@ class TimedEvent(DelayedEvent):
         :param function callback: The handler that will be executed.
         :param \*args: Optional arguments passed to the handler.
         """
-        delta = date - datetime.datetime.now()
+        delta = date - datetime.now()
         delay = delta.total_seconds()
         DelayedEvent.__init__(self, delay, callback, *args)

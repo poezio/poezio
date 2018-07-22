@@ -11,7 +11,6 @@ xhtml code to shell colors,
 poezio colors to xhtml code
 """
 
-import curses
 import hashlib
 import re
 from base64 import b64encode, b64decode
@@ -22,6 +21,7 @@ from pathlib import Path
 from io import BytesIO
 from xml import sax
 from xml.sax import saxutils
+from typing import Dict, Optional, Tuple
 
 from slixmpp.xmlstream import ET
 from poezio.config import config
@@ -180,7 +180,7 @@ colors = {
     'whitesmoke': 255,
     'yellow': 226,
     'yellowgreen': 149
-}
+}  # type: Dict[str, int]
 
 whitespace_re = re.compile(r'\s+')
 
@@ -194,7 +194,8 @@ xhtml_simple_attr_re = re.compile(r'\x19\d')
 
 def get_body_from_message_stanza(message,
                                  use_xhtml=False,
-                                 extract_images_to=None):
+                                 extract_images_to: Optional[Path] = None
+                                 ) -> str:
     """
     Returns a string with xhtml markups converted to
     poezio colors if there's an xhtml_im element, or
@@ -213,12 +214,13 @@ def get_body_from_message_stanza(message,
     return content or " "
 
 
-def rgb_to_html(rgb):
+def rgb_to_html(rgb: Tuple[float, float, float]) -> str:
+    """Get the RGB HTML value"""
     r, g, b = rgb
     return '#%02X%02X%02X' % (round(r * 255), round(g * 255), round(b * 255))
 
 
-def ncurses_color_to_html(color):
+def ncurses_color_to_html(color: int) -> str:
     """
     Takes an int between 0 and 256 and returns
     a string of the form #XXXXXX representing an
@@ -227,7 +229,7 @@ def ncurses_color_to_html(color):
     return rgb_to_html(ncurses_color_to_rgb(color))
 
 
-def _parse_css_color(name):
+def _parse_css_color(name: str) -> int:
     if name[0] == '#':
         name = name[1:]
         length = len(name)
@@ -254,7 +256,7 @@ def _parse_css_color(name):
     return -1
 
 
-def _parse_css(css):
+def _parse_css(css: str) -> str:
     shell = ''
     rules = css.split(';')
     for rule in rules:
@@ -285,7 +287,7 @@ def _parse_css(css):
     return shell
 
 
-def _trim(string):
+def _trim(string: str) -> str:
     return re.sub(whitespace_re, ' ', string)
 
 
@@ -297,11 +299,11 @@ def get_hash(data: bytes) -> str:
 
 
 class XHTMLHandler(sax.ContentHandler):
-    def __init__(self, force_ns=False, tmp_image_dir=None):
-        self.builder = []
-        self.formatting = []
-        self.attrs = []
-        self.list_state = []
+    def __init__(self, force_ns=False, tmp_image_dir: Optional[Path] = None):
+        self.builder = []  # type: List[str]
+        self.formatting = []  # type: List[str]
+        self.attrs = []  # type: List[Dict[str, str]]
+        self.list_state = []  #  type: List[Union[str, int]]
         self.is_pre = False
         self.a_start = 0
         # do not care about xhtml-in namespace
@@ -311,12 +313,12 @@ class XHTMLHandler(sax.ContentHandler):
         self.enable_css_parsing = config.get('enable_css_parsing')
 
     @property
-    def result(self):
+    def result(self) -> str:
         sanitized = re.sub(poezio_color_double, r'\1',
                            ''.join(self.builder).strip())
         return re.sub(poezio_format_trim, '\x19o', sanitized)
 
-    def append_formatting(self, formatting):
+    def append_formatting(self, formatting: str):
         self.formatting.append(formatting)
         self.builder.append(formatting)
 
@@ -324,7 +326,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.formatting.pop()
         self.builder.append('\x19o' + ''.join(self.formatting))
 
-    def characters(self, characters):
+    def characters(self, characters: str):
         self.builder.append(characters if self.is_pre else _trim(characters))
 
     def startElementNS(self, name, _, attrs):
@@ -435,7 +437,8 @@ class XHTMLHandler(sax.ContentHandler):
             builder.append(' [' + attrs['title'] + ']')
 
 
-def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None):
+def xhtml_to_poezio_colors(xml, force=False,
+                           tmp_dir: Optional[Path] = None) -> str:
     if isinstance(xml, str):
         xml = xml.encode('utf8')
     elif not isinstance(xml, bytes):
@@ -449,7 +452,7 @@ def xhtml_to_poezio_colors(xml, force=False, tmp_dir=None):
     return handler.result
 
 
-def clean_text(s):
+def clean_text(s: str) -> str:
     """
     Remove all xhtml-im attributes (\x19etc) from the string with the
     complete color format, i.e \x19xxx}
@@ -458,7 +461,7 @@ def clean_text(s):
     return s
 
 
-def clean_text_simple(string):
+def clean_text_simple(string: str) -> str:
     """
     Remove all \x19 from the string formatted with simple colors:
     \x198
@@ -470,13 +473,13 @@ def clean_text_simple(string):
     return string
 
 
-def convert_simple_to_full_colors(text):
+def convert_simple_to_full_colors(text: str) -> str:
     """
     takes a \x19n formatted string and returns
     a \x19n} formatted one.
     """
     # TODO, have a single list of this. This is some sort of
-    # dusplicate from windows.format_chars
+    # duplicate from windows.format_chars
     mapping = str.maketrans({
         '\x0E': '\x19b',
         '\x0F': '\x19o',
@@ -508,14 +511,14 @@ number_to_color_names = {
     5: 'violet',
     6: 'turquoise',
     7: 'white'
-}
+}  # type: Dict[int, str]
 
 
-def format_inline_css(_dict):
+def format_inline_css(_dict: Dict[str, str]) -> str:
     return ''.join(('%s: %s;' % (key, value) for key, value in _dict.items()))
 
 
-def poezio_colors_to_html(string):
+def poezio_colors_to_html(string: str) -> str:
     """
     Convert poezio colors to html
     (e.g. \x191}: <span style='color: red'>)

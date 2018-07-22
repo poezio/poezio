@@ -3,6 +3,8 @@ Collection of mappings for PEP moods/activities
 extracted directly from the XEP
 """
 
+from typing import Dict
+
 MOODS = {
     'afraid': 'Afraid',
     'amazed': 'Amazed',
@@ -84,7 +86,7 @@ MOODS = {
     'undefined': 'Undefined',
     'weak': 'Weak',
     'worried': 'Worried'
-}
+}  # type: Dict[str, str]
 
 ACTIVITIES = {
     'doing_chores': {
@@ -202,4 +204,4 @@ ACTIVITIES = {
         'studying': 'Studying',
         'other': 'Other',
     }
-}
+}  # type: Dict[str, Dict[str, str]]

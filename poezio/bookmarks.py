@@ -30,9 +30,10 @@ Adding a remote bookmark:
 
 import functools
 import logging
+from typing import Optional, List
 
-from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from slixmpp import JID
+from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from poezio.common import safeJID
 from poezio.config import config
 
@@ -41,11 +42,11 @@ log = logging.getLogger(__name__)
 
 class Bookmark:
     def __init__(self,
-                 jid,
-                 name=None,
+                 jid: JID,
+                 name: Optional[str] = None,
                  autojoin=False,
-                 nick=None,
-                 password=None,
+                 nick: Optional[str] = None,
+                 password: Optional[str] = None,
                  method='local'):
         self.jid = jid
         self.name = name or jid
@@ -55,21 +56,21 @@ class Bookmark:
         self._method = method
 
     @property
-    def method(self):
+    def method(self) -> str:
         return self._method
 
     @method.setter
-    def method(self, value):
+    def method(self, value: str):
         if value not in ('local', 'remote'):
             log.debug('Could not set bookmark storing method: %s', value)
             return
         self._method = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s%s|%s>' % (self.jid, ('/' + self.nick)
                               if self.nick else '', self.method)
 
-    def stanza(self):
+    def stanza(self) -> Conference:
         """
         Generate a <conference/> stanza from the instance
         """
@@ -83,7 +84,7 @@ class Bookmark:
             el['password'] = self.password
         return el
 
-    def local(self):
+    def local(self) -> str:
         """Generate a str for local storage"""
         local = self.jid
         if self.nick:

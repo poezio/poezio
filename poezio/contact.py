@@ -9,11 +9,14 @@ Defines the Resource and Contact classes, which are used in
 the roster.
 """
 
+from collections import defaultdict
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Iterator, List, Optional, Union
 
 from poezio.common import safeJID
-from collections import defaultdict
+from slixmpp import JID
+
+log = logging.getLogger(__name__)
 
 
 class Resource:
@@ -26,29 +29,30 @@ class Resource:
         """
         data: the dict to use as a source
         """
-        self._jid = jid  # Full jid
-        self._data = data
+        # Full JID
+        self._jid = jid  # type: str
+        self._data = data  # type: Dict[str, Union[str, int]]
 
     @property
-    def jid(self):
+    def jid(self) -> str:
         return self._jid
 
     @property
-    def priority(self):
+    def priority(self) -> int:
         return self._data.get('priority') or 0
 
     @property
-    def presence(self):
+    def presence(self) -> str:
         return self._data.get('show') or ''
 
     @property
-    def status(self):
+    def status(self) -> str:
         return self._data.get('status') or ''
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s>' % self._jid
 
-    def __eq__(self, value):
+    def __eq__(self, value: object) -> bool:
         if not isinstance(value, Resource):
             return False
         return self.jid == value.jid and self._data == value._data
@@ -66,22 +70,22 @@ class Contact:
         item: a slixmpp RosterItem pointing to that contact
         """
         self.__item = item
-        self.folded_states = defaultdict(lambda: True)
+        self.folded_states = defaultdict(lambda: True)  # type: Dict[str, bool]
         self._name = ''
         self.avatar = None
         self.error = None
-        self.tune = {}
-        self.gaming = {}
+        self.tune = {}  # type: Dict[str, str]
+        self.gaming = {}  # type: Dict[str, str]
         self.mood = ''
         self.activity = ''
 
     @property
-    def groups(self):
+    def groups(self) -> List[str]:
         """Name of the groups the contact is in"""
         return self.__item['groups'] or ['none']
 
     @property
-    def bare_jid(self):
+    def bare_jid(self) -> JID:
         """The bare jid of the contact"""
         return self.__item.jid
 
@@ -119,29 +123,29 @@ class Contact:
         self.__item['pending_out'] = value
 
     @property
-    def resources(self):
+    def resources(self) -> Iterator[Resource]:
         """List of the available resources as Resource objects"""
         return (Resource('%s%s' % (self.bare_jid, ('/' + key)
                                    if key else ''), self.__item.resources[key])
                 for key in self.__item.resources.keys())
 
     @property
-    def subscription(self):
+    def subscription(self) -> str:
         return self.__item['subscription']
 
     def __contains__(self, value):
         return value in self.__item.resources or safeJID(
             value).resource in self.__item.resources
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Number of resources"""
         return len(self.__item.resources)
 
-    def __bool__(self):
-        """This contacts exists even when he has no resources"""
+    def __bool__(self) -> bool:
+        """This contact exists even when he has no resources"""
         return True
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Optional[Resource]:
         """Return the corresponding Resource object, or None"""
         res = safeJID(key).resource
         resources = self.__item.resources
@@ -164,23 +168,24 @@ class Contact:
         """Unsubscribe from this JID"""
         self.__item.unsubscribe()
 
-    def get(self, key, default=None):
+    def get(self, key: str,
+            default: Optional[Resource] = None) -> Optional[Resource]:
         """Same as __getitem__, but with a configurable default"""
         return self[key] or default
 
-    def get_resources(self):
+    def get_resources(self) -> List[Resource]:
         """Return all resources, sorted by priority """
         compare_resources = lambda x: x.priority
         return sorted(self.resources, key=compare_resources, reverse=True)
 
-    def get_highest_priority_resource(self):
+    def get_highest_priority_resource(self) -> Optional[Resource]:
         """Return the resource with the highest priority"""
         resources = self.get_resources()
         if resources:
             return resources[0]
         return None
 
-    def folded(self, group_name='none'):
+    def folded(self, group_name='none') -> bool:
         """
         Return the Folded state of a contact for this group
         """
@@ -192,7 +197,7 @@ class Contact:
         """
         self.folded_states[group] = not self.folded_states[group]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ret = '<Contact: %s' % self.bare_jid
         for resource in self.resources:
             ret += '\n\t\t%s' % resource

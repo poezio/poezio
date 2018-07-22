@@ -9,14 +9,16 @@ Define the user class.
 An user is a MUC participant, not a roster contact (see contact.py)
 """
 
-from random import choice
+import logging
 from datetime import timedelta, datetime
 from hashlib import md5
+from random import choice
+from typing import Optional, Tuple
+
 from poezio import xhtml, colors
-
 from poezio.theming import get_theme
+from slixmpp import JID
 
-import logging
 log = logging.getLogger(__name__)
 
 ROLE_DICT = {'': 0, 'none': 0, 'visitor': 1, 'participant': 2, 'moderator': 3}
@@ -30,19 +32,21 @@ class User:
                  'status', 'role', 'nick', 'color')
 
     def __init__(self,
-                 nick,
-                 affiliation,
-                 show,
-                 status,
-                 role,
-                 jid,
+                 nick: str,
+                 affiliation: str,
+                 show: str,
+                 status: str,
+                 role: str,
+                 jid: JID,
                  deterministic=True,
                  color=''):
-        self.last_talked = datetime(1, 1, 1)  # The oldest possible time
+        # The oldest possible time
+        self.last_talked = datetime(1, 1, 1)  # type: datetime
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.jid = jid
-        self.chatstate = None
+        self.jid = jid  # type: JID
+        self.chatstate = None  # type: Optional[str]
+        self.color = (1, 1)  # type: Tuple[int, int]
         if color != '':
             self.change_color(color, deterministic)
         else:
@@ -63,7 +67,7 @@ class User:
                            16) % mod
             self.color = theme.LIST_COLOR_NICKNAMES[nick_pos]
 
-    def update(self, affiliation, show, status, role):
+    def update(self, affiliation: str, show: str, status: str, role: str):
         self.affiliation = affiliation
         self.show = show
         self.status = status
@@ -71,12 +75,12 @@ class User:
             role = ''
         self.role = role
 
-    def change_nick(self, nick):
+    def change_nick(self, nick: str):
         self.nick = nick
 
-    def change_color(self, color_name, deterministic=False):
+    def change_color(self, color_name: Optional[str], deterministic=False):
         color = xhtml.colors.get(color_name)
-        if color == None:
+        if color is None:
             log.error('Unknown color "%s"', color_name)
             if deterministic:
                 self.set_deterministic_color()
@@ -85,13 +89,13 @@ class User:
         else:
             self.color = (color, -1)
 
-    def set_last_talked(self, time):
+    def set_last_talked(self, time: datetime):
         """
         time: datetime object
         """
         self.last_talked = time
 
-    def has_talked_since(self, t):
+    def has_talked_since(self, t: int) -> bool:
         """
         t: int
         Return True if the user talked since the last s seconds
@@ -103,28 +107,28 @@ class User:
             return False
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ">%s<" % (self.nick)
 
-    def __eq__(self, b):
+    def __eq__(self, b) -> bool:
         return self.role == b.role and self.nick == b.nick
 
-    def __gt__(self, b):
+    def __gt__(self, b) -> bool:
         if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
             return self.nick.lower() > b.nick.lower()
         return ROLE_DICT[self.role] < ROLE_DICT[b.role]
 
-    def __ge__(self, b):
+    def __ge__(self, b) -> bool:
         if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
             return self.nick.lower() >= b.nick.lower()
         return ROLE_DICT[self.role] <= ROLE_DICT[b.role]
 
-    def __lt__(self, b):
+    def __lt__(self, b) -> bool:
         if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
             return self.nick.lower() < b.nick.lower()
         return ROLE_DICT[self.role] > ROLE_DICT[b.role]
 
-    def __le__(self, b):
+    def __le__(self, b) -> bool:
         if ROLE_DICT[self.role] == ROLE_DICT[b.role]:
             return self.nick.lower() <= b.nick.lower()
         return ROLE_DICT[self.role] >= ROLE_DICT[b.role]
