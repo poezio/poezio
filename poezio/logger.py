@@ -101,7 +101,7 @@ class Logger:
                 opened_file.close()
         log.debug('All log file handles closed')
         for room in self._fds:
-            self._fds[room] = self._check_and_create_log_dir(room)
+            self._check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
         return None
 
