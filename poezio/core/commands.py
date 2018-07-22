@@ -162,7 +162,7 @@ class CommandCore:
             log.debug(
                 'Could not send directed presence to %s', jid, exc_info=True)
             return
-        tab = self.core.tabs.by_name_and_class(jid)
+        tab = self.core.tabs.by_name(jid)
         if tab:
             if ptype in ('xa', 'away'):
                 tab.directed_presence = False
@@ -939,13 +939,13 @@ class CommandCore:
             return self.core.information('Invalid JID.', 'Error')
         tab = self.core.get_conversation_by_jid(
             jid.full, False, fallback_barejid=False)
-        muc = self.core.tabs.by_name_and_class(jid.bare, typ=tabs.MucTab)
+        muc = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
         if not tab and not muc:
             tab = self.core.open_conversation_window(jid.full, focus=True)
         elif muc:
             if jid.resource:
-                tab = self.core.tabs.by_name_and_class(
-                    jid.full, typ=tabs.PrivateTab)
+                tab = self.core.tabs.by_name_and_class(jid.full,
+                                                       tabs.PrivateTab)
                 if tab:
                     self.core.focus_tab(tab)
                 else:
