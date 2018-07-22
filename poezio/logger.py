@@ -11,6 +11,7 @@ conversations and roster changes
 
 import mmap
 import re
+from typing import List, Dict, Optional, TextIO, BinaryIO, Any
 from datetime import datetime
 
 from poezio import common
@@ -73,9 +74,9 @@ class Logger:
     """
 
     def __init__(self):
-        self._roster_logfile = None
+        self._roster_logfile = None  # Optional[TextIO]
         # a dict of 'groupchatname': file-object (opened)
-        self._fds = {}
+        self._fds = {}  # type: Dict[str, TextIO]
 
     def __del__(self):
         for opened_file in self._fds.values():
@@ -85,14 +86,14 @@ class Logger:
                 except:  # Can't close? too bad
                     pass
 
-    def close(self, jid):
+    def close(self, jid) -> None:
         jid = str(jid).replace('/', '\\')
         if jid in self._fds:
             self._fds[jid].close()
             log.debug('Log file for %s closed.', jid)
             del self._fds[jid]
 
-    def reload_all(self):
+    def reload_all(self) -> None:
         """Close and reload all the file handles (on SIGHUP)"""
         for opened_file in self._fds.values():
             if opened_file:
@@ -102,7 +103,7 @@ class Logger:
             self._fds[room] = self._check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
 
-    def _check_and_create_log_dir(self, room, open_fd=True):
+    def _check_and_create_log_dir(self, room: str, open_fd: bool = True) -> Optional[TextIO]:
         """
         Check that the directory where we want to log the messages
         exists. if not, create it
@@ -127,7 +128,7 @@ class Logger:
             log.error(
                 'Unable to open the log file (%s)', filename, exc_info=True)
 
-    def get_logs(self, jid, nb=10):
+    def get_logs(self, jid: str, nb: int = 10) -> Optional[List[Dict[str, Any]]]:
         """
         Get the nb last messages from the log history for the given jid.
         Note that a message may be more than one line in these files, so
@@ -172,7 +173,7 @@ class Logger:
                 return
         return parse_log_lines(lines)
 
-    def log_message(self, jid, nick, msg, date=None, typ=1):
+    def log_message(self, jid: str, nick: str, msg: str, date: Optional[datetime] = None, typ: int = 1) -> bool:
         """
         log the message in the appropriate jid's file
         type:
@@ -211,7 +212,7 @@ class Logger:
                 return False
         return True
 
-    def log_roster_change(self, jid, message):
+    def log_roster_change(self, jid: str, message: str) -> bool:
         """
         Log a roster change
         """
@@ -248,7 +249,7 @@ class Logger:
         return True
 
 
-def build_log_message(nick, msg, date=None, typ=1):
+def build_log_message(nick: str, msg: str, date: Optional[datetime] = None, typ: int = 1) -> str:
     """
     Create a log message from a nick, a message, optionally a date and type
     message types:
@@ -275,7 +276,7 @@ def build_log_message(nick, msg, date=None, typ=1):
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
-def get_lines_from_fd(fd, nb=10):
+def get_lines_from_fd(fd: BinaryIO, nb: int = 10) -> List[str]:
     """
     Get the last log lines from a fileno
     """
@@ -294,7 +295,7 @@ def get_lines_from_fd(fd, nb=10):
     return lines
 
 
-def parse_log_lines(lines):
+def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
     """
@@ -334,7 +335,7 @@ def parse_log_lines(lines):
     return messages
 
 
-def create_logger():
+def create_logger() -> None:
     "Create the global logger object"
     global logger
     logger = Logger()
