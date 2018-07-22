@@ -74,6 +74,7 @@ except ImportError:
 import curses
 import functools
 import os
+from typing import Dict, List, Union, Tuple, Optional
 from pathlib import Path
 from os import path
 from poezio import colors, xdg
@@ -94,7 +95,7 @@ class Theme:
     """
 
     @classmethod
-    def color_role(cls, role):
+    def color_role(cls, role: str):
         role_mapping = {
             'moderator': cls.COLOR_USER_MODERATOR,
             'participant': cls.COLOR_USER_PARTICIPANT,
@@ -105,7 +106,7 @@ class Theme:
         return role_mapping.get(role, cls.COLOR_USER_NONE)
 
     @classmethod
-    def char_affiliation(cls, affiliation):
+    def char_affiliation(cls, affiliation: str):
         affiliation_mapping = {
             'owner': cls.CHAR_AFFILIATION_OWNER,
             'admin': cls.CHAR_AFFILIATION_ADMIN,
@@ -115,7 +116,7 @@ class Theme:
         return affiliation_mapping.get(affiliation, cls.CHAR_AFFILIATION_NONE)
 
     @classmethod
-    def color_show(cls, show):
+    def color_show(cls, show: str):
         show_mapping = {
             'xa': cls.COLOR_STATUS_XA,
             'none': cls.COLOR_STATUS_NONE,
@@ -129,7 +130,7 @@ class Theme:
         return show_mapping.get(show, cls.COLOR_STATUS_NONE)
 
     @classmethod
-    def char_subscription(cls, sub, keep='incomplete'):
+    def char_subscription(cls, sub: str, keep: str = 'incomplete'):
         sub_mapping = {
             'from': cls.CHAR_ROSTER_FROM,
             'both': cls.CHAR_ROSTER_BOTH,
@@ -382,7 +383,7 @@ theme = Theme()
 # Each time we use a color tuple, we check if it has already been used.
 # If not we create a new color_pair and keep it in that dict, to use it
 # the next time.
-curses_colors_dict = {}
+curses_colors_dict = {}  # type: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int]
 
 # yapf: disable
 
@@ -406,7 +407,7 @@ table_256_to_16 = [
 ]
 # yapf: enable
 
-load_path = []
+load_path = []  # type: List[str]
 
 
 def color_256_to_16(color):
@@ -415,14 +416,14 @@ def color_256_to_16(color):
     return table_256_to_16[color]
 
 
-def dump_tuple(tup):
+def dump_tuple(tup: Union[Tuple[int, int], Tuple[int, int, str]]) -> str:
     """
     Dump a tuple to a string of fg,bg,attr (optional)
     """
     return ','.join(str(i) for i in tup)
 
 
-def read_tuple(_str):
+def read_tuple(_str: str) -> Tuple[Tuple[int, int], str]:
     """
     Read a tuple dumped with dump_tumple
     """
@@ -432,7 +433,7 @@ def read_tuple(_str):
 
 
 @functools.lru_cache(maxsize=128)
-def to_curses_attr(color_tuple):
+def to_curses_attr(color_tuple: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
     """
     Takes a color tuple (as defined at the top of this file) and
     returns a valid curses attr that can be passed directly to attron() or attroff()
@@ -476,14 +477,14 @@ def to_curses_attr(color_tuple):
     return curses_pair
 
 
-def get_theme():
+def get_theme() -> Theme:
     """
     Returns the current theme
     """
     return theme
 
 
-def update_themes_dir(option=None, value=None):
+def update_themes_dir(option: Optional[str] = None, value: Optional[str] = None):
     global load_path
     load_path = []
 
@@ -516,17 +517,17 @@ def update_themes_dir(option=None, value=None):
     log.debug('Theme load path: %s', load_path)
 
 
-def prepare_ccolor_palette(theme):
+def prepare_ccolor_palette(theme: Theme) -> None:
     """
     Prepare the Consistent Color Generation (XEP-0392) palette for a theme.
     """
     if theme.CCG_PALETTE is not None:
-        return
+        return None
 
     if any(bg != -1 for fg, bg in theme.LIST_COLOR_NICKNAMES):
         # explicitly disable CCG, can’t handle dynamic background colors
         theme.CCG_PALETTE = {}
-        return
+        return None
 
     theme.CCG_PALETTE = colors.generate_ccg_palette(
         [
@@ -536,14 +537,15 @@ def prepare_ccolor_palette(theme):
         ],
         theme.CCG_Y,
     )
+    return None
 
 
-def reload_theme():
+def reload_theme() -> Optional[str]:
     theme_name = config.get('theme')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()
-        return
+        return None
     new_theme = None
     exc = None
     try:
