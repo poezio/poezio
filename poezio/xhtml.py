@@ -21,7 +21,7 @@ from pathlib import Path
 from io import BytesIO
 from xml import sax
 from xml.sax import saxutils
-from typing import Dict, Optional, Tuple
+from typing import List, Dict, Optional, Union, Tuple
 
 from slixmpp.xmlstream import ET
 from poezio.config import config
@@ -299,7 +299,7 @@ def get_hash(data: bytes) -> str:
 
 
 class XHTMLHandler(sax.ContentHandler):
-    def __init__(self, force_ns=False, tmp_image_dir: Optional[Path] = None):
+    def __init__(self, force_ns=False, tmp_image_dir: Optional[Path] = None) -> None:
         self.builder = []  # type: List[str]
         self.formatting = []  # type: List[str]
         self.attrs = []  # type: List[Dict[str, str]]
@@ -526,7 +526,7 @@ def poezio_colors_to_html(string: str) -> str:
     # Maintain a list of the current css attributes used
     # And check if a tag is open (by design, we only open
     # spans tag, and they cannot be nested.
-    current_attrs = {}
+    current_attrs = {}  # type: Dict[str, str]
     tag_open = False
     next_attr_char = string.find('\x19')
     build = ["<body xmlns='http://www.w3.org/1999/xhtml'><p>"]
