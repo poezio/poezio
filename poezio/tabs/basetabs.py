@@ -14,12 +14,13 @@ revolving around chats.
 """
 
 import logging
-log = logging.getLogger(__name__)
-
 import string
 import time
 from datetime import datetime
 from xml.etree import cElementTree as ET
+from typing import Any, Callable, Dict, List, Optional
+
+from slixmpp import JID, Message
 
 from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
@@ -32,6 +33,9 @@ from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+
+log = logging.getLogger(__name__)
+
 
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
@@ -88,7 +92,7 @@ SHOW_NAME = {
 
 class Tab:
     plugin_commands = {}
-    plugin_keys = {}
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core):
         self.core = core
@@ -106,11 +110,11 @@ class Tab:
         self.commands = {}  # and their own commands
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.core.size
 
     @staticmethod
-    def tab_win_height():
+    def tab_win_height() -> int:
         """
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
@@ -132,11 +136,11 @@ class Tab:
         return VERTICAL_STATE_COLORS[self._state]()
 
     @property
-    def state(self):
+    def state(self) -> str:
         return self._state
 
     @state.setter
-    def state(self, value):
+    def state(self, value: str):
         if value not in STATE_COLORS:
             log.debug("Invalid value for tab state: %s", value)
         elif STATE_PRIORITY[value] < STATE_PRIORITY[self._state] and \
@@ -154,7 +158,7 @@ class Tab:
             if self._state == 'current':
                 self._prev_state = None
 
-    def set_state(self, value):
+    def set_state(self, value: str):
         self._state = value
 
     def save_state(self):
@@ -181,7 +185,7 @@ class Tab:
         """
         return False
 
-    def register_commands_batch(self, commands):
+    def register_commands_batch(self, commands: List[Dict[str, Any]]):
         """
         Add several commands in a row, using a list of dictionaries
         """
@@ -201,12 +205,12 @@ class Tab:
                 usage=usage)
 
     def register_command(self,
-                         name,
-                         func,
+                         name: str,
+                         func: Callable,
                          *,
                          desc='',
                          shortdesc='',
-                         completion=None,
+                         completion: Optional[Callable] = None,
                          usage=''):
         """
         Add a command
@@ -217,7 +221,7 @@ class Tab:
             desc = shortdesc
         self.commands[name] = Command(func, desc, completion, shortdesc, usage)
 
-    def complete_commands(self, the_input):
+    def complete_commands(self, the_input: windows.Input) -> bool:
         """
         Does command completion on the specified input for both global and tab-specific
         commands.
@@ -255,14 +259,13 @@ class Tab:
                     return False
                 if command.comp is None:
                     return False  # There's no completion function
-                else:
-                    comp = command.comp(the_input)
-                    if comp:
-                        return comp.run()
-                    return comp
+                comp = command.comp(the_input)
+                if comp:
+                    return comp.run()
+                return comp
         return False
 
-    def execute_command(self, provided_text):
+    def execute_command(self, provided_text: str) -> bool:
         """
         Execute the command in the input and return False if
         the input didn't contain a command
@@ -327,19 +330,19 @@ class Tab:
         """
         return self.name
 
-    def get_nick(self):
+    def get_nick(self) -> str:
         """
         Get the nick of the tab (defaults to its name)
         """
         return self.name
 
-    def get_text_window(self):
+    def get_text_window(self) -> Optional[windows.TextWin]:
         """
         Returns the principal TextWin window, if there's one
         """
         return None
 
-    def on_input(self, key, raw):
+    def on_input(self, key: str, raw: bool):
         """
         raw indicates if the key should activate the associated command or not.
         """
@@ -417,7 +420,7 @@ class Tab:
             self.input.on_delete()
         self.closed = True
 
-    def matching_names(self):
+    def matching_names(self) -> List[str]:
         """
         Returns a list of strings that are used to name a tab with the /win
         command.  For example you could switch to a tab that returns
@@ -505,18 +508,18 @@ class ChatTab(Tab):
                 self._text_buffer.add_message(**message)
 
     @property
-    def remote_wants_chatstates(self):
+    def remote_wants_chatstates(self) -> bool:
         return True
 
     @property
-    def general_jid(self):
+    def general_jid(self) -> JID:
         return NotImplementedError
 
-    def load_logs(self, log_nb):
+    def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
         logs = logger.get_logs(safeJID(self.name).bare, log_nb)
         return logs
 
-    def log_message(self, txt, nickname, time=None, typ=1):
+    def log_message(self, txt: str, nickname: str, time: Optional[datetime] = None, typ=1):
         """
         Log the messages in the archives.
         """
@@ -600,7 +603,7 @@ class ChatTab(Tab):
         if message:
             message.send()
 
-    def generate_xhtml_message(self, arg):
+    def generate_xhtml_message(self, arg: str) -> Message:
         if not arg:
             return
         try:
@@ -618,7 +621,7 @@ class ChatTab(Tab):
         msg['html']['body'] = arg
         return msg
 
-    def get_dest_jid(self):
+    def get_dest_jid(self) -> JID:
         return self.name
 
     @refresh_wrapper.always
@@ -719,7 +722,7 @@ class ChatTab(Tab):
         return True
 
     @property
-    def inactive(self):
+    def inactive(self) -> bool:
         """Whether we should send inactive or active as a chatstate"""
         return self.core.status.show in ('xa', 'away') or\
                 (hasattr(self, 'directed_presence') and not self.directed_presence)
