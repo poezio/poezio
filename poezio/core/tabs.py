@@ -229,10 +229,12 @@ class Tabs:
         if tab is self._previous_tab:
             self._previous_tab = None
         if is_current:
-            self._restore_previous_tab()
+            self.restore_previous_tab()
         self._validate_current_index()
 
-    def _restore_previous_tab(self):
+    def restore_previous_tab(self):
+        """Restore the previous tab"""
+
         if self._previous_tab:
             if not self.set_current_tab(self._previous_tab):
                 self.set_current_index(0)

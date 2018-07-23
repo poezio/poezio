@@ -1020,7 +1020,7 @@ class Core:
         """
         self.tabs.append(new_tab)
         if focus:
-            self.command.win("%s" % new_tab.nb)
+            self.tabs.set_current_tab(new_tab)
 
     def insert_tab(self, old_pos, new_pos=99999):
         """
@@ -1072,11 +1072,11 @@ class Core:
 
     def go_to_roster(self):
         "Select the roster as the current tab"
-        self.command.win('0')
+        self.tabs.set_current_tab(self.tabs.first())
 
     def go_to_previous_tab(self):
         "Go to the previous tab"
-        self.command.win(str(self.previous_tab_nb))
+        self.tabs.restore_previous_tab()
 
     def go_to_important_room(self):
         """
@@ -1104,7 +1104,7 @@ class Core:
                 if (tab.nb < self.tabs.current_index
                         and tab_refs[state][-1].nb > self.tabs.current_index):
                     continue
-                self.command.win(str(tab.nb))
+                self.tabs.set_current_tab(tab)
                 return
         return
 
@@ -1115,7 +1115,7 @@ class Core:
         else:
             tab = self.tabs.by_name_and_class(tab_name, type_)
         if tab:
-            self.command.win(str(tab.nb))
+            self.tabs.set_current_tab(tab)
             return True
         return False
 
@@ -1145,7 +1145,7 @@ class Core:
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name == complete_jid:
-                self.command.win(str(tab.nb))
+                self.tabs.set_current_tab(tab)
                 return tab
         # create the new tab
         tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
