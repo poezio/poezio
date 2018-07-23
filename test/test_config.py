@@ -27,7 +27,7 @@ class TestConfigSimple(object):
         assert config_obj.get('toto') == ''
 
     def test_file_content(self, config_obj):
-        with open(config_obj.file_name, 'r') as fd:
+        with open(str(config_obj.file_name), 'r') as fd:
             data = fd.read()
         supposed_content = '[Poezio]\ntest = coucou\ntest2 = true\n'
         assert data == supposed_content
@@ -47,7 +47,7 @@ class TestConfigSimple(object):
         assert config_obj.get('test_float', default=1.0) == 1.5
 
     def test_remove(self, config_obj):
-        with open(config_obj.file_name, 'r') as fd:
+        with open(str(config_obj.file_name), 'r') as fd:
             data = fd.read()
 
         supposed_content = ('[Poezio]\ntest = coucou\ntest2 = true\n'
@@ -62,7 +62,7 @@ class TestConfigSimple(object):
         config_obj.remove_and_save('test_bool_f')
         config_obj.remove_and_save('test_float')
 
-        with open(config_obj.file_name, 'r') as fd:
+        with open(str(config_obj.file_name), 'r') as fd:
             data = fd.read()
 
         supposed_content = '[Poezio]\ntest = coucou\ntest2 = true\n'
@@ -89,7 +89,7 @@ class TestConfigSections(object):
         assert config_obj.get('option2', section='NotPoezio') == 'test2'
 
     def test_file_content(self, config_obj):
-        with open(config_obj.file_name, 'r') as fd:
+        with open(str(config_obj.file_name), 'r') as fd:
             data = fd.read()
         supposed_content = ('[Poezio]\ntest = coucou\ntest2 = true\n'
                             '[NotPoezio]\noption1 = test\noption2 = test2\n')
