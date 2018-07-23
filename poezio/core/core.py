@@ -1934,7 +1934,7 @@ class Core:
         self.refresh_window()
 
 
-class KeyDict(Dict[str, Callable]):
+class KeyDict(dict):
     """
     A dict, with a wrapper for get() that will return a custom value
     if the key starts with _exc_
