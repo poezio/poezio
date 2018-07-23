@@ -383,7 +383,8 @@ theme = Theme()
 # Each time we use a color tuple, we check if it has already been used.
 # If not we create a new color_pair and keep it in that dict, to use it
 # the next time.
-curses_colors_dict = {}  # type: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int]
+curses_colors_dict = {
+}  # type: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int]
 
 # yapf: disable
 
@@ -433,7 +434,8 @@ def read_tuple(_str: str) -> Tuple[Tuple[int, int], str]:
 
 
 @functools.lru_cache(maxsize=128)
-def to_curses_attr(color_tuple: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
+def to_curses_attr(
+        color_tuple: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
     """
     Takes a color tuple (as defined at the top of this file) and
     returns a valid curses attr that can be passed directly to attron() or attroff()
@@ -484,7 +486,8 @@ def get_theme() -> Theme:
     return theme
 
 
-def update_themes_dir(option: Optional[str] = None, value: Optional[str] = None):
+def update_themes_dir(option: Optional[str] = None,
+                      value: Optional[str] = None):
     global load_path
     load_path = []
 

@@ -105,7 +105,8 @@ class Logger:
             log.debug('Log handle for %s re-created', room)
         return None
 
-    def _check_and_create_log_dir(self, room: str, open_fd: bool = True) -> Optional[IO[Any]]:
+    def _check_and_create_log_dir(self, room: str,
+                                  open_fd: bool = True) -> Optional[IO[Any]]:
         """
         Check that the directory where we want to log the messages
         exists. if not, create it
@@ -131,7 +132,8 @@ class Logger:
                 'Unable to open the log file (%s)', filename, exc_info=True)
         return None
 
-    def get_logs(self, jid: str, nb: int = 10) -> Optional[List[Dict[str, Any]]]:
+    def get_logs(self, jid: str,
+                 nb: int = 10) -> Optional[List[Dict[str, Any]]]:
         """
         Get the nb last messages from the log history for the given jid.
         Note that a message may be more than one line in these files, so
@@ -176,7 +178,12 @@ class Logger:
                 return None
         return parse_log_lines(lines)
 
-    def log_message(self, jid: str, nick: str, msg: str, date: Optional[datetime] = None, typ: int = 1) -> bool:
+    def log_message(self,
+                    jid: str,
+                    nick: str,
+                    msg: str,
+                    date: Optional[datetime] = None,
+                    typ: int = 1) -> bool:
         """
         log the message in the appropriate jid's file
         type:
@@ -253,7 +260,10 @@ class Logger:
         return True
 
 
-def build_log_message(nick: str, msg: str, date: Optional[datetime] = None, typ: int = 1) -> str:
+def build_log_message(nick: str,
+                      msg: str,
+                      date: Optional[datetime] = None,
+                      typ: int = 1) -> str:
     """
     Create a log message from a nick, a message, optionally a date and type
     message types:

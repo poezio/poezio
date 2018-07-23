@@ -200,11 +200,13 @@ class TextBuffer:
         """Mark a message as acked"""
         return self._edit_ack(1, old_id, jid)
 
-    def nack_message(self, error: str, old_id: str, jid: str) -> Union[None, bool, Message]:
+    def nack_message(self, error: str, old_id: str,
+                     jid: str) -> Union[None, bool, Message]:
         """Mark a message as errored"""
         return self._edit_ack(-1, old_id, jid, append=error)
 
-    def _edit_ack(self, value: int, old_id: str, jid: str, append: str = '') -> Union[None, bool, Message]:
+    def _edit_ack(self, value: int, old_id: str, jid: str,
+                  append: str = '') -> Union[None, bool, Message]:
         """
         Edit the ack status of a message, and optionally
         append some text.

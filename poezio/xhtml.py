@@ -299,7 +299,8 @@ def get_hash(data: bytes) -> str:
 
 
 class XHTMLHandler(sax.ContentHandler):
-    def __init__(self, force_ns=False, tmp_image_dir: Optional[Path] = None) -> None:
+    def __init__(self, force_ns=False,
+                 tmp_image_dir: Optional[Path] = None) -> None:
         self.builder = []  # type: List[str]
         self.formatting = []  # type: List[str]
         self.attrs = []  # type: List[Dict[str, str]]
