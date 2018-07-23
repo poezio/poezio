@@ -37,7 +37,20 @@ security-check:
 
 test-pytest:
   stage: test
-  image: python:3
+  image: python:3.5
+  script:
+    - apt-get update && apt-get install -y libidn11-dev
+    - git clone git://git.louiz.org/slixmpp
+    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - cd slixmpp
+    - python3 setup.py install
+    - cd ..
+    - python3 setup.py install
+    - py.test -v test/
+
+test-pytest:
+  stage: test
+  image: python:3.6
   script:
     - apt-get update && apt-get install -y libidn11-dev
     - git clone git://git.louiz.org/slixmpp
@@ -64,6 +77,7 @@ test-pylint:
 formatting-check:
   stage: test
   image: python:3
+  allow_failure: true
   script:
     - pip3 install yapf
     - yapf -dpr poezio
