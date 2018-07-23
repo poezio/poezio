@@ -15,6 +15,8 @@ shortcut, like ^A, M-a or KEY_RESIZE)
 import curses
 import curses.ascii
 import logging
+from typing import Callable, List, Optional, Tuple
+
 log = logging.getLogger(__name__)
 
 # A callback that will handle the next key entered by the user. For
@@ -24,10 +26,10 @@ log = logging.getLogger(__name__)
 # shortcuts or inserting text in the current output.  The callback
 # is always reset to None afterwards (to resume the normal
 # processing of keys)
-continuation_keys_callback = None
+continuation_keys_callback = None  # type: Optional[Callable]
 
 
-def get_next_byte(s):
+def get_next_byte(s) -> Tuple[Optional[int], Optional[bytes]]:
     """
     Read the next byte of the utf-8 char
     ncurses seems to return a string of the byte
@@ -43,8 +45,8 @@ def get_next_byte(s):
     return (ord(c), c.encode('latin-1'))  # returns a number and a bytes object
 
 
-def get_char_list(s):
-    ret_list = []
+def get_char_list(s) -> List[str]:
+    ret_list = []  # type: List[str]
     while True:
         try:
             key = s.get_wch()
@@ -109,7 +111,7 @@ class Keyboard:
         """
         self.escape = True
 
-    def get_user_input(self, s):
+    def get_user_input(self, s) -> List[str]:
         """
         Returns a list of all the available characters to read (for example it
         may contain a whole text if there’s some lag, or the user pasted text,

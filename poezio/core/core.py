@@ -6,19 +6,19 @@ handlers but those are defined in submodules in order to avoir cluttering
 this file.
 """
 import logging
-
-log = logging.getLogger(__name__)
-
 import asyncio
-import shutil
 import curses
 import os
 import pipes
 import sys
+import shutil
 import time
+from collections import defaultdict
+from typing import Callable, Dict, List, Optional, Tuple, Type
 
-from slixmpp.xmlstream.handler import Callback
+from slixmpp import JID
 from slixmpp.util import FileSystemPerJidCache
+from slixmpp.xmlstream.handler import Callback
 
 from poezio import connection
 from poezio import decorators
@@ -39,6 +39,7 @@ from poezio.logger import logger
 from poezio.plugin_manager import PluginManager
 from poezio.roster import roster
 from poezio.size_manager import SizeManager
+from poezio.user import User
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme
 from poezio import keyboard, xdg
@@ -49,6 +50,8 @@ from poezio.core.commands import CommandCore
 from poezio.core.handlers import HandlerCore
 from poezio.core.structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
         ERROR_AND_STATUS_CODES, Command, Status
+
+log = logging.getLogger(__name__)
 
 
 class Core:
@@ -98,8 +101,7 @@ class Core:
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
-        self.events.add_event_handler('tab_change',
-            self.on_tab_change)
+        self.events.add_event_handler('tab_change', self.on_tab_change)
 
         self.tabs = Tabs(self.events)
         self.previous_tab_nb = 0
@@ -205,78 +207,55 @@ class Core:
         self.key_func.update(key_func)
 
         # Add handlers
-        self.xmpp.add_event_handler('connected', self.handler.on_connected)
-        self.xmpp.add_event_handler('connection_failed',
-                                    self.handler.on_failed_connection)
-        self.xmpp.add_event_handler('disconnected',
-                                    self.handler.on_disconnected)
-        self.xmpp.add_event_handler('stream_error',
-                                    self.handler.on_stream_error)
-        self.xmpp.add_event_handler('failed_all_auth',
-                                    self.handler.on_failed_all_auth)
-        self.xmpp.add_event_handler('no_auth', self.handler.on_no_auth)
-        self.xmpp.add_event_handler("session_start",
-                                    self.handler.on_session_start)
-        self.xmpp.add_event_handler("session_start",
-                                    self.handler.on_session_start_features)
-        self.xmpp.add_event_handler("groupchat_presence",
-                                    self.handler.on_groupchat_presence)
-        self.xmpp.add_event_handler("groupchat_message",
-                                    self.handler.on_groupchat_message)
-        self.xmpp.add_event_handler("groupchat_invite",
-                                    self.handler.on_groupchat_invitation)
-        self.xmpp.add_event_handler(
-            "groupchat_direct_invite",
-            self.handler.on_groupchat_direct_invitation)
-        self.xmpp.add_event_handler("groupchat_decline",
-                                    self.handler.on_groupchat_decline)
-        self.xmpp.add_event_handler("groupchat_config_status",
-                                    self.handler.on_status_codes)
-        self.xmpp.add_event_handler("groupchat_subject",
-                                    self.handler.on_groupchat_subject)
-        self.xmpp.add_event_handler("message", self.handler.on_message)
-        self.xmpp.add_event_handler("message_error",
-                                    self.handler.on_error_message)
-        self.xmpp.add_event_handler("receipt_received",
-                                    self.handler.on_receipt)
-        self.xmpp.add_event_handler("got_online", self.handler.on_got_online)
-        self.xmpp.add_event_handler("got_offline", self.handler.on_got_offline)
-        self.xmpp.add_event_handler("roster_update",
-                                    self.handler.on_roster_update)
-        self.xmpp.add_event_handler("changed_status", self.handler.on_presence)
-        self.xmpp.add_event_handler("presence_error",
-                                    self.handler.on_presence_error)
-        self.xmpp.add_event_handler("roster_subscription_request",
-                                    self.handler.on_subscription_request)
-        self.xmpp.add_event_handler("roster_subscription_authorized",
-                                    self.handler.on_subscription_authorized)
-        self.xmpp.add_event_handler("roster_subscription_remove",
-                                    self.handler.on_subscription_remove)
-        self.xmpp.add_event_handler("roster_subscription_removed",
-                                    self.handler.on_subscription_removed)
-        self.xmpp.add_event_handler("message_xform", self.handler.on_data_form)
-        self.xmpp.add_event_handler("chatstate_active",
-                                    self.handler.on_chatstate_active)
-        self.xmpp.add_event_handler("chatstate_composing",
-                                    self.handler.on_chatstate_composing)
-        self.xmpp.add_event_handler("chatstate_paused",
-                                    self.handler.on_chatstate_paused)
-        self.xmpp.add_event_handler("chatstate_gone",
-                                    self.handler.on_chatstate_gone)
-        self.xmpp.add_event_handler("chatstate_inactive",
-                                    self.handler.on_chatstate_inactive)
-        self.xmpp.add_event_handler("attention", self.handler.on_attention)
-        self.xmpp.add_event_handler("ssl_cert", self.handler.validate_ssl)
-        self.xmpp.add_event_handler("ssl_invalid_chain",
-                                    self.handler.ssl_invalid_chain)
-        self.xmpp.add_event_handler('carbon_received',
-                                    self.handler.on_carbon_received)
-        self.xmpp.add_event_handler('carbon_sent', self.handler.on_carbon_sent)
-        self.xmpp.add_event_handler('http_confirm', self.handler.http_confirm)
+        xmpp_event_handlers = [
+            ('attention', self.handler.on_attention),
+            ('carbon_received', self.handler.on_carbon_received),
+            ('carbon_sent', self.handler.on_carbon_sent),
+            ('changed_status', self.handler.on_presence),
+            ('chatstate_active', self.handler.on_chatstate_active),
+            ('chatstate_composing', self.handler.on_chatstate_composing),
+            ('chatstate_gone', self.handler.on_chatstate_gone),
+            ('chatstate_inactive', self.handler.on_chatstate_inactive),
+            ('chatstate_paused', self.handler.on_chatstate_paused),
+            ('connected', self.handler.on_connected),
+            ('connection_failed', self.handler.on_failed_connection),
+            ('disconnected', self.handler.on_disconnected),
+            ('failed_all_auth', self.handler.on_failed_all_auth),
+            ('got_offline', self.handler.on_got_offline),
+            ('got_online', self.handler.on_got_online),
+            ('groupchat_config_status', self.handler.on_status_codes),
+            ('groupchat_decline', self.handler.on_groupchat_decline),
+            ('groupchat_direct_invite',
+             self.handler.on_groupchat_direct_invitation),
+            ('groupchat_invite', self.handler.on_groupchat_invitation),
+            ('groupchat_message', self.handler.on_groupchat_message),
+            ('groupchat_presence', self.handler.on_groupchat_presence),
+            ('groupchat_subject', self.handler.on_groupchat_subject),
+            ('http_confirm', self.handler.http_confirm),
+            ('message', self.handler.on_message),
+            ('message_error', self.handler.on_error_message),
+            ('message_xform', self.handler.on_data_form),
+            ('no_auth', self.handler.on_no_auth),
+            ('presence_error', self.handler.on_presence_error),
+            ('receipt_received', self.handler.on_receipt),
+            ('roster_subscription_authorized',
+             self.handler.on_subscription_authorized),
+            ('roster_subscription_remove',
+             self.handler.on_subscription_remove),
+            ('roster_subscription_removed',
+             self.handler.on_subscription_removed),
+            ('roster_subscription_request',
+             self.handler.on_subscription_request),
+            ('roster_update', self.handler.on_roster_update),
+            ('session_start', self.handler.on_session_start),
+            ('session_start', self.handler.on_session_start_features),
+            ('ssl_cert', self.handler.validate_ssl),
+            ('ssl_invalid_chain', self.handler.ssl_invalid_chain),
+            ('stream_error', self.handler.on_stream_error),
+        ]
+        for name, handler in xmpp_event_handlers:
+            self.xmpp.add_event_handler(name, handler)
 
-        all_stanzas = Callback('custom matcher', connection.MatchAll(None),
-                               self.handler.incoming_stanza)
-        self.xmpp.register_handler(all_stanzas)
         if config.get('enable_avatars'):
             self.xmpp.add_event_handler("vcard_avatar_update",
                                         self.handler.on_vcard_avatar)
@@ -298,6 +277,10 @@ class Core:
             self.xmpp.add_event_handler("user_gaming_publish",
                                         self.handler.on_gaming_event)
 
+        all_stanzas = Callback('custom matcher', connection.MatchAll(None),
+                               self.handler.incoming_stanza)
+        self.xmpp.register_handler(all_stanzas)
+
         self.initial_joins = []
 
         self.connected_events = {}
@@ -316,40 +299,34 @@ class Core:
         # string option (""), they will be called for every option change
         # The callback takes two argument: the config option, and the new
         # value
-        self.configuration_change_handlers = {"": []}
-        self.add_configuration_handler("create_gaps",
-                                       self.on_gaps_config_change)
-        self.add_configuration_handler("request_message_receipts",
-                                       self.on_request_receipts_config_change)
-        self.add_configuration_handler("ack_message_receipts",
-                                       self.on_ack_receipts_config_change)
-        self.add_configuration_handler(
-            "plugins_dir", self.plugin_manager.on_plugins_dir_change)
-        self.add_configuration_handler(
-            "plugins_conf_dir", self.plugin_manager.on_plugins_conf_dir_change)
-        self.add_configuration_handler("connection_timeout_delay",
-                                       self.xmpp.set_keepalive_values)
-        self.add_configuration_handler("connection_check_interval",
-                                       self.xmpp.set_keepalive_values)
-        self.add_configuration_handler("themes_dir", theming.update_themes_dir)
-        self.add_configuration_handler("theme", self.on_theme_config_change)
-        self.add_configuration_handler("use_bookmarks_method",
-                                       self.on_bookmarks_method_config_change)
-        self.add_configuration_handler("password", self.on_password_change)
-        self.add_configuration_handler("enable_vertical_tab_list",
-                                       self.on_vertical_tab_list_config_change)
-        self.add_configuration_handler("vertical_tab_list_size",
-                                       self.on_vertical_tab_list_config_change)
-        self.add_configuration_handler("deterministic_nick_colors",
-                                       self.on_nick_determinism_changed)
-        self.add_configuration_handler("enable_carbons",
-                                       self.on_carbons_switch)
-        self.add_configuration_handler("hide_user_list",
-                                       self.on_hide_user_list_change)
+        self.configuration_change_handlers = defaultdict(list)
+        config_handlers = [
+            ('', self.on_any_config_change),
+            ('ack_message_receipts', self.on_ack_receipts_config_change),
+            ('connection_check_interval', self.xmpp.set_keepalive_values),
+            ('connection_timeout_delay', self.xmpp.set_keepalive_values),
+            ('create_gaps', self.on_gaps_config_change),
+            ('deterministic_nick_colors', self.on_nick_determinism_changed),
+            ('enable_carbons', self.on_carbons_switch),
+            ('enable_vertical_tab_list',
+             self.on_vertical_tab_list_config_change),
+            ('hide_user_list', self.on_hide_user_list_change),
+            ('password', self.on_password_change),
+            ('plugins_conf_dir',
+             self.plugin_manager.on_plugins_conf_dir_change),
+            ('plugins_dir', self.plugin_manager.on_plugins_dir_change),
+            ('request_message_receipts',
+             self.on_request_receipts_config_change),
+            ('theme', self.on_theme_config_change),
+            ('themes_dir', theming.update_themes_dir),
+            ('use_bookmarks_method', self.on_bookmarks_method_config_change),
+            ('vertical_tab_list_size',
+             self.on_vertical_tab_list_config_change),
+        ]
+        for option, handler in config_handlers:
+            self.add_configuration_handler(option, handler)
 
-        self.add_configuration_handler("", self.on_any_config_change)
-
-    def on_tab_change(self, old_tab, new_tab):
+    def on_tab_change(self, old_tab: tabs.Tab, new_tab: tabs.Tab):
         """Whenever the current tab changes, change focus and refresh"""
         old_tab.on_lose_focus()
         new_tab.on_gain_focus()
@@ -361,14 +338,12 @@ class Core:
         """
         roster.modified()
 
-    def add_configuration_handler(self, option, callback):
+    def add_configuration_handler(self, option: str, callback: Callable):
         """
         Add a callback, associated with the given option. It will be called
         each time the configuration option is changed using /set or by
         reloading the configuration with a signal
         """
-        if option not in self.configuration_change_handlers:
-            self.configuration_change_handlers[option] = []
         self.configuration_change_handlers[option].append(callback)
 
     def trigger_configuration_change(self, option, value):
@@ -599,50 +574,6 @@ class Core:
         main loop waiting for the user to press a key
         """
 
-        def replace_line_breaks(key):
-            "replace ^J with \n"
-            if key == '^J':
-                return '\n'
-            return key
-
-        def separate_chars_from_bindings(char_list):
-            """
-            returns a list of lists. For example if you give
-            ['a', 'b', 'KEY_BACKSPACE', 'n', 'u'], this function returns
-            [['a', 'b'], ['KEY_BACKSPACE'], ['n', 'u']]
-
-            This way, in case of lag (for example), we handle the typed text
-            by “batch” as much as possible (instead of one char at a time,
-            which implies a refresh after each char, which is very slow),
-            but we still handle the special chars (backspaces, arrows,
-            ctrl+x ou alt+x, etc) one by one, which avoids the issue of
-            printing them OR ignoring them in that case.  This should
-            resolve the “my ^W are ignored when I lag ;(”.
-            """
-            res = []
-            current = []
-            for char in char_list:
-                assert char
-                # Transform that stupid char into what we actually meant
-                if char == '\x1f':
-                    char = '^/'
-                if len(char) == 1:
-                    current.append(char)
-                else:
-                    # special case for the ^I key, it’s considered as \t
-                    # only when pasting some text, otherwise that’s the ^I
-                    # (or M-i) key, which stands for completion by default.
-                    if char == '^I' and len(char_list) != 1:
-                        current.append('\t')
-                        continue
-                    if current:
-                        res.append(current)
-                        current = []
-                    res.append([char])
-            if current:
-                res.append(current)
-            return res
-
         log.debug("Input is readable.")
         big_char_list = [replace_key_with_bound(key)\
                          for key in self.read_keyboard()]
@@ -705,7 +636,7 @@ class Core:
                 self.focus_tab_named(roster_row.jid)
         self.refresh_window()
 
-    def get_conversation_messages(self):
+    def get_conversation_messages(self) -> Optional[List[Tuple]]:
         """
         Returns a list of all the messages in the current chat.
         If the current tab is not a ChatTab, returns None.
@@ -717,7 +648,7 @@ class Core:
             return None
         return self.tabs.current_tab.get_conversation_messages()
 
-    def insert_input_text(self, text):
+    def insert_input_text(self, text: str):
         """
         Insert the given text into the current input
         """
@@ -725,7 +656,7 @@ class Core:
 
 ##################### Anything related to command execution ###################
 
-    def execute(self, line):
+    def execute(self, line: str):
         """
         Execute the /command or just send the line on the current room
         """
@@ -811,7 +742,7 @@ class Core:
                     exc_info=True)
                 self.information(str(exc), 'Error')
 
-    def do_command(self, key, raw):
+    def do_command(self, key: str, raw: bool):
         """
         Execute the action associated with a key
 
@@ -830,7 +761,7 @@ class Core:
         else:
             self.tabs.current_tab.on_input(key, raw)
 
-    def try_execute(self, line):
+    def try_execute(self, line: str):
         """
         Try to execute a command in the current tab
         """
@@ -859,7 +790,7 @@ class Core:
         """
         return self.status
 
-    def set_status(self, pres, msg):
+    def set_status(self, pres: str, msg: str):
         """
         Set our current status so we can remember
         it and use it back when needed (for example to display it
@@ -875,7 +806,7 @@ class Core:
                     'Unable to save the status in '
                     'the config file', 'Error')
 
-    def get_bookmark_nickname(self, room_name):
+    def get_bookmark_nickname(self, room_name: str) -> str:
         """
         Returns the nickname associated with a bookmark
         or the default nickname
@@ -903,7 +834,7 @@ class Core:
                 lambda event: self.xmpp.connect(),
                 disposable=True)
 
-    def send_message(self, msg):
+    def send_message(self, msg: str) -> bool:
         """
         Function to use in plugins to send a message in the current
         conversation.
@@ -914,7 +845,7 @@ class Core:
         self.tabs.current_tab.command_say(msg)
         return True
 
-    def invite(self, jid, room, reason=None):
+    def invite(self, jid: JID, room: JID, reason: Optional[str] = None):
         """
         Checks if the sender supports XEP-0249, then send an invitation,
         or a mediated one if it does not.
@@ -974,13 +905,16 @@ class Core:
 
 ### Tab getters ###
 
-    def get_tabs(self, cls=None):
+    def get_tabs(self, cls: Optional[Type[tabs.Tab]] = None):
         "Get all the tabs of a type"
         if cls is None:
             return self.tabs.get_tabs()
         return self.tabs.by_class(cls)
 
-    def get_conversation_by_jid(self, jid, create=True, fallback_barejid=True):
+    def get_conversation_by_jid(self,
+                                jid: JID,
+                                create=True,
+                                fallback_barejid=True) -> tabs.ChatTab:
         """
         From a JID, get the tab containing the conversation with it.
         If none already exist, and create is "True", we create it
@@ -1013,7 +947,7 @@ class Core:
                     conversation = None
         return conversation
 
-    def add_tab(self, new_tab, focus=False):
+    def add_tab(self, new_tab: tabs.Tab, focus=False):
         """
         Appends the new_tab in the tab list and
         focus it if focus==True
@@ -1022,7 +956,7 @@ class Core:
         if focus:
             self.tabs.set_current_tab(new_tab)
 
-    def insert_tab(self, old_pos, new_pos=99999):
+    def insert_tab(self, old_pos: int, new_pos=99999) -> bool:
         """
         Insert a tab at a position, changing the number of the following tabs
         returns False if it could not move the tab, True otherwise
@@ -1108,7 +1042,9 @@ class Core:
                 return
         return
 
-    def focus_tab_named(self, tab_name, type_=None):
+    def focus_tab_named(self,
+                        tab_name: str,
+                        type_: Optional[Type[tabs.Tab]] = None) -> bool:
         """Returns True if it found a tab to focus on"""
         if type_ is None:
             tab = self.tabs.by_name(tab_name)
@@ -1121,7 +1057,8 @@ class Core:
 
     ### Opening actions ###
 
-    def open_conversation_window(self, jid, focus=True):
+    def open_conversation_window(self, jid: JID,
+                                 focus=True) -> tabs.ConversationTab:
         """
         Open a new conversation tab and focus it if needed. If a resource is
         provided, we open a StaticConversationTab, else a
@@ -1137,7 +1074,8 @@ class Core:
         self.refresh_window()
         return new_tab
 
-    def open_private_window(self, room_name, user_nick, focus=True):
+    def open_private_window(self, room_name: str, user_nick: str,
+                            focus=True) -> tabs.PrivateTab:
         """
         Open a Private conversation in a MUC and focus if needed.
         """
@@ -1162,7 +1100,12 @@ class Core:
         tab.privates.append(new_tab)
         return new_tab
 
-    def open_new_room(self, room, nick, *, password=None, focus=True):
+    def open_new_room(self,
+                      room: str,
+                      nick: str,
+                      *,
+                      password: Optional[str] = None,
+                      focus=True) -> tabs.MucTab:
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
@@ -1171,7 +1114,8 @@ class Core:
         self.refresh_window()
         return new_tab
 
-    def open_new_form(self, form, on_cancel, on_send, **kwargs):
+    def open_new_form(self, form, on_cancel: Callable, on_send: Callable,
+                      **kwargs):
         """
         Open a new tab containing the form
         The callback are called with the completed form as parameter in
@@ -1182,7 +1126,7 @@ class Core:
 
     ### Modifying actions ###
 
-    def rename_private_tabs(self, room_name, old_nick, user):
+    def rename_private_tabs(self, room_name: str, old_nick: str, user: User):
         """
         Call this method when someone changes his/her nick in a MUC,
         this updates the name of all the opened private conversations
@@ -1193,8 +1137,8 @@ class Core:
         if tab:
             tab.rename_user(old_nick, user)
 
-    def on_user_left_private_conversation(self, room_name, user,
-                                          status_message):
+    def on_user_left_private_conversation(self, room_name: str, user: User,
+                                          status_message: str):
         """
         The user left the MUC: add a message in the associated
         private conversation
@@ -1204,7 +1148,7 @@ class Core:
         if tab:
             tab.user_left(status_message, user)
 
-    def on_user_rejoined_private_conversation(self, room_name, nick):
+    def on_user_rejoined_private_conversation(self, room_name: str, nick: str):
         """
         The user joined a MUC: add a message in the associated
         private conversation
@@ -1214,7 +1158,9 @@ class Core:
         if tab:
             tab.user_rejoined(nick)
 
-    def disable_private_tabs(self, room_name, reason=None):
+    def disable_private_tabs(self,
+                             room_name: str,
+                             reason: Optional[str] = None):
         """
         Disable private tabs when leaving a room
         """
@@ -1224,7 +1170,8 @@ class Core:
             if tab.name.startswith(room_name):
                 tab.deactivate(reason=reason)
 
-    def enable_private_tabs(self, room_name, reason=None):
+    def enable_private_tabs(self, room_name: str,
+                            reason: Optional[str] = None):
         """
         Enable private tabs when joining a room
         """
@@ -1234,12 +1181,12 @@ class Core:
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
-    def on_user_changed_status_in_private(self, jid, status):
+    def on_user_changed_status_in_private(self, jid: JID, status: str):
         tab = self.tabs.by_name_and_class(jid, tabs.ChatTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
 
-    def close_tab(self, tab=None):
+    def close_tab(self, tab: tabs.Tab = None):
         """
         Close the given tab. If None, close the current one
         """
@@ -1262,7 +1209,7 @@ class Core:
                   gc.get_referrers(tab))
         del tab
 
-    def add_information_message_to_conversation_tab(self, jid, msg):
+    def add_information_message_to_conversation_tab(self, jid: JID, msg: str):
         """
         Search for a ConversationTab with the given jid (full or bare),
         if yes, add the given message to it
@@ -1281,7 +1228,7 @@ class Core:
             return
         curses.doupdate()
 
-    def information(self, msg, typ=''):
+    def information(self, msg: str, typ=''):
         """
         Displays an informational message in the "Info" buffer
         """
@@ -1987,24 +1934,67 @@ class Core:
         self.refresh_window()
 
 
-class KeyDict(dict):
+class KeyDict(Dict[str, Callable]):
     """
     A dict, with a wrapper for get() that will return a custom value
     if the key starts with _exc_
     """
 
-    def get(self, k, d=None):
-        if isinstance(k, str) and k.startswith('_exc_') and len(k) > 5:
-            return lambda: dict.get(self, '_exc_')(k[5:])
-        return dict.get(self, k, d)
+    def get(self, key: str, default: Optional[Callable] = None) -> Callable:
+        if isinstance(key, str) and key.startswith('_exc_') and len(key) > 5:
+            return lambda: dict.get(self, '_exc_')(key[5:])
+        return dict.get(self, key, default)
 
 
-def replace_key_with_bound(key):
+def replace_key_with_bound(key: str) -> str:
     """
     Replace an inputted key with the one defined as its replacement
     in the config
     """
-    bind = config.get(key, default=key, section='bindings')
-    if not bind:
-        bind = key
-    return bind
+    return config.get(key, default=key, section='bindings') or key
+
+
+def replace_line_breaks(key: str) -> str:
+    "replace ^J with \n"
+    if key == '^J':
+        return '\n'
+    return key
+
+
+def separate_chars_from_bindings(char_list: List[str]) -> List[List[str]]:
+    """
+    returns a list of lists. For example if you give
+    ['a', 'b', 'KEY_BACKSPACE', 'n', 'u'], this function returns
+    [['a', 'b'], ['KEY_BACKSPACE'], ['n', 'u']]
+
+    This way, in case of lag (for example), we handle the typed text
+    by “batch” as much as possible (instead of one char at a time,
+    which implies a refresh after each char, which is very slow),
+    but we still handle the special chars (backspaces, arrows,
+    ctrl+x ou alt+x, etc) one by one, which avoids the issue of
+    printing them OR ignoring them in that case.  This should
+    resolve the “my ^W are ignored when I lag ;(”.
+    """
+    res = []
+    current = []
+    for char in char_list:
+        assert char
+        # Transform that stupid char into what we actually meant
+        if char == '\x1f':
+            char = '^/'
+        if len(char) == 1:
+            current.append(char)
+        else:
+            # special case for the ^I key, it’s considered as \t
+            # only when pasting some text, otherwise that’s the ^I
+            # (or M-i) key, which stands for completion by default.
+            if char == '^I' and len(char_list) != 1:
+                current.append('\t')
+                continue
+            if current:
+                res.append(current)
+                current = []
+            res.append([char])
+    if current:
+        res.append(current)
+    return res

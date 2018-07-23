@@ -13,7 +13,7 @@ Once created, they must be added to the list of checked events with
 """
 
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Union
 
 
 class DelayedEvent:
@@ -22,7 +22,8 @@ class DelayedEvent:
     Use it if you want an event to happen in, e.g. 6 seconds.
     """
 
-    def __init__(self, delay: int, callback: Callable, *args) -> None:
+    def __init__(self, delay: Union[int, float], callback: Callable,
+                 *args) -> None:
         """
         Create a new DelayedEvent.
 

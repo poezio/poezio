@@ -355,4 +355,4 @@ def create_logger() -> None:
     logger = Logger()
 
 
-logger = None
+logger = None  # type: Optional[Logger]
