@@ -33,7 +33,7 @@ class Message:
                  identifier: Optional[str],
                  str_time: Optional[str] = None,
                  highlight: bool = False,
-                 old_message: Optional[Message] = None,
+                 old_message: Optional['Message'] = None,
                  revisions: int = 0,
                  jid: Optional[str] = None,
                  ack: int = 0) -> None:
