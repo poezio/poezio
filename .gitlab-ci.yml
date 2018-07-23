@@ -48,7 +48,7 @@ pytest-3.5:
     - python3 setup.py install
     - py.test -v test/
 
-pyest-3.6:
+pytest-3.6:
   stage: test
   image: python:3.6
   script:
@@ -61,7 +61,7 @@ pyest-3.6:
     - python3 setup.py install
     - py.test -v test/
 
-pyest-latest:
+pytest-latest:
   stage: test
   image: python:3.6
   script:

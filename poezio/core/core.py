@@ -98,6 +98,8 @@ class Core:
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
         self.events = events.EventHandler()
+        self.events.add_event_handler('tab_change',
+            self.on_tab_change)
 
         self.tabs = Tabs(self.events)
         self.previous_tab_nb = 0
@@ -346,6 +348,12 @@ class Core:
                                        self.on_hide_user_list_change)
 
         self.add_configuration_handler("", self.on_any_config_change)
+
+    def on_tab_change(self, old_tab, new_tab):
+        """Whenever the current tab changes, change focus and refresh"""
+        old_tab.on_lose_focus()
+        new_tab.on_gain_focus()
+        self.refresh_window()
 
     def on_any_config_change(self, option, value):
         """
@@ -1028,19 +1036,13 @@ class Core:
         """
         rotate the rooms list to the right
         """
-        self.tabs.current_tab.on_lose_focus()
         self.tabs.next()
-        self.tabs.current_tab.on_gain_focus()
-        self.refresh_window()
 
     def rotate_rooms_left(self, args=None):
         """
         rotate the rooms list to the right
         """
-        self.tabs.current_tab.on_lose_focus()
         self.tabs.prev()
-        self.tabs.current_tab.on_gain_focus()
-        self.refresh_window()
 
     def go_to_room_number(self):
         """

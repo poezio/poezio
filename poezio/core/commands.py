@@ -214,9 +214,6 @@ class CommandCore:
             if match is None:
                 return
             self.core.tabs.set_current_tab(match)
-        old_tab.on_lose_focus()
-        self.core.tabs.current_tab.on_gain_focus()
-        self.core.refresh_window()
 
     @command_args_parser.quoted(2)
     def move_tab(self, args):
@@ -496,9 +493,6 @@ class CommandCore:
             tab = tabs.BookmarksTab(self.core, self.core.bookmarks)
             self.core.tabs.append(tab)
             self.core.tabs.set_current_tab(tab)
-        old_tab.on_lose_focus()
-        tab.on_gain_focus()
-        self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
     def remove_bookmark(self, args):
