@@ -23,7 +23,7 @@ command -v "$POEZIO_PYTHON" > /dev/null 2>&1 || {
 }
 
 $POEZIO_PYTHON -c 'import venv' &> /dev/null || {
-    echo "'$POEZIO_PYTHON' venv module not found. Check that you have python (>= 3.4) installed,"
+    echo "'$POEZIO_PYTHON' venv module not found. Check that you have python (>= 3.5) installed,"
     exit 1
 }
 
@@ -43,7 +43,7 @@ then
     . "$POEZIO_VENV/bin/activate"
     echo 'Updating the in-venv pip'
     pip install --upgrade pip
-    python3 -c 'import sys;(print("Python 3.4 or newer is required") and exit(1)) if sys.version_info < (3, 4) else exit(0)' || exit 1
+    python3 -c 'import sys;(print("Python 3.5 or newer is required") and exit(1)) if sys.version_info < (3, 5) else exit(0)' || exit 1
     echo 'Updating the poezio dependencies'
     pip install -r requirements.txt --upgrade
     echo 'Updating the poezio plugin dependencies'
@@ -55,7 +55,7 @@ else
 
     . "$POEZIO_VENV/bin/activate"
     cd "$POEZIO_VENV" # needed to download slixmpp inside the venv
-    python3 -c 'import sys;(print("Python 3.4 or newer is required") and exit(1)) if sys.version_info < (3, 4) else exit(0)' || exit 1
+    python3 -c 'import sys;(print("Python 3.5 or newer is required") and exit(1)) if sys.version_info < (3, 5) else exit(0)' || exit 1
 
     echo 'Installing the poezio dependencies using pip'
     pip install -r "../requirements.txt"
