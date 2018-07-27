@@ -19,11 +19,11 @@ def ncurses_color_to_rgb(color):
         b = b / 1000 * 5
     elif color <= 231:
         color = color - 16
-        r = color % 6
+        b = color % 6
         color = color // 6
         g = color % 6
         color = color // 6
-        b = color % 6
+        r = color % 6
     else:
         color -= 232
         r = g = b = color / 24 * 5
