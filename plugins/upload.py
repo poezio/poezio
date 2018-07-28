@@ -38,10 +38,9 @@ class Plugin(BasePlugin):
                     short='Upload a file',
                     completion=self.completion_filename)
 
-    @asyncio.coroutine
-    def async_upload(self, filename):
+    async def async_upload(self, filename):
         try:
-            url = yield from self.core.xmpp['xep_0363'].upload_file(filename)
+            url = await self.core.xmpp['xep_0363'].upload_file(filename)
         except Exception:
             exception = traceback.format_exc()
             self.api.information('Failed to upload file: %s' % exception, 'Error')
