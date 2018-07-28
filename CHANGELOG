@@ -4,6 +4,29 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 1.0 - dev
 
+- Require Python 3.5, to add support for Python 3.7, use proper async
+  functions, use typing, italics formatting, FIXME
+- Added support for XEP-0392 (Consistent Color Generation)
+- Added support for XEP-0153 (vCard-Based Avatars) and XEP-0084 (User
+  Avatar) in the roster tab
+- Added support for XEP-0363 (HTTP File Upload) for easy file transfer,
+  in the upload plugin with /upload
+- Added support for XEP-0066 (Out of Band Data) for Conversations
+  compatibility when sharing images, in the embed plugin with /embed
+- Removed support for XEP-0296 (Best Practices for Resource Locking),
+  to use all features available no matter what our contact’s current
+  clients support
+- Check for usable Unicode support on start
+- Generate a device id on first start, and use it for our resource
+- Display the public key hash instead of the certificate’s
+- Handle carbons properly for private messages in rooms
+- /bookmarks can now be used to rename tabs as you want
+- Remove unexpected command completion based on command prefix
+- Add an irssi theme
+- Add a code plugin, which requires pygments
+- Fix resource duplication on reconnect
+- Misc fixes and improvements
+
 * Poezio 0.11
 
 - Implementation of XEP-0380
