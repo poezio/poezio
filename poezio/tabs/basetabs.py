@@ -508,10 +508,6 @@ class ChatTab(Tab):
                 self._text_buffer.add_message(**message)
 
     @property
-    def remote_wants_chatstates(self) -> bool:
-        return True
-
-    @property
     def general_jid(self) -> JID:
         return NotImplementedError
 
@@ -815,14 +811,6 @@ class OneToOneTab(ChatTab):
         if status.show in SHOW_NAME:
             msg += 'show: %s, ' % SHOW_NAME[status.show]
         self.add_message(msg[:-2], typ=2)
-
-    @property
-    def remote_wants_chatstates(self):
-        return True
-
-    @remote_wants_chatstates.setter
-    def remote_wants_chatstates(self, value):
-        pass
 
     def ack_message(self, msg_id, msg_jid):
         """
