@@ -950,7 +950,7 @@ class HandlerCore:
                 '%s wants to subscribe to your presence, use '
                 '/accept <jid> or /deny <jid> in the roster '
                 'tab to accept or reject the query.' % jid, 'Roster')
-            self.core.get_tab_by_number(0).state = 'highlight'
+            self.core.tabs.first().state = 'highlight'
             roster.modified()
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
@@ -979,7 +979,7 @@ class HandlerCore:
         roster.modified()
         self.core.information(
             '%s does not want to receive your status anymore.' % jid, 'Roster')
-        self.core.get_tab_by_number(0).state = 'highlight'
+        self.core.tabs.first().state = 'highlight'
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
@@ -998,7 +998,7 @@ class HandlerCore:
             self.core.information(
                 '%s does not want you to receive his/her/its status anymore.' %
                 jid, 'Roster')
-        self.core.get_tab_by_number(0).state = 'highlight'
+        self.core.tabs.first().state = 'highlight'
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 

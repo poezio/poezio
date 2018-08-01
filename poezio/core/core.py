@@ -1055,6 +1055,11 @@ class Core:
             return True
         return False
 
+    def focus_tab(self, tab: tabs.Tab) -> bool:
+        """Focus a tab"""
+        return self.tabs.set_current_tab(tab)
+
+
     ### Opening actions ###
 
     def open_conversation_window(self, jid: JID,
