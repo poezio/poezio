@@ -161,7 +161,7 @@ we merge it to “master” as well, of course).
     - Lasse Aagren - Code
     - Lancelot SIX - Code
     - Luke Marlin - Code
-    - Maxim Buquet - Code
+    - Maxime Buquet - Code
     - Nicolas Braud-Santoni - Code
     - Perdu - Code
     - Eijebong - Code
