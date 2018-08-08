@@ -175,14 +175,15 @@ real JID of your contact (or check if the same nick is used by different people)
 """
 
 from gettext import gettext as _
-import potr
 import logging
 
 log = logging.getLogger(__name__)
 import os
 import html
 import curses
+from pathlib import Path
 
+import potr
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
@@ -360,9 +361,9 @@ class PoezioContext(Context):
             'bare_jid': safeJID(self.peer).bare
         }
 
-        tab = self.core.get_tab_by_name(self.peer)
+        tab = self.core.tabs.by_name(self.peer)
         if not tab:
-            tab = self.core.get_tab_by_name(safeJID(self.peer).bare,
+            tab = self.core.tabs.by_name(safeJID(self.peer).bare,
                                             DynamicConversationTab)
             if tab and not tab.locked_resource == safeJID(self.peer).resource:
                 tab = None
@@ -472,13 +473,13 @@ class Plugin(BasePlugin):
         keys_dir = self.config.get('keys_dir', '')
         otr_dir = Path(keys_dir).expanduser() if keys_dir else xdg.DATA_HOME / 'otr'
         try:
-            otr_dir.mkdir(parents=True, exists_ok=True)
+            otr_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
             self.api.information('The OTR-specific folder could not '
                                  'be created: %s. Poezio will be unable '
                                  'to save keys and trusts' % e, 'OTR')
 
-        except:
+        except Exception as e:
             self.api.information('The OTR-specific folder could not '
                                  'be created. Poezio will be unable '
                                  'to save keys and trusts', 'OTR')
