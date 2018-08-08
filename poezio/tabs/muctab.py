@@ -845,7 +845,12 @@ class MucTab(ChatTab):
                          }
         self.add_message(kick_msg, typ=2)
 
-    def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room,
+    def on_user_leave_groupchat(self,
+                                user,
+                                jid,
+                                status,
+                                from_nick,
+                                from_room,
                                 server_initiated=False):
         """
         When an user leaves a groupchat

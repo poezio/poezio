@@ -36,7 +36,6 @@ from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
 
-
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
     'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
@@ -515,7 +514,11 @@ class ChatTab(Tab):
         logs = logger.get_logs(safeJID(self.name).bare, log_nb)
         return logs
 
-    def log_message(self, txt: str, nickname: str, time: Optional[datetime] = None, typ=1):
+    def log_message(self,
+                    txt: str,
+                    nickname: str,
+                    time: Optional[datetime] = None,
+                    typ=1):
         """
         Log the messages in the archives.
         """
