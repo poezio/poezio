@@ -87,6 +87,18 @@ pylint-latest:
     - python3 setup.py install
     - pylint -E poezio
 
+pylint-plugins:
+  stage: test
+  image: python:3
+  allow_failure: true
+  script:
+    - apt-get update && apt-get install -y libidn11-dev
+    - pip3 install pylint pyasn1-modules cffi --upgrade
+    - pip3 install -r requirements.txt
+    - pip3 install -r requirements-plugins.txt
+    - python3 setup.py install
+    - pylint -E plugins
+
 formatting-check:
   stage: test
   image: python:3
