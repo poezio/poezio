@@ -94,7 +94,7 @@ pylint-plugins:
   script:
     - apt-get update && apt-get install -y libidn11-dev
     - pip3 install pylint pyasn1-modules cffi --upgrade
-    - pip3 install -r requirements.txt
+    - pip3 install -e git+git://git.louiz.org/slixmpp#egg=slixmpp
     - pip3 install -r requirements-plugins.txt
     - python3 setup.py install
     - pylint -E plugins
