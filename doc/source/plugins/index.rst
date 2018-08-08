@@ -31,7 +31,7 @@ e.g.
 
 .. code-block:: ini
 
-    plugins_autoload = gpg:tell:exec
+    plugins_autoload = tell:exec
 
 Manual plugin load
 ------------------
@@ -45,7 +45,7 @@ Plugin configuration
 --------------------
 
 Most plugins will manage their configuration internally, and you do not (and
-should not) have to edit it, but some (e.g. mpd_client or gpg) require manual
+should not) have to edit it, but some (e.g. mpd_client) require manual
 editing (the :term:`/set` command can be used, but it is not pleasant to set
 multiple values with it).
 
@@ -122,11 +122,6 @@ Plugin index
         :ref:`Documentation <figlet-plugin>`
 
         Ascii-art writing (requires the ``figlet`` package on your system).
-
-    GPG
-        :ref:`Documentation <gpg-plugin>`
-
-        Allows encrypted exchanges and presence signing using GnuPG.
 
     IQ Show
         :ref:`Documentation <iqshow-plugin>`
@@ -314,7 +309,6 @@ Plugin index
     embed
     exec
     figlet
-    gpg
     link
     mpd_client
     otr

@@ -334,7 +334,7 @@ class PluginAPI:
         :param str event_name: The event name.
         :param function handler: The handler function.
         :param int position: The position of that handler in the handler list.
-            This is useful for plugins like GPG or OTR, which must be the last
+            This is useful for plugins like OTR, which must be the last
             function called on the text.
             Defaults to 0.
 

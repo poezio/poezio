@@ -16,6 +16,6 @@ The relevant options for a separate config are the following:
 
 * :term:`plugins_dir`: A different directory for the plugin sources (not _that_ useful)
 * :term:`log_dir`: A different directory for logs
-* :term:`plugins_conf_dir`: A different directory for plugin configurations ; useful for the GPG plugin, for example.
+* :term:`plugins_conf_dir`: A different directory for plugin configurations
 
 Those options are detailed in the *configuration page*.
