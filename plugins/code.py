@@ -23,7 +23,7 @@ Usage
         using pygments’s <language> lexer.
 """
 
-from plugin import BasePlugin
+from poezio.plugin import BasePlugin
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
