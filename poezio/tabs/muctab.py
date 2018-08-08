@@ -580,7 +580,7 @@ class MucTab(ChatTab):
         # user quit
         elif typ == 'unavailable':
             self.on_user_leave_groupchat(user, jid, status, from_nick,
-                                         from_room)
+                                         from_room, server_initiated)
         # status change
         else:
             self.on_user_change_status(user, from_nick, from_room, affiliation,
@@ -845,7 +845,8 @@ class MucTab(ChatTab):
                          }
         self.add_message(kick_msg, typ=2)
 
-    def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room):
+    def on_user_leave_groupchat(self, user, jid, status, from_nick, from_room,
+                                server_initiated=False):
         """
         When an user leaves a groupchat
         """
@@ -869,29 +870,35 @@ class MucTab(ChatTab):
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             spec_col = dump_tuple(get_theme().COLOR_QUIT_CHAR)
 
+            error_leave_txt = ''
+            if server_initiated:
+                error_leave_txt = ' due to an error'
+
             if not jid.full:
                 leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
                              '%(nick)s\x19%(info_col)s} has left the '
-                             'room') % {
+                             'room%(error_leave)s') % {
                                  'nick': from_nick,
                                  'color': color,
                                  'spec': get_theme().CHAR_QUIT,
                                  'info_col': info_col,
-                                 'color_spec': spec_col
+                                 'color_spec': spec_col,
+                                 'error_leave': error_leave_txt,
                              }
             else:
                 jid_col = dump_tuple(get_theme().COLOR_MUC_JID)
                 leave_msg = ('\x19%(color_spec)s}%(spec)s \x19%(color)s}'
                              '%(nick)s\x19%(info_col)s} (\x19%(jid_col)s}'
                              '%(jid)s\x19%(info_col)s}) has left the '
-                             'room') % {
+                             'room%(error_leave)s') % {
                                  'spec': get_theme().CHAR_QUIT,
                                  'nick': from_nick,
                                  'color': color,
                                  'jid': jid.full,
                                  'info_col': info_col,
                                  'color_spec': spec_col,
-                                 'jid_col': jid_col
+                                 'jid_col': jid_col,
+                                 'error_leave': error_leave_txt,
                              }
             if status:
                 leave_msg += ' (\x19o%s\x19%s})' % (status, info_col)
