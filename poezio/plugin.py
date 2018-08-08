@@ -165,7 +165,7 @@ class PluginAPI:
 
         :param datetime.datetime date: The time at which the handler must be executed
         :param function callback: The handler that will be executed
-        :param \*args: Optional arguments passed to the handler.
+        :param args: Optional arguments passed to the handler.
         :return: The created event.
         :rtype: :py:class:`timed_events.TimedEvent`
         """
@@ -181,7 +181,7 @@ class PluginAPI:
 
         :param int delay: The number of seconds to schedule the execution
         :param function callback: The handler that will be executed
-        :param \*args: Optional arguments passed to the handler.
+        :param args: Optional arguments passed to the handler.
         :return: The created event.
         :rtype: :py:class:`timed_events.DelayedEvent`
         """

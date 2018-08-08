@@ -29,7 +29,7 @@ class DelayedEvent:
 
         :param int delay: The number of seconds.
         :param function callback: The handler that will be executed.
-        :param \*args: Optional arguments passed to the handler.
+        :param args: Optional arguments passed to the handler.
         """
         self.callback = callback
         self.args = args
@@ -51,7 +51,7 @@ class TimedEvent(DelayedEvent):
 
         :param datetime.datetime date: Time at which the callback must be run.
         :param function callback: The handler that will be executed.
-        :param \*args: Optional arguments passed to the handler.
+        :param args: Optional arguments passed to the handler.
         """
         delta = date - datetime.now()
         delay = delta.total_seconds()
