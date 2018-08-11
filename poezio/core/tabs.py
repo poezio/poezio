@@ -145,7 +145,8 @@ class Tabs:
         self._tab_types = defaultdict(list)
         self._tab_names = dict()
         for tab in self._tabs:
-            self._tab_types[type(tab)].append(tab)
+            for cls in _get_tab_types(tab):
+                self._tab_types[cls].append(tab)
             self._tab_names[tab.name] = tab
         self._update_numbers()
 
@@ -203,7 +204,8 @@ class Tabs:
         else:
             tab.nb = self._tabs[-1].nb + 1
         self._tabs.append(tab)
-        self._tab_types[type(tab)].append(tab)
+        for cls in _get_tab_types(tab):
+            self._tab_types[cls].append(tab)
         self._tab_names[tab.name] = tab
 
     def delete(self, tab: tabs.Tab, gap=False):
@@ -218,7 +220,8 @@ class Tabs:
 
         is_current = tab is self.current_tab
 
-        self._tab_types[type(tab)].remove(tab)
+        for cls in _get_tab_types(tab):
+            self._tab_types[cls].remove(tab)
         del self._tab_names[tab.name]
 
         if gap:
@@ -338,3 +341,13 @@ class Tabs:
             result = self._insert_nogaps(old_pos, new_pos)
         self._update_numbers()
         return result
+
+
+def _get_tab_types(tab: tabs.Tab) -> List[Type[tabs.Tab]]:
+    """Return all parent classes of a tab type"""
+    types = []
+    current_cls = tab.__class__
+    while current_cls != tabs.Tab:
+        types.append(current_cls)
+        current_cls = current_cls.__bases__[0]
+    return types
