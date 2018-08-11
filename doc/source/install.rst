@@ -20,9 +20,7 @@ using one of these.
 - **Fedora**: The stable poezio package was out of date for a long time in
   Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
   the repos since F19.
-- **Debian**: A set of `development builds`_ are available for poezio and its
-  dependencies; those are automatically generated (and most likely untested)
-  packages. We welcome anyone willing to make proper ones.
+- **Debian**: A stable package is provided in sid_ thanks to debacle.
 - **Nix** (and **NixOS**): The last stable version of poezio is availalble in
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
   to install poezio for the current user.
@@ -30,6 +28,8 @@ using one of these.
 
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
+
+Thank to all the maintainers who took time to make and maintain those packages!
 
 Install from source
 -------------------
@@ -218,10 +218,12 @@ You can therefore just fetch the images with docker pull:
     docker pull poezio/poezio
 
 In order to run poezio with non-temporary config and logs, and to have
-the right colors, you have to share the ``TERM`` env var and some directories:
+the right colors, you have to share the ``TERM`` env var and some directories
+that should be created beforehand:
 
 .. code-block:: bash
 
+    mkdir -p ~/.config/poezio ~/.local/share/poezio
     docker run -it -e TERM -v ~/.config/poezio:/home/poezio-user/.config/poezio -v ~/.local/share/poezio:/home/poezio-user/.local/share/poezio poezio/poezio
 
 
@@ -235,8 +237,8 @@ image from the Dockerfile at the root of the git repository.
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/
 .. _up-to-date package: https://apps.fedoraproject.org/packages/poezio
 .. _pypi: https://pypi.python.org/pypi/poezio
-.. _development builds: http://dedie.jeproteste.info/poezio_debian/
 .. _cython: http://cython.org
 .. _bgo-overlay: https://bgo.zugaina.org/
 .. _port: http://ports.su/net/poezio
 .. _poezio/poezio: https://hub.docker.com/r/poezio/poezio/
+.. _sid: https://packages.debian.org/sid/poezio
