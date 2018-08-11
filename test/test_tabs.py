@@ -3,12 +3,12 @@ Tests for the Tabs list module
 """
 
 from poezio.core.tabs import Tabs
-from poezio.tabs import GapTab
+from poezio.tabs import GapTab, Tab
 from poezio.events import EventHandler
 
 h = EventHandler()
 
-class DummyTab:
+class DummyTab(Tab):
     count = 0
 
     def __init__(self):
