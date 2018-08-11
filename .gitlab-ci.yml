@@ -63,7 +63,7 @@ pytest-3.6:
 
 pytest-latest:
   stage: test
-  image: python:3.6
+  image: python:3
   script:
     - apt-get update && apt-get install -y libidn11-dev
     - git clone git://git.louiz.org/slixmpp
