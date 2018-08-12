@@ -409,6 +409,8 @@ class DynamicConversationTab(ConversationTab):
     bad idea so it has been removed.
     Only one DynamicConversationTab can be opened for a given jid.
     """
+    plugin_commands = {}
+    plugin_keys = {}
 
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
@@ -418,6 +420,8 @@ class DynamicConversationTab(ConversationTab):
         self.register_command(
             'unlock', self.unlock_command, shortdesc='Deprecated, do nothing.')
         self.resize()
+        self.update_commands()
+        self.update_keys()
 
     def get_info_header(self):
         return self.info_header
@@ -475,12 +479,16 @@ class StaticConversationTab(ConversationTab):
     A conversation tab associated with one Full JID. It cannot be locked to
     an different resource or unlocked.
     """
+    plugin_commands = {}
+    plugin_keys = {}
 
     def __init__(self, core, jid):
         assert (safeJID(jid).resource)
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.ConversationInfoWin()
         self.resize()
+        self.update_commands()
+        self.update_keys()
 
     def get_info_header(self):
         return self.info_header

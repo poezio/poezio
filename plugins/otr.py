@@ -44,11 +44,26 @@ Install the python module:
 You can also use pip in a virtualenv (built-in as pyvenv_ with python since 3.3)
 with the requirements.txt at the root of the poezio directory.
 
+Important details
+-----------------
+
+The OTR session is considered for a full JID (e.g. toto@example/**client1**),
+but the trust is set with a bare JID (e.g. toto@example). This is important
+in the case of Private Chats (in a chatroom), since you cannot always get the
+real JID of your contact (or check if the same nick is used by different people).
+
+.. note::
+
+    This also means that you cannot have an OTR session in the "common"
+    conversation tab, which is not locked to a specific JID. After activating
+    the plugin, you need to open a session with a full JID to be able to use
+    OTR.
 
 Usage
 -----
 
-Command added to Conversation Tabs and Private Tabs:
+Command added to Static Conversation Tabs (opened with ``/message foo@bar/baz`` or
+by expanding a contact in the roster) and Private Tabs:
 
 .. glossary::
 
@@ -161,14 +176,6 @@ Configuration
 The :term:`require_encryption`, :term:`decode_xhtml`, :term:`decode_entities`
 and :term:`log` configuration parameters are tab-specific.
 
-Important details
------------------
-
-The OTR session is considered for a full JID (e.g. toto@example/**client1**),
-but the trust is set with a bare JID (e.g. toto@example). This is important
-in the case of Private Chats (in a chatroom), since you cannot always get the
-real JID of your contact (or check if the same nick is used by different people).
-
 .. _Off The Record messaging: http://wiki.xmpp.org/web/OTR
 .. _pyvenv: https://docs.python.org/3/using/scripts.html#pyvenv-creating-virtual-environments
 
@@ -188,12 +195,13 @@ from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, N
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
 from poezio import common
-from poezio import xhtml
 from poezio import xdg
+from poezio import xhtml
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.plugin import BasePlugin
-from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab
+from poezio.roster import roster
+from poezio.tabs import StaticConversationTab, PrivateTab
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
@@ -233,6 +241,15 @@ MESSAGE_NOT_SENT = _('%(info)sYour message to %(jid_c)s%(jid)s%(info)s was'
                      ' not sent because your configuration requires an '
                      'encrypted session.\nWait until it is established or '
                      'change your configuration.')
+
+INCOMPATIBLE_TAB = _('%(info)sYour message to %(jid_c)s%(jid)s%(info)s was'
+                     ' not sent because your configuration requires an '
+                     'encrypted session and the current tab is a bare-jid '
+                     'one, with which you cannot open or use an OTR session.'
+                     ' You need to open a fulljid tab with /message if you '
+                     'want to use OTR.%(help)s')
+
+TAB_HELP_RESOURCE = _('\nChoose the relevant one among the following:%s')
 
 OTR_REQUEST = _('%(info)sOTR request to %(jid_c)s%(jid)s%(info)s sent.')
 
@@ -304,6 +321,7 @@ TRUST_REMOVED = _('%(info)sYou removed %(jid_c)s%(bare_jid)s%(info)s with '
 
 KEY_DROPPED = _('%(info)sPrivate key dropped.')
 
+
 def hl(tab):
     """
     Make a tab beep and change its status.
@@ -363,10 +381,7 @@ class PoezioContext(Context):
 
         tab = self.core.tabs.by_name(self.peer)
         if not tab:
-            tab = self.core.tabs.by_name(safeJID(self.peer).bare,
-                                            DynamicConversationTab)
-            if tab and not tab.locked_resource == safeJID(self.peer).resource:
-                tab = None
+            tab = None
         if self.state == STATE_ENCRYPTED:
             if newstate == STATE_ENCRYPTED and tab:
                 log.debug('OTR conversation with %s refreshed', self.peer)
@@ -489,7 +504,7 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
         self.api.add_event_handler('private_say_after', self.on_conversation_say)
 
-        ConversationTab.add_information_element('otr', self.display_encryption_status)
+        StaticConversationTab.add_information_element('otr', self.display_encryption_status)
         PrivateTab.add_information_element('otr', self.display_encryption_status)
 
         self.core.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:otr:0')
@@ -514,14 +529,14 @@ class Plugin(BasePlugin):
                     'ask: Start a verification, with a question or not\n'
                     'answer: Finish a verification\n')
 
-        self.api.add_tab_command(ConversationTab, 'otrsmp', self.command_smp,
+        self.api.add_tab_command(StaticConversationTab, 'otrsmp', self.command_smp,
                                  help=smp_desc, usage=smp_usage, short=smp_short,
                                  completion=self.completion_smp)
         self.api.add_tab_command(PrivateTab, 'otrsmp', self.command_smp,
                                  help=smp_desc, usage=smp_usage, short=smp_short,
                                  completion=self.completion_smp)
 
-        self.api.add_tab_command(ConversationTab, 'otr', self.command_otr,
+        self.api.add_tab_command(StaticConversationTab, 'otr', self.command_otr,
                                  help=desc, usage=usage, short=shortdesc,
                                  completion=self.completion_otr)
         self.api.add_tab_command(PrivateTab, 'otr', self.command_otr,
@@ -534,7 +549,7 @@ class Plugin(BasePlugin):
 
         self.core.xmpp.plugin['xep_0030'].del_feature(feature='urn:xmpp:otr:0')
 
-        ConversationTab.remove_information_element('otr')
+        StaticConversationTab.remove_information_element('otr')
         PrivateTab.remove_information_element('otr')
 
     def get_context(self, jid):
@@ -734,10 +749,6 @@ class Plugin(BasePlugin):
     def find_encrypted_context_with_matching(self, bare_jid):
         """
         Find an OTR session from a bare JID.
-
-        Useful when a dynamic tab unlocks, which would lead to sending
-        unencrypted messages until it locks again, if we didn’t fallback
-        with this.
         """
         for ctx in self.contexts:
             if safeJID(ctx).bare == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
@@ -748,13 +759,8 @@ class Plugin(BasePlugin):
         """
         On message sent
         """
-        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-            jid = safeJID(tab.name)
-            jid.resource = tab.locked_resource
-            name = jid.full
-        else:
-            name = tab.name
-            jid = safeJID(tab.name)
+        name = tab.name
+        jid = safeJID(tab.name)
 
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
@@ -762,17 +768,13 @@ class Plugin(BasePlugin):
             'jid': name,
         }
 
-        ctx = None
+        ctx = self.find_encrypted_context_with_matching(jid)
         default_ctx = self.get_context(name)
-
-        if isinstance(tab, DynamicConversationTab) and not tab.locked_resource:
-            log.debug('Unlocked tab %s found, falling back to the first encrypted chat we find.', name)
-            ctx = self.find_encrypted_context_with_matching(jid.bare)
 
         if ctx is None:
             ctx = default_ctx
 
-        if ctx and ctx.state == STATE_ENCRYPTED:
+        if is_relevant(tab) and ctx and ctx.state == STATE_ENCRYPTED:
             ctx.sendMessage(0, msg['body'].encode('utf-8'))
             if not tab.send_chat_state('active'):
                 tab.send_chat_state('inactive', always_send=True)
@@ -787,12 +789,28 @@ class Plugin(BasePlugin):
             del msg['body']
             del msg['replace']
             del msg['html']
-        elif ctx and ctx.getPolicy('REQUIRE_ENCRYPTION'):
-            tab.add_message(MESSAGE_NOT_SENT % format_dict, typ=0)
+        elif is_relevant(tab) and ctx and ctx.getPolicy('REQUIRE_ENCRYPTION'):
+            warning_msg = MESSAGE_NOT_SENT % format_dict
+            tab.add_message(warning_msg, typ=0)
             del msg['body']
             del msg['replace']
             del msg['html']
             self.otr_start(tab, name, format_dict)
+        elif not is_relevant(tab) and ctx and (
+                ctx.state == STATE_ENCRYPTED or ctx.getPolicy('REQUIRE_ENCRYPTION')):
+            contact = roster[tab.name]
+            res = []
+            if contact:
+                res = [resource.jid for resource in contact.resources]
+            help_msg = ''
+            if res:
+                help_msg = TAB_HELP_RESOURCE % ''.join(('\n - /message %s' % jid) for jid in res)
+            format_dict['help'] = help_msg
+            warning_msg = INCOMPATIBLE_TAB % format_dict
+            tab.add_message(warning_msg, typ=0)
+            del msg['body']
+            del msg['replace']
+            del msg['html']
 
     def display_encryption_status(self, jid):
         """
@@ -818,10 +836,6 @@ class Plugin(BasePlugin):
         action = args.pop(0)
         tab = self.api.current_tab()
         name = tab.name
-        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-            name = safeJID(tab.name)
-            name.resource = tab.locked_resource
-            name = name.full
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
@@ -833,11 +847,6 @@ class Plugin(BasePlugin):
         if action == 'end': # close the session
             context = self.get_context(name)
             context.disconnect()
-            if isinstance(tab, DynamicConversationTab):
-                ctx = self.find_encrypted_context_with_matching(safeJID(name).bare)
-                while ctx is not None:
-                    ctx.disconnect()
-                    ctx = self.find_encrypted_context_with_matching(safeJID(name).bare)
         elif action == 'start' or action == 'refresh':
             self.otr_start(tab, name, format_dict)
         elif action == 'ourfpr':
@@ -891,13 +900,7 @@ class Plugin(BasePlugin):
         secs = self.config.get('timeout', 3)
         def notify_otr_timeout():
             tab_name = tab.name
-            otr = self.get_context(tab_name)
-            if isinstance(tab, DynamicConversationTab):
-                if tab.locked_resource:
-                    tab_name = safeJID(tab.name)
-                    tab_name.resource = tab.locked_resource
-                    tab_name = tab_name.full
-                    otr = self.get_context(tab_name)
+            otr = self.find_encrypted_context_with_matching(tab_name)
             if otr.state != STATE_ENCRYPTED:
                 format_dict['secs'] = secs
                 text = OTR_NOT_ENABLED % format_dict
@@ -938,11 +941,6 @@ class Plugin(BasePlugin):
 
         tab = self.api.current_tab()
         name = tab.name
-        if isinstance(tab, DynamicConversationTab) and tab.locked_resource:
-            name = safeJID(tab.name)
-            name.resource = tab.locked_resource
-            name = name.full
-
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
@@ -983,3 +981,7 @@ def get_tlv(tlvs, cls):
     for tlv in tlvs:
         if isinstance(tlv, cls):
             return tlv
+
+def is_relevant(tab):
+    """Check if a tab should be concerned with OTR"""
+    return isinstance(tab, (StaticConversationTab, PrivateTab))
