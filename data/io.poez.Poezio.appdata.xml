@@ -20,7 +20,7 @@
   </screenshots>
 
   <categories>
-    <category>ncurses</category>
+    <category>ConsoleOnly</category>
     <category>InstantMessaging</category>
     <category>Network</category>
   </categories>
