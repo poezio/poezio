@@ -3,7 +3,7 @@
 Installing poezio
 =================
 
-.. warning:: Python 3.4 or above is **required**.
+.. warning:: Python 3.5 or above is **required**.
              To install it on a distribution that doesn't provide it, see :ref:`pyenv <pyenv-install>`.
 
 poezio in the GNU/Linux distributions
@@ -61,7 +61,7 @@ support. Therefore, you might want to use the git version.
 General
 """""""
 
-Poezio is a python3.4 (and above)-only application, so you will first need that.
+Poezio is a python3.5 (and above)-only application, so you will first need that.
 
 Packages required for building poezio and deps:
 

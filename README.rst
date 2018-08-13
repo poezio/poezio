@@ -29,7 +29,7 @@ MUCs, especially XEP 0045.
     Install
 =======================
 
-You need python 3.4 or higher (preferably the latest) and the associated devel
+You need python 3.5 or higher (preferably the latest) and the associated devel
 package, to build C modules, and the slixmpp python library.
 You also need aiodns if you want SRV record support.
 

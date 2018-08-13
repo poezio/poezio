@@ -1,6 +1,6 @@
 .. _pyenv-install:
 
-Installing python 3.4 as a user
+Installing python 3.5 as a user
 -------------------------------
 
 Building your own python 3
@@ -22,14 +22,13 @@ distributions not providing the latest stable version, such as Debian or
 CentOS.
 
 You can follow the step-by-step `installation tutorial`_ on github that will
-help you install it to your home directory (on step 5, you should use 3.4.2
-which is the latest python 3.4 release at the time of writing this page); or
-you can use the `automated installer`_ and use ``pyenv install 3.4.2``
-thereafter.
+help you install it to your home directory (on step 5, you should use 3.7.0
+which is the latest python release at the time of writing this page); or you
+can use the `automated installer`_ and use ``pyenv install 3.7.0`` thereafter.
 
-Then you only need to add a ``.python-version`` file containing ``3.4.2`` in
+Then you only need to add a ``.python-version`` file containing ``3.7.0`` in
 your poezio directory to make the python version in that directory default to
-the python 3.4.2 installed with pyenv.
+the python 3.7.0 installed with pyenv.
 
 
 Other
