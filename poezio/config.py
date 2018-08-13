@@ -137,7 +137,7 @@ DEFAULT_CONFIG = {
         'themes_dir': '',
         'tmp_image_dir': '',
         'use_bookmarks_method': '',
-        'use_log': False,
+        'use_log': True,
         'use_remote_bookmarks': True,
         'user_list_sort': 'desc',
         'use_tab_nicks': True,

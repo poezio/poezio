@@ -526,10 +526,13 @@ class Core:
         if firstrun:
             self.information(
                 'It seems that it is the first time you start poezio.\n'
-                'The online help is here http://doc.poez.io/\n'
+                'The online help is here https://doc.poez.io/\n\n'
                 'No room is joined by default, but you can join poezio’s'
-                ' room (with /join poezio@muc.poez.io), where you can'
-                ' ask for help or tell us how great it is.', 'Help')
+                ' room (with \x19b/join poezio@muc.poez.io\x19o), where you can'
+                ' ask for help or tell us how great it is.\n\n'
+                'Note that all of your discussions are currently logged'
+                ' to the disk, you can prevent that with'
+                ' \x19b/set use_log false\x19o', 'Help')
         self.refresh_window()
         self.xmpp.plugin['xep_0012'].begin_idle(jid=self.xmpp.boundjid)
 

@@ -907,10 +907,9 @@ Options related to logging.
 
     use_log
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        Set to ``true`` if you want to save logs of all the messages
-        in files.
+        Set to ``false`` if you don’t want to write any message to the disk.
 
 Plugins
 ~~~~~~~
