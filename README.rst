@@ -72,6 +72,7 @@ Please DO report any bug you encounter and ask for any feature you want
 
 - Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
 - Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
+- Emmanuel Gil Peyrot (Link Mauve) <linkmauve@linkmauve.fr> (developer)
 
 =======================
     Contact/support
@@ -151,7 +152,6 @@ we merge it to “master” as well, of course).
 - People:
     - Todd Eisenberger - Plugin system and OTR support
     - Jérôme Parment (Manfraid) - Code, testing
-    - Link Mauve - Code, testing
     - Akim Sadaoui - Code
     - Florian Duraffourg - Code
     - Frédéric Meynadier - Code

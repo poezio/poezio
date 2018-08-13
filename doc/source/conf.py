@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Poezio'
-copyright = '%s, Mathieu Pasquet - Florent Le Coz' % time.strftime('%Y')
+copyright = '%s, Mathieu Pasquet - Florent Le Coz - Emmanuel Gil Peyrot' % time.strftime('%Y')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -195,7 +195,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'PoezioDoc.tex', 'Poezio Documentation',
-   'Mathieu Pasquet - Florent Le Coz', 'manual'),
+   'Mathieu Pasquet - Florent Le Coz - Emmanuel Gil Peyrot', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -225,11 +225,11 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('configuration', 'poezio.cfg', 'Poezio Configuration File',
-     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
+     ['Mathieu Pasquet', 'Florent Le Coz', 'Emmanuel Gil Peyrot'], 7),
     ('keys', 'poezio.keys', 'Poezio Key Bindings',
-     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
+     ['Mathieu Pasquet', 'Florent Le Coz', 'Emmanuel Gil Peyrot'], 7),
     ('commands', 'poezio.commands', 'Poezio Commands',
-     ['Mathieu Pasquet', 'Florent Le Coz'], 7),
+     ['Mathieu Pasquet', 'Florent Le Coz', 'Emmanuel Gil Peyrot'], 7),
 ]
 
 # If true, show URL addresses after external links.
@@ -243,7 +243,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'PoezioDoc', 'Poezio Documentation',
-   'Mathieu Pasquet - Florent Le Coz', 'PoezioDoc', 'Poezio Documentation',
+   'Mathieu Pasquet - Florent Le Coz - Emmanuel Gil Peyrot', 'PoezioDoc', 'Poezio Documentation',
    'Miscellaneous'),
 ]
 
