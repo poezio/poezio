@@ -673,10 +673,11 @@ or the way messages are displayed.
 
     enable_vertical_tab_list
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        If ``true``, a vertical list of tabs, with their name, is displayed on the left of
-        the screen.
+        If ``true``, a vertical list of tabs, with their name, is displayed on
+        the left of the screen.  Otherwise, it is a horizontal bar with just
+        the tab numbers above the input bar.
 
     max_nick_length
 

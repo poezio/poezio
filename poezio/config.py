@@ -65,7 +65,7 @@ DEFAULT_CONFIG = {
         'enable_user_mood': True,
         'enable_user_nick': True,
         'enable_user_tune': True,
-        'enable_vertical_tab_list': False,
+        'enable_vertical_tab_list': True,
         'enable_xhtml_im': True,
         'enable_smacks': False,
         'eval_password': '',
