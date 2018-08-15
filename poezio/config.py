@@ -205,7 +205,7 @@ class Config(RawConfigParser):
             else:
                 res = self.getstr(option, section)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
-            return default or ''
+            return default if default is not None else ''
 
         if res is None:
             return default
