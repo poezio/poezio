@@ -13,7 +13,8 @@ Once created, they must be added to the list of checked events with
 """
 
 from datetime import datetime
-from typing import Callable, Union
+from asyncio import Handle
+from typing import Callable, Union, Optional, Tuple, Any
 
 
 class DelayedEvent:
@@ -31,11 +32,11 @@ class DelayedEvent:
         :param function callback: The handler that will be executed.
         :param args: Optional arguments passed to the handler.
         """
-        self.callback = callback
-        self.args = args
-        self.delay = delay
+        self.callback = callback  # type: Callable
+        self.args = args  # type: Tuple[Any, ...]
+        self.delay = delay  # type: Union[int, float]
         # An asyncio handler, as returned by call_later() or call_at()
-        self.handler = None
+        self.handler = None  # type: Optional[Handle]
 
 
 class TimedEvent(DelayedEvent):

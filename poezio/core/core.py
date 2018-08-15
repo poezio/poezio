@@ -41,6 +41,7 @@ from poezio.roster import roster
 from poezio.size_manager import SizeManager
 from poezio.user import User
 from poezio.text_buffer import TextBuffer
+from poezio.timed_events import DelayedEvent
 from poezio.theming import get_theme
 from poezio import keyboard, xdg
 
@@ -776,11 +777,11 @@ class Core:
 
 ########################## TImed Events #######################################
 
-    def remove_timed_event(self, event):
+    def remove_timed_event(self, event: DelayedEvent) -> None:
         """Remove an existing timed event"""
         event.handler.cancel()
 
-    def add_timed_event(self, event):
+    def add_timed_event(self, event: DelayedEvent) -> None:
         """Add a new timed event"""
         event.handler = asyncio.get_event_loop().call_later(
             event.delay, event.callback, *event.args)
