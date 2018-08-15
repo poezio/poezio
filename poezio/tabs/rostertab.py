@@ -611,7 +611,7 @@ class RosterInfoTab(Tab):
         n = the_input.get_argument_position()
         if n == complete_number:
             if args[n - 1] == '' or len(args) < n + 1:
-                home = os.getenv('HOME') or '/'
+                home = os.getenv('HOME', default='/')
                 return Completion(
                     the_input.new_completion, [home, '/tmp'], n, quotify=True)
             path_ = Path(args[n])

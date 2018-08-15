@@ -47,7 +47,7 @@ def _is_in_path(command: str, return_abs_path=False) -> Union[bool, str]:
         and *return_abs_path* is True, otherwise False.
 
     """
-    path = os.getenv('PATH') or ''
+    path = os.getenv('PATH', default='')
     for directory in path.split(os.pathsep):
         try:
             if command in os.listdir(directory):
