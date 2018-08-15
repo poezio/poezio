@@ -17,6 +17,7 @@ assuming everyone is using a white background.  Black backgrounds matter too!
 from poezio.plugin import BasePlugin
 from poezio import xhtml
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.whiteify)

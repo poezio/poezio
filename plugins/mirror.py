@@ -13,13 +13,16 @@ Command
 from poezio.plugin import BasePlugin
 from poezio import tabs
 
+
 class Plugin(BasePlugin):
     def init(self):
         for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(tab_type, 'mirror',
-                    handler=self.mirror,
-                    help='Repeat the last message from the conversation.',
-                    short='Repeat the last message from the conversation.')
+            self.api.add_tab_command(
+                tab_type,
+                'mirror',
+                handler=self.mirror,
+                help='Repeat the last message from the conversation.',
+                short='Repeat the last message from the conversation.')
 
     def mirror(self, args):
         messages = self.api.get_conversation_messages()

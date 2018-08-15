@@ -26,14 +26,18 @@ from poezio.plugin import BasePlugin
 from poezio.common import shell_split
 from poezio import tabs
 
+
 class Plugin(BasePlugin):
     def init(self):
         for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(tab_type, 'display_corrections',
-                    handler=self.command_display_corrections,
-                    usage='<number>',
-                    help='Display all the corrections of the number-th last corrected message.',
-                    short='Display the corrections of a message')
+            self.api.add_tab_command(
+                tab_type,
+                'display_corrections',
+                handler=self.command_display_corrections,
+                usage='<number>',
+                help=
+                'Display all the corrections of the number-th last corrected message.',
+                short='Display the corrections of a message')
 
     def find_corrected(self, nb):
         messages = self.api.get_conversation_messages()
@@ -60,9 +64,13 @@ class Plugin(BasePlugin):
         if message:
             display = []
             while message:
-                display.append('%s %s%s%s %s' % (message.str_time, '* ' if message.me else '', message.nickname, '' if message.me else '>', message.txt))
+                display.append('%s %s%s%s %s' %
+                               (message.str_time, '* '
+                                if message.me else '', message.nickname, ''
+                                if message.me else '>', message.txt))
                 message = message.old_message
-            self.api.information('Older versions:\n' + '\n'.join(display[::-1]), 'Info')
+            self.api.information(
+                'Older versions:\n' + '\n'.join(display[::-1]), 'Info')
         else:
             self.api.information('No corrected message found.', 'Warning')
 

@@ -87,21 +87,27 @@ from poezio.xhtml import clean_text
 from poezio import common
 from poezio import tabs
 
-url_pattern = re.compile(r'\b(?:http[s]?://(?:\S+))|(?:magnet:\?(?:\S+))\b', re.I|re.U)
+url_pattern = re.compile(r'\b(?:http[s]?://(?:\S+))|(?:magnet:\?(?:\S+))\b',
+                         re.I | re.U)
 app_mapping = {
     'Linux': 'xdg-open',
     'Darwin': 'open',
 }
 
+
 class Plugin(BasePlugin):
     def init(self):
         for _class in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(_class, 'link', self.command_link,
-                    usage='[num] [command]',
-                    help='Opens the last link from the conversation into a browser.\n\
+            self.api.add_tab_command(
+                _class,
+                'link',
+                self.command_link,
+                usage='[num] [command]',
+                help=
+                'Opens the last link from the conversation into a browser.\n\
                     If [num] is given, then it will\open the num-th link displayed. \
                     Use a [command] argument to override the configured browser value.',
-                    short='Open links into a browser')
+                short='Open links into a browser')
 
     def find_link(self, nb):
         messages = self.api.get_conversation_messages()
@@ -140,20 +146,24 @@ class Plugin(BasePlugin):
                     start = int(start)
                     end = int(end)
                 except ValueError:
-                    return self.api.information('Invalid range: %s' % (args[0]), 'Error')
+                    return self.api.information(
+                        'Invalid range: %s' % (args[0]), 'Error')
         command = None
         if len(args) == 2:
             command = args[1]
-        if len(args) == 1 and (not args[0][0].isnumeric() and args[0][0] != ":"):
+        if len(args) == 1 and (not args[0][0].isnumeric()
+                               and args[0][0] != ":"):
             command = args[0]
-        for nb in range(start, end+1):
+        for nb in range(start, end + 1):
             link = self.find_link(nb)
             if not link:
                 return self.api.information('No URL found.', 'Warning')
             default = app_mapping.get(platform.system(), 'firefox')
             if command is None:
-                self.core.exec_command([self.config.get('browser', default), link])
+                self.core.exec_command(
+                    [self.config.get('browser', default), link])
             else:
                 self.core.exec_command([command, link])
+
     def cleanup(self):
         del self.config

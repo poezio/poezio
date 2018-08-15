@@ -19,6 +19,7 @@ Just use the word in a message. It will be replaced automatically.
 from poezio.plugin import BasePlugin
 import re
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('conversation_say', self.replace_pattern)

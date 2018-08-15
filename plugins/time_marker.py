@@ -32,6 +32,7 @@ Messages like “2 hours, 25 minutes passed…” are automatically displayed in
 from poezio.plugin import BasePlugin
 from datetime import datetime, timedelta
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler("muc_msg", self.on_muc_msg)
@@ -70,6 +71,5 @@ class Plugin(BasePlugin):
         if last_message_date:
             delta = datetime.now() - last_message_date
             if delta >= timedelta(0, self.config.get('delay', 900)):
-                tab.add_message("%s passed…" % (format_timedelta(delta),), str_time='')
-
-
+                tab.add_message(
+                    "%s passed…" % (format_timedelta(delta), ), str_time='')

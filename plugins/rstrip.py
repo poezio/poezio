@@ -3,6 +3,7 @@ Once loaded, every line of your messages will be stripped of their trailing spac
 """
 from poezio.plugin import BasePlugin
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.rstrip)
@@ -10,4 +11,5 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_say', self.rstrip)
 
     def rstrip(self, msg, tab):
-        msg['body'] = '\n'.join(line.rstrip() for line in msg['body'].split('\n'))
+        msg['body'] = '\n'.join(
+            line.rstrip() for line in msg['body'].split('\n'))

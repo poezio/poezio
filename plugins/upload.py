@@ -26,24 +26,28 @@ from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
 from poezio import tabs
 
-class Plugin(BasePlugin):
 
+class Plugin(BasePlugin):
     def init(self):
         if not self.core.xmpp['xep_0363']:
             raise Exception('slixmpp XEP-0363 plugin failed to load')
         for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
-            self.api.add_tab_command(_class, 'upload', self.command_upload,
-                    usage='<filename>',
-                    help='Upload a file and auto-complete the input with its URL.',
-                    short='Upload a file',
-                    completion=self.completion_filename)
+            self.api.add_tab_command(
+                _class,
+                'upload',
+                self.command_upload,
+                usage='<filename>',
+                help='Upload a file and auto-complete the input with its URL.',
+                short='Upload a file',
+                completion=self.completion_filename)
 
     async def async_upload(self, filename):
         try:
             url = await self.core.xmpp['xep_0363'].upload_file(filename)
         except Exception:
             exception = traceback.format_exc()
-            self.api.information('Failed to upload file: %s' % exception, 'Error')
+            self.api.information('Failed to upload file: %s' % exception,
+                                 'Error')
             return
         self.core.insert_input_text(url)
 

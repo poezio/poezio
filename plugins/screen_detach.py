@@ -40,7 +40,6 @@ DEFAULT_CONFIG = {
     }
 }
 
-
 # overload if this is not how your stuff
 # is configured
 try:
@@ -53,6 +52,7 @@ except Exception:
 SCREEN_DIR = '/var/run/screens/S-%s' % LOGIN
 TMUX_DIR = '/tmp/tmux-%s' % LOGIN_TMUX
 
+
 def find_screen(path):
     if not os.path.isdir(path):
         return
@@ -61,8 +61,10 @@ def find_screen(path):
         if screen_attached(path):
             return path
 
+
 def screen_attached(socket):
     return (os.stat(socket).st_mode & stat.S_IXUSR) != 0
+
 
 class Plugin(BasePlugin, pyinotify.Notifier):
 
@@ -79,12 +81,14 @@ class Plugin(BasePlugin, pyinotify.Notifier):
         if sock_path:
             self.attached = True
             wm = pyinotify.WatchManager()
-            wm.add_watch(sock_path, pyinotify.EventsCodes.ALL_FLAGS['IN_ATTRIB'])
-            pyinotify.Notifier.__init__(self, wm, default_proc_fun=HandleScreen(plugin=self))
+            wm.add_watch(sock_path,
+                         pyinotify.EventsCodes.ALL_FLAGS['IN_ATTRIB'])
+            pyinotify.Notifier.__init__(
+                self, wm, default_proc_fun=HandleScreen(plugin=self))
             asyncio.get_event_loop().add_reader(self._fd, self.process)
         else:
-            self.api.information('screen_detach plugin: No tmux or screen found',
-                                 'Warning')
+            self.api.information(
+                'screen_detach plugin: No tmux or screen found', 'Warning')
             self.attached = False
 
     def process(self):
@@ -105,6 +109,7 @@ class Plugin(BasePlugin, pyinotify.Notifier):
                     self.core.xmpp.plugin['xep_0352'].send_active()
                 else:
                     self.core.xmpp.plugin['xep_0352'].send_inactive()
+
 
 class HandleScreen(pyinotify.ProcessEvent):
     def my_init(self, **kwargs):

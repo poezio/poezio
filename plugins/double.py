@@ -3,6 +3,7 @@ Double the first word of any message you send in a :ref:`muctab`, making you app
 """
 from poezio.plugin import BasePlugin
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.double)

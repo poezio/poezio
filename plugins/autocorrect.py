@@ -49,7 +49,10 @@ from poezio.plugin import BasePlugin
 import re
 
 allowed_separators = '/#!:;'
-sed_re = re.compile('^([sr])(?P<sep>[%s])(.+?)(?P=sep)(.*?)((?P=sep)|(?P=sep)g)?$' % allowed_separators)
+sed_re = re.compile(
+    '^([sr])(?P<sep>[%s])(.+?)(?P=sep)(.*?)((?P=sep)|(?P=sep)g)?$' %
+    allowed_separators)
+
 
 class Plugin(BasePlugin):
     def init(self):
@@ -79,8 +82,9 @@ class Plugin(BasePlugin):
                 else:
                     new_body = re.sub(remove, put, body, count=1)
             except Exception as e:
-                self.api.information('Invalid regex for the autocorrect '
-                                     'plugin: %s' % e, 'Error')
+                self.api.information(
+                    'Invalid regex for the autocorrect '
+                    'plugin: %s' % e, 'Error')
                 return
         elif typ == 'r':
             if replace_all:

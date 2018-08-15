@@ -10,6 +10,7 @@ import datetime
 from poezio import tabs
 from poezio import timed_events
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.schedule_event()
@@ -18,7 +19,8 @@ class Plugin(BasePlugin):
         self.api.remove_timed_event(self.next_event)
 
     def schedule_event(self):
-        day_change = datetime.datetime.combine(datetime.date.today(), datetime.time())
+        day_change = datetime.datetime.combine(datetime.date.today(),
+                                               datetime.time())
         day_change += datetime.timedelta(1)
         self.next_event = timed_events.TimedEvent(day_change, self.day_change)
         self.api.add_timed_event(self.next_event)

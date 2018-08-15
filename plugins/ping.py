@@ -34,27 +34,39 @@ import time
 
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('ping', self.command_ping,
-                usage='<jid>',
-                help='Send an XMPP ping to jid (see XEP-0199).',
+        self.api.add_command(
+            'ping',
+            self.command_ping,
+            usage='<jid>',
+            help='Send an XMPP ping to jid (see XEP-0199).',
+            short='Send a ping',
+            completion=self.completion_ping)
+        self.api.add_tab_command(
+            tabs.MucTab,
+            'ping',
+            self.command_muc_ping,
+            usage='<jid|nick>',
+            help='Send an XMPP ping to jid or nick (see XEP-0199).',
+            short='Send a ping.',
+            completion=self.completion_muc_ping)
+        self.api.add_tab_command(
+            tabs.RosterInfoTab,
+            'ping',
+            self.command_roster_ping,
+            usage='<jid>',
+            help='Send an XMPP ping to jid (see XEP-0199).',
+            short='Send a ping.',
+            completion=self.completion_ping)
+        for _class in (tabs.PrivateTab, tabs.ConversationTab):
+            self.api.add_tab_command(
+                _class,
+                'ping',
+                self.command_private_ping,
+                usage='[jid]',
+                help=
+                'Send an XMPP ping to the current interlocutor or the given JID.',
                 short='Send a ping',
                 completion=self.completion_ping)
-        self.api.add_tab_command(tabs.MucTab, 'ping', self.command_muc_ping,
-                usage='<jid|nick>',
-                help='Send an XMPP ping to jid or nick (see XEP-0199).',
-                short='Send a ping.',
-                completion=self.completion_muc_ping)
-        self.api.add_tab_command(tabs.RosterInfoTab, 'ping', self.command_roster_ping,
-                usage='<jid>',
-                help='Send an XMPP ping to jid (see XEP-0199).',
-                short='Send a ping.',
-                completion=self.completion_ping)
-        for _class in (tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(_class, 'ping', self.command_private_ping,
-                    usage='[jid]',
-                    help='Send an XMPP ping to the current interlocutor or the given JID.',
-                    short='Send a ping',
-                    completion=self.completion_ping)
 
     @command_args_parser.raw
     def command_ping(self, arg):
@@ -62,6 +74,7 @@ class Plugin(BasePlugin):
             return self.core.command.help('ping')
         jid = safeJID(arg)
         start = time.time()
+
         def callback(iq):
             delay = time.time() - start
             error = False
@@ -72,7 +85,8 @@ class Plugin(BasePlugin):
                 # These IQ errors are not ping errors:
                 # 'service-unavailable': official "not supported" response as of RFC6120 (§8.4) and XEP-0199 (§4.1)
                 # 'feature-not-implemented': inoffcial not-supported response from many clients
-                if error_condition not in ('service-unavailable', 'feature-not-implemented'):
+                if error_condition not in ('service-unavailable',
+                                           'feature-not-implemented'):
                     error = True
                 error_text = iq['error']['text']
                 if error_text:
@@ -81,12 +95,16 @@ class Plugin(BasePlugin):
                 message = '%s did not respond to ping: %s' % (jid, reply)
             else:
                 reply = ' (%s)' % reply if reply else ''
-                message = '%s responded to ping after %ss%s' % (jid, round(delay, 4), reply)
+                message = '%s responded to ping after %ss%s' % (
+                    jid, round(delay, 4), reply)
             self.api.information(message, 'Info')
-        def timeout(iq):
-            self.api.information('%s did not respond to ping after 10s: timeout' % jid, 'Info')
 
-        self.core.xmpp.plugin['xep_0199'].send_ping(jid=jid, callback=callback, timeout=10, timeout_callback=timeout)
+        def timeout(iq):
+            self.api.information(
+                '%s did not respond to ping after 10s: timeout' % jid, 'Info')
+
+        self.core.xmpp.plugin['xep_0199'].send_ping(
+            jid=jid, callback=callback, timeout=10, timeout_callback=timeout)
 
     def completion_muc_ping(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
@@ -133,5 +151,5 @@ class Plugin(BasePlugin):
         return l
 
     def completion_ping(self, the_input):
-        return Completion(the_input.auto_completion, self.resources(), '', quotify=False)
-
+        return Completion(
+            the_input.auto_completion, self.resources(), '', quotify=False)

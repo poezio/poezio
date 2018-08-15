@@ -5,6 +5,7 @@ Reverse everything you say (``Je proteste énergiquement`` will become
 from poezio.plugin import BasePlugin
 from poezio import xhtml
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.revstr)

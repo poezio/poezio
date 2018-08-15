@@ -39,17 +39,27 @@ from poezio import tabs
 from poezio import xhtml
 from poezio.decorators import command_args_parser
 
+
 def move(text, step, spacing):
     new_text = text + (" " * spacing)
-    return new_text[-(step % len(new_text)):] + new_text[:-(step % len(new_text))]
+    return new_text[-(step % len(new_text)):] + new_text[:-(
+        step % len(new_text))]
+
 
 class Plugin(BasePlugin):
-    default_config = {"marquee": {"refresh": 1.0, "total_duration": 30, "padding": 20}}
+    default_config = {
+        "marquee": {
+            "refresh": 1.0,
+            "total_duration": 30,
+            "padding": 20
+        }
+    }
 
     def init(self):
         for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
-            self.add_tab_command(tab_t, 'marquee', self.command_marquee,
-                                 'Replicate the <marquee/> behavior in a message')
+            self.add_tab_command(
+                tab_t, 'marquee', self.command_marquee,
+                'Replicate the <marquee/> behavior in a message')
 
     @command_args_parser.raw
     def command_marquee(self, args):
@@ -60,10 +70,9 @@ class Plugin(BasePlugin):
         msg_id = tab.last_sent_message["id"]
         jid = tab.name
 
-        event = self.api.create_delayed_event(self.config.get("refresh"),
-                                              self.delayed_event,
-                                              jid, args, msg_id, 1, 0,
-                                              is_muctab)
+        event = self.api.create_delayed_event(
+            self.config.get("refresh"), self.delayed_event, jid, args, msg_id,
+            1, 0, is_muctab)
         self.api.add_timed_event(event)
 
     def delayed_event(self, jid, body, msg_id, step, duration, is_muctab):
@@ -74,11 +83,8 @@ class Plugin(BasePlugin):
         message["body"] = move(body, step, self.config.get("padding"))
         message["replace"]["id"] = msg_id
         message.send()
-        event = self.api.create_delayed_event(self.config.get("refresh"),
-                                              self.delayed_event, jid, body,
-                                              message["id"], step + 1,
-                                              duration + self.config.get("refresh"),
-                                              is_muctab)
+        event = self.api.create_delayed_event(
+            self.config.get("refresh"), self.delayed_event, jid, body,
+            message["id"], step + 1, duration + self.config.get("refresh"),
+            is_muctab)
         self.api.add_timed_event(event)
-
-

@@ -36,10 +36,15 @@ from poezio.plugin import BasePlugin
 
 DICE = '\u2680\u2681\u2682\u2683\u2684\u2685'
 
+
 class DiceRoll:
-    __slots__ = ['duration', 'total_duration', 'dice_number', 'msgtype',
-                 'jid', 'last_msgid', 'increments']
-    def __init__(self, total_duration, dice_number, is_muc, jid, msgid, increments):
+    __slots__ = [
+        'duration', 'total_duration', 'dice_number', 'msgtype', 'jid',
+        'last_msgid', 'increments'
+    ]
+
+    def __init__(self, total_duration, dice_number, is_muc, jid, msgid,
+                 increments):
         self.duration = 0
         self.total_duration = total_duration
         self.dice_number = dice_number
@@ -54,14 +59,18 @@ class DiceRoll:
     def is_finished(self):
         return self.duration >= self.total_duration
 
+
 class Plugin(BasePlugin):
     default_config = {"dice": {"refresh": 0.5, "default_duration": 5}}
 
     def init(self):
         for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
-            self.api.add_tab_command(tab_t, 'roll', self.command_dice,
-                                     help='Roll a die',
-                                     usage='[number] [duration]')
+            self.api.add_tab_command(
+                tab_t,
+                'roll',
+                self.command_dice,
+                help='Roll a die',
+                usage='[number] [duration]')
 
     @command_args_parser.quoted(0, 2, ['', ''], True)
     def command_dice(self, args):
@@ -86,8 +95,10 @@ class Plugin(BasePlugin):
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
         increment = self.config.get('refresh')
-        roll = DiceRoll(duration, num_dice, is_muctab, tab.name, msg_id, increment)
-        event = self.api.create_delayed_event(increment, self.delayed_event, roll)
+        roll = DiceRoll(duration, num_dice, is_muctab, tab.name, msg_id,
+                        increment)
+        event = self.api.create_delayed_event(increment, self.delayed_event,
+                                              roll)
         self.api.add_timed_event(event)
 
     def delayed_event(self, roll):
@@ -96,7 +107,8 @@ class Plugin(BasePlugin):
         roll.reroll()
         message = self.core.xmpp.make_message(roll.jid)
         message["type"] = roll.msgtype
-        message["body"] = ''.join(random.choice(DICE) for _ in range(roll.dice_number))
+        message["body"] = ''.join(
+            random.choice(DICE) for _ in range(roll.dice_number))
         message["replace"]["id"] = roll.last_msgid
         message.send()
         roll.last_msgid = message['id']

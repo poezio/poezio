@@ -60,6 +60,7 @@ import random
 import re
 from slixmpp.xmlstream.stanzabase import JID
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.patterns = {}
@@ -81,19 +82,21 @@ class Plugin(BasePlugin):
         for pattern in self.patterns:
             new = body
             body = re.sub('%%%s%%' % pattern,
-                    lambda x: self.patterns[pattern](message, tab),
-                    body)
+                          lambda x: self.patterns[pattern](message, tab), body)
         message['body'] = body
 
 
 def replace_time(message, tab):
     return datetime.datetime.now().strftime("%X")
 
+
 def replace_date(message, tab):
     return datetime.datetime.now().strftime("%x")
 
+
 def replace_datetime(message, tab):
     return datetime.datetime.now().strftime("%c")
+
 
 def replace_random_user(message, tab):
     if isinstance(tab, tabs.MucTab):
@@ -104,6 +107,7 @@ def replace_random_user(message, tab):
         # that doesn’t make any sense. By why use this pattern in a
         # ConversationTab anyway?
         return str(tab.name)
+
 
 def replace_dice(message, tab):
     return str(random.randrange(1, 7))

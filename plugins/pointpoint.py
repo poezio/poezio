@@ -36,10 +36,13 @@ Command
 from poezio.plugin import BasePlugin
 from random import randrange
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('pointpoint', self.command_pointpoint,
-                             help='Insert a random number of dots in the input')
+        self.api.add_command(
+            'pointpoint',
+            self.command_pointpoint,
+            help='Insert a random number of dots in the input')
 
     def command_pointpoint(self, args):
         for i in range(randrange(8, 25)):

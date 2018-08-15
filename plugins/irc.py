@@ -135,48 +135,56 @@ from poezio.core.structs import Completion
 from poezio import common
 from poezio import tabs
 
-class Plugin(BasePlugin):
 
+class Plugin(BasePlugin):
     def init(self):
         if self.config.get('initial_connect', True):
             self.initial_connect()
 
-        self.api.add_command('irc_login', self.command_irc_login,
-                             usage='[server] [server]…',
-                             help=('Connect to the specified servers if they '
-                                   'exist in the configuration and the login '
-                                   'options are set. If not is given, the '
-                                   'plugin will try all the sections in the '
-                                   'configuration.'),
-                             short='Login to irc servers with nickserv',
-                             completion=self.completion_irc_login)
+        self.api.add_command(
+            'irc_login',
+            self.command_irc_login,
+            usage='[server] [server]…',
+            help=('Connect to the specified servers if they '
+                  'exist in the configuration and the login '
+                  'options are set. If not is given, the '
+                  'plugin will try all the sections in the '
+                  'configuration.'),
+            short='Login to irc servers with nickserv',
+            completion=self.completion_irc_login)
 
-        self.api.add_command('irc_join', self.command_irc_join,
-                             usage='<room or server>',
-                             help=('Join <room> in the same server as the '
-                                   'current tab (if it is an IRC tab). Or '
-                                   'join all the preconfigured rooms in '
-                                   '<server> '),
-                             short='Join irc rooms more easily',
-                             completion=self.completion_irc_join)
+        self.api.add_command(
+            'irc_join',
+            self.command_irc_join,
+            usage='<room or server>',
+            help=('Join <room> in the same server as the '
+                  'current tab (if it is an IRC tab). Or '
+                  'join all the preconfigured rooms in '
+                  '<server> '),
+            short='Join irc rooms more easily',
+            completion=self.completion_irc_join)
 
-        self.api.add_command('irc_query', self.command_irc_query,
-                             usage='<nickname> [message]',
-                             help=('Open a private conversation with the '
-                                   'given <nickname>, on the current IRC '
-                                   'server.  Optionally immediately send '
-                                   'the given message. For example, if the '
-                                   'current tab is #foo%irc.example.com@'
-                                   'biboumi.example.com, doing `/irc_query '
-                                   'nick "hi there"` is equivalent to '
-                                   '`/message nick%irc.example.com@biboumi.'
-                                   'example.com "hi there"`'),
-                             short='Open a private conversation with an IRC user')
+        self.api.add_command(
+            'irc_query',
+            self.command_irc_query,
+            usage='<nickname> [message]',
+            help=('Open a private conversation with the '
+                  'given <nickname>, on the current IRC '
+                  'server.  Optionally immediately send '
+                  'the given message. For example, if the '
+                  'current tab is #foo%irc.example.com@'
+                  'biboumi.example.com, doing `/irc_query '
+                  'nick "hi there"` is equivalent to '
+                  '`/message nick%irc.example.com@biboumi.'
+                  'example.com "hi there"`'),
+            short='Open a private conversation with an IRC user')
 
     def join(self, gateway, server):
         "Join irc rooms on a server"
-        nick = self.config.get_by_tabname('nickname', server, default='') or self.core.own_nick
-        rooms = self.config.get_by_tabname('rooms', server, default='').split(':')
+        nick = self.config.get_by_tabname(
+            'nickname', server, default='') or self.core.own_nick
+        rooms = self.config.get_by_tabname(
+            'rooms', server, default='').split(':')
         for room in rooms:
             room = '{}%{}@{}/{}'.format(room, server, gateway, nick)
             self.core.command.join(room)
@@ -195,23 +203,31 @@ class Plugin(BasePlugin):
                     already_opened = True
                     break
 
-            login_command = self.config.get_by_tabname('login_command', section, default='')
-            login_nick = self.config.get_by_tabname('login_nick', section, default='')
-            nick = self.config.get_by_tabname('nickname', section, default='') or self.core.own_nick
+            login_command = self.config.get_by_tabname(
+                'login_command', section, default='')
+            login_nick = self.config.get_by_tabname(
+                'login_nick', section, default='')
+            nick = self.config.get_by_tabname(
+                'nickname', section, default='') or self.core.own_nick
             if login_command and login_nick:
+
                 def login(gw, sect, log_nick, log_cmd, room_suff):
                     dest = '{}%{}'.format(log_nick, room_suff)
-                    self.core.xmpp.send_message(mto=dest, mbody=log_cmd, mtype='chat')
-                    delayed = self.api.create_delayed_event(5, self.join, gw, sect)
+                    self.core.xmpp.send_message(
+                        mto=dest, mbody=log_cmd, mtype='chat')
+                    delayed = self.api.create_delayed_event(
+                        5, self.join, gw, sect)
                     self.api.add_timed_event(delayed)
+
                 if not already_opened:
                     self.core.command.join(room_suffix + '/' + nick)
-                    delayed = self.api.create_delayed_event(5, login, gateway, section,
-                                                            login_nick, login_command,
-                                                            room_suffix[1:])
+                    delayed = self.api.create_delayed_event(
+                        5, login, gateway, section, login_nick, login_command,
+                        room_suffix[1:])
                     self.api.add_timed_event(delayed)
                 else:
-                    login(gateway, section, login_nick, login_command, room_suffix[1:])
+                    login(gateway, section, login_nick, login_command,
+                          room_suffix[1:])
             elif not already_opened:
                 self.join(gateway, section)
 
@@ -228,32 +244,41 @@ class Plugin(BasePlugin):
                 if section not in sections:
                     not_present.append(section)
                     continue
-                login_command = self.config.get_by_tabname('login_command', section, default='')
-                login_nick = self.config.get_by_tabname('login_nick', section, default='')
+                login_command = self.config.get_by_tabname(
+                    'login_command', section, default='')
+                login_nick = self.config.get_by_tabname(
+                    'login_nick', section, default='')
                 if not login_command and not login_nick:
                     not_present.append(section)
                     continue
 
                 room_suffix = '%{}@{}'.format(section, gateway)
                 dest = '{}%{}'.format(login_nick, room_suffix[1:])
-                self.core.xmpp.send_message(mto=dest, mbody=login_command, mtype='chat')
+                self.core.xmpp.send_message(
+                    mto=dest, mbody=login_command, mtype='chat')
             if len(not_present) == 1:
-                self.api.information('Section %s does not exist or is not configured' % not_present[0], 'Warning')
+                self.api.information(
+                    'Section %s does not exist or is not configured' %
+                    not_present[0], 'Warning')
             elif len(not_present) > 1:
-                self.api.information('Sections %s do not exist or are not configured' % ', '.join(not_present), 'Warning')
+                self.api.information(
+                    'Sections %s do not exist or are not configured' %
+                    ', '.join(not_present), 'Warning')
         else:
             sections = self.config.sections()
 
             for section in (s for s in sections if s != 'irc'):
-                login_command = self.config.get_by_tabname('login_command', section, default='')
-                login_nick = self.config.get_by_tabname('login_nick', section, default='')
+                login_command = self.config.get_by_tabname(
+                    'login_command', section, default='')
+                login_nick = self.config.get_by_tabname(
+                    'login_nick', section, default='')
                 if not login_nick and not login_command:
                     continue
 
                 room_suffix = '%{}@{}'.format(section, gateway)
                 dest = '{}%{}'.format(login_nick, room_suffix[1:])
-                self.core.xmpp.send_message(mto=dest, mbody=login_command, mtype='chat')
-
+                self.core.xmpp.send_message(
+                    mto=dest, mbody=login_command, mtype='chat')
 
     def completion_irc_login(self, the_input):
         """
@@ -283,7 +308,8 @@ class Plugin(BasePlugin):
         sections = self.config.sections()
         if 'irc' in sections:
             sections.remove('irc')
-        if args[0] in sections and self.config.get_by_tabname('rooms', args[0]):
+        if args[0] in sections and self.config.get_by_tabname(
+                'rooms', args[0]):
             self.join_server_rooms(args[0])
         else:
             self.join_room(args[0])
@@ -352,7 +378,8 @@ class Plugin(BasePlugin):
         current = self.core.current_tab()
         current_jid = common.safeJID(current.name)
         if not current_jid.server == gateway:
-            self.api.information('The current tab does not appear to be an IRC one', 'Warning')
+            self.api.information(
+                'The current tab does not appear to be an IRC one', 'Warning')
             return None
         if isinstance(current, tabs.OneToOneTab):
             if '%' not in current_jid.node:
@@ -365,7 +392,8 @@ class Plugin(BasePlugin):
             else:
                 ignored, server = current_jid.node.rsplit('%', 1)
         else:
-            self.api.information('The current tab does not appear to be an IRC one', 'Warning')
+            self.api.information(
+                'The current tab does not appear to be an IRC one', 'Warning')
             return None
         return server, gateway
 
@@ -377,5 +405,3 @@ class Plugin(BasePlugin):
         if 'irc' in sections:
             sections.remove('irc')
         return Completion(the_input.new_completion, sections, 1)
-
-

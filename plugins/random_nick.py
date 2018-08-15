@@ -14,6 +14,7 @@ automatically be changed to something random, for example: ::
 from poezio.plugin import BasePlugin
 from random import choice
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('joining_muc', self.change_nick_to_random)
@@ -25,8 +26,13 @@ class Plugin(BasePlugin):
             to.resource = gen_nick(3)
             presence["to"] = to
 
+
 s = ["i", "ou", "ou", "on", "a", "o", "u", "i"]
-c = ["b", "c", "d", "f", "g", "h", "j", "k", "m", "l", "n", "p", "r", "s", "t", "v", "z"]
+c = [
+    "b", "c", "d", "f", "g", "h", "j", "k", "m", "l", "n", "p", "r", "s", "t",
+    "v", "z"
+]
+
 
 def gen_nick(size):
     res = ''

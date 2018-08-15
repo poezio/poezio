@@ -21,8 +21,8 @@ from poezio.plugin import BasePlugin
 from random import choice, randint
 import re
 
-
 DEFAULT_CONFIG = {'cyber': {'frequency': 10}}
+
 
 class Plugin(BasePlugin):
 
@@ -34,7 +34,9 @@ class Plugin(BasePlugin):
     def cyberize(self, msg, tab):
         if randint(1, 100) > self.config.get('frequency'):
             return
-        words = [word for word in re.split('\W+', msg['body']) if len(word) > 3]
+        words = [
+            word for word in re.split('\W+', msg['body']) if len(word) > 3
+        ]
         if words:
             word = choice(words)
             msg['body'] = msg['body'].replace(word, 'cyber' + word)

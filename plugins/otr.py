@@ -207,8 +207,8 @@ from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
 
 POLICY_FLAGS = {
-    'ALLOW_V1':False,
-    'ALLOW_V2':True,
+    'ALLOW_V1': False,
+    'ALLOW_V2': True,
     'REQUIRE_ENCRYPTION': False,
     'SEND_TAG': True,
     'WHITESPACE_START_AKE': True,
@@ -217,9 +217,7 @@ POLICY_FLAGS = {
 
 log = logging.getLogger(__name__)
 
-
-OTR_TUTORIAL = _(
-"""%(info)sThis contact has not yet been verified.
+OTR_TUTORIAL = _("""%(info)sThis contact has not yet been verified.
 You have several methods of authentication available:
 
 1) Verify each other's fingerprints using a secure (and different) channel:
@@ -259,8 +257,7 @@ OTR_OWN_FPR = _('%(info)sYour OTR key fingerprint is '
 OTR_REMOTE_FPR = _('%(info)sThe key fingerprint for %(jid_c)s'
                    '%(jid)s%(info)s is %(normal)s%(fpr)s%(info)s.')
 
-OTR_NO_FPR = _('%(jid_c)s%(jid)s%(info)s has no'
-               ' key currently in use.')
+OTR_NO_FPR = _('%(jid_c)s%(jid)s%(info)s has no' ' key currently in use.')
 
 OTR_START_TRUSTED = _('%(info)sStarted a \x19btrusted\x19o%(info)s '
                       'OTR conversation with %(jid_c)s%(jid)s')
@@ -315,7 +312,6 @@ POTR_ERROR = _('%(info)sAn unspecified error in the OTR plugin occured:\n'
 TRUST_ADDED = _('%(info)sYou added %(jid_c)s%(bare_jid)s%(info)s with key '
                 '\x19o%(key)s%(info)s to your trusted list.')
 
-
 TRUST_REMOVED = _('%(info)sYou removed %(jid_c)s%(bare_jid)s%(info)s with '
                   'key \x19o%(key)s%(info)s from your trusted list.')
 
@@ -331,8 +327,10 @@ def hl(tab):
 
     conv_jid = safeJID(tab.name)
     if 'private' in config.get('beep_on', 'highlight private').split():
-        if not config.get_by_tabname('disable_beep', conv_jid.bare, default=False):
+        if not config.get_by_tabname(
+                'disable_beep', conv_jid.bare, default=False):
             curses.beep()
+
 
 class PoezioContext(Context):
     """
@@ -340,6 +338,7 @@ class PoezioContext(Context):
 
     Overrides methods from potr.context.Context
     """
+
     def __init__(self, account, peer, xmpp, core):
         super(PoezioContext, self).__init__(account, peer)
         self.xmpp = xmpp
@@ -361,9 +360,8 @@ class PoezioContext(Context):
         self.smp_own = False
 
     def inject(self, msg, appdata=None):
-        message = self.xmpp.make_message(mto=self.peer,
-                                         mbody=msg.decode('ascii'),
-                                         mtype='chat')
+        message = self.xmpp.make_message(
+            mto=self.peer, mbody=msg.decode('ascii'), mtype='chat')
         message['eme']['namespace'] = 'urn:xmpp:otr:0'
         message.enable('carbon_private')
         message.enable('no-copy')
@@ -404,14 +402,17 @@ class PoezioContext(Context):
                 format_dict['our_fpr'] = self.user.getPrivkey()
                 format_dict['remote_fpr'] = self.getCurrentKey()
                 tab.add_message(OTR_TUTORIAL % format_dict, typ=0)
-                tab.add_message(OTR_START_UNTRUSTED % format_dict, typ=self.log)
+                tab.add_message(
+                    OTR_START_UNTRUSTED % format_dict, typ=self.log)
             hl(tab)
 
-        log.debug('Set encryption state of %s to %s', self.peer, states[newstate])
+        log.debug('Set encryption state of %s to %s', self.peer,
+                  states[newstate])
         super(PoezioContext, self).setState(newstate)
         if tab:
             self.core.refresh_window()
             self.core.doupdate()
+
 
 class PoezioAccount(Account):
     """
@@ -435,7 +436,8 @@ class PoezioAccount(Account):
         try:
             os.remove(self.key_dir + '.key3')
         except:
-            log.exception('Error in drop_privkey (removing %s)', self.key_dir + '.key3')
+            log.exception('Error in drop_privkey (removing %s)',
+                          self.key_dir + '.key3')
         self.privkey = None
 
     def save_privkey(self):
@@ -465,7 +467,8 @@ class PoezioAccount(Account):
             with open(self.key_dir + '.fpr', 'w') as fpr_fd:
                 for uid, trusts in self.trusts.items():
                     for fpr, trustVal in trusts.items():
-                        fpr_fd.write('\t'.join((uid, self.name, 'xmpp', fpr, trustVal)))
+                        fpr_fd.write('\t'.join((uid, self.name, 'xmpp', fpr,
+                                                trustVal)))
                         fpr_fd.write('\n')
         except:
             log.exception('Error in save_trusts', exc_info=True)
@@ -475,37 +478,46 @@ class PoezioAccount(Account):
     loadPrivkey = load_privkey
     savePrivkey = save_privkey
 
+
 states = {
     STATE_PLAINTEXT: 'plaintext',
     STATE_ENCRYPTED: 'encrypted',
     STATE_FINISHED: 'finished',
 }
 
-class Plugin(BasePlugin):
 
+class Plugin(BasePlugin):
     def init(self):
         # set the default values from the config
         keys_dir = self.config.get('keys_dir', '')
-        otr_dir = Path(keys_dir).expanduser() if keys_dir else xdg.DATA_HOME / 'otr'
+        otr_dir = Path(
+            keys_dir).expanduser() if keys_dir else xdg.DATA_HOME / 'otr'
         try:
             otr_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            self.api.information('The OTR-specific folder could not '
-                                 'be created: %s. Poezio will be unable '
-                                 'to save keys and trusts' % e, 'OTR')
+            self.api.information(
+                'The OTR-specific folder could not '
+                'be created: %s. Poezio will be unable '
+                'to save keys and trusts' % e, 'OTR')
 
         except Exception as e:
-            self.api.information('The OTR-specific folder could not '
-                                 'be created. Poezio will be unable '
-                                 'to save keys and trusts', 'OTR')
+            self.api.information(
+                'The OTR-specific folder could not '
+                'be created. Poezio will be unable '
+                'to save keys and trusts', 'OTR')
 
-        self.api.add_event_handler('conversation_msg', self.on_conversation_msg)
+        self.api.add_event_handler('conversation_msg',
+                                   self.on_conversation_msg)
         self.api.add_event_handler('private_msg', self.on_conversation_msg)
-        self.api.add_event_handler('conversation_say_after', self.on_conversation_say)
-        self.api.add_event_handler('private_say_after', self.on_conversation_say)
+        self.api.add_event_handler('conversation_say_after',
+                                   self.on_conversation_say)
+        self.api.add_event_handler('private_say_after',
+                                   self.on_conversation_say)
 
-        StaticConversationTab.add_information_element('otr', self.display_encryption_status)
-        PrivateTab.add_information_element('otr', self.display_encryption_status)
+        StaticConversationTab.add_information_element(
+            'otr', self.display_encryption_status)
+        PrivateTab.add_information_element('otr',
+                                           self.display_encryption_status)
 
         self.core.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:otr:0')
 
@@ -524,24 +536,45 @@ class Plugin(BasePlugin):
                 'untrust: Remove the trust for the key of this contact\n')
         smp_usage = '<abort|ask|answer> [question] [answer]'
         smp_short = 'Identify a contact'
-        smp_desc = ('Verify the identify of your contact by using a pre-defined secret.\n'
-                    'abort: Abort an ongoing verification\n'
-                    'ask: Start a verification, with a question or not\n'
-                    'answer: Finish a verification\n')
+        smp_desc = (
+            'Verify the identify of your contact by using a pre-defined secret.\n'
+            'abort: Abort an ongoing verification\n'
+            'ask: Start a verification, with a question or not\n'
+            'answer: Finish a verification\n')
 
-        self.api.add_tab_command(StaticConversationTab, 'otrsmp', self.command_smp,
-                                 help=smp_desc, usage=smp_usage, short=smp_short,
-                                 completion=self.completion_smp)
-        self.api.add_tab_command(PrivateTab, 'otrsmp', self.command_smp,
-                                 help=smp_desc, usage=smp_usage, short=smp_short,
-                                 completion=self.completion_smp)
+        self.api.add_tab_command(
+            StaticConversationTab,
+            'otrsmp',
+            self.command_smp,
+            help=smp_desc,
+            usage=smp_usage,
+            short=smp_short,
+            completion=self.completion_smp)
+        self.api.add_tab_command(
+            PrivateTab,
+            'otrsmp',
+            self.command_smp,
+            help=smp_desc,
+            usage=smp_usage,
+            short=smp_short,
+            completion=self.completion_smp)
 
-        self.api.add_tab_command(StaticConversationTab, 'otr', self.command_otr,
-                                 help=desc, usage=usage, short=shortdesc,
-                                 completion=self.completion_otr)
-        self.api.add_tab_command(PrivateTab, 'otr', self.command_otr,
-                                 help=desc, usage=usage, short=shortdesc,
-                                 completion=self.completion_otr)
+        self.api.add_tab_command(
+            StaticConversationTab,
+            'otr',
+            self.command_otr,
+            help=desc,
+            usage=usage,
+            short=shortdesc,
+            completion=self.completion_otr)
+        self.api.add_tab_command(
+            PrivateTab,
+            'otr',
+            self.command_otr,
+            help=desc,
+            usage=usage,
+            short=shortdesc,
+            completion=self.completion_otr)
 
     def cleanup(self):
         for context in self.contexts.values():
@@ -559,11 +592,13 @@ class Plugin(BasePlugin):
         jid = safeJID(jid)
         if jid.full not in self.contexts:
             flags = POLICY_FLAGS.copy()
-            require = self.config.get_by_tabname('require_encryption',
-                                                 jid.bare, default=False)
+            require = self.config.get_by_tabname(
+                'require_encryption', jid.bare, default=False)
             flags['REQUIRE_ENCRYPTION'] = require
-            logging_policy = self.config.get_by_tabname('log', jid.bare , default=False)
-            self.contexts[jid.full] = PoezioContext(self.account, jid.full, self.core.xmpp, self.core)
+            logging_policy = self.config.get_by_tabname(
+                'log', jid.bare, default=False)
+            self.contexts[jid.full] = PoezioContext(self.account, jid.full,
+                                                    self.core.xmpp, self.core)
             self.contexts[jid.full].log = 1 if logging_policy else 0
             self.contexts[jid.full].flags = flags
         return self.contexts[jid.full]
@@ -574,7 +609,7 @@ class Plugin(BasePlugin):
         """
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
-            'info':  '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
+            'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
             'jid': msg['from']
         }
         try:
@@ -594,13 +629,16 @@ class Plugin(BasePlugin):
             # if we expected an OTR message, we would have
             # got an UnencryptedMesssage
             # but do an additional check because of a bug with potr and py3k
-            if ctx.state != STATE_PLAINTEXT or ctx.getPolicy('REQUIRE_ENCRYPTION'):
-                self.unencrypted_message_received(err, ctx, msg, tab, format_dict)
+            if ctx.state != STATE_PLAINTEXT or ctx.getPolicy(
+                    'REQUIRE_ENCRYPTION'):
+                self.unencrypted_message_received(err, ctx, msg, tab,
+                                                  format_dict)
                 self.otr_start(tab, tab.name, format_dict)
             return
         except ErrorReceived as err:
             # Received an OTR error
-            format_dict['err'] = err.args[0].error.decode('utf-8', errors='replace')
+            format_dict['err'] = err.args[0].error.decode(
+                'utf-8', errors='replace')
             tab.add_message(OTR_ERROR % format_dict, typ=0)
             del msg['body']
             del msg['html']
@@ -658,9 +696,12 @@ class Plugin(BasePlugin):
             # Received an SMP request (with a question or not)
             if smp1q:
                 try:
-                    question = ' with question: \x19o' + smp1q.msg.decode('utf-8')
+                    question = ' with question: \x19o' + smp1q.msg.decode(
+                        'utf-8')
                 except UnicodeDecodeError:
-                    self.api.information('The peer sent a question but it had a wrong encoding', 'Error')
+                    self.api.information(
+                        'The peer sent a question but it had a wrong encoding',
+                        'Error')
                     question = ''
             else:
                 question = ''
@@ -720,13 +761,12 @@ class Plugin(BasePlugin):
             nick_color = get_theme().COLOR_REMOTE_USER
 
         body = txt.decode()
-        decode_entities = self.config.get_by_tabname('decode_entities',
-                                                     msg['from'].bare,
-                                                     default=True)
-        decode_newlines = self.config.get_by_tabname('decode_newlines',
-                                                     msg['from'].bare,
-                                                     default=True)
-        if self.config.get_by_tabname('decode_xhtml', msg['from'].bare, default=True):
+        decode_entities = self.config.get_by_tabname(
+            'decode_entities', msg['from'].bare, default=True)
+        decode_newlines = self.config.get_by_tabname(
+            'decode_newlines', msg['from'].bare, default=True)
+        if self.config.get_by_tabname(
+                'decode_xhtml', msg['from'].bare, default=True):
             try:
                 body = xhtml.xhtml_to_poezio_colors(body, force=True)
             except Exception:
@@ -739,9 +779,13 @@ class Plugin(BasePlugin):
                 body = html.unescape(body)
             if decode_newlines:
                 body = body.replace('<br/>', '\n').replace('<br>', '\n')
-        tab.add_message(body, nickname=tab.nick, jid=msg['from'],
-                        forced_user=user, typ=ctx.log,
-                        nick_color=nick_color)
+        tab.add_message(
+            body,
+            nickname=tab.nick,
+            jid=msg['from'],
+            forced_user=user,
+            typ=ctx.log,
+            nick_color=nick_color)
         hl(tab)
         self.core.refresh_window()
         del msg['body']
@@ -751,7 +795,9 @@ class Plugin(BasePlugin):
         Find an OTR session from a bare JID.
         """
         for ctx in self.contexts:
-            if safeJID(ctx).bare == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
+            if safeJID(
+                    ctx
+            ).bare == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
                 return self.contexts[ctx]
         return None
 
@@ -779,12 +825,13 @@ class Plugin(BasePlugin):
             if not tab.send_chat_state('active'):
                 tab.send_chat_state('inactive', always_send=True)
 
-            tab.add_message(msg['body'],
-                            nickname=self.core.own_nick or tab.own_nick,
-                            nick_color=get_theme().COLOR_OWN_NICK,
-                            identifier=msg['id'],
-                            jid=self.core.xmpp.boundjid,
-                            typ=ctx.log)
+            tab.add_message(
+                msg['body'],
+                nickname=self.core.own_nick or tab.own_nick,
+                nick_color=get_theme().COLOR_OWN_NICK,
+                identifier=msg['id'],
+                jid=self.core.xmpp.boundjid,
+                typ=ctx.log)
             # remove everything from the message so that it doesn’t get sent
             del msg['body']
             del msg['replace']
@@ -797,14 +844,16 @@ class Plugin(BasePlugin):
             del msg['html']
             self.otr_start(tab, name, format_dict)
         elif not is_relevant(tab) and ctx and (
-                ctx.state == STATE_ENCRYPTED or ctx.getPolicy('REQUIRE_ENCRYPTION')):
+                ctx.state == STATE_ENCRYPTED
+                or ctx.getPolicy('REQUIRE_ENCRYPTION')):
             contact = roster[tab.name]
             res = []
             if contact:
                 res = [resource.jid for resource in contact.resources]
             help_msg = ''
             if res:
-                help_msg = TAB_HELP_RESOURCE % ''.join(('\n - /message %s' % jid) for jid in res)
+                help_msg = TAB_HELP_RESOURCE % ''.join(
+                    ('\n - /message %s' % jid) for jid in res)
             format_dict['help'] = help_msg
             warning_msg = INCOMPATIBLE_TAB % format_dict
             tab.add_message(warning_msg, typ=0)
@@ -844,7 +893,7 @@ class Plugin(BasePlugin):
             'bare_jid': safeJID(name).bare
         }
 
-        if action == 'end': # close the session
+        if action == 'end':  # close the session
             context = self.get_context(name)
             context.disconnect()
         elif action == 'start' or action == 'refresh':
@@ -898,6 +947,7 @@ class Plugin(BasePlugin):
         Start an otr conversation with a contact
         """
         secs = self.config.get('timeout', 3)
+
         def notify_otr_timeout():
             tab_name = tab.name
             otr = self.find_encrypted_context_with_matching(tab_name)
@@ -906,6 +956,7 @@ class Plugin(BasePlugin):
                 text = OTR_NOT_ENABLED % format_dict
                 tab.add_message(text, typ=0)
                 self.core.refresh_window()
+
         if secs > 0:
             event = self.api.create_delayed_event(secs, notify_otr_timeout)
             self.api.add_timed_event(event)
@@ -974,13 +1025,18 @@ class Plugin(BasePlugin):
     def completion_smp(the_input):
         """Completion for /otrsmp"""
         if the_input.get_argument_position() == 1:
-            return Completion(the_input.new_completion, ['ask', 'answer', 'abort'], 1, quotify=False)
+            return Completion(
+                the_input.new_completion, ['ask', 'answer', 'abort'],
+                1,
+                quotify=False)
+
 
 def get_tlv(tlvs, cls):
     """Find the instance of a class in a list"""
     for tlv in tlvs:
         if isinstance(tlv, cls):
             return tlv
+
 
 def is_relevant(tab):
     """Check if a tab should be concerned with OTR"""

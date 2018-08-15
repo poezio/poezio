@@ -23,18 +23,21 @@ import string
 from poezio import xhtml
 import random
 
-char_we_dont_want = string.punctuation+' ’„“”…«»'
+char_we_dont_want = string.punctuation + ' ’„“”…«»'
+
 
 class Plugin(BasePlugin):
     def init(self):
         for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(tab_type, 'stoi',
-                                     handler=self.stoi,
-                                     help="Repeats the last word of the last "
-                                          "message in the conversation, and "
-                                          "use it in an annoying “C’est toi "
-                                          "le” sentence.",
-                                     short='C’est toi le stoi.')
+            self.api.add_tab_command(
+                tab_type,
+                'stoi',
+                handler=self.stoi,
+                help="Repeats the last word of the last "
+                "message in the conversation, and "
+                "use it in an annoying “C’est toi "
+                "le” sentence.",
+                short='C’est toi le stoi.')
 
     def stoi(self, args):
         messages = self.api.get_conversation_messages()
@@ -55,4 +58,3 @@ class Plugin(BasePlugin):
         else:
             msg = intro + ('le %s' % last_word)
         self.api.send_message(msg)
-

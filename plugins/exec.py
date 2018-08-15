@@ -40,34 +40,48 @@ from poezio import common
 import asyncio
 import subprocess
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('exec', self.command_exec,
-                usage='[-o|-O] <command>',
-                help='Execute a shell command and prints the result in the information buffer. The command should be ONE argument, that means it should be between \"\". The first argument (before the command) can be -o or -O. If -o is specified, it sends the result in the current conversation. If -O is specified, it sends the command and its result in the current conversation.\nExample: /exec -O \"uptime\" will send “uptime\n20:36:19 up  3:47,  4 users,  load average: 0.09, 0.13, 0.09” in the current conversation.',
-                short='Execute a command')
+        self.api.add_command(
+            'exec',
+            self.command_exec,
+            usage='[-o|-O] <command>',
+            help=
+            'Execute a shell command and prints the result in the information buffer. The command should be ONE argument, that means it should be between \"\". The first argument (before the command) can be -o or -O. If -o is specified, it sends the result in the current conversation. If -O is specified, it sends the command and its result in the current conversation.\nExample: /exec -O \"uptime\" will send “uptime\n20:36:19 up  3:47,  4 users,  load average: 0.09, 0.13, 0.09” in the current conversation.',
+            short='Execute a command')
 
     async def async_exec(self, command, arg):
-        create = asyncio.create_subprocess_exec('sh', '-c', command,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        create = asyncio.create_subprocess_exec(
+            'sh',
+            '-c',
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
         try:
             process = await create
         except OSError as e:
-            self.api.information('Failed to execute command: %s' % (e,), 'Error')
+            self.api.information('Failed to execute command: %s' % (e, ),
+                                 'Error')
             return
         stdout, stderr = await process.communicate()
         result = stdout.decode('utf-8')
         stderr = stderr.decode('utf-8')
         if arg == '-o':
-            if not self.api.send_message('%s' % (result,)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
+            if not self.api.send_message('%s' % (result, )):
+                self.api.information(
+                    'Cannot send result (%s), this is not a conversation tab' %
+                    result, 'Error')
         elif arg == '-O':
             if not self.api.send_message('%s:\n%s' % (command, result)):
-                self.api.information('Cannot send result (%s), this is not a conversation tab' % result, 'Error')
+                self.api.information(
+                    'Cannot send result (%s), this is not a conversation tab' %
+                    result, 'Error')
         else:
             self.api.information('%s:\n%s' % (command, result), 'Info')
         if stderr:
-            self.api.information('stderr for %s:\n%s' % (command, stderr), 'Info')
+            self.api.information('stderr for %s:\n%s' % (command, stderr),
+                                 'Info')
         await process.wait()
 
     def command_exec(self, args):

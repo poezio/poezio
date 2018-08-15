@@ -22,23 +22,30 @@ Commands
 
 from poezio.plugin import BasePlugin
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('csi_active', self.command_active,
-                             help='Set the client state indication to “active”',
-                             short='Manual set active')
-        self.api.add_command('csi_inactive', self.command_inactive,
-                             help='Set the client state indication to “inactive”',
-                             short='Manual set inactive')
+        self.api.add_command(
+            'csi_active',
+            self.command_active,
+            help='Set the client state indication to “active”',
+            short='Manual set active')
+        self.api.add_command(
+            'csi_inactive',
+            self.command_inactive,
+            help='Set the client state indication to “inactive”',
+            short='Manual set inactive')
 
     def command_active(self, args):
         if not self.core.xmpp.plugin['xep_0352'].enabled:
-            self.api.information('CSI is not enabled in this server', 'Warning')
+            self.api.information('CSI is not enabled in this server',
+                                 'Warning')
         else:
             self.core.xmpp.plugin['xep_0352'].send_active()
 
     def command_inactive(self, args):
         if not self.core.xmpp.plugin['xep_0352'].enabled:
-            self.api.information('CSI is not enabled in this server', 'Warning')
+            self.api.information('CSI is not enabled in this server',
+                                 'Warning')
         else:
             self.core.xmpp.plugin['xep_0352'].send_inactive()

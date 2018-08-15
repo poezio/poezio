@@ -34,36 +34,43 @@ from mimetypes import guess_type
 
 class Plugin(BasePlugin):
 
-    default_config = {'bob': {'max_size': 2048,
-                              'max_age': 86400}}
+    default_config = {'bob': {'max_size': 2048, 'max_age': 86400}}
 
     def init(self):
         for tab in tabs.ConversationTab, tabs.PrivateTab, tabs.MucTab:
-            self.api.add_tab_command(tab, 'bob', self.command_bob,
-                                     usage='<image>',
-                                     help='Send image <image> to the current discussion',
-                                     short='Send a short image',
-                                     completion=self.completion_bob)
+            self.api.add_tab_command(
+                tab,
+                'bob',
+                self.command_bob,
+                usage='<image>',
+                help='Send image <image> to the current discussion',
+                short='Send a short image',
+                completion=self.completion_bob)
 
     def command_bob(self, filename):
         path = Path(expanduser(filename))
         try:
             size = path.stat().st_size
         except OSError as exc:
-            self.api.information('Error sending “%s”: %s' % (path.name, exc), 'Error')
+            self.api.information('Error sending “%s”: %s' % (path.name, exc),
+                                 'Error')
             return
         mime_type = guess_type(path.as_posix())[0]
         if mime_type is None or not mime_type.startswith('image/'):
-            self.api.information('Error sending “%s”, not an image file.' % path.name, 'Error')
+            self.api.information(
+                'Error sending “%s”, not an image file.' % path.name, 'Error')
             return
         if size > self.config.get('max_size'):
-            self.api.information('Error sending “%s”, file too big.' % path.name, 'Error')
+            self.api.information(
+                'Error sending “%s”, file too big.' % path.name, 'Error')
             return
         with open(path.as_posix(), 'rb') as file:
             data = file.read()
         max_age = self.config.get('max_age')
-        cid = self.core.xmpp.plugin['xep_0231'].set_bob(data, mime_type, max_age=max_age)
-        self.api.run_command('/xhtml <img src="cid:%s" alt="%s"/>' % (cid, path.name))
+        cid = self.core.xmpp.plugin['xep_0231'].set_bob(
+            data, mime_type, max_age=max_age)
+        self.api.run_command(
+            '/xhtml <img src="cid:%s" alt="%s"/>' % (cid, path.name))
 
     @staticmethod
     def completion_bob(the_input):

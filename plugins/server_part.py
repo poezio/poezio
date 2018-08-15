@@ -22,13 +22,16 @@ from poezio.decorators import command_args_parser
 from poezio.common import safeJID
 from poezio.core.structs import Completion
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('server_part', self.command_server_part,
-                usage='[<server> [message]]',
-                short='Leave all the rooms on a server',
-                help='Leave all the rooms on a sever.',
-                completion=self.completion_server_part)
+        self.api.add_command(
+            'server_part',
+            self.command_server_part,
+            usage='[<server> [message]]',
+            short='Leave all the rooms on a server',
+            help='Leave all the rooms on a sever.',
+            completion=self.completion_server_part)
 
     @command_args_parser.quoted(0, 2, defaults=[])
     def command_server_part(self, args):

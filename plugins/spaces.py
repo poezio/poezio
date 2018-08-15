@@ -5,6 +5,7 @@ them horrible to read.
 from poezio.plugin import BasePlugin
 from poezio import xhtml
 
+
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler('muc_say', self.add_spaces)

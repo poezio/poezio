@@ -30,12 +30,15 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 FORMATTER = HtmlFormatter(nowrap=True, noclasses=True)
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('code', self.command_code,
-                usage='<language> <code>',
-                short='Sends syntax-highlighted code',
-                help='Sends syntax-highlighted code in the current tab')
+        self.api.add_command(
+            'code',
+            self.command_code,
+            usage='<language> <code>',
+            short='Sends syntax-highlighted code',
+            help='Sends syntax-highlighted code in the current tab')
 
     def command_code(self, args):
         language, code = args.split(None, 1)

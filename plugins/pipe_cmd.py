@@ -18,7 +18,6 @@ Configuration
 
 """
 
-
 from poezio.plugin import BasePlugin
 import os
 import stat
@@ -28,6 +27,7 @@ import asyncio
 log = logging.getLogger(__name__)
 
 PIPENAME = "/tmp/poezio.fifo"
+
 
 class Plugin(BasePlugin):
     def init(self):
@@ -41,7 +41,7 @@ class Plugin(BasePlugin):
         if not stat.S_ISFIFO(os.stat(self.pipename).st_mode):
             raise TypeError("File %s is not a fifo file" % self.pipename)
 
-        self.fd = os.open(self.pipename, os.O_RDONLY|os.O_NONBLOCK)
+        self.fd = os.open(self.pipename, os.O_RDONLY | os.O_NONBLOCK)
 
         self.data = b""
         asyncio.get_event_loop().add_reader(self.fd, self.read_from_fifo)
@@ -52,7 +52,7 @@ class Plugin(BasePlugin):
             # EOF, close the fifo. And reopen it
             asyncio.get_event_loop().remove_reader(self.fd)
             os.close(self.fd)
-            self.fd = os.open(self.pipename, os.O_RDONLY|os.O_NONBLOCK)
+            self.fd = os.open(self.pipename, os.O_RDONLY | os.O_NONBLOCK)
             asyncio.get_event_loop().add_reader(self.fd, self.read_from_fifo)
             self.data = b''
         else:

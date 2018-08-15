@@ -35,29 +35,42 @@ from poezio.core.structs import Completion
 from poezio import tabs
 from slixmpp.jid import JID, InvalidJID
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('vcard', self.command_vcard,
-                usage='<jid>',
-                help='Send an XMPP vcard request to jid (see XEP-0054).',
+        self.api.add_command(
+            'vcard',
+            self.command_vcard,
+            usage='<jid>',
+            help='Send an XMPP vcard request to jid (see XEP-0054).',
+            short='Send a vcard request',
+            completion=self.completion_vcard)
+        self.api.add_tab_command(
+            tabs.MucTab,
+            'vcard',
+            self.command_muc_vcard,
+            usage='<jid|nick>',
+            help='Send an XMPP vcard request to jid or nick (see XEP-0054).',
+            short='Send a vcard request.',
+            completion=self.completion_muc_vcard)
+        self.api.add_tab_command(
+            tabs.RosterInfoTab,
+            'vcard',
+            self.command_roster_vcard,
+            usage='<jid>',
+            help='Send an XMPP vcard request to jid (see XEP-0054).',
+            short='Send a vcard request.',
+            completion=self.completion_vcard)
+        for _class in (tabs.PrivateTab, tabs.ConversationTab):
+            self.api.add_tab_command(
+                _class,
+                'vcard',
+                self.command_private_vcard,
+                usage='[jid]',
+                help=
+                'Send an XMPP vcard request to the current interlocutor or the given JID.',
                 short='Send a vcard request',
                 completion=self.completion_vcard)
-        self.api.add_tab_command(tabs.MucTab, 'vcard', self.command_muc_vcard,
-                usage='<jid|nick>',
-                help='Send an XMPP vcard request to jid or nick (see XEP-0054).',
-                short='Send a vcard request.',
-                completion=self.completion_muc_vcard)
-        self.api.add_tab_command(tabs.RosterInfoTab, 'vcard', self.command_roster_vcard,
-                usage='<jid>',
-                help='Send an XMPP vcard request to jid (see XEP-0054).',
-                short='Send a vcard request.',
-                completion=self.completion_vcard)
-        for _class in (tabs.PrivateTab, tabs.ConversationTab):
-            self.api.add_tab_command(_class, 'vcard', self.command_private_vcard,
-                    usage='[jid]',
-                    help='Send an XMPP vcard request to the current interlocutor or the given JID.',
-                    short='Send a vcard request',
-                    completion=self.completion_vcard)
 
     def _handle_vcard(self, iq):
         '''Retrieves a vCard from vcard-temp and present it as a DataFormsTab.
@@ -65,71 +78,163 @@ class Plugin(BasePlugin):
         jid = iq['from']
 
         if iq['type'] == 'error':
-            self.api.information('Error retrieving vCard for %s: %s: %s' % (jid, iq['error']['type'], iq['error']['condition']), 'Error')
+            self.api.information(
+                'Error retrieving vCard for %s: %s: %s' %
+                (jid, iq['error']['type'], iq['error']['condition']), 'Error')
             return
 
         vcard = iq['vcard_temp']
 
-        form = self.core.xmpp['xep_0004'].make_form(ftype='result', title='vCard of %s' % jid)
+        form = self.core.xmpp['xep_0004'].make_form(
+            ftype='result', title='vCard of %s' % jid)
 
         # TODO: implement the other fields.
 
-        form.add_field(var='FN', ftype='text-single', label='Name', value=vcard['FN'])
-        form.add_field(var='NICKNAME', ftype='text-multi', label='Nicknames', value=vcard['NICKNAME'])
+        form.add_field(
+            var='FN', ftype='text-single', label='Name', value=vcard['FN'])
+        form.add_field(
+            var='NICKNAME',
+            ftype='text-multi',
+            label='Nicknames',
+            value=vcard['NICKNAME'])
 
         # TODO: find a way to detect whether this is present or not.
         form.add_field(ftype='fixed', value='Full Name')
-        form.add_field(var='N/GIVEN', ftype='text-single', label='Given', value=vcard['N']['GIVEN'])
-        form.add_field(var='N/MIDDLE', ftype='text-single', label='Middle', value=vcard['N']['MIDDLE'])
-        form.add_field(var='N/FAMILY', ftype='text-single', label='Family', value=vcard['N']['FAMILY'])
-        form.add_field(var='N/PREFIX', ftype='text-single', label='Prefix', value=vcard['N']['PREFIX'])
-        form.add_field(var='N/SUFFIX', ftype='text-single', label='Suffix', value=vcard['N']['SUFFIX'])
+        form.add_field(
+            var='N/GIVEN',
+            ftype='text-single',
+            label='Given',
+            value=vcard['N']['GIVEN'])
+        form.add_field(
+            var='N/MIDDLE',
+            ftype='text-single',
+            label='Middle',
+            value=vcard['N']['MIDDLE'])
+        form.add_field(
+            var='N/FAMILY',
+            ftype='text-single',
+            label='Family',
+            value=vcard['N']['FAMILY'])
+        form.add_field(
+            var='N/PREFIX',
+            ftype='text-single',
+            label='Prefix',
+            value=vcard['N']['PREFIX'])
+        form.add_field(
+            var='N/SUFFIX',
+            ftype='text-single',
+            label='Suffix',
+            value=vcard['N']['SUFFIX'])
 
         for i, addr in enumerate(vcard['addresses']):
             form.add_field(ftype='fixed', value='Address')
             values = [type_ for type_ in addr.bool_interfaces if addr[type_]]
-            addr_type = form.add_field(var='ADR %d/TYPE' % i, ftype='list-multi', label='Type', value=values)
+            addr_type = form.add_field(
+                var='ADR %d/TYPE' % i,
+                ftype='list-multi',
+                label='Type',
+                value=values)
             addr_type.add_option(label='Home', value='HOME')
             for type_ in addr.bool_interfaces:
                 addr_type.add_option(label=type_, value=type_)
-            form.add_field(var='ADR %d/POBOX' % i, ftype='text-single', label='Pobox', value=addr['POBOX'])
-            form.add_field(var='ADR %d/EXTADD' % i, ftype='text-single', label='Extended Address', value=addr['EXTADD'])
-            form.add_field(var='ADR %d/STREET' % i, ftype='text-single', label='Street', value=addr['STREET'])
-            form.add_field(var='ADR %d/LOCALITY' % i, ftype='text-single', label='Locality', value=addr['LOCALITY'])
-            form.add_field(var='ADR %d/REGION' % i, ftype='text-single', label='Region', value=addr['REGION'])
-            form.add_field(var='ADR %d/PCODE' % i, ftype='text-single', label='Post Code', value=addr['PCODE'])
-            form.add_field(var='ADR %d/CTRY' % i, ftype='text-single', label='Country', value=addr['CTRY'])
+            form.add_field(
+                var='ADR %d/POBOX' % i,
+                ftype='text-single',
+                label='Pobox',
+                value=addr['POBOX'])
+            form.add_field(
+                var='ADR %d/EXTADD' % i,
+                ftype='text-single',
+                label='Extended Address',
+                value=addr['EXTADD'])
+            form.add_field(
+                var='ADR %d/STREET' % i,
+                ftype='text-single',
+                label='Street',
+                value=addr['STREET'])
+            form.add_field(
+                var='ADR %d/LOCALITY' % i,
+                ftype='text-single',
+                label='Locality',
+                value=addr['LOCALITY'])
+            form.add_field(
+                var='ADR %d/REGION' % i,
+                ftype='text-single',
+                label='Region',
+                value=addr['REGION'])
+            form.add_field(
+                var='ADR %d/PCODE' % i,
+                ftype='text-single',
+                label='Post Code',
+                value=addr['PCODE'])
+            form.add_field(
+                var='ADR %d/CTRY' % i,
+                ftype='text-single',
+                label='Country',
+                value=addr['CTRY'])
 
         for i, tel in enumerate(vcard['telephone_numbers']):
             form.add_field(ftype='fixed', value='Telephone')
             values = [type_ for type_ in tel.bool_interfaces if tel[type_]]
-            tel_type = form.add_field(var='TEL %d/TYPE' % i, ftype='list-multi', label='Type', value=values)
+            tel_type = form.add_field(
+                var='TEL %d/TYPE' % i,
+                ftype='list-multi',
+                label='Type',
+                value=values)
             for type_ in tel.bool_interfaces:
                 tel_type.add_option(label=type_, value=type_)
-            form.add_field(var='TEL %d/NUMBER' % i, ftype='text-single', label='Number', value=tel['NUMBER'])
+            form.add_field(
+                var='TEL %d/NUMBER' % i,
+                ftype='text-single',
+                label='Number',
+                value=tel['NUMBER'])
 
         for i, email in enumerate(vcard['emails']):
             form.add_field(ftype='fixed', value='Email address')
             values = [type_ for type_ in email.bool_interfaces if email[type_]]
-            email_type = form.add_field(var='EMAIL %d/TYPE' % i, ftype='list-multi', label='Type', value=values)
+            email_type = form.add_field(
+                var='EMAIL %d/TYPE' % i,
+                ftype='list-multi',
+                label='Type',
+                value=values)
             for type_ in email.bool_interfaces:
                 email_type.add_option(label=type_, value=type_)
-            form.add_field(var='EMAIL %d/USERID' % i, ftype='text-single', label='Email Address', value=email['USERID'])
+            form.add_field(
+                var='EMAIL %d/USERID' % i,
+                ftype='text-single',
+                label='Email Address',
+                value=email['USERID'])
 
         form.add_field(ftype='fixed', value='Misc')
-        form.add_field(var='BDAY', ftype='text-single', label='Birthday', value=str(vcard['BDAY']))
+        form.add_field(
+            var='BDAY',
+            ftype='text-single',
+            label='Birthday',
+            value=str(vcard['BDAY']))
 
         for i, jabberid in enumerate(vcard['jids']):
             form.add_field(ftype='fixed', value='URL')
-            form.add_field(var='JABBERID %d' % i, ftype='jid-single', label='URL', value=jabberid['JABBERID'])
+            form.add_field(
+                var='JABBERID %d' % i,
+                ftype='jid-single',
+                label='URL',
+                value=jabberid['JABBERID'])
 
         for i, url in enumerate(vcard['urls']):
             form.add_field(ftype='fixed', value='URL')
-            form.add_field(var='URL %d' % i, ftype='text-single', label='URL', value=url['URL'])
+            form.add_field(
+                var='URL %d' % i,
+                ftype='text-single',
+                label='URL',
+                value=url['URL'])
 
         for i, desc in enumerate(vcard['descriptions']):
             form.add_field(ftype='fixed', value='Description')
-            form.add_field(var='DESC %d' % i, ftype='text-multi', label='Description', value=desc['DESC'])
+            form.add_field(
+                var='DESC %d' % i,
+                ftype='text-multi',
+                label='Description',
+                value=desc['DESC'])
 
         on_validate = lambda form: self.core.close_tab()
         on_cancel = lambda form: self.core.close_tab()
@@ -137,13 +242,17 @@ class Plugin(BasePlugin):
 
     def _get_vcard(self, jid):
         '''Send an iq to ask the vCard.'''
+
         def timeout_cb(iq):
-            self.api.information('Timeout while retrieving vCard for %s' % jid, 'Error')
+            self.api.information('Timeout while retrieving vCard for %s' % jid,
+                                 'Error')
             return
 
-        self.core.xmpp.plugin['xep_0054'].get_vcard(jid=jid, timeout=30,
-                                                    callback=self._handle_vcard,
-                                                    timeout_callback=timeout_cb)
+        self.core.xmpp.plugin['xep_0054'].get_vcard(
+            jid=jid,
+            timeout=30,
+            callback=self._handle_vcard,
+            timeout_callback=timeout_cb)
 
     @command_args_parser.raw
     def command_vcard(self, arg):
@@ -192,9 +301,13 @@ class Plugin(BasePlugin):
 
     def completion_vcard(self, the_input):
         contacts = [contact.bare_jid for contact in roster.get_contacts()]
-        return Completion(the_input.auto_completion, contacts, '', quotify=False)
+        return Completion(
+            the_input.auto_completion, contacts, '', quotify=False)
 
     def completion_muc_vcard(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
-        users.extend([resource.jid for contact in roster.get_contacts() for resource in contact.resources])
+        users.extend([
+            resource.jid for contact in roster.get_contacts()
+            for resource in contact.resources
+        ])
         return Completion(the_input.auto_completion, users, '', quotify=False)

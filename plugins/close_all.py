@@ -18,8 +18,10 @@ from poezio.decorators import command_args_parser
 
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('closeall', self.command_closeall,
-                             help='Close all non-chatroom tabs.')
+        self.api.add_command(
+            'closeall',
+            self.command_closeall,
+            help='Close all non-chatroom tabs.')
 
     @command_args_parser.ignored
     def command_closeall(self):
@@ -40,5 +42,3 @@ class Plugin(BasePlugin):
             self.core.close_tab(tab)
         self.api.information('%s tabs closed.' % length, 'Info')
         self.core.refresh_window()
-
-

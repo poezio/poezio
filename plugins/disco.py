@@ -18,12 +18,15 @@ Usage
 from poezio.plugin import BasePlugin
 from slixmpp.jid import InvalidJID
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('disco', self.command_disco,
-                usage='<JID>',
-                short='Get the disco#info of a JID',
-                help='Get the disco#info of a JID')
+        self.api.add_command(
+            'disco',
+            self.command_disco,
+            usage='<JID>',
+            short='Get the disco#info of a JID',
+            help='Get the disco#info of a JID')
 
     def on_disco(self, iq):
         info = iq['disco_info']
@@ -40,14 +43,15 @@ class Plugin(BasePlugin):
                 continue
             sep = '\n  ' + len(var) * ' '
             field_value = field.get_value(convert=False)
-            value = sep.join(field_value) if isinstance(field_value, list) else field_value
+            value = sep.join(field_value) if isinstance(field_value,
+                                                        list) else field_value
             server_info.append('%s: %s' % (var, value))
         if server_info:
             self.api.information('\n'.join(server_info), title)
 
     def command_disco(self, jid):
         try:
-            self.core.xmpp.plugin['xep_0030'].get_info(jid=jid, cached=False,
-                                                       callback=self.on_disco)
+            self.core.xmpp.plugin['xep_0030'].get_info(
+                jid=jid, cached=False, callback=self.on_disco)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')

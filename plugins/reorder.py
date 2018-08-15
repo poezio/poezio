@@ -80,6 +80,7 @@ TAB_TO_TEXT = {
     tabs.GapTab: 'empty'
 }
 
+
 def parse_config(tab_config):
     result = {}
     for option in tab_config.options('reorder'):
@@ -96,11 +97,13 @@ def parse_config(tab_config):
 
     return result
 
+
 def check_tab(tab):
     for cls, rep in TAB_TO_TEXT.items():
         if isinstance(tab, cls):
             return rep
     return ''
+
 
 def parse_runtime_tablist(tablist):
     props = []
@@ -112,13 +115,18 @@ def parse_runtime_tablist(tablist):
             props.append((i, '%s:%s' % (result, tab.name)))
     return props
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_command('reorder', self.command_reorder,
-                             help='Reorder all tabs using the pre-defined'
-                                  ' layout from the configuration file.')
-        self.api.add_command('save_order', self.command_save_order,
-                             help='Save the current tab layout')
+        self.api.add_command(
+            'reorder',
+            self.command_reorder,
+            help='Reorder all tabs using the pre-defined'
+            ' layout from the configuration file.')
+        self.api.add_command(
+            'save_order',
+            self.command_save_order,
+            help='Save the current tab layout')
 
     @command_args_parser.ignored
     def command_save_order(self):
@@ -145,7 +153,9 @@ class Plugin(BasePlugin):
         last = 0
         for pos in sorted(tabs_spec):
             if create_gaps and pos > last + 1:
-                new_tabs += [tabs.GapTab(self.core) for i in range(pos - last - 1)]
+                new_tabs += [
+                    tabs.GapTab(self.core) for i in range(pos - last - 1)
+                ]
             cls, name = tabs_spec[pos]
             tab = self.core.tabs.by_name_and_class(name, cls=cls)
             if tab and tab in old_tabs:

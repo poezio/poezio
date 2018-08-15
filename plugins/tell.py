@@ -30,20 +30,30 @@ from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
 from poezio import tabs
 
+
 class Plugin(BasePlugin):
     def init(self):
-        self.api.add_tab_command(tabs.MucTab, 'tell', self.command_tell,
-                usage='<nick> <message>',
-                help='Will tell <nick> of <message> when he next joins.',
-                short='Send a message when someone joins')
-        self.api.add_tab_command(tabs.MucTab, 'untell', self.command_untell,
-                usage='<nick>',
-                help='Remove the planned messages from /tell.',
-                short='Cancel a /tell message',
-                completion=self.completion_untell)
-        self.api.add_tab_command(tabs.MucTab, 'list_tell', self.command_list_tell,
-                usage='',
-                help='List currently queued messages')
+        self.api.add_tab_command(
+            tabs.MucTab,
+            'tell',
+            self.command_tell,
+            usage='<nick> <message>',
+            help='Will tell <nick> of <message> when he next joins.',
+            short='Send a message when someone joins')
+        self.api.add_tab_command(
+            tabs.MucTab,
+            'untell',
+            self.command_untell,
+            usage='<nick>',
+            help='Remove the planned messages from /tell.',
+            short='Cancel a /tell message',
+            completion=self.completion_untell)
+        self.api.add_tab_command(
+            tabs.MucTab,
+            'list_tell',
+            self.command_list_tell,
+            usage='',
+            help='List currently queued messages')
         self.api.add_event_handler('muc_join', self.on_join)
         self.api.add_event_handler('muc_nickchange', self.on_join)
         # {tab -> {nick -> [messages]}
@@ -102,5 +112,5 @@ class Plugin(BasePlugin):
         tab = self.api.current_tab()
         if tab not in self.tabs:
             return Completion(the_input.auto_completion, [], '')
-        return Completion(the_input.auto_completion, list(self.tabs[tab]), '', quotify=False)
-
+        return Completion(
+            the_input.auto_completion, list(self.tabs[tab]), '', quotify=False)

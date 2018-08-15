@@ -53,14 +53,18 @@ from poezio import tabs
 import logging
 log = logging.getLogger(__name__)
 
+
 class Plugin(BasePlugin):
     def init(self):
         for _class in (tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab):
-            self.api.add_tab_command(_class, 'quote', self.command_quote,
-                    usage='<message>',
-                    help='Quote the message you typed if it exists.',
-                    short='Quote a message.',
-                    completion=self.completion_quote)
+            self.api.add_tab_command(
+                _class,
+                'quote',
+                self.command_quote,
+                usage='<message>',
+                help='Quote the message you typed if it exists.',
+                short='Quote a message.',
+                completion=self.completion_quote)
 
     def command_quote(self, args):
         args = common.shell_split(args)
@@ -70,13 +74,20 @@ class Plugin(BasePlugin):
             return self.api.run_command('/help quote')
         message = self.find_message(message)
         if message:
-            before = self.config.get('before_quote', '') % {'nick': message.nickname or '',
-                                                            'time': message.str_time}
-            after = self.config.get('after_quote', '') % {'nick': message.nickname or '',
-                                                           'time': message.str_time}
-            self.core.insert_input_text('%(before)s%(quote)s%(after)s' % {'before': before.replace('\\n', '\n').replace('[SP]', ' '),
-                                                                          'quote': clean_text(message.txt),
-                                                                          'after': after.replace('\\n', '\n').replace('[SP]', ' ')})
+            before = self.config.get('before_quote', '') % {
+                'nick': message.nickname or '',
+                'time': message.str_time
+            }
+            after = self.config.get('after_quote', '') % {
+                'nick': message.nickname or '',
+                'time': message.str_time
+            }
+            self.core.insert_input_text(
+                '%(before)s%(quote)s%(after)s' % {
+                    'before': before.replace('\\n', '\n').replace('[SP]', ' '),
+                    'quote': clean_text(message.txt),
+                    'after': after.replace('\\n', '\n').replace('[SP]', ' ')
+                })
         else:
             self.api.information('No message found', 'Warning')
 
@@ -92,6 +103,7 @@ class Plugin(BasePlugin):
     def completion_quote(self, the_input):
         def message_match(msg):
             return input_message.lower() in clean_text(msg.txt).lower()
+
         messages = self.api.get_conversation_messages()
         if not messages:
             return
@@ -102,5 +114,5 @@ class Plugin(BasePlugin):
             messages = list(filter(message_match, messages))
         elif len(args) > 1:
             return False
-        return Completion(the_input.auto_completion, [clean_text(msg.txt) for msg in messages[::-1]], '')
-
+        return Completion(the_input.auto_completion,
+                          [clean_text(msg.txt) for msg in messages[::-1]], '')
