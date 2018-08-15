@@ -27,7 +27,7 @@ from poezio.plugin import BasePlugin
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
+from pygments.formatters import HtmlFormatter  #pylint: disable=no-name-in-module
 FORMATTER = HtmlFormatter(nowrap=True, noclasses=True)
 
 

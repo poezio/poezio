@@ -76,8 +76,8 @@ class Plugin(BasePlugin):
             port=self.config.get('port', '6600'))
         password = self.config.get('password', '')
         if password:
-            c.password(password)
-        current = c.currentsong()
+            c.password(password)  #pylint: disable=no-member
+        current = c.currentsong()  #pylint: disable=no-member
         artist = current.get('artist', 'Unknown artist')
         album = current.get('album', 'Unknown album')
         title = current.get('title', base(
@@ -86,7 +86,7 @@ class Plugin(BasePlugin):
         s = '%s - %s (%s)' % (artist, title, album)
         if 'full' in args:
             if 'elapsed' in current and 'time' in current:
-                current_time = float(c.status()['elapsed'])
+                current_time = float(c.status()['elapsed'])  #pylint: disable=no-member
                 percents = int(current_time / float(current['time']) * 10)
                 s += ' \x192}[\x191}' + '-' * (
                     percents - 1) + '\x193}+' + '\x191}' + '-' * (
