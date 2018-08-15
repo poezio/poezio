@@ -6,16 +6,15 @@ rectangle shows the current contact info.
 This module also includes functions to match users in the roster.
 """
 import logging
-log = logging.getLogger(__name__)
-
 import base64
 import curses
 import difflib
 import os
 import ssl
-from os import getenv, path
 from functools import partial
+from os import getenv, path
 from pathlib import Path
+from typing import Dict, Callable
 
 from poezio import common
 from poezio import windows
@@ -26,17 +25,18 @@ from poezio.decorators import refresh_wrapper
 from poezio.roster import RosterGroup, roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
-from poezio.core.structs import Completion
-
+from poezio.core.structs import Command, Completion
 from poezio.tabs import Tab
+
+log = logging.getLogger(__name__)
 
 
 class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
     """
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core):
         Tab.__init__(self, core)

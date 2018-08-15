@@ -10,10 +10,9 @@ both participant’s nicks. It also has slightly different features than
 the ConversationTab (such as tab-completion on nicks from the room).
 
 """
-import logging
-log = logging.getLogger(__name__)
-
 import curses
+import logging
+from typing import Dict, Callable
 
 from poezio.tabs import OneToOneTab, MucTab, Tab
 
@@ -21,20 +20,23 @@ from poezio import windows
 from poezio import xhtml
 from poezio.common import safeJID
 from poezio.config import config
+from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+
+log = logging.getLogger(__name__)
 
 
 class PrivateTab(OneToOneTab):
     """
     The tab containg a private conversation (someone from a MUC)
     """
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
-    plugin_commands = {}
-    additional_information = {}
-    plugin_keys = {}
+    additional_information = {}  # type: Dict[str, Callable[[str], str]]
 
     def __init__(self, core, name, nick):
         OneToOneTab.__init__(self, core, name)

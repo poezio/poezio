@@ -165,7 +165,7 @@ class Config(RawConfigParser):
     def __init__(self, file_name: Path, default=None) -> None:
         RawConfigParser.__init__(self, None)
         # make the options case sensitive
-        self.optionxform = str
+        self.optionxform = lambda param: str(param)
         self.file_name = file_name
         self.read_file()
         self.default = default
@@ -205,7 +205,7 @@ class Config(RawConfigParser):
             else:
                 res = self.getstr(option, section)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
-            return default
+            return default or ''
 
         if res is None:
             return default

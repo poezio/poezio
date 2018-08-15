@@ -47,7 +47,8 @@ def _is_in_path(command: str, return_abs_path=False) -> Union[bool, str]:
         and *return_abs_path* is True, otherwise False.
 
     """
-    for directory in os.getenv('PATH').split(os.pathsep):
+    path = os.getenv('PATH') or ''
+    for directory in path.split(os.pathsep):
         try:
             if command in os.listdir(directory):
                 if return_abs_path:
@@ -114,7 +115,11 @@ def get_os_info() -> str:
                 if os.access(str(path_to_file), os.X_OK):
                     # the file is executable (f.e. CRUX)
                     # yes, then run it and get the first line of output.
-                    text = _get_output_of_command(str(path_to_file))[0]
+                    output = _get_output_of_command(str(path_to_file))
+                    if output:
+                        text = output[0]
+                    else:
+                        text = ''
                 else:
                     with path_to_file.open(encoding='utf-8') as fdes:
                         text = fdes.readline().strip()  # get only first line
@@ -224,7 +229,7 @@ def get_local_time(utc_time: datetime) -> datetime:
     return local_time
 
 
-def find_delayed_tag(message: Message) -> Tuple[bool, datetime]:
+def find_delayed_tag(message: Message) -> Tuple[bool, Optional[datetime]]:
     """
     Check if a message is delayed or not.
 
@@ -235,6 +240,7 @@ def find_delayed_tag(message: Message) -> Tuple[bool, datetime]:
 
     find_delay = message.xml.find
     delay_tag = find_delay('{urn:xmpp:delay}delay')
+    date = None  # type: Optional[datetime]
     if delay_tag is not None:
         delayed = True
         date = _datetime_tuple(delay_tag.attrib['stamp'])
@@ -247,7 +253,6 @@ def find_delayed_tag(message: Message) -> Tuple[bool, datetime]:
             date = _datetime_tuple(delay_tag.attrib['stamp'])
         else:
             delayed = False
-            date = None
     return (delayed, date)
 
 

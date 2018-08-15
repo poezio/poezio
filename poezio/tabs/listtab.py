@@ -4,21 +4,22 @@ sortable list.  It should be inherited, to actually provide methods that
 insert items in the list, and that lets the user interact with them.
 """
 
-import logging
-log = logging.getLogger(__name__)
-
 import curses
 import collections
+import logging
+from typing import Dict, Callable
 
 from poezio import windows
+from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
-
 from poezio.tabs import Tab
+
+log = logging.getLogger(__name__)
 
 
 class ListTab(Tab):
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, name, help_message, header_text, cols):
         """Parameters:

@@ -2,11 +2,10 @@
 Text inputs.
 """
 
-import logging
-log = logging.getLogger(__name__)
-
 import curses
+import logging
 import string
+from typing import List
 
 from poezio import keyboard
 from poezio import common
@@ -15,6 +14,8 @@ from poezio.windows.base_wins import Win, format_chars
 from poezio.windows.funcs import find_first_format_char
 from poezio.config import config
 from poezio.theming import to_curses_attr
+
+log = logging.getLogger(__name__)
 
 DEFAULT_ON_INPUT = lambda x: None
 
@@ -583,7 +584,7 @@ class HistoryInput(Input):
     An input with colors and stuff, plus an history
     ^R allows to search inside the history (as in a shell)
     """
-    history = []
+    history = []  # type: List[str]
 
     def __init__(self):
         Input.__init__(self)
@@ -593,7 +594,7 @@ class HistoryInput(Input):
         self.key_func['^R'] = self.toggle_search
         self.search = False
         if config.get('separate_history'):
-            self.history = []
+            self.history = []  # type: List[str]
 
     def toggle_search(self):
         if self.help_message:
@@ -669,7 +670,8 @@ class MessageInput(HistoryInput):
     Conversation, Muc and Private tabs
     Also letting the user enter colors or other text markups
     """
-    history = []  # The history is common to all MessageInput
+    # The history is common to all MessageInput
+    history = []  # type: List[str]
 
     def __init__(self):
         HistoryInput.__init__(self)
@@ -716,7 +718,7 @@ class CommandInput(HistoryInput):
     HelpMessage when a command is started
     The on_input callback
     """
-    history = []
+    history = []  # type: List[str]
 
     def __init__(self, help_message, on_abort, on_success, on_input=None):
         HistoryInput.__init__(self)

@@ -11,10 +11,9 @@ There are two different instances of a ConversationTab:
     the time.
 
 """
-import logging
-log = logging.getLogger(__name__)
-
 import curses
+import logging
+from typing import Dict, Callable
 
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
@@ -23,11 +22,14 @@ from poezio import windows
 from poezio import xhtml
 from poezio.common import safeJID
 from poezio.config import config
+from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
 from poezio.roster import roster
 from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+
+log = logging.getLogger(__name__)
 
 
 class ConversationTab(OneToOneTab):
@@ -35,9 +37,9 @@ class ConversationTab(OneToOneTab):
     The tab containg a normal conversation (not from a MUC)
     Must not be instantiated, use Static or Dynamic version only.
     """
-    plugin_commands = {}
-    plugin_keys = {}
-    additional_information = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
+    additional_information = {}  # type: Dict[str, Callable[[str], str]]
     message_type = 'chat'
 
     def __init__(self, core, jid):
@@ -409,8 +411,8 @@ class DynamicConversationTab(ConversationTab):
     bad idea so it has been removed.
     Only one DynamicConversationTab can be opened for a given jid.
     """
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
@@ -479,8 +481,8 @@ class StaticConversationTab(ConversationTab):
     A conversation tab associated with one Full JID. It cannot be locked to
     an different resource or unlocked.
     """
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, jid):
         assert (safeJID(jid).resource)

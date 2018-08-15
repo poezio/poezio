@@ -3,10 +3,13 @@ Defines the data-forms Tab
 """
 
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Callable
 
 from poezio import windows
 from poezio.tabs import Tab
+from poezio.core.structs import Command
+
+log = logging.getLogger(__name__)
 
 
 class DataFormsTab(Tab):
@@ -14,7 +17,8 @@ class DataFormsTab(Tab):
     A tab contaning various window type, displaying
     a form that the user needs to fill.
     """
-    plugin_commands = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, form, on_cancel, on_send, kwargs):
         Tab.__init__(self, core)

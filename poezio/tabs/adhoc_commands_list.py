@@ -5,16 +5,19 @@ nothing.
 """
 
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Callable
 
 from poezio.tabs import ListTab
+from poezio.core.structs import Command
 
 from slixmpp.plugins.xep_0030.stanza.items import DiscoItem
 
+log = logging.getLogger(__name__)
+
 
 class AdhocCommandsListTab(ListTab):
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, jid):
         ListTab.__init__(

@@ -1082,7 +1082,7 @@ class Core:
         return new_tab
 
     def open_private_window(self, room_name: str, user_nick: str,
-                            focus=True) -> tabs.PrivateTab:
+                            focus=True) -> Optional[tabs.PrivateTab]:
         """
         Open a Private conversation in a MUC and focus if needed.
         """
@@ -1193,13 +1193,13 @@ class Core:
         if tab is not None:  # display the message in private
             tab.update_status(status)
 
-    def close_tab(self, tab: tabs.Tab = None):
+    def close_tab(self, to_close: tabs.Tab = None):
         """
         Close the given tab. If None, close the current one
         """
-        was_current = tab is None
-        if tab is None:
-            tab = self.tabs.current_tab
+        was_current = to_close is None
+        tab = to_close or self.tabs.current_tab
+
         if isinstance(tab, tabs.RosterInfoTab):
             return  # The tab 0 should NEVER be closed
         tab.on_close()

@@ -7,15 +7,14 @@ It keeps track of many things such as part/joins, maintains an
 user list, and updates private tabs when necessary.
 """
 
-import logging
-log = logging.getLogger(__name__)
-
 import bisect
 import curses
+import logging
 import os
 import random
 import re
 from datetime import datetime
+from typing import Dict, Callable
 
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
@@ -27,12 +26,15 @@ from poezio import windows
 from poezio import xhtml
 from poezio.common import safeJID
 from poezio.config import config
+from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
 from poezio.logger import logger
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
 from poezio.core.structs import Completion, Status
+
+log = logging.getLogger(__name__)
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 STATUS_XPATH = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
@@ -44,8 +46,8 @@ class MucTab(ChatTab):
     It contains an userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, jid, nick, password=None):
         ChatTab.__init__(self, core, jid)

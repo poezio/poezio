@@ -144,7 +144,7 @@ if __name__ == '__main__':
     s = curses.initscr()
     curses.noecho()
     curses.cbreak()
-    s.keypad(1)
+    s.keypad(True)
     curses.start_color()
     curses.use_default_colors()
     curses.init_pair(1, 2, -1)

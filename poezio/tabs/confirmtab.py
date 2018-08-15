@@ -3,15 +3,18 @@ A generic tab that displays a text and a boolean choice
 """
 
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Callable
 
 from poezio import windows
+from poezio.core.structs import Command
 from poezio.tabs import Tab
+
+log = logging.getLogger(__name__)
 
 
 class ConfirmTab(Tab):
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self,
                  core,

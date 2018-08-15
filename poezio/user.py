@@ -39,7 +39,7 @@ class User:
                  role: str,
                  jid: JID,
                  deterministic=True,
-                 color=''):
+                 color='') -> None:
         # The oldest possible time
         self.last_talked = datetime(1, 1, 1)  # type: datetime
         self.update(affiliation, show, status, role)

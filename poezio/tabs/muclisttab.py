@@ -5,11 +5,14 @@ It has no functionality except scrolling the list, and allowing the
 user to join the rooms.
 """
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Callable
 
 from poezio.tabs import ListTab
+from poezio.core.structs import Command
 
 from slixmpp.plugins.xep_0030.stanza.items import DiscoItem
+
+log = logging.getLogger(__name__)
 
 
 class MucListTab(ListTab):
@@ -17,8 +20,8 @@ class MucListTab(ListTab):
     A tab listing rooms from a specific server, displaying various information,
     scrollable, and letting the user join them, etc
     """
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, server):
         ListTab.__init__(self, core, server.full, "“j”: join room.",

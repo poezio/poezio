@@ -47,7 +47,7 @@ class Bookmark:
                  autojoin=False,
                  nick: Optional[str] = None,
                  password: Optional[str] = None,
-                 method='local'):
+                 method='local') -> None:
         self.jid = jid
         self.name = name or jid
         self.autojoin = autojoin

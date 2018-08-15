@@ -3,12 +3,15 @@ Defines the data-forms Tab
 """
 
 import logging
-log = logging.getLogger(__name__)
+from typing import Dict, Callable, List
 
 from poezio import windows
 from poezio.bookmarks import Bookmark, BookmarkList
+from poezio.core.structs import Command
 from poezio.tabs import Tab
 from poezio.common import safeJID
+
+log = logging.getLogger(__name__)
 
 
 class BookmarksTab(Tab):
@@ -16,14 +19,15 @@ class BookmarksTab(Tab):
     A tab displaying lines of bookmarks, each bookmark having
     a 4 widgets to set the jid/password/autojoin/storage method
     """
-    plugin_commands = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, bookmarks: BookmarkList):
         Tab.__init__(self, core)
         self.name = "Bookmarks"
         self.bookmarks = bookmarks
-        self.new_bookmarks = []
-        self.removed_bookmarks = []
+        self.new_bookmarks = []  # type: List[Bookmark]
+        self.removed_bookmarks = []  # type: List[Bookmark]
         self.header_win = windows.ColumnHeaderWin(
             ('name', 'room@server/nickname', 'password', 'autojoin',
              'storage'))

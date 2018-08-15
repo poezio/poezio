@@ -90,8 +90,11 @@ SHOW_NAME = {
 
 
 class Tab:
-    plugin_commands = {}
+    plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
+    # Placeholder values, set on resize
+    height = 1
+    width = 1
 
     def __init__(self, core):
         self.core = core
@@ -455,8 +458,8 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
-    plugin_commands = {}
-    plugin_keys = {}
+    plugin_commands = {}  # type: Dict[str, Command]
+    plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
 
     def __init__(self, core, jid=''):

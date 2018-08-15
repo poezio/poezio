@@ -44,7 +44,7 @@ class Tabs:
         '_events',
     ]
 
-    def __init__(self, events: EventHandler):
+    def __init__(self, events: EventHandler) -> None:
         """
         Initialize the Tab List. Even though the list is initially
         empty, all methods are only valid once append() has been called
@@ -111,7 +111,7 @@ class Tabs:
         """Return the tab list"""
         return self._tabs
 
-    def by_name(self, name: str) -> tabs.Tab:
+    def by_name(self, name: str) -> Optional[tabs.Tab]:
         """Get a tab with a specific name"""
         return self._tab_names.get(name)
 
