@@ -20,7 +20,7 @@ using one of these.
 - **Fedora**: The stable poezio package was out of date for a long time in
   Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
   the repos since F19.
-- **Debian**: A stable package is provided in sid_ thanks to debacle.
+- **Debian**: A stable package is provided since buster_ thanks to debacle.
 - **Nix** (and **NixOS**): The last stable version of poezio is availalble in
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
   to install poezio for the current user.
@@ -241,4 +241,4 @@ image from the Dockerfile at the root of the git repository.
 .. _bgo-overlay: https://bgo.zugaina.org/
 .. _port: http://ports.su/net/poezio
 .. _poezio/poezio: https://hub.docker.com/r/poezio/poezio/
-.. _sid: https://packages.debian.org/sid/poezio
+.. _buster: https://packages.debian.org/buster/poezio
