@@ -56,7 +56,7 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def parse_log_line(msg):
+def parse_log_line(msg: str) -> Optional[LogItem]:
     match = re.match(MESSAGE_LOG_RE, msg)
     if match:
         return LogMessage(*match.groups())
@@ -328,23 +328,22 @@ def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
         if not isinstance(log_item, LogItem):
             log.debug('wrong log format? %s', log_item)
             continue
+        message_lines = []
         message = {
-            'lines': [],
             'history': True,
             'time': common.get_local_time(log_item.time)
         }
         size = log_item.nb_lines
         if isinstance(log_item, LogInfo):
-            message['lines'].append(color + log_item.text)
+            message_lines.append(color + log_item.text)
         elif isinstance(log_item, LogMessage):
             message['nickname'] = log_item.nick
-            message['lines'].append(color + log_item.text)
+            message_lines.append(color + log_item.text)
         while size != 0 and idx < len(lines):
-            message['lines'].append(lines[idx][1:])
+            message_lines.append(lines[idx][1:])
             size -= 1
             idx += 1
-        message['txt'] = '\n'.join(message['lines'])
-        del message['lines']
+        message['txt'] = '\n'.join(message_lines)
         messages.append(message)
     return messages
 
