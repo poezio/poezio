@@ -788,13 +788,13 @@ class Core:
 
 ####################### XMPP-related actions ##################################
 
-    def get_status(self):
+    def get_status(self) -> str:
         """
         Get the last status that was previously set
         """
         return self.status
 
-    def set_status(self, pres: str, msg: str):
+    def set_status(self, pres: str, msg: str) -> None:
         """
         Set our current status so we can remember
         it and use it back when needed (for example to display it
@@ -820,13 +820,12 @@ class Core:
             return bm.nick
         return self.own_nick
 
-    def disconnect(self, msg='', reconnect=False):
+    def disconnect(self, msg: str = '', reconnect: bool = False) -> None:
         """
         Disconnect from remote server and correctly set the states of all
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         self.legitimate_disconnect = True
-        msg = msg or ''
         for tab in self.get_tabs(tabs.MucTab):
             tab.command_part(msg)
         self.xmpp.disconnect()
@@ -849,7 +848,7 @@ class Core:
         self.tabs.current_tab.command_say(msg)
         return True
 
-    def invite(self, jid: JID, room: JID, reason: Optional[str] = None):
+    def invite(self, jid: JID, room: JID, reason: Optional[str] = None) -> None:
         """
         Checks if the sender supports XEP-0249, then send an invitation,
         or a mediated one if it does not.
@@ -869,7 +868,7 @@ class Core:
         self.xmpp.plugin['xep_0030'].get_info(
             jid=jid, timeout=5, callback=callback)
 
-    def get_error_message(self, stanza, deprecated=False):
+    def get_error_message(self, stanza, deprecated: bool = False):
         """
         Takes a stanza of the form <message type='error'><error/></message>
         and return a well formed string containing error information
@@ -909,7 +908,7 @@ class Core:
 
 ### Tab getters ###
 
-    def get_tabs(self, cls: Optional[Type[tabs.Tab]] = None):
+    def get_tabs(self, cls: Optional[Type[tabs.Tab]] = None) -> List[tabs.Tab]:
         "Get all the tabs of a type"
         if cls is None:
             return self.tabs.get_tabs()
@@ -917,8 +916,8 @@ class Core:
 
     def get_conversation_by_jid(self,
                                 jid: JID,
-                                create=True,
-                                fallback_barejid=True) -> tabs.ChatTab:
+                                create: bool = True,
+                                fallback_barejid: bool = True) -> Optional[tabs.ChatTab]:
         """
         From a JID, get the tab containing the conversation with it.
         If none already exist, and create is "True", we create it
@@ -951,7 +950,7 @@ class Core:
                     conversation = None
         return conversation
 
-    def add_tab(self, new_tab: tabs.Tab, focus=False):
+    def add_tab(self, new_tab: tabs.Tab, focus: bool = False) -> None:
         """
         Appends the new_tab in the tab list and
         focus it if focus==True
@@ -960,7 +959,7 @@ class Core:
         if focus:
             self.tabs.set_current_tab(new_tab)
 
-    def insert_tab(self, old_pos: int, new_pos=99999) -> bool:
+    def insert_tab(self, old_pos: int, new_pos: int = 99999) -> bool:
         """
         Insert a tab at a position, changing the number of the following tabs
         returns False if it could not move the tab, True otherwise
@@ -970,25 +969,25 @@ class Core:
 
     ### Move actions (e.g. go to next room) ###
 
-    def rotate_rooms_right(self, args=None):
+    def rotate_rooms_right(self, args=None) -> None:
         """
         rotate the rooms list to the right
         """
         self.tabs.next()
 
-    def rotate_rooms_left(self, args=None):
+    def rotate_rooms_left(self, args=None) -> None:
         """
         rotate the rooms list to the right
         """
         self.tabs.prev()
 
-    def go_to_room_number(self):
+    def go_to_room_number(self) -> None:
         """
         Read 2 more chars and go to the tab
         with the given number
         """
 
-        def read_next_digit(digit):
+        def read_next_digit(digit) -> None:
             try:
                 int(digit)
             except ValueError:
@@ -1008,22 +1007,22 @@ class Core:
 
         keyboard.continuation_keys_callback = read_next_digit
 
-    def go_to_roster(self):
+    def go_to_roster(self) -> None:
         "Select the roster as the current tab"
         self.tabs.set_current_tab(self.tabs.first())
 
-    def go_to_previous_tab(self):
+    def go_to_previous_tab(self) -> None:
         "Go to the previous tab"
         self.tabs.restore_previous_tab()
 
-    def go_to_important_room(self):
+    def go_to_important_room(self) -> None:
         """
         Go to the next room with activity, in the order defined in the
         dict tabs.STATE_PRIORITY
         """
         # shortcut
         priority = tabs.STATE_PRIORITY
-        tab_refs = {}
+        tab_refs = {}  # type: Dict[str, List[tabs.Tab]]
         # put all the active tabs in a dict of lists by state
         for tab in self.tabs.get_tabs():
             if not tab:
@@ -1123,7 +1122,7 @@ class Core:
         return new_tab
 
     def open_new_form(self, form, on_cancel: Callable, on_send: Callable,
-                      **kwargs):
+                      **kwargs) -> None:
         """
         Open a new tab containing the form
         The callback are called with the completed form as parameter in
@@ -1134,7 +1133,7 @@ class Core:
 
     ### Modifying actions ###
 
-    def rename_private_tabs(self, room_name: str, old_nick: str, user: User):
+    def rename_private_tabs(self, room_name: str, old_nick: str, user: User) -> None:
         """
         Call this method when someone changes his/her nick in a MUC,
         this updates the name of all the opened private conversations
@@ -1146,7 +1145,7 @@ class Core:
             tab.rename_user(old_nick, user)
 
     def on_user_left_private_conversation(self, room_name: str, user: User,
-                                          status_message: str):
+                                          status_message: str) -> None:
         """
         The user left the MUC: add a message in the associated
         private conversation
@@ -1156,7 +1155,7 @@ class Core:
         if tab:
             tab.user_left(status_message, user)
 
-    def on_user_rejoined_private_conversation(self, room_name: str, nick: str):
+    def on_user_rejoined_private_conversation(self, room_name: str, nick: str) -> None:
         """
         The user joined a MUC: add a message in the associated
         private conversation
@@ -1168,7 +1167,7 @@ class Core:
 
     def disable_private_tabs(self,
                              room_name: str,
-                             reason: Optional[str] = None):
+                             reason: Optional[str] = None) -> None:
         """
         Disable private tabs when leaving a room
         """
@@ -1179,7 +1178,7 @@ class Core:
                 tab.deactivate(reason=reason)
 
     def enable_private_tabs(self, room_name: str,
-                            reason: Optional[str] = None):
+                            reason: Optional[str] = None) -> None:
         """
         Enable private tabs when joining a room
         """
@@ -1189,12 +1188,12 @@ class Core:
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
-    def on_user_changed_status_in_private(self, jid: JID, status: str):
+    def on_user_changed_status_in_private(self, jid: JID, status: str) -> None:
         tab = self.tabs.by_name_and_class(jid, tabs.ChatTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
 
-    def close_tab(self, to_close: tabs.Tab = None):
+    def close_tab(self, to_close: tabs.Tab = None) -> None:
         """
         Close the given tab. If None, close the current one
         """
@@ -1217,7 +1216,7 @@ class Core:
                   gc.get_referrers(tab))
         del tab
 
-    def add_information_message_to_conversation_tab(self, jid: JID, msg: str):
+    def add_information_message_to_conversation_tab(self, jid: JID, msg: str) -> None:
         """
         Search for a ConversationTab with the given jid (full or bare),
         if yes, add the given message to it
@@ -1230,13 +1229,13 @@ class Core:
 
 ####################### Curses and ui-related stuff ###########################
 
-    def doupdate(self):
+    def doupdate(self) -> None:
         "Do a curses update"
         if not self.running:
             return
         curses.doupdate()
 
-    def information(self, msg: str, typ=''):
+    def information(self, msg: str, typ: str = '') -> bool:
         """
         Displays an informational message in the "Info" buffer
         """
@@ -1269,7 +1268,7 @@ class Core:
                 self.tabs.current_tab.refresh_input()
         return True
 
-    def _init_curses(self, stdscr):
+    def _init_curses(self, stdscr) -> None:
         """
         ncurses initialization
         """
@@ -1285,7 +1284,7 @@ class Core:
         curses.ungetch(" ")  # H4X: without this, the screen is
         stdscr.getkey()  # erased on the first "getkey()"
 
-    def reset_curses(self):
+    def reset_curses(self) -> None:
         """
         Reset terminal capabilities to what they were before ncurses
         init
@@ -1295,7 +1294,7 @@ class Core:
         curses.curs_set(1)
         curses.endwin()
 
-    def refresh_window(self):
+    def refresh_window(self) -> None:
         """
         Refresh everything
         """
@@ -1305,7 +1304,7 @@ class Core:
         self.doupdate()
         curses.curs_set(nocursor)
 
-    def refresh_tab_win(self):
+    def refresh_tab_win(self) -> None:
         """
         Refresh the window containing the tab list
         """
@@ -1313,7 +1312,7 @@ class Core:
         self.refresh_input()
         self.doupdate()
 
-    def refresh_input(self):
+    def refresh_input(self) -> None:
         """
         Refresh the input if it exists
         """
