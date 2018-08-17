@@ -26,22 +26,22 @@ format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x1A'
 
 
 class DummyWin:
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str):
         if name != '__bool__':
             return lambda *args, **kwargs: (0, 0)
         else:
             return object.__getattribute__(self, name)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return False
 
 
 class Win:
-    def __init__(self):
+    def __init__(self) -> None:
         self._win = None
         self.height, self.width = 0, 0
 
-    def _resize(self, height, width, y, x):
+    def _resize(self, height: int, width: int, y: int, x: int) -> None:
         if height == 0 or width == 0:
             self.height, self.width = height, width
             return
@@ -53,16 +53,16 @@ class Win:
             if self._win is None:
                 self._win = DummyWin()
 
-    def resize(self, height: int, width: int, y: int, x: int):
+    def resize(self, height: int, width: int, y: int, x: int) -> None:
         """
         Override if something has to be done on resize
         """
         self._resize(height, width, y, x)
 
-    def _refresh(self):
+    def _refresh(self) -> None:
         self._win.noutrefresh()
 
-    def addnstr(self, *args):
+    def addnstr(self, *args) -> None:
         """
         Safe call to addnstr
         """
@@ -74,7 +74,7 @@ class Win:
             # of the screen.
             pass
 
-    def addstr(self, *args):
+    def addstr(self, *args) -> None:
         """
         Safe call to addstr
         """
@@ -83,13 +83,13 @@ class Win:
         except:
             pass
 
-    def move(self, y: int, x: int):
+    def move(self, y: int, x: int) -> None:
         try:
             self._win.move(y, x)
         except:
             pass
 
-    def addstr_colored(self, text: str, y=None, x=None):
+    def addstr_colored(self, text: str, y: Optional[int] = None, x: Optional[int] = None) -> None:
         """
         Write a string on the window, setting the
         attributes as they are in the string.
@@ -148,7 +148,7 @@ class Win:
             next_attr_char = text.find(FORMAT_CHAR)
         self.addstr(text)
 
-    def finish_line(self, color: Optional[Tuple] = None):
+    def finish_line(self, color: Optional[Tuple] = None) -> None:
         """
         Write colored spaces until the end of line
         """
