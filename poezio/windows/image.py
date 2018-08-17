@@ -16,27 +16,29 @@ from poezio.theming import get_theme, to_curses_attr
 from poezio.xhtml import _parse_css_color
 from poezio.config import config
 
+from typing import Tuple, Optional, Callable
+
 
 class ImageWin(Win):
     """
     A window which contains either an image or a border.
     """
 
-    def __init__(self):
-        self._image = None
+    def __init__(self) -> None:
+        self._image = None  # type: Optional[Image]
         Win.__init__(self)
         if config.get('image_use_half_blocks'):
-            self._display_avatar = self._display_avatar_half_blocks
+            self._display_avatar = self._display_avatar_half_blocks  # type: Callable[[int, int], None]
         else:
             self._display_avatar = self._display_avatar_full_blocks
 
-    def resize(self, height: int, width: int, y: int, x: int):
+    def resize(self, height: int, width: int, y: int, x: int) -> None:
         self._resize(height, width, y, x)
         if self._image is None:
             return
         self._display_avatar(width, height)
 
-    def refresh(self, data):
+    def refresh(self, data: Optional[bytes]) -> None:
         self._win.erase()
         if data is not None and HAS_PIL:
             image_file = BytesIO(data)
@@ -51,7 +53,7 @@ class ImageWin(Win):
             self._display_border()
         self._refresh()
 
-    def _display_border(self):
+    def _display_border(self) -> None:
         self._image = None
         attribute = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
         self._win.attron(attribute)
@@ -62,7 +64,7 @@ class ImageWin(Win):
         self._win.attroff(attribute)
 
     @staticmethod
-    def _compute_size(image_size, width: int, height: int):
+    def _compute_size(image_size: Tuple[int, int], width: int, height: int) -> Tuple[int, int]:
         height *= 2
         src_width, src_height = image_size
         ratio = src_width / src_height
@@ -74,7 +76,9 @@ class ImageWin(Win):
             width = int(new_width)
         return width, height
 
-    def _display_avatar_half_blocks(self, width: int, height: int):
+    def _display_avatar_half_blocks(self, width: int, height: int) -> None:
+        if self._image is None:
+            return
         original_height = height
         original_width = width
         size = self._compute_size(self._image.size, width, height)
@@ -95,7 +99,9 @@ class ImageWin(Win):
                 bot_color = _parse_css_color('#%02x%02x%02x' % (r, g, b))
                 self.addstr('▄', to_curses_attr((bot_color, top_color)))
 
-    def _display_avatar_full_blocks(self, width: int, height: int):
+    def _display_avatar_full_blocks(self, width: int, height: int) -> None:
+        if self._image is None:
+            return
         original_height = height
         original_width = width
         width, height = self._compute_size(self._image.size, width, height)
