@@ -1,6 +1,7 @@
 """
 Module containing various decorators
 """
+from typing import Any, Callable, List, Optional
 
 from poezio import common
 
@@ -9,7 +10,7 @@ class RefreshWrapper:
     def __init__(self):
         self.core = None
 
-    def conditional(self, func):
+    def conditional(self, func: Callable) -> Callable:
         """
         Decorator to refresh the UI if the wrapped function
         returns True
@@ -23,7 +24,7 @@ class RefreshWrapper:
 
         return wrap
 
-    def always(self, func):
+    def always(self, func: Callable) -> Callable:
         """
         Decorator that refreshs the UI no matter what after the function
         """
@@ -36,7 +37,7 @@ class RefreshWrapper:
 
         return wrap
 
-    def update(self, func):
+    def update(self, func: Callable) -> Callable:
         """
         Decorator that only updates the screen
         """
@@ -60,7 +61,7 @@ class CommandArgParser:
     """
 
     @staticmethod
-    def raw(func):
+    def raw(func: Callable) -> Callable:
         """Just call the function with a single string, which is the original string
         untouched
         """
@@ -71,7 +72,7 @@ class CommandArgParser:
         return wrap
 
     @staticmethod
-    def ignored(func):
+    def ignored(func: Callable) -> Callable:
         """
         Call the function without any argument
         """
@@ -82,9 +83,9 @@ class CommandArgParser:
         return wrap
 
     @staticmethod
-    def quoted(mandatory,
+    def quoted(mandatory: int,
                optional=0,
-               defaults=None,
+               defaults: Optional[List[Any]] = None,
                ignore_trailing_arguments=False):
         """The function receives a list with a number of arguments that is between
         the numbers `mandatory` and `optional`.
@@ -128,31 +129,31 @@ class CommandArgParser:
         ['un et demi', 'deux', 'trois quatre cinq six']
 
         """
-        if defaults is None:
-            defaults = []
+        default_args_outer = defaults or []
 
-        def first(func):
-            def second(self, args, *a, **kw):
-                default_args = defaults
+        def first(func: Callable):
+            def second(self, args: str, *a, **kw):
+                default_args = default_args_outer
                 if args and args.strip():
-                    args = common.shell_split(args)
+                    split_args = common.shell_split(args)
                 else:
-                    args = []
-                if len(args) < mandatory:
+                    split_args = []
+                if len(split_args) < mandatory:
                     return func(self, None, *a, **kw)
-                res, args = args[:mandatory], args[mandatory:]
+                res, split_args = split_args[:mandatory], split_args[
+                    mandatory:]
                 if optional == -1:
-                    opt_args = args[:]
+                    opt_args = split_args[:]
                 else:
-                    opt_args = args[:optional]
+                    opt_args = split_args[:optional]
 
                 if opt_args:
                     res += opt_args
-                    args = args[len(opt_args):]
+                    split_args = split_args[len(opt_args):]
                     default_args = default_args[len(opt_args):]
                 res += default_args
-                if args and res and not ignore_trailing_arguments:
-                    res[-1] += " " + " ".join(args)
+                if split_args and res and not ignore_trailing_arguments:
+                    res[-1] += " " + " ".join(split_args)
                 return func(self, res, *a, **kw)
 
             return second

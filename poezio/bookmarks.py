@@ -30,7 +30,7 @@ Adding a remote bookmark:
 
 import functools
 import logging
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from slixmpp import JID
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
@@ -130,7 +130,7 @@ class Bookmark:
 
 class BookmarkList:
     def __init__(self):
-        self.bookmarks = []
+        self.bookmarks = []  # type: List[Bookmark]
         preferred = config.get('use_bookmarks_method').lower()
         if preferred not in ('pep', 'privatexml'):
             preferred = 'privatexml'
@@ -140,15 +140,16 @@ class BookmarkList:
             'pep': False,
         }
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[str, JID, int]) -> Optional[Bookmark]:
         if isinstance(key, (str, JID)):
             for i in self.bookmarks:
                 if key == i.jid:
                     return i
-        else:
+        elif isinstance(key, int):
             return self.bookmarks[key]
+        return None
 
-    def __in__(self, key):
+    def __in__(self, key) -> bool:
         if isinstance(key, (str, JID)):
             for bookmark in self.bookmarks:
                 if bookmark.jid == key:
@@ -168,16 +169,16 @@ class BookmarkList:
     def __iter__(self):
         return iter(self.bookmarks)
 
-    def local(self):
+    def local(self) -> List[Bookmark]:
         return [bm for bm in self.bookmarks if bm.method == 'local']
 
-    def remote(self):
+    def remote(self) -> List[Bookmark]:
         return [bm for bm in self.bookmarks if bm.method == 'remote']
 
-    def set(self, new):
+    def set(self, new: List[Bookmark]):
         self.bookmarks = new
 
-    def append(self, bookmark):
+    def append(self, bookmark: Bookmark):
         bookmark_exists = self[bookmark.jid]
         if not bookmark_exists:
             self.bookmarks.append(bookmark)
@@ -185,7 +186,7 @@ class BookmarkList:
             self.bookmarks.remove(bookmark_exists)
             self.bookmarks.append(bookmark)
 
-    def set_bookmarks_method(self, value):
+    def set_bookmarks_method(self, value: str):
         if self.available_storage.get(value):
             self.preferred = value
             config.set_and_save('use_bookmarks_method', value)
@@ -306,7 +307,7 @@ class BookmarkList:
             self.append(b)
 
 
-def stanza_storage(bookmarks):
+def stanza_storage(bookmarks: BookmarkList) -> Bookmarks:
     """Generate a <storage/> stanza with the conference elements."""
     storage = Bookmarks()
     for b in (b for b in bookmarks if b.method == 'remote'):

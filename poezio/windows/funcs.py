@@ -3,16 +3,17 @@ Standalone functions used by the modules
 """
 
 import string
-DIGITS = string.digits + '-'
-
+from typing import Optional, List
 from poezio.windows.base_wins import FORMAT_CHAR, format_chars
 
+DIGITS = string.digits + '-'
 
-def find_first_format_char(text, chars=None):
-    if chars is None:
-        chars = format_chars
+
+def find_first_format_char(text: str,
+                           chars: Optional[List[str]] = None) -> int:
+    to_find = chars or format_chars
     pos = -1
-    for char in chars:
+    for char in to_find:
         p = text.find(char)
         if p == -1:
             continue
@@ -21,7 +22,7 @@ def find_first_format_char(text, chars=None):
     return pos
 
 
-def truncate_nick(nick, size=10):
+def truncate_nick(nick: str, size=10) -> str:
     if size < 1:
         size = 1
     if nick and len(nick) > size:
@@ -29,7 +30,7 @@ def truncate_nick(nick, size=10):
     return nick
 
 
-def parse_attrs(text, previous=None):
+def parse_attrs(text: str, previous: Optional[List[str]] = None) -> List[str]:
     next_attr_char = text.find(FORMAT_CHAR)
     if previous:
         attrs = previous

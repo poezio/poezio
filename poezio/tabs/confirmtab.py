@@ -99,10 +99,8 @@ class ConfirmTab(Tab):
 
     def on_input(self, key, raw):
         res = self.input.do_command(key, raw=raw)
-        if res and not isinstance(self.input, windows.Input):
-            return True
-        elif res:
-            return False
+        if res:
+            return not isinstance(self.input, windows.Input)
         if not raw and key in self.key_func:
             return self.key_func[key]()
 

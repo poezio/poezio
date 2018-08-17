@@ -15,6 +15,8 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
+from typing import Optional, Tuple
+
 from poezio.theming import to_curses_attr, read_tuple
 
 FORMAT_CHAR = '\x19'
@@ -51,7 +53,7 @@ class Win:
             if self._win is None:
                 self._win = DummyWin()
 
-    def resize(self, height, width, y, x):
+    def resize(self, height: int, width: int, y: int, x: int):
         """
         Override if something has to be done on resize
         """
@@ -81,13 +83,13 @@ class Win:
         except:
             pass
 
-    def move(self, y, x):
+    def move(self, y: int, x: int):
         try:
             self._win.move(y, x)
         except:
             pass
 
-    def addstr_colored(self, text, y=None, x=None):
+    def addstr_colored(self, text: str, y=None, x=None):
         """
         Write a string on the window, setting the
         attributes as they are in the string.
@@ -146,7 +148,7 @@ class Win:
             next_attr_char = text.find(FORMAT_CHAR)
         self.addstr(text)
 
-    def finish_line(self, color=None):
+    def finish_line(self, color: Optional[Tuple] = None):
         """
         Write colored spaces until the end of line
         """

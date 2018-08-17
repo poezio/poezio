@@ -32,7 +32,8 @@ class GlobalInfoBar(Win):
         show_inactive = config.get('show_inactive_tabs')
 
         for nb, tab in enumerate(self.core.tabs):
-            if not tab: continue
+            if not tab:
+                continue
             color = tab.color
             if not show_inactive and color is get_theme().COLOR_TAB_NORMAL:
                 continue
@@ -72,8 +73,10 @@ class VerticalGlobalInfoBar(Win):
         self._win.erase()
         sorted_tabs = [tab for tab in self.core.tabs if tab]
         if not config.get('show_inactive_tabs'):
-            sorted_tabs = [tab for tab in sorted_tabs if\
-                               tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL]
+            sorted_tabs = [
+                tab for tab in sorted_tabs
+                if tab.vertical_color != get_theme().COLOR_VERTICAL_TAB_NORMAL
+            ]
         nb_tabs = len(sorted_tabs)
         use_nicks = config.get('use_tab_nicks')
         if nb_tabs >= height:

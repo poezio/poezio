@@ -14,8 +14,9 @@ import os
 import random
 import re
 from datetime import datetime
-from typing import Dict, Callable
+from typing import Dict, Callable, List, Optional, Union, Set
 
+from slixmpp import JID
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
@@ -56,15 +57,15 @@ class MucTab(ChatTab):
         # our nick in the MUC
         self.own_nick = nick
         # self User object
-        self.own_user = None
+        self.own_user = None  # type: Optional[User]
         self.name = jid
         self.password = password
         # buffered presences
         self.presence_buffer = []
         # userlist
-        self.users = []
+        self.users = []  # type: List[User]
         # private conversations
-        self.privates = []
+        self.privates = []  # type: List[Tab]
         self.topic = ''
         self.topic_from = ''
         # Self ping event, so we can cancel it when we leave the room
@@ -78,7 +79,7 @@ class MucTab(ChatTab):
         self.info_header = windows.MucInfoWin()
         self.input = windows.MessageInput()
         # List of ignored users
-        self.ignores = []
+        self.ignores = []  # type: List[User]
         # keys
         self.register_keys()
         self.update_keys()
@@ -91,12 +92,12 @@ class MucTab(ChatTab):
     def general_jid(self):
         return self.name
 
-    def check_send_chat_state(self):
+    def check_send_chat_state(self) -> bool:
         "If we should send a chat state"
         return self.joined
 
     @property
-    def last_connection(self):
+    def last_connection(self) -> Optional[datetime]:
         last_message = self._text_buffer.last_message
         if last_message:
             return last_message.time
@@ -135,7 +136,7 @@ class MucTab(ChatTab):
             show=status.show,
             seconds=seconds)
 
-    def leave_room(self, message):
+    def leave_room(self, message: str):
         if self.joined:
             info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             char_quit = get_theme().CHAR_QUIT
@@ -145,7 +146,7 @@ class MucTab(ChatTab):
                                      self.general_jid):
                 color = dump_tuple(get_theme().COLOR_OWN_NICK)
             else:
-                color = 3
+                color = "3"
 
             if message:
                 msg = ('\x19%(color_spec)s}%(spec)s\x19%(info_col)s} '
@@ -179,7 +180,10 @@ class MucTab(ChatTab):
             muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick,
                                 message)
 
-    def change_affiliation(self, nick_or_jid, affiliation, reason=''):
+    def change_affiliation(self,
+                           nick_or_jid: Union[str, JID],
+                           affiliation: str,
+                           reason=''):
         """
         Change the affiliation of a nick or JID
         """
@@ -215,7 +219,7 @@ class MucTab(ChatTab):
                 callback=callback,
                 reason=reason)
 
-    def change_role(self, nick, role, reason=''):
+    def change_role(self, nick: str, role: str, reason=''):
         """
         Change the role of a nick
         """
@@ -238,7 +242,7 @@ class MucTab(ChatTab):
             self.core.xmpp, self.name, nick, reason, role, callback=callback)
 
     @refresh_wrapper.conditional
-    def print_info(self, nick):
+    def print_info(self, nick: str) -> bool:
         """Print information about a user"""
         user = self.get_user_by_name(nick)
         if not user:
@@ -269,7 +273,7 @@ class MucTab(ChatTab):
         self.add_message(info, typ=0)
         return True
 
-    def change_topic(self, topic):
+    def change_topic(self, topic: str):
         """Change the current topic"""
         muc.change_subject(self.core.xmpp, self.name, topic)
 
@@ -331,7 +335,7 @@ class MucTab(ChatTab):
         self.text_win.rebuild_everything(self._text_buffer)
 
     @refresh_wrapper.conditional
-    def set_nick_color(self, nick, color):
+    def set_nick_color(self, nick: str, color: str) -> bool:
         "Set a custom color for a nick, permanently"
         user = self.get_user_by_name(nick)
         if color not in xhtml.colors and color not in ('unset', 'random'):
@@ -374,7 +378,7 @@ class MucTab(ChatTab):
         self.send_composing_chat_state(empty_after)
         return False
 
-    def get_nick(self):
+    def get_nick(self) -> str:
         if config.get('show_muc_jid'):
             return self.name
         bookmark = self.core.bookmarks[self.name]
@@ -479,7 +483,7 @@ class MucTab(ChatTab):
                 status_codes.add(status_code.attrib['code'])
             self.own_join(from_nick, new_user, status_codes)
 
-    def own_join(self, from_nick, new_user, status_codes):
+    def own_join(self, from_nick: str, new_user: User, status_codes: Set[str]):
         """
         Handle the last presence we received, entering the room
         """
@@ -500,7 +504,7 @@ class MucTab(ChatTab):
                                  self.general_jid):
             color = dump_tuple(new_user.color)
         else:
-            color = 3
+            color = "3"
 
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         warn_col = dump_tuple(get_theme().COLOR_WARNING_TEXT)
@@ -848,11 +852,11 @@ class MucTab(ChatTab):
         self.add_message(kick_msg, typ=2)
 
     def on_user_leave_groupchat(self,
-                                user,
-                                jid,
-                                status,
-                                from_nick,
-                                from_room,
+                                user: User,
+                                jid: JID,
+                                status: str,
+                                from_nick: str,
+                                from_room: JID,
                                 server_initiated=False):
         """
         When an user leaves a groupchat
@@ -960,17 +964,12 @@ class MucTab(ChatTab):
                                                    self.general_jid)
         if hide_status_change < -1:
             hide_status_change = -1
-        if ((hide_status_change == -1 or \
-                user.has_talked_since(hide_status_change) or\
-                user.nick == self.own_nick)\
-                and\
-                (affiliation != user.affiliation or\
-                    role != user.role or\
-                    show != user.show or\
-                    status != user.status))\
-                      or\
-                        (affiliation != user.affiliation or\
-                          role != user.role):
+        if ((hide_status_change == -1
+             or user.has_talked_since(hide_status_change)
+             or user.nick == self.own_nick) and
+            (affiliation != user.affiliation or role != user.role
+             or show != user.show or status != user.status)) or (
+                 affiliation != user.affiliation or role != user.role):
             # display the message in the room
             self._text_buffer.add_message(msg)
         self.core.on_user_changed_status_in_private(

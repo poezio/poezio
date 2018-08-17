@@ -281,7 +281,7 @@ class Theme:
             (224, -1), (225, -1), (226, -1), (227, -1)]
     # XEP-0392 consistent color generation palette placeholder
     # it’s generated on first use when accessing the ccg_palette property
-    CCG_PALETTE = None
+    CCG_PALETTE = None  # type: Optional[Dict[float, int]]
     CCG_Y = 0.5**0.45
 
     # yapf: enable
@@ -566,8 +566,8 @@ def reload_theme() -> Optional[str]:
     if hasattr(new_theme, 'theme'):
         theme = new_theme.theme
         prepare_ccolor_palette(theme)
-    else:
-        return 'No theme present in the theme file'
+        return None
+    return 'No theme present in the theme file'
 
 
 if __name__ == '__main__':

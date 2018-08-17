@@ -1,6 +1,9 @@
+from typing import Tuple, Dict, List
 import curses
 import hashlib
 import math
+
+Palette = Dict[float, int]
 
 # BT.601 (YCbCr) constants, see XEP-0392
 K_R = 0.299
@@ -8,7 +11,7 @@ K_G = 0.587
 K_B = 1 - K_R - K_G
 
 
-def ncurses_color_to_rgb(color):
+def ncurses_color_to_rgb(color: int) -> Tuple[float, float, float]:
     if color <= 15:
         try:
             (r, g, b) = curses.color_content(color)
@@ -30,15 +33,16 @@ def ncurses_color_to_rgb(color):
     return r / 5, g / 5, b / 5
 
 
-def rgb_to_ycbcr(r, g, b):
+def rgb_to_ycbcr(r: float, g: float, b: float) -> Tuple[float, float, float]:
     y = K_R * r + K_G * g + K_B * b
     cr = (r - y) / (1 - K_R) / 2
     cb = (b - y) / (1 - K_B) / 2
     return y, cb, cr
 
 
-def generate_ccg_palette(curses_palette, reference_y):
-    cbcr_palette = {}
+def generate_ccg_palette(curses_palette: List[int],
+                         reference_y: float) -> Palette:
+    cbcr_palette = {}  # type: Dict[float, Tuple[float, int]]
     for curses_color in curses_palette:
         r, g, b = ncurses_color_to_rgb(curses_color)
         # drop grayscale
@@ -60,14 +64,14 @@ def generate_ccg_palette(curses_palette, reference_y):
     }
 
 
-def text_to_angle(text):
+def text_to_angle(text: str) -> float:
     hf = hashlib.sha1()
     hf.update(text.encode("utf-8"))
     hue = int.from_bytes(hf.digest()[:2], "little")
     return hue / 65535 * math.pi * 2
 
 
-def angle_to_cbcr_edge(angle):
+def angle_to_cbcr_edge(angle: float) -> Tuple[float, float]:
     cr = math.sin(angle)
     cb = math.cos(angle)
     if abs(cr) > abs(cb):
@@ -77,7 +81,7 @@ def angle_to_cbcr_edge(angle):
     return cb * factor, cr * factor
 
 
-def cbcr_to_angle(cb, cr):
+def cbcr_to_angle(cb: float, cr: float) -> float:
     magn = math.sqrt(cb**2 + cr**2)
     if magn > 0:
         cr /= magn
@@ -85,7 +89,7 @@ def cbcr_to_angle(cb, cr):
     return math.atan2(cr, cb) % (2 * math.pi)
 
 
-def ccg_palette_lookup(palette, angle):
+def ccg_palette_lookup(palette: Palette, angle: float) -> int:
     # try quick lookup first
     try:
         color = palette[round(angle, 2)]
@@ -105,6 +109,6 @@ def ccg_palette_lookup(palette, angle):
     return best
 
 
-def ccg_text_to_color(palette, text):
+def ccg_text_to_color(palette, text: str) -> int:
     angle = text_to_angle(text)
     return ccg_palette_lookup(palette, angle)
