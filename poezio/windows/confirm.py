@@ -7,12 +7,12 @@ class Dialog(Win):
     str_accept = " Accept "
     str_refuse = " Reject "
 
-    def __init__(self, helper_text, critical=False):
+    def __init__(self, helper_text: str, critical: bool = False) -> None:
         self.text = helper_text
         self.accept = False
         self.critical = critical
 
-    def refresh(self):
+    def refresh(self) -> None:
         self._win.erase()
         self.addstr(self.text + "\n   ")
 
@@ -35,5 +35,5 @@ class Dialog(Win):
 
         self._refresh()
 
-    def toggle_choice(self):
+    def toggle_choice(self) -> None:
         self.accept = not self.accept
