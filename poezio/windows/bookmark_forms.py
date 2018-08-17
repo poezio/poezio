@@ -2,32 +2,35 @@
 Windows used inthe bookmarkstab
 """
 import curses
+from typing import List, Tuple, Optional
 
 from poezio.windows import base_wins
 from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
 from poezio.windows.data_forms import FieldInput, FieldInputMixin
+
 from poezio.theming import to_curses_attr, get_theme
 from poezio.common import safeJID
+from poezio.bookmarks import Bookmark, BookmarkList
 
 
 class BookmarkNameInput(FieldInput, Input):
-    def __init__(self, field):
+    def __init__(self, field) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         self.text = field.name
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
 
-    def save(self):
+    def save(self) -> None:
         self._field.name = self.get_text()
 
-    def get_help_message(self):
+    def get_help_message(self) -> str:
         return 'Edit the text'
 
 
 class BookmarkJIDInput(FieldInput, Input):
-    def __init__(self, field):
+    def __init__(self, field) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         jid = safeJID(field.jid)
@@ -36,24 +39,24 @@ class BookmarkJIDInput(FieldInput, Input):
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
 
-    def save(self):
+    def save(self) -> None:
         jid = safeJID(self.get_text())
         self._field.jid = jid.bare
         self._field.nick = jid.resource
 
-    def get_help_message(self):
+    def get_help_message(self) -> str:
         return 'Edit the text'
 
 
 class BookmarkMethodInput(FieldInputMixin):
-    def __init__(self, field):
+    def __init__(self, field) -> None:
         FieldInput.__init__(self, field)
         Win.__init__(self)
         self.options = ('local', 'remote')
         # val_pos is the position of the currently selected option
         self.val_pos = self.options.index(field.method)
 
-    def do_command(self, key):
+    def do_command(self, key: str) -> None:
         if key == 'KEY_LEFT':
             if self.val_pos > 0:
                 self.val_pos -= 1
@@ -64,7 +67,7 @@ class BookmarkMethodInput(FieldInputMixin):
             return
         self.refresh()
 
-    def refresh(self):
+    def refresh(self) -> None:
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
         self.addnstr(0, 0, ' ' * self.width, self.width)
@@ -78,22 +81,22 @@ class BookmarkMethodInput(FieldInputMixin):
         self._win.attroff(to_curses_attr(self.color))
         self._refresh()
 
-    def save(self):
+    def save(self) -> None:
         self._field.method = self.options[self.val_pos]
 
-    def get_help_message(self):
+    def get_help_message(self) -> str:
         return '←, →: Select a value amongst the others'
 
 
 class BookmarkPasswordInput(FieldInput, Input):
-    def __init__(self, field):
+    def __init__(self, field) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         self.text = field.password or ''
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
 
-    def rewrite_text(self):
+    def rewrite_text(self) -> None:
         self._win.erase()
         if self.color:
             self._win.attron(to_curses_attr(self.color))
@@ -108,27 +111,27 @@ class BookmarkPasswordInput(FieldInput, Input):
             self._win.attroff(to_curses_attr(self.color))
         self._refresh()
 
-    def save(self):
+    def save(self) -> None:
         self._field.password = self.get_text() or None
 
-    def get_help_message(self):
+    def get_help_message(self) -> str:
         return 'Edit the secret text'
 
 
 class BookmarkAutojoinWin(FieldInputMixin):
-    def __init__(self, field):
+    def __init__(self, field) -> None:
         FieldInput.__init__(self, field)
         Win.__init__(self)
         self.last_key = 'KEY_RIGHT'
         self.value = field.autojoin
 
-    def do_command(self, key):
+    def do_command(self, key: str) -> None:
         if key == 'KEY_LEFT' or key == 'KEY_RIGHT':
             self.value = not self.value
             self.last_key = key
         self.refresh()
 
-    def refresh(self):
+    def refresh(self) -> None:
         self._win.erase()
         self._win.attron(to_curses_attr(self.color))
         format_string = '←{:^%s}→' % 7
@@ -141,21 +144,21 @@ class BookmarkAutojoinWin(FieldInputMixin):
         self._win.attroff(to_curses_attr(self.color))
         self._refresh()
 
-    def save(self):
+    def save(self) -> None:
         self._field.autojoin = self.value
 
-    def get_help_message(self):
+    def get_help_message(self) -> str:
         return '← and →: change the value between True and False'
 
 
 class BookmarksWin(Win):
-    def __init__(self, bookmarks, height, width, y, x):
+    def __init__(self, bookmarks: BookmarkList, height: int, width: int, y: int, x: int) -> None:
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         self.scroll_pos = 0
         self._current_input = 0
         self.current_horizontal_input = 0
         self._bookmarks = list(bookmarks)
-        self.lines = []
+        self.lines = []  # type: List[Tuple[BookmarkNameInput, BookmarkJIDInput, BookmarkPasswordInput, BookmarkAutojoinWin, BookmarkMethodInput]]
         for bookmark in sorted(self._bookmarks, key=lambda x: x.jid):
             self.lines.append((BookmarkNameInput(bookmark),
                                BookmarkJIDInput(bookmark),
@@ -164,11 +167,11 @@ class BookmarksWin(Win):
                                BookmarkMethodInput(bookmark)))
 
     @property
-    def current_input(self):
+    def current_input(self) -> int:
         return self._current_input
 
     @current_input.setter
-    def current_input(self, value):
+    def current_input(self, value: int) -> None:
         if 0 <= self._current_input < len(self.lines):
             if 0 <= value < len(self.lines):
                 self.lines[self._current_input][
@@ -178,7 +181,7 @@ class BookmarksWin(Win):
         else:
             self._current_input = 0
 
-    def add_bookmark(self, bookmark):
+    def add_bookmark(self, bookmark: Bookmark) -> None:
         self.lines.append((BookmarkNameInput(bookmark),
                            BookmarkJIDInput(bookmark),
                            BookmarkPasswordInput(bookmark),
@@ -193,18 +196,19 @@ class BookmarksWin(Win):
             self.scroll_pos = self.current_input - self.height + 1
         self.refresh()
 
-    def del_current_bookmark(self):
-        if self.lines:
-            bm = self.lines[self.current_input][0]._field
-            to_delete = self.current_input
-            self.current_input -= 1
-            del self.lines[to_delete]
-            if self.scroll_pos:
-                self.scroll_pos -= 1
-            self.refresh()
-            return bm
+    def del_current_bookmark(self) -> Optional[Bookmark]:
+        if not self.lines:
+            return None
+        bm = self.lines[self.current_input][0]._field
+        to_delete = self.current_input
+        self.current_input -= 1
+        del self.lines[to_delete]
+        if self.scroll_pos:
+            self.scroll_pos -= 1
+        self.refresh()
+        return bm
 
-    def resize(self, height, width, y, x):
+    def resize(self, height: int, width: int, y: int, x: int) -> None:
         self.height = height
         self.width = width
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
@@ -213,7 +217,7 @@ class BookmarksWin(Win):
         while self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos += 1
 
-    def go_to_next_line_input(self):
+    def go_to_next_line_input(self) -> None:
         if not self.lines:
             return
         if self.current_input == len(self.lines) - 1:
@@ -233,7 +237,7 @@ class BookmarksWin(Win):
                 self.current_horizontal_input].set_color(
                     get_theme().COLOR_SELECTED_ROW)
 
-    def go_to_previous_line_input(self):
+    def go_to_previous_line_input(self) -> None:
         if not self.lines:
             return
         if self.current_input == 0:
@@ -251,7 +255,7 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 get_theme().COLOR_SELECTED_ROW)
 
-    def go_to_next_horizontal_input(self):
+    def go_to_next_horizontal_input(self) -> None:
         if not self.lines:
             return
         self.lines[self.current_input][
@@ -264,12 +268,12 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 get_theme().COLOR_SELECTED_ROW)
 
-    def go_to_next_page(self):
+    def go_to_next_page(self) -> bool:
         if not self.lines:
-            return
+            return False
 
         if self.current_input == len(self.lines) - 1:
-            return
+            return False
 
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
@@ -287,12 +291,12 @@ class BookmarksWin(Win):
                     get_theme().COLOR_SELECTED_ROW)
         return True
 
-    def go_to_previous_page(self):
+    def go_to_previous_page(self) -> bool:
         if not self.lines:
-            return
+            return False
 
         if self.current_input == 0:
-            return
+            return False
 
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
@@ -310,7 +314,7 @@ class BookmarksWin(Win):
                 get_theme().COLOR_SELECTED_ROW)
         return True
 
-    def go_to_previous_horizontal_input(self):
+    def go_to_previous_horizontal_input(self) -> None:
         if not self.lines:
             return
         if self.current_horizontal_input == 0:
@@ -323,13 +327,13 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 get_theme().COLOR_SELECTED_ROW)
 
-    def on_input(self, key):
+    def on_input(self, key: str) -> None:
         if not self.lines:
             return
         self.lines[self.current_input][
             self.current_horizontal_input].do_command(key)
 
-    def refresh(self):
+    def refresh(self) -> None:
         # store the cursor status
         self._win.erase()
         y = -self.scroll_pos
@@ -363,12 +367,12 @@ class BookmarksWin(Win):
         else:
             curses.curs_set(1)
 
-    def refresh_current_input(self):
+    def refresh_current_input(self) -> None:
         if self.lines:
             self.lines[self.current_input][
                 self.current_horizontal_input].refresh()
 
-    def save(self):
+    def save(self) -> None:
         for line in self.lines:
             for item in line:
                 item.save()
