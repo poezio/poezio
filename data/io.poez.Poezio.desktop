@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=Poezio
+GenericName=Poezio
+Comment=Free console XMPP client
+Icon=io.poez.Poezio
+Exec=/usr/bin/poezio
+Categories=Network;InstantMessaging;
