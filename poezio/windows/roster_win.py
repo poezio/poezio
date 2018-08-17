@@ -6,29 +6,32 @@ import logging
 log = logging.getLogger(__name__)
 
 from datetime import datetime
+from typing import Optional, List, Union, Dict
 
 from poezio.windows.base_wins import Win
 
 from poezio import common
 from poezio.config import config
 from poezio.contact import Contact, Resource
-from poezio.roster import RosterGroup
+from poezio.roster import Roster, RosterGroup
 from poezio.theming import get_theme, to_curses_attr
+
+Row = Union[RosterGroup, Contact]
 
 
 class RosterWin(Win):
-    def __init__(self):
+    def __init__(self) -> None:
         Win.__init__(self)
         self.pos = 0  # cursor position in the contact list
         self.start_pos = 1  # position of the start of the display
-        self.selected_row = None
-        self.roster_cache = []
+        self.selected_row = None  # type: Optional[Row]
+        self.roster_cache = []  # type: List[Row]
 
     @property
-    def roster_len(self):
+    def roster_len(self) -> int:
         return len(self.roster_cache)
 
-    def move_cursor_down(self, number=1):
+    def move_cursor_down(self, number: int = 1) -> bool:
         """
         Return True if we scrolled, False otherwise
         """
@@ -45,7 +48,7 @@ class RosterWin(Win):
         self.update_pos()
         return pos != self.pos
 
-    def move_cursor_up(self, number=1):
+    def move_cursor_up(self, number: int = 1) -> bool:
         """
         Return True if we scrolled, False otherwise
         """
@@ -62,13 +65,13 @@ class RosterWin(Win):
         self.update_pos()
         return pos != self.pos
 
-    def update_pos(self):
+    def update_pos(self) -> None:
         if len(self.roster_cache) > self.pos and self.pos >= 0:
             self.selected_row = self.roster_cache[self.pos]
         elif self.roster_cache:
             self.selected_row = self.roster_cache[-1]
 
-    def scroll_down(self, number=8):
+    def scroll_down(self, number: int = 8):
         pos = self.start_pos
         if self.start_pos + number <= self.roster_len - 1:
             self.start_pos += number
@@ -76,7 +79,7 @@ class RosterWin(Win):
             self.start_pos = self.roster_len - 1
         return self.start_pos != pos
 
-    def scroll_up(self, number=8):
+    def scroll_up(self, number: int = 8):
         pos = self.start_pos
         if self.start_pos - number > 0:
             self.start_pos -= number
@@ -84,7 +87,7 @@ class RosterWin(Win):
             self.start_pos = 1
         return self.start_pos != pos
 
-    def build_roster_cache(self, roster):
+    def build_roster_cache(self, roster: Roster) -> None:
         """
         Regenerates the roster cache if needed
         """
@@ -124,7 +127,7 @@ class RosterWin(Win):
                                                                 pos] != self.selected_row:
                 self.pos = self.roster_cache.index(self.selected_row)
 
-    def refresh(self, roster):
+    def refresh(self, roster: Roster) -> None:
         """
         We display a number of lines from the roster cache
         (and rebuild it if needed)
@@ -178,7 +181,7 @@ class RosterWin(Win):
             self.draw_plus(self.height - 1)
         self._refresh()
 
-    def draw_plus(self, y):
+    def draw_plus(self, y: int) -> None:
         """
         Draw the indicator that shows that
         the list is longer than what is displayed
@@ -186,7 +189,7 @@ class RosterWin(Win):
         self.addstr(y, self.width - 5, '++++',
                     to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
-    def draw_roster_information(self, roster):
+    def draw_roster_information(self, roster: Roster) -> None:
         """
         The header at the top
         """
@@ -196,7 +199,7 @@ class RosterWin(Win):
             to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
-    def draw_group(self, y, group, colored):
+    def draw_group(self, y: int, group: RosterGroup, colored: bool) -> None:
         """
         Draw a groupname on a line
         """
@@ -221,13 +224,13 @@ class RosterWin(Win):
         return name[:self.width - added - 1] + '…'
 
     def draw_contact_line(self,
-                          y,
-                          contact,
-                          colored,
-                          group,
-                          show_roster_sub=False,
-                          show_s2s_errors=True,
-                          show_roster_jids=False):
+                          y: int,
+                          contact: Contact,
+                          colored: bool,
+                          group: str,
+                          show_roster_sub: Optional[str] = None,
+                          show_s2s_errors: bool = True,
+                          show_roster_jids: bool = False) -> None:
         """
         Draw on a line all information about one contact.
         This is basically the highest priority resource's information
@@ -316,7 +319,7 @@ class RosterWin(Win):
                         to_curses_attr(get_theme().COLOR_ROSTER_GAMING))
         self.finish_line()
 
-    def draw_resource_line(self, y, resource, colored):
+    def draw_resource_line(self, y: int, resource: Resource, colored: bool) -> None:
         """
         Draw a specific resource line
         """
@@ -329,7 +332,7 @@ class RosterWin(Win):
             self.addstr(y, 8, self.truncate_name(str(resource.jid), 6))
         self.finish_line()
 
-    def get_selected_row(self):
+    def get_selected_row(self) -> Optional[Row]:
         if self.pos >= len(self.roster_cache):
             return self.selected_row
         if len(self.roster_cache) > 0:
@@ -339,15 +342,15 @@ class RosterWin(Win):
 
 
 class ContactInfoWin(Win):
-    def draw_contact_info(self, contact):
+    def draw_contact_info(self, contact: Contact) -> None:
         """
         draw the contact information
         """
         resource = contact.get_highest_priority_resource()
         if contact:
-            jid = contact.bare_jid
+            jid = str(contact.bare_jid)
         elif resource:
-            jid = resource.jid
+            jid = str(resource.jid)
         else:
             jid = 'example@example.com'  # should never happen
         if resource:
@@ -409,7 +412,7 @@ class ContactInfoWin(Win):
             self.finish_line()
             i += 1
 
-    def draw_group_info(self, group):
+    def draw_group_info(self, group: RosterGroup) -> None:
         """
         draw the group information
         """
@@ -417,7 +420,7 @@ class ContactInfoWin(Win):
                     to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
 
-    def refresh(self, selected_row):
+    def refresh(self, selected_row: Row) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         if isinstance(selected_row, RosterGroup):
