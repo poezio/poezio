@@ -5,7 +5,7 @@ Text inputs.
 import curses
 import logging
 import string
-from typing import List
+from typing import List, Dict, Callable, Optional
 
 from poezio import keyboard
 from poezio import common
@@ -36,7 +36,7 @@ class Input(Win):
     clipboard = ''  # A common clipboard for all the inputs, this makes
 
     # it easy cut and paste text between various input
-    def __init__(self):
+    def __init__(self) -> None:
         self.key_func = {
             "KEY_LEFT": self.key_left,
             "KEY_RIGHT": self.key_right,
@@ -62,7 +62,7 @@ class Input(Win):
             '^?': self.key_backspace,
             "M-^?": self.delete_word,
             # '^J': self.add_line_break,
-        }
+        }  # type: Dict[str, Callable]
         Win.__init__(self)
         self.text = ''
         self.pos = 0  # The position of the “cursor” in the text
@@ -72,24 +72,26 @@ class Input(Win):
         # screen
         self.on_input = DEFAULT_ON_INPUT  # callback called on any key pressed
         self.color = None  # use this color on addstr
+        self.last_completion = None  # type: Optional[str]
+        self.hit_list = []  # type: List[str]
 
-    def on_delete(self):
+    def on_delete(self) -> None:
         """
         Remove all references kept to a tab, so that the tab
         can be garbage collected
         """
         del self.key_func
 
-    def set_color(self, color):
+    def set_color(self, color) -> None:
         self.color = color
         self.rewrite_text()
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         if self.text:
             return False
         return True
 
-    def is_cursor_at_end(self):
+    def is_cursor_at_end(self) -> bool:
         """
         Whether or not the cursor is at the end of the text.
         """
@@ -98,7 +100,7 @@ class Input(Win):
             return True
         return False
 
-    def jump_word_left(self):
+    def jump_word_left(self) -> bool:
         """
         Move the cursor one word to the left
         """
@@ -111,7 +113,7 @@ class Input(Win):
             self.key_left()
         return True
 
-    def jump_word_right(self):
+    def jump_word_right(self) -> bool:
         """
         Move the cursor one word to the right
         """
@@ -125,7 +127,7 @@ class Input(Win):
             self.key_right()
         return True
 
-    def delete_word(self):
+    def delete_word(self) -> bool:
         """
         Delete the word just before the cursor
         """
@@ -136,7 +138,7 @@ class Input(Win):
             self.key_backspace()
         return True
 
-    def delete_next_word(self):
+    def delete_next_word(self) -> bool:
         """
         Delete the word just after the cursor
         """
@@ -148,7 +150,7 @@ class Input(Win):
             self.key_dc()
         return True
 
-    def delete_end_of_line(self):
+    def delete_end_of_line(self) -> bool:
         """
         Cut the text from cursor to the end of line
         """
@@ -159,7 +161,7 @@ class Input(Win):
         self.key_end()
         return True
 
-    def delete_beginning_of_line(self):
+    def delete_beginning_of_line(self) -> bool:
         """
         Cut the text from cursor to the beginning of line
         """
@@ -170,7 +172,7 @@ class Input(Win):
         self.key_home()
         return True
 
-    def paste_clipboard(self):
+    def paste_clipboard(self) -> bool:
         """
         Insert what is in the clipboard at the cursor position
         """
@@ -181,7 +183,7 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_dc(self):
+    def key_dc(self) -> bool:
         """
         delete char just after the cursor
         """
@@ -192,7 +194,7 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_home(self):
+    def key_home(self) -> bool:
         """
         Go to the beginning of line
         """
@@ -201,7 +203,7 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_end(self, reset=False):
+    def key_end(self, reset: bool = False) -> bool:
         """
         Go to the end of line
         """
@@ -212,7 +214,7 @@ class Input(Win):
         self.rewrite_text()
         return True
 
-    def key_left(self, jump=True, reset=True):
+    def key_left(self, jump: bool = True, reset: bool = True) -> bool:
         """
         Move the cursor one char to the left
         """
@@ -225,7 +227,7 @@ class Input(Win):
             self.rewrite_text()
         return True
 
-    def key_right(self, jump=True, reset=True):
+    def key_right(self, jump: bool = True, reset: bool = True) -> bool:
         """
         Move the cursor one char to the right
         """
@@ -238,7 +240,7 @@ class Input(Win):
             self.rewrite_text()
         return True
 
-    def key_backspace(self, reset=True):
+    def key_backspace(self, reset: bool = True) -> bool:
         """
         Delete the char just before the cursor
         """
@@ -249,7 +251,7 @@ class Input(Win):
         self.key_dc()
         return True
 
-    def auto_completion(self, word_list, add_after='', quotify=True):
+    def auto_completion(self, word_list: List[str], add_after: str = '', quotify: bool = True) -> bool:
         """
         Complete the input, from a list of words
         if add_after is None, we use the value defined in completion
@@ -263,11 +265,11 @@ class Input(Win):
         return True
 
     def new_completion(self,
-                       word_list,
-                       argument_position=-1,
-                       add_after='',
-                       quotify=True,
-                       override=False):
+                       word_list: List[str],
+                       argument_position: int = -1,
+                       add_after: str = '',
+                       quotify: bool = True,
+                       override: bool = False) -> bool:
         """
         Complete the argument at position ``argument_postion`` in the input.
         If ``quotify`` is ``True``, then the completion will operate on block of words
@@ -293,11 +295,11 @@ class Input(Win):
         return True
 
     def _new_completion_args(self,
-                             word_list,
-                             argument_position=-1,
-                             add_after='',
-                             quoted=True,
-                             override=False):
+                             word_list: List[str],
+                             argument_position: int = -1,
+                             add_after: str = '',
+                             quoted: bool = True,
+                             override: bool = False) -> None:
         """
         Case for completing arguments with position ≠ 0
         """
@@ -353,7 +355,7 @@ class Input(Win):
         self.text = words[0] + ' ' + ' '.join(words[1:])
         self.pos = new_pos
 
-    def _new_completion_first(self, word_list):
+    def _new_completion_first(self, word_list: List[str]) -> None:
         """
         Special case of completing the command itself:
         we don’t want to change anything to the input doing that
@@ -379,7 +381,7 @@ class Input(Win):
         self.text = self.hit_list[0] + follow
         self.pos = len(self.hit_list[0])
 
-    def get_argument_position(self, quoted=True):
+    def get_argument_position(self, quoted: bool = True) -> int:
         """
         Get the argument number at the current position
         """
@@ -391,14 +393,14 @@ class Input(Win):
         val = common.find_argument(pos, text, quoted=quoted) + 1
         return val
 
-    def reset_completion(self):
+    def reset_completion(self) -> None:
         """
         Reset the completion list (called on ALL keys except tab)
         """
         self.hit_list = []
         self.last_completion = None
 
-    def normal_completion(self, word_list, after):
+    def normal_completion(self, word_list: List[str], after: str) -> None:
         """
         Normal completion
         """
@@ -444,7 +446,7 @@ class Input(Win):
         self.rewrite_text()
         self.last_completion = hit
 
-    def do_command(self, key, reset=True, raw=False):
+    def do_command(self, key, reset: bool = True, raw: bool = False) -> bool:
         if key in self.key_func:
             res = self.key_func[key]()
             if not raw and self.on_input is not DEFAULT_ON_INPUT:
@@ -464,19 +466,19 @@ class Input(Win):
 
         return True
 
-    def add_line_break(self):
+    def add_line_break(self) -> None:
         """
         Add a (real) \n to the line
         """
         self.do_command('\n')
 
-    def get_text(self):
+    def get_text(self) -> str:
         """
         Return the text entered so far
         """
         return self.text
 
-    def _addstr_colored_lite(self, text, y=None, x=None):
+    def _addstr_colored_lite(self, text: str, y: Optional[int] = None, x: Optional[int] = None) -> None:
         """
         Just like addstr_colored, with the single-char attributes
         (\x0E to \x19 instead of \x19 + attr). We do not use any }
@@ -510,7 +512,7 @@ class Input(Win):
             format_char = find_first_format_char(text, chars)
         self.addstr(text)
 
-    def rewrite_text(self):
+    def rewrite_text(self) -> None:
         """
         Refresh the line onscreen, but first, always adjust the
         view_pos.  Also, each FORMAT_CHAR+attr_char count only take
@@ -539,7 +541,7 @@ class Input(Win):
         curses.curs_set(1)
         self._refresh()
 
-    def adjust_view_pos(self):
+    def adjust_view_pos(self) -> None:
         """
         Adjust the position of the View, if needed (for example if the
         cursor moved and would now be out of the view, we adapt the
@@ -564,16 +566,16 @@ class Input(Win):
         if poopt.wcswidth(self.text) < self.width:
             self.view_pos = 0
 
-    def refresh(self):
+    def refresh(self) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         self.rewrite_text()
 
-    def clear_text(self):
+    def clear_text(self) -> None:
         self.text = ''
         self.pos = 0
         self.rewrite_text()
 
-    def key_enter(self):
+    def key_enter(self) -> Optional[str]:
         txt = self.get_text()
         self.clear_text()
         return txt
@@ -586,7 +588,7 @@ class HistoryInput(Input):
     """
     history = []  # type: List[str]
 
-    def __init__(self):
+    def __init__(self) -> None:
         Input.__init__(self)
         self.help_message = ''
         self.histo_pos = -1
@@ -596,13 +598,13 @@ class HistoryInput(Input):
         if config.get('separate_history'):
             self.history = []  # type: List[str]
 
-    def toggle_search(self):
+    def toggle_search(self) -> None:
         if self.help_message:
             return
         self.search = not self.search
         self.refresh()
 
-    def update_completed(self):
+    def update_completed(self) -> None:
         """
         Find a match for the current text
         """
@@ -614,7 +616,7 @@ class HistoryInput(Input):
                 return
         self.current_completed = ''
 
-    def history_enter(self):
+    def history_enter(self) -> bool:
         """
         Enter was pressed, set the text to the
         current completion and disable history
@@ -630,7 +632,7 @@ class HistoryInput(Input):
         self.refresh()
         return False
 
-    def key_up(self):
+    def key_up(self) -> bool:
         """
         Get the previous line in the history
         """
@@ -646,7 +648,7 @@ class HistoryInput(Input):
         self.key_end()
         return True
 
-    def key_down(self):
+    def key_down(self) -> bool:
         """
         Get the next line in the history
         """
@@ -673,16 +675,15 @@ class MessageInput(HistoryInput):
     # The history is common to all MessageInput
     history = []  # type: List[str]
 
-    def __init__(self):
+    def __init__(self) -> None:
         HistoryInput.__init__(self)
-        self.last_completion = None
         self.key_func["KEY_UP"] = self.key_up
         self.key_func["M-A"] = self.key_up
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
         self.key_func['^C'] = self.enter_attrib
 
-    def enter_attrib(self):
+    def enter_attrib(self) -> None:
         """
         Read one more char (c), add the corresponding char from formats_char to the text string
         """
@@ -695,9 +696,9 @@ class MessageInput(HistoryInput):
 
         keyboard.continuation_keys_callback = cb
 
-    def key_enter(self):
+    def key_enter(self) -> Optional[str]:
         if self.history_enter():
-            return
+            return None
 
         txt = self.get_text()
         if len(txt) != 0:
@@ -720,11 +721,11 @@ class CommandInput(HistoryInput):
     """
     history = []  # type: List[str]
 
-    def __init__(self, help_message, on_abort, on_success, on_input=None):
+    def __init__(self, help_message: str, on_abort, on_success, on_input=None) -> None:
         HistoryInput.__init__(self)
         self.on_abort = on_abort
         self.on_success = on_success
-        if on_input:
+        if on_input is None:
             self.on_input = on_input
         else:
             self.on_input = DEFAULT_ON_INPUT
@@ -737,13 +738,13 @@ class CommandInput(HistoryInput):
         self.key_func["KEY_DOWN"] = self.key_down
         self.key_func["M-B"] = self.key_down
 
-    def do_command(self, key, reset=True, raw=False):
+    def do_command(self, key, reset: bool = True, raw: bool = False) -> bool:
         res = Input.do_command(self, key, reset=reset, raw=raw)
         if self.on_input is not DEFAULT_ON_INPUT:
             self.on_input(self.get_text())
         return res
 
-    def disable_history(self):
+    def disable_history(self) -> None:
         """
         Disable the history (up/down) keys
         """
@@ -753,10 +754,10 @@ class CommandInput(HistoryInput):
             del self.key_func['KEY_DOWN']
 
     @property
-    def history_disabled(self):
+    def history_disabled(self) -> bool:
         return 'KEY_UP' not in self.key_func and 'KEY_DOWN' not in self.key_func
 
-    def success(self):
+    def success(self) -> bool:
         """
         call the success callback, passing the text as argument
         """
@@ -773,7 +774,7 @@ class CommandInput(HistoryInput):
         self.on_input = DEFAULT_ON_INPUT
         return self.on_abort(self.get_text())
 
-    def on_delete(self):
+    def on_delete(self) -> None:
         """
         SERIOUSLY BIG WTF.
 
@@ -789,10 +790,11 @@ class CommandInput(HistoryInput):
         self.on_input = DEFAULT_ON_INPUT
         self.key_func.clear()
 
-    def key_enter(self):
+    def key_enter(self) -> Optional[str]:
         txt = self.get_text()
         if len(txt) != 0:
             if not self.history or self.history[0] != txt:
                 # add the message to history, but avoid duplicates
                 self.history.insert(0, txt)
             self.histo_pos = -1
+        return None

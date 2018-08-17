@@ -10,7 +10,7 @@ DIGITS = string.digits + '-'
 
 
 def find_first_format_char(text: str,
-                           chars: Optional[List[str]] = None) -> int:
+                           chars: str = None) -> int:
     to_find = chars or format_chars
     pos = -1
     for char in to_find:
