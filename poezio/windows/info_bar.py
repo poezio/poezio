@@ -11,16 +11,17 @@ log = logging.getLogger(__name__)
 import curses
 
 from poezio.config import config
+from poezio.core import Core
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 
 
 class GlobalInfoBar(Win):
-    def __init__(self, core):
+    def __init__(self, core: Core) -> None:
         Win.__init__(self)
-        self.core = core
+        self.core = core  # type: Core
 
-    def refresh(self):
+    def refresh(self) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         self.addstr(0, 0, "[",
@@ -63,12 +64,12 @@ class GlobalInfoBar(Win):
 
 
 class VerticalGlobalInfoBar(Win):
-    def __init__(self, core, scr):
+    def __init__(self, core: Core, scr) -> None:
         Win.__init__(self)
-        self.core = core
+        self.core = core  # type: Core
         self._win = scr
 
-    def refresh(self):
+    def refresh(self) -> None:
         height, width = self._win.getmaxyx()
         self._win.erase()
         sorted_tabs = [tab for tab in self.core.tabs if tab]
