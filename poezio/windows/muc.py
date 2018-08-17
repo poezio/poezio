@@ -3,18 +3,23 @@ Windows specific to a MUC
 """
 
 import logging
-log = logging.getLogger(__name__)
-
 import curses
+
+from typing import List, Tuple, Optional
 
 from poezio.windows.base_wins import Win
 
 from poezio import poopt
 from poezio.config import config
 from poezio.theming import to_curses_attr, get_theme
+from poezio.user import User
+
+log = logging.getLogger(__name__)
+
+CachedUser = Tuple[str, str, Optional[str], str, str]
 
 
-def userlist_to_cache(userlist):
+def userlist_to_cache(userlist: List[User]) -> List[CachedUser]:
     result = []
     for user in userlist:
         result.append((user.nick, user.status, user.chatstate,
@@ -23,27 +28,27 @@ def userlist_to_cache(userlist):
 
 
 class UserList(Win):
-    def __init__(self):
+    def __init__(self) -> None:
         Win.__init__(self)
         self.pos = 0
-        self.cache = []
+        self.cache = []  # type: List[CachedUser]
 
-    def scroll_up(self):
+    def scroll_up(self) -> bool:
         self.pos += self.height - 1
         return True
 
-    def scroll_down(self):
+    def scroll_down(self) -> bool:
         pos = self.pos
         self.pos -= self.height - 1
         if self.pos < 0:
             self.pos = 0
         return self.pos != pos
 
-    def draw_plus(self, y):
+    def draw_plus(self, y: int) -> None:
         self.addstr(y, self.width - 2, '++',
                     to_curses_attr(get_theme().COLOR_MORE_INDICATOR))
 
-    def refresh_if_changed(self, users):
+    def refresh_if_changed(self, users: List[User]) -> None:
         old = self.cache
         new = userlist_to_cache(users[self.pos:self.pos + self.height])
         if len(old) != len(new):
@@ -56,7 +61,7 @@ class UserList(Win):
                 self.refresh(users)
                 return
 
-    def refresh(self, users):
+    def refresh(self, users: List[User]) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         if config.get('hide_user_list'):
             return  # do not refresh if this win is hidden.
@@ -96,13 +101,13 @@ class UserList(Win):
                 self.draw_plus(self.height - 1)
         self._refresh()
 
-    def draw_role_affiliation(self, y, user):
+    def draw_role_affiliation(self, y: int, user: User) -> None:
         theme = get_theme()
         color = theme.color_role(user.role)
         symbol = theme.char_affiliation(user.affiliation)
         self.addstr(y, 1, symbol, to_curses_attr(color))
 
-    def draw_status_chatstate(self, y, user):
+    def draw_status_chatstate(self, y: int, user: User) -> None:
         show_col = get_theme().color_show(user.show)
         if user.chatstate == 'composing':
             char = get_theme().CHAR_CHATSTATE_COMPOSING
@@ -114,7 +119,7 @@ class UserList(Win):
             char = get_theme().CHAR_STATUS
         self.addstr(y, 0, char, to_curses_attr(show_col))
 
-    def resize(self, height, width, y, x):
+    def resize(self, width: int, y: int, x: int) -> None:
         separator = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
         self._resize(height, width, y, x)
         self._win.attron(separator)
@@ -123,14 +128,14 @@ class UserList(Win):
 
 
 class Topic(Win):
-    def __init__(self):
+    def __init__(self) -> None:
         Win.__init__(self)
         self._message = ''
 
-    def refresh(self, topic=None):
+    def refresh(self, topic: Optional[str] = None) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
-        if topic:
+        if topic is not None:
             msg = topic[:self.width - 1]
         else:
             msg = self._message[:self.width - 1]
@@ -142,5 +147,5 @@ class Topic(Win):
                          to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         self._refresh()
 
-    def set_message(self, message):
+    def set_message(self, message) -> None:
         self._message = message
