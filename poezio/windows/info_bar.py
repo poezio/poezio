@@ -11,15 +11,14 @@ log = logging.getLogger(__name__)
 import curses
 
 from poezio.config import config
-from poezio.core import Core
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 
 
 class GlobalInfoBar(Win):
-    def __init__(self, core: Core) -> None:
+    def __init__(self, core) -> None:
         Win.__init__(self)
-        self.core = core  # type: Core
+        self.core = core
 
     def refresh(self) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
@@ -64,9 +63,9 @@ class GlobalInfoBar(Win):
 
 
 class VerticalGlobalInfoBar(Win):
-    def __init__(self, core: Core, scr) -> None:
+    def __init__(self, core, scr) -> None:
         Win.__init__(self)
-        self.core = core  # type: Core
+        self.core = core
         self._win = scr
 
     def refresh(self) -> None:

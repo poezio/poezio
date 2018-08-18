@@ -15,7 +15,6 @@ from typing import Union, Optional, List, Tuple
 from datetime import datetime
 from poezio.config import config
 from poezio.theming import get_theme, dump_tuple
-from poezio.windows import BaseTextWin
 
 
 class Message:
@@ -127,9 +126,9 @@ class TextBuffer:
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self._windows = []  # type: List[BaseTextWin]
+        self._windows = []
 
-    def add_window(self, win: BaseTextWin) -> None:
+    def add_window(self, win) -> None:
         self._windows.append(win)
 
     @property
@@ -278,7 +277,7 @@ class TextBuffer:
         log.debug('Replacing message %s with %s.', old_id, new_id)
         return message
 
-    def del_window(self, win: BaseTextWin) -> None:
+    def del_window(self, win) -> None:
         self._windows.remove(win)
 
     def __del__(self):
