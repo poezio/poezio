@@ -725,7 +725,7 @@ class CommandInput(HistoryInput):
         HistoryInput.__init__(self)
         self.on_abort = on_abort
         self.on_success = on_success
-        if on_input is None:
+        if on_input is not None:
             self.on_input = on_input
         else:
             self.on_input = DEFAULT_ON_INPUT

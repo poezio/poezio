@@ -374,7 +374,7 @@ class TextWin(BaseTextWin):
             if get_theme().CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
         lines = poopt.cut_text(txt, self.width - offset - 1)
-        prepend = default_color if default_color is None else ''
+        prepend = default_color if default_color else ''
         attrs = []  # type: List[str]
         for line in lines:
             saved = Line(
@@ -626,7 +626,7 @@ class XMLTextWin(BaseTextWin):
         if get_theme().CHAR_TIME_RIGHT and message.str_time:
             offset += 1
         lines = poopt.cut_text(txt, self.width - offset - 1)
-        prepend = default_color if default_color is not None else ''
+        prepend = default_color if default_color else ''
         attrs = []  # type: List[str]
         for line in lines:
             saved = Line(
