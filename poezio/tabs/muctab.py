@@ -40,6 +40,8 @@ log = logging.getLogger(__name__)
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 STATUS_XPATH = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
 
+COMPARE_USERS_LAST_TALKED = lambda x: x.last_talked
+
 
 class MucTab(ChatTab):
     """
@@ -315,8 +317,7 @@ class MucTab(ChatTab):
             return
         # Sort the user list by last talked, to avoid color conflicts
         # on active participants
-        compare_users = lambda x: x.last_talked
-        sorted_users = sorted(self.users, key=compare_users, reverse=True)
+        sorted_users = sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True)
         full_sorted_users = sorted_users[:]
         # search our own user, to remove it from the list
         # Also remove users whose color is fixed
@@ -1625,9 +1626,8 @@ class MucTab(ChatTab):
 
         # If we are not completing a command or a command argument,
         # complete a nick
-        compare_users = lambda x: x.last_talked
         word_list = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
+        for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
             if user.nick != self.own_nick:
                 word_list.append(user.nick)
         after = config.get('after_completion') + ' '
@@ -1650,9 +1650,8 @@ class MucTab(ChatTab):
 
     def completion_version(self, the_input):
         """Completion for /version"""
-        compare_users = lambda x: x.last_talked
         userlist = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
+        for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
             if user.nick != self.own_nick:
                 userlist.append(user.nick)
         comp = []
@@ -1666,9 +1665,8 @@ class MucTab(ChatTab):
 
     def completion_info(self, the_input):
         """Completion for /info"""
-        compare_users = lambda x: x.last_talked
         userlist = []
-        for user in sorted(self.users, key=compare_users, reverse=True):
+        for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
             userlist.append(user.nick)
         return Completion(the_input.auto_completion, userlist, quotify=False)
 
@@ -1766,9 +1764,8 @@ class MucTab(ChatTab):
     def completion_quoted(self, the_input):
         """Nick completion, but with quotes"""
         if the_input.get_argument_position(quoted=True) == 1:
-            compare_users = lambda x: x.last_talked
             word_list = []
-            for user in sorted(self.users, key=compare_users, reverse=True):
+            for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
                 if user.nick != self.own_nick:
                     word_list.append(user.nick)
 
