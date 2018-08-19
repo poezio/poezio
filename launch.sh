@@ -5,7 +5,7 @@ then
     POEZIO_VENV="poezio-venv"
 fi
 
-if [ -d .git ]
+if [ -e .git ]
 then
     args=$(git show --format='%h %ci' | head -n1)
 else
