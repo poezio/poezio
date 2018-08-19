@@ -11,6 +11,7 @@ Defines the Connection class
 import logging
 log = logging.getLogger(__name__)
 
+import asyncio
 import getpass
 import subprocess
 import sys
@@ -22,6 +23,7 @@ from slixmpp.xmlstream import ET
 from slixmpp.plugins.xep_0184 import XEP_0184
 from slixmpp.plugins.xep_0030 import DiscoInfo
 from slixmpp.util import FileSystemCache
+from slixmpp.exceptions import IqError, IqTimeout
 
 from poezio import common
 from poezio import fixes
@@ -48,6 +50,7 @@ class Connection(slixmpp.ClientXMPP):
                 rng.getrandbits(24).to_bytes(3, 'little')).decode('ascii')
             config.set_and_save('device_id', device_id)
 
+        ibr = False
         if config.get('jid'):
             # Field used to know if we are anonymous or not.
             # many features will be handled differently
@@ -77,24 +80,37 @@ class Connection(slixmpp.ClientXMPP):
                     sys.exit(code)
                 password = process.stdout.readline().decode('utf-8').strip(
                     '\n')
-        else:  # anonymous auth
+        elif config.get('server'):  # anonymous auth
             self.anon = True
             jid = config.get('server')
             password = None
+        else:  # IBR
+            self.wait_ibr = True
+            ibr = True
+            self.anon = False
+            jid = None
+            password = None
+
+        if ibr:
+            # Display IBR form, make user choose domain. fill jid
+            jid = "buquet.me"
+
         jid = safeJID(jid)
-        jid.resource = '%s-%s' % (
-            jid.resource,
-            device_id) if jid.resource else 'poezio-%s' % device_id
+        if not ibr:
+            jid.resource = '%s-%s' % (
+                jid.resource,
+                device_id) if jid.resource else 'poezio-%s' % device_id
         # TODO: use the system language
         slixmpp.ClientXMPP.__init__(
             self, jid, password, lang=config.get('lang'))
 
-        force_encryption = config.get('force_encryption')
-        if force_encryption:
-            self['feature_mechanisms'].unencrypted_plain = False
-            self['feature_mechanisms'].unencrypted_digest = False
-            self['feature_mechanisms'].unencrypted_cram = False
-            self['feature_mechanisms'].unencrypted_scram = False
+        if not ibr:
+            force_encryption = config.get('force_encryption')
+            if force_encryption:
+                self['feature_mechanisms'].unencrypted_plain = False
+                self['feature_mechanisms'].unencrypted_digest = False
+                self['feature_mechanisms'].unencrypted_cram = False
+                self['feature_mechanisms'].unencrypted_scram = False
 
         self.keyfile = config.get('keyfile')
         self.certfile = config.get('certfile')
@@ -143,10 +159,12 @@ class Connection(slixmpp.ClientXMPP):
         self.register_plugin('xep_0070')
         self.register_plugin('xep_0071')
         self.register_plugin('xep_0077')
-        self.plugin['xep_0077'].create_account = False
+        self.plugin['xep_0077'].create_account = ibr  # type: bool
         self.register_plugin('xep_0084')
         self.register_plugin('xep_0085')
         self.register_plugin('xep_0153')
+
+        self.add_event_handler('register', self.register_ibr)
 
         # monkey-patch xep_0184 to avoid requesting receipts for messages
         # without a body
@@ -212,6 +230,32 @@ class Connection(slixmpp.ClientXMPP):
                       'used with aiohttp installed')
         self.register_plugin('xep_0380')
         self.init_plugins()
+
+    async def register_ibr(self, form):
+        log.debug('FOO: %r', form)
+        info = lambda s: self.core.information(s, 'Info')
+
+        localpart = 'caaa'
+        password = 'test'
+
+        fields = [
+            {'ftype': 'hidden', 'var': 'FORM_TYPE', 'value': 'jabber:iq:register'},
+            {'ftype': 'text-single', 'var': 'username', 'value': localpart},
+            {'ftype': 'text-private', 'var': 'password', 'value': password},
+        ]
+
+        try:
+            await self['xep_0077'].set_registration(fields)
+            info('Yay')
+            jid = self.boundjid
+            jid.local = localpart
+            config.set('jid', jid)
+            config.set('password', password)
+        except (IqError, IqTimeout):
+            info('Meh')
+        finally:
+            self.disconnect()
+        self.__init__()
 
     def set_keepalive_values(self, option=None, value=None):
         """
