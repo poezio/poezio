@@ -11,7 +11,6 @@ build-doc:
   image: docker.louiz.org/poezio/poezio/doc-builder
   script:
     - ./update.sh
-    - ln -s /usr/libexec/python3-sphinx/sphinx-build /usr/bin/
     - make doc
     - rm -rf /www/latest
     - mv doc/build/html/ /www/latest
