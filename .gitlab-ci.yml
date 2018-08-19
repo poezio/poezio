@@ -4,16 +4,17 @@ stages:
 
 build-doc:
   stage: build
-  image: python:3
-  script:
-    - pip3 install sphinx
-    - make doc
-  artifacts:
-    expire_in: 2 weeks
-    paths:
-      - doc/build/html
   only:
-    - master
+    - branches@poezio/poezio
+  tags:
+    - www
+  image: docker.louiz.org/poezio/poezio/doc-builder
+  script:
+    - ./update.sh
+    - ln -s /usr/libexec/python3-sphinx/sphinx-build /usr/bin/
+    - make doc
+    - rm -rf /www/latest
+    - mv doc/build/html/ /www/latest
 
 build-ubuntu:
   stage: build
