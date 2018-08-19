@@ -119,7 +119,7 @@ class UserList(Win):
             char = get_theme().CHAR_STATUS
         self.addstr(y, 0, char, to_curses_attr(show_col))
 
-    def resize(self, width: int, y: int, x: int) -> None:
+    def resize(self, height: int, width: int, y: int, x: int) -> None:
         separator = to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
         self._resize(height, width, y, x)
         self._win.attron(separator)
