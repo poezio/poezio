@@ -9,7 +9,7 @@ if [ -e .git ]
 then
     args=$(git show --format='%h %ci' | head -n1)
 else
-    args="0.9-dev"
+    args="0.12-dev"
 fi
 
 if [ -e "$POEZIO_VENV" ]
