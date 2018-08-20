@@ -127,6 +127,7 @@ setup(name="poezio",
       data_files=([('share/man/man1/', ['data/poezio.1',
                                         'data/poezio_logs.1']),
                    ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG']),
+                   ('share/applications/', ['data/io.poez.Poezio.desktop'])]
                    ('share/metainfo/', ['data/io.poez.Poezio.appdata.xml'])]
                   + find_doc('share/doc/poezio/source', 'source')
                   + find_doc('share/doc/poezio/html', 'build/html')),
