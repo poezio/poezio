@@ -1,5 +1,8 @@
 recursive-include doc/source *
 include data/poezio.1
+include data/io.poez.Poezio.appdata.xml
+include data/io.poez.Poezio.desktop
+include data/io.poez.Poezio.json
 include COPYING
 include CHANGELOG
 include README.rst
