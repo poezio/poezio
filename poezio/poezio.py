@@ -12,8 +12,6 @@ import sys
 import os
 import signal
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 
 def test_curses():
     """

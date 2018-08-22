@@ -1,6 +1,6 @@
-import theming
+import poezio.theming
 
-class DarkTheme(theming.Theme):
+class DarkTheme(poezio.theming.Theme):
     COLOR_INFORMATION_BAR = (-1, 236)
     COLOR_STATUS_XA = (53, -1)
     COLOR_STATUS_AWAY = (214, -1)
