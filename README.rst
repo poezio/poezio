@@ -1,13 +1,5 @@
-::
-
-                          _
-                         (_)
-     _ __   ___   ___ _____  ___
-    | '_ \ / _ \ / _ \_  / |/ _ \
-    | |_) | (_) |  __// /| | (_) |
-    | .__/ \___/ \___/___|_|\___/
-    | |
-    |_|
+poezio
+======
 
 Homepage:      https://poez.io
 
@@ -25,9 +17,8 @@ Jabber client, but still MultiUserChats-centered.
 In the future, poezio should implement at a 100% level all XEP related to
 MUCs, especially XEP 0045.
 
-=======================
-    Install
-=======================
+Install
+=======
 
 You need python 3.5 or higher (preferably the latest) and the associated devel
 package, to build C modules, and the slixmpp python library.
@@ -66,25 +57,22 @@ talk to us directly on our Jabber chat room (see Contact section).
 Please DO report any bug you encounter and ask for any feature you want
 (we may implement it or not, but it’s always better to ask).
 
-=======================
-    Authors
-=======================
+Authors
+=======
 
 - Florent Le Coz (louiz’) <louiz@louiz.org> (developer)
 - Mathieu Pasquet (mathieui) <mathieui@mathieui.net> (developer)
 - Emmanuel Gil Peyrot (Link Mauve) <linkmauve@linkmauve.fr> (developer)
 
-=======================
-    Contact/support
-=======================
+Contact/support
+===============
 
 Jabber ChatRoom:   `poezio@muc.poez.io <xmpp:poezio@muc.poez.io?join>`_
 
 Report a bug:      https://dev.poez.io/new
 
-=======================
-    License
-=======================
+License
+=======
 
 Poezio is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
@@ -96,58 +84,22 @@ The artwork logo was made by Gaëtan Ribémont and released under
 the Creative Commons BY license (http://creativecommons.org/licenses/by/2.0/)
 
 
-=======================
-       Hacking
-=======================
+Hacking
+=======
 
 If you want to contribute, you will be welcome on
 `poezio@muc.poez.io <xmpp:poezio@muc.poez.io?join>`_ to announce your
 ideas, what you are going to do, or to seek help if you have trouble
 understanding some of the code.
 
-The preferred way to submit changes is through a public git repository.
-But mercurial repositories or simple patches are also welcome.
-
-For contributors having commit access:
-
-This section explains how the git repository is organized.
-The “master” branch is the branch where all recent development is made.  This is
-the unstable version, which can be broken, but we should try to keep it usable
-and crash-free as much as possible (so, never push to it if you are adding a
-*known* crash).
-
-New big features that take time to be complete should be developed in feature
-branches (for example the “plugins” or the “opt” branches).
-If it’s a really long feature, merge the “master” branch in that feature branch
-from time to time, to avoid huge merges (and merge issues) when you’ll have to
-merge your feature back in “master”.
-
-Merge your work in master once it works and is usable, not necessarily when
-it’s 100% finished.  Polishing and last bug fixes can take place in “master”.
-
-Conflicts should be solved with *rebase* and not with merge.  This means
-that if two developers commited one thing at the same time in their own
-repository, the first pushes on the public public repos, and the other
-has to pull before being able to push too.  In that case, the second
-developer should use the rebase command instead of merge.  This avoids
-creating unnecessary “branches” and visible merges.
-On the contrary, when merging feature branches back to “master”, we should
-use merge with the --no-ff tag (this makes sure the branch will always
-distinctly appear in the logs), even if no conflict occured.
-
-Finally, when a release is ready, we should merge the “master” branch
-into the releases branch, then tag it to that version number.
-If an “urgent” bugfix has to be made for a release (for example
-a security issue is discovered on the last stable version, and
-the current master has evolved too much to be released in the current
-state), we create a new bugfix branch from the “releases” branch, we fix
-it and finally merge it back to the “releases” branch, and tag it (and
-we merge it to “master” as well, of course).
+The preferred way to submit changes is through a merge request on gitlab,
+at https://lab.louiz.org/poezio/poezio, but we also accept contributions
+on github, or with a simple “please fetch my code on my personal git
+repository hosted somewhere”
 
 
-=======================
-    Thanks
-=======================
+Thanks
+======
 
 - People:
     - Todd Eisenberger - Plugin system and OTR support
