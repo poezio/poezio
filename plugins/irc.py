@@ -375,7 +375,7 @@ class Plugin(BasePlugin):
         conversation, a warning is displayed and None is returned
         """
         gateway = self.config.get('gateway', 'irc.poez.io')
-        current = self.core.current_tab()
+        current = self.api.current_tab()
         current_jid = common.safeJID(current.name)
         if not current_jid.server == gateway:
             self.api.information(
