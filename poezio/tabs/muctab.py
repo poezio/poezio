@@ -1251,34 +1251,37 @@ class MucTab(ChatTab):
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
 
+    def is_highlight(self, txt, time, nickname, own_nick, highlight_on,
+                     corrected=False):
+        highlighted = False
+        if (not time or corrected) and nickname and nickname != own_nick:
+            if re.search(r'\b' + own_nick.lower() + r'\b', txt.lower()):
+                highlighted = True
+            else:
+                highlight_words = highlight_on.split(':')
+                for word in highlight_words:
+                    if word and word.lower() in txt.lower():
+                        highlighted = True
+                        break
+        return highlighted
+
     def do_highlight(self, txt, time, nickname, corrected=False):
         """
         Set the tab color and returns the nick color
         """
-        highlighted = False
-        if (not time or corrected
-            ) and nickname and nickname != self.own_nick and self.joined:
-
-            if re.search(r'\b' + self.own_nick.lower() + r'\b', txt.lower()):
-                if self.state != 'current':
-                    self.state = 'highlight'
-                highlighted = True
-            else:
-                highlight_words = config.get_by_tabname(
-                    'highlight_on', self.general_jid)
-                highlight_words = highlight_words.split(':')
-                for word in highlight_words:
-                    if word and word.lower() in txt.lower():
-                        if self.state != 'current':
-                            self.state = 'highlight'
-                        highlighted = True
-                        break
-        if highlighted:
+        own_nick = self.own_nick
+        highlight_on = config.get_by_tabname('highlight_on', self.general_jid)
+        highlighted = self.is_highlight(txt, time, nickname, own_nick,
+                                        highlight_on, corrected)
+        if highlighted and self.joined:
+            if self.state != 'current':
+                self.state = 'highlight'
             beep_on = config.get('beep_on').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if not config.get_by_tabname('disable_beep', self.name):
                     curses.beep()
-        return highlighted
+            return True
+        return False
 
 ########################## COMMANDS ####################################
 
