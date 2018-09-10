@@ -172,3 +172,14 @@ def test_set_current():
     tabs.set_current_tab(dummy2)
     assert tabs.current_tab is dummy2
 
+def test_slice():
+    DummyTab.reset()
+    tabs = Tabs(h)
+    dummy = DummyTab()
+    dummy2 = DummyTab()
+    dummy3 = DummyTab()
+    tabs.append(dummy)
+    tabs.append(dummy2)
+    tabs.append(dummy3)
+
+    assert tabs[1:2][0] is dummy2
