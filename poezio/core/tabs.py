@@ -67,10 +67,10 @@ class Tabs:
     def __iter__(self):
         return iter(self._tabs)
 
-    def __getitem__(self, index: Union[int, str]):
-        if isinstance(index, int):
-            return self._tabs[index]
-        return self.by_name(index)
+    def __getitem__(self, index: Union[int, str, slice]):
+        if isinstance(index, str):
+            return self.by_name(index)
+        return self._tabs[index]
 
     def first(self) -> tabs.Tab:
         """Return the Roster tab"""
