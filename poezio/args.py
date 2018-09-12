@@ -38,6 +38,6 @@ def parse_args(CONFIG_PATH: Path):
         dest="version",
         help=SUPPRESS,
         metavar="VERSION",
-        default="0.12")
+        default="0.12.1")
     options = parser.parse_args()
     return options
