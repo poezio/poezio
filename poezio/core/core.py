@@ -908,7 +908,7 @@ class Core:
 
 ### Tab getters ###
 
-    def get_tabs(self, cls: Optional[Type[tabs.Tab]] = None):
+    def get_tabs(self, cls: Type[tabs.Tab] = None):
         "Get all the tabs of a type"
         if cls is None:
             return self.tabs.get_tabs()
@@ -1047,7 +1047,7 @@ class Core:
 
     def focus_tab_named(self,
                         tab_name: str,
-                        type_: Optional[Type[tabs.Tab]] = None) -> bool:
+                        type_: Type[tabs.Tab] = None) -> bool:
         """Returns True if it found a tab to focus on"""
         if type_ is None:
             tab = self.tabs.by_name(tab_name)
