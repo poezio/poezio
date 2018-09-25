@@ -13,6 +13,7 @@ import logging
 import os
 import random
 import re
+import functools
 from datetime import datetime
 from typing import Dict, Callable, List, Optional, Union, Set
 
@@ -1251,6 +1252,9 @@ class MucTab(ChatTab):
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
 
+    # This maxsize is kinda arbitrary, but most users won’t have that many
+    # nicknames anyway.
+    @functools.lru_cache(maxsize=8)
     def build_highlight_regex(self, nickname):
         return re.compile(r"(^|\W)" + re.escape(nickname) + r"(\W|$)", re.I)
 
