@@ -1251,11 +1251,14 @@ class MucTab(ChatTab):
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
 
+    def build_highlight_regex(self, nickname):
+        return re.compile(r"(^|\W)" + re.escape(nickname) + r"(\W|$)", re.I)
+
     def is_highlight(self, txt, time, nickname, own_nick, highlight_on,
                      corrected=False):
         highlighted = False
         if (not time or corrected) and nickname and nickname != own_nick:
-            if re.search(r'\b' + own_nick.lower() + r'\b', txt.lower()):
+            if self.build_highlight_regex(own_nick).search(txt):
                 highlighted = True
             else:
                 highlight_words = highlight_on.split(':')
