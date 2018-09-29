@@ -891,16 +891,20 @@ class HandlerCore:
             _composing_tab_state(tab, state)
             self.core.refresh_tab_win()
 
+    @staticmethod
+    def _format_error(error):
+            error_condition = error['condition']
+            error_text = error['text']
+            return '%s: %s' % (error_condition,
+                               error_text) if error_text else error_condition
+
     def on_version_result(self, iq):
         """
         Handle the result of a /version command.
         """
         jid = iq['from']
         if iq['type'] == 'error':
-            error_condition = iq['error']['condition']
-            error_text = iq['error']['text']
-            reply = '%s: %s' % (error_condition,
-                                error_text) if error_text else error_condition
+            reply = self._format_error(iq['error'])
             return self.core.information(
                 'Could not get the software '
                 'version from %s: %s' % (jid, reply), 'Warning')
@@ -910,6 +914,16 @@ class HandlerCore:
             res.get('version', 'unknown'), res.get('os',
                                                    'an unknown platform'))
         self.core.information(version, 'Info')
+
+    def on_bookmark_result(self, iq):
+        """
+        Handle the result of a /bookmark commands.
+        """
+        if iq['type'] == 'error':
+            reply = self._format_error(iq['error'])
+            return self.core.information(
+                'Could not set the remote bookmarks: %s' % reply, 'Warning')
+        self.core.information('Bookmarks saved', 'Info')
 
     ### subscription-related handlers ###
 

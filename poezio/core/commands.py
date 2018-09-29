@@ -449,14 +449,9 @@ class CommandCore:
         if password:
             bookmark.password = password
 
-        def callback(iq):
-            if iq["type"] != "error":
-                self.core.information('Bookmark added.', 'Info')
-            else:
-                self.core.information("Could not add the bookmarks.", "Info")
-
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp, callback)
+        self.core.bookmarks.save_remote(self.core.xmpp,
+                                        self.core.handler.on_bookmark_result)
 
     def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
@@ -471,16 +466,9 @@ class CommandCore:
                 self.core.bookmarks.remove(bookmark)
         new_bookmarks.extend(self.core.bookmarks.bookmarks)
         self.core.bookmarks.set(new_bookmarks)
-
-        def _cb(iq):
-            if iq["type"] != "error":
-                self.core.information("Bookmarks saved.", "Info")
-            else:
-                self.core.information("Could not save the remote bookmarks.",
-                                      "Info")
-
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp, _cb)
+        self.core.bookmarks.save_remote(self.core.xmpp,
+                                        self.core.handler.on_bookmark_result)
 
     @command_args_parser.ignored
     def bookmarks(self):
