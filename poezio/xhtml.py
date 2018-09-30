@@ -186,6 +186,7 @@ whitespace_re = re.compile(r'\s+')
 
 xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
 xhtml_data_re = re.compile(r'data:image/([a-z]+);base64,(.+)')
+xhtml_cid_re = re.compile(r'^cid:(sha1\+[0-9a-fA-F]+@bob\.xmpp\.org)$')
 poezio_color_double = re.compile(r'(?:\x19\d+}|\x19\d)+(\x19\d|\x19\d+})')
 poezio_format_trim = re.compile(r'(\x19\d+}|\x19\d|\x19[buaio]|\x19o)+\x19o')
 
@@ -305,6 +306,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.formatting = []  # type: List[str]
         self.attrs = []  # type: List[Dict[str, str]]
         self.list_state = []  #  type: List[Union[str, int]]
+        self.cids = {}  #  type: Dict[str, Optional[str]]
         self.is_pre = False
         self.a_start = 0
         # do not care about xhtml-in namespace
@@ -376,6 +378,12 @@ class XHTMLHandler(sax.ContentHandler):
                         builder.append('[Error while saving image: %s]' % e)
                 else:
                     builder.append('[file stored as %s]' % filename)
+            elif re.match(xhtml_cid_re,
+                          attrs['src']) and self.tmp_image_dir is not None:
+                cid = attrs['src'][4:]
+                # TODO: start the download outside of this parser.
+                self.cids[cid] = None
+                builder.append('[Error: XEP-0231 file transfer not yet supported]')
             else:
                 builder.append(_trim(attrs['src']))
             if 'alt' in attrs:
