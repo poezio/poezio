@@ -59,7 +59,11 @@ class User:
         theme = get_theme()
         if theme.ccg_palette:
             # use XEP-0392 CCG
-            fg_color = colors.ccg_text_to_color(theme.ccg_palette, self.nick)
+            if self.jid and self.jid.domain:
+                input_ = str(self.jid.bare)
+            else:
+                input_ = self.nick
+            fg_color = colors.ccg_text_to_color(theme.ccg_palette, input_)
             self.color = fg_color, -1
         else:
             mod = len(theme.LIST_COLOR_NICKNAMES)
