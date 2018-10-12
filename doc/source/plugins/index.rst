@@ -87,6 +87,12 @@ Plugin index
 
         Close all tabs except chatrooms and the contact list.
 
+    Contact
+        :ref:`Documentation <contact-plugin>`
+
+        Do a disco#info query on the JID and display the contact
+        addresses.
+
     CSI
         :ref:`Documentation <csi-plugin>`
 
