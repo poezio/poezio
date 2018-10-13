@@ -21,6 +21,8 @@ import traceback
 from os.path import expanduser
 from glob import glob
 
+from slixmpp.plugins.xep_0363.http_upload import UploadServiceNotFound
+
 from poezio.plugin import BasePlugin
 from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
@@ -44,6 +46,9 @@ class Plugin(BasePlugin):
     async def async_upload(self, filename):
         try:
             url = await self.core.xmpp['xep_0363'].upload_file(filename)
+        except UploadServiceNotFound:
+            self.api.information('HTTP Upload service not found.', 'Error')
+            return
         except Exception:
             exception = traceback.format_exc()
             self.api.information('Failed to upload file: %s' % exception,
