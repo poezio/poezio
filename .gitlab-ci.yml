@@ -12,6 +12,7 @@ build-doc:
   script:
     - ./update.sh
     - . ./poezio-venv/bin/activate
+    - pip install sphinx
     - make doc
     - rm -rf /www/latest
     - mv doc/build/html/ /www/latest
