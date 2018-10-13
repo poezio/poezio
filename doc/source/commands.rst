@@ -509,7 +509,7 @@ Contact list tab commands
         Change your password.
 
     /groupadd
-        **Usage:** ``/groupadd (<jid> <group>|<group>)
+        **Usage:** ``/groupadd (<jid> <group>|<group>)``
 
         Add the given JID to the given group (if the group
         does not exist, it will be created). If no jid is provided,

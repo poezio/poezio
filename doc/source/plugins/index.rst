@@ -352,3 +352,4 @@ Plugin index
     server_part
     vcard
     upload
+    contact

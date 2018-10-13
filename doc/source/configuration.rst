@@ -854,9 +854,9 @@ Options that change the behavior of poezio in a non-visual manner.
         (separated by spaces).
 
         The events can be
+
         - ``highlight`` (when you are highlighted in a chatroom)
-        - ``private`` (when a new private message is received, from your
-          contacts or someone from a chatroom)
+        - ``private`` (when a new private message is received, from your contacts or someone from a chatroom)
         - ``message`` (any message from a chatroom)
 
     separate_history
