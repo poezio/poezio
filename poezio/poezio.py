@@ -98,10 +98,10 @@ def main():
     from poezio import roster
     roster.create_roster()
 
-    from poezio import core
+    from poezio.core.core import Core
 
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # ignore ctrl-c
-    cocore = core.Core()
+    cocore = Core()
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler)  # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)
