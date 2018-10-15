@@ -60,7 +60,7 @@ class User:
         if theme.ccg_palette:
             # use XEP-0392 CCG
             if self.jid and self.jid.domain:
-                input_ = str(self.jid.bare)
+                input_ = self.jid.bare
             else:
                 input_ = self.nick
             fg_color = colors.ccg_text_to_color(theme.ccg_palette, input_)
