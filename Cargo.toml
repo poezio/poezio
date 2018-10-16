@@ -5,6 +5,8 @@ authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
 
 [dependencies]
 cpython = "0.2"
+nom = "4"
+chrono = "0.4"
 
 [lib]
 crate-type = ["cdylib"]
