@@ -213,22 +213,6 @@ def get_utc_time(local_time: Optional[datetime] = None) -> datetime:
     return utc_time
 
 
-def get_local_time(utc_time: datetime) -> datetime:
-    """
-    Get the local time from an UTC time
-    """
-    isdst = time.localtime(int(utc_time.timestamp())).tm_isdst
-
-    if time.daylight and isdst:
-        tz = timedelta(seconds=time.altzone)
-    else:
-        tz = timedelta(seconds=time.timezone)
-
-    local_time = utc_time - tz
-
-    return local_time
-
-
 def find_delayed_tag(message: Message) -> Tuple[bool, Optional[datetime]]:
     """
     Check if a message is delayed or not.
