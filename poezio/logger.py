@@ -10,7 +10,6 @@ conversations and roster changes
 """
 
 import mmap
-import re
 from typing import List, Dict, Optional, IO, Any
 from datetime import datetime
 
@@ -18,53 +17,13 @@ from poezio import common
 from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.theming import dump_tuple, get_theme
+from poezio import libpoezio
 
 import logging
 
 log = logging.getLogger(__name__)
 
 from poezio.config import LOG_DIR as log_dir
-
-MESSAGE_LOG_RE = re.compile(r'^MR (\d{4})(\d{2})(\d{2})T'
-                            r'(\d{2}):(\d{2}):(\d{2})Z '
-                            r'(\d+) <([^ ]+)>  (.*)$')
-INFO_LOG_RE = re.compile(r'^MI (\d{4})(\d{2})(\d{2})T'
-                         r'(\d{2}):(\d{2}):(\d{2})Z '
-                         r'(\d+) (.*)$')
-
-
-class LogItem:
-    def __init__(self, year, month, day, hour, minute, second, nb_lines,
-                 message):
-        self.time = datetime(
-            int(year), int(month), int(day), int(hour), int(minute),
-            int(second))
-        self.nb_lines = int(nb_lines)
-        self.text = message
-
-
-class LogInfo(LogItem):
-    def __init__(self, *args):
-        LogItem.__init__(self, *args)
-
-
-class LogMessage(LogItem):
-    def __init__(self, year, month, day, hour, minute, seconds, nb_lines, nick,
-                 message):
-        LogItem.__init__(self, year, month, day, hour, minute, seconds,
-                         nb_lines, message)
-        self.nick = nick
-
-
-def _parse_log_line(msg: str) -> Optional[LogItem]:
-    match = re.match(MESSAGE_LOG_RE, msg)
-    if match:
-        return LogMessage(*match.groups())
-    match = re.match(INFO_LOG_RE, msg)
-    if match:
-        return LogInfo(*match.groups())
-    log.debug('Error while parsing "%s"', msg)
-    return None
 
 
 class Logger:
@@ -169,14 +128,14 @@ class Logger:
         # do that efficiently, instead of seek()s and read()s which are costly.
         with fd:
             try:
-                lines = _get_lines_from_fd(fd, nb=nb)
+                data = _get_last_messages_from_fd(fd, nb=nb)
             except Exception:  # file probably empty
                 log.error(
                     'Unable to mmap the log file for (%s)',
                     filename,
                     exc_info=True)
                 return None
-        return _parse_log_lines(lines)
+        return _parse_log_lines(data)
 
     def log_message(self,
                     jid: str,
@@ -290,7 +249,7 @@ def _build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
-def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
+def _get_last_messages_from_fd(fd: IO[Any], nb: int = 10) -> str:
     """
     Get the last log lines from a fileno
     """
@@ -305,47 +264,21 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
         if pos == -1:  # If we don't have enough lines in the file
             pos = 1  # 1, because we do -1 just on the next line
             # to get 0 (start of the file)
-        lines = m[pos - 1:].decode(errors='replace').splitlines()
-    return lines
+        data = m[pos - 1:].decode(errors='replace')
+    return data
 
 
-def _parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
+def _parse_log_lines(data: str) -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
     """
-    messages = []
     color = '\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG)
 
     # now convert that data into actual Message objects
-    idx = 0
-    while idx < len(lines):
-        if lines[idx].startswith(' '):  # should not happen ; skip
-            idx += 1
-            log.debug('fail?')
-            continue
-        log_item = _parse_log_line(lines[idx])
-        idx += 1
-        if not isinstance(log_item, LogItem):
-            log.debug('wrong log format? %s', log_item)
-            continue
-        message_lines = []
-        message = {
-            'history': True,
-            'time': common.get_local_time(log_item.time)
-        }
-        size = log_item.nb_lines
-        if isinstance(log_item, LogInfo):
-            message_lines.append(color + log_item.text)
-        elif isinstance(log_item, LogMessage):
-            message['nickname'] = log_item.nick
-            message_lines.append(color + log_item.text)
-        while size != 0 and idx < len(lines):
-            message_lines.append(lines[idx][1:])
-            size -= 1
-            idx += 1
-        message['txt'] = '\n'.join(message_lines)
-        messages.append(message)
-    return messages
+    logs = libpoezio.parse_logs(data)
+    for message in logs:
+        message['txt'] = color + message['txt']
+    return logs
 
 
 def create_logger() -> None:
