@@ -8,7 +8,7 @@ import datetime
 from slixmpp import JID
 from datetime import timedelta
 from poezio.common import (_datetime_tuple as datetime_tuple, get_utc_time,
-                           get_local_time, shell_split, _find_argument_quoted
+                           shell_split, _find_argument_quoted
                            as find_argument_quoted, _find_argument_unquoted as
                            find_argument_unquoted, parse_str_to_secs,
                            parse_secs_to_str, safeJID)
@@ -18,13 +18,6 @@ def test_utc_time():
     d = datetime.datetime.now()
     time.timezone = -3600; time.altzone = -3600
     assert get_utc_time(local_time=d) == d + delta
-
-def test_local_time():
-    delta = timedelta(seconds=-3600)
-    d = datetime.datetime.now()
-    time.timezone = -3600
-    time.altzone = -3600
-    assert get_local_time(d) == d - delta
 
 def test_shell_split():
     assert shell_split('"sdf 1" "toto 2"') == ['sdf 1', 'toto 2']
