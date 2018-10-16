@@ -56,7 +56,7 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def parse_log_line(msg: str) -> Optional[LogItem]:
+def _parse_log_line(msg: str) -> Optional[LogItem]:
     match = re.match(MESSAGE_LOG_RE, msg)
     if match:
         return LogMessage(*match.groups())
@@ -169,14 +169,14 @@ class Logger:
         # do that efficiently, instead of seek()s and read()s which are costly.
         with fd:
             try:
-                lines = get_lines_from_fd(fd, nb=nb)
+                lines = _get_lines_from_fd(fd, nb=nb)
             except Exception:  # file probably empty
                 log.error(
                     'Unable to mmap the log file for (%s)',
                     filename,
                     exc_info=True)
                 return None
-        return parse_log_lines(lines)
+        return _parse_log_lines(lines)
 
     def log_message(self,
                     jid: str,
@@ -193,7 +193,7 @@ class Logger:
         """
         if not config.get_by_tabname('use_log', jid):
             return True
-        logged_msg = build_log_message(nick, msg, date=date, typ=typ)
+        logged_msg = _build_log_message(nick, msg, date=date, typ=typ)
         if not logged_msg:
             return True
         if jid in self._fds.keys():
@@ -260,10 +260,10 @@ class Logger:
         return True
 
 
-def build_log_message(nick: str,
-                      msg: str,
-                      date: Optional[datetime] = None,
-                      typ: int = 1) -> str:
+def _build_log_message(nick: str,
+                       msg: str,
+                       date: Optional[datetime] = None,
+                       typ: int = 1) -> str:
     """
     Create a log message from a nick, a message, optionally a date and type
     message types:
@@ -290,7 +290,7 @@ def build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
-def get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
+def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     """
     Get the last log lines from a fileno
     """
@@ -309,7 +309,7 @@ def get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
+def _parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
     """
@@ -323,7 +323,7 @@ def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
             idx += 1
             log.debug('fail?')
             continue
-        log_item = parse_log_line(lines[idx])
+        log_item = _parse_log_line(lines[idx])
         idx += 1
         if not isinstance(log_item, LogItem):
             log.debug('wrong log format? %s', log_item)
