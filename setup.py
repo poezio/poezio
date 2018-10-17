@@ -10,6 +10,12 @@ except ImportError:
     print('\nSetuptools was not found. Install setuptools for python 3.\n')
     sys.exit(1)
 
+try:
+    from setuptools_rust import Binding, RustExtension
+except ImportError:
+    print('\nsetuptools-rust was not found. Install setuptools-rust for python 3.\n')
+    sys.exit(1)
+
 cmdclass = {}
 try:
     from sphinx.setup_command import BuildDoc
@@ -124,6 +130,7 @@ setup(
     description="A console XMPP client",
     long_description=LONG_DESCRIPTION,
     ext_modules=[module_poopt],
+    rust_extensions=[RustExtension('poezio.libpoezio', binding=Binding.RustCPython)],
     url='https://poez.io/',
     license='GPL-3.0-or-later',
     download_url='https://dev.louiz.org/projects/poezio/files',
@@ -165,7 +172,15 @@ setup(
         + find_doc('share/doc/poezio/html', 'build/html')
         + sphinx_files_found
     ),
-    install_requires=['slixmpp>=1.6.0', 'aiodns', 'pyasn1_modules', 'pyasn1', 'typing_extensions', 'setuptools'],
+    install_requires=[
+        'slixmpp>=1.6.0',
+        'aiodns',
+        'pyasn1_modules',
+        'pyasn1',
+        'typing_extensions',
+        'setuptools',
+        'setuptools-rust',
+    ],
     extras_require={'OTR plugin': 'python-potr>=1.0',
         'Screen autoaway plugin': 'pyinotify==0.9.4',
         'Avoiding cython': 'cffi'},
