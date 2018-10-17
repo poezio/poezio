@@ -77,7 +77,7 @@ import os
 from typing import Dict, List, Union, Tuple, Optional
 from pathlib import Path
 from os import path
-from poezio import colors, xdg
+from poezio import colors, xdg, libpoezio
 
 from importlib import machinery
 finder = machinery.PathFinder()
@@ -379,42 +379,7 @@ class Theme:
 # This is the default theme object, used if no theme is defined in the conf
 theme = Theme()
 
-# a dict "color tuple -> color_pair"
-# Each time we use a color tuple, we check if it has already been used.
-# If not we create a new color_pair and keep it in that dict, to use it
-# the next time.
-curses_colors_dict = {
-}  # type: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int]
-
-# yapf: disable
-
-table_256_to_16 = [
-         0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-         0,  4,  4,  4, 12, 12,  2,  6,  4,  4, 12, 12,  2,  2,  6,  4,
-        12, 12,  2,  2,  2,  6, 12, 12, 10, 10, 10, 10, 14, 12, 10, 10,
-        10, 10, 10, 14,  1,  5,  4,  4, 12, 12,  3,  8,  4,  4, 12, 12,
-         2,  2,  6,  4, 12, 12,  2,  2,  2,  6, 12, 12, 10, 10, 10, 10,
-        14, 12, 10, 10, 10, 10, 10, 14,  1,  1,  5,  4, 12, 12,  1,  1,
-         5,  4, 12, 12,  3,  3,  8,  4, 12, 12,  2,  2,  2,  6, 12, 12,
-        10, 10, 10, 10, 14, 12, 10, 10, 10, 10, 10, 14,  1,  1,  1,  5,
-        12, 12,  1,  1,  1,  5, 12, 12,  1,  1,  1,  5, 12, 12,  3,  3,
-         3,  7, 12, 12, 10, 10, 10, 10, 14, 12, 10, 10, 10, 10, 10, 14,
-         9,  9,  9,  9, 13, 12,  9,  9,  9,  9, 13, 12,  9,  9,  9,  9,
-        13, 12,  9,  9,  9,  9, 13, 12, 11, 11, 11, 11,  7, 12, 10, 10,
-        10, 10, 10, 14,  9,  9,  9,  9,  9, 13,  9,  9,  9,  9,  9, 13,
-         9,  9,  9,  9,  9, 13,  9,  9,  9,  9,  9, 13,  9,  9,  9,  9,
-         9, 13, 11, 11, 11, 11, 11, 15,  0,  0,  0,  0,  0,  0,  8,  8,
-         8,  8,  8,  8,  7,  7,  7,  7,  7,  7, 15, 15, 15, 15, 15, 15
-]
-# yapf: enable
-
 load_path = []  # type: List[str]
-
-
-def color_256_to_16(color):
-    if color == -1:
-        return color
-    return table_256_to_16[color]
 
 
 def dump_tuple(tup: Union[Tuple[int, int], Tuple[int, int, str]]) -> str:
@@ -435,49 +400,13 @@ def read_tuple(_str: str) -> Tuple[Tuple[int, int], str]:
 
 @functools.lru_cache(maxsize=128)
 def to_curses_attr(
-        color_tuple: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
+        colors: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
     """
     Takes a color tuple (as defined at the top of this file) and
     returns a valid curses attr that can be passed directly to attron() or attroff()
     """
-    # extract the color from that tuple
-    if len(color_tuple) == 3:
-        colors = (color_tuple[0], color_tuple[1])
-    else:
-        colors = color_tuple
-
-    bold = False
-    if curses.COLORS != 256:
-        # We are not in a term supporting 256 colors, so we convert
-        # colors to numbers between -1 and 8
-        colors = (color_256_to_16(colors[0]), color_256_to_16(colors[1]))
-        if colors[0] >= 8:
-            colors = (colors[0] - 8, colors[1])
-            bold = True
-        if colors[1] >= 8:
-            colors = (colors[0], colors[1] - 8)
-
-    # check if we already used these colors
-    try:
-        pair = curses_colors_dict[colors]
-    except KeyError:
-        pair = len(curses_colors_dict) + 1
-        curses.init_pair(pair, colors[0], colors[1])
-        curses_colors_dict[colors] = pair
-    curses_pair = curses.color_pair(pair)
-    if len(color_tuple) == 3:
-        additional_val = color_tuple[2]
-        if 'b' in additional_val or bold is True:
-            curses_pair = curses_pair | curses.A_BOLD
-        if 'u' in additional_val:
-            curses_pair = curses_pair | curses.A_UNDERLINE
-        if 'i' in additional_val:
-            curses_pair = curses_pair | (curses.A_ITALIC if hasattr(
-                curses, 'A_ITALIC') else curses.A_REVERSE)
-        if 'a' in additional_val:
-            curses_pair = curses_pair | curses.A_BLINK
-    return curses_pair
-
+    attrs = '' if len(colors) < 3 else colors[2]
+    return libpoezio.to_curses_attr(colors[0], colors[1], attrs)
 
 def get_theme() -> Theme:
     """
