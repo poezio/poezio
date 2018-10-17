@@ -9,16 +9,22 @@ extern crate lazy_static;
 extern crate enum_set;
 
 pub mod logger;
+pub mod strings;
 pub mod theming;
 
+use std::ffi::c_void;
 use cpython::{Python, PyResult, PyErr, PyList, PyDict, PyTuple, PyObject, ToPyObject, PythonObject, ObjectProtocol};
 use self::logger::LogItem;
 use chrono::{DateTime, Utc, Local, Datelike, Timelike};
 use self::theming::{curses_attr, parse_attrs};
+use self::strings::{parse_string, print_string, finish_line as finish_line_};
+use ncurses::{WINDOW};
 
 py_module_initializer!(libpoezio, initlibpoezio, PyInit_libpoezio, |py, m| {
     m.add(py, "parse_logs", py_fn!(py, parse_logs(input: &str)))?;
     m.add(py, "to_curses_attr", py_fn!(py, to_curses_attr(fg: i16, bg: i16, attrs: &str)))?;
+    m.add(py, "printw", py_fn!(py, printw(window: PyObject, text: &str)))?;
+    m.add(py, "finish_line", py_fn!(py, finish_line(window: PyObject, width: i32, color: Option<(i16, i16)>)))?;
     Ok(())
 });
 
@@ -44,12 +50,34 @@ fn chrono_to_datetime(py: Python, chrono: &DateTime<Utc>) -> PyResult<PyObject> 
     Ok(datetime)
 }
 
-fn nom_to_py_err(py: Python, err: nom::Err<&str>) -> PyErr {
+fn nom_to_py_err<T>(py: Python, err: nom::Err<T>) -> PyErr {
     PyErr {
         ptype: py.get_type::<LogParseError>().into_object(),
         pvalue: Some(LogParseError(err.into_error_kind().description().to_py_object(py).into_object()).into_object()),
         ptraceback: None,
     }
+}
+
+unsafe fn get_window_from_python(window: PyObject) -> WINDOW {
+    let py_win = window.as_ptr() as *const c_void;
+    let win: *const WINDOW = std::mem::transmute(py_win.offset(16));
+    *win
+}
+
+fn printw(py: Python, window: PyObject, text: &str) -> PyResult<PyObject> {
+    let items = match parse_string(text) {
+        Ok(items) => items.1,
+        Err(err) => return Err(nom_to_py_err(py, err)),
+    };
+    let win = unsafe { get_window_from_python(window) };
+    print_string(win, items);
+    Ok(py.None())
+}
+
+fn finish_line(py: Python, window: PyObject, width: i32, colour: Option<(i16, i16)>) -> PyResult<PyObject> {
+    let win = unsafe { get_window_from_python(window) };
+    finish_line_(win, width, colour);
+    Ok(py.None())
 }
 
 fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObject> {
