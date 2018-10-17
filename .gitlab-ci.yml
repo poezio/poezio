@@ -41,8 +41,14 @@ pytest-3.5:
   image: python:3.5
   script:
     - apt-get update && apt-get install -y libidn11-dev
+    - wget https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init
+    - chmod +x rustup-init
+    - ./rustup-init -y --no-modify-path --default-toolchain nightly
+    - rm rustup-init
+    - ls ~/.cargo/bin
+    - export PATH=$PATH:$HOME/.cargo/bin
     - git clone git://git.louiz.org/slixmpp
-    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - pip3 install pytest pyasn1-modules cffi setuptools-rust --upgrade
     - cd slixmpp
     - python3 setup.py install
     - cd ..
@@ -54,8 +60,14 @@ pytest-3.6:
   image: python:3.6
   script:
     - apt-get update && apt-get install -y libidn11-dev
+    - wget https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init
+    - chmod +x rustup-init
+    - ./rustup-init -y --no-modify-path --default-toolchain nightly
+    - rm rustup-init
+    - ls ~/.cargo/bin
+    - export PATH=$PATH:$HOME/.cargo/bin
     - git clone git://git.louiz.org/slixmpp
-    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - pip3 install pytest pyasn1-modules cffi setuptools-rust --upgrade
     - cd slixmpp
     - python3 setup.py install
     - cd ..
@@ -67,8 +79,14 @@ pytest-latest:
   image: python:3
   script:
     - apt-get update && apt-get install -y libidn11-dev
+    - wget https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init
+    - chmod +x rustup-init
+    - ./rustup-init -y --no-modify-path --default-toolchain nightly
+    - rm rustup-init
+    - ls ~/.cargo/bin
+    - export PATH=$PATH:$HOME/.cargo/bin
     - git clone git://git.louiz.org/slixmpp
-    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - pip3 install pytest pyasn1-modules cffi setuptools-rust --upgrade
     - cd slixmpp
     - python3 setup.py install
     - cd ..
@@ -81,7 +99,13 @@ pylint-plugins:
   allow_failure: true
   script:
     - apt-get update && apt-get install -y libidn11-dev
-    - pip3 install pylint pyasn1-modules cffi --upgrade
+    - wget https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init
+    - chmod +x rustup-init
+    - ./rustup-init -y --no-modify-path --default-toolchain nightly
+    - rm rustup-init
+    - ls ~/.cargo/bin
+    - export PATH=$PATH:$HOME/.cargo/bin
+    - pip3 install pylint pyasn1-modules cffi setuptools-rust --upgrade
     - pip3 install -e git+git://git.louiz.org/slixmpp#egg=slixmpp
     - pip3 install -r requirements-plugins.txt
     - python3 setup.py install

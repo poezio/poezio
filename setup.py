@@ -7,6 +7,13 @@ except ImportError:
     import sys
     sys.exit(1)
 
+try:
+    from setuptools_rust import Binding, RustExtension
+except ImportError:
+    print('\nsetuptools-rust was not found. Install setuptools-rust for python 3.\n')
+    import sys
+    sys.exit(1)
+
 import os
 import subprocess
 from tempfile import TemporaryFile
@@ -93,6 +100,7 @@ setup(name="poezio",
       description="A console XMPP client",
       long_description=LONG_DESCRIPTION,
       ext_modules=[module_poopt],
+      rust_extensions=[RustExtension('poezio.libpoezio', binding=Binding.RustCPython)],
       url='https://poez.io/',
       license='zlib',
       download_url='https://dev.louiz.org/projects/poezio/files',
