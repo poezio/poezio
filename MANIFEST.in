@@ -1,4 +1,6 @@
 recursive-include doc/source *
+include Cargo.toml
+recursive-include src *
 include data/poezio.1
 include data/io.poez.Poezio.appdata.xml
 include data/io.poez.Poezio.desktop
