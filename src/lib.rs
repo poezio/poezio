@@ -3,15 +3,22 @@ extern crate cpython;
 #[macro_use]
 extern crate nom;
 extern crate chrono;
+extern crate ncurses;
+#[macro_use]
+extern crate lazy_static;
+extern crate enum_set;
 
 pub mod logger;
+pub mod theming;
 
 use cpython::{Python, PyResult, PyErr, PyList, PyDict, PyTuple, PyObject, ToPyObject, PythonObject, ObjectProtocol};
 use self::logger::LogItem;
 use chrono::{DateTime, Utc, Local, Datelike, Timelike};
+use self::theming::{curses_attr, parse_attrs};
 
 py_module_initializer!(libpoezio, initlibpoezio, PyInit_libpoezio, |py, m| {
     m.add(py, "parse_logs", py_fn!(py, parse_logs(input: &str)))?;
+    m.add(py, "to_curses_attr", py_fn!(py, to_curses_attr(fg: i16, bg: i16, attrs: &str)))?;
     Ok(())
 });
 
@@ -37,17 +44,27 @@ fn chrono_to_datetime(py: Python, chrono: &DateTime<Utc>) -> PyResult<PyObject> 
     Ok(datetime)
 }
 
+fn nom_to_py_err(py: Python, err: nom::Err<&str>) -> PyErr {
+    PyErr {
+        ptype: py.get_type::<LogParseError>().into_object(),
+        pvalue: Some(LogParseError(err.into_error_kind().description().to_py_object(py).into_object()).into_object()),
+        ptraceback: None,
+    }
+}
+
+fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObject> {
+    let attrs = match parse_attrs(attrs) {
+        Ok(attrs) => attrs.1,
+        Err(err) => return Err(nom_to_py_err(py, err)),
+    };
+    let result = curses_attr((fg, bg), attrs);
+    Ok(py_int!(py, result))
+}
+
 fn parse_logs(py: Python, input: &str) -> PyResult<PyList> {
     let logs = match logger::parse_logs(&input) {
         Ok(logs) => logs,
-        Err(err) => {
-            println!("{}", err);
-            return Err(PyErr {
-                ptype: py.get_type::<LogParseError>().into_object(),
-                pvalue: Some(LogParseError(err.into_error_kind().description().to_py_object(py).into_object()).into_object()),
-                ptraceback: None,
-            });
-        }
+        Err(err) => return Err(nom_to_py_err(py, err)),
     };
     let mut items = vec!();
     for item in logs {
