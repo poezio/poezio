@@ -7,6 +7,9 @@ authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
 cpython = "0.2"
 nom = "4"
 chrono = "0.4"
+ncurses = "5"
+lazy_static = "1"
+enum-set = "0.0"
 
 [lib]
 crate-type = ["cdylib"]
