@@ -1,0 +1,13 @@
+[package]
+name = "poezio"
+version = "0.1.0"
+authors = [
+  "Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>",
+  "Maxime “pep” Buquet <pep@bouah.net>",
+]
+
+[dependencies]
+cpython = "0.7"
+
+[lib]
+crate-type = ["cdylib"]
