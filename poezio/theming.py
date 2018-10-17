@@ -389,15 +389,6 @@ def dump_tuple(tup: Union[Tuple[int, int], Tuple[int, int, str]]) -> str:
     return ','.join(str(i) for i in tup)
 
 
-def read_tuple(_str: str) -> Tuple[Tuple[int, int], str]:
-    """
-    Read a tuple dumped with dump_tumple
-    """
-    attrs = _str.split(',')
-    char = attrs[2] if len(attrs) > 2 else '\0'
-    return (int(attrs[0]), int(attrs[1])), char
-
-
 @functools.lru_cache(maxsize=128)
 def to_curses_attr(
         colors: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
