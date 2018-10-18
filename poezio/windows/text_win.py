@@ -9,12 +9,13 @@ from math import ceil, log10
 from typing import Optional, List, Union
 
 from poezio.windows.base_wins import Win, FORMAT_CHAR
-from poezio.windows.funcs import truncate_nick, parse_attrs
+from poezio.windows.funcs import parse_attrs
 
 from poezio import poopt
 from poezio.config import config
 from poezio.theming import to_curses_attr, get_theme, dump_tuple
 from poezio.text_buffer import Message
+from poezio.libpoezio import truncate_nick
 
 log = logging.getLogger(__name__)
 
@@ -355,15 +356,14 @@ class TextWin(BaseTextWin):
                 FORMAT_CHAR + dump_tuple(get_theme().COLOR_LOG_MSG) + '}')  # type: Optional[str]
         else:
             default_color = None
-        ret = []  # type: List[Union[None, Line]]
-        nick = truncate_nick(message.nickname, nick_size)
         offset = 0
         if message.ack:
             if message.ack > 0:
                 offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
             else:
                 offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
-        if nick:
+        if message.nickname is not None:
+            nick = truncate_nick(message.nickname, nick_size)
             offset += poopt.wcswidth(nick) + 2  # + nick + '> ' length
         if message.revisions > 0:
             offset += ceil(log10(message.revisions + 1))
@@ -378,6 +378,7 @@ class TextWin(BaseTextWin):
                 offset += 1
         lines = poopt.cut_text(txt, self.width - offset - 1)
         prepend = default_color if default_color else ''
+        ret = []  # type: List[Union[None, Line]]
         attrs = []  # type: List[str]
         for line in lines:
             saved = Line(
@@ -604,7 +605,7 @@ class XMLTextWin(BaseTextWin):
             offset += 1
 
             # Offset for the prefix
-            offset += poopt.wcswidth(truncate_nick(line.msg.nickname))
+            offset += poopt.wcswidth(truncate_nick(line.msg.nickname, 10))
             # space
             offset += 1
 
@@ -652,5 +653,5 @@ class XMLTextWin(BaseTextWin):
 
     def write_prefix(self, nickname, color) -> None:
         self._win.attron(to_curses_attr(color))
-        self.addstr(truncate_nick(nickname))
+        self.addstr(truncate_nick(nickname, 10))
         self._win.attroff(to_curses_attr(color))
