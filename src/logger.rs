@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use chrono::{DateTime, Utc, TimeZone};
+use nom;
 
 pub trait LogItem {
     fn get_time(&self) -> &DateTime<Utc>;

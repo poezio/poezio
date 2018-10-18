@@ -12,7 +12,6 @@ pub mod logger;
 pub mod strings;
 pub mod theming;
 
-use std::ffi::c_void;
 use cpython::{Python, PyResult, PyErr, PyList, PyDict, PyTuple, PyString, PyObject, ToPyObject, PythonObject, ObjectProtocol};
 use self::logger::LogItem;
 use chrono::{DateTime, Utc, Local, Datelike, Timelike};
@@ -60,7 +59,7 @@ fn nom_to_py_err<T>(py: Python, err: nom::Err<T>) -> PyErr {
 }
 
 unsafe fn get_window_from_python(window: PyObject) -> WINDOW {
-    let py_win = window.as_ptr() as *const c_void;
+    let py_win = window.as_ptr() as *const u8;
     let win: *const WINDOW = std::mem::transmute(py_win.offset(16));
     *win
 }

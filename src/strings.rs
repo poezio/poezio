@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::mem;
 use enum_set::EnumSet;
-use crate::theming::{Attr, curses_attr, parse_attrs};
+use theming::{Attr, curses_attr, parse_attrs};
 use ncurses::{WINDOW, waddstr, wattrset, wattron, getyx};
 
 #[derive(Debug, PartialEq)]
