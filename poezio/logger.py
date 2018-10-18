@@ -295,17 +295,14 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     Get the last log lines from a fileno
     """
     with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
-        pos = m.rfind(b"\nM")  # start of messages begin with MI or MR,
-        # after a \n
+        # start of messages begin with MI or MR, after a \n
+        pos = m.rfind(b"\nM") + 1
         # number of message found so far
         count = 0
-        while pos != -1 and count < nb - 1:
+        while pos != 0 and count < nb - 1:
             count += 1
-            pos = m.rfind(b"\nM", 0, pos)
-        if pos == -1:  # If we don't have enough lines in the file
-            pos = 1  # 1, because we do -1 just on the next line
-            # to get 0 (start of the file)
-        lines = m[pos - 1:].decode(errors='replace').splitlines()
+            pos = m.rfind(b"\nM", 0, pos) + 1
+        lines = m[pos:].decode(errors='replace').splitlines()
     return lines
 
 
