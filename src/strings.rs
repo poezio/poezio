@@ -91,6 +91,14 @@ pub(crate) fn finish_line(window: WINDOW, width: i32, colour: Option<(i16, i16)>
     Item::Text(&spaces).print_window(window);
 }
 
+pub(crate) fn truncate_nick(nick: &str, size: usize) -> String {
+    let mut nick2 = nick.chars().take(size).collect();
+    if nick.chars().count() > size {
+        nick2 += "…";
+    }
+    nick2
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,5 +130,16 @@ mod tests {
     #[test]
     fn bold_string() {
         assert_eq!(parse_string("\x19bHello world!\x19o").unwrap().1, &[Item::AttrOn(Attr::Bold), Item::Text("Hello world!"), Item::AttrSet0]);
+    }
+
+    #[test]
+    fn simple_truncate_nick() {
+        let nick = "Link Mauve";
+        let nick2 = truncate_nick(nick, 4);
+        assert_eq!(&nick2, "Link…");
+
+        let nick = "Link Mauve";
+        let nick2 = truncate_nick(nick, 10);
+        assert_eq!(&nick2, nick);
     }
 }
