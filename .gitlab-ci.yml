@@ -54,6 +54,7 @@ pytest-3.5:
     - cd ..
     - python3 setup.py install
     - py.test -v test/
+    - cargo test
 
 pytest-3.6:
   stage: test
@@ -73,6 +74,7 @@ pytest-3.6:
     - cd ..
     - python3 setup.py install
     - py.test -v test/
+    - cargo test
 
 pytest-latest:
   stage: test
@@ -92,6 +94,7 @@ pytest-latest:
     - cd ..
     - python3 setup.py install
     - py.test -v test/
+    - cargo test
 
 pylint-plugins:
   stage: test
