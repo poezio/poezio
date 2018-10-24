@@ -26,6 +26,7 @@ from typing import List, Dict, Optional, Union, Tuple
 from slixmpp.xmlstream import ET
 from poezio.config import config
 from poezio.colors import ncurses_color_to_rgb
+from poezio.libpoezio import clean_text
 
 digits = '0123456789'  # never trust the modules
 
@@ -184,7 +185,6 @@ colors = {
 
 whitespace_re = re.compile(r'\s+')
 
-xhtml_attr_re = re.compile(r'\x19-?\d[^}]*}|\x19[buaio]')
 xhtml_data_re = re.compile(r'data:image/([a-z]+);base64,(.+)')
 xhtml_cid_re = re.compile(r'^cid:(sha1\+[0-9a-fA-F]+@bob\.xmpp\.org)$')
 poezio_color_double = re.compile(r'(?:\x19\d+}|\x19\d)+(\x19\d|\x19\d+})')
@@ -459,15 +459,6 @@ def xhtml_to_poezio_colors(xml, force=False,
     parser.setContentHandler(handler)
     parser.parse(BytesIO(xml))
     return handler.result
-
-
-def clean_text(s: str) -> str:
-    """
-    Remove all xhtml-im attributes (\x19etc) from the string with the
-    complete color format, i.e \x19xxx}
-    """
-    s = re.sub(xhtml_attr_re, "", s)
-    return s
 
 
 def clean_text_simple(string: str) -> str:

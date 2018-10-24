@@ -16,7 +16,7 @@ use cpython::{Python, PyResult, PyErr, PyList, PyDict, PyTuple, PyString, PyObje
 use self::logger::LogItem;
 use chrono::{DateTime, Utc, Local, Datelike, Timelike};
 use self::theming::{curses_attr, parse_attrs};
-use self::strings::{parse_string, print_string, finish_line as finish_line_, truncate_nick as truncate_nick_};
+use self::strings::{parse_string, print_string, finish_line as finish_line_, truncate_nick as truncate_nick_, clean_text as clean_text_};
 use ncurses::WINDOW;
 
 py_module_initializer!(libpoezio, initlibpoezio, PyInit_libpoezio, |py, m| {
@@ -25,6 +25,7 @@ py_module_initializer!(libpoezio, initlibpoezio, PyInit_libpoezio, |py, m| {
     m.add(py, "printw", py_fn!(py, printw(window: PyObject, text: &str)))?;
     m.add(py, "finish_line", py_fn!(py, finish_line(window: PyObject, width: i32, color: Option<(i16, i16)>)))?;
     m.add(py, "truncate_nick", py_fn!(py, truncate_nick(nick: &str, size: usize)))?;
+    m.add(py, "clean_text", py_fn!(py, clean_text(text: &str)))?;
     Ok(())
 });
 
@@ -83,6 +84,17 @@ fn finish_line(py: Python, window: PyObject, width: i32, colour: Option<(i16, i1
 fn truncate_nick(py: Python, nick: &str, size: usize) -> PyResult<PyString> {
     let string = truncate_nick_(nick, size);
     Ok(PyString::new(py, &string))
+}
+
+/// Remove all xhtml-im attributes (\x19etc) from the string with the
+/// complete color format, i.e \x19xxx}
+fn clean_text(py: Python, text: &str) -> PyResult<PyString> {
+    let items = match parse_string(text) {
+        Ok(items) => items.1,
+        Err(err) => return Err(nom_to_py_err(py, err)),
+    };
+    let text = clean_text_(&items);
+    Ok(PyString::new(py, &text))
 }
 
 fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObject> {

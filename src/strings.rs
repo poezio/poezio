@@ -80,6 +80,17 @@ pub(crate) fn print_string(window: WINDOW, string: Vec<Item>) {
     }
 }
 
+/// Filter out any formatting from a list of `Item`s, and return a single
+/// string.
+pub(crate) fn clean_text(string: &[Item]) -> String {
+    string.iter()
+          .flat_map(|item| match item {
+               Item::Text(text) => text.chars(),
+               _ => "".chars()
+           })
+          .collect()
+}
+
 pub(crate) fn finish_line(window: WINDOW, width: i32, colour: Option<(i16, i16)>) {
     let mut y: i32 = unsafe { mem::uninitialized() };
     let mut x: i32 = unsafe { mem::uninitialized() };
