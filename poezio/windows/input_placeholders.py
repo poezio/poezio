@@ -19,6 +19,8 @@ class HelpText(Win):
     command mode.
     """
 
+    __slots__ = ('txt')
+
     def __init__(self, text: str = '') -> None:
         Win.__init__(self)
         self.txt = text  # type: str

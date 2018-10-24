@@ -152,6 +152,9 @@ class BookmarkAutojoinWin(FieldInputMixin):
 
 
 class BookmarksWin(Win):
+    __slots__ = ('scroll_pos', '_current_input', 'current_horizontal_input',
+                 '_bookmarks', 'lines')
+
     def __init__(self, bookmarks: BookmarkList, height: int, width: int, y: int, x: int) -> None:
         self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
         self.scroll_pos = 0

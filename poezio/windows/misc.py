@@ -19,6 +19,8 @@ class VerticalSeparator(Win):
     refreshed only on resize, but never on refresh, for efficiency
     """
 
+    __slots__ = ()
+
     def rewrite_line(self) -> None:
         self._win.vline(0, 0, curses.ACS_VLINE, self.height,
                         to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
@@ -30,6 +32,8 @@ class VerticalSeparator(Win):
 
 
 class SimpleTextWin(Win):
+    __slots__ = ('_text', 'built_lines')
+
     def __init__(self, text) -> None:
         Win.__init__(self)
         self._text = text

@@ -4,6 +4,8 @@ from poezio.theming import get_theme, to_curses_attr
 
 
 class Dialog(Win):
+    __slots__ = ('text', 'accept', 'critical')
+
     str_accept = " Accept "
     str_refuse = " Reject "
 

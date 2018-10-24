@@ -19,6 +19,9 @@ class ListWin(Win):
     scrolled up and down, with one selected line at a time
     """
 
+    __slots__ = ('_columns', '_columns_sizes', 'sorted_by', 'lines',
+                 '_selected_row', '_starting_pos')
+
     def __init__(self, columns: Dict[str, int], with_headers: bool = True) -> None:
         Win.__init__(self)
         self._columns = columns  # type: Dict[str, int]
@@ -164,6 +167,9 @@ class ColumnHeaderWin(Win):
     """
     A class displaying the column's names
     """
+
+    __slots__ = ('_columns', '_columns_sizes', '_column_sel', '_column_order',
+                 '_column_order_asc')
 
     def __init__(self, columns: List[str]) -> None:
         Win.__init__(self)

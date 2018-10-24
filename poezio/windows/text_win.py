@@ -32,6 +32,9 @@ class Line:
 
 
 class BaseTextWin(Win):
+    __slots__ = ('lines_nb_limit', 'pos', 'built_lines', 'lock', 'lock_buffer',
+                 'separator_after')
+
     def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
         if lines_nb_limit is None:
             lines_nb_limit = config.get('max_lines_in_memory')
@@ -175,6 +178,8 @@ class BaseTextWin(Win):
 
 
 class TextWin(BaseTextWin):
+    __slots__ = ('highlights', 'hl_pos', 'nb_of_highlights_after_separator')
+
     def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
         BaseTextWin.__init__(self, lines_nb_limit)
 
@@ -189,8 +194,6 @@ class TextWin(BaseTextWin):
         # Keep track of the number of hl after the separator.
         # This is useful to make “go to next highlight“ work after a “move to separator”.
         self.nb_of_highlights_after_separator = 0
-
-        self.separator_after = None
 
     def next_highlight(self) -> None:
         """
@@ -563,6 +566,8 @@ class TextWin(BaseTextWin):
 
 
 class XMLTextWin(BaseTextWin):
+    __slots__ = ()
+
     def __init__(self) -> None:
         BaseTextWin.__init__(self)
 

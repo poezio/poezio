@@ -20,6 +20,9 @@ class FieldInput:
     'windows' library.
     """
 
+    # XXX: This conflicts with Win in the FieldInputMixin.
+    #__slots__ = ('_field', 'color')
+
     def __init__(self, field):
         self._field = field
         self.color = get_theme().COLOR_NORMAL_TEXT
@@ -47,6 +50,8 @@ class FieldInput:
 class FieldInputMixin(FieldInput, Win):
     "Mix both FieldInput and Win"
 
+    __slots__ = ()
+
     def __init__(self, field):
         FieldInput.__init__(self, field)
         Win.__init__(self)
@@ -60,6 +65,8 @@ class FieldInputMixin(FieldInput, Win):
 
 
 class ColoredLabel(Win):
+    __slots__ = ('text', 'color')
+
     def __init__(self, text):
         self.text = text
         self.color = get_theme().COLOR_NORMAL_TEXT
@@ -85,6 +92,8 @@ class DummyInput(FieldInputMixin):
     Used for fields that do not require any input ('fixed')
     """
 
+    __slots__ = ()
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
 
@@ -99,6 +108,8 @@ class DummyInput(FieldInputMixin):
 
 
 class BooleanWin(FieldInputMixin):
+    __slots__ = ('last_key', 'value')
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
         self.last_key = 'KEY_RIGHT'
@@ -133,6 +144,8 @@ class BooleanWin(FieldInputMixin):
 
 
 class TextMultiWin(FieldInputMixin):
+    __slots__ = ('options', 'val_pos', 'edition_input')
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
         options = field.get_value()
@@ -212,6 +225,8 @@ class TextMultiWin(FieldInputMixin):
 
 
 class ListMultiWin(FieldInputMixin):
+    __slots__ = ('options', 'val_pos')
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
         values = field.get_value() or []
@@ -261,6 +276,8 @@ class ListMultiWin(FieldInputMixin):
 
 
 class ListSingleWin(FieldInputMixin):
+    __slots__ = ('options', 'val_pos')
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
         # the option list never changes
@@ -306,6 +323,8 @@ class ListSingleWin(FieldInputMixin):
 
 
 class TextSingleWin(FieldInputMixin, Input):
+    __slots__ = ('text', 'pos')
+
     def __init__(self, field):
         FieldInputMixin.__init__(self, field)
         Input.__init__(self)
@@ -323,6 +342,8 @@ class TextSingleWin(FieldInputMixin, Input):
 
 
 class TextPrivateWin(TextSingleWin):
+    __slots__ = ()
+
     def __init__(self, field):
         TextSingleWin.__init__(self, field)
 
@@ -352,6 +373,8 @@ class FormWin:
     On resize, move and resize all the subwin and define how the text will be written
     On refresh, write all the text, and refresh all the subwins
     """
+    __slots__ = ('_form', '_win', 'scroll_pos', 'current_input', 'inputs')
+
     input_classes = {
         'boolean': BooleanWin,
         'fixed': DummyInput,

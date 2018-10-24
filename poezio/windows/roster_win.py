@@ -20,6 +20,8 @@ Row = Union[RosterGroup, Contact]
 
 
 class RosterWin(Win):
+    __slots__ = ('pos', 'start_pos', 'selected_row', 'roster_cache')
+
     def __init__(self) -> None:
         Win.__init__(self)
         self.pos = 0  # cursor position in the contact list
@@ -342,6 +344,8 @@ class RosterWin(Win):
 
 
 class ContactInfoWin(Win):
+    __slots__ = ()
+
     def draw_contact_info(self, contact: Contact) -> None:
         """
         draw the contact information

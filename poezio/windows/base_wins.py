@@ -37,6 +37,8 @@ class DummyWin:
 
 
 class Win:
+    __slots__ = ('_win', 'height', 'width', 'y', 'x')
+
     def __init__(self) -> None:
         self._win = None
         self.height, self.width = 0, 0

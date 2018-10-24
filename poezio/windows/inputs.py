@@ -32,6 +32,9 @@ class Input(Win):
     passing the list of items that can be used to complete. The completion can be used
     in a very flexible way.
     """
+    __slots__ = ('key_func', 'text', 'pos', 'view_pos', 'on_input', 'color',
+                 'last_completion', 'hit_list')
+
     text_attributes = 'bou1234567ti'
     clipboard = ''  # A common clipboard for all the inputs, this makes
 
@@ -586,6 +589,8 @@ class HistoryInput(Input):
     An input with colors and stuff, plus an history
     ^R allows to search inside the history (as in a shell)
     """
+    __slots__ = ('help_message', 'histo_pos', 'current_completed', 'search')
+
     history = []  # type: List[str]
 
     def __init__(self) -> None:

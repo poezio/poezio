@@ -16,6 +16,8 @@ from poezio.theming import get_theme, to_curses_attr
 
 
 class GlobalInfoBar(Win):
+    __slots__ = ('core')
+
     def __init__(self, core) -> None:
         Win.__init__(self)
         self.core = core
@@ -63,6 +65,8 @@ class GlobalInfoBar(Win):
 
 
 class VerticalGlobalInfoBar(Win):
+    __slots__ = ('core')
+
     def __init__(self, core, scr) -> None:
         Win.__init__(self)
         self.core = core

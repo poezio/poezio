@@ -28,6 +28,8 @@ def userlist_to_cache(userlist: List[User]) -> List[CachedUser]:
 
 
 class UserList(Win):
+    __slots__ = ('pos', 'cache')
+
     def __init__(self) -> None:
         Win.__init__(self)
         self.pos = 0
@@ -128,6 +130,8 @@ class UserList(Win):
 
 
 class Topic(Win):
+    __slots__ = ('_message')
+
     def __init__(self) -> None:
         Win.__init__(self)
         self._message = ''

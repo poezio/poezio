@@ -24,6 +24,8 @@ class ImageWin(Win):
     A window which contains either an image or a border.
     """
 
+    __slots__ = ('_image', '_display_avatar')
+
     def __init__(self) -> None:
         self._image = None  # type: Optional[Image]
         Win.__init__(self)

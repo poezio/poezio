@@ -20,6 +20,8 @@ class InfoWin(Win):
     MucInfoWin, etc. Provides some useful methods.
     """
 
+    __slots__ = ()
+
     def __init__(self):
         Win.__init__(self)
 
@@ -39,6 +41,8 @@ class XMLInfoWin(InfoWin):
     """
     Info about the latest xml filter used and the state of the buffer.
     """
+
+    __slots__ = ()
 
     def __init__(self):
         InfoWin.__init__(self)
@@ -62,6 +66,8 @@ class PrivateInfoWin(InfoWin):
     The line above the information window, displaying information
     about the MUC user we are talking to
     """
+
+    __slots__ = ()
 
     def __init__(self):
         InfoWin.__init__(self)
@@ -104,6 +110,8 @@ class MucListInfoWin(InfoWin):
     about the muc server being listed
     """
 
+    __slots__ = ('message')
+
     def __init__(self, message=''):
         InfoWin.__init__(self)
         self.message = message
@@ -128,6 +136,8 @@ class ConversationInfoWin(InfoWin):
     The line above the information window, displaying information
     about the user we are talking to
     """
+
+    __slots__ = ()
 
     def __init__(self):
         InfoWin.__init__(self)
@@ -218,6 +228,8 @@ class ConversationInfoWin(InfoWin):
 
 
 class DynamicConversationInfoWin(ConversationInfoWin):
+    __slots__ = ()
+
     def write_contact_jid(self, jid):
         """
         Just displays the resource in an other color
@@ -239,6 +251,8 @@ class MucInfoWin(InfoWin):
     The line just above the information window, displaying information
     about the MUC we are viewing
     """
+
+    __slots__ = ()
 
     def __init__(self):
         InfoWin.__init__(self)
@@ -306,6 +320,8 @@ class ConversationStatusMessageWin(InfoWin):
     The upper bar displaying the status message of the contact
     """
 
+    __slots__ = ()
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -331,6 +347,8 @@ class ConversationStatusMessageWin(InfoWin):
 
 
 class BookmarksInfoWin(InfoWin):
+    __slots__ = ()
+
     def __init__(self):
         InfoWin.__init__(self)
 
@@ -347,6 +365,8 @@ class BookmarksInfoWin(InfoWin):
 
 
 class ConfirmStatusWin(Win):
+    __slots__ = ('text', 'critical')
+
     def __init__(self, text, critical=False):
         Win.__init__(self)
         self.text = text
