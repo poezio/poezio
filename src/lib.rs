@@ -15,8 +15,6 @@ pub mod theming;
 use cpython::{Python, PyResult, PyErr, PyList, PyDict, PyTuple, PyString, PyObject, ToPyObject, PythonObject, ObjectProtocol};
 use self::logger::LogItem;
 use chrono::{DateTime, Utc, Local, Datelike, Timelike};
-use self::theming::{curses_attr, parse_attrs};
-use self::strings::{parse_string, print_string, finish_line as finish_line_, truncate_nick as truncate_nick_, clean_text as clean_text_};
 use ncurses::WINDOW;
 
 py_module_initializer!(libpoezio, initlibpoezio, PyInit_libpoezio, |py, m| {
@@ -66,43 +64,43 @@ unsafe fn get_window_from_python(window: PyObject) -> WINDOW {
 }
 
 fn printw(py: Python, window: PyObject, text: &str) -> PyResult<PyObject> {
-    let items = match parse_string(text) {
+    let items = match strings::parse_string(text) {
         Ok(items) => items.1,
         Err(err) => return Err(nom_to_py_err(py, err)),
     };
     let win = unsafe { get_window_from_python(window) };
-    print_string(win, items);
+    strings::print_string(win, items);
     Ok(py.None())
 }
 
 fn finish_line(py: Python, window: PyObject, width: i32, colour: Option<(i16, i16)>) -> PyResult<PyObject> {
     let win = unsafe { get_window_from_python(window) };
-    finish_line_(win, width, colour);
+    strings::finish_line(win, width, colour);
     Ok(py.None())
 }
 
 fn truncate_nick(py: Python, nick: &str, size: usize) -> PyResult<PyString> {
-    let string = truncate_nick_(nick, size);
+    let string = strings::truncate_nick(nick, size);
     Ok(PyString::new(py, &string))
 }
 
 /// Remove all xhtml-im attributes (\x19etc) from the string with the
 /// complete color format, i.e \x19xxx}
 fn clean_text(py: Python, text: &str) -> PyResult<PyString> {
-    let items = match parse_string(text) {
+    let items = match strings::parse_string(text) {
         Ok(items) => items.1,
         Err(err) => return Err(nom_to_py_err(py, err)),
     };
-    let text = clean_text_(&items);
+    let text = strings::clean_text(&items);
     Ok(PyString::new(py, &text))
 }
 
 fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObject> {
-    let attrs = match parse_attrs(attrs) {
+    let attrs = match theming::parse_attrs(attrs) {
         Ok(attrs) => attrs.1,
         Err(err) => return Err(nom_to_py_err(py, err)),
     };
-    let result = curses_attr(fg, bg, attrs);
+    let result = theming::curses_attr(fg, bg, attrs);
     Ok(py_int!(py, result))
 }
 
