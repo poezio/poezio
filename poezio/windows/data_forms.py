@@ -373,7 +373,7 @@ class FormWin:
     On resize, move and resize all the subwin and define how the text will be written
     On refresh, write all the text, and refresh all the subwins
     """
-    __slots__ = ('_form', '_win', 'scroll_pos', 'current_input', 'inputs')
+    __slots__ = ('_win', 'height', 'width', '_form', 'scroll_pos', 'current_input', 'inputs')
 
     input_classes = {
         'boolean': BooleanWin,
