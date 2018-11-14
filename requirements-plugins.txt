@@ -1,4 +1,4 @@
-git+git://github.com/afflux/pure-python-otr.git#egg=python-potr
+git+https://github.com/afflux/pure-python-otr.git#egg=python-potr
 pyinotify
 python-mpd2
 aiohttp
