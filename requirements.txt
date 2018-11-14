@@ -1,5 +1,5 @@
 cython>=0.27.3
--e git+git://git.louiz.org/slixmpp#egg=slixmpp
+-e git+https://lab.louiz.org/poezio/slixmpp#egg=slixmpp
 aiodns==1.1.1
 pycares==2.3.0
 pyasn1==0.4.2
