@@ -14,7 +14,7 @@ import asyncio
 import textwrap
 from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab
-from poezio.config import CACHE_DIR
+from poezio.xdg import CACHE_HOME
 
 
 class Plugin(BasePlugin):
@@ -22,13 +22,13 @@ class Plugin(BasePlugin):
         self.info = lambda i: self.api.information(i, 'Info')
         self.xmpp = self.core.xmpp
 
-        self.info('CACHE_DIR: %r' % CACHE_DIR)
+        cache_dir = os.path.join(CACHE_HOME, 'omemo')
+        os.makedirs(cache_dir, exist_ok=True)
 
         self.xmpp.register_plugin(
             'xep_0384', {
-                'cache_dir': os.path.join(CACHE_DIR, 'omemo.sqlite'),
+                'cache_dir': cache_dir,
             })
-        self.info('FOO')
 
         self.api.add_command(
             'omemo',
