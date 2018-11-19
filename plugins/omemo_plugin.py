@@ -122,5 +122,7 @@ class Plugin(BasePlugin):
 
         self.info('Foo2')
         if self.xmpp['xep_0384'].is_encrypted(message):
-            _always_none, body = self.xmpp['xep_0384'].decrypt_message(message)
+            body = self.xmpp['xep_0384'].decrypt_message(message)
+            if body is None:  # Message wasn't decrypted
+                return None
             message['body'] = body.decode("utf8")
