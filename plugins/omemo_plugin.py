@@ -15,7 +15,10 @@ import textwrap
 from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab
 from poezio.xdg import CACHE_HOME
+from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
 
+import logging
+log = logging.getLogger(__name__)
 
 class Plugin(BasePlugin):
     def init(self):
@@ -122,7 +125,10 @@ class Plugin(BasePlugin):
 
         self.info('Foo2')
         if self.xmpp['xep_0384'].is_encrypted(message):
-            body = self.xmpp['xep_0384'].decrypt_message(message)
-            if body is None:  # Message wasn't decrypted
+            try:
+                body = self.xmpp['xep_0384'].decrypt_message(message)
+            except (MissingOwnKey,):
+                log.debug("The following message is missing our key;"
+                          "Couldn't decrypt: %r", message)
                 return None
             message['body'] = body.decode("utf8")
