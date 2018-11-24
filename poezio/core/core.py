@@ -875,22 +875,26 @@ class Core:
     def _impromptu_room_form(self, room, _jids):
         # TODO: Use jids to generate user-friendly room name and description
         fields = [
-            {'ftype': 'hidden', 'var': 'FORM_TYPE', 'value': 'http://jabber.org/protocol/muc#roomconfig'},
-            {'ftype': 'text-single', 'var': 'muc#roomconfig_roomname', 'value': 'Foo'},
-            {'ftype': 'text-single', 'var': 'muc#roomconfig_roomdesc', 'value': 'Bar'},
-            {'ftype': 'boolean', 'var': 'muc#roomconfig_changesubject', 'value': True},
-            {'ftype': 'boolean', 'var': 'muc#roomconfig_allowinvites', 'value': True},
-            {'ftype': 'boolean', 'var': 'muc#roomconfig_persistent', 'value': True},
-            {'ftype': 'boolean', 'var': 'muc#roomconfig_membersonly', 'value': True},
-            {'ftype': 'boolean', 'var': 'muc#roomconfig_publicroom', 'value': False},
-            {'ftype': 'list-single', 'var': 'muc#roomconfig_allowpm', 'value': 'none'},
-            {'ftype': 'list-single', 'var': 'muc#roomconfig_whois', 'value': 'anyone'},
+            ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
+            ('text-single', 'muc#roomconfig_roomname', 'Foo'),
+            ('text-single', 'muc#roomconfig_roomdesc', 'Bar'),
+            ('boolean', 'muc#roomconfig_changesubject', True),
+            ('boolean', 'muc#roomconfig_allowinvites', True),
+            ('boolean', 'muc#roomconfig_persistent', True),
+            ('boolean', 'muc#roomconfig_membersonly', True),
+            ('boolean', 'muc#roomconfig_publicroom', False),
+            ('list-single', 'muc#roomconfig_whois', 'anyone'),
+            ('list-single', 'muc#roomconfig_allowpm', 'none'),
         ]
 
         form = self.xmpp['xep_0004'].make_form()
         form['type'] = 'submit'
         for field in fields:
-            form.add_field(**field)
+            form.add_field(
+                ftype=field[0],
+                var=field[1],
+                value=field[2],
+            )
 
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
