@@ -884,7 +884,10 @@ class Core:
             ('boolean', 'muc#roomconfig_membersonly', True),
             ('boolean', 'muc#roomconfig_publicroom', False),
             ('list-single', 'muc#roomconfig_whois', 'anyone'),
-            ('list-single', 'muc#roomconfig_allowpm', 'none'),
+            # MAM
+            ('boolean', 'muc#roomconfig_enablearchiving', True),  # Prosody
+            ('boolean', 'mam', True),  # Ejabberd community
+            ('boolean', 'muc#roomconfig_mam', True),  # Ejabberd saas
         ]
 
         form = self.xmpp['xep_0004'].make_form()
