@@ -6,6 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+import asyncio
 from xml.etree import cElementTree as ET
 
 from slixmpp.exceptions import XMPPError
@@ -764,17 +765,21 @@ class CommandCore:
         self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
     @command_args_parser.quoted(1, 0)
-    def impromptu(self, args):
+    def impromptu(self, args: str) -> None:
         """/impromptu <jid> [<jid> ...]"""
 
         if args is None:
             return self.help('impromptu')
 
-        jids = []
-        for jid in common.shell_split(' '.join(args)):
-            jids.append(safeJID(jid).bare)
+        jids = set()
+        current_tab = self.core.tabs.current_tab
+        if isinstance(current_tab, tabs.ConversationTab):
+            jids.add(current_tab.general_jid)
 
-        self.core.impromptu(jids)
+        for jid in common.shell_split(' '.join(args)):
+            jids.add(safeJID(jid).bare)
+
+        asyncio.ensure_future(self.core.impromptu(jids))
         self.core.information('Invited %s to a random room' % (' '.join(jids)), 'Info')
 
     @command_args_parser.quoted(1, 1, [''])
