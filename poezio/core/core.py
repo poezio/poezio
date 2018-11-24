@@ -15,11 +15,14 @@ import shutil
 import time
 import uuid
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Tuple, Type
+from typing import Callable, Dict, List, Optional, Set, Tuple, Type
+from xml.etree import cElementTree as ET
+from functools import partial
 
 from slixmpp import JID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
+from slixmpp.exceptions import IqError, IqTimeout
 
 from poezio import connection
 from poezio import decorators
@@ -869,7 +872,35 @@ class Core:
         self.xmpp.plugin['xep_0030'].get_info(
             jid=jid, timeout=5, callback=callback)
 
-    def impromptu(self, jids: List[JID]) -> None:
+    def _impromptu_room_form(self, room, _jids):
+        # TODO: Use jids to generate user-friendly room name and description
+        fields = [
+            {'ftype': 'hidden', 'var': 'FORM_TYPE', 'value': 'http://jabber.org/protocol/muc#roomconfig'},
+            {'ftype': 'text-single', 'var': 'muc#roomconfig_roomname', 'value': 'Foo'},
+            {'ftype': 'text-single', 'var': 'muc#roomconfig_roomdesc', 'value': 'Bar'},
+            {'ftype': 'boolean', 'var': 'muc#roomconfig_changesubject', 'value': True},
+            {'ftype': 'boolean', 'var': 'muc#roomconfig_allowinvites', 'value': True},
+            {'ftype': 'boolean', 'var': 'muc#roomconfig_persistent', 'value': True},
+            {'ftype': 'boolean', 'var': 'muc#roomconfig_membersonly', 'value': True},
+            {'ftype': 'boolean', 'var': 'muc#roomconfig_publicroom', 'value': False},
+            {'ftype': 'list-single', 'var': 'muc#roomconfig_allowpm', 'value': 'none'},
+            {'ftype': 'list-single', 'var': 'muc#roomconfig_whois', 'value': 'anyone'},
+        ]
+
+        form = self.xmpp['xep_0004'].make_form()
+        form['type'] = 'submit'
+        for field in fields:
+            form.add_field(**field)
+
+        iq = self.xmpp.Iq()
+        iq['type'] = 'set'
+        iq['to'] = room
+        query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+        query.append(form.xml)
+        iq.append(query)
+        return iq
+
+    async def impromptu(self, jids: Set[JID]) -> None:
         """
         Generates a new "Impromptu" room with a random localpart on the muc
         component of the user who initiated the request. One the room is
@@ -877,41 +908,43 @@ class Core:
         contacts to join in.
         """
 
-        def callback(results):
-            muc_from_identity = ''
+        results = await self.xmpp['xep_0030'].get_info_from_domain()
 
-            for info in results:
-                for identity in info['disco_info']['identities']:
-                    if identity[0] == 'conference' and identity[1] == 'text':
-                        muc_from_identity = info['from'].bare
+        muc_from_identity = ''
+        for info in results:
+            for identity in info['disco_info']['identities']:
+                if identity[0] == 'conference' and identity[1] == 'text':
+                    muc_from_identity = info['from'].bare
 
-            # Use config.default_muc_service as muc component if available,
-            # otherwise find muc component by disco#items-ing the user domain.
-            # If not, give up
-            default_muc = config.get('default_muc_service', muc_from_identity)
-            if not default_muc:
-                self.information(
-                    "Error finding a MUC service to join. If your server does not "
-                    "provide one, set 'default_muc_service' manually to a MUC "
-                    "service that allows room creation.",
-                    'Error'
-                )
-                return
-
-            nick = self.own_nick
-            room = uuid.uuid4().hex + '@' + default_muc
-
-            self.open_new_room(room, nick).join()
-            self.information('Room %s created' % room, 'Info')
-
-            for jid in jids:
-                self.invite(jid, room)
-
-        asyncio.ensure_future(
-            self.xmpp['xep_0030'].get_info_from_domain(
-                callback=callback,
+        # Use config.default_muc_service as muc component if available,
+        # otherwise find muc component by disco#items-ing the user domain.
+        # If not, give up
+        default_muc = config.get('default_muc_service', muc_from_identity)
+        if not default_muc:
+            self.information(
+                "Error finding a MUC service to join. If your server does not "
+                "provide one, set 'default_muc_service' manually to a MUC "
+                "service that allows room creation.",
+                'Error'
             )
-        )
+            return
+
+        nick = self.own_nick
+        room = uuid.uuid4().hex + '@' + default_muc
+
+        self.open_new_room(room, nick).join()
+        iq = self._impromptu_room_form(room, jids)
+        try:
+            await iq.send()
+        except (IqError, IqTimeout):
+            self.information('Failed to create configure impromptu room.', 'Info')
+            # TODO: destroy? leave room.
+            return None
+
+        self.information('Room %s created' % room, 'Info')
+
+        for jid in jids:
+            self.invite(jid, room)
 
     def get_error_message(self, stanza, deprecated: bool = False):
         """
