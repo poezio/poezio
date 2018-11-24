@@ -79,6 +79,12 @@ class ConversationTab(OneToOneTab):
             ' allow you to see his presence, and allow them to'
             ' see your presence.',
             shortdesc='Add a user to your roster.')
+        self.register_command(
+            'invite',
+            self.core.command.impromptu,
+            desc='Invite people into an impromptu room.',
+            shortdesc='Invite other users to the discussion',
+            completion=self.core.completion.impromptu)
         self.update_commands()
         self.update_keys()
 
