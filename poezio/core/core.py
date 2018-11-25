@@ -873,7 +873,6 @@ class Core:
             jid=jid, timeout=5, callback=callback)
 
     def _impromptu_room_form(self, room, _jids):
-        # TODO: Use jids to generate user-friendly room name and description
         fields = [
             ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
             ('text-single', 'muc#roomconfig_roomname', 'Foo'),
