@@ -52,6 +52,7 @@ class MucTab(ChatTab):
     message_type = 'groupchat'
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
+    lagged = False
 
     def __init__(self, core, jid, nick, password=None):
         ChatTab.__init__(self, core, jid)
@@ -396,6 +397,8 @@ class MucTab(ChatTab):
         if self.joined:
             if self.input.text:
                 self.state = 'nonempty'
+            elif self.lagged:
+                self.state = 'disconnected'
             else:
                 self.state = 'normal'
         else:
@@ -421,6 +424,7 @@ class MucTab(ChatTab):
         """
         Handle MUC presence
         """
+        self.reset_lag()
         status_codes = set()
         for status_code in presence.xml.findall(STATUS_XPATH):
             status_codes.add(status_code.attrib['code'])
@@ -1126,6 +1130,7 @@ class MucTab(ChatTab):
             self.command_cycle(iq["error"]["text"] or "not in this room")
             self.core.refresh_window()
         else:  # Re-send a self-ping in a few seconds
+            self.reset_lag()
             self.enable_self_ping_event()
 
     def search_for_color(self, nick):
@@ -1145,8 +1150,26 @@ class MucTab(ChatTab):
         return color
 
     def on_self_ping_failed(self, iq):
-        self.command_cycle("the MUC server is not responding")
-        self.core.refresh_window()
+        if not self.lagged:
+            self.lagged = True
+            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            self._text_buffer.add_message(
+                "\x19%s}MUC serice not responding." % info_text)
+            self._state = 'disconnected'
+            self.core.refresh_window()
+        self.enable_self_ping_event()
+
+    def reset_lag(self):
+        if self.lagged:
+            self.lagged = False
+            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+            self._text_buffer.add_message(
+                "\x19%s}MUC service is responding again." % info_text)
+            if self != self.core.tabs.current_tab:
+                self._state = 'joined'
+            else:
+                self._state = 'normal'
+            self.core.refresh_window()
 
 ########################## UI ONLY #####################################
 
