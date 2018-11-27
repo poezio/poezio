@@ -20,7 +20,7 @@ from poezio.theming import get_theme
 
 class Plugin(BasePlugin):
     def init(self):
-        for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
+        for tab_t in [tabs.MucTab, tabs.StaticConversationTab, tabs.DynamicConversationTab, tabs.PrivateTab]:
             self.api.add_tab_command(
                 tab_t,
                 'embed',
