@@ -33,7 +33,7 @@ class Plugin(BasePlugin):
     def init(self):
         if not self.core.xmpp['xep_0363']:
             raise Exception('slixmpp XEP-0363 plugin failed to load')
-        for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
+        for _class in (tabs.PrivateTab, tabs.StaticConversationTab, tabs.DynamicConversationTab, tabs.MucTab):
             self.api.add_tab_command(
                 _class,
                 'upload',
