@@ -14,7 +14,7 @@ import asyncio
 import textwrap
 from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab
-from poezio.xdg import CACHE_HOME
+from poezio.xdg import DATA_HOME
 from slixmpp import JID
 from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
 
@@ -28,12 +28,12 @@ class Plugin(BasePlugin):
         self.info = lambda i: self.api.information(i, 'Info')
         self.xmpp = self.core.xmpp
 
-        cache_dir = os.path.join(CACHE_HOME, 'omemo')
-        os.makedirs(cache_dir, exist_ok=True)
+        data_dir = os.path.join(DATA_HOME, 'omemo')
+        os.makedirs(data_dir, exist_ok=True)
 
         self.xmpp.register_plugin(
             'xep_0384', {
-                'cache_dir': cache_dir,
+                'data_dir': data_dir,
             })
 
         self.api.add_command(
