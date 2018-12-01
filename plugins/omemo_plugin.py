@@ -15,7 +15,10 @@ import textwrap
 from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab
 from poezio.xdg import CACHE_HOME
+from slixmpp import JID
 from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
+
+from typing import List, Optional
 
 import logging
 log = logging.getLogger(__name__)
@@ -66,6 +69,12 @@ class Plugin(BasePlugin):
             help='Clear all other OMEMO devices',
         )
 
+        self.api.add_command(
+            'encrypted_message',
+            self.send_message,
+            help='Send OMEMO encrypted message',
+        )
+
         self.api.add_event_handler(
             'conversation_say_after',
             self.on_conversation_say_after,
@@ -100,6 +109,31 @@ class Plugin(BasePlugin):
         meantime.
         """
         self.info(textwrap.dedent(info).strip())
+
+    def send_message(self, _args):
+        asyncio.ensure_future(
+            self._send_message(
+                "Hello Encrypted World!",
+                [JID('some@jid')],
+                mto=JID('some@jid'),
+                mtype='chat',
+            ),
+        )
+
+    async def _send_message(
+        self,
+        payload: str,
+        recipients: List[JID],
+        mto: Optional[JID] = None,
+        mtype: Optional[str] = 'chat',
+    ) -> None:
+        encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
+        msg = self.core.xmpp.make_message(mto, mtype=mtype)
+        msg['body'] = 'This message is encrypted with Legacy OMEMO (eu.siacs.conversations.axolotl)'
+        msg['eme']['namespace'] = 'eu.siacs.conversations.axolotl'
+        msg.append(encrypted)
+        log.debug('BAR: message: %r', msg)
+        msg.send()
 
     def on_conversation_say_after(self, message, tab):
         """
