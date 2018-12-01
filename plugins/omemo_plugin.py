@@ -42,6 +42,10 @@ class Plugin(BasePlugin):
             help='Display contextual information',
         )
 
+        ConversationTab.add_information_element('omemo', self.display_encryption_status)
+        # Waiting for https://lab.louiz.org/poezio/poezio/merge_requests/17
+        # MucTab.add_information_element('omemo', self.display_encryption_status)
+
         self.api.add_tab_command(
             ConversationTab,
             'omemo_enable',
@@ -71,6 +75,9 @@ class Plugin(BasePlugin):
             'conversation_msg',
             self.on_conversation_msg,
         )
+
+    def display_encryption_status(self, *_args):
+        return " OMEMO"
 
     def command_status(self, _args):
         """Display contextual information depending on currenttab."""
