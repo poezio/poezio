@@ -52,6 +52,7 @@ class MucTab(ChatTab):
     message_type = 'groupchat'
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
+    additional_information = {}  # type: Dict[str, Callable[[str], str]]
 
     def __init__(self, core, jid, nick, password=None):
         ChatTab.__init__(self, core, jid)
@@ -105,6 +106,20 @@ class MucTab(ChatTab):
         if last_message:
             return last_message.time
         return None
+
+    @staticmethod
+    def add_information_element(plugin_name: str, callback: Callable[[str], str]) -> None:
+        """
+        Lets a plugin add its own information to the MucInfoWin
+        """
+        MucTab.additional_information[plugin_name] = callback
+
+    @staticmethod
+    def remove_information_element(plugin_name: str) -> None:
+        """
+        Lets a plugin add its own information to the MucInfoWin
+        """
+        del MucTab.additional_information[plugin_name]
 
     def cancel_config(self, form):
         """
@@ -440,7 +455,9 @@ class MucTab(ChatTab):
         if self.core.tabs.current_tab is self:
             self.text_win.refresh()
             self.user_win.refresh_if_changed(self.users)
-            self.info_header.refresh(self, self.text_win, user=self.own_user)
+            self.info_header.refresh(
+                self, self.text_win, user=self.own_user,
+                information=MucTab.additional_information)
             self.input.refresh()
             self.core.doupdate()
 
@@ -1225,7 +1242,9 @@ class MucTab(ChatTab):
         if display_user_list:
             self.v_separator.refresh()
             self.user_win.refresh(self.users)
-        self.info_header.refresh(self, self.text_win, user=self.own_user)
+        self.info_header.refresh(
+            self, self.text_win, user=self.own_user,
+            information=MucTab.additional_information)
         self.refresh_tab_win()
         if display_info_win:
             self.info_win.refresh()
