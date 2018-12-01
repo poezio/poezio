@@ -56,19 +56,6 @@ class Plugin(BasePlugin):
             help='Disable OMEMO encryption',
         )
 
-        self.api.add_tab_command(
-            ConversationTab,
-            'omemo_toggle',
-            self.command_toggle,
-            help='Toggle OMEMO encryption state',
-        )
-
-        self.api.add_command(
-            'omemo_clear_devices',
-            self.command_clear_devices,
-            help='Clear all other OMEMO devices',
-        )
-
         self.api.add_command(
             'encrypted_message',
             self.send_message,
@@ -96,19 +83,6 @@ class Plugin(BasePlugin):
 
     def command_disable(self, args):
         pass
-
-    def command_toggle(self, _args):
-        pass
-
-    def command_clear_devices(self, _args):
-        asyncio.ensure_future(self.xmpp['xep_0384'].clear_device_list())
-        info = """
-        Device list has been reset.
-        Your other devices will reannounce themselves next time they get
-        online, but they might not be able to read encrypted messages in the
-        meantime.
-        """
-        self.info(textwrap.dedent(info).strip())
 
     def send_message(self, _args):
         asyncio.ensure_future(
