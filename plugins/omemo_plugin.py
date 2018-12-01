@@ -165,3 +165,4 @@ class Plugin(BasePlugin):
                           "Couldn't decrypt: %r", message)
                 return None
             message['body'] = body.decode("utf8")
+            return None
