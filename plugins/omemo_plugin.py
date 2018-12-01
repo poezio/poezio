@@ -147,7 +147,6 @@ class Plugin(BasePlugin):
 
         fromjid = message['from']
         self.xmpp['xep_0384'].encrypt_message(message)
-        self.info('Foo1')
 
     def on_conversation_msg(self, message, _tab):
         """
