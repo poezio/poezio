@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
         self.api.add_command(
             'omemo',
             self.command_status,
-            help='Display contextual information status',
+            help='Display contextual information',
         )
 
         self.api.add_tab_command(
