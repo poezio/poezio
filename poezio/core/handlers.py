@@ -1068,7 +1068,8 @@ class HandlerCore:
                 '{http://jabber.org/protocol/muc#user}x') is not None:
             return
         jid = presence['from']
-        if not logger.log_roster_change(jid.bare, 'got offline'):
+        status = presence['status']
+        if not logger.log_roster_change(jid.bare, 'got offline{}'.format(' ({})'.format(status) if status else '')):
             self.core.information('Unable to write in the log file', 'Error')
         # If a resource got offline, display the message in the conversation with this
         # precise resource.
@@ -1078,12 +1079,15 @@ class HandlerCore:
             roster.connected -= 1
             if contact.name:
                 name = contact.name
+        offline_msg = '%s is \x191}offline' % name
+        if status:
+            offline_msg += ' (\x19o%s\x191})' % status
         if jid.resource:
             self.core.add_information_message_to_conversation_tab(
-                jid.full, '\x195}%s is \x191}offline' % name)
+                jid.full, '\x195}' + offline_msg)
         self.core.add_information_message_to_conversation_tab(
-            jid.bare, '\x195}%s is \x191}offline' % name)
-        self.core.information('\x193}%s \x195}is \x191}offline' % name,
+            jid.bare, '\x195}' + offline_msg)
+        self.core.information('\x193}' + offline_msg,
                               'Roster')
         roster.modified()
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
