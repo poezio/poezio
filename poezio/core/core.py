@@ -872,11 +872,9 @@ class Core:
         self.xmpp.plugin['xep_0030'].get_info(
             jid=jid, timeout=5, callback=callback)
 
-    def _impromptu_room_form(self, room, _jids):
+    def _impromptu_room_form(self, room):
         fields = [
             ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
-            ('text-single', 'muc#roomconfig_roomname', 'Foo'),
-            ('text-single', 'muc#roomconfig_roomdesc', 'Bar'),
             ('boolean', 'muc#roomconfig_changesubject', True),
             ('boolean', 'muc#roomconfig_allowinvites', True),
             ('boolean', 'muc#roomconfig_persistent', True),
@@ -939,7 +937,7 @@ class Core:
         room = uuid.uuid4().hex + '@' + default_muc
 
         self.open_new_room(room, nick).join()
-        iq = self._impromptu_room_form(room, jids)
+        iq = self._impromptu_room_form(room)
         try:
             await iq.send()
         except (IqError, IqTimeout):
