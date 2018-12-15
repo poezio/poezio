@@ -87,8 +87,8 @@ class PrivateInfoWin(InfoWin):
         Write all information added by plugins by getting the
         value returned by the callbacks.
         """
-        for key in information:
-            self.addstr(information[key](jid),
+        for plugin in information.values():
+            self.addstr(plugin(jid),
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
@@ -257,7 +257,7 @@ class MucInfoWin(InfoWin):
     def __init__(self):
         InfoWin.__init__(self)
 
-    def refresh(self, room, window=None, user=None):
+    def refresh(self, room, window=None, user=None, information=None):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         self.write_room_name(room)
@@ -265,10 +265,21 @@ class MucInfoWin(InfoWin):
         self.write_own_nick(room)
         self.write_disconnected(room)
         self.write_role(room, user)
+        if information:
+            self.write_additional_information(information, room)
         if window:
             self.print_scroll_position(window)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
+
+    def write_additional_information(self, information, jid):
+        """
+        Write all information added by plugins by getting the
+        value returned by the callbacks.
+        """
+        for plugin in information.values():
+            self.addstr(plugin(jid),
+                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, room):
         self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
