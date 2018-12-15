@@ -934,7 +934,8 @@ class Core:
             return
 
         nick = self.own_nick
-        room = uuid.uuid4().hex + '@' + default_muc
+        localpart = uuid.uuid4().hex
+        room = '{!s}@{!s}'.format(localpart, default_muc)
 
         self.open_new_room(room, nick).join()
         iq = self._impromptu_room_form(room)
