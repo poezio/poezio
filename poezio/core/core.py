@@ -943,7 +943,7 @@ class Core:
         try:
             await iq.send()
         except (IqError, IqTimeout):
-            self.information('Failed to create configure impromptu room.', 'Info')
+            self.information('Failed to configure impromptu room.', 'Info')
             # TODO: destroy? leave room.
             return None
 
