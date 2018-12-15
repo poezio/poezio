@@ -15,13 +15,19 @@ config.config = ConfigShim()
 
 from poezio.windows import Input
 
+class SubInput(Input):
+    def resize(self, *args, **kwargs):
+        pass
+    def rewrite_text(self, *args, **kwargs):
+        pass
+    def refresh(self, *args, **kwargs):
+        pass
+
+
 @pytest.fixture(scope="function")
 def input_obj():
-    obj = Input()
+    obj = SubInput()
     obj.reset_completion()
-    obj.resize = lambda: None
-    obj.rewrite_text = lambda: None
-    obj.refresh = lambda: None
     return obj
 
 @pytest.fixture(scope="module")

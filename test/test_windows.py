@@ -9,11 +9,13 @@ config.config = ConfigShim()
 
 from poezio.windows import Input, HistoryInput, MessageInput
 
+class SubInput(Input):
+    def rewrite_text(self, *args, **kwargs):
+        return None
+
 @pytest.fixture
 def input():
-    input = Input()
-    input.rewrite_text = lambda: None
-    return input
+    return SubInput()
 
 class TestInput(object):
 

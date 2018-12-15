@@ -56,7 +56,7 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def _parse_log_line(msg: str) -> Optional[LogItem]:
+def parse_log_line(msg: str) -> Optional[LogItem]:
     match = re.match(MESSAGE_LOG_RE, msg)
     if match:
         return LogMessage(*match.groups())
@@ -176,7 +176,7 @@ class Logger:
                     filename,
                     exc_info=True)
                 return None
-        return _parse_log_lines(lines)
+        return parse_log_lines(lines)
 
     def log_message(self,
                     jid: str,
@@ -193,7 +193,7 @@ class Logger:
         """
         if not config.get_by_tabname('use_log', jid):
             return True
-        logged_msg = _build_log_message(nick, msg, date=date, typ=typ)
+        logged_msg = build_log_message(nick, msg, date=date, typ=typ)
         if not logged_msg:
             return True
         if jid in self._fds.keys():
@@ -260,10 +260,10 @@ class Logger:
         return True
 
 
-def _build_log_message(nick: str,
-                       msg: str,
-                       date: Optional[datetime] = None,
-                       typ: int = 1) -> str:
+def build_log_message(nick: str,
+                      msg: str,
+                      date: Optional[datetime] = None,
+                      typ: int = 1) -> str:
     """
     Create a log message from a nick, a message, optionally a date and type
     message types:
@@ -306,7 +306,7 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def _parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
+def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
     """
@@ -320,7 +320,7 @@ def _parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
             idx += 1
             log.debug('fail?')
             continue
-        log_item = _parse_log_line(lines[idx])
+        log_item = parse_log_line(lines[idx])
         idx += 1
         if not isinstance(log_item, LogItem):
             log.debug('wrong log format? %s', log_item)
