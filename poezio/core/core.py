@@ -1874,9 +1874,9 @@ class Core:
         self.register_command(
             'impromptu',
             self.command.impromptu,
-            usage='<jid> [<jid> ...]',
-            desc='Invite people into an impromptu room',
-            shortdesc='Invite someone in a room.',
+            usage='<jid> [jid ...]',
+            desc='Invite specified JIDs into a newly created room.',
+            shortdesc='Invite specified JIDs into newly created room.',
             completion=self.completion.impromptu)
         self.register_command(
             'invitations',
