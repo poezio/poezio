@@ -25,6 +25,8 @@ log = logging.getLogger(__name__)
 
 
 class Plugin(BasePlugin):
+    """OMEMO (XEP-0384) Plugin"""
+
     def init(self):
         self.info = lambda i: self.api.information(i, 'Info')
         self.xmpp = self.core.xmpp
