@@ -266,7 +266,7 @@ class MucInfoWin(InfoWin):
         self.write_disconnected(room)
         self.write_role(room, user)
         if information:
-            self.write_additional_information(information, room)
+            self.write_additional_information(information, room.name)
         if window:
             self.print_scroll_position(window)
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
