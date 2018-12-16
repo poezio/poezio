@@ -81,6 +81,15 @@ and certificate validation.
         you know what you are doing, see the :ref:`ciphers` dedicated section
         for more details.
 
+    default_muc_service
+
+       **Default value:** ``[empty]``
+
+       If specified, will be used instead of the MUC service provided by
+       the user domain.
+
+       .. versionadded:: 0.13
+
     force_encryption
 
         **Default value:** ``true``

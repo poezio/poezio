@@ -218,6 +218,13 @@ These commands work in *any* tab.
     /invitations
         Show the pending invitations.
 
+   /impromptu
+        **Usage:** ``/impromptu <jid> [jid ..]``
+
+        Invite specified JIDs into a newly created room.
+
+       .. versionadded:: 0.13
+
     /activity
         **Usage:** ``/activity [<general> [specific] [comment]]``
 
@@ -471,6 +478,14 @@ Normal Conversation tab commands
     /version
         Get the software version of the current interlocutor (usually its
         XMPP client and Operating System).
+
+   /invite
+        **Usage:** ``/invite <jid> [jid ..]``
+
+        Invite specified JIDs, with this contact, into a newly
+        created room.
+
+       .. versionadded:: 0.13
 
 .. _rostertab-commands:
 

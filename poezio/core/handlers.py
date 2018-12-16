@@ -97,6 +97,11 @@ class HandlerCore:
         self.core.xmpp.plugin['xep_0030'].get_info(
             jid=self.core.xmpp.boundjid.domain, callback=callback)
 
+    def find_identities(self, _):
+        asyncio.ensure_future(
+            self.core.xmpp['xep_0030'].get_info_from_domain(),
+        )
+
     def on_carbon_received(self, message):
         """
         Carbon <received/> received

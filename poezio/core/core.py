@@ -13,12 +13,16 @@ import pipes
 import sys
 import shutil
 import time
+import uuid
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Tuple, Type
+from typing import Callable, Dict, List, Optional, Set, Tuple, Type
+from xml.etree import cElementTree as ET
+from functools import partial
 
 from slixmpp import JID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
+from slixmpp.exceptions import IqError, IqTimeout
 
 from poezio import connection
 from poezio import decorators
@@ -867,6 +871,85 @@ class Core:
 
         self.xmpp.plugin['xep_0030'].get_info(
             jid=jid, timeout=5, callback=callback)
+
+    def _impromptu_room_form(self, room):
+        fields = [
+            ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
+            ('boolean', 'muc#roomconfig_changesubject', True),
+            ('boolean', 'muc#roomconfig_allowinvites', True),
+            ('boolean', 'muc#roomconfig_persistent', True),
+            ('boolean', 'muc#roomconfig_membersonly', True),
+            ('boolean', 'muc#roomconfig_publicroom', False),
+            ('list-single', 'muc#roomconfig_whois', 'anyone'),
+            # MAM
+            ('boolean', 'muc#roomconfig_enablearchiving', True),  # Prosody
+            ('boolean', 'mam', True),  # Ejabberd community
+            ('boolean', 'muc#roomconfig_mam', True),  # Ejabberd saas
+        ]
+
+        form = self.xmpp['xep_0004'].make_form()
+        form['type'] = 'submit'
+        for field in fields:
+            form.add_field(
+                ftype=field[0],
+                var=field[1],
+                value=field[2],
+            )
+
+        iq = self.xmpp.Iq()
+        iq['type'] = 'set'
+        iq['to'] = room
+        query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+        query.append(form.xml)
+        iq.append(query)
+        return iq
+
+    async def impromptu(self, jids: Set[JID]) -> None:
+        """
+        Generates a new "Impromptu" room with a random localpart on the muc
+        component of the user who initiated the request. One the room is
+        created and the first user has joined, send invites for specified
+        contacts to join in.
+        """
+
+        results = await self.xmpp['xep_0030'].get_info_from_domain()
+
+        muc_from_identity = ''
+        for info in results:
+            for identity in info['disco_info']['identities']:
+                if identity[0] == 'conference' and identity[1] == 'text':
+                    muc_from_identity = info['from'].bare
+
+        # Use config.default_muc_service as muc component if available,
+        # otherwise find muc component by disco#items-ing the user domain.
+        # If not, give up
+        default_muc = config.get('default_muc_service', muc_from_identity)
+        if not default_muc:
+            self.information(
+                "Error finding a MUC service to join. If your server does not "
+                "provide one, set 'default_muc_service' manually to a MUC "
+                "service that allows room creation.",
+                'Error'
+            )
+            return
+
+        nick = self.own_nick
+        localpart = uuid.uuid4().hex
+        room = '{!s}@{!s}'.format(localpart, default_muc)
+
+        self.open_new_room(room, nick).join()
+        iq = self._impromptu_room_form(room)
+        try:
+            await iq.send()
+        except (IqError, IqTimeout):
+            self.information('Failed to configure impromptu room.', 'Info')
+            # TODO: destroy? leave room.
+            return None
+
+        self.information('Room %s created' % room, 'Info')
+
+        for jid in jids:
+            self.invite(jid, room)
 
     def get_error_message(self, stanza, deprecated: bool = False):
         """
@@ -1788,6 +1871,13 @@ class Core:
             desc='Invite jid in room with reason.',
             shortdesc='Invite someone in a room.',
             completion=self.completion.invite)
+        self.register_command(
+            'impromptu',
+            self.command.impromptu,
+            usage='<jid> [jid ...]',
+            desc='Invite specified JIDs into a newly created room.',
+            shortdesc='Invite specified JIDs into newly created room.',
+            completion=self.completion.impromptu)
         self.register_command(
             'invitations',
             self.command.invitations,
