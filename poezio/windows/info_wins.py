@@ -176,8 +176,8 @@ class ConversationInfoWin(InfoWin):
         Write all information added by plugins by getting the
         value returned by the callbacks.
         """
-        for key in information:
-            self.addstr(information[key](jid),
+        for plugin in information.values():
+            self.addstr(plugin(jid),
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_resource_information(self, resource):
