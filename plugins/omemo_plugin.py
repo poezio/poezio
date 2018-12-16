@@ -12,10 +12,10 @@
 import os
 import asyncio
 import logging
-from typing import List, Optional
+from typing import Callable, List, Optional, Set, Tuple, Union
 
 from poezio.plugin import BasePlugin
-from poezio.tabs import ConversationTab
+from poezio.tabs import DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab
 from poezio.xdg import DATA_HOME
 
 from slixmpp import JID
@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 class Plugin(BasePlugin):
     """OMEMO (XEP-0384) Plugin"""
+    _enabled_jids = set()  # type: Set[JID]
 
     def init(self):
         self.info = lambda i: self.api.information(i, 'Info')
@@ -46,18 +47,15 @@ class Plugin(BasePlugin):
         )
 
         ConversationTab.add_information_element('omemo', self.display_encryption_status)
-        # Waiting for https://lab.louiz.org/poezio/poezio/merge_requests/17
-        # MucTab.add_information_element('omemo', self.display_encryption_status)
+        MucTab.add_information_element('omemo', self.display_encryption_status)
 
-        self.api.add_tab_command(
-            ConversationTab,
+        self.api.add_command(
             'omemo_enable',
             self.command_enable,
             help='Enable OMEMO encryption',
         )
 
-        self.api.add_tab_command(
-            ConversationTab,
+        self.api.add_command(
             'omemo_disable',
             self.command_disable,
             help='Disable OMEMO encryption',
@@ -79,8 +77,19 @@ class Plugin(BasePlugin):
             self.on_conversation_msg,
         )
 
-    def display_encryption_status(self, *_args):
-        return " OMEMO"
+    def cleanup(self) -> None:
+        ConversationTab.remove_information_element('omemo')
+        MucTab.remove_information_element('omemo')
+
+    def display_encryption_status(self, jid: JID) -> str:
+        """
+            Return information to display in the infobar if OMEMO is enabled
+            for the JID.
+        """
+
+        if jid in self._enabled_jids:
+            return " OMEMO"
+        return ""
 
     def command_status(self, _args):
         """Display contextual information depending on currenttab."""
@@ -88,11 +97,81 @@ class Plugin(BasePlugin):
         self.info('OMEMO!')
         self.info("My device id: %d" % self.xmpp['xep_0384'].my_device_id())
 
-    def command_enable(self, _args):
-        pass
+    def _jid_from_context(self, jid: Optional[Union[str, JID]]) -> Tuple[Optional[JID], bool]:
+        """
+            Get bare JID from context if not specified
 
-    def command_disable(self, args):
-        pass
+            Return a tuple with the JID and a bool specifying that the JID
+            corresponds to the current tab.
+        """
+
+        tab = self.api.current_tab()
+
+        tab_jid = None
+        chat_tabs = (DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab)
+        if isinstance(tab, chat_tabs):
+            tab_jid = JID(tab.name).bare
+
+        # If current tab has a JID, use it if none is specified
+        if not jid and tab_jid is not None:
+            jid = tab_jid
+
+        # We might not have found a JID at this stage. No JID provided and not
+        # in a tab with a JID (InfoTab etc.).
+        # If we do, make we
+        if jid:
+            # XXX: Ugly. We don't know if 'jid' is a str or a JID. And we want
+            # to return a bareJID. We could change the JID API to allow us to
+            # clear the resource one way or another.
+            jid = JID(JID(jid).bare)
+        else:
+            jid = None
+
+        return (jid, tab_jid is not None and tab_jid == jid)
+
+    def command_enable(self, jid: Optional[str]) -> None:
+        """
+            Enable JID to use OMEMO with.
+
+            Use current tab JID is none is specified. Refresh the tab if JID
+            corresponds to the one being added.
+        """
+
+        jid, current_tab = self._jid_from_context(jid)
+        if jid is None:
+            return None
+
+        if jid not in self._enabled_jids:
+            self.info('OMEMO enabled for %s' % jid)
+        self._enabled_jids.add(jid)
+
+        # Refresh tab if JID matches
+        if current_tab:
+            self.api.current_tab().refresh()
+
+        return None
+
+    def command_disable(self, jid: Optional[str]) -> None:
+        """
+            Enable JID to use OMEMO with.
+
+            Use current tab JID is none is specified. Refresh the tab if JID
+            corresponds to the one being added.
+        """
+
+        jid, current_tab = self._jid_from_context(jid)
+        if jid is None:
+            return None
+
+        if jid in self._enabled_jids:
+            self.info('OMEMO disabled for %s' % jid)
+        self._enabled_jids.remove(jid)
+
+        # Refresh tab if JID matches
+        if current_tab:
+            self.api.current_tab().refresh()
+
+        return None
 
     def send_message(self, _args):
         asyncio.ensure_future(
