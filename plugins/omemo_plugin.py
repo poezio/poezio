@@ -11,17 +11,18 @@
 
 import os
 import asyncio
-import textwrap
+import logging
+from typing import List, Optional
+
 from poezio.plugin import BasePlugin
 from poezio.tabs import ConversationTab
 from poezio.xdg import DATA_HOME
+
 from slixmpp import JID
 from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
 
-from typing import List, Optional
-
-import logging
 log = logging.getLogger(__name__)
+
 
 class Plugin(BasePlugin):
     def init(self):
