@@ -223,6 +223,8 @@ These commands work in *any* tab.
 
         Invite specified JIDs into a newly created room.
 
+       .. versionadded:: 0.13
+
     /activity
         **Usage:** ``/activity [<general> [specific] [comment]]``
 
@@ -482,6 +484,8 @@ Normal Conversation tab commands
 
         Invite specified JIDs, with this contact, into a newly
         created room.
+
+       .. versionadded:: 0.13
 
 .. _rostertab-commands:
 
