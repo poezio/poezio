@@ -29,6 +29,10 @@ class Plugin(BasePlugin):
             help='Get the disco#info of a JID')
 
     def on_disco(self, iq):
+        if iq['type'] == 'error':
+            self.api.information(iq['error']['text'] or iq['error']['condition'], 'Error')
+            return
+
         info = iq['disco_info']
         identities = (str(identity) for identity in info['identities'])
         self.api.information('\n'.join(identities), 'Identities')
