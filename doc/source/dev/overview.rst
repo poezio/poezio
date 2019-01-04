@@ -40,7 +40,7 @@ method (inherited empty from the Tab class), call a scrolling method from the
 appropriate **window**.
 
 All tabs types inherit from the class **Tab**, and the tabs featuring
-chat functionnality will inherit from **ChatTab** (which inherits from **Tab**).
+chat functionality will inherit from **ChatTab** (which inherits from **Tab**).
 
 Examples of **tabs**: MUCTab, XMLTab, RosterTab, MUCListTab, etc…
 
@@ -80,9 +80,9 @@ or
 
     /command "arg1 with spaces" arg2
 
-However, when creating a command, you wil deal with _one_ str, no matter what.
+However, when creating a command, you will deal with _one_ str, no matter what.
 There are utilities to deal with it (common.shell_split), but it is not always
-necessary. Commands are registered in the **commands** dictionnary of a tab
+necessary. Commands are registered in the **commands** dictionary of a tab
 structured as key (command name) -> tuple(command function, help string, completion).
 
 Completions are a bit tricky, but it’s easy once you get used to it:

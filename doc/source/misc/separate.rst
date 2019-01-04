@@ -3,7 +3,7 @@ Using several accounts
 
 Poezio does not support multi-accounts, and we do not plan to do so in a
 foreseeable future. However, you can run several poezio instances (e.g. with
-tmux or screen) to have similar functionnality.
+tmux or screen) to have similar functionality.
 
 You can specify a different configuration file than the default with:
 

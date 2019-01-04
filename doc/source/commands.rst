@@ -14,7 +14,7 @@ You can get the same help as below from inside poezio with the :term:`/help` com
 .. note:: Use command parameters like this:
 
     - Do not use quotes if they are unnecessary (words without special chars or spaces)
-    - If the command takes several agrguments, you need to put quotes around arguments containing special chars such as backslashes or quotes
+    - If the command takes several arguments, you need to put quotes around arguments containing special chars such as backslashes or quotes
     - If the command always takes only one argument, then do not use quotes even for words containing special chars
 
 .. _global-commands:
@@ -97,7 +97,7 @@ These commands work in *any* tab.
         **Usage:** ``/status <availability> [status message]``
 
         Set your availability and
-        (optionaly) your status message. The <availability> argument is one of
+        (optionally) your status message. The <availability> argument is one of
         "available, chat, away, afk, dnd, busy, xa" and the optional [status] argument
         will be your status message.'
 
@@ -387,7 +387,7 @@ MultiUserChat tab commands
 
         Using the auto-completion of this command writes the current topic
         in the input, to help the user make a small change to the topic
-        whithout having to rewrite it all by hand.
+        without having to rewrite it all by hand.
 
         If no subject is specified as an argument, the current topic is
         displayed, unchanged.
@@ -421,7 +421,7 @@ MultiUserChat tab commands
     /cycle
         **Usage:** ``/cycle [message]``
 
-        Leave the current room an rejoint it immediatly. You can
+        Leave the current room an rejoint it immediately. You can
         specify an optional quit message.
 
     /info

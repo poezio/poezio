@@ -91,7 +91,7 @@ Table of all XEPs implemented in poezio.
 +----------+-------------------------+---------------------+
 |0270      |Compliance Suites 2010   |Advanced Client      |
 +----------+-------------------------+---------------------+
-|0280      |Messsage Carbons         |100%                 |
+|0280      |Message Carbons          |100%                 |
 +----------+-------------------------+---------------------+
 |0296      |Best Practices for       |0%                   |
 |          |Resource Locking         |                     |

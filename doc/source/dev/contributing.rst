@@ -5,7 +5,7 @@ Conventions
 -----------
 
 We don’t have a strict set of conventions, but you should respect PEP8 mostly
-(e.g. 4 spaces, class names in CamelCase and methods lowercased with
+(e.g. 4 spaces, class names in CamelCase and methods lowercase with
 underscores) except if it means less-readable code (80 chars is often a hassle,
 and if you look inside poezio you’ll see lots of long lines, mostly because of
 strings).
@@ -18,7 +18,7 @@ for the application as a whole.
 Commit guidelines
 -----------------
 
-Commits **should** have a meaninful title (first line), and *may* have a detailed
+Commits **should** have a meaningful title (first line), and *may* have a detailed
 description below. There are of course exceptions (for example, a single-line
 commit that takes care of a typo right behind a big commit does not need to
 say ``fix a typo ("azre" → "are") in toto.py line 45454``, since the metainfos

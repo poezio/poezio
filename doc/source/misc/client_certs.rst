@@ -1,7 +1,7 @@
 Using client certificates to login
 ==================================
 
-Passwordless authentication is possible in XMPP through the use of mecanisms
+Passwordless authentication is possible in XMPP through the use of mechanisms
 such as `SASL External`_. This mechanism has to be supported by both the client
 and the server. This page does not cover the server setup, but prosody has a
 `mod_client_certs`_ module which can perform this kind of authentication, and

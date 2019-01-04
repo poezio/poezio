@@ -154,7 +154,7 @@ Options related to account configuration, nickname…
         **Default value:** ``anon.jeproteste.info``
 
         The server to use for anonymous authentication;
-        make sure it supports anonymous authentification.
+        make sure it supports anonymous authentication.
 
         Note that this option doesn’t do anything at all if you’re using your own JID.
 
@@ -440,7 +440,7 @@ to understand what is :ref:`carbons <carbons-details>` or
         **Default value:** ``true``
 
         XHTML-IM is an XMPP extension letting users send messages containing
-        XHTML and CSS formating. We can use this to make colored text for example.
+        XHTML and CSS formatting. We can use this to make colored text for example.
         Set to ``true`` if you want to see colored (and otherwise formatted) messages.
 
     enable_css_parsing
@@ -602,7 +602,7 @@ or the way messages are displayed.
         **Default value:** ``[empty]``
 
         A list of words or sentences separated by colons (":"). All the
-        informational mesages (described above) containing at least one of those
+        informational messages (described above) containing at least one of those
         values will not be shown.
 
     hide_exit_join
@@ -778,7 +778,7 @@ or the way messages are displayed.
 
     show_roster_subscriptions
 
-        **Defalt value:** ``[empty]``
+        **Default value:** ``[empty]``
 
         Select the level of display of subscriptions with a char in the contact list.
 
@@ -912,7 +912,7 @@ Options related to logging.
 
         **Default value:** ``true``
 
-        Logs all the tracebacks and erors of poezio/slixmpp in
+        Logs all the tracebacks and errors of poezio/slixmpp in
         :term:`log_dir`/errors.log by default. ``false`` disables this option.
 
     use_log
