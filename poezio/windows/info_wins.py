@@ -206,7 +206,7 @@ class ConversationInfoWin(InfoWin):
         """
         Write the information about the contact
         """
-        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
         if not contact:
             self.addstr("(contact not in roster)", color)
             return
@@ -219,7 +219,7 @@ class ConversationInfoWin(InfoWin):
         Just write the jid that we are talking to
         """
         theme = get_theme()
-        color = to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
         self.addstr('[', color)
         self.addstr(jid.full,
                     to_curses_attr(theme.COLOR_CONVERSATION_NAME))
@@ -241,7 +241,7 @@ class DynamicConversationInfoWin(ConversationInfoWin):
         log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s",
                   jid.resource)
         theme = get_theme()
-        color = to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
         self.addstr('[', color)
         self.addstr(jid.bare,
                     to_curses_attr(theme.COLOR_CONVERSATION_NAME))

@@ -962,14 +962,14 @@ class MucTab(ChatTab):
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         if from_nick == self.own_nick:
             msg = '\x19%(color)s}You\x19%(info_col)s} changed: ' % {
-                'info_col': info_col),
+                'info_col': info_col,
                 'color': color
             }
         else:
             msg = '\x19%(color)s}%(nick)s\x19%(info_col)s} changed: ' % {
                 'nick': from_nick,
                 'color': color,
-                'info_col': info_col)
+                'info_col': info_col
             }
         if affiliation != user.affiliation:
             msg += 'affiliation: %s, ' % affiliation

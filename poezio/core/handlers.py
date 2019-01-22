@@ -1274,36 +1274,36 @@ class HandlerCore:
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.' % info_col
+                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.' % info_col,
                     typ=2)
                 modif = True
             if show_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now shown.' % info_col
+                    '\x19%(info_col)s}Info: The unavailable members are now shown.' % info_col,
                     typ=2)
             elif hide_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now hidden.' % info_col
+                    '\x19%(info_col)s}Info: The unavailable members are now hidden.' % info_col,
                     typ=2)
             if non_anon:
                 tab.add_message(
-                    '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col
+                    '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col,
                     typ=2)
             elif semi_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % info_col
+                    '\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % info_col,
                     typ=2)
             elif full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now fully anonymous.' % info_col
+                    '\x19%(info_col)s}Info: The room is now fully anonymous.' % info_col,
                     typ=2)
             if logging_on:
                 tab.add_message(
-                    '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col
+                    '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col,
                     typ=2)
             elif logging_off:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: This room is not logged anymore.' % info_col
+                    '\x19%(info_col)s}Info: This room is not logged anymore.' % info_col,
                     typ=2)
             if modif:
                 self.core.refresh_window()
