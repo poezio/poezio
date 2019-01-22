@@ -438,10 +438,11 @@ class FormWin:
             return
         if self.current_input == len(self.inputs) - 1:
             return
+        theme = get_theme()
         self.inputs[self.current_input]['input'].set_color(
-            get_theme().COLOR_NORMAL_TEXT)
+            theme.COLOR_NORMAL_TEXT)
         self.inputs[self.current_input]['label'].set_color(
-            get_theme().COLOR_NORMAL_TEXT)
+            theme.COLOR_NORMAL_TEXT)
         self.current_input += 1
         jump = 0
         while self.current_input + jump != len(
@@ -460,19 +461,20 @@ class FormWin:
             self.scroll_pos += 1
             self.refresh()
         self.inputs[self.current_input]['input'].set_color(
-            get_theme().COLOR_SELECTED_ROW)
+            theme.COLOR_SELECTED_ROW)
         self.inputs[self.current_input]['label'].set_color(
-            get_theme().COLOR_SELECTED_ROW)
+            theme.COLOR_SELECTED_ROW)
 
     def go_to_previous_input(self):
         if not self.inputs:
             return
         if self.current_input == 0:
             return
+        theme = get_theme()
         self.inputs[self.current_input]['input'].set_color(
-            get_theme().COLOR_NORMAL_TEXT)
+            theme.COLOR_NORMAL_TEXT)
         self.inputs[self.current_input]['label'].set_color(
-            get_theme().COLOR_NORMAL_TEXT)
+            theme.COLOR_NORMAL_TEXT)
         self.current_input -= 1
         jump = 0
         while self.current_input - jump > 0 and self.inputs[self.current_input
@@ -489,9 +491,9 @@ class FormWin:
             self.refresh()
         self.current_input -= jump
         self.inputs[self.current_input]['input'].set_color(
-            get_theme().COLOR_SELECTED_ROW)
+            theme.COLOR_SELECTED_ROW)
         self.inputs[self.current_input]['label'].set_color(
-            get_theme().COLOR_SELECTED_ROW)
+            theme.COLOR_SELECTED_ROW)
 
     def on_input(self, key, raw=False):
         if not self.inputs:
@@ -521,11 +523,10 @@ class FormWin:
             inp['input'].refresh()
             inp['label'].refresh()
         if self.inputs and self.current_input < self.height - 1:
-            self.inputs[self.current_input]['input'].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+            color = get_theme().COLOR_SELECTED_ROW
+            self.inputs[self.current_input]['input'].set_color(color)
             self.inputs[self.current_input]['input'].refresh()
-            self.inputs[self.current_input]['label'].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+            self.inputs[self.current_input]['label'].set_color(color)
             self.inputs[self.current_input]['label'].refresh()
 
     def refresh_current_input(self):

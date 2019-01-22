@@ -94,6 +94,7 @@ class ListWin(Win):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         lines = self.lines[self._starting_pos:self._starting_pos + self.height]
+        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
         for y, line in enumerate(lines):
             x = 0
             for col in self._columns.items():
@@ -106,9 +107,7 @@ class ListWin(Win):
                 if not txt:
                     continue
                 if line is self.lines[self._selected_row]:
-                    self.addstr(
-                        y, x, txt[:size],
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                    self.addstr(y, x, txt[:size], color)
                 else:
                     self.addstr(y, x, txt[:size])
                 x += size
@@ -189,23 +188,24 @@ class ColumnHeaderWin(Win):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         x = 0
+        theme = get_theme()
         for col in self._columns:
             txt = col
             if col in self._column_order:
                 if self._column_order_asc:
-                    txt += get_theme().CHAR_COLUMN_ASC
+                    txt += theme.CHAR_COLUMN_ASC
                 else:
-                    txt += get_theme().CHAR_COLUMN_DESC
+                    txt += theme.CHAR_COLUMN_DESC
             #⇓⇑↑↓⇧⇩▲▼
             size = self._columns_sizes[col]
             txt += ' ' * (size - len(txt))
             if col in self._column_sel:
                 self.addstr(
                     0, x, txt,
-                    to_curses_attr(get_theme().COLOR_COLUMN_HEADER_SEL))
+                    to_curses_attr(theme.COLOR_COLUMN_HEADER_SEL))
             else:
                 self.addstr(0, x, txt,
-                            to_curses_attr(get_theme().COLOR_COLUMN_HEADER))
+                            to_curses_attr(theme.COLOR_COLUMN_HEADER))
             x += size
         self._refresh()
 

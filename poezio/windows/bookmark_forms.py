@@ -245,9 +245,10 @@ class BookmarksWin(Win):
             return
         if self.current_input == 0:
             return
+        theme = get_theme()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+                theme.COLOR_NORMAL_TEXT)
         self.current_input -= 1
         # Adjust the scroll position if the current_input would be outside
         # of the visible area
@@ -256,20 +257,21 @@ class BookmarksWin(Win):
             self.refresh()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+                theme.COLOR_SELECTED_ROW)
 
     def go_to_next_horizontal_input(self) -> None:
         if not self.lines:
             return
+        theme = get_theme()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+                theme.COLOR_NORMAL_TEXT)
         self.current_horizontal_input += 1
         if self.current_horizontal_input > 3:
             self.current_horizontal_input = 0
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+                theme.COLOR_SELECTED_ROW)
 
     def go_to_next_page(self) -> bool:
         if not self.lines:
@@ -278,9 +280,10 @@ class BookmarksWin(Win):
         if self.current_input == len(self.lines) - 1:
             return False
 
+        theme = get_theme()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+                theme.COLOR_NORMAL_TEXT)
         inc = min(self.height, len(self.lines) - self.current_input - 1)
 
         if self.current_input + inc - self.scroll_pos > self.height - 1:
@@ -291,7 +294,7 @@ class BookmarksWin(Win):
             self.current_input += inc
             self.lines[self.current_input][
                 self.current_horizontal_input].set_color(
-                    get_theme().COLOR_SELECTED_ROW)
+                    theme.COLOR_SELECTED_ROW)
         return True
 
     def go_to_previous_page(self) -> bool:
@@ -301,9 +304,10 @@ class BookmarksWin(Win):
         if self.current_input == 0:
             return False
 
+        theme = get_theme()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+                theme.COLOR_NORMAL_TEXT)
 
         dec = min(self.height, self.current_input)
         self.current_input -= dec
@@ -314,7 +318,7 @@ class BookmarksWin(Win):
             self.refresh()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+                theme.COLOR_SELECTED_ROW)
         return True
 
     def go_to_previous_horizontal_input(self) -> None:
@@ -322,13 +326,14 @@ class BookmarksWin(Win):
             return
         if self.current_horizontal_input == 0:
             return
+        theme = get_theme()
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+                theme.COLOR_NORMAL_TEXT)
         self.current_horizontal_input -= 1
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
-                get_theme().COLOR_SELECTED_ROW)
+                theme.COLOR_SELECTED_ROW)
 
     def on_input(self, key: str) -> None:
         if not self.lines:

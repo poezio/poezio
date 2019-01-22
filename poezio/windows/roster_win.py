@@ -195,18 +195,20 @@ class RosterWin(Win):
         """
         The header at the top
         """
+        color = get_theme().COLOR_INFORMATION_BAR
         self.addstr(
             'Roster: %s/%s contacts' % (roster.get_nb_connected_contacts(),
                                         len(roster)),
-            to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+            to_curses_attr(color))
+        self.finish_line(color)
 
     def draw_group(self, y: int, group: RosterGroup, colored: bool) -> None:
         """
         Draw a groupname on a line
         """
+        color = to_curses_attr(get_theme().COLOR_SELECTED_ROW)
         if colored:
-            self._win.attron(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self._win.attron(color)
         if group.folded:
             self.addstr(y, 0, '[+] ')
         else:
@@ -217,7 +219,7 @@ class RosterWin(Win):
             self.truncate_name(group.name,
                                len(contacts) + 4) + contacts)
         if colored:
-            self._win.attroff(to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+            self._win.attroff(color)
         self.finish_line()
 
     def truncate_name(self, name, added):
@@ -263,17 +265,17 @@ class RosterWin(Win):
         added += 4
 
         if contact.ask:
-            added += len(get_theme().CHAR_ROSTER_ASKED)
+            added += len(theme.CHAR_ROSTER_ASKED)
         if show_s2s_errors and contact.error:
-            added += len(get_theme().CHAR_ROSTER_ERROR)
+            added += len(theme.CHAR_ROSTER_ERROR)
         if contact.tune:
-            added += len(get_theme().CHAR_ROSTER_TUNE)
+            added += len(theme.CHAR_ROSTER_TUNE)
         if contact.mood:
-            added += len(get_theme().CHAR_ROSTER_MOOD)
+            added += len(theme.CHAR_ROSTER_MOOD)
         if contact.activity:
-            added += len(get_theme().CHAR_ROSTER_ACTIVITY)
+            added += len(theme.CHAR_ROSTER_ACTIVITY)
         if contact.gaming:
-            added += len(get_theme().CHAR_ROSTER_GAMING)
+            added += len(theme.CHAR_ROSTER_GAMING)
         if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both',
                                'none'):
             added += len(
@@ -291,7 +293,7 @@ class RosterWin(Win):
 
         if colored:
             self.addstr(display_name,
-                        to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+                        to_curses_attr(theme.COLOR_SELECTED_ROW))
         else:
             self.addstr(display_name)
 
@@ -302,34 +304,35 @@ class RosterWin(Win):
                     contact.subscription, keep=show_roster_sub),
                 to_curses_attr(theme.COLOR_ROSTER_SUBSCRIPTION))
         if contact.ask:
-            self.addstr(get_theme().CHAR_ROSTER_ASKED,
-                        to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
+            self.addstr(theme.CHAR_ROSTER_ASKED,
+                        to_curses_attr(theme.COLOR_IMPORTANT_TEXT))
         if show_s2s_errors and contact.error:
-            self.addstr(get_theme().CHAR_ROSTER_ERROR,
-                        to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+            self.addstr(theme.CHAR_ROSTER_ERROR,
+                        to_curses_attr(theme.COLOR_ROSTER_ERROR))
         if contact.tune:
-            self.addstr(get_theme().CHAR_ROSTER_TUNE,
-                        to_curses_attr(get_theme().COLOR_ROSTER_TUNE))
+            self.addstr(theme.CHAR_ROSTER_TUNE,
+                        to_curses_attr(theme.COLOR_ROSTER_TUNE))
         if contact.activity:
-            self.addstr(get_theme().CHAR_ROSTER_ACTIVITY,
-                        to_curses_attr(get_theme().COLOR_ROSTER_ACTIVITY))
+            self.addstr(theme.CHAR_ROSTER_ACTIVITY,
+                        to_curses_attr(theme.COLOR_ROSTER_ACTIVITY))
         if contact.mood:
-            self.addstr(get_theme().CHAR_ROSTER_MOOD,
-                        to_curses_attr(get_theme().COLOR_ROSTER_MOOD))
+            self.addstr(theme.CHAR_ROSTER_MOOD,
+                        to_curses_attr(theme.COLOR_ROSTER_MOOD))
         if contact.gaming:
-            self.addstr(get_theme().CHAR_ROSTER_GAMING,
-                        to_curses_attr(get_theme().COLOR_ROSTER_GAMING))
+            self.addstr(theme.CHAR_ROSTER_GAMING,
+                        to_curses_attr(theme.COLOR_ROSTER_GAMING))
         self.finish_line()
 
     def draw_resource_line(self, y: int, resource: Resource, colored: bool) -> None:
         """
         Draw a specific resource line
         """
-        color = get_theme().color_show(resource.presence)
-        self.addstr(y, 4, get_theme().CHAR_STATUS, to_curses_attr(color))
+        theme = get_theme()
+        color = theme.color_show(resource.presence)
+        self.addstr(y, 4, theme.CHAR_STATUS, to_curses_attr(color))
         if colored:
             self.addstr(y, 8, self.truncate_name(str(resource.jid), 6),
-                        to_curses_attr(get_theme().COLOR_SELECTED_ROW))
+                        to_curses_attr(theme.COLOR_SELECTED_ROW))
         else:
             self.addstr(y, 8, self.truncate_name(str(resource.jid), 6))
         self.finish_line()
@@ -350,6 +353,7 @@ class ContactInfoWin(Win):
         """
         draw the contact information
         """
+        theme = get_theme()
         resource = contact.get_highest_priority_resource()
         if contact:
             jid = str(contact.bare_jid)
@@ -365,8 +369,8 @@ class ContactInfoWin(Win):
         self.addstr(0, 0, '%s (%s)' % (
             jid,
             presence,
-        ), to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        ), to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
         i += 1
         self.addstr(i, 0, 'Subscription: %s' % (contact.subscription, ))
         self.finish_line()
@@ -374,7 +378,7 @@ class ContactInfoWin(Win):
         if contact.ask:
             if contact.ask == 'asked':
                 self.addstr(i, 0, 'Ask: %s' % (contact.ask, ),
-                            to_curses_attr(get_theme().COLOR_IMPORTANT_TEXT))
+                            to_curses_attr(theme.COLOR_IMPORTANT_TEXT))
             else:
                 self.addstr(i, 0, 'Ask: %s' % (contact.ask, ))
             self.finish_line()
@@ -386,33 +390,33 @@ class ContactInfoWin(Win):
 
         if contact.error:
             self.addstr(i, 0, 'Error: %s' % contact.error,
-                        to_curses_attr(get_theme().COLOR_ROSTER_ERROR))
+                        to_curses_attr(theme.COLOR_ROSTER_ERROR))
             self.finish_line()
             i += 1
 
         if contact.tune:
             self.addstr(i, 0,
                         'Tune: %s' % common.format_tune_string(contact.tune),
-                        to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
         if contact.mood:
             self.addstr(i, 0, 'Mood: %s' % contact.mood,
-                        to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
         if contact.activity:
             self.addstr(i, 0, 'Activity: %s' % contact.activity,
-                        to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
         if contact.gaming:
             self.addstr(
                 i, 0, 'Game: %s' % common.format_gaming_string(contact.gaming),
-                to_curses_attr(get_theme().COLOR_NORMAL_TEXT))
+                to_curses_attr(theme.COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
@@ -420,9 +424,10 @@ class ContactInfoWin(Win):
         """
         draw the group information
         """
+        theme = get_theme()
         self.addstr(0, 0, group.name,
-                    to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+                    to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
 
     def refresh(self, selected_row: Row) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)

@@ -345,21 +345,22 @@ class PrivateTab(OneToOneTab):
         The user left the associated MUC
         """
         self.deactivate()
+        theme = get_theme()
         if config.get_by_tabname('display_user_color_in_join_part',
                                  self.general_jid):
             color = dump_tuple(user.color)
         else:
-            color = dump_tuple(get_theme().COLOR_REMOTE_USER)
+            color = dump_tuple(theme.COLOR_REMOTE_USER)
 
         if not status_message:
             self.add_message(
                 '\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
                 '%(nick)s\x19%(info_col)s} has left the room' % {
                     'nick': user.nick,
-                    'spec': get_theme().CHAR_QUIT,
+                    'spec': theme.CHAR_QUIT,
                     'nick_col': color,
-                    'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                    'quit_col': dump_tuple(theme.COLOR_QUIT_CHAR),
+                    'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
                 },
                 typ=2)
         else:
@@ -369,10 +370,10 @@ class PrivateTab(OneToOneTab):
                 ' (%(status)s)' % {
                     'status': status_message,
                     'nick': user.nick,
-                    'spec': get_theme().CHAR_QUIT,
+                    'spec': theme.CHAR_QUIT,
                     'nick_col': color,
-                    'quit_col': dump_tuple(get_theme().COLOR_QUIT_CHAR),
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                    'quit_col': dump_tuple(theme.COLOR_QUIT_CHAR),
+                    'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
                 },
                 typ=2)
         return self.core.tabs.current_tab is self
@@ -385,7 +386,8 @@ class PrivateTab(OneToOneTab):
         self.activate()
         self.check_features()
         tab = self.parent_muc
-        color = dump_tuple(get_theme().COLOR_REMOTE_USER)
+        theme = get_theme()
+        color = dump_tuple(theme.COLOR_REMOTE_USER)
         if tab and config.get_by_tabname('display_user_color_in_join_part',
                                          self.general_jid):
             user = tab.get_user_by_name(nick)
@@ -396,9 +398,9 @@ class PrivateTab(OneToOneTab):
             '%(info_col)s} joined the room' % {
                 'nick': nick,
                 'color': color,
-                'spec': get_theme().CHAR_JOIN,
-                'join_col': dump_tuple(get_theme().COLOR_JOIN_CHAR),
-                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
+                'spec': theme.CHAR_JOIN,
+                'join_col': dump_tuple(theme.COLOR_JOIN_CHAR),
+                'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
             },
             typ=2)
         return self.core.tabs.current_tab is self
@@ -417,12 +419,13 @@ class PrivateTab(OneToOneTab):
         return [(3, safeJID(self.name).resource), (4, self.name)]
 
     def add_error(self, error_message):
-        error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
+        theme = get_theme()
+        error = '\x19%s}%s\x19o' % (dump_tuple(theme.COLOR_CHAR_NACK),
                                     error_message)
         self.add_message(
             error,
             highlight=True,
             nickname='Error',
-            nick_color=get_theme().COLOR_ERROR_MSG,
+            nick_color=theme.COLOR_ERROR_MSG,
             typ=2)
         self.core.refresh_window()

@@ -94,9 +94,10 @@ class PrivateInfoWin(InfoWin):
     def write_room_name(self, name):
         jid = safeJID(name)
         room_name, nick = jid.bare, jid.resource
-        self.addstr(nick, to_curses_attr(get_theme().COLOR_PRIVATE_NAME))
+        theme = get_theme()
+        self.addstr(nick, to_curses_attr(theme.COLOR_PRIVATE_NAME))
         txt = ' from room %s' % room_name
-        self.addstr(txt, to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        self.addstr(txt, to_curses_attr(theme.COLOR_INFORMATION_BAR))
 
     def write_chatstate(self, state):
         if state:
@@ -119,15 +120,16 @@ class MucListInfoWin(InfoWin):
     def refresh(self, name=None, window=None):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
+        theme = get_theme()
         if name:
             self.addstr(name,
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                        to_curses_attr(theme.COLOR_INFORMATION_BAR))
         else:
             self.addstr(self.message,
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                        to_curses_attr(theme.COLOR_INFORMATION_BAR))
         if window:
             self.print_scroll_position(window)
-        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self.finish_line(theme.COLOR_INFORMATION_BAR)
         self._refresh()
 
 
@@ -176,9 +178,9 @@ class ConversationInfoWin(InfoWin):
         Write all information added by plugins by getting the
         value returned by the callbacks.
         """
+        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
         for plugin in information.values():
-            self.addstr(plugin(jid),
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(plugin(jid), color)
 
     def write_resource_information(self, resource):
         """
@@ -188,38 +190,40 @@ class ConversationInfoWin(InfoWin):
             presence = "unavailable"
         else:
             presence = resource.presence
-        color = get_theme().color_show(presence)
+        theme = get_theme()
+        color = theme.color_show(presence)
         if not presence:
-            presence = get_theme().CHAR_STATUS
-        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            presence = theme.CHAR_STATUS
+        self.addstr('[', to_curses_attr(theme.COLOR_INFORMATION_BAR))
         self.addstr(presence, to_curses_attr(color))
         if resource and resource.status:
             shortened = resource.status[:20] + (resource.status[:20] and '…')
             self.addstr(' %s' % shortened,
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
-        self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                        to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        self.addstr(']', to_curses_attr(theme.COLOR_INFORMATION_BAR))
 
     def write_contact_information(self, contact):
         """
         Write the information about the contact
         """
+        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
         if not contact:
-            self.addstr("(contact not in roster)",
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr("(contact not in roster)", color)
             return
         display_name = contact.name
         if display_name:
-            self.addstr('%s ' % (display_name),
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr('%s ' % (display_name), color)
 
     def write_contact_jid(self, jid):
         """
         Just write the jid that we are talking to
         """
-        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        theme = get_theme()
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', color)
         self.addstr(jid.full,
-                    to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
-        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                    to_curses_attr(theme.COLOR_CONVERSATION_NAME))
+        self.addstr('] ', color)
 
     def write_chatstate(self, state):
         if state:
@@ -236,14 +240,16 @@ class DynamicConversationInfoWin(ConversationInfoWin):
         """
         log.debug("write_contact_jid DynamicConversationInfoWin, jid: %s",
                   jid.resource)
-        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        theme = get_theme()
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR))
+        self.addstr('[', color)
         self.addstr(jid.bare,
-                    to_curses_attr(get_theme().COLOR_CONVERSATION_NAME))
+                    to_curses_attr(theme.COLOR_CONVERSATION_NAME))
         if jid.resource:
             self.addstr(
                 "/%s" % (jid.resource, ),
-                to_curses_attr(get_theme().COLOR_CONVERSATION_RESOURCE))
-        self.addstr('] ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                to_curses_attr(theme.COLOR_CONVERSATION_RESOURCE))
+        self.addstr('] ', color)
 
 
 class MucInfoWin(InfoWin):
@@ -277,22 +283,26 @@ class MucInfoWin(InfoWin):
         Write all information added by plugins by getting the
         value returned by the callbacks.
         """
+        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
         for plugin in information.values():
-            self.addstr(plugin(jid),
-                        to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            self.addstr(plugin(jid), color)
 
     def write_room_name(self, room):
-        self.addstr('[', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        theme = get_theme()
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        self.addstr('[', color)
         self.addstr(room.name,
-                    to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
-        self.addstr(']', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                    to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
+        self.addstr(']', color)
 
     def write_participants_number(self, room):
-        self.addstr('{', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+        theme = get_theme()
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        self.addstr('{', color)
         self.addstr(
             str(len(room.users)),
-            to_curses_attr(get_theme().COLOR_GROUPCHAT_NAME))
-        self.addstr('} ', to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+            to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
+        self.addstr('} ', color)
 
     def write_disconnected(self, room):
         """
@@ -386,10 +396,11 @@ class ConfirmStatusWin(Win):
     def refresh(self):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
+        theme = get_theme()
         if self.critical:
-            color = get_theme().COLOR_WARNING_PROMPT
+            color = theme.COLOR_WARNING_PROMPT
         else:
-            color = get_theme().COLOR_INFORMATION_BAR
+            color = theme.COLOR_INFORMATION_BAR
         c_color = to_curses_attr(color)
         self.addstr(self.text, c_color)
         self.finish_line(color)

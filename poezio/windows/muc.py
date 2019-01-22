@@ -110,15 +110,16 @@ class UserList(Win):
         self.addstr(y, 1, symbol, to_curses_attr(color))
 
     def draw_status_chatstate(self, y: int, user: User) -> None:
-        show_col = get_theme().color_show(user.show)
+        theme = get_theme()
+        show_col = theme.color_show(user.show)
         if user.chatstate == 'composing':
-            char = get_theme().CHAR_CHATSTATE_COMPOSING
+            char = theme.CHAR_CHATSTATE_COMPOSING
         elif user.chatstate == 'active':
-            char = get_theme().CHAR_CHATSTATE_ACTIVE
+            char = theme.CHAR_CHATSTATE_ACTIVE
         elif user.chatstate == 'paused':
-            char = get_theme().CHAR_CHATSTATE_PAUSED
+            char = theme.CHAR_CHATSTATE_PAUSED
         else:
-            char = get_theme().CHAR_STATUS
+            char = theme.CHAR_STATUS
         self.addstr(y, 0, char, to_curses_attr(show_col))
 
     def resize(self, height: int, width: int, y: int, x: int) -> None:
@@ -138,17 +139,18 @@ class Topic(Win):
 
     def refresh(self, topic: Optional[str] = None) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
+        theme = get_theme()
         self._win.erase()
         if topic is not None:
             msg = topic[:self.width - 1]
         else:
             msg = self._message[:self.width - 1]
-        self.addstr(0, 0, msg, to_curses_attr(get_theme().COLOR_TOPIC_BAR))
+        self.addstr(0, 0, msg, to_curses_attr(theme.COLOR_TOPIC_BAR))
         _, x = self._win.getyx()
         remaining_size = self.width - x
         if remaining_size:
             self.addnstr(' ' * remaining_size, remaining_size,
-                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
+                         to_curses_attr(theme.COLOR_INFORMATION_BAR))
         self._refresh()
 
     def set_message(self, message) -> None:

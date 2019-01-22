@@ -350,9 +350,10 @@ class TextWin(BaseTextWin):
         txt = message.txt
         if not txt:
             return []
+        theme = get_theme()
         if len(message.str_time) > 8:
             default_color = (
-                FORMAT_CHAR + dump_tuple(get_theme().COLOR_LOG_MSG) + '}')  # type: Optional[str]
+                FORMAT_CHAR + dump_tuple(theme.COLOR_LOG_MSG) + '}')  # type: Optional[str]
         else:
             default_color = None
         ret = []  # type: List[Union[None, Line]]
@@ -360,9 +361,9 @@ class TextWin(BaseTextWin):
         offset = 0
         if message.ack:
             if message.ack > 0:
-                offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+                offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
             else:
-                offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
+                offset += poopt.wcswidth(theme.CHAR_NACK) + 1
         if nick:
             offset += poopt.wcswidth(nick) + 2  # + nick + '> ' length
         if message.revisions > 0:
@@ -372,9 +373,9 @@ class TextWin(BaseTextWin):
         if timestamp:
             if message.str_time:
                 offset += 1 + len(message.str_time)
-            if get_theme().CHAR_TIME_LEFT and message.str_time:
+            if theme.CHAR_TIME_LEFT and message.str_time:
                 offset += 1
-            if get_theme().CHAR_TIME_RIGHT and message.str_time:
+            if theme.CHAR_TIME_RIGHT and message.str_time:
                 offset += 1
         lines = poopt.cut_text(txt, self.width - offset - 1)
         prepend = default_color if default_color else ''
@@ -439,10 +440,11 @@ class TextWin(BaseTextWin):
         nick = truncate_nick(msg.nickname, nick_size)
         offset += poopt.wcswidth(nick)
         if msg.ack:
+            theme = get_theme()
             if msg.ack > 0:
-                offset += poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+                offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
             else:
-                offset += poopt.wcswidth(get_theme().CHAR_NACK) + 1
+                offset += poopt.wcswidth(theme.CHAR_NACK) + 1
         if msg.me:
             offset += 3
         else:
@@ -497,25 +499,28 @@ class TextWin(BaseTextWin):
         return 0
 
     def write_line_separator(self, y) -> None:
-        char = get_theme().CHAR_NEW_TEXT_SEPARATOR
+        theme = get_theme()
+        char = theme.CHAR_NEW_TEXT_SEPARATOR
         self.addnstr(y, 0, char * (self.width // len(char) - 1), self.width,
-                     to_curses_attr(get_theme().COLOR_NEW_TEXT_SEPARATOR))
+                     to_curses_attr(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def write_ack(self) -> int:
-        color = get_theme().COLOR_CHAR_ACK
+        theme = get_theme()
+        color = theme.COLOR_CHAR_ACK
         self._win.attron(to_curses_attr(color))
-        self.addstr(get_theme().CHAR_ACK_RECEIVED)
+        self.addstr(theme.CHAR_ACK_RECEIVED)
         self._win.attroff(to_curses_attr(color))
         self.addstr(' ')
-        return poopt.wcswidth(get_theme().CHAR_ACK_RECEIVED) + 1
+        return poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
 
     def write_nack(self) -> int:
-        color = get_theme().COLOR_CHAR_NACK
+        theme = get_theme()
+        color = theme.COLOR_CHAR_NACK
         self._win.attron(to_curses_attr(color))
-        self.addstr(get_theme().CHAR_NACK)
+        self.addstr(theme.CHAR_NACK)
         self._win.attroff(to_curses_attr(color))
         self.addstr(' ')
-        return poopt.wcswidth(get_theme().CHAR_NACK) + 1
+        return poopt.wcswidth(theme.CHAR_NACK) + 1
 
     def write_nickname(self, nickname, color, highlight=False) -> None:
         """
@@ -626,9 +631,10 @@ class XMLTextWin(BaseTextWin):
             offset += poopt.wcswidth(nick) + 1  # + nick + ' ' length
         if message.str_time:
             offset += 1 + len(message.str_time)
-        if get_theme().CHAR_TIME_LEFT and message.str_time:
+        theme = get_theme()
+        if theme.CHAR_TIME_LEFT and message.str_time:
             offset += 1
-        if get_theme().CHAR_TIME_RIGHT and message.str_time:
+        if theme.CHAR_TIME_RIGHT and message.str_time:
             offset += 1
         lines = poopt.cut_text(txt, self.width - offset - 1)
         prepend = default_color if default_color else ''

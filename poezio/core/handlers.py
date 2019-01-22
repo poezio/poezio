@@ -1270,71 +1270,40 @@ class HandlerCore:
             semi_anon = '173' in status_codes
             full_anon = '174' in status_codes
             modif = False
+            info_col = {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)}
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.' % info_col
                     typ=2)
                 modif = True
             if show_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now shown.'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: The unavailable members are now shown.' % info_col
                     typ=2)
             elif hide_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now hidden.'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: The unavailable members are now hidden.' % info_col
                     typ=2)
             if non_anon:
                 tab.add_message(
-                    '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col
                     typ=2)
             elif semi_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % info_col
                     typ=2)
             elif full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now fully anonymous.' %
-                    {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: The room is now fully anonymous.' % info_col
                     typ=2)
             if logging_on:
                 tab.add_message(
-                    '\x191}Warning: \x19%(info_col)s}This room is publicly logged'
-                    % {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col
                     typ=2)
             elif logging_off:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: This room is not logged anymore.' %
-                    {
-                        'info_col': dump_tuple(
-                            get_theme().COLOR_INFORMATION_TEXT)
-                    },
+                    '\x19%(info_col)s}Info: This room is not logged anymore.' % info_col
                     typ=2)
             if modif:
                 self.core.refresh_window()
@@ -1352,9 +1321,10 @@ class HandlerCore:
         if subject != tab.topic:
             # Do not display the message if the subject did not change or if we
             # receive an empty topic when joining the room.
+            theme = get_theme()
             fmt = {
-                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-                'text_col': dump_tuple(get_theme().COLOR_NORMAL_TEXT),
+                'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT),
+                'text_col': dump_tuple(theme.COLOR_NORMAL_TEXT),
                 'subject': subject,
                 'user': '',
             }
@@ -1448,17 +1418,18 @@ class HandlerCore:
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = str(stanza)
+            char = get_theme().CHAR_XML_OUT
             self.core.add_message_to_text_buffer(
                 self.core.xml_buffer,
                 poezio_colored,
-                nickname=get_theme().CHAR_XML_OUT)
+                nickname=char)
             try:
                 if self.core.xml_tab.match_stanza(
                         ElementBase(ET.fromstring(stanza))):
                     self.core.add_message_to_text_buffer(
                         self.core.xml_tab.filtered_buffer,
                         poezio_colored,
-                        nickname=get_theme().CHAR_XML_OUT)
+                        nickname=char)
             except:
                 log.debug('', exc_info=True)
 
@@ -1477,16 +1448,17 @@ class HandlerCore:
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = str(stanza)
+            char = get_theme().CHAR_XML_IN
             self.core.add_message_to_text_buffer(
                 self.core.xml_buffer,
                 poezio_colored,
-                nickname=get_theme().CHAR_XML_IN)
+                nickname=char)
             try:
                 if self.core.xml_tab.match_stanza(stanza):
                     self.core.add_message_to_text_buffer(
                         self.core.xml_tab.filtered_buffer,
                         poezio_colored,
-                        nickname=get_theme().CHAR_XML_IN)
+                        nickname=char)
             except:
                 log.debug('', exc_info=True)
             if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
