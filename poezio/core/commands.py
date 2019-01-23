@@ -780,7 +780,7 @@ class CommandCore:
             jids.add(safeJID(jid).bare)
 
         asyncio.ensure_future(self.core.impromptu(jids))
-        self.core.information('Invited %s to a random room' % (' '.join(jids)), 'Info')
+        self.core.information('Invited %s to a random room' % (', '.join(jids)), 'Info')
 
     @command_args_parser.quoted(1, 1, [''])
     def decline(self, args):
