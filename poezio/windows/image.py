@@ -11,12 +11,41 @@ try:
 except ImportError:
     HAS_PIL = False
 
+try:
+    import gi
+    gi.require_version('Rsvg', '2.0')
+    from gi.repository import Rsvg
+    import cairo
+    HAS_RSVG = True
+except (ImportError, ValueError):
+    HAS_RSVG = False
+
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 from poezio.xhtml import _parse_css_color
 from poezio.config import config
 
 from typing import Tuple, Optional, Callable
+
+
+def render_from_svg(svg: bytes) -> Optional[Image.Image]:
+    if not HAS_RSVG:
+        return None
+    try:
+        handle = Rsvg.Handle.new_from_data(svg)
+        dimensions = handle.get_dimensions()
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, dimensions.width, dimensions.height)
+        context = cairo.Context(surface)
+        handle.render_cairo(context)
+        data = surface.get_data()
+        image = Image.frombytes('RGBA', (dimensions.width, dimensions.height), data.tobytes())
+        # This is required because Cairo uses a BGRA (in host endianess)
+        # format, and PIL an ABGR (in byte order) format.  Yes, this is
+        # confusing.
+        b, g, r, a = image.split()
+        return Image.merge('RGB', (r, g, b))
+    except Exception:
+        return None
 
 
 class ImageWin(Win):
@@ -27,7 +56,7 @@ class ImageWin(Win):
     __slots__ = ('_image', '_display_avatar')
 
     def __init__(self) -> None:
-        self._image = None  # type: Optional[Image]
+        self._image = None  # type: Optional[Image.Image]
         Win.__init__(self)
         if config.get('image_use_half_blocks'):
             self._display_avatar = self._display_avatar_half_blocks  # type: Callable[[int, int], None]
@@ -45,7 +74,14 @@ class ImageWin(Win):
         if data is not None and HAS_PIL:
             image_file = BytesIO(data)
             try:
-                image = Image.open(image_file)
+                try:
+                    image = Image.open(image_file)
+                except OSError:
+                    # TODO: Make the caller pass the MIME type, so we don’t
+                    # have to try all renderers like that.
+                    image = render_from_svg(data)
+                    if image is None:
+                        raise
             except OSError:
                 self._display_border()
             else:
