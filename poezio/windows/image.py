@@ -9,6 +9,9 @@ try:
     from PIL import Image
     HAS_PIL = True
 except ImportError:
+    class Image:
+        class Image:
+            pass
     HAS_PIL = False
 
 try:
@@ -28,7 +31,7 @@ from poezio.config import config
 from typing import Tuple, Optional, Callable
 
 
-def render_from_svg(svg: bytes) -> Optional[Image.Image]:
+def render_svg(svg: bytes) -> Optional[Image.Image]:
     if not HAS_RSVG:
         return None
     try:
@@ -79,7 +82,7 @@ class ImageWin(Win):
                 except OSError:
                     # TODO: Make the caller pass the MIME type, so we don’t
                     # have to try all renderers like that.
-                    image = render_from_svg(data)
+                    image = render_svg(data)
                     if image is None:
                         raise
             except OSError:
