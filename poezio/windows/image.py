@@ -31,17 +31,27 @@ from poezio.config import config
 from typing import Tuple, Optional, Callable
 
 
+MAX_SIZE = 16
+
+
 def render_svg(svg: bytes) -> Optional[Image.Image]:
     if not HAS_RSVG:
         return None
     try:
         handle = Rsvg.Handle.new_from_data(svg)
         dimensions = handle.get_dimensions()
-        surface = cairo.ImageSurface(cairo.Format.ARGB32, dimensions.width, dimensions.height)
+        biggest_dimension = max(dimensions.width, dimensions.height)
+        scale = MAX_SIZE / biggest_dimension
+        translate_x = (biggest_dimension - dimensions.width) / 2
+        translate_y = (biggest_dimension - dimensions.height) / 2
+
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, MAX_SIZE, MAX_SIZE)
         context = cairo.Context(surface)
+        context.scale(scale, scale)
+        context.translate(translate_x, translate_y)
         handle.render_cairo(context)
         data = surface.get_data()
-        image = Image.frombytes('RGBA', (dimensions.width, dimensions.height), data.tobytes())
+        image = Image.frombytes('RGBA', (MAX_SIZE, MAX_SIZE), data.tobytes())
         # This is required because Cairo uses a BGRA (in host endianess)
         # format, and PIL an ABGR (in byte order) format.  Yes, this is
         # confusing.
