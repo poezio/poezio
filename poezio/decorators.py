@@ -91,18 +91,18 @@ class CommandArgParser:
         the numbers `mandatory` and `optional`.
 
         If the string doesn’t contain at least `mandatory` arguments, we return
-        None because the given arguments  are invalid.
+        None because the given arguments are invalid.
 
         If there are any remaining arguments after `mandatory` and `optional`
         arguments have been found (and “ignore_trailing_arguments" is not True),
-        we happen them to the last argument of the list.
+        we append them to the last argument of the list.
 
-        An argument is a string (with or without whitespaces) between to quotes
+        An argument is a string (with or without whitespaces) between two quotes
         ("), or a whitespace separated word (if not inside quotes).
 
         The argument `defaults` is a list of strings that are used when an
         optional argument is missing.  For example if we accept one optional
-        argument, zero is available but we have one value in the `defaults`
+        argument and none is provided, but we have one value in the `defaults`
         list, we use that string inplace. The `defaults` list can only
         replace missing optional arguments, not mandatory ones. And it
         should not contain more than `mandatory` values. Also you cannot
