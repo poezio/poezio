@@ -7,13 +7,13 @@ from poezio.common import get_utc_time, get_local_time
 
 def test_parse_message():
     line = 'MR 20170909T09:09:09Z 000 <nick>  body'
-    assert vars(parse_log_line(line)) == vars(LogMessage('2017', '09', '09', '09', '09', '09', '0', 'nick', 'body'))
+    assert vars(parse_log_line(line, 'user@domain')) == vars(LogMessage('2017', '09', '09', '09', '09', '09', '0', 'nick', 'body'))
 
     line = '<>'
-    assert parse_log_line(line) is None
+    assert parse_log_line(line, 'user@domain') is None
 
     line = 'MR 20170908T07:05:04Z 003 <nick>  '
-    assert vars(parse_log_line(line)) == vars(LogMessage('2017', '09', '08', '07', '05', '04', '003', 'nick', ''))
+    assert vars(parse_log_line(line, 'user@domain')) == vars(LogMessage('2017', '09', '08', '07', '05', '04', '003', 'nick', ''))
 
 
 def test_log_and_parse_messages():
@@ -27,7 +27,7 @@ def test_log_and_parse_messages():
     msg2_utc = get_utc_time(msg2['date'])
     assert built_msg2 == 'MR %s 001 <toto>  coucou\n coucou\n' % (msg2_utc.strftime('%Y%m%dT%H:%M:%SZ'))
 
-    assert parse_log_lines((built_msg1 + built_msg2).split('\n')) == [
+    assert parse_log_lines((built_msg1 + built_msg2).split('\n'), 'user@domain') == [
         {'time': msg1['date'], 'history': True, 'txt': '\x195,-1}coucou', 'nickname': 'toto'},
         {'time': msg2['date'], 'history': True, 'txt': '\x195,-1}coucou\ncoucou', 'nickname': 'toto'},
     ]

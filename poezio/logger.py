@@ -56,14 +56,14 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def parse_log_line(msg: str) -> Optional[LogItem]:
+def parse_log_line(msg: str, jid: str) -> Optional[LogItem]:
     match = re.match(MESSAGE_LOG_RE, msg)
     if match:
         return LogMessage(*match.groups())
     match = re.match(INFO_LOG_RE, msg)
     if match:
         return LogInfo(*match.groups())
-    log.debug('Error while parsing "%s"', msg)
+    log.debug('Error while parsing %s’s logs: “%s”', jid, msg)
     return None
 
 
@@ -176,7 +176,7 @@ class Logger:
                     filename,
                     exc_info=True)
                 return None
-        return parse_log_lines(lines)
+        return parse_log_lines(lines, jid)
 
     def log_message(self,
                     jid: str,
@@ -306,7 +306,7 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
+def parse_log_lines(lines: List[str], jid: str) -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
     """
@@ -320,7 +320,7 @@ def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
             idx += 1
             log.debug('fail?')
             continue
-        log_item = parse_log_line(lines[idx])
+        log_item = parse_log_line(lines[idx], jid)
         idx += 1
         if not isinstance(log_item, LogItem):
             log.debug('wrong log format? %s', log_item)
