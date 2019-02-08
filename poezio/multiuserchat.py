@@ -13,6 +13,7 @@ slix plugin
 from xml.etree import cElementTree as ET
 
 from poezio.common import safeJID
+from slixmpp import JID
 from slixmpp.exceptions import IqError, IqTimeout
 import logging
 log = logging.getLogger(__name__)
