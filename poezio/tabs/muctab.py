@@ -7,6 +7,7 @@ It keeps track of many things such as part/joins, maintains an
 user list, and updates private tabs when necessary.
 """
 
+import asyncio
 import bisect
 import curses
 import logging
@@ -18,6 +19,7 @@ from datetime import datetime
 from typing import Dict, Callable, List, Optional, Union, Set
 
 from slixmpp import JID
+from slixmpp.exceptions import IqError, IqTimeout
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
@@ -1577,23 +1579,55 @@ class MucTab(ChatTab):
         nick, role, reason = args[0], args[1].lower(), args[2]
         self.change_role(nick, role, reason)
 
-    @command_args_parser.quoted(2)
-    def command_affiliation(self, args):
+    @command_args_parser.quoted(0, 2)
+    def command_affiliation(self, args) -> None:
         """
-        /affiliation <nick or jid> <affiliation>
-        Changes the affiliation of an user
+        /affiliation [<nick or jid> [<affiliation>]]
+        Changes the affiliation of a user
         affiliations can be: outcast, none, member, admin, owner
         """
 
-        def callback(iq):
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
 
-        if args is None:
+        room = JID(self.name)
+        if not room:
+            self.core.information('affiliation: requires to be a valid chat address', 'Error')
+            return
+
+        # List affiliations
+        if not args:
+            asyncio.ensure_future(self.get_users_affiliations(room))
+            return None
+
+        if len(args) != 2:
             return self.core.command.help('affiliation')
 
         nick, affiliation = args[0], args[1].lower()
+        # Set affiliation
         self.change_affiliation(nick, affiliation)
+
+    async def get_users_affiliations(self, jid: JID) -> None:
+        MUC_ADMIN_NS = 'http://jabber.org/protocol/muc#admin'
+
+        try:
+            iqs = await asyncio.gather(
+                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'owner'),
+                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'admin'),
+                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'member'),
+                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'outcast'),
+            )
+        except (IqError, IqTimeout) as exn:
+            self.core.room_error(exn.iq, jid)
+            return None
+
+        self._text_buffer.add_message('Affiliations:')
+        for iq in iqs:
+            query = iq.xml.find('{%s}query' % MUC_ADMIN_NS)
+            for item in query.findall('{%s}item' % MUC_ADMIN_NS):
+                self._text_buffer.add_message(
+                    '%s: %s' % (item.get('jid'), item.get('affiliation'))
+                )
+        self.refresh()
+        return None
 
     @command_args_parser.raw
     def command_say(self, line, correct=False):
@@ -1917,7 +1951,7 @@ class MucTab(ChatTab):
             'func':
             self.command_affiliation,
             'usage':
-            '<nick or jid> <affiliation>',
+            '[<nick or jid> [<affiliation>]]',
             'desc': ('Set the affiliation of an user. Affiliations can be:'
                      ' outcast, none, member, admin, owner.'),
             'shortdesc':
