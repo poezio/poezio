@@ -3,7 +3,7 @@ import curses
 import hashlib
 import math
 
-import hsluv
+from . import hsluv
 
 Palette = Dict[float, int]
 
