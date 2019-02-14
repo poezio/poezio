@@ -3,7 +3,7 @@ poezio
 
 Homepage:      https://poez.io
 
-Forge Page:    https://dev.poez.io
+Forge Page:    https://lab.louiz.org/poezio/poezio
 
 Poezio is a console Jabber/XMPP client.  Its goal is to use anonymous
 connections to simply let the user join MultiUserChats.  This way, the user
@@ -69,7 +69,7 @@ Contact/support
 
 Jabber ChatRoom:   `poezio@muc.poez.io <xmpp:poezio@muc.poez.io?join>`_
 
-Report a bug:      https://dev.poez.io/new
+Report a bug:      https://lab.louiz.org/poezio/poezio/issues/new
 
 License
 =======

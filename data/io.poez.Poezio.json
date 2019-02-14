@@ -88,7 +88,7 @@
             "sources": [
                 {
                     "type": "git",
-                    "url": "git://git.poez.io/poezio.git"
+                    "url": "https://lab.louiz.org/poezio/poezio.git"
                 }
             ]
         }

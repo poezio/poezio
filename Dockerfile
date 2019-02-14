@@ -4,7 +4,7 @@ RUN apk add --update build-base git python3 python3-dev libidn-dev && python3 -m
 WORKDIR /tmp/
 ARG version=HEAD
 # Don’t ADD local files in order to keep layers at a minimal size
-RUN git clone https://git.poez.io/poezio.git poezio-git-dir && \
+RUN git clone https://lab.louiz.org/poezio/poezio.git poezio-git-dir && \
         cd poezio-git-dir && \
         git archive --prefix="poezio-archive-${version}/" -o /tmp/poezio-archive.tar "${version}" && \
         cd /tmp/ && tar xvf poezio-archive.tar && \

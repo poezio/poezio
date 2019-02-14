@@ -54,7 +54,7 @@ support. Therefore, you might want to use the git version.
 
 .. code-block:: bash
 
-    git clone git://git.poez.io/poezio
+    git clone https://lab.louiz.org/poezio/poezio
     cd poezio
 
 """""""
@@ -102,7 +102,7 @@ Poezio depends on slixmpp, a non-threaded fork of the SleekXMPP library.
 
 .. code-block:: bash
 
-    git clone git://git.poez.io/slixmpp
+    git clone https://lab.louiz.org/poezio/slixmpp
     python3 setup.py install --user
 
 
