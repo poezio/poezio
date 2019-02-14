@@ -3,6 +3,8 @@ import curses
 import hashlib
 import math
 
+from . import hsluv
+
 Palette = Dict[float, int]
 
 # BT.601 (YCbCr) constants, see XEP-0392
@@ -33,13 +35,6 @@ def ncurses_color_to_rgb(color: int) -> Tuple[float, float, float]:
     return r / 5, g / 5, b / 5
 
 
-def rgb_to_ycbcr(r: float, g: float, b: float) -> Tuple[float, float, float]:
-    y = K_R * r + K_G * g + K_B * b
-    cr = (r - y) / (1 - K_R) / 2
-    cb = (b - y) / (1 - K_B) / 2
-    return y, cb, cr
-
-
 def generate_ccg_palette(curses_palette: List[int],
                          reference_y: float) -> Palette:
     cbcr_palette = {}  # type: Dict[float, Tuple[float, int]]
@@ -48,8 +43,10 @@ def generate_ccg_palette(curses_palette: List[int],
         # drop grayscale
         if r == g == b:
             continue
-        y, cb, cr = rgb_to_ycbcr(r, g, b)
-        key = round(cbcr_to_angle(cb, cr), 2)
+        h, _, y = hsluv.rgb_to_hsluv((r, g, b))
+        # this is to keep the code compatible with earlier versions of XEP-0392
+        y = y / 100
+        key = round(h)
         try:
             existing_y, *_ = cbcr_palette[key]
         except KeyError:
@@ -68,35 +65,15 @@ def text_to_angle(text: str) -> float:
     hf = hashlib.sha1()
     hf.update(text.encode("utf-8"))
     hue = int.from_bytes(hf.digest()[:2], "little")
-    return hue / 65535 * math.pi * 2
-
-
-def angle_to_cbcr_edge(angle: float) -> Tuple[float, float]:
-    cr = math.sin(angle)
-    cb = math.cos(angle)
-    if abs(cr) > abs(cb):
-        factor = 0.5 / abs(cr)
-    else:
-        factor = 0.5 / abs(cb)
-    return cb * factor, cr * factor
-
-
-def cbcr_to_angle(cb: float, cr: float) -> float:
-    magn = math.sqrt(cb**2 + cr**2)
-    if magn > 0:
-        cr /= magn
-        cb /= magn
-    return math.atan2(cr, cb) % (2 * math.pi)
+    return hue / 65535 * 360
 
 
 def ccg_palette_lookup(palette: Palette, angle: float) -> int:
     # try quick lookup first
     try:
-        color = palette[round(angle, 2)]
+        return palette[round(angle)]
     except KeyError:
         pass
-    else:
-        return color
 
     best_metric = float("inf")
     best = None
