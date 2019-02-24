@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 import asyncio
 from xml.etree import cElementTree as ET
 
+from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError
 from slixmpp.xmlstream.xmlstream import NotConnectedError
 from slixmpp.xmlstream.stanzabase import StanzaBase
@@ -632,12 +633,18 @@ class CommandCore:
     def server_cycle(self, args):
         """
         Do a /cycle on each room of the given server.
-        If none, do it on the current tab
+        If none, do it on the server of the current tab
         """
         tab = self.core.tabs.current_tab
         message = ""
         if args:
-            domain = args[0]
+            try:
+                domain = JID(args[0]).domain
+            except InvalidJID:
+                return self.core.information(
+                    "Invalid server domain: %s" % args[0],
+                    "Error"
+                )
             if len(args) == 2:
                 message = args[1]
         else:
@@ -646,7 +653,7 @@ class CommandCore:
             else:
                 return self.core.information("No server specified", "Error")
         for tab in self.core.get_tabs(tabs.MucTab):
-            if tab.name.endswith(domain):
+            if JID(tab.name).domain == domain:
                 tab.leave_room(message)
                 tab.join()
 
