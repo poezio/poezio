@@ -233,6 +233,7 @@ class Tabs:
             self._previous_tab = None
         if is_current:
             self.restore_previous_tab()
+            self._previous_tab = None
         self._validate_current_index()
 
     def restore_previous_tab(self):
