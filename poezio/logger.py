@@ -196,6 +196,7 @@ class Logger:
         logged_msg = build_log_message(nick, msg, date=date, typ=typ)
         if not logged_msg:
             return True
+        jid = str(jid).replace('/', '\\')
         if jid in self._fds.keys():
             fd = self._fds[jid]
         else:
