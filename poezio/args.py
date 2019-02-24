@@ -6,6 +6,8 @@ There is a fallback to the deprecated optparse if argparse is not found
 from pathlib import Path
 from argparse import ArgumentParser, SUPPRESS
 
+from poezio.version import __version__
+
 
 def parse_args(CONFIG_PATH: Path):
     """
@@ -33,11 +35,17 @@ def parse_args(CONFIG_PATH: Path):
         help="The config file you want to use",
         metavar="CONFIG_FILE")
     parser.add_argument(
-        "-v",
-        "--version",
-        dest="version",
+        '-v',
+        '--version',
+        action='version',
+        version='Poezio v%s' % __version__,
+    )
+    parser.add_argument(
+        "--custom-version",
+        dest="custom_version",
         help=SUPPRESS,
         metavar="VERSION",
-        default="0.13-dev")
+        default=__version__
+    )
     options = parser.parse_args()
     return options

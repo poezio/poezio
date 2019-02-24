@@ -25,5 +25,5 @@ else
 fi
 
 $PYTHON3 -c 'import sys;(print("Python 3.5 or newer is required") and exit(1)) if sys.version_info < (3, 5) else exit(0)' || exit 1
-exec "$PYTHON3" -m poezio -v "$args" "$@"
+exec "$PYTHON3" -m poezio --custom-version "$args" "$@"
 

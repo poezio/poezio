@@ -177,7 +177,7 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0196')
 
         if config.get('send_poezio_info'):
-            info = {'name': 'poezio', 'version': options.version}
+            info = {'name': 'poezio', 'version': options.custom_version}
             if config.get('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities={('client',
