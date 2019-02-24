@@ -31,6 +31,17 @@ from poezio.tabs import Tab
 log = logging.getLogger(__name__)
 
 
+def deny_anonymous(func: Callable) -> Callable:
+    def wrap(self: 'RosterInfoTab', *args, **kwargs):
+        if self.core.xmpp.anon:
+            return self.core.information(
+                'This command is not available for anonymous accounts.',
+                'Info'
+            )
+        return func(self, *args, **kwargs)
+    return wrap
+
+
 class RosterInfoTab(Tab):
     """
     A tab, splitted in two, containing the roster and infos
@@ -71,89 +82,89 @@ class RosterInfoTab(Tab):
             self.key_func["s"] = self.start_search
             self.key_func["S"] = self.start_search_slow
             self.key_func["n"] = self.change_contact_name
-            self.register_command(
-                'deny',
-                self.command_deny,
-                usage='[jid]',
-                desc='Deny your presence to the provided JID (or the '
-                'selected contact in your roster), who is asking'
-                'you to be in his/here roster.',
-                shortdesc='Deny a user your presence.',
-                completion=self.completion_deny)
-            self.register_command(
-                'accept',
-                self.command_accept,
-                usage='[jid]',
-                desc='Allow the provided JID (or the selected contact '
-                'in your roster), to see your presence.',
-                shortdesc='Allow a user your presence.',
-                completion=self.completion_deny)
-            self.register_command(
-                'add',
-                self.command_add,
-                usage='<jid>',
-                desc='Add the specified JID to your roster, ask them to'
-                ' allow you to see his presence, and allow them to'
-                ' see your presence.',
-                shortdesc='Add a user to your roster.')
-            self.register_command(
-                'name',
-                self.command_name,
-                usage='<jid> [name]',
-                shortdesc='Set the given JID\'s name.',
-                completion=self.completion_name)
-            self.register_command(
-                'groupadd',
-                self.command_groupadd,
-                usage='[<jid> <group>]|<group>',
-                desc='Add the given JID or selected line to the given group.',
-                shortdesc='Add a user to a group',
-                completion=self.completion_groupadd)
-            self.register_command(
-                'groupmove',
-                self.command_groupmove,
-                usage='<jid> <old group> <new group>',
-                desc='Move the given JID from the old group to the new group.',
-                shortdesc='Move a user to another group.',
-                completion=self.completion_groupmove)
-            self.register_command(
-                'groupremove',
-                self.command_groupremove,
-                usage='<jid> <group>',
-                desc='Remove the given JID from the given group.',
-                shortdesc='Remove a user from a group.',
-                completion=self.completion_groupremove)
-            self.register_command(
-                'remove',
-                self.command_remove,
-                usage='[jid]',
-                desc='Remove the specified JID from your roster. This '
-                'will unsubscribe you from its presence, cancel '
-                'its subscription to yours, and remove the item '
-                'from your roster.',
-                shortdesc='Remove a user from your roster.',
-                completion=self.completion_remove)
-            self.register_command(
-                'export',
-                self.command_export,
-                usage='[/path/to/file]',
-                desc='Export your contacts into /path/to/file if '
-                'specified, or $HOME/poezio_contacts if not.',
-                shortdesc='Export your roster to a file.',
-                completion=partial(self.completion_file, 1))
-            self.register_command(
-                'import',
-                self.command_import,
-                usage='[/path/to/file]',
-                desc='Import your contacts from /path/to/file if '
-                'specified, or $HOME/poezio_contacts if not.',
-                shortdesc='Import your roster from a file.',
-                completion=partial(self.completion_file, 1))
-            self.register_command(
-                'password',
-                self.command_password,
-                usage='<password>',
-                shortdesc='Change your password')
+        self.register_command(
+            'deny',
+            self.command_deny,
+            usage='[jid]',
+            desc='Deny your presence to the provided JID (or the '
+            'selected contact in your roster), who is asking'
+            'you to be in his/here roster.',
+            shortdesc='Deny a user your presence.',
+            completion=self.completion_deny)
+        self.register_command(
+            'accept',
+            self.command_accept,
+            usage='[jid]',
+            desc='Allow the provided JID (or the selected contact '
+            'in your roster), to see your presence.',
+            shortdesc='Allow a user your presence.',
+            completion=self.completion_deny)
+        self.register_command(
+            'add',
+            self.command_add,
+            usage='<jid>',
+            desc='Add the specified JID to your roster, ask them to'
+            ' allow you to see his presence, and allow them to'
+            ' see your presence.',
+            shortdesc='Add a user to your roster.')
+        self.register_command(
+            'name',
+            self.command_name,
+            usage='<jid> [name]',
+            shortdesc='Set the given JID\'s name.',
+            completion=self.completion_name)
+        self.register_command(
+            'groupadd',
+            self.command_groupadd,
+            usage='[<jid> <group>]|<group>',
+            desc='Add the given JID or selected line to the given group.',
+            shortdesc='Add a user to a group',
+            completion=self.completion_groupadd)
+        self.register_command(
+            'groupmove',
+            self.command_groupmove,
+            usage='<jid> <old group> <new group>',
+            desc='Move the given JID from the old group to the new group.',
+            shortdesc='Move a user to another group.',
+            completion=self.completion_groupmove)
+        self.register_command(
+            'groupremove',
+            self.command_groupremove,
+            usage='<jid> <group>',
+            desc='Remove the given JID from the given group.',
+            shortdesc='Remove a user from a group.',
+            completion=self.completion_groupremove)
+        self.register_command(
+            'remove',
+            self.command_remove,
+            usage='[jid]',
+            desc='Remove the specified JID from your roster. This '
+            'will unsubscribe you from its presence, cancel '
+            'its subscription to yours, and remove the item '
+            'from your roster.',
+            shortdesc='Remove a user from your roster.',
+            completion=self.completion_remove)
+        self.register_command(
+            'export',
+            self.command_export,
+            usage='[/path/to/file]',
+            desc='Export your contacts into /path/to/file if '
+            'specified, or $HOME/poezio_contacts if not.',
+            shortdesc='Export your roster to a file.',
+            completion=partial(self.completion_file, 1))
+        self.register_command(
+            'import',
+            self.command_import,
+            usage='[/path/to/file]',
+            desc='Import your contacts from /path/to/file if '
+            'specified, or $HOME/poezio_contacts if not.',
+            shortdesc='Import your roster from a file.',
+            completion=partial(self.completion_file, 1))
+        self.register_command(
+            'password',
+            self.command_password,
+            usage='<password>',
+            shortdesc='Change your password')
 
         self.register_command(
             'reconnect',
@@ -652,6 +663,7 @@ class RosterInfoTab(Tab):
             self.core.information_buffer)
         self.refresh()
 
+    @deny_anonymous
     @command_args_parser.quoted(1)
     def command_password(self, args):
         """
@@ -670,6 +682,7 @@ class RosterInfoTab(Tab):
         self.core.xmpp.plugin['xep_0077'].change_password(
             args[0], callback=callback)
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_deny(self, args):
         """
@@ -695,6 +708,7 @@ class RosterInfoTab(Tab):
             self.core.information('Subscription to %s was revoked' % jid,
                                   'Roster')
 
+    @deny_anonymous
     @command_args_parser.quoted(1)
     def command_add(self, args):
         """
@@ -715,6 +729,7 @@ class RosterInfoTab(Tab):
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
 
+    @deny_anonymous
     @command_args_parser.quoted(1, 1)
     def command_name(self, args):
         """
@@ -747,6 +762,7 @@ class RosterInfoTab(Tab):
             subscription=subscription,
             callback=callback)
 
+    @deny_anonymous
     @command_args_parser.quoted(1, 1)
     def command_groupadd(self, args):
         """
@@ -801,6 +817,7 @@ class RosterInfoTab(Tab):
             subscription=subscription,
             callback=callback)
 
+    @deny_anonymous
     @command_args_parser.quoted(3)
     def command_groupmove(self, args):
         """
@@ -860,6 +877,7 @@ class RosterInfoTab(Tab):
             subscription=subscription,
             callback=callback)
 
+    @deny_anonymous
     @command_args_parser.quoted(2)
     def command_groupremove(self, args):
         """
@@ -905,6 +923,7 @@ class RosterInfoTab(Tab):
             subscription=subscription,
             callback=callback)
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_remove(self, args):
         """
@@ -923,6 +942,7 @@ class RosterInfoTab(Tab):
         roster.remove(jid)
         del roster[jid]
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_import(self, args):
         """
@@ -951,6 +971,7 @@ class RosterInfoTab(Tab):
             self.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_export(self, args):
         """
@@ -1055,6 +1076,7 @@ class RosterInfoTab(Tab):
             if contact.pending_in)
         return Completion(the_input.new_completion, jids, 1, '', quotify=False)
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_accept(self, args):
         """
