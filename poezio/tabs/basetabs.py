@@ -818,7 +818,7 @@ class OneToOneTab(ChatTab):
             msg += 'show: %s, ' % SHOW_NAME[status.show]
         self.add_message(msg[:-2], typ=2)
 
-    def ack_message(self, msg_id, msg_jid):
+    def ack_message(self, msg_id: str, msg_jid: JID):
         """
         Ack a message
         """
@@ -827,9 +827,9 @@ class OneToOneTab(ChatTab):
             self.text_win.modify_message(msg_id, new_msg)
             self.core.refresh_window()
 
-    def nack_message(self, error, msg_id, msg_jid):
+    def nack_message(self, error: str, msg_id: str, msg_jid: JID):
         """
-        Ack a message
+        Non-ack a message (e.g. timeout)
         """
         new_msg = self._text_buffer.nack_message(error, msg_id, msg_jid)
         if new_msg:

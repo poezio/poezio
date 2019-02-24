@@ -14,6 +14,8 @@ import curses
 import logging
 from typing import Dict, Callable
 
+from slixmpp import JID
+
 from poezio.tabs import OneToOneTab, MucTab, Tab
 
 from poezio import windows
@@ -85,6 +87,12 @@ class PrivateTab(OneToOneTab):
     def nick(self):
         return self.get_nick()
 
+    def ack_message(self, msg_id: str, msg_jid: JID):
+        # special case when talking to oneself
+        if msg_jid == self.core.xmpp.boundjid:
+            msg_jid = JID(self.name)
+        super().ack_message(msg_id, msg_jid)
+
     @staticmethod
     def add_information_element(plugin_name, callback):
         """
@@ -141,6 +149,7 @@ class PrivateTab(OneToOneTab):
     def command_say(self, line, attention=False, correct=False):
         if not self.on:
             return
+        echo_message = JID(self.name).resource != self.own_nick
         msg = self.core.xmpp.make_message(self.name)
         msg['type'] = 'chat'
         msg['body'] = line
@@ -157,7 +166,8 @@ class PrivateTab(OneToOneTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', self.name):
+            if (config.get_by_tabname('group_corrections', self.name)
+                    and echo_message):
                 try:
                     self.modify_message(
                         msg['body'],
@@ -187,7 +197,7 @@ class PrivateTab(OneToOneTab):
             self.text_win.refresh()
             self.input.refresh()
             return
-        if not replaced:
+        if not replaced and echo_message:
             self.add_message(
                 msg['body'],
                 nickname=self.own_nick or self.core.own_nick,
