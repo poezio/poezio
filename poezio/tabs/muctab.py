@@ -1627,7 +1627,7 @@ class MucTab(ChatTab):
                 self._text_buffer.add_message(
                     '%s: %s' % (item.get('jid'), item.get('affiliation'))
                 )
-        self.refresh()
+        self.core.refresh_window()
         return None
 
     @command_args_parser.raw
