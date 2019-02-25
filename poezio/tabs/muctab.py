@@ -450,8 +450,9 @@ class MucTab(ChatTab):
         if presence['type'] == 'error':
             self.core.room_error(presence, self.name)
         elif not self.joined:
-            if '110' in status_codes or self.own_nick == presence['from'].resource:
-                self.process_presence_buffer(presence)
+            own = '110' in status_codes or self.own_nick == presence['from'].resource
+            if own or len(self.presence_buffer) >= 10:
+                self.process_presence_buffer(presence, own)
             else:
                 self.presence_buffer.append(presence)
                 return
@@ -469,7 +470,7 @@ class MucTab(ChatTab):
             self.input.refresh()
             self.core.doupdate()
 
-    def process_presence_buffer(self, last_presence):
+    def process_presence_buffer(self, last_presence, own):
         """
         Batch-process all the initial presences
         """
@@ -481,11 +482,13 @@ class MucTab(ChatTab):
                 self.handle_presence_unjoined(stanza, deterministic)
             except PresenceError:
                 self.core.room_error(stanza, stanza['from'].bare)
-        self.handle_presence_unjoined(last_presence, deterministic, own=True)
+        self.presence_buffer = []
+        self.handle_presence_unjoined(last_presence, deterministic, own)
         self.users.sort()
         # Enable the self ping event, to regularly check if we
         # are still in the room.
-        self.enable_self_ping_event()
+        if own:
+            self.enable_self_ping_event()
         if self.core.tabs.current_tab is not self:
             self.refresh_tab_win()
             self.core.tabs.current_tab.refresh_input()
