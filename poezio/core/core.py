@@ -1975,6 +1975,8 @@ class Core:
             if not tab:
                 self.open_new_room(
                     bm.jid, nick, focus=False, password=bm.password)
+            else:
+                tab.disconnect()
             self.initial_joins.append(bm.jid)
             # do not join rooms that do not have autojoin
             # but display them anyway
