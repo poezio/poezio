@@ -72,6 +72,11 @@ def main():
     """
     Entry point.
     """
+
+    if os.geteuid() == 0:
+        sys.stdout.write("Please do not run poezio as root.\n")
+        sys.exit(0)
+
     sys.stdout.write("\x1b]0;poezio\x07")
     sys.stdout.flush()
     from poezio import config
