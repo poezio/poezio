@@ -43,6 +43,6 @@ class Plugin(BasePlugin):
     def command_code(self, args):
         language, code = args.split(None, 1)
         lexer = get_lexer_by_name(language)
-        room = self.api.current_tab()
+        tab = self.api.current_tab()
         code = highlight(code, lexer, FORMATTER)
-        room.command_xhtml('<pre>%s</pre>' % code.rstrip('\n'))
+        tab.command_xhtml('<pre><code class="language-%s">%s</code></pre>' % (language, code.rstrip('\n')))
