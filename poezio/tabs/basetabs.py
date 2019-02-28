@@ -511,7 +511,7 @@ class ChatTab(Tab):
 
     @property
     def general_jid(self) -> JID:
-        return NotImplementedError
+        raise NotImplementedError
 
     def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
         logs = logger.get_logs(safeJID(self.name).bare, log_nb)
