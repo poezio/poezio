@@ -44,7 +44,7 @@ def deny_anonymous(func: Callable) -> Callable:
 
 class RosterInfoTab(Tab):
     """
-    A tab, splitted in two, containing the roster and infos
+    A tab, split in two, containing the roster and infos
     """
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
@@ -88,7 +88,7 @@ class RosterInfoTab(Tab):
             usage='[jid]',
             desc='Deny your presence to the provided JID (or the '
             'selected contact in your roster), who is asking'
-            'you to be in his/here roster.',
+            'you to be in his/her roster.',
             shortdesc='Deny a user your presence.',
             completion=self.completion_deny)
         self.register_command(

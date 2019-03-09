@@ -656,7 +656,7 @@ or the way messages are displayed.
 
         Some informational messages (error, a contact getting connected, etc)
         are sometimes added to the information buffer. These settings can make
-        that buffer grow temporarly so you can read these information when they
+        that buffer grow temporarily so you can read these information when they
         appear.
 
         A list of message types that should make the information buffer grow

@@ -272,7 +272,7 @@ class ListMultiWin(FieldInputMixin):
         self._field.set_answer(values)
 
     def get_help_message(self):
-        return '←, →: Switch between the value. Space: select or unselect a value'
+        return '←, →: Switch between the value. Space: select or deselect a value'
 
 
 class ListSingleWin(FieldInputMixin):

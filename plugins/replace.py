@@ -23,7 +23,7 @@ Add your own pattern
 --------------------
 
 You can easily edit this plugin to add your own patterns. For example if
-don’t want to search for an insult everytime you’re angry, you can create a
+don’t want to search for an insult every time you’re angry, you can create a
 curse pattern this way:
 
 - In the init(self) method of the Plugin class, add something like

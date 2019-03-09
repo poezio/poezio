@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 
 class PrivateTab(OneToOneTab):
     """
-    The tab containg a private conversation (someone from a MUC)
+    The tab containing a private conversation (someone from a MUC)
     """
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]

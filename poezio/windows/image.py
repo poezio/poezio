@@ -52,7 +52,7 @@ def render_svg(svg: bytes) -> Optional[Image.Image]:
         handle.render_cairo(context)
         data = surface.get_data()
         image = Image.frombytes('RGBA', (MAX_SIZE, MAX_SIZE), data.tobytes())
-        # This is required because Cairo uses a BGRA (in host endianess)
+        # This is required because Cairo uses a BGRA (in host endianness)
         # format, and PIL an ABGR (in byte order) format.  Yes, this is
         # confusing.
         b, g, r, a = image.split()

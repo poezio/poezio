@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 class DataFormsTab(Tab):
     """
-    A tab contaning various window type, displaying
+    A tab containing various window type, displaying
     a form that the user needs to fill.
     """
     plugin_commands = {}  # type: Dict[str, Command]

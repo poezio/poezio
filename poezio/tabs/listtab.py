@@ -1,5 +1,5 @@
 """
-A generic tab that displays a serie of items in a scrollable, searchable,
+A generic tab that displays a series of items in a scrollable, searchable,
 sortable list.  It should be inherited, to actually provide methods that
 insert items in the list, and that lets the user interact with them.
 """

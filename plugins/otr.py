@@ -306,7 +306,7 @@ MESSAGE_INVALID = _('%(info)sThe message from %(jid_c)s%(jid)s%(info)s'
 OTR_ERROR = _('%(info)sReceived the following error from '
               '%(jid_c)s%(jid)s%(info)s:\x19o %(err)s')
 
-POTR_ERROR = _('%(info)sAn unspecified error in the OTR plugin occured:\n'
+POTR_ERROR = _('%(info)sAn unspecified error in the OTR plugin occurred:\n'
                '%(exc)s')
 
 TRUST_ADDED = _('%(info)sYou added %(jid_c)s%(bare_jid)s%(info)s with key '
