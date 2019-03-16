@@ -595,7 +595,7 @@ class CommandCore:
                     section = args[0]
                 option = args[1]
                 value = args[2]
-                info = config.set_and_save(option, value_info, section)
+                info = config.set_and_save(option, value, section)
                 self.core.trigger_configuration_change(option, value)
         elif len(args) > 3:
             return self.help('set')
