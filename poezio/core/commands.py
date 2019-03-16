@@ -526,6 +526,8 @@ class CommandCore:
                             theme.COLOR_INFORMATION_TEXT),
                     })
                 for option_name, option_value in section.items():
+                    if 'password' in option_name and 'eval_password' not in option_name:
+                        option_value = '*'*len(option_value)
                     lines.append(
                         '%s\x19%s}=\x19o%s' %
                         (option_name, dump_tuple(
@@ -534,6 +536,8 @@ class CommandCore:
         elif len(args) == 1:
             option = args[0]
             value = config.get(option)
+            if 'password' in option and 'eval_password' not in option and value is not None:
+                        value = '*'*len(value)
             if value is None and '=' in option:
                 args = option.split('=', 1)
             info = ('%s=%s' % (option, value), 'Info')
@@ -591,7 +595,7 @@ class CommandCore:
                     section = args[0]
                 option = args[1]
                 value = args[2]
-                info = config.set_and_save(option, value, section)
+                info = config.set_and_save(option, value_info, section)
                 self.core.trigger_configuration_change(option, value)
         elif len(args) > 3:
             return self.help('set')
