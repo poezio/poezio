@@ -448,7 +448,7 @@ class Config(RawConfigParser):
         if not self.write_in_file(section, option, value):
             return ('Unable to write in the config file', 'Error')
         if 'password' in option and 'eval_password' not in option:
-                        value = '*'*len(value)
+            value = '********'
         return ("%s=%s" % (option, value), 'Info')
 
     def remove_and_save(self, option: str,
