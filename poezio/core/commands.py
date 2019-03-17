@@ -527,7 +527,7 @@ class CommandCore:
                     })
                 for option_name, option_value in section.items():
                     if 'password' in option_name and 'eval_password' not in option_name:
-                        option_value = '*'*len(option_value)
+                        option_value = '********'
                     lines.append(
                         '%s\x19%s}=\x19o%s' %
                         (option_name, dump_tuple(
@@ -537,7 +537,7 @@ class CommandCore:
             option = args[0]
             value = config.get(option)
             if 'password' in option and 'eval_password' not in option and value is not None:
-                        value = '*'*len(value)
+                value = '********'
             if value is None and '=' in option:
                 args = option.split('=', 1)
             info = ('%s=%s' % (option, value), 'Info')
