@@ -205,7 +205,7 @@ class ConversationTab(OneToOneTab):
                     dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                     from_,
                     common.parse_secs_to_str(seconds),
-                    (' and his/her last status was %s' % status)
+                    (' and their last status was %s' % status)
                     if status else '',
                 )
             self.add_message(msg)

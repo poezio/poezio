@@ -428,7 +428,7 @@ MultiUserChat tab commands
         **Usage:** ``/info <nickname>``
 
         Display some information about the user in the room:
-        his/her role, affiliation, status, and status message.
+        their role, affiliation, status, and status message.
 
     /version
         **Usage:** ``/version <nickname or jid>``

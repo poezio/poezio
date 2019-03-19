@@ -687,7 +687,7 @@ class CommandCore:
             else:
                 msg = 'The last activity of %s was %s ago%s' % (
                     from_, common.parse_secs_to_str(seconds),
-                    (' and his/her last status was %s' % status)
+                    (' and their last status was %s' % status)
                     if status else '')
             self.core.information(msg, 'Info')
 

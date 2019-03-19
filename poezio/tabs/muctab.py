@@ -124,14 +124,14 @@ class MucTab(ChatTab):
 
     def cancel_config(self, form):
         """
-        The user do not want to send his/her config, send an iq cancel
+        The user do not want to send their config, send an iq cancel
         """
         muc.cancel_config(self.core.xmpp, self.name)
         self.core.close_tab()
 
     def send_config(self, form):
         """
-        The user sends his/her config to the server
+        The user sends their config to the server
         """
         muc.configure_room(self.core.xmpp, self.name, form)
         self.core.close_tab()
@@ -2053,7 +2053,7 @@ class MucTab(ChatTab):
             'usage':
             '<nickname>',
             'desc': ('Display some information about the user '
-                     'in the MUC: its/his/her role, affiliation,'
+                     'in the MUC: their role, affiliation,'
                      ' status and status message.'),
             'shortdesc':
             'Show an user\'s infos.',

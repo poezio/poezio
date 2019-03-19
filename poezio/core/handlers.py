@@ -561,7 +561,7 @@ class HandlerCore:
                     'Mood')
             else:
                 self.core.information(
-                    contact.bare_jid + ' stopped having his/her mood.', 'Mood')
+                    contact.bare_jid + ' stopped having their mood.', 'Mood')
 
     def on_activity_event(self, message):
         """
@@ -606,7 +606,7 @@ class HandlerCore:
                     contact.activity, 'Activity')
             else:
                 self.core.information(
-                    contact.bare_jid + ' stopped doing his/her activity.',
+                    contact.bare_jid + ' stopped doing their activity.',
                     'Activity')
 
     def on_tune_event(self, message):
@@ -1015,7 +1015,7 @@ class HandlerCore:
             contact.pending_out = False
         else:
             self.core.information(
-                '%s does not want you to receive his/her/its status anymore.' %
+                '%s does not want you to receive their/its status anymore.' %
                 jid, 'Roster')
         self.core.tabs.first().state = 'highlight'
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):

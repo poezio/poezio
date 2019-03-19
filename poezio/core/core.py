@@ -1220,7 +1220,7 @@ class Core:
 
     def rename_private_tabs(self, room_name: str, old_nick: str, user: User) -> None:
         """
-        Call this method when someone changes his/her nick in a MUC,
+        Call this method when someone changes their nick in a MUC,
         this updates the name of all the opened private conversations
         with him/her
         """
