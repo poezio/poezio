@@ -40,23 +40,28 @@ class Message:
         Create a new Message object with parameters, check for /me messages,
         and delayed messages
         """
-        time = time if time is not None else datetime.now()
+        
         if txt.startswith('/me '):
             me = True
             txt = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_ME_MESSAGE),
                                       txt[4:])
         else:
             me = False
-        if history:
-            txt = txt.replace(
-                '\x19o',
-                '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
+        if time is not None and str_time is None:
+            time = time
             str_time = time.strftime("%Y-%m-%d %H:%M:%S")
-        else:
-            if str_time is None:
+        elif time is None:
+            time = datetime.now()
+            if history:
+                txt = txt.replace(
+                    '\x19o',
+                    '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
                 str_time = time.strftime("%Y-%m-%d %H:%M:%S")
             else:
-                str_time = ''
+                if str_time is None:
+                    str_time = time.strftime("%H:%M:%S")
+                else:
+                    str_time = ''
 
         self.txt = txt.replace('\t', '    ') + '\x19o'
         self.nick_color = nick_color
