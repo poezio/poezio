@@ -47,7 +47,7 @@ COMPARE_USERS_LAST_TALKED = lambda x: x.last_talked
 class MucTab(ChatTab):
     """
     The tab containing a multi-user-chat room.
-    It contains an userlist, an input, a topic, an information and a chat zone
+    It contains a userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
     plugin_commands = {}  # type: Dict[str, Command]
@@ -891,7 +891,7 @@ class MucTab(ChatTab):
                                 from_room: JID,
                                 server_initiated=False):
         """
-        When an user leaves a groupchat
+        When a user leaves a groupchat
         """
         self.users.remove(user)
         if self.own_nick == user.nick:
@@ -952,7 +952,7 @@ class MucTab(ChatTab):
     def on_user_change_status(self, user, from_nick, from_room, affiliation,
                               role, show, status):
         """
-        When an user changes her status
+        When a user changes her status
         """
         # build the message
         display_message = False  # flag to know if something significant enough
@@ -1567,7 +1567,7 @@ class MucTab(ChatTab):
     def command_role(self, args):
         """
         /role <nick> <role> [reason]
-        Changes the role of an user
+        Changes the role of a user
         roles can be: none, visitor, participant, moderator
         """
 
@@ -1585,7 +1585,7 @@ class MucTab(ChatTab):
     def command_affiliation(self, args):
         """
         /affiliation <nick or jid> <affiliation>
-        Changes the affiliation of an user
+        Changes the affiliation of a user
         affiliations can be: outcast, none, member, admin, owner
         """
 
@@ -1908,11 +1908,11 @@ class MucTab(ChatTab):
             self.command_role,
             'usage':
             '<nick> <role> [reason]',
-            'desc': ('Set the role of an user. Roles can be:'
+            'desc': ('Set the role of a user. Roles can be:'
                      ' none, visitor, participant, moderator.'
                      ' You also can give an optional reason.'),
             'shortdesc':
-            'Set the role of an user.',
+            'Set the role of a user.',
             'completion':
             self.completion_role
         }, {
@@ -1922,10 +1922,10 @@ class MucTab(ChatTab):
             self.command_affiliation,
             'usage':
             '<nick or jid> <affiliation>',
-            'desc': ('Set the affiliation of an user. Affiliations can be:'
+            'desc': ('Set the affiliation of a user. Affiliations can be:'
                      ' outcast, none, member, admin, owner.'),
             'shortdesc':
-            'Set the affiliation of an user.',
+            'Set the affiliation of a user.',
             'completion':
             self.completion_affiliation
         }, {
@@ -2056,7 +2056,7 @@ class MucTab(ChatTab):
                      'in the MUC: their role, affiliation,'
                      ' status and status message.'),
             'shortdesc':
-            'Show an user\'s infos.',
+            'Show a user\'s infos.',
             'completion':
             self.completion_info
         }, {

@@ -472,7 +472,7 @@ class HandlerCore:
 
     def on_nick_received(self, message):
         """
-        Called when a pep notification for an user nickname
+        Called when a pep notification for a user nickname
         is received
         """
         contact = roster[message['from'].bare]
@@ -527,7 +527,7 @@ class HandlerCore:
 
     def on_mood_event(self, message):
         """
-        Called when a pep notification for an user mood
+        Called when a pep notification for a user mood
         is received.
         """
         contact = roster[message['from'].bare]
@@ -565,7 +565,7 @@ class HandlerCore:
 
     def on_activity_event(self, message):
         """
-        Called when a pep notification for an user activity
+        Called when a pep notification for a user activity
         is received.
         """
         contact = roster[message['from'].bare]
@@ -611,7 +611,7 @@ class HandlerCore:
 
     def on_tune_event(self, message):
         """
-        Called when a pep notification for an user tune
+        Called when a pep notification for a user tune
         is received
         """
         contact = roster[message['from'].bare]
