@@ -1318,6 +1318,7 @@ class HandlerCore:
         room_from = message.get_mucroom()
         tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         subject = message['subject']
+        time = message['delay']['stamp']
         if subject is None or not tab:
             return
         if subject != tab.topic:
@@ -1329,6 +1330,7 @@ class HandlerCore:
                 'text_col': dump_tuple(theme.COLOR_NORMAL_TEXT),
                 'subject': subject,
                 'user': '',
+                'time': time,
             }
             if nick_from:
                 user = tab.get_user_by_name(nick_from)
@@ -1349,13 +1351,13 @@ class HandlerCore:
                 tab.add_message(
                     "%(user)s set the subject to: \x19%(text_col)s}%(subject)s"
                     % fmt,
-                    time=None,
+                    time=time,
                     typ=2)
             else:
                 tab.add_message(
                     "\x19%(info_col)s}The subject is: \x19%(text_col)s}%(subject)s"
                     % fmt,
-                    time=None,
+                    time=time,
                     typ=2)
         tab.topic = subject
         tab.topic_from = nick_from

@@ -54,7 +54,7 @@ class Message:
             str_time = time.strftime("%Y-%m-%d %H:%M:%S")
         else:
             if str_time is None:
-                str_time = time.strftime("%H:%M:%S")
+                str_time = time.strftime("%Y-%m-%d %H:%M:%S")
             else:
                 str_time = ''
 
