@@ -1759,6 +1759,13 @@ class Core:
             shortdesc="Bookmark a room online.",
             completion=self.completion.bookmark)
         self.register_command(
+            'reconnect',
+            self.command.command_reconnect,
+            usage="[reconnect]",
+            desc='Disconnect from the remote server if you are '
+            'currently connected and then connect to it again.',
+            shortdesc='Disconnect and reconnect to the server.')
+        self.register_command(
             'set',
             self.command.set,
             usage="[plugin|][section] <option> [value]",

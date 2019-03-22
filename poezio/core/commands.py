@@ -509,6 +509,16 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @command_args_parser.ignored
+    def command_reconnect(self):
+        """
+        /reconnect
+        """
+        if self.core.xmpp.is_connected():
+            self.core.disconnect(reconnect=True)
+        else:
+            self.core.xmpp.connect()
+
     @command_args_parser.quoted(0, 3)
     def set(self, args):
         """
