@@ -1455,6 +1455,16 @@ class MucTab(ChatTab):
             self.refresh()
         self.core.doupdate()
 
+    @command_args_parser.ignored
+    def command_reconnect(self):
+        """
+        /reconnect
+        """
+        if self.core.xmpp.is_connected():
+            self.core.disconnect(reconnect=True)
+        else:
+            self.core.xmpp.connect()
+
     @command_args_parser.raw
     def command_close(self, msg):
         """
@@ -1976,6 +1986,17 @@ class MucTab(ChatTab):
                      ' specify an optional message.'),
             'shortdesc':
             'Leave the room.'
+        }, {
+            'name':
+            'reconnect',
+            'func':
+            self.command_reconnect,
+            'usage':
+            '<reconnect>',
+            'desc': ('Disconnect from the remote server if you are '
+            'currently connected and then connect to it again.'),
+            'shortdesc':
+            'Disconnect and reconnect to the server.'
         }, {
             'name':
             'close',
