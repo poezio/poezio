@@ -653,8 +653,6 @@ class HandlerCore:
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
-        if message['subject']:
-            return
         room_from = message['from'].bare
 
         if message['type'] == 'error':  # Check if it's an error
@@ -1312,8 +1310,6 @@ class HandlerCore:
         """
         Triggered when the topic is changed.
         """
-        if message['body'] or message['thread']:
-            return
         nick_from = message['mucnick']
         room_from = message.get_mucroom()
         tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
