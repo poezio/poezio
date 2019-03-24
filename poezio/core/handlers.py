@@ -472,7 +472,7 @@ class HandlerCore:
 
     def on_nick_received(self, message):
         """
-        Called when a pep notification for an user nickname
+        Called when a pep notification for a user nickname
         is received
         """
         contact = roster[message['from'].bare]
@@ -527,7 +527,7 @@ class HandlerCore:
 
     def on_mood_event(self, message):
         """
-        Called when a pep notification for an user mood
+        Called when a pep notification for a user mood
         is received.
         """
         contact = roster[message['from'].bare]
@@ -561,11 +561,11 @@ class HandlerCore:
                     'Mood')
             else:
                 self.core.information(
-                    contact.bare_jid + ' stopped having his/her mood.', 'Mood')
+                    contact.bare_jid + ' stopped having their mood.', 'Mood')
 
     def on_activity_event(self, message):
         """
-        Called when a pep notification for an user activity
+        Called when a pep notification for a user activity
         is received.
         """
         contact = roster[message['from'].bare]
@@ -606,12 +606,12 @@ class HandlerCore:
                     contact.activity, 'Activity')
             else:
                 self.core.information(
-                    contact.bare_jid + ' stopped doing his/her activity.',
+                    contact.bare_jid + ' stopped doing their activity.',
                     'Activity')
 
     def on_tune_event(self, message):
         """
-        Called when a pep notification for an user tune
+        Called when a pep notification for a user tune
         is received
         """
         contact = roster[message['from'].bare]
@@ -653,8 +653,6 @@ class HandlerCore:
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
-        if message['subject']:
-            return
         room_from = message['from'].bare
 
         if message['type'] == 'error':  # Check if it's an error
@@ -1015,7 +1013,7 @@ class HandlerCore:
             contact.pending_out = False
         else:
             self.core.information(
-                '%s does not want you to receive his/her/its status anymore.' %
+                '%s does not want you to receive their/its status anymore.' %
                 jid, 'Roster')
         self.core.tabs.first().state = 'highlight'
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
@@ -1312,12 +1310,11 @@ class HandlerCore:
         """
         Triggered when the topic is changed.
         """
-        if message['body'] or message['thread']:
-            return
         nick_from = message['mucnick']
         room_from = message.get_mucroom()
         tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         subject = message['subject']
+        time = message['delay']['stamp']
         if subject is None or not tab:
             return
         if subject != tab.topic:
@@ -1329,6 +1326,7 @@ class HandlerCore:
                 'text_col': dump_tuple(theme.COLOR_NORMAL_TEXT),
                 'subject': subject,
                 'user': '',
+                'str_time': time,
             }
             if nick_from:
                 user = tab.get_user_by_name(nick_from)
@@ -1349,13 +1347,13 @@ class HandlerCore:
                 tab.add_message(
                     "%(user)s set the subject to: \x19%(text_col)s}%(subject)s"
                     % fmt,
-                    time=None,
+                    str_time=time,
                     typ=2)
             else:
                 tab.add_message(
                     "\x19%(info_col)s}The subject is: \x19%(text_col)s}%(subject)s"
                     % fmt,
-                    time=None,
+                    str_time=time,
                     typ=2)
         tab.topic = subject
         tab.topic_from = nick_from

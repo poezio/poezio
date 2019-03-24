@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 
 class PrivateTab(OneToOneTab):
     """
-    The tab containg a private conversation (someone from a MUC)
+    The tab containing a private conversation (someone from a MUC)
     """
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
@@ -55,7 +55,7 @@ class PrivateTab(OneToOneTab):
             'info',
             self.command_info,
             desc=
-            'Display some information about the user in the MUC: its/his/her role, affiliation, status and status message.',
+            'Display some information about the user in the MUC: their role, affiliation, status and status message.',
             shortdesc='Info about the user.')
         self.register_command(
             'version',

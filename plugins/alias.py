@@ -128,7 +128,7 @@ class Plugin(BasePlugin):
             if update:
                 self.api.information('Alias /%s updated' % alias, 'Info')
             else:
-                self.api.information('Alias /%s successfuly created' % alias,
+                self.api.information('Alias /%s successfully created' % alias,
                                      'Info')
 
     def command_unalias(self, alias):
@@ -139,7 +139,7 @@ class Plugin(BasePlugin):
             del self.commands[alias]
             self.api.del_command(alias)
             self.config.remove(alias)
-            self.api.information('Alias /%s successfuly deleted' % alias,
+            self.api.information('Alias /%s successfully deleted' % alias,
                                  'Info')
 
     def completion_unalias(self, the_input):

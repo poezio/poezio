@@ -47,7 +47,7 @@ COMPARE_USERS_LAST_TALKED = lambda x: x.last_talked
 class MucTab(ChatTab):
     """
     The tab containing a multi-user-chat room.
-    It contains an userlist, an input, a topic, an information and a chat zone
+    It contains a userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
     plugin_commands = {}  # type: Dict[str, Command]
@@ -124,14 +124,14 @@ class MucTab(ChatTab):
 
     def cancel_config(self, form):
         """
-        The user do not want to send his/her config, send an iq cancel
+        The user do not want to send their config, send an iq cancel
         """
         muc.cancel_config(self.core.xmpp, self.name)
         self.core.close_tab()
 
     def send_config(self, form):
         """
-        The user sends his/her config to the server
+        The user sends their config to the server
         """
         muc.configure_room(self.core.xmpp, self.name, form)
         self.core.close_tab()
@@ -448,8 +448,9 @@ class MucTab(ChatTab):
         if presence['type'] == 'error':
             self.core.room_error(presence, self.name)
         elif not self.joined:
-            if '110' in status_codes or self.own_nick == presence['from'].resource:
-                self.process_presence_buffer(presence)
+            own = '110' in status_codes or self.own_nick == presence['from'].resource
+            if own or len(self.presence_buffer) >= 10:
+                self.process_presence_buffer(presence, own)
             else:
                 self.presence_buffer.append(presence)
                 return
@@ -467,7 +468,7 @@ class MucTab(ChatTab):
             self.input.refresh()
             self.core.doupdate()
 
-    def process_presence_buffer(self, last_presence):
+    def process_presence_buffer(self, last_presence, own):
         """
         Batch-process all the initial presences
         """
@@ -479,11 +480,13 @@ class MucTab(ChatTab):
                 self.handle_presence_unjoined(stanza, deterministic)
             except PresenceError:
                 self.core.room_error(stanza, stanza['from'].bare)
-        self.handle_presence_unjoined(last_presence, deterministic, own=True)
+        self.presence_buffer = []
+        self.handle_presence_unjoined(last_presence, deterministic, own)
         self.users.sort()
         # Enable the self ping event, to regularly check if we
         # are still in the room.
-        self.enable_self_ping_event()
+        if own:
+            self.enable_self_ping_event()
         if self.core.tabs.current_tab is not self:
             self.refresh_tab_win()
             self.core.tabs.current_tab.refresh_input()
@@ -888,7 +891,7 @@ class MucTab(ChatTab):
                                 from_room: JID,
                                 server_initiated=False):
         """
-        When an user leaves a groupchat
+        When a user leaves a groupchat
         """
         self.users.remove(user)
         if self.own_nick == user.nick:
@@ -949,7 +952,7 @@ class MucTab(ChatTab):
     def on_user_change_status(self, user, from_nick, from_room, affiliation,
                               role, show, status):
         """
-        When an user changes her status
+        When a user changes her status
         """
         # build the message
         display_message = False  # flag to know if something significant enough
@@ -1151,7 +1154,8 @@ class MucTab(ChatTab):
             timeout=timeout)
 
     def on_self_ping_result(self, iq):
-        if iq["type"] == "error" and iq["error"]["condition"] != "feature-not-implemented":
+        if iq["type"] == "error" and iq["error"]["condition"] not in \
+                ("feature-not-implemented", "service-unavailable", "item-not-found"):
             self.command_cycle(iq["error"]["text"] or "not in this room")
             self.core.refresh_window()
         else:  # Re-send a self-ping in a few seconds
@@ -1563,7 +1567,7 @@ class MucTab(ChatTab):
     def command_role(self, args):
         """
         /role <nick> <role> [reason]
-        Changes the role of an user
+        Changes the role of a user
         roles can be: none, visitor, participant, moderator
         """
 
@@ -1581,7 +1585,7 @@ class MucTab(ChatTab):
     def command_affiliation(self, args):
         """
         /affiliation <nick or jid> <affiliation>
-        Changes the affiliation of an user
+        Changes the affiliation of a user
         affiliations can be: outcast, none, member, admin, owner
         """
 
@@ -1904,11 +1908,11 @@ class MucTab(ChatTab):
             self.command_role,
             'usage':
             '<nick> <role> [reason]',
-            'desc': ('Set the role of an user. Roles can be:'
+            'desc': ('Set the role of a user. Roles can be:'
                      ' none, visitor, participant, moderator.'
                      ' You also can give an optional reason.'),
             'shortdesc':
-            'Set the role of an user.',
+            'Set the role of a user.',
             'completion':
             self.completion_role
         }, {
@@ -1918,10 +1922,10 @@ class MucTab(ChatTab):
             self.command_affiliation,
             'usage':
             '<nick or jid> <affiliation>',
-            'desc': ('Set the affiliation of an user. Affiliations can be:'
+            'desc': ('Set the affiliation of a user. Affiliations can be:'
                      ' outcast, none, member, admin, owner.'),
             'shortdesc':
-            'Set the affiliation of an user.',
+            'Set the affiliation of a user.',
             'completion':
             self.completion_affiliation
         }, {
@@ -2049,10 +2053,10 @@ class MucTab(ChatTab):
             'usage':
             '<nickname>',
             'desc': ('Display some information about the user '
-                     'in the MUC: its/his/her role, affiliation,'
+                     'in the MUC: their role, affiliation,'
                      ' status and status message.'),
             'shortdesc':
-            'Show an user\'s infos.',
+            'Show a user\'s infos.',
             'completion':
             self.completion_info
         }, {

@@ -40,7 +40,7 @@ class ListWin(Win):
 
     def empty(self) -> None:
         """
-        emtpy the list and reset some important values as well
+        empty the list and reset some important values as well
         """
         self.lines = []
         self._selected_row = 0

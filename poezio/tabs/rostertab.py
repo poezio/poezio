@@ -44,7 +44,7 @@ def deny_anonymous(func: Callable) -> Callable:
 
 class RosterInfoTab(Tab):
     """
-    A tab, splitted in two, containing the roster and infos
+    A tab, split in two, containing the roster and infos
     """
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
@@ -88,7 +88,7 @@ class RosterInfoTab(Tab):
             usage='[jid]',
             desc='Deny your presence to the provided JID (or the '
             'selected contact in your roster), who is asking'
-            'you to be in his/here roster.',
+            'you to be in their roster.',
             shortdesc='Deny a user your presence.',
             completion=self.completion_deny)
         self.register_command(
@@ -157,13 +157,6 @@ class RosterInfoTab(Tab):
             self.command_password,
             usage='<password>',
             shortdesc='Change your password')
-
-        self.register_command(
-            'reconnect',
-            self.command_reconnect,
-            desc='Disconnect from the remote server if you are '
-            'currently connected and then connect to it again.',
-            shortdesc='Disconnect and reconnect to the server.')
         self.register_command(
             'disconnect',
             self.command_disconnect,
@@ -523,16 +516,6 @@ class RosterInfoTab(Tab):
             self.core.information(s, 'Info')
 
         self.core.xmpp.plugin['xep_0191'].get_blocked(callback=callback)
-
-    @command_args_parser.ignored
-    def command_reconnect(self):
-        """
-        /reconnect
-        """
-        if self.core.xmpp.is_connected():
-            self.core.disconnect(reconnect=True)
-        else:
-            self.core.xmpp.connect()
 
     @command_args_parser.ignored
     def command_disconnect(self):

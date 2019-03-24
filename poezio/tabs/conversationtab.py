@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 
 class ConversationTab(OneToOneTab):
     """
-    The tab containg a normal conversation (not from a MUC)
+    The tab containing a normal conversation (not from a MUC)
     Must not be instantiated, use Static or Dynamic version only.
     """
     plugin_commands = {}  # type: Dict[str, Command]
@@ -198,7 +198,7 @@ class ConversationTab(OneToOneTab):
                     dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
                     from_,
                     common.parse_secs_to_str(seconds),
-                    (' and his/her last status was %s' % status)
+                    (' and their last status was %s' % status)
                     if status else '',
                 )
             self.add_message(msg)

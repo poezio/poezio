@@ -394,7 +394,7 @@ def parse_secs_to_str(duration=0) -> str:
 
 def format_tune_string(infos: Dict[str, str]) -> str:
     """
-    Contruct a string from a dict created from an "User tune" event.
+    Construct a string from a dict created from an "User tune" event.
 
     :param dict infos: Tune information
     :return: The formatted string

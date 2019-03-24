@@ -241,7 +241,7 @@ class Tab:
                     ['/%s' % (name) for name in sorted(self.commands)]
                 the_input.new_completion(words, 0)
                 # Do not try to cycle command completion if there was only
-                # one possibily. The next tab will complete the argument.
+                # one possibility. The next tab will complete the argument.
                 # Otherwise we would need to add a useless space before being
                 # able to complete the arguments.
                 hit_copy = set(the_input.hit_list)

@@ -1,7 +1,7 @@
 """
 This plugin broadcasts a message to all your joined rooms.
 
-.. note:: With great power comes great responsability.
+.. note:: With great power comes great responsibility.
           Use with moderation.
 
 Command

@@ -198,7 +198,7 @@ class Theme:
     COLOR_REVISIONS_MESSAGE = (3, -1, 'b')
 
     # Color for various important text. For example the "?" before JIDs in
-    # the roster that require an user action.
+    # the roster that require a user action.
     COLOR_IMPORTANT_TEXT = (3, 5, 'b')
 
     # Separators

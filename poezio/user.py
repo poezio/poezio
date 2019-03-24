@@ -6,7 +6,7 @@
 # it under the terms of the zlib license. See the COPYING file.
 """
 Define the user class.
-An user is a MUC participant, not a roster contact (see contact.py)
+A user is a MUC participant, not a roster contact (see contact.py)
 """
 
 import logging
@@ -26,7 +26,7 @@ ROLE_DICT = {'': 0, 'none': 0, 'visitor': 1, 'participant': 2, 'moderator': 3}
 
 class User:
     """
-    keep trace of an user in a Room
+    keep track of a user in a Room
     """
     __slots__ = ('last_talked', 'jid', 'chatstate', 'affiliation', 'show',
                  'status', 'role', 'nick', 'color')

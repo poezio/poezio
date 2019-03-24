@@ -121,7 +121,7 @@ The following events are poezio-only events, for Slixmpp events, check out
     changing_nick
         - **presence:** :py:class:`~~slixmpp.Presence` to be sent
 
-        Triggered when the user changes his/her nickname on a MUC. The
+        Triggered when the user changes their nickname on a MUC. The
         presence can thus be modified before being sent.
 
     send_normal_presence
