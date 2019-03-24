@@ -100,14 +100,6 @@ class RosterInfoTab(Tab):
             shortdesc='Allow a user your presence.',
             completion=self.completion_deny)
         self.register_command(
-            'add',
-            self.command_add,
-            usage='<jid>',
-            desc='Add the specified JID to your roster, ask them to'
-            ' allow you to see his presence, and allow them to'
-            ' see your presence.',
-            shortdesc='Add a user to your roster.')
-        self.register_command(
             'name',
             self.command_name,
             usage='<jid> [name]',
@@ -709,27 +701,6 @@ class RosterInfoTab(Tab):
                                   'Roster')
 
     @deny_anonymous
-    @command_args_parser.quoted(1)
-    def command_add(self, args):
-        """
-        Add the specified JID to the roster, and automatically
-        accept the reverse subscription
-        """
-        if args is None:
-            self.core.information('No JID specified', 'Error')
-            return
-        jid = safeJID(safeJID(args[0]).bare)
-        if not str(jid):
-            self.core.information(
-                'The provided JID (%s) is not valid' % (args[0], ), 'Error')
-            return
-        if jid in roster and roster[jid].subscription in ('to', 'both'):
-            return self.core.information('Already subscribed.', 'Roster')
-        roster.add(jid)
-        roster.modified()
-        self.core.information('%s was added to the roster' % jid, 'Roster')
-
-    @deny_anonymous
     @command_args_parser.quoted(1, 1)
     def command_name(self, args):
         """
@@ -968,7 +939,7 @@ class RosterInfoTab(Tab):
             log.error('Unable to correct a message', exc_info=True)
             return
         for jid in lines:
-            self.command_add(jid.lstrip('\n'))
+            self.command.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
     @deny_anonymous

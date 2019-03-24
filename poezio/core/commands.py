@@ -509,6 +509,35 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @command_args_parser.quoted(1)
+    def command_add(self, args):
+        """
+        Add the specified JID to the roster, and automatically
+        accept the reverse subscription
+        """
+        if args is None:
+            jid = self.core.tabs.current_tab.name
+            if jid is 'Roster' or 'muc' in jid:
+                self.core.information('No JID specified', 'Error')
+                return
+            else:
+                if jid in roster and roster[jid].subscription in ('to', 'both'):
+                    return self.core.information('Already subscribed.', 'Roster')
+                roster.add(jid)
+                roster.modified()
+                self.core.information('%s was added to the roster' % jid, 'Roster')
+                return
+        jid = safeJID(safeJID(args[0]).bare)
+        if not str(jid):
+            self.core.information(
+                'The provided JID (%s) is not valid' % (args[0], ), 'Error')
+            return
+        if jid in roster and roster[jid].subscription in ('to', 'both'):
+            return self.core.information('Already subscribed.', 'Roster')
+        roster.add(jid)
+        roster.modified()
+        self.core.information('%s was added to the roster' % jid, 'Roster')
+
     @command_args_parser.quoted(0, 3)
     def set(self, args):
         """
