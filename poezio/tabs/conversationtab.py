@@ -73,13 +73,6 @@ class ConversationTab(OneToOneTab):
             shortdesc='Get the activity.',
             completion=self.core.completion.last_activity)
         self.register_command(
-            'add',
-            self.command_add,
-            desc='Add the current JID to your roster, ask them to'
-            ' allow you to see his presence, and allow them to'
-            ' see your presence.',
-            shortdesc='Add a user to your roster.')
-        self.register_command(
             'invite',
             self.core.command.impromptu,
             desc='Invite people into an impromptu room.',
@@ -256,19 +249,6 @@ class ConversationTab(OneToOneTab):
                 jid = resource.jid if resource else jid
         self.core.xmpp.plugin['xep_0092'].get_version(
             jid, callback=self.core.handler.on_version_result)
-
-    @command_args_parser.ignored
-    def command_add(self):
-        """
-        Add the current JID to the roster, and automatically
-        accept the reverse subscription
-        """
-        jid = self.general_jid
-        if jid in roster and roster[jid].subscription in ('to', 'both'):
-            return self.core.information('Already subscribed.', 'Roster')
-        roster.add(jid)
-        roster.modified()
-        self.core.information('%s was added to the roster' % jid, 'Roster')
 
     def resize(self):
         self.need_resize = False

@@ -1759,6 +1759,14 @@ class Core:
             shortdesc="Bookmark a room online.",
             completion=self.completion.bookmark)
         self.register_command(
+            'add',
+            self.command.command_add,
+            usage='<jid>',
+            desc='Add the specified JID to your roster, ask them to'
+            ' allow you to see his presence, and allow them to'
+            ' see your presence.',
+            shortdesc='Add a user to your roster.')        
+        self.register_command(
             'reconnect',
             self.command.command_reconnect,
             usage="[reconnect]",
