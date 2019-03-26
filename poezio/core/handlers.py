@@ -1161,6 +1161,13 @@ class HandlerCore:
         for tab in self.core.get_tabs(tabs.MucTab):
             tab.disconnect()
 
+    def on_sm_resumed(self, event):
+        """
+        Called when a session is successfully resumed by 0198
+        """
+        self.core.information("Resumed session as %s" % self.core.xmpp.boundjid.full, 'Info')
+        self.core.xmpp.plugin['xep_0199'].enable_keepalive()
+
     async def on_disconnected(self, event):
         """
         When we are disconnected from remote server
