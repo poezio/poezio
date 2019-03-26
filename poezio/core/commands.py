@@ -516,17 +516,17 @@ class CommandCore:
         accept the reverse subscription
         """
         if args is None:
-            jid = self.core.tabs.current_tab.name
-            if jid is 'Roster' or 'muc' in jid:
-                self.core.information('No JID specified', 'Error')
-                return
-            else:
+            tab = self.core.tabs.current_tab
+            ConversationTab = tabs.ConversationTab
+            if isinstance(tab, ConversationTab):
+                jid = tab.general_jid
                 if jid in roster and roster[jid].subscription in ('to', 'both'):
                     return self.core.information('Already subscribed.', 'Roster')
                 roster.add(jid)
                 roster.modified()
-                self.core.information('%s was added to the roster' % jid, 'Roster')
-                return
+                return self.core.information('%s was added to the roster' % jid, 'Roster')
+            else:
+                return self.core.information('No JID specified', 'Error')                
         jid = safeJID(safeJID(args[0]).bare)
         if not str(jid):
             self.core.information(
