@@ -258,6 +258,7 @@ class Core:
             ('session_start', self.handler.on_session_start_features),
             ('session_end', self.handler.on_session_end),
             ('sm_failed', self.handler.on_session_end),
+            ('session_resumed', self.handler.on_session_resumed),
             ('ssl_cert', self.handler.validate_ssl),
             ('ssl_invalid_chain', self.handler.ssl_invalid_chain),
             ('stream_error', self.handler.on_stream_error),
