@@ -832,11 +832,11 @@ class Core:
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         self.legitimate_disconnect = True
-        for tab in self.get_tabs(tabs.MucTab):
-            tab.command_part(msg)
         if reconnect:
             self.xmpp.reconnect(wait=0.0, reason=msg)
         else:
+            for tab in self.get_tabs(tabs.MucTab):
+                tab.command_part(msg)
             self.xmpp.disconnect(reason=msg)
 
     def send_message(self, msg: str) -> bool:
