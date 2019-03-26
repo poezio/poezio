@@ -256,6 +256,8 @@ class Core:
             ('roster_update', self.handler.on_roster_update),
             ('session_start', self.handler.on_session_start),
             ('session_start', self.handler.on_session_start_features),
+            ('session_end', self.handler.on_session_end),
+            ('sm_failed', self.handler.on_session_end),
             ('ssl_cert', self.handler.validate_ssl),
             ('ssl_invalid_chain', self.handler.ssl_invalid_chain),
             ('stream_error', self.handler.on_stream_error),
