@@ -1759,13 +1759,20 @@ class Core:
             shortdesc="Bookmark a room online.",
             completion=self.completion.bookmark)
         self.register_command(
+            'accept',
+            self.command.command_accept,
+            usage='[jid]',
+            desc='Allow the provided JID (or the selected contact '
+            'in your roster), to see your presence.',
+            shortdesc='Allow a user your presence.',)
+        self.register_command(
             'add',
             self.command.command_add,
             usage='<jid>',
             desc='Add the specified JID to your roster, ask them to'
             ' allow you to see his presence, and allow them to'
             ' see your presence.',
-            shortdesc='Add a user to your roster.')        
+            shortdesc='Add a user to your roster.')
         self.register_command(
             'reconnect',
             self.command.command_reconnect,
