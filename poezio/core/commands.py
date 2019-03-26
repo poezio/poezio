@@ -508,7 +508,7 @@ class CommandCore:
                 self.core.bookmarks.save(self.core.xmpp, callback=cb)
             else:
                 self.core.information('No bookmark to remove', 'Info')
-    
+
     @command_args_parser.quoted(1)
     def command_add(self, args):
         """

@@ -1765,7 +1765,7 @@ class Core:
             desc='Add the specified JID to your roster, ask them to'
             ' allow you to see his presence, and allow them to'
             ' see your presence.',
-            shortdesc='Add a user to your roster.')        
+            shortdesc='Add a user to your roster.')
         self.register_command(
             'reconnect',
             self.command.command_reconnect,
