@@ -1165,7 +1165,7 @@ class HandlerCore:
         for tab in self.core.get_tabs(tabs.MucTab):
             tab.disconnect()
         msg_typ = 'Error' if not self.core.legitimate_disconnect else 'Info'
-        self.core.information("Disconnected from server.", msg_typ)
+        self.core.information("Disconnected from server%s." % (event and ": %s" % event or ""), msg_typ)
         if self.core.legitimate_disconnect or not config.get(
                 'auto_reconnect', True):
             return
