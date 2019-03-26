@@ -834,12 +834,10 @@ class Core:
         self.legitimate_disconnect = True
         for tab in self.get_tabs(tabs.MucTab):
             tab.command_part(msg)
-        self.xmpp.disconnect()
         if reconnect:
-            # Add a one-time event to reconnect as soon as we are
-            # effectively disconnected
-            self.xmpp.add_event_handler(
-                'disconnected',
+            self.xmpp.reconnect(wait=0.0, msg)
+        else:
+            self.xmpp.disconnect(reason=msg)
                 lambda event: self.xmpp.connect(),
                 disposable=True)
 
