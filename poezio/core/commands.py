@@ -23,6 +23,8 @@ from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio import multiuserchat as muc
+from poezio.contact import Contact
+from poezio import windows
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
@@ -509,6 +511,42 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @command_args_parser.quoted(0, 1)
+    def command_accept(self, args):
+        """
+        Accept a JID. Authorize it AND subscribe to it
+        """
+        if not args:
+            tab = self.core.tabs.current_tab
+            RosterInfoTab = tabs.RosterInfoTab
+            if not isinstance(tab, RosterInfoTab):
+                return self.core.information('No JID specified', 'Error')
+            else:
+                item = tab.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+                else:
+                    return self.core.information('No subscription to accept', 'Warning')
+        else:
+            jid = safeJID(args[0]).bare
+        nodepart = safeJID(jid).user
+        jid = safeJID(jid)
+        # crappy transports putting resources inside the node part
+        if '\\2f' in nodepart:
+            jid.user = nodepart.split('\\2f')[0]
+        contact = roster[jid]
+        if contact is None:
+            return self.core.information('No subscription to accept', 'Warning')
+        contact.pending_in = False
+        roster.modified()
+        self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
+        self.core.xmpp.client_roster.send_last_presence()
+        if contact.subscription in ('from',
+                                    'none') and not contact.pending_out:
+            self.core.xmpp.send_presence(
+                pto=jid, ptype='subscribe', pnick=self.core.own_nick)
+        self.core.information('%s is now authorized' % jid, 'Roster')
+
     @command_args_parser.quoted(1)
     def command_add(self, args):
         """
@@ -526,7 +564,7 @@ class CommandCore:
                 roster.modified()
                 return self.core.information('%s was added to the roster' % jid, 'Roster')
             else:
-                return self.core.information('No JID specified', 'Error')                
+                return self.core.information('No JID specified', 'Error')
         jid = safeJID(safeJID(args[0]).bare)
         if not str(jid):
             self.core.information(

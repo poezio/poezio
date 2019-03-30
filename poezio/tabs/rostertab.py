@@ -92,14 +92,6 @@ class RosterInfoTab(Tab):
             shortdesc='Deny a user your presence.',
             completion=self.completion_deny)
         self.register_command(
-            'accept',
-            self.command_accept,
-            usage='[jid]',
-            desc='Allow the provided JID (or the selected contact '
-            'in your roster), to see your presence.',
-            shortdesc='Allow a user your presence.',
-            completion=self.completion_deny)
-        self.register_command(
             'name',
             self.command_name,
             usage='<jid> [name]',
@@ -1029,40 +1021,6 @@ class RosterInfoTab(Tab):
             str(contact.bare_jid) for contact in roster.contacts.values()
             if contact.pending_in)
         return Completion(the_input.new_completion, jids, 1, '', quotify=False)
-
-    @deny_anonymous
-    @command_args_parser.quoted(0, 1)
-    def command_accept(self, args):
-        """
-        Accept a JID from in roster. Authorize it AND subscribe to it
-        """
-        if not args:
-            item = self.roster_win.selected_row
-            if isinstance(item, Contact):
-                jid = item.bare_jid
-            else:
-                self.core.information('No subscription to accept', 'Warning')
-                return
-        else:
-            jid = safeJID(args[0]).bare
-        nodepart = safeJID(jid).user
-        jid = safeJID(jid)
-        # crappy transports putting resources inside the node part
-        if '\\2f' in nodepart:
-            jid.user = nodepart.split('\\2f')[0]
-        contact = roster[jid]
-        if contact is None:
-            return
-        contact.pending_in = False
-        roster.modified()
-        self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
-        self.core.xmpp.client_roster.send_last_presence()
-        if contact.subscription in ('from',
-                                    'none') and not contact.pending_out:
-            self.core.xmpp.send_presence(
-                pto=jid, ptype='subscribe', pnick=self.core.own_nick)
-
-        self.core.information('%s is now authorized' % jid, 'Roster')
 
     def refresh(self):
         if self.need_resize:
