@@ -49,7 +49,7 @@ class Bookmark:
                  password: Optional[str] = None,
                  method='local') -> None:
         self.jid = jid
-        self.name = name or jid
+        self.name = name or str(jid)
         self.autojoin = autojoin
         self.nick = nick
         self.password = password
