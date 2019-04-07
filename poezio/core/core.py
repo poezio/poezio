@@ -1164,7 +1164,7 @@ class Core:
         provided, we open a StaticConversationTab, else a
         DynamicConversationTab
         """
-        if safeJID(jid).resource:
+        if jid.resource:
             new_tab = tabs.StaticConversationTab(self, jid)
         else:
             new_tab = tabs.DynamicConversationTab(self, jid)

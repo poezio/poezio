@@ -1024,14 +1024,17 @@ class CommandCore:
         """
         if args is None:
             return self.help('message')
-        jid = safeJID(args[0])
-        if not jid.user and not jid.domain and not jid.resource:
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information('Invalid JID.', 'Error')
+        if not jid.bare:
             return self.core.information('Invalid JID.', 'Error')
         tab = self.core.get_conversation_by_jid(
             jid.full, False, fallback_barejid=False)
         muc = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
         if not tab and not muc:
-            tab = self.core.open_conversation_window(jid.full, focus=True)
+            tab = self.core.open_conversation_window(jid, focus=True)
         elif muc:
             if jid.resource:
                 tab = self.core.tabs.by_name_and_class(jid.full,

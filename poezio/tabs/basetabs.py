@@ -534,7 +534,9 @@ class ChatTab(Tab):
         """
         Log the messages in the archives.
         """
-        name = safeJID(self.name).bare
+        if self.name is None:
+            return None
+        name = self.name.bare
         if not logger.log_message(name, nickname, txt, date=time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
@@ -811,7 +813,7 @@ class OneToOneTab(ChatTab):
             return
         self.__status = status
         hide_status_change = config.get_by_tabname('hide_status_change',
-                                                   safeJID(self.name).bare)
+                                                   self.name.bare)
         now = datetime.now()
         dff = now - self.last_remote_message
         if hide_status_change > -1 and dff.total_seconds() > hide_status_change:
