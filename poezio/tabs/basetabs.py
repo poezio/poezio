@@ -522,8 +522,9 @@ class ChatTab(Tab):
         raise NotImplementedError
 
     def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
-        logs = logger.get_logs(safeJID(self.name).bare, log_nb)
-        return logs
+        if self.name is not None:
+            return logger.get_logs(self.name.bare, log_nb)
+        return None
 
     def log_message(self,
                     txt: str,
