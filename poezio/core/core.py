@@ -1179,7 +1179,12 @@ class Core:
         """
         Open a Private conversation in a MUC and focus if needed.
         """
-        complete_jid = room_name + '/' + user_nick
+        try:
+            complete_jid_str = room_name + '/' + user_nick
+            complete_jid = JID(complete_jid_str)
+        except InvalidJID:
+            self.information('Invalid XMPP address %r for chat tab.', complete_jid_str)
+            return None
         # if the room exists, focus it and return
         for tab in self.get_tabs(tabs.PrivateTab):
             if tab.name == complete_jid:
@@ -1205,10 +1210,15 @@ class Core:
                       nick: str,
                       *,
                       password: Optional[str] = None,
-                      focus=True) -> tabs.MucTab:
+                      focus=True) -> Optional[tabs.MucTab]:
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
+        try:
+            room = JID(room)
+        except InvalidJID:
+            self.information('Invalid XMPP address %r for chat tab.', room)
+            return None
         new_tab = tabs.MucTab(self, room, nick, password=password)
         self.add_tab(new_tab, focus)
         self.refresh_window()

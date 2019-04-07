@@ -20,7 +20,7 @@ from datetime import datetime
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional
 
-from slixmpp import JID, Message
+from slixmpp import JID, InvalidJID, Message
 
 from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
@@ -462,8 +462,16 @@ class ChatTab(Tab):
     plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
 
-    def __init__(self, core, jid=''):
+    def __init__(self, core, jid: JID = None):
         Tab.__init__(self, core)
+        if jid is not None and not isinstance(jid, JID):
+            # XXX: Remove logging once we're more or less sure we've switched
+            # all calls.
+            log.debug('ChatTab.name: %r: Not a JID object.', jid, exc_info=True)
+            try:
+                jid = JID(jid)
+            except InvalidJID:
+                log.debug('ChatTab.name: invalid JID.')
         self.name = jid
         self.text_win = None
         self.directed_presence = None

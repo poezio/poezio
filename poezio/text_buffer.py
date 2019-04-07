@@ -204,7 +204,7 @@ class TextBuffer:
         """Mark a message as errored"""
         return self._edit_ack(-1, old_id, jid, append=error)
 
-    def _edit_ack(self, value: int, old_id: str, jid: str,
+    def _edit_ack(self, value: int, old_id: str, jid: JID,
                   append: str = '') -> Union[None, bool, Message]:
         """
         Edit the ack status of a message, and optionally

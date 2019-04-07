@@ -369,7 +369,8 @@ class CommandCore:
         # New tab
         if tab is None:
             tab = self.core.open_new_room(room, nick, password=password)
-            tab.join()
+            if tab is not None:
+                tab.join()
         else:
             self.core.focus_tab(tab)
             if tab.own_nick == nick and tab.joined:
