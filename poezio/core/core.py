@@ -19,7 +19,7 @@ from typing import Callable, Dict, List, Optional, Set, Tuple, Type
 from xml.etree import cElementTree as ET
 from functools import partial
 
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout
@@ -937,7 +937,15 @@ class Core:
 
         nick = self.own_nick
         localpart = uuid.uuid4().hex
-        room = '{!s}@{!s}'.format(localpart, default_muc)
+        room_str = '{!s}@{!s}'.format(localpart, default_muc)
+        try:
+            room = JID(room_str)
+        except InvalidJID:
+            self.information(
+                'The generated XMPP address is invalid: {!s}'.format(room_str),
+                'Error'
+            )
+            return None
 
         self.open_new_room(room, nick).join()
         iq = self._impromptu_room_form(room)
