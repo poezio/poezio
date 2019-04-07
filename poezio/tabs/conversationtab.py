@@ -15,6 +15,8 @@ import curses
 import logging
 from typing import Dict, Callable
 
+from slixmpp import JID
+
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
@@ -42,7 +44,7 @@ class ConversationTab(OneToOneTab):
     additional_information = {}  # type: Dict[str, Callable[[str], str]]
     message_type = 'chat'
 
-    def __init__(self, core, jid):
+    def __init__(self, core, jid: JID):
         OneToOneTab.__init__(self, core, jid)
         self.nick = None
         self.nick_sent = False
@@ -400,10 +402,10 @@ class DynamicConversationTab(ConversationTab):
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
 
-    def __init__(self, core, jid, resource=None):
+    def __init__(self, core, jid: JID, resource=None):
         self.locked_resource = None
-        self.name = safeJID(jid).bare
         ConversationTab.__init__(self, core, jid)
+        self.name.resource = None
         self.info_header = windows.DynamicConversationInfoWin()
         self.register_command(
             'unlock', self.unlock_command, shortdesc='Deprecated, do nothing.')
@@ -470,8 +472,8 @@ class StaticConversationTab(ConversationTab):
     plugin_commands = {}  # type: Dict[str, Command]
     plugin_keys = {}  # type: Dict[str, Callable]
 
-    def __init__(self, core, jid):
-        assert (safeJID(jid).resource)
+    def __init__(self, core, jid: JID):
+        assert jid.resource
         ConversationTab.__init__(self, core, jid)
         self.info_header = windows.ConversationInfoWin()
         self.resize()

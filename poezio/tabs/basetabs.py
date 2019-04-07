@@ -462,7 +462,7 @@ class ChatTab(Tab):
     plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
 
-    def __init__(self, core, jid: JID = None):
+    def __init__(self, core, jid: Optional[JID] = None):
         Tab.__init__(self, core)
         if jid is not None and not isinstance(jid, JID):
             # XXX: Remove logging once we're more or less sure we've switched
@@ -779,8 +779,9 @@ class ChatTab(Tab):
 
 
 class OneToOneTab(ChatTab):
-    def __init__(self, core, jid=''):
+    def __init__(self, core, jid: JID):
         ChatTab.__init__(self, core, jid)
+        assert self.name.bare
 
         self.__status = Status("", "")
         self.last_remote_message = datetime.now()
