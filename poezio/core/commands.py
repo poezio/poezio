@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 import asyncio
 from xml.etree import cElementTree as ET
-from typing import List
+from typing import List, Optional, Tuple
 
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError
@@ -310,16 +310,19 @@ class CommandCore:
         nick = tab.own_nick
         return (room, nick)
 
-    def _parse_join_jid(self, jid_string):
+    def _parse_join_jid(self, jid_string: str) -> Tuple[Optional[str], Optional[str]]:
         # we try to join a server directly
-        if jid_string.startswith('@'):
-            server_root = True
-            info = safeJID(jid_string[1:])
-        else:
-            info = safeJID(jid_string)
-            server_root = False
+        try:
+            if jid_string.startswith('@'):
+                server_root = True
+                info = JID(jid_string[1:])
+            else:
+                info = JID(jid_string)
+                server_root = False
+        except InvalidJID:
+            return (None, None)
 
-        set_nick = ''
+        set_nick = ''  # type: Optional[str]
         if len(jid_string) > 1 and jid_string.startswith('/'):
             set_nick = jid_string[1:]
         elif info.resource:
@@ -331,7 +334,8 @@ class CommandCore:
             if not isinstance(tab, tabs.MucTab):
                 room, set_nick = (None, None)
             else:
-                room = tab.name
+                if tab.jid is not None:
+                    room = tab.jid.bare
                 if not set_nick:
                     set_nick = tab.own_nick
         else:
