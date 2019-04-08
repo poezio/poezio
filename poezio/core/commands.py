@@ -335,7 +335,7 @@ class CommandCore:
             if room.find('@') == -1 and not server_root:
                 tab = self.core.tabs.current_tab
                 if isinstance(tab, tabs.MucTab):
-                    if tab.name.find('@') != -1:
+                    if tab.name.full.find('@') != -1:
                         domain = safeJID(tab.name).domain
                         room += '@%s' % domain
         return (room, set_nick)

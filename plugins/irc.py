@@ -199,7 +199,7 @@ class Plugin(BasePlugin):
 
             already_opened = False
             for tab in self.core.tabs:
-                if tab.name.endswith(room_suffix) and tab.joined:
+                if tab.name.full.endswith(room_suffix) and tab.joined:
                     already_opened = True
                     break
 

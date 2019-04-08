@@ -106,7 +106,7 @@ def replace_random_user(message, tab):
     else:
         # that doesn’t make any sense. By why use this pattern in a
         # ConversationTab anyway?
-        return str(tab.name)
+        return tab.name.full
 
 
 def replace_dice(message, tab):

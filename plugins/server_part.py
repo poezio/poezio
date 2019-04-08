@@ -53,7 +53,7 @@ class Plugin(BasePlugin):
             message = args[1]
 
         for tab in self.core.get_tabs(MucTab):
-            if tab.name.endswith(jid):
+            if tab.name.full.endswith(jid):
                 tab.command_part(message)
 
     def completion_server_part(self, the_input):

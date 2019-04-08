@@ -1277,7 +1277,7 @@ class Core:
         if reason is None:
             reason = '\x195}You left the room\x193}'
         for tab in self.get_tabs(tabs.PrivateTab):
-            if tab.name.startswith(room_name):
+            if tab.name.full.startswith(room_name):
                 tab.deactivate(reason=reason)
 
     def enable_private_tabs(self, room_name: str,
@@ -1288,7 +1288,7 @@ class Core:
         if reason is None:
             reason = '\x195}You joined the room\x193}'
         for tab in self.get_tabs(tabs.PrivateTab):
-            if tab.name.startswith(room_name):
+            if tab.name.full.startswith(room_name):
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid: JID, status: str) -> None:
