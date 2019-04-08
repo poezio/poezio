@@ -266,7 +266,7 @@ class MucInfoWin(InfoWin):
     def refresh(self, room, window=None, user=None, information=None):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
-        self.write_room_name(room)
+        self.write_room_name(str(room.name))
         self.write_participants_number(room)
         self.write_own_nick(room)
         self.write_disconnected(room)
@@ -287,11 +287,11 @@ class MucInfoWin(InfoWin):
         for plugin in information.values():
             self.addstr(plugin(jid), color)
 
-    def write_room_name(self, room):
+    def write_room_name(self, name: str):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
         self.addstr('[', color)
-        self.addstr(room.name,
+        self.addstr(name,
                     to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
         self.addstr(']', color)
 
