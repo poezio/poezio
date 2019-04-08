@@ -6,6 +6,7 @@ info buffer in normal tabs
 import logging
 log = logging.getLogger(__name__)
 
+from slixmpp import JID
 from poezio.common import safeJID
 from poezio.config import config
 
@@ -91,8 +92,7 @@ class PrivateInfoWin(InfoWin):
             self.addstr(plugin(jid),
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-    def write_room_name(self, name):
-        jid = safeJID(name)
+    def write_room_name(self, jid: JID):
         room_name, nick = jid.bare, jid.resource
         theme = get_theme()
         self.addstr(nick, to_curses_attr(theme.COLOR_PRIVATE_NAME))
