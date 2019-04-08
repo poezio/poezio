@@ -18,9 +18,9 @@ import string
 import time
 from datetime import datetime
 from xml.etree import cElementTree as ET
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from slixmpp import JID, Message
+from slixmpp import JID, InvalidJID, Message
 
 from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
@@ -462,7 +462,7 @@ class ChatTab(Tab):
     plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
 
-    def __init__(self, core, jid=''):
+    def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
         self.name = jid
         self.text_win = None
@@ -510,11 +510,47 @@ class ChatTab(Tab):
                 self._text_buffer.add_message(**message)
 
     @property
+    def name(self) -> str:
+        if self.jid is not None:
+            return self.jid.full
+        return self.name
+
+    @name.setter
+    def name(self, value: Union[JID, str]) -> None:
+        if isinstance(value, JID):
+            self.jid = value
+        elif isinstance(value, str):
+            try:
+                value = JID(value)
+                if value.domain:
+                    self.jid = value
+                self.name = value.full
+            except InvalidJID:
+                self.name = value
+        else:
+            raise TypeError("Name must be of type JID or str.")
+
+    @property
+    def jid(self) -> Optional[JID]:
+        return self.jid
+
+    @jid.setter
+    def jid(self, value: Optional[JID]) -> None:
+        if value is None:
+            self.jid = None
+            return None
+        if not isinstance(value, JID):
+            raise TypeError("Jid must be of type Optional[JID].")
+        if not value.domain:
+            raise ValueError("Jid must contain at least a domain.")
+        self.jid = value
+
+    @property
     def general_jid(self) -> JID:
         raise NotImplementedError
 
     def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
-        logs = logger.get_logs(safeJID(self.name).bare, log_nb)
+        logs = logger.get_logs(self.jid.bare, log_nb)
         return logs
 
     def log_message(self,
