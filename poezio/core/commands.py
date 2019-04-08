@@ -280,6 +280,7 @@ class CommandCore:
             jid = self.core.tabs.current_tab.jid
         if jid is None or not jid.domain:
             return None
+        jid = JID(jid.domain)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
