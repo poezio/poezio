@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 import asyncio
 from xml.etree import cElementTree as ET
+from typing import List
 
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError
@@ -260,7 +261,7 @@ class CommandCore:
         self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
-    def list(self, args):
+    def list(self, args: List[str]) -> None:
         """
         /list [server]
         Opens a MucListTab containing the list of the room in the specified server
@@ -268,12 +269,17 @@ class CommandCore:
         if args is None:
             return self.help('list')
         elif args:
-            jid = safeJID(args[0])
+            try:
+                jid = JID(args[0])
+            except InvalidJID:
+                return self.core.information('Invalid server %r' % jid, 'Error')
         else:
             if not isinstance(self.core.tabs.current_tab, tabs.MucTab):
                 return self.core.information('Please provide a server',
                                              'Error')
-            jid = safeJID(self.core.tabs.current_tab.name)
+            jid = self.core.tabs.current_tab.jid
+        if jid is None or not jid.domain:
+            return None
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
