@@ -335,7 +335,7 @@ class CommandCore:
             if room.find('@') == -1 and not server_root:
                 tab = self.core.tabs.current_tab
                 if isinstance(tab, tabs.MucTab):
-                    if tab.name.full.find('@') != -1:
+                    if tab.name.find('@') != -1:
                         domain = safeJID(tab.name).domain
                         room += '@%s' % domain
         return (room, set_nick)
@@ -369,8 +369,7 @@ class CommandCore:
         # New tab
         if tab is None:
             tab = self.core.open_new_room(room, nick, password=password)
-            if tab is not None:
-                tab.join()
+            tab.join()
         else:
             self.core.focus_tab(tab)
             if tab.own_nick == nick and tab.joined:
@@ -1024,17 +1023,14 @@ class CommandCore:
         """
         if args is None:
             return self.help('message')
-        try:
-            jid = JID(args[0])
-        except InvalidJID:
-            return self.core.information('Invalid JID.', 'Error')
-        if not jid.bare:
+        jid = safeJID(args[0])
+        if not jid.user and not jid.domain and not jid.resource:
             return self.core.information('Invalid JID.', 'Error')
         tab = self.core.get_conversation_by_jid(
             jid.full, False, fallback_barejid=False)
         muc = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
         if not tab and not muc:
-            tab = self.core.open_conversation_window(jid, focus=True)
+            tab = self.core.open_conversation_window(jid.full, focus=True)
         elif muc:
             if jid.resource:
                 tab = self.core.tabs.by_name_and_class(jid.full,

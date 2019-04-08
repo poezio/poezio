@@ -55,7 +55,7 @@ class MucTab(ChatTab):
     additional_information = {}  # type: Dict[str, Callable[[str], str]]
     lagged = False
 
-    def __init__(self, core, jid: JID, nick: str, password: str = None):
+    def __init__(self, core, jid, nick, password=None):
         ChatTab.__init__(self, core, jid)
         self.joined = False
         self._state = 'disconnected'
@@ -63,6 +63,7 @@ class MucTab(ChatTab):
         self.own_nick = nick
         # self User object
         self.own_user = None  # type: Optional[User]
+        self.name = jid
         self.password = password
         # buffered presences
         self.presence_buffer = []
@@ -1481,7 +1482,7 @@ class MucTab(ChatTab):
         r = None
         for user in self.users:
             if user.nick == nick:
-                r = self.core.open_private_window(str(self.name), user.nick)
+                r = self.core.open_private_window(self.name, user.nick)
         if r and len(args) == 2:
             msg = args[1]
             self.core.tabs.current_tab.command_say(

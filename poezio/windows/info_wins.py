@@ -6,7 +6,6 @@ info buffer in normal tabs
 import logging
 log = logging.getLogger(__name__)
 
-from slixmpp import JID
 from poezio.common import safeJID
 from poezio.config import config
 
@@ -92,7 +91,8 @@ class PrivateInfoWin(InfoWin):
             self.addstr(plugin(jid),
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
-    def write_room_name(self, jid: JID):
+    def write_room_name(self, name):
+        jid = safeJID(name)
         room_name, nick = jid.bare, jid.resource
         theme = get_theme()
         self.addstr(nick, to_curses_attr(theme.COLOR_PRIVATE_NAME))
@@ -266,7 +266,7 @@ class MucInfoWin(InfoWin):
     def refresh(self, room, window=None, user=None, information=None):
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
-        self.write_room_name(str(room.name))
+        self.write_room_name(room)
         self.write_participants_number(room)
         self.write_own_nick(room)
         self.write_disconnected(room)
@@ -287,11 +287,11 @@ class MucInfoWin(InfoWin):
         for plugin in information.values():
             self.addstr(plugin(jid), color)
 
-    def write_room_name(self, name: str):
+    def write_room_name(self, room):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
         self.addstr('[', color)
-        self.addstr(name,
+        self.addstr(room.name,
                     to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
         self.addstr(']', color)
 

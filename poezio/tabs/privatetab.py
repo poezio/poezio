@@ -20,6 +20,7 @@ from poezio.tabs import OneToOneTab, MucTab, Tab
 
 from poezio import windows
 from poezio import xhtml
+from poezio.common import safeJID
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
@@ -39,9 +40,10 @@ class PrivateTab(OneToOneTab):
     message_type = 'chat'
     additional_information = {}  # type: Dict[str, Callable[[str], str]]
 
-    def __init__(self, core, name: JID, nick: str):
+    def __init__(self, core, name, nick):
         OneToOneTab.__init__(self, core, name)
         self.own_nick = nick
+        self.name = name
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
@@ -63,13 +65,13 @@ class PrivateTab(OneToOneTab):
             shortdesc='Get the software version of a jid.')
         self.resize()
         self.parent_muc = self.core.tabs.by_name_and_class(
-            self.name.bare, MucTab)
+            safeJID(name).bare, MucTab)
         self.on = True
         self.update_commands()
         self.update_keys()
 
     def remote_user_color(self):
-        user = self.parent_muc.get_user_by_name(self.name.resource)
+        user = self.parent_muc.get_user_by_name(safeJID(self.name).resource)
         if user:
             return dump_tuple(user.color)
         return super().remote_user_color()
@@ -103,7 +105,9 @@ class PrivateTab(OneToOneTab):
         del PrivateTab.additional_information[plugin_name]
 
     def load_logs(self, log_nb):
-        return logger.get_logs(self.name.full.replace('/', '\\'), log_nb)
+        logs = logger.get_logs(
+            safeJID(self.name).full.replace('/', '\\'), log_nb)
+        return logs
 
     def log_message(self, txt, nickname, time=None, typ=1):
         """
@@ -217,7 +221,7 @@ class PrivateTab(OneToOneTab):
         """
         if args:
             return self.core.command.version(args[0])
-        jid = self.name
+        jid = safeJID(self.name)
         self.core.xmpp.plugin['xep_0092'].get_version(
             jid, callback=self.core.handler.on_version_result)
 
@@ -229,7 +233,7 @@ class PrivateTab(OneToOneTab):
         if arg and arg[0]:
             self.parent_muc.command_info(arg[0])
         else:
-            user = self.name.resource
+            user = safeJID(self.name).resource
             self.parent_muc.command_info(user)
 
     def resize(self):
@@ -272,7 +276,7 @@ class PrivateTab(OneToOneTab):
         self.input.refresh()
 
     def get_nick(self):
-        return self.name.resource
+        return safeJID(self.name).resource
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -284,7 +288,7 @@ class PrivateTab(OneToOneTab):
         empty_after = self.input.get_text() == '' or (
             self.input.get_text().startswith('/')
             and not self.input.get_text().startswith('//'))
-        tab = self.core.tabs.by_name_and_class(self.name.bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined:
             self.send_composing_chat_state(empty_after)
         return False
@@ -297,7 +301,7 @@ class PrivateTab(OneToOneTab):
 
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
-        tab = self.core.tabs.by_name_and_class(self.name.bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states', self.general_jid) and self.on:
             self.send_chat_state('inactive')
@@ -306,7 +310,7 @@ class PrivateTab(OneToOneTab):
     def on_gain_focus(self):
         self.state = 'current'
         curses.curs_set(1)
-        tab = self.core.tabs.by_name_and_class(self.name.bare, MucTab)
+        tab = self.core.tabs.by_name_and_class(safeJID(self.name).bare, MucTab)
         if tab and tab.joined and config.get_by_tabname(
                 'send_chat_states',
                 self.general_jid,
@@ -341,7 +345,7 @@ class PrivateTab(OneToOneTab):
                 'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             },
             typ=2)
-        new_jid = self.name.bare + '/' + user.nick
+        new_jid = safeJID(self.name).bare + '/' + user.nick
         self.name = new_jid
         return self.core.tabs.current_tab is self
 
@@ -422,7 +426,7 @@ class PrivateTab(OneToOneTab):
             self.add_message(txt=reason, typ=2)
 
     def matching_names(self):
-        return [(3, self.name.resource), (4, self.name)]
+        return [(3, safeJID(self.name).resource), (4, self.name)]
 
     def add_error(self, error_message):
         theme = get_theme()

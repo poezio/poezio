@@ -20,7 +20,7 @@ from datetime import datetime
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional
 
-from slixmpp import JID, InvalidJID, Message
+from slixmpp import JID, Message
 
 from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
@@ -462,16 +462,8 @@ class ChatTab(Tab):
     plugin_keys = {}  # type: Dict[str, Callable]
     message_type = 'chat'
 
-    def __init__(self, core, jid: Optional[JID] = None):
+    def __init__(self, core, jid=''):
         Tab.__init__(self, core)
-        if jid is not None and not isinstance(jid, JID):
-            # XXX: Remove logging once we're more or less sure we've switched
-            # all calls.
-            log.debug('ChatTab.name: %r: Not a JID object.', jid, exc_info=True)
-            try:
-                jid = JID(jid)
-            except InvalidJID:
-                log.debug('ChatTab.name: invalid JID.')
         self.name = jid
         self.text_win = None
         self.directed_presence = None
@@ -522,9 +514,8 @@ class ChatTab(Tab):
         raise NotImplementedError
 
     def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
-        if self.name is not None:
-            return logger.get_logs(self.name.bare, log_nb)
-        return None
+        logs = logger.get_logs(safeJID(self.name).bare, log_nb)
+        return logs
 
     def log_message(self,
                     txt: str,
@@ -534,9 +525,7 @@ class ChatTab(Tab):
         """
         Log the messages in the archives.
         """
-        if self.name is None:
-            return None
-        name = self.name.bare
+        name = safeJID(self.name).bare
         if not logger.log_message(name, nickname, txt, date=time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
@@ -781,9 +770,8 @@ class ChatTab(Tab):
 
 
 class OneToOneTab(ChatTab):
-    def __init__(self, core, jid: JID):
+    def __init__(self, core, jid=''):
         ChatTab.__init__(self, core, jid)
-        assert self.name.bare
 
         self.__status = Status("", "")
         self.last_remote_message = datetime.now()
@@ -813,7 +801,7 @@ class OneToOneTab(ChatTab):
             return
         self.__status = status
         hide_status_change = config.get_by_tabname('hide_status_change',
-                                                   self.name.bare)
+                                                   safeJID(self.name).bare)
         now = datetime.now()
         dff = now - self.last_remote_message
         if hide_status_change > -1 and dff.total_seconds() > hide_status_change:
