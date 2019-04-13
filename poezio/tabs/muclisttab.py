@@ -60,6 +60,7 @@ class MucListTab(ListTab):
 
         items = [(item[0].split('@')[0], item[0], item[2] or '', '')
                  for item in get_items()]
+        items = sorted(items, key=lambda item: item[0])
         self.listview.set_lines(items)
         self.info_header.message = 'Chatroom list on server %s' % self.name
         if self.core.tabs.current_tab is self:
