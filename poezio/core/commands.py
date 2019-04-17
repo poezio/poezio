@@ -614,7 +614,8 @@ class CommandCore:
                             theme.COLOR_INFORMATION_TEXT),
                     })
                 for option_name, option_value in section.items():
-                    if 'password' in option_name and 'eval_password' not in option_name:
+                    if isinstance(option_name, str) and \
+                        'password' in option_name and 'eval_password' not in option_name:
                         option_value = '********'
                     lines.append(
                         '%s\x19%s}=\x19o%s' %
@@ -624,7 +625,8 @@ class CommandCore:
         elif len(args) == 1:
             option = args[0]
             value = config.get(option)
-            if 'password' in option and 'eval_password' not in option and value is not None:
+            if isinstance(option, str) and \
+                'password' in option and 'eval_password' not in option and value is not None:
                 value = '********'
             if value is None and '=' in option:
                 args = option.split('=', 1)
