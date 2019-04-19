@@ -89,6 +89,7 @@ class ConversationTab(OneToOneTab):
         raise NotImplementedError
 
     @staticmethod
+    @refresh_wrapper.always
     def add_information_element(plugin_name, callback):
         """
         Lets a plugin add its own information to the ConversationInfoWin
@@ -96,6 +97,7 @@ class ConversationTab(OneToOneTab):
         ConversationTab.additional_information[plugin_name] = callback
 
     @staticmethod
+    @refresh_wrapper.always
     def remove_information_element(plugin_name):
         del ConversationTab.additional_information[plugin_name]
 

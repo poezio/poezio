@@ -109,6 +109,7 @@ class MucTab(ChatTab):
         return None
 
     @staticmethod
+    @refresh_wrapper.always
     def add_information_element(plugin_name: str, callback: Callable[[str], str]) -> None:
         """
         Lets a plugin add its own information to the MucInfoWin
@@ -116,6 +117,7 @@ class MucTab(ChatTab):
         MucTab.additional_information[plugin_name] = callback
 
     @staticmethod
+    @refresh_wrapper.always
     def remove_information_element(plugin_name: str) -> None:
         """
         Lets a plugin add its own information to the MucInfoWin

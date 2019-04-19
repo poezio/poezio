@@ -94,6 +94,7 @@ class PrivateTab(OneToOneTab):
         super().ack_message(msg_id, msg_jid)
 
     @staticmethod
+    @refresh_wrapper.always
     def add_information_element(plugin_name, callback):
         """
         Lets a plugin add its own information to the PrivateInfoWin
@@ -101,6 +102,7 @@ class PrivateTab(OneToOneTab):
         PrivateTab.additional_information[plugin_name] = callback
 
     @staticmethod
+    @refresh_wrapper.always
     def remove_information_element(plugin_name):
         del PrivateTab.additional_information[plugin_name]
 
