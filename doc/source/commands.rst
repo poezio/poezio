@@ -223,7 +223,7 @@ These commands work in *any* tab.
 
         Invite specified JIDs into a newly created room.
 
-       .. versionadded:: 0.13
+        .. versionadded:: 0.13
 
     /activity
         **Usage:** ``/activity [<general> [specific] [comment]]``

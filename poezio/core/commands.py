@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 import asyncio
 from xml.etree import cElementTree as ET
+from typing import List, Optional, Tuple
 
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError
@@ -23,6 +24,8 @@ from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio import multiuserchat as muc
+from poezio.contact import Contact
+from poezio import windows
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
@@ -258,7 +261,7 @@ class CommandCore:
         self.core.refresh_window()
 
     @command_args_parser.quoted(0, 1)
-    def list(self, args):
+    def list(self, args: List[str]) -> None:
         """
         /list [server]
         Opens a MucListTab containing the list of the room in the specified server
@@ -266,12 +269,18 @@ class CommandCore:
         if args is None:
             return self.help('list')
         elif args:
-            jid = safeJID(args[0])
+            try:
+                jid = JID(args[0])
+            except InvalidJID:
+                return self.core.information('Invalid server %r' % jid, 'Error')
         else:
             if not isinstance(self.core.tabs.current_tab, tabs.MucTab):
                 return self.core.information('Please provide a server',
                                              'Error')
-            jid = safeJID(self.core.tabs.current_tab.name)
+            jid = self.core.tabs.current_tab.jid
+        if jid is None or not jid.domain:
+            return None
+        jid = JID(jid.domain)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
         cb = list_tab.on_muc_list_item_received
@@ -301,16 +310,19 @@ class CommandCore:
         nick = tab.own_nick
         return (room, nick)
 
-    def _parse_join_jid(self, jid_string):
+    def _parse_join_jid(self, jid_string: str) -> Tuple[Optional[str], Optional[str]]:
         # we try to join a server directly
-        if jid_string.startswith('@'):
-            server_root = True
-            info = safeJID(jid_string[1:])
-        else:
-            info = safeJID(jid_string)
-            server_root = False
+        try:
+            if jid_string.startswith('@'):
+                server_root = True
+                info = JID(jid_string[1:])
+            else:
+                info = JID(jid_string)
+                server_root = False
+        except InvalidJID:
+            return (None, None)
 
-        set_nick = ''
+        set_nick = ''  # type: Optional[str]
         if len(jid_string) > 1 and jid_string.startswith('/'):
             set_nick = jid_string[1:]
         elif info.resource:
@@ -322,7 +334,8 @@ class CommandCore:
             if not isinstance(tab, tabs.MucTab):
                 room, set_nick = (None, None)
             else:
-                room = tab.name
+                if tab.jid is not None:
+                    room = tab.jid.bare
                 if not set_nick:
                     set_nick = tab.own_nick
         else:
@@ -509,6 +522,71 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @command_args_parser.quoted(0, 1)
+    def command_accept(self, args):
+        """
+        Accept a JID. Authorize it AND subscribe to it
+        """
+        if not args:
+            tab = self.core.tabs.current_tab
+            RosterInfoTab = tabs.RosterInfoTab
+            if not isinstance(tab, RosterInfoTab):
+                return self.core.information('No JID specified', 'Error')
+            else:
+                item = tab.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+                else:
+                    return self.core.information('No subscription to accept', 'Warning')
+        else:
+            jid = safeJID(args[0]).bare
+        nodepart = safeJID(jid).user
+        jid = safeJID(jid)
+        # crappy transports putting resources inside the node part
+        if '\\2f' in nodepart:
+            jid.user = nodepart.split('\\2f')[0]
+        contact = roster[jid]
+        if contact is None:
+            return self.core.information('No subscription to accept', 'Warning')
+        contact.pending_in = False
+        roster.modified()
+        self.core.xmpp.send_presence(pto=jid, ptype='subscribed')
+        self.core.xmpp.client_roster.send_last_presence()
+        if contact.subscription in ('from',
+                                    'none') and not contact.pending_out:
+            self.core.xmpp.send_presence(
+                pto=jid, ptype='subscribe', pnick=self.core.own_nick)
+        self.core.information('%s is now authorized' % jid, 'Roster')
+
+    @command_args_parser.quoted(1)
+    def command_add(self, args):
+        """
+        Add the specified JID to the roster, and automatically
+        accept the reverse subscription
+        """
+        if args is None:
+            tab = self.core.tabs.current_tab
+            ConversationTab = tabs.ConversationTab
+            if isinstance(tab, ConversationTab):
+                jid = tab.general_jid
+                if jid in roster and roster[jid].subscription in ('to', 'both'):
+                    return self.core.information('Already subscribed.', 'Roster')
+                roster.add(jid)
+                roster.modified()
+                return self.core.information('%s was added to the roster' % jid, 'Roster')
+            else:
+                return self.core.information('No JID specified', 'Error')
+        jid = safeJID(safeJID(args[0]).bare)
+        if not str(jid):
+            self.core.information(
+                'The provided JID (%s) is not valid' % (args[0], ), 'Error')
+            return
+        if jid in roster and roster[jid].subscription in ('to', 'both'):
+            return self.core.information('Already subscribed.', 'Roster')
+        roster.add(jid)
+        roster.modified()
+        self.core.information('%s was added to the roster' % jid, 'Roster')
+
     @command_args_parser.ignored
     def command_reconnect(self):
         """
@@ -536,7 +614,8 @@ class CommandCore:
                             theme.COLOR_INFORMATION_TEXT),
                     })
                 for option_name, option_value in section.items():
-                    if 'password' in option_name and 'eval_password' not in option_name:
+                    if isinstance(option_name, str) and \
+                        'password' in option_name and 'eval_password' not in option_name:
                         option_value = '********'
                     lines.append(
                         '%s\x19%s}=\x19o%s' %
@@ -546,7 +625,8 @@ class CommandCore:
         elif len(args) == 1:
             option = args[0]
             value = config.get(option)
-            if 'password' in option and 'eval_password' not in option and value is not None:
+            if isinstance(option, str) and \
+                'password' in option and 'eval_password' not in option and value is not None:
                 value = '********'
             if value is None and '=' in option:
                 args = option.split('=', 1)

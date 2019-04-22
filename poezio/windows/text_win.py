@@ -267,8 +267,8 @@ class TextWin(BaseTextWin):
 
     def scroll_to_separator(self) -> None:
         """
-        Scroll until separator is centered. If no separator is
-        present, scroll at the top of the window
+        Scroll to the first message after the separator.  If no
+        separator is present, scroll to the first message of the window
         """
         if None in self.built_lines:
             self.pos = len(self.built_lines) - self.built_lines.index(

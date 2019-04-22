@@ -19,7 +19,7 @@ from typing import Callable, Dict, List, Optional, Set, Tuple, Type
 from xml.etree import cElementTree as ET
 from functools import partial
 
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout
@@ -937,7 +937,15 @@ class Core:
 
         nick = self.own_nick
         localpart = uuid.uuid4().hex
-        room = '{!s}@{!s}'.format(localpart, default_muc)
+        room_str = '{!s}@{!s}'.format(localpart, default_muc)
+        try:
+            room = JID(room_str)
+        except InvalidJID:
+            self.information(
+                'The generated XMPP address is invalid: {!s}'.format(room_str),
+                'Error'
+            )
+            return None
 
         self.open_new_room(room, nick).join()
         iq = self._impromptu_room_form(room)
@@ -1758,6 +1766,21 @@ class Core:
             "currently using in this room (instead of default_nick).",
             shortdesc="Bookmark a room online.",
             completion=self.completion.bookmark)
+        self.register_command(
+            'accept',
+            self.command.command_accept,
+            usage='[jid]',
+            desc='Allow the provided JID (or the selected contact '
+            'in your roster), to see your presence.',
+            shortdesc='Allow a user your presence.',)
+        self.register_command(
+            'add',
+            self.command.command_add,
+            usage='<jid>',
+            desc='Add the specified JID to your roster, ask them to'
+            ' allow you to see his presence, and allow them to'
+            ' see your presence.',
+            shortdesc='Add a user to your roster.')
         self.register_command(
             'reconnect',
             self.command.command_reconnect,

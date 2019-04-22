@@ -16,9 +16,12 @@ import os
 import subprocess
 import time
 import string
+import logging
 
 from slixmpp import JID, InvalidJID, Message
 from poezio.poezio_shlex import shlex
+
+log = logging.getLogger(__name__)
 
 
 def _get_output_of_command(command: str) -> Optional[List[str]]:
@@ -459,4 +462,9 @@ def safeJID(*args, **kwargs) -> JID:
     try:
         return JID(*args, **kwargs)
     except InvalidJID:
+        log.debug(
+            'safeJID caught an invalidJID exception: %r, %r',
+            args, kwargs,
+            exc_info=True,
+        )
         return JID('')

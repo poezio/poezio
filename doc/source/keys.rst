@@ -1,7 +1,7 @@
 .. _keys-page:
 
-Keys
-====
+Keyboard Shortcuts
+==================
 
 This file describes the default keys of poezio and explains how to
 configure them.
