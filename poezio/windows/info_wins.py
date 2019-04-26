@@ -299,7 +299,7 @@ class MucInfoWin(InfoWin):
     def write_room_name(self, room):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
-        room_name = room.get_nick()
+        room_name = room.get_name()
         self.addstr('(', color)
         self.addstr(room_name,
                     to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
