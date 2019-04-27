@@ -161,8 +161,8 @@ class CompletionCore:
         muc_serv_list = []
         for tab in self.core.get_tabs(
                 tabs.MucTab):  # TODO, also from an history
-            if tab.name not in muc_serv_list:
-                muc_serv_list.append(safeJID(tab.name).server)
+            if tab.jid.server not in muc_serv_list:
+                muc_serv_list.append(tab.jid.server)
         if muc_serv_list:
             return Completion(
                 the_input.new_completion, muc_serv_list, 1, quotify=False)
@@ -284,7 +284,7 @@ class CompletionCore:
             rooms = []
             for tab in self.core.get_tabs(tabs.MucTab):
                 if tab.joined:
-                    rooms.append(tab.name)
+                    rooms.append(tab.jid.bare)
             rooms.sort()
             return Completion(
                 the_input.new_completion, rooms, n, '', quotify=True)
@@ -346,8 +346,7 @@ class CompletionCore:
         """Completion for /server_cycle"""
         serv_list = set()
         for tab in self.core.get_tabs(tabs.MucTab):
-            serv = safeJID(tab.name).server
-            serv_list.add(serv)
+            serv_list.add(tab.jid.server)
         return Completion(the_input.new_completion, sorted(serv_list), 1, ' ')
 
     def set(self, the_input):
