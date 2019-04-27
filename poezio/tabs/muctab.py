@@ -14,10 +14,11 @@ import os
 import random
 import re
 import functools
+from copy import copy
 from datetime import datetime
 from typing import Dict, Callable, List, Optional, Union, Set
 
-from slixmpp import JID
+from slixmpp import InvalidJID, JID
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
@@ -63,7 +64,6 @@ class MucTab(ChatTab):
         self.own_nick = nick
         # self User object
         self.own_user = None  # type: Optional[User]
-        self.name = jid
         self.password = password
         # buffered presences
         self.presence_buffer = []
@@ -95,7 +95,7 @@ class MucTab(ChatTab):
 
     @property
     def general_jid(self):
-        return self.name
+        return self.jid
 
     def check_send_chat_state(self) -> bool:
         "If we should send a chat state"
@@ -128,14 +128,14 @@ class MucTab(ChatTab):
         """
         The user do not want to send their config, send an iq cancel
         """
-        muc.cancel_config(self.core.xmpp, self.name)
+        muc.cancel_config(self.core.xmpp, self.jid.bare)
         self.core.close_tab()
 
     def send_config(self, form):
         """
         The user sends their config to the server
         """
-        muc.configure_room(self.core.xmpp, self.name, form)
+        muc.configure_room(self.core.xmpp, self.jid.bare, form)
         self.core.close_tab()
 
     def join(self):
@@ -150,7 +150,7 @@ class MucTab(ChatTab):
             seconds = None
         muc.join_groupchat(
             self.core,
-            self.name,
+            self.jid.bare,
             self.own_nick,
             self.password,
             status=status.message,
@@ -195,11 +195,11 @@ class MucTab(ChatTab):
 
             self.add_message(msg, typ=2)
             self.disconnect()
-            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick,
+            muc.leave_groupchat(self.core.xmpp, self.jid.bare, self.own_nick,
                                 message)
-            self.core.disable_private_tabs(self.name, reason=msg)
+            self.core.disable_private_tabs(self.jid.bare, reason=msg)
         else:
-            muc.leave_groupchat(self.core.xmpp, self.name, self.own_nick,
+            muc.leave_groupchat(self.core.xmpp, self.jid.bare, self.own_nick,
                                 message)
 
     def change_affiliation(self,
@@ -227,7 +227,7 @@ class MucTab(ChatTab):
         if nick_or_jid in [user.nick for user in self.users]:
             muc.set_user_affiliation(
                 self.core.xmpp,
-                self.name,
+                self.jid.bare,
                 affiliation,
                 nick=nick_or_jid,
                 callback=callback,
@@ -235,7 +235,7 @@ class MucTab(ChatTab):
         else:
             muc.set_user_affiliation(
                 self.core.xmpp,
-                self.name,
+                self.jid.bare,
                 affiliation,
                 jid=safeJID(nick_or_jid),
                 callback=callback,
@@ -258,10 +258,14 @@ class MucTab(ChatTab):
             return self.core.information(
                 'The role must be one of ' + ', '.join(valid_roles), 'Error')
 
-        if not safeJID(self.name + '/' + nick):
+        try:
+            target_jid = copy(self.jid)
+            target_jid.resource = nick
+        except InvalidJID:
             return self.core.information('Invalid nick', 'Info')
+
         muc.set_user_role(
-            self.core.xmpp, self.name, nick, reason, role, callback=callback)
+            self.core.xmpp, self.jid.bare, nick, reason, role, callback=callback)
 
     @refresh_wrapper.conditional
     def print_info(self, nick: str) -> bool:
@@ -297,7 +301,7 @@ class MucTab(ChatTab):
 
     def change_topic(self, topic: str):
         """Change the current topic"""
-        muc.change_subject(self.core.xmpp, self.name, topic)
+        muc.change_subject(self.core.xmpp, self.jid.bare, topic)
 
     @refresh_wrapper.always
     def show_topic(self):
@@ -326,7 +330,7 @@ class MucTab(ChatTab):
     def recolor(self, random_colors=False):
         """Recolor the current MUC users"""
         deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.name)
+                                              self.jid.bare)
         if deterministic:
             for user in self.users:
                 if user is self.own_user:
@@ -375,7 +379,7 @@ class MucTab(ChatTab):
                 user.change_color(color)
             config.set_and_save(nick, color, 'muc_colors')
             nick_color_aliases = config.get_by_tabname('nick_color_aliases',
-                                                       self.name)
+                                                       self.jid.bare)
             if nick_color_aliases:
                 # if any user in the room has a nick which is an alias of the
                 # nick, update its color
@@ -402,12 +406,12 @@ class MucTab(ChatTab):
 
     def get_nick(self) -> str:
         if config.get('show_muc_jid'):
-            return self.name
-        bookmark = self.core.bookmarks[self.name]
+            return self.jid.bare
+        bookmark = self.core.bookmarks[self.jid.bare]
         if bookmark is not None and bookmark.name:
             return bookmark.name
         # TODO: send the disco#info identity name here, if it exists.
-        return safeJID(self.name).user
+        return self.jid.user
 
     def get_text_window(self):
         return self.text_win
@@ -448,7 +452,7 @@ class MucTab(ChatTab):
         for status_code in presence.xml.findall(STATUS_XPATH):
             status_codes.add(status_code.attrib['code'])
         if presence['type'] == 'error':
-            self.core.room_error(presence, self.name)
+            self.core.room_error(presence, self.jid.bare)
         elif not self.joined:
             own = '110' in status_codes or self.own_nick == presence['from'].resource
             if own or len(self.presence_buffer) >= 10:
@@ -475,7 +479,7 @@ class MucTab(ChatTab):
         Batch-process all the initial presences
         """
         deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.name)
+                                              self.jid.bare)
 
         for stanza in self.presence_buffer:
             try:
@@ -520,8 +524,8 @@ class MucTab(ChatTab):
         self.own_nick = from_nick
         self.own_user = new_user
         self.joined = True
-        if self.name in self.core.initial_joins:
-            self.core.initial_joins.remove(self.name)
+        if self.jid.bare in self.core.initial_joins:
+            self.core.initial_joins.remove(self.jid.bare)
             self._state = 'normal'
         elif self != self.core.tabs.current_tab:
             self._state = 'joined'
@@ -550,7 +554,7 @@ class MucTab(ChatTab):
                               'info_col': info_col,
                           }
         self.add_message(enable_message, typ=2)
-        self.core.enable_private_tabs(self.name, enable_message)
+        self.core.enable_private_tabs(self.jid.bare, enable_message)
         if '201' in status_codes:
             self.add_message(
                 '\x19%(info_col)s}Info: The room '
@@ -593,7 +597,7 @@ class MucTab(ChatTab):
             self.on_user_join(from_nick, affiliation, show, status, role, jid,
                               user_color)
         elif user is None:
-            log.error('BUG: User %s in %s is None', from_nick, self.name)
+            log.error('BUG: User %s in %s is None', from_nick, self.jid.bare)
             return
         elif change_nick:
             self.core.events.trigger('muc_nickchange', presence, self)
@@ -647,7 +651,7 @@ class MucTab(ChatTab):
         When a new user joins the groupchat
         """
         deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.name)
+                                              self.jid.bare)
         user = User(from_nick, affiliation, show, status, role, jid,
                     deterministic, color)
         bisect.insort_left(self.users, user)
@@ -685,7 +689,7 @@ class MucTab(ChatTab):
                            'color_spec': spec_col,
                        }
             self.add_message(msg, typ=2)
-        self.core.on_user_rejoined_private_conversation(self.name, from_nick)
+        self.core.on_user_rejoined_private_conversation(self.jid.bare, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
         new_nick = presence.xml.find(
@@ -699,7 +703,7 @@ class MucTab(ChatTab):
         else:
             user.change_nick(new_nick)
             deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                                  self.name)
+                                                  self.jid.bare)
             color = config.get_by_tabname(new_nick, 'muc_colors') or None
             if color or deterministic:
                 user.change_color(color, deterministic)
@@ -724,7 +728,7 @@ class MucTab(ChatTab):
             },
             typ=2)
         # rename the private tabs if needed
-        self.core.rename_private_tabs(self.name, from_nick, user)
+        self.core.rename_private_tabs(self.jid.bare, from_nick, user)
 
     def on_user_banned(self, presence, user, from_nick):
         """
@@ -758,7 +762,7 @@ class MucTab(ChatTab):
                                 'spec': char_kick,
                                 'info_col': info_col
                             }
-            self.core.disable_private_tabs(self.name, reason=kick_msg)
+            self.core.disable_private_tabs(self.jid.bare, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
             self.core.tabs.current_tab.refresh_input()
@@ -767,11 +771,11 @@ class MucTab(ChatTab):
                                               self.general_jid)
                 delay = common.parse_str_to_secs(delay)
                 if delay <= 0:
-                    muc.join_groupchat(self.core, self.name, self.own_nick)
+                    muc.join_groupchat(self.core, self.jid.bare, self.own_nick)
                 else:
                     self.core.add_timed_event(
                         timed_events.DelayedEvent(delay, muc.join_groupchat,
-                                                  self.core, self.name,
+                                                  self.core, self.jid.bare,
                                                   self.own_nick))
 
         else:
@@ -837,7 +841,7 @@ class MucTab(ChatTab):
                                 'spec': char_kick,
                                 'info_col': info_col
                             }
-            self.core.disable_private_tabs(self.name, reason=kick_msg)
+            self.core.disable_private_tabs(self.jid.bare, reason=kick_msg)
             self.disconnect()
             self.refresh_tab_win()
             self.core.tabs.current_tab.refresh_input()
@@ -847,11 +851,11 @@ class MucTab(ChatTab):
                                               self.general_jid)
                 delay = common.parse_str_to_secs(delay)
                 if delay <= 0:
-                    muc.join_groupchat(self.core, self.name, self.own_nick)
+                    muc.join_groupchat(self.core, self.jid.bare, self.own_nick)
                 else:
                     self.core.add_timed_event(
                         timed_events.DelayedEvent(delay, muc.join_groupchat,
-                                                  self.core, self.name,
+                                                  self.core, self.jid.bare,
                                                   self.own_nick))
         else:
             if config.get_by_tabname('display_user_color_in_join_part',
@@ -1039,7 +1043,7 @@ class MucTab(ChatTab):
         to be
         """
         if time is None and self.joined:  # don't log the history messages
-            if not logger.log_message(self.name, nickname, txt, typ=typ):
+            if not logger.log_message(self.jid.bare, nickname, txt, typ=typ):
                 self.core.information('Unable to write in the log file',
                                       'Error')
 
@@ -1083,7 +1087,7 @@ class MucTab(ChatTab):
         if (not time and nickname and nickname != self.own_nick
                 and self.state != 'current'):
             if (self.state != 'highlight'
-                    and config.get_by_tabname('notify_messages', self.name)):
+                    and config.get_by_tabname('notify_messages', self.jid.bare)):
                 self.state = 'message'
         if time and not txt.startswith('/me'):
             txt = '\x19%(info_col)s}%(txt)s' % {
@@ -1125,7 +1129,7 @@ class MucTab(ChatTab):
         return False
 
     def matching_names(self):
-        return [(1, safeJID(self.name).user), (3, self.name)]
+        return [(1, self.jid.user), (3, self.jid.full)]
 
     def enable_self_ping_event(self):
         delay = config.get_by_tabname(
@@ -1148,7 +1152,7 @@ class MucTab(ChatTab):
     def send_self_ping(self):
         timeout = config.get_by_tabname(
             "self_ping_timeout", self.general_jid, default=60)
-        to = self.name + "/" + self.own_nick
+        to = self.jid.bare + "/" + self.own_nick
         self.core.xmpp.plugin['xep_0199'].send_ping(
             jid=to,
             callback=self.on_self_ping_result,
@@ -1174,7 +1178,7 @@ class MucTab(ChatTab):
         if color != '':
             return color
         nick_color_aliases = config.get_by_tabname('nick_color_aliases',
-                                                   self.name)
+                                                   self.jid.bare)
         if nick_color_aliases:
             nick_alias = re.sub('^_*(.*?)_*$', '\\1', nick)
             color = config.get_by_tabname(nick_alias, 'muc_colors')
@@ -1341,7 +1345,7 @@ class MucTab(ChatTab):
                 self.state = 'highlight'
             beep_on = config.get('beep_on').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
-                if not config.get_by_tabname('disable_beep', self.name):
+                if not config.get_by_tabname('disable_beep', self.jid.bare):
                     curses.beep()
             return True
         return False
@@ -1354,7 +1358,7 @@ class MucTab(ChatTab):
         if args is None:
             return self.core.command.help('invite')
         jid, reason = args
-        self.core.command.invite('%s %s "%s"' % (jid, self.name, reason))
+        self.core.command.invite('%s %s "%s"' % (jid, self.jid.bare, reason))
 
     @command_args_parser.quoted(1)
     def command_info(self, args):
@@ -1380,7 +1384,7 @@ class MucTab(ChatTab):
                 return
             self.core.open_new_form(form, self.cancel_config, self.send_config)
 
-        fixes.get_room_form(self.core.xmpp, self.name, on_form_received)
+        fixes.get_room_form(self.core.xmpp, self.jid.bare, on_form_received)
 
     @command_args_parser.raw
     def command_cycle(self, msg):
@@ -1425,11 +1429,14 @@ class MucTab(ChatTab):
         if args is None:
             return self.core.command.help('version')
         nick = args[0]
-        if nick in [user.nick for user in self.users]:
-            jid = safeJID(self.name).bare
-            jid = safeJID(jid + '/' + nick)
-        else:
-            jid = safeJID(nick)
+        try:
+            if nick in [user.nick for user in self.users]:
+                jid = copy(self.jid)
+                jid.resource = nick
+            else:
+                jid = JID(nick)
+        except InvalidJID:
+            return self.core.information('Invalid jid or nick %r' % nick, 'Error')
         self.core.xmpp.plugin['xep_0092'].get_version(
             jid, callback=self.core.handler.on_version_result)
 
@@ -1445,9 +1452,12 @@ class MucTab(ChatTab):
             return self.core.information('/nick only works in joined rooms',
                                          'Info')
         current_status = self.core.get_status()
-        if not safeJID(self.name + '/' + nick):
+        try:
+            target_jid = copy(self.jid)
+            target_jid.resource = nick
+        except InvalidJID:
             return self.core.information('Invalid nick', 'Info')
-        muc.change_nick(self.core, self.name, nick, current_status.message,
+        muc.change_nick(self.core, self.jid.bare, nick, current_status.message,
                         current_status.show)
 
     @command_args_parser.quoted(0, 1, [''])
@@ -1484,7 +1494,7 @@ class MucTab(ChatTab):
         r = None
         for user in self.users:
             if user.nick == nick:
-                r = self.core.open_private_window(self.name, user.nick)
+                r = self.core.open_private_window(self.jid.bare, user.nick)
         if r and len(args) == 2:
             msg = args[1]
             self.core.tabs.current_tab.command_say(
@@ -1575,7 +1585,7 @@ class MucTab(ChatTab):
 
         def callback(iq):
             if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
+                self.core.room_error(iq, self.jid.bare)
 
         if args is None:
             return self.core.command.help('role')
@@ -1593,7 +1603,7 @@ class MucTab(ChatTab):
 
         def callback(iq):
             if iq['type'] == 'error':
-                self.core.room_error(iq, self.name)
+                self.core.room_error(iq, self.jid.bare)
 
         if args is None:
             return self.core.command.help('affiliation')
@@ -1608,7 +1618,7 @@ class MucTab(ChatTab):
         Or normal input + enter
         """
         needed = 'inactive' if self.inactive else 'active'
-        msg = self.core.xmpp.make_message(self.name)
+        msg = self.core.xmpp.make_message(self.jid.bare)
         msg['type'] = 'groupchat'
         msg['body'] = line
         # trigger the event BEFORE looking for colors.
@@ -1742,7 +1752,7 @@ class MucTab(ChatTab):
         nicks = [
             os.environ.get('USER'),
             config.get('default_nick'),
-            self.core.get_bookmark_nickname(self.name)
+            self.core.get_bookmark_nickname(self.jid.bare)
         ]
         nicks = [i for i in nicks if i]
         return Completion(the_input.auto_completion, nicks, '', quotify=False)
