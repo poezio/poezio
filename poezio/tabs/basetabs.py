@@ -464,9 +464,13 @@ class ChatTab(Tab):
 
     def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
-        self._jid = None
-        self._name = ''
-        self.name = jid
+
+        if not isinstance(jid, JID):
+            jid = JID(jid)
+        assert jid.domain
+        self._jid = jid
+
+        self._name = jid.full
         self.text_win = None
         self.directed_presence = None
         self._text_buffer = TextBuffer()
@@ -533,18 +537,14 @@ class ChatTab(Tab):
             raise TypeError("Name must be of type JID or str.")
 
     @property
-    def jid(self) -> Optional[JID]:
+    def jid(self) -> JID:
         return self._jid
 
     @jid.setter
-    def jid(self, value: Optional[JID]) -> None:
-        if value is None:
-            self._jid = None
-            return None
+    def jid(self, value: JID) -> None:
         if not isinstance(value, JID):
-            raise TypeError("Jid must be of type Optional[JID].")
-        if not value.domain:
-            raise ValueError("Jid must contain at least a domain.")
+            raise TypeError("Jid %r must be of type JID." % value)
+        assert value.domain
         self._jid = value
 
     @property
