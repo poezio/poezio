@@ -47,7 +47,6 @@ class ConversationTab(OneToOneTab):
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'
-        self.name = jid  # a conversation tab is linked to one specific full jid OR bare jid
         self.text_win = windows.TextWin()
         self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
@@ -83,7 +82,7 @@ class ConversationTab(OneToOneTab):
 
     @property
     def general_jid(self):
-        return safeJID(self.name).bare
+        return self.jid.bare
 
     def get_info_header(self):
         raise NotImplementedError
@@ -125,7 +124,7 @@ class ConversationTab(OneToOneTab):
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', self.name):
+            if config.get_by_tabname('group_corrections', self.jid.full):
                 try:
                     self.modify_message(
                         msg['body'],
@@ -244,7 +243,7 @@ class ConversationTab(OneToOneTab):
         """
         if args:
             return self.core.command.version(args[0])
-        jid = safeJID(self.name)
+        jid = self.jid
         if not jid.resource:
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
@@ -303,14 +302,13 @@ class ConversationTab(OneToOneTab):
         self.input.refresh()
 
     def get_nick(self):
-        jid = safeJID(self.name)
-        contact = roster[jid.bare]
+        contact = roster[self.jid.bare]
         if contact:
             return contact.name or jid.user
         else:
             if self.nick:
                 return self.nick
-            return jid.user
+            return self.jid.user
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
@@ -383,7 +381,7 @@ class ConversationTab(OneToOneTab):
 
     def matching_names(self):
         res = []
-        jid = safeJID(self.name)
+        jid = self.jid
         res.append((2, jid.bare))
         res.append((1, jid.user))
         contact = roster[self.name]
@@ -404,8 +402,8 @@ class DynamicConversationTab(ConversationTab):
 
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
-        self.name = safeJID(jid).bare
         ConversationTab.__init__(self, core, jid)
+        self.jid.resource = None
         self.info_header = windows.DynamicConversationInfoWin()
         self.register_command(
             'unlock', self.unlock_command, shortdesc='Deprecated, do nothing.')
@@ -429,7 +427,7 @@ class DynamicConversationTab(ConversationTab):
         """
         Returns the bare jid.
         """
-        return self.name
+        return self.jid.bare
 
     def refresh(self):
         """
@@ -442,9 +440,9 @@ class DynamicConversationTab(ConversationTab):
 
         self.text_win.refresh()
         if display_bar:
-            self.upper_bar.refresh(self.name, roster[self.name])
-        displayed_jid = self.name
-        self.get_info_header().refresh(displayed_jid, roster[self.name],
+            self.upper_bar.refresh(self.jid.bare, roster[self.jid.bare])
+        displayed_jid = self.jid.bare
+        self.get_info_header().refresh(displayed_jid, roster[self.jid.bare],
                                        self.text_win, self.chatstate,
                                        ConversationTab.additional_information)
         if display_info_win:
@@ -457,8 +455,8 @@ class DynamicConversationTab(ConversationTab):
         """
         Different from the parent class only for the info_header object.
         """
-        displayed_jid = self.name
-        self.get_info_header().refresh(displayed_jid, roster[self.name],
+        displayed_jid = self.jid.bare
+        self.get_info_header().refresh(displayed_jid, roster[self.jid.bare],
                                        self.text_win, self.chatstate,
                                        ConversationTab.additional_information)
         self.input.refresh()
@@ -473,8 +471,8 @@ class StaticConversationTab(ConversationTab):
     plugin_keys = {}  # type: Dict[str, Callable]
 
     def __init__(self, core, jid):
-        assert (safeJID(jid).resource)
         ConversationTab.__init__(self, core, jid)
+        assert jid.resource
         self.info_header = windows.ConversationInfoWin()
         self.resize()
         self.update_commands()
