@@ -470,7 +470,7 @@ class ChatTab(Tab):
         assert jid.domain
         self._jid = jid
 
-        self._name = jid.full
+        self._name = jid.full  # type: Optional[str]
         self.text_win = None
         self.directed_presence = None
         self._text_buffer = TextBuffer()
@@ -517,24 +517,23 @@ class ChatTab(Tab):
 
     @property
     def name(self) -> str:
-        if self._jid is not None:
-            return self._jid.full
-        return self._name
+        if self._name is not None:
+            return self._name
+        return self._jid.full
 
     @name.setter
     def name(self, value: Union[JID, str]) -> None:
         if isinstance(value, JID):
-            self._jid = value
+            self.jid = value
         elif isinstance(value, str):
             try:
                 value = JID(value)
                 if value.domain:
                     self._jid = value
-                self._name = value.full
             except InvalidJID:
                 self._name = value
         else:
-            raise TypeError("Name must be of type JID or str.")
+            raise TypeError("Name %r must be of type JID or str." % value)
 
     @property
     def jid(self) -> JID:
