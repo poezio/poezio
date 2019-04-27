@@ -334,8 +334,7 @@ class CommandCore:
             if not isinstance(tab, tabs.MucTab):
                 room, set_nick = (None, None)
             else:
-                if tab.jid is not None:
-                    room = tab.jid.bare
+                room = tab.jid.bare
                 if not set_nick:
                     set_nick = tab.own_nick
         else:
