@@ -806,7 +806,7 @@ class ChatTab(Tab):
 
 
 class OneToOneTab(ChatTab):
-    def __init__(self, core, jid=''):
+    def __init__(self, core, jid):
         ChatTab.__init__(self, core, jid)
 
         self.__status = Status("", "")
