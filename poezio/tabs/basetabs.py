@@ -551,9 +551,7 @@ class ChatTab(Tab):
         raise NotImplementedError
 
     def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
-        if self.jid is not None:
-            return logger.get_logs(self.jid.bare, log_nb)
-        return None
+        return logger.get_logs(self.jid.bare, log_nb)
 
     def log_message(self,
                     txt: str,
@@ -563,10 +561,9 @@ class ChatTab(Tab):
         """
         Log the messages in the archives.
         """
-        if self.jid is not None:
-            name = self.jid.bare
-            if not logger.log_message(name, nickname, txt, date=time, typ=typ):
-                self.core.information('Unable to write in the log file', 'Error')
+        name = self.jid.bare
+        if not logger.log_message(name, nickname, txt, date=time, typ=typ):
+            self.core.information('Unable to write in the log file', 'Error')
 
     def add_message(self,
                     txt,
