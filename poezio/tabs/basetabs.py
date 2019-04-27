@@ -660,7 +660,7 @@ class ChatTab(Tab):
         return msg
 
     def get_dest_jid(self) -> JID:
-        return self.name
+        return self.jid
 
     @refresh_wrapper.always
     def command_clear(self, ignored):
@@ -837,7 +837,7 @@ class OneToOneTab(ChatTab):
             return
         self.__status = status
         hide_status_change = config.get_by_tabname('hide_status_change',
-                                                   safeJID(self.name).bare)
+                                                   self.jid.bare)
         now = datetime.now()
         dff = now - self.last_remote_message
         if hide_status_change > -1 and dff.total_seconds() > hide_status_change:

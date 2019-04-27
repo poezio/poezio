@@ -235,7 +235,7 @@ class HandlerCore:
         # Differentiate both type of messages, and call the appropriate handler.
         jid_from = message['from']
         for tab in self.core.get_tabs(tabs.MucTab):
-            if tab.name == jid_from.bare:
+            if tab.jid.bare == jid_from.bare:
                 if jid_from.resource:
                     self.on_groupchat_private_message(message, sent=False)
                     return
@@ -247,7 +247,7 @@ class HandlerCore:
         """
         jid_from = message['from']
         for tab in self.core.get_tabs(tabs.MucTab):
-            if tab.name == jid_from.bare:
+            if tab.jid.bare == jid_from.bare:
                 if jid_from.full == jid_from.bare:
                     self.core.room_error(message, jid_from.bare)
                 else:
@@ -1396,12 +1396,12 @@ class HandlerCore:
         jid_from = message['from']
         self.core.information('%s requests your attention!' % jid_from, 'Info')
         for tab in self.core.tabs:
-            if tab.name == jid_from:
+            if tab.jid == jid_from:
                 tab.state = 'attention'
                 self.core.refresh_tab_win()
                 return
         for tab in self.core.tabs:
-            if tab.name == jid_from.bare:
+            if tab.jid.bare == jid_from.bare:
                 tab.state = 'attention'
                 self.core.refresh_tab_win()
                 return
