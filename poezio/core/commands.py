@@ -136,7 +136,7 @@ class CommandCore:
             current.send_chat_state('inactive')
         for tab in self.core.tabs:
             if isinstance(tab, tabs.MucTab) and tab.joined:
-                muc.change_show(self.core.xmpp, tab.name, tab.own_nick, show,
+                muc.change_show(self.core.xmpp, tab.jid, tab.own_nick, show,
                                 msg)
             if hasattr(tab, 'directed_presence'):
                 del tab.directed_presence
@@ -154,7 +154,7 @@ class CommandCore:
 
         jid, ptype, status = args[0], args[1], args[2]
         if jid == '.' and isinstance(self.core.tabs.current_tab, tabs.ChatTab):
-            jid = self.core.tabs.current_tab.name
+            jid = self.core.tabs.current_tab.jid
         if ptype == 'available':
             ptype = None
         try:
@@ -306,7 +306,7 @@ class CommandCore:
         tab = self.core.tabs.current_tab
         if not isinstance(tab, (tabs.MucTab, tabs.PrivateTab)):
             return (None, None)
-        room = safeJID(tab.name).bare
+        room = tab.jid.bare
         nick = tab.own_nick
         return (room, nick)
 
@@ -344,10 +344,8 @@ class CommandCore:
             # check if the current room's name has a server
             if room.find('@') == -1 and not server_root:
                 tab = self.core.tabs.current_tab
-                if isinstance(tab, tabs.MucTab):
-                    if tab.name.find('@') != -1:
-                        domain = safeJID(tab.name).domain
-                        room += '@%s' % domain
+                if isinstance(tab, tabs.MucTab) and tab.domain:
+                    room += '@%s' % tab.domain
         return (room, set_nick)
 
     @command_args_parser.quoted(0, 2)
@@ -437,7 +435,7 @@ class CommandCore:
         nick = None
         if not jid:
             tab = self.core.tabs.current_tab
-            roomname = tab.name
+            roomname = tab.jid.bare
             if tab.joined and tab.own_nick != self.core.own_nick:
                 nick = tab.own_nick
             if password is None and tab.password is not None:
@@ -451,7 +449,7 @@ class CommandCore:
                 tab = self.core.tabs.current_tab
                 if not isinstance(tab, tabs.MucTab):
                     return
-                roomname = tab.name
+                roomname = tab.jid.bare
         bookmark = self.core.bookmarks[roomname]
         if bookmark is None:
             bookmark = Bookmark(roomname)
@@ -470,9 +468,9 @@ class CommandCore:
     def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
         for tab in self.core.get_tabs(tabs.MucTab):
-            bookmark = self.core.bookmarks[tab.name]
+            bookmark = self.core.bookmarks[tab.jid.bare]
             if not bookmark:
-                bookmark = Bookmark(tab.name, autojoin=True, method=method)
+                bookmark = Bookmark(tab.jid.bare, autojoin=True, method=method)
                 new_bookmarks.append(bookmark)
             else:
                 bookmark.method = method
@@ -509,8 +507,8 @@ class CommandCore:
 
         if not args:
             tab = self.core.tabs.current_tab
-            if isinstance(tab, tabs.MucTab) and self.core.bookmarks[tab.name]:
-                self.core.bookmarks.remove(tab.name)
+            if isinstance(tab, tabs.MucTab) and self.core.bookmarks[tab.jid.bare]:
+                self.core.bookmarks.remove(tab.jid.bare)
                 self.core.bookmarks.save(self.core.xmpp, callback=cb)
             else:
                 self.core.information('No bookmark to remove', 'Info')
@@ -674,7 +672,7 @@ class CommandCore:
                 info = plugin_config.set_and_save(option, value, section)
             else:
                 if args[0] == '.':
-                    name = safeJID(self.core.tabs.current_tab.name).bare
+                    name = self.core.tabs.current_tab.jid.bare
                     if not name:
                         self.core.information(
                             'Invalid tab to use the "." argument.', 'Error')
@@ -742,11 +740,11 @@ class CommandCore:
                 message = args[1]
         else:
             if isinstance(tab, tabs.MucTab):
-                domain = safeJID(tab.name).domain
+                domain = tab.jid.domain
             else:
                 return self.core.information("No server specified", "Error")
         for tab in self.core.get_tabs(tabs.MucTab):
-            if JID(tab.name).domain == domain:
+            if tab.jid.domain == domain:
                 tab.leave_room(message)
                 tab.join()
 
