@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
         if not args and not isinstance(current_tab, MucTab):
             return self.core.command_help('server_part')
         elif not args:
-            jid = safeJID(current_tab.name).bare
+            jid = current_tab.jid.bare
             message = None
         elif len(args) == 1:
             jid = safeJID(args[0]).domain
@@ -60,6 +60,6 @@ class Plugin(BasePlugin):
         serv_list = set()
         for tab in self.core.get_tabs(MucTab):
             if tab.joined:
-                serv = safeJID(tab.name).server
+                serv = tab.jid.server
                 serv_list.add(serv)
         return Completion(the_input.new_completion, sorted(serv_list), 1, ' ')

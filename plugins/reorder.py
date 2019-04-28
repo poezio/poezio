@@ -112,7 +112,7 @@ def parse_runtime_tablist(tablist):
         i += 1
         result = check_tab(tab)
         if result:
-            props.append((i, '%s:%s' % (result, tab.name)))
+            props.append((i, '%s:%s' % (result, tab.jid.full)))
     return props
 
 

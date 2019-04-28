@@ -325,7 +325,7 @@ def hl(tab):
     if tab.state != 'current':
         tab.state = 'private'
 
-    conv_jid = safeJID(tab.name)
+    conv_jid = tab.jid
     if 'private' in config.get('beep_on', 'highlight private').split():
         if not config.get_by_tabname(
                 'disable_beep', conv_jid.bare, default=False):
@@ -806,7 +806,7 @@ class Plugin(BasePlugin):
         On message sent
         """
         name = tab.name
-        jid = safeJID(tab.name)
+        jid = tab.jid
 
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
@@ -846,7 +846,7 @@ class Plugin(BasePlugin):
         elif not is_relevant(tab) and ctx and (
                 ctx.state == STATE_ENCRYPTED
                 or ctx.getPolicy('REQUIRE_ENCRYPTION')):
-            contact = roster[tab.name]
+            contact = roster[tab.jid.bare]
             res = []
             if contact:
                 res = [resource.jid for resource in contact.resources]
@@ -884,13 +884,13 @@ class Plugin(BasePlugin):
             return self.core.command.help('otr')
         action = args.pop(0)
         tab = self.api.current_tab()
-        name = tab.name
+        name = tab.jid.full
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
             'normal': '\x19%s}' % dump_tuple(get_theme().COLOR_NORMAL_TEXT),
-            'jid': name,
-            'bare_jid': safeJID(name).bare
+            'jid': tab.jid.full,
+            'bare_jid': tab.jid.bare,
         }
 
         if action == 'end':  # close the session
@@ -991,12 +991,12 @@ class Plugin(BasePlugin):
             question = secret = None
 
         tab = self.api.current_tab()
-        name = tab.name
+        name = tab.jid.full
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
-            'jid': name,
-            'bare_jid': safeJID(name).bare
+            'jid': tab.jid.full,
+            'bare_jid': tab.jid.bare,
         }
 
         ctx = self.get_context(name)

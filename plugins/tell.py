@@ -75,7 +75,7 @@ class Plugin(BasePlugin):
         if not self.tabs.get(tab):
             self.api.information('No message queued.', 'Info')
             return
-        build = ['Messages queued for %s:' % tab.name]
+        build = ['Messages queued for %s:' % tab.jid.bare]
         for nick, messages in self.tabs[tab].items():
             build.append(' for %s:' % nick)
             for message in messages:

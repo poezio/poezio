@@ -95,7 +95,7 @@ class Plugin(BasePlugin):
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
         increment = self.config.get('refresh')
-        roll = DiceRoll(duration, num_dice, is_muctab, tab.name, msg_id,
+        roll = DiceRoll(duration, num_dice, is_muctab, tab.jid, msg_id,
                         increment)
         event = self.api.create_delayed_event(increment, self.delayed_event,
                                               roll)

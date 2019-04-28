@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 class Plugin(BasePlugin):
     def init(self):
         self.api.add_event_handler("muc_msg", self.on_muc_msg)
-        # Dict of MucTab.name: last_message date, so we don’t have to
+        # Dict of MucTab.jid.bare: last_message date, so we don’t have to
         # retrieve the messages of the given muc to look for the last
         # message’s date each time.  Also, now that I think about it, the
         # date of the message is not event kept in the Message object, so…
@@ -66,8 +66,8 @@ class Plugin(BasePlugin):
                 res += "%s seconds, " % seconds
             return res[:-2]
 
-        last_message_date = self.last_messages.get(tab.name)
-        self.last_messages[tab.name] = datetime.now()
+        last_message_date = self.last_messages.get(tab.jid.bare)
+        self.last_messages[tab.jid.bare] = datetime.now()
         if last_message_date:
             delta = datetime.now() - last_message_date
             if delta >= timedelta(0, self.config.get('delay', 900)):

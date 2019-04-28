@@ -376,7 +376,7 @@ class Plugin(BasePlugin):
         """
         gateway = self.config.get('gateway', 'irc.poez.io')
         current = self.api.current_tab()
-        current_jid = common.safeJID(current.name)
+        current_jid = current.jid
         if not current_jid.server == gateway:
             self.api.information(
                 'The current tab does not appear to be an IRC one', 'Warning')

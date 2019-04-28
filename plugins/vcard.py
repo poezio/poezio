@@ -273,7 +273,7 @@ class Plugin(BasePlugin):
         if arg:
             self.command_vcard(arg)
             return
-        self.command_vcard(self.api.current_tab().name)
+        self.command_vcard(self.api.current_tab().jid.full)
 
     @command_args_parser.raw
     def command_muc_vcard(self, arg):
@@ -282,10 +282,12 @@ class Plugin(BasePlugin):
             return
         user = self.api.current_tab().get_user_by_name(arg)
         if user:
-            # No need to use safeJID here, we already know the JID is valid.
-            jid = JID(self.api.current_tab().name + '/' + user.nick)
+            jid = self.api.current_tab().jid.bare + '/' + user.nick
         else:
-            jid = safeJID(arg)
+            try:
+                jid = safeJID(arg)
+            except InvalidJID:
+                return self.api.information('Invalid JID: %s' % arg, 'Error')
         self._get_vcard(jid)
 
     @command_args_parser.raw

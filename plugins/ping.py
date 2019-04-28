@@ -22,6 +22,7 @@ Command
         the current interlocutor.
 """
 
+from slixmpp import InvalidJID
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
@@ -116,7 +117,7 @@ class Plugin(BasePlugin):
     def command_private_ping(self, arg):
         if arg:
             return self.command_ping(arg)
-        self.command_ping(self.api.current_tab().name)
+        self.command_ping(self.api.current_tab().jid)
 
     @command_args_parser.raw
     def command_muc_ping(self, arg):
@@ -124,10 +125,13 @@ class Plugin(BasePlugin):
             return
         user = self.api.current_tab().get_user_by_name(arg)
         if user:
-            jid = safeJID(self.api.current_tab().name)
+            jid = self.api.current_tab().jid
             jid.resource = user.nick
         else:
-            jid = safeJID(arg)
+            try:
+                jid = JID(arg)
+            except InvalidJID:
+                return self.api.information('Invalid JID: %s' % arg, 'Error')
         self.command_ping(jid.full)
 
     @command_args_parser.raw

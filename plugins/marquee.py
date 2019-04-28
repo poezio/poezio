@@ -68,7 +68,7 @@ class Plugin(BasePlugin):
         tab.command_say(args)
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
-        jid = tab.name
+        jid = tab.jid
 
         event = self.api.create_delayed_event(
             self.config.get("refresh"), self.delayed_event, jid, args, msg_id,
