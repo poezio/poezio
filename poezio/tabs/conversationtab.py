@@ -304,7 +304,7 @@ class ConversationTab(OneToOneTab):
     def get_nick(self):
         contact = roster[self.jid.bare]
         if contact:
-            return contact.name or jid.user
+            return contact.name or self.jid.user
         else:
             if self.nick:
                 return self.nick
