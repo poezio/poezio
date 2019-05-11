@@ -22,7 +22,7 @@ Command
         the current interlocutor.
 """
 
-from slixmpp import InvalidJID
+from slixmpp import InvalidJID, JID
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
