@@ -413,6 +413,13 @@ class MucTab(ChatTab):
         # TODO: send the disco#info identity name here, if it exists.
         return self.jid.user
 
+    def get_name(self) -> str:
+        bookmark = self.core.bookmarks[self.jid.bare]
+        if bookmark is not None and bookmark.name:
+            return bookmark.name
+        # TODO: send the disco#info identity name here, if it exists.
+        return self.jid.user
+
     def get_text_window(self):
         return self.text_win
 
