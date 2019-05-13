@@ -60,6 +60,7 @@ class MucTab(ChatTab):
         ChatTab.__init__(self, core, jid)
         self.joined = False
         self._state = 'disconnected'
+        self.field_value_muc= False
         # our nick in the MUC
         self.own_nick = nick
         # self User object
@@ -413,12 +414,23 @@ class MucTab(ChatTab):
         # TODO: send the disco#info identity name here, if it exists.
         return self.jid.user
 
+    def on_disco(self, iq):
+        if iq['type'] == 'error':
+            return
+        info = iq['disco_info']
+        for field in info['form']:
+            var = field['var']
+            field_value = field.get_value(convert=False)
+            if 'muc#roominfo_description' in var and field_value is not '':
+                self.field_value_muc = field_value
+                break
+            elif 'muc#roomconfig_roomname' in var:
+                self.field_value_muc = field_value
+
     def get_name(self) -> str:
-        bookmark = self.core.bookmarks[self.jid.bare]
-        if bookmark is not None and bookmark.name:
-            return bookmark.name
-        # TODO: send the disco#info identity name here, if it exists.
-        return self.jid.user
+        self.core.xmpp.plugin['xep_0030'].get_info(
+                    jid=self.jid.bare, cached=False, callback=self.on_disco)
+        return self.field_value_muc
 
     def get_text_window(self):
         return self.text_win
