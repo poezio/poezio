@@ -60,7 +60,7 @@ class MucTab(ChatTab):
         ChatTab.__init__(self, core, jid)
         self.joined = False
         self._state = 'disconnected'
-        self.field_value_muc= self.name.split('@')[0]
+        self.field_value_muc = self.jid.user
         # our nick in the MUC
         self.own_nick = nick
         # self User object
@@ -429,7 +429,7 @@ class MucTab(ChatTab):
         if bookmark is not None and bookmark.name:
             return bookmark.name
         self.core.xmpp.plugin['xep_0030'].get_info(
-            jid=self.jid.bare, cached=False, callback=self.disco_info)
+            jid = self.jid.bare, cached = False, callback = self.disco_info)
         return self.field_value_muc
 
     def get_text_window(self):
