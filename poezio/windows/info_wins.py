@@ -300,8 +300,6 @@ class MucInfoWin(InfoWin):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
         room_name = room.get_name()
-        if room_name is False:
-            room_name = room.name.split('@')[0]
         self.addstr('(', color)
         self.addstr(room_name,
                     to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
