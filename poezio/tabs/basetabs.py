@@ -491,6 +491,11 @@ class ChatTab(Tab):
             usage='<message>',
             shortdesc='Send the message.')
         self.register_command(
+            'sb',
+            self.command_sb,
+            usage="<sb>",
+            shortdesc='Scrollback to the given line number, meassage, or clear the buffer.')
+        self.register_command(
             'xhtml',
             self.command_xhtml,
             usage='<custom xhtml>',
@@ -781,6 +786,68 @@ class ChatTab(Tab):
     @command_args_parser.raw
     def command_say(self, line, correct=False):
         pass
+
+    @command_args_parser.quoted(0, 2)
+    def command_sb(self, args):
+        """
+        /sb
+        """
+        if args is None or len(args) == 0:
+            self.text_win.scroll_down(len(self.text_win.built_lines))
+            self.core.refresh_window()
+            self.core.information('Command Usage: clear goto home end status', 'Info')
+        elif len(args) == 1:
+            if args[0] == 'end':
+                self.text_win.scroll_down(len(self.text_win.built_lines))
+                self.core.refresh_window()
+            elif args[0] == 'home':
+                self.text_win.scroll_up(len(self.text_win.built_lines))
+                self.core.refresh_window()
+            elif args[0] == 'clear':
+                self._text_buffer.messages = []
+                self.text_win.rebuild_everything(self._text_buffer)
+                self.core.refresh_window()
+            elif args[0] == 'status':
+                self.core.information('Total %s lines in this tab.' %len(self.text_win.built_lines), 'Info')
+        elif len(args) == 2 and args[0] == 'goto':
+            try:
+                datetime.strptime(args[1], '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                if '+' in args[1]:
+                    scroll_len = args[1].strip('+')
+                    self.text_win.scroll_up(int(scroll_len))
+                    self.core.refresh_window()
+                    return
+                elif '-' in args[1]:
+                    scroll_len = args[1].strip('-')
+                    self.text_win.scroll_down(int(scroll_len))
+                    self.core.refresh_window()
+                    return
+                elif int(args[1]):
+                    if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
+                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1]) + 1
+                        self.core.refresh_window()
+                        return
+                    else:
+                        self.text_win.pos = 0
+                        self.core.refresh_window()
+                        return
+            text_buffer = self._text_buffer
+            line_count=0
+            for message in text_buffer.messages:
+                line_count+=1
+                for i in message.txt:
+                    if i == '\n':
+                        line_count+=1
+                if message.str_time == args[1]:
+                    if len(self.text_win.built_lines) - self.text_win.height >= line_count:
+                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - line_count + 1
+                        self.core.refresh_window()
+                        return
+                    else:
+                        self.text_win.pos = 0
+                        self.core.refresh_window()
+                        return
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
