@@ -316,6 +316,11 @@ These commands will work in any conversation tab (MultiUserChat, Private, or
     /clear
         Clear the current buffer.
 
+    /sb
+        **Usage:** ``/end home clear status goto <+|-linecount>|<linenum>|<timestamp>``
+
+         Allows to go to the given line or message in the window.
+
 .. _muctab-commands:
 
 MultiUserChat tab commands
