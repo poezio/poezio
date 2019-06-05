@@ -859,21 +859,47 @@ class ChatTab(Tab):
             elif args[1] == '0':
                 args = ['home']
             text_buffer = self._text_buffer
-            line_count=0
+            built_lines = []
+            message_count = 0
             for message in text_buffer.messages:
-                line_count+=1
-                for i in message.txt:
-                    if i == '\n':
-                        line_count+=1
-                if message.str_time == args[1]:
-                    if len(self.text_win.built_lines) - self.text_win.height >= line_count:
-                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - line_count + 1
+                txt = message.txt
+                timestamp = config.get('show_timestamps')
+                nick_size = config.get('max_nick_length')
+                nick = truncate_nick(message.nickname, nick_size)
+                offset = 0
+                theme = get_theme()
+                if message.ack:
+                    if message.ack > 0:
+                        offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
+                    else:
+                        offset += poopt.wcswidth(theme.CHAR_NACK) + 1
+                if nick:
+                    offset += poopt.wcswidth(nick) + 2
+                if message.revisions > 0:
+                    offset += ceil(log10(message.revisions + 1))
+                if message.me:
+                    offset += 1
+                if timestamp:
+                    if message.str_time:
+                        offset += 1 + len(message.str_time)
+                    if theme.CHAR_TIME_LEFT and message.str_time:
+                        offset += 1
+                    if theme.CHAR_TIME_RIGHT and message.str_time:
+                        offset += 1
+                lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
+                for line in lines:
+                    built_lines.append(line)
+                if message.time <= new_date:
+                    message_count += 1
+                    if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
+                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
                         self.core.refresh_window()
-                        return
                     else:
                         self.text_win.pos = 0
                         self.core.refresh_window()
-                        return
+            if message_count == 0:
+                self.text_win.scroll_up(len(self.text_win.built_lines))
+                self.core.refresh_window()
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
