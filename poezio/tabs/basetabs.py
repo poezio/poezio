@@ -26,12 +26,15 @@ from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
+from poezio import poopt
+from math import ceil, log10
+from poezio.windows.funcs import truncate_nick, parse_attrs
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
-from poezio.theming import get_theme, dump_tuple
+from poezio.theming import to_curses_attr, get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
