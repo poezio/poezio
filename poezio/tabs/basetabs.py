@@ -796,10 +796,8 @@ class ChatTab(Tab):
         /sb
         """
         if args is None or len(args) == 0:
-            self.text_win.scroll_down(len(self.text_win.built_lines))
-            self.core.refresh_window()
-            self.core.information('Command Usage: clear goto home end status', 'Info')
-        elif len(args) == 1:
+            args = ['end']
+        if len(args) == 1:
             if args[0] == 'end':
                 self.text_win.scroll_down(len(self.text_win.built_lines))
                 self.core.refresh_window()
@@ -826,15 +824,12 @@ class ChatTab(Tab):
                     self.text_win.scroll_down(int(scroll_len))
                     self.core.refresh_window()
                     return
-                elif int(args[1]):
-                    if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
-                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1]) + 1
-                        self.core.refresh_window()
-                        return
-                    else:
-                        self.text_win.pos = 0
-                        self.core.refresh_window()
-                        return
+                else:
+                    self.text_win.pos = 0
+                    self.core.refresh_window()
+                    return
+            elif args[1] == '0':
+                args = ['home']
             text_buffer = self._text_buffer
             line_count=0
             for message in text_buffer.messages:
