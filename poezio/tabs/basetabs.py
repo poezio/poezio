@@ -809,19 +809,47 @@ class ChatTab(Tab):
                 self.text_win.rebuild_everything(self._text_buffer)
                 self.core.refresh_window()
             elif args[0] == 'status':
-                self.core.information('Total %s lines in this tab.' %len(self.text_win.built_lines), 'Info')
+                self.core.information('Total %s lines in this tab.' % len(self.text_win.built_lines), 'Info')
         elif len(args) == 2 and args[0] == 'goto':
-            try:
-                datetime.strptime(args[1], '%Y-%m-%d %H:%M:%S')
-            except ValueError:
-                if '+' in args[1]:
-                    scroll_len = args[1].strip('+')
+            for fmt in ('%d %H:%M', '%d %H:%M:%S', '%d:%m %H:%M', '%d:%m %H:%M:%S', '%H:%M', '%H:%M:%S'):
+                try:
+                    new_date = datetime.strptime(args[1], fmt)
+                    if 'm' and 'd' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year)
+                    elif 'd' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month)
+                    else:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+                except ValueError:
+                    pass
+            if '-' in args[1]:
+                if ' ' in args[1]:
+                    new_args = args[1].split(' ')
+                    new_args[0] = new_args[0].strip('-')
+                    new_date = datetime.now()
+                    if new_args[0].isdigit():
+                        new_date = new_date.replace(day=new_date.day - int(new_args[0]))
+                    for fmt in ('%H:%M', '%H:%M:%S'):
+                        try:
+                            arg_date = datetime.strptime(new_args[1], fmt)
+                            new_date = new_date.replace(hour=arg_date.hour, minute=arg_date.minute, second=arg_date.second)
+                        except ValueError:
+                            pass
+                else:
+                    scroll_len = args[1].strip('-')
+                    if scroll_len.isdigit():
+                        self.text_win.scroll_down(int(scroll_len))
+                        self.core.refresh_window()
+                        return
+            elif '+' in args[1]:
+                scroll_len = args[1].strip('+')
+                if scroll_len.isdigit():
                     self.text_win.scroll_up(int(scroll_len))
                     self.core.refresh_window()
                     return
-                elif '-' in args[1]:
-                    scroll_len = args[1].strip('-')
-                    self.text_win.scroll_down(int(scroll_len))
+            elif args[1].isdigit():
+                if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
+                    self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1])
                     self.core.refresh_window()
                     return
                 else:
