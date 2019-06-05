@@ -26,12 +26,15 @@ from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
+from poezio import poopt
+from math import ceil, log10
+from poezio.windows.funcs import truncate_nick, parse_attrs
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
-from poezio.theming import get_theme, dump_tuple
+from poezio.theming import to_curses_attr, get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
@@ -494,7 +497,7 @@ class ChatTab(Tab):
             'sb',
             self.command_sb,
             usage="<sb>",
-            shortdesc='Scrollback to the given line number, meassage, or clear the buffer.')
+            shortdesc='Scrollback to the given line number, message, or clear the buffer.')
         self.register_command(
             'xhtml',
             self.command_xhtml,
@@ -793,10 +796,8 @@ class ChatTab(Tab):
         /sb
         """
         if args is None or len(args) == 0:
-            self.text_win.scroll_down(len(self.text_win.built_lines))
-            self.core.refresh_window()
-            self.core.information('Command Usage: clear goto home end status', 'Info')
-        elif len(args) == 1:
+            args = ['end']
+        if len(args) == 1:
             if args[0] == 'end':
                 self.text_win.scroll_down(len(self.text_win.built_lines))
                 self.core.refresh_window()
@@ -808,46 +809,97 @@ class ChatTab(Tab):
                 self.text_win.rebuild_everything(self._text_buffer)
                 self.core.refresh_window()
             elif args[0] == 'status':
-                self.core.information('Total %s lines in this tab.' %len(self.text_win.built_lines), 'Info')
+                self.core.information('Total %s lines in this tab.' % len(self.text_win.built_lines), 'Info')
         elif len(args) == 2 and args[0] == 'goto':
-            try:
-                datetime.strptime(args[1], '%Y-%m-%d %H:%M:%S')
-            except ValueError:
-                if '+' in args[1]:
-                    scroll_len = args[1].strip('+')
+            for fmt in ('%d %H:%M', '%d %H:%M:%S', '%d:%m %H:%M', '%d:%m %H:%M:%S', '%H:%M', '%H:%M:%S'):
+                try:
+                    new_date = datetime.strptime(args[1], fmt)
+                    if 'm' and 'd' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year)
+                    elif 'd' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month)
+                    else:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+                except ValueError:
+                    pass
+            if '-' in args[1]:
+                if ' ' in args[1]:
+                    new_args = args[1].split(' ')
+                    new_args[0] = new_args[0].strip('-')
+                    new_date = datetime.now()
+                    if new_args[0].isdigit():
+                        new_date = new_date.replace(day=new_date.day - int(new_args[0]))
+                    for fmt in ('%H:%M', '%H:%M:%S'):
+                        try:
+                            arg_date = datetime.strptime(new_args[1], fmt)
+                            new_date = new_date.replace(hour=arg_date.hour, minute=arg_date.minute, second=arg_date.second)
+                        except ValueError:
+                            pass
+                else:
+                    scroll_len = args[1].strip('-')
+                    if scroll_len.isdigit():
+                        self.text_win.scroll_down(int(scroll_len))
+                        self.core.refresh_window()
+                        return
+            elif '+' in args[1]:
+                scroll_len = args[1].strip('+')
+                if scroll_len.isdigit():
                     self.text_win.scroll_up(int(scroll_len))
                     self.core.refresh_window()
                     return
-                elif '-' in args[1]:
-                    scroll_len = args[1].strip('-')
-                    self.text_win.scroll_down(int(scroll_len))
+            elif args[1].isdigit():
+                if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
+                    self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1])
                     self.core.refresh_window()
                     return
-                elif int(args[1]):
-                    if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
-                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1]) + 1
-                        self.core.refresh_window()
-                        return
-                    else:
-                        self.text_win.pos = 0
-                        self.core.refresh_window()
-                        return
+                else:
+                    self.text_win.pos = 0
+                    self.core.refresh_window()
+                    return
+            elif args[1] == '0':
+                args = ['home']
             text_buffer = self._text_buffer
-            line_count=0
+            built_lines = []
+            message_count = 0
             for message in text_buffer.messages:
-                line_count+=1
-                for i in message.txt:
-                    if i == '\n':
-                        line_count+=1
-                if message.str_time == args[1]:
-                    if len(self.text_win.built_lines) - self.text_win.height >= line_count:
-                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - line_count + 1
+                txt = message.txt
+                timestamp = config.get('show_timestamps')
+                nick_size = config.get('max_nick_length')
+                nick = truncate_nick(message.nickname, nick_size)
+                offset = 0
+                theme = get_theme()
+                if message.ack:
+                    if message.ack > 0:
+                        offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
+                    else:
+                        offset += poopt.wcswidth(theme.CHAR_NACK) + 1
+                if nick:
+                    offset += poopt.wcswidth(nick) + 2
+                if message.revisions > 0:
+                    offset += ceil(log10(message.revisions + 1))
+                if message.me:
+                    offset += 1
+                if timestamp:
+                    if message.str_time:
+                        offset += 1 + len(message.str_time)
+                    if theme.CHAR_TIME_LEFT and message.str_time:
+                        offset += 1
+                    if theme.CHAR_TIME_RIGHT and message.str_time:
+                        offset += 1
+                lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
+                for line in lines:
+                    built_lines.append(line)
+                if message.time <= new_date:
+                    message_count += 1
+                    if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
+                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
                         self.core.refresh_window()
-                        return
                     else:
                         self.text_win.pos = 0
                         self.core.refresh_window()
-                        return
+            if message_count == 0:
+                self.text_win.scroll_up(len(self.text_win.built_lines))
+                self.core.refresh_window()
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
