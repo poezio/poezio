@@ -26,6 +26,9 @@ ChatTabs = Union[
     PrivateTab,
 ]
 
+EME_NS = 'urn:xmpp:eme:0'
+EME_TAG = 'encryption'
+
 
 class E2EEPlugin(BasePlugin):
     """Interface for E2EE plugins"""
@@ -118,7 +121,7 @@ class E2EEPlugin(BasePlugin):
             )
 
     def _decrypt(self, message: Message, tab: ChatTabs) -> None:
-        if message['eme'] is None:
+        if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is None:
             return None
 
         if message['eme']['namespace'] != self.eme_ns:
