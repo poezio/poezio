@@ -10,7 +10,7 @@
     Interface for E2EE (End-to-end Encryption) plugins.
 """
 
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from slixmpp import InvalidJID, JID, Message
 from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab, MucTab
@@ -40,6 +40,10 @@ class E2EEPlugin(BasePlugin):
     # Required.
     eme_ns = None  # type: Optional[str]
 
+    # Static map, to be able to limit to one encryption mechanism per tab at a
+    # time
+    _enabled_tabs = {}  # type: Dict[JID, Callable]
+
     def init(self):
         if self.encryption_name is None and self.encryption_short_name is None:
             raise NotImplementedError
@@ -58,8 +62,6 @@ class E2EEPlugin(BasePlugin):
         self.api.add_event_handler('conversation_say', self._encrypt)
         self.api.add_event_handler('private_msg', self._decrypt)
         self.api.add_event_handler('private_say', self._encrypt)
-
-        self._enabled_tabs = set()
 
         for tab_t in (DynamicConversationTab, PrivateTab, MucTab):
             self.api.add_tab_command(
@@ -100,21 +102,21 @@ class E2EEPlugin(BasePlugin):
         except InvalidJID:
             return ""
 
-        if jid in self._enabled_tabs:
+        if jid in self._enabled_tabs and self._enabled_tabs[jid] == self.encrypt:
             return " " + self.encryption_short_name
         return ""
 
     def _toggle_tab(self, _input: str) -> None:
         jid = self.api.current_tab().jid  # type: JID
 
-        if jid in self._enabled_tabs:
-            self._enabled_tabs.remove(jid)
+        if jid in self._enabled_tabs and self._enabled_tabs[jid] == self.encrypt:
+            del self._enabled_tabs[jid]
             self.api.information(
                 '{} encryption disabled for {}'.format(self.encryption_name, jid),
                 'Info',
             )
         else:
-            self._enabled_tabs.add(jid)
+            self._enabled_tabs[jid] = self.encrypt
             self.api.information(
                 '{} encryption enabled for {}'.format(self.encryption_name, jid),
                 'Info',
@@ -144,7 +146,8 @@ class E2EEPlugin(BasePlugin):
         message['eme']['namespace'] = self.eme_ns
         message['eme']['name'] = self.encryption_name
 
-        self.encrypt(message, tab)
+        # Call the enabled encrypt method
+        self._enabled_tabs[jid](message, tab)
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
