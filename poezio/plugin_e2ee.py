@@ -98,7 +98,7 @@ class E2EEPlugin(BasePlugin):
             return ""
 
         if jid in self._enabled_tabs:
-            return self.encryption_short_name
+            return " " + self.encryption_short_name
         return ""
 
     def _toggle_tab(self, _input: str) -> None:
