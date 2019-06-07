@@ -56,12 +56,17 @@ class E2EEPlugin(BasePlugin):
         if self.encryption_short_name is None:
             self.encryption_short_name = self.encryption_name
 
-        self.api.add_event_handler('muc_msg', self._decrypt)
-        self.api.add_event_handler('muc_say', self._encrypt)
-        self.api.add_event_handler('conversation_msg', self._decrypt)
-        self.api.add_event_handler('conversation_say', self._encrypt)
-        self.api.add_event_handler('private_msg', self._decrypt)
-        self.api.add_event_handler('private_say', self._encrypt)
+        # Ensure decryption is done before everything, so that other handlers
+        # don't have to know about the encryption mechanism.
+        self.api.add_event_handler('muc_msg', self._decrypt, priority=0)
+        self.api.add_event_handler('conversation_msg', self._decrypt, priority=0)
+        self.api.add_event_handler('private_msg', self._decrypt, priority=0)
+
+        # Ensure encryption is done after everything, so that whatever can be
+        # encrypted is encrypted, and no plain element slips in.
+        self.api.add_event_handler('muc_say', self._encrypt, priority=100)
+        self.api.add_event_handler('conversation_say', self._encrypt, priority=100)
+        self.api.add_event_handler('private_say', self._encrypt, priority=100)
 
         for tab_t in (DynamicConversationTab, PrivateTab, MucTab):
             self.api.add_tab_command(
