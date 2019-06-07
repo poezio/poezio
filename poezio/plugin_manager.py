@@ -253,7 +253,7 @@ class PluginManager:
             if key in self.core.key_func:
                 del self.core.commands[key]
 
-    def add_event_handler(self, module_name, event_name, handler, position=0):
+    def add_event_handler(self, module_name, event_name, handler, *args, **kwargs):
         """
         Add an event handler. If event_name isn’t in the event list, assume
         it is a slixmpp event.
@@ -261,7 +261,7 @@ class PluginManager:
         eh = self.event_handlers[module_name]
         eh.append((event_name, handler))
         if event_name in self.core.events.events:
-            self.core.events.add_event_handler(event_name, handler, position)
+            self.core.events.add_event_handler(event_name, handler, *args, **kwargs)
         else:
             self.core.xmpp.add_event_handler(event_name, handler)
 
