@@ -501,12 +501,12 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         return self.api.del_tab_command(tab_type, name)
 
-    def add_event_handler(self, event_name, handler, position=0):
+    def add_event_handler(self, event_name, handler, *args, **kwargs):
         """
         Add an event handler to the event event_name.
         An optional position in the event handler list can be provided.
         """
-        return self.api.add_event_handler(event_name, handler, position)
+        return self.api.add_event_handler(event_name, handler, *args, **kwargs)
 
     def del_event_handler(self, event_name, handler):
         """
