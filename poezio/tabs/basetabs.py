@@ -801,20 +801,24 @@ class ChatTab(Tab):
             if args[0] == 'end':
                 self.text_win.scroll_down(len(self.text_win.built_lines))
                 self.core.refresh_window()
+                return
             elif args[0] == 'home':
                 self.text_win.scroll_up(len(self.text_win.built_lines))
                 self.core.refresh_window()
+                return
             elif args[0] == 'clear':
                 self._text_buffer.messages = []
                 self.text_win.rebuild_everything(self._text_buffer)
                 self.core.refresh_window()
+                return
             elif args[0] == 'status':
                 self.core.information('Total %s lines in this tab.' % len(self.text_win.built_lines), 'Info')
+                return
         elif len(args) == 2 and args[0] == 'goto':
             for fmt in ('%d %H:%M', '%d %H:%M:%S', '%d:%m %H:%M', '%d:%m %H:%M:%S', '%H:%M', '%H:%M:%S'):
                 try:
                     new_date = datetime.strptime(args[1], fmt)
-                    if 'm' and 'd' in fmt:
+                    if 'd' in fmt and 'm' in fmt:
                         new_date = new_date.replace(year=datetime.now().year)
                     elif 'd' in fmt:
                         new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month)
@@ -893,13 +897,11 @@ class ChatTab(Tab):
                     message_count += 1
                     if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
                         self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
-                        self.core.refresh_window()
                     else:
                         self.text_win.pos = 0
-                        self.core.refresh_window()
             if message_count == 0:
                 self.text_win.scroll_up(len(self.text_win.built_lines))
-                self.core.refresh_window()
+            self.core.refresh_window()
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
