@@ -29,9 +29,26 @@ ChatTabs = Union[
 EME_NS = 'urn:xmpp:eme:0'
 EME_TAG = 'encryption'
 
+JCLIENT_NS = 'jabber:client'
+HINTS_NS = 'urn:xmpp:hints'
+
 
 class E2EEPlugin(BasePlugin):
     """Interface for E2EE plugins"""
+
+    # Specifies that the encryption mechanism does more than encrypting
+    # <body/>.
+    stanza_encryption = False
+
+    # Whitelist applied to messages when `stanza_encryption` is False.
+    tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
+        (JCLIENT_NS, 'body'),
+        (EME_NS, EME_TAG),
+        (HINTS_NS, 'store'),
+        (HINTS_NS, 'no-copy'),
+        (HINTS_NS, 'no-store'),
+        (HINTS_NS, 'no-permanent-store'),
+    ]))
 
     # At least one of encryption_name and encryption_short_name must be set
     encryption_name = None  # type: Optional[str]
@@ -156,6 +173,12 @@ class E2EEPlugin(BasePlugin):
 
         # Call the enabled encrypt method
         self._enabled_tabs[jid](message, tab)
+
+        # Filter stanza with the whitelist if we don't do stanza encryption
+        if not self.stanza_encryption:
+            for elem in message.xml[:]:
+                if elem.tag not in self.tag_whitelist:
+                    message.xml.remove(elem)
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
