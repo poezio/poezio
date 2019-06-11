@@ -826,7 +826,7 @@ class ChatTab(Tab):
                         new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
                 except ValueError:
                     pass
-            if '-' in args[1]:
+            if args[1].startswith('-'):
                 if ' ' in args[1]:
                     new_args = args[1].split(' ')
                     new_args[0] = new_args[0].strip('-')
@@ -845,7 +845,7 @@ class ChatTab(Tab):
                         self.text_win.scroll_down(int(scroll_len))
                         self.core.refresh_window()
                         return
-            elif '+' in args[1]:
+            elif args[1].startswith('+'):
                 scroll_len = args[1].strip('+')
                 if scroll_len.isdigit():
                     self.text_win.scroll_up(int(scroll_len))
