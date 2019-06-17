@@ -20,7 +20,7 @@ try:
     from gi.repository import Rsvg
     import cairo
     HAS_RSVG = True
-except (ImportError, ValueError):
+except (ImportError, ValueError, AttributeError):
     HAS_RSVG = False
 
 from poezio.windows.base_wins import Win
