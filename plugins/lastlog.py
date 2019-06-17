@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # vim:fenc=utf-8
 #
-# Copyright © 2018 Maxime “pep” Buquet <pep@bouah.net>
+# Copyright © 2018 Maxime “pep” Buquet
+# Copyright © 2019 Madhur Garg
 #
 # Distributed under terms of the zlib license. See the COPYING file.
 
