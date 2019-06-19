@@ -790,10 +790,59 @@ class ChatTab(Tab):
     def command_say(self, line, correct=False):
         pass
 
+    def goto_build_lines(self, new_date):
+        text_buffer = self._text_buffer
+        built_lines = []
+        message_count = 0
+        for message in text_buffer.messages:
+            # Build lines of a message
+            txt = message.txt
+            timestamp = config.get('show_timestamps')
+            nick_size = config.get('max_nick_length')
+            nick = truncate_nick(message.nickname, nick_size)
+            offset = 0
+            theme = get_theme()
+            if message.ack:
+                if message.ack > 0:
+                    offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
+                else:
+                    offset += poopt.wcswidth(theme.CHAR_NACK) + 1
+            if nick:
+                offset += poopt.wcswidth(nick) + 2
+            if message.revisions > 0:
+                offset += ceil(log10(message.revisions + 1))
+            if message.me:
+                offset += 1
+            if timestamp:
+                if message.str_time:
+                    offset += 1 + len(message.str_time)
+                if theme.CHAR_TIME_LEFT and message.str_time:
+                    offset += 1
+                if theme.CHAR_TIME_RIGHT and message.str_time:
+                    offset += 1
+            lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
+            for line in lines:
+                built_lines.append(line)
+            # Find the message with timestamp less than or equal to the queried
+            # timestamp and goto that location in the tab.
+            if message.time <= new_date:
+                message_count += 1
+                if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
+                    self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
+                else:
+                    self.text_win.pos = 0
+        if message_count == 0:
+            self.text_win.scroll_up(len(self.text_win.built_lines))
+        self.core.refresh_window()
+
     @command_args_parser.quoted(0, 2)
     def command_sb(self, args):
         """
-        /sb
+        /sb clear
+        /sb home
+        /sb end
+        /sb goto <+|-linecount>|<linenum>|<timestamp>
+        The format of timestamp must be ‘[dd[.mm]-<days ago>] hh:mi[:ss]’
         """
         if args is None or len(args) == 0:
             args = ['end']
@@ -827,6 +876,7 @@ class ChatTab(Tab):
                 except ValueError:
                     pass
             if args[1].startswith('-'):
+                # Check if the user is giving argument of type goto <-linecount> or goto [-<days ago>] hh:mi[:ss]
                 if ' ' in args[1]:
                     new_args = args[1].split(' ')
                     new_args[0] = new_args[0].strip('-')
@@ -851,6 +901,7 @@ class ChatTab(Tab):
                     self.text_win.scroll_up(int(scroll_len))
                     self.core.refresh_window()
                     return
+            # Check for the argument of type goto <linenum>
             elif args[1].isdigit():
                 if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
                     self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1])
@@ -862,46 +913,8 @@ class ChatTab(Tab):
                     return
             elif args[1] == '0':
                 args = ['home']
-            text_buffer = self._text_buffer
-            built_lines = []
-            message_count = 0
-            for message in text_buffer.messages:
-                txt = message.txt
-                timestamp = config.get('show_timestamps')
-                nick_size = config.get('max_nick_length')
-                nick = truncate_nick(message.nickname, nick_size)
-                offset = 0
-                theme = get_theme()
-                if message.ack:
-                    if message.ack > 0:
-                        offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
-                    else:
-                        offset += poopt.wcswidth(theme.CHAR_NACK) + 1
-                if nick:
-                    offset += poopt.wcswidth(nick) + 2
-                if message.revisions > 0:
-                    offset += ceil(log10(message.revisions + 1))
-                if message.me:
-                    offset += 1
-                if timestamp:
-                    if message.str_time:
-                        offset += 1 + len(message.str_time)
-                    if theme.CHAR_TIME_LEFT and message.str_time:
-                        offset += 1
-                    if theme.CHAR_TIME_RIGHT and message.str_time:
-                        offset += 1
-                lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
-                for line in lines:
-                    built_lines.append(line)
-                if message.time <= new_date:
-                    message_count += 1
-                    if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
-                        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
-                    else:
-                        self.text_win.pos = 0
-            if message_count == 0:
-                self.text_win.scroll_up(len(self.text_win.built_lines))
-            self.core.refresh_window()
+            # new_date is the timestamp for which the user has queried.
+            self.goto_build_lines(new_date)
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
