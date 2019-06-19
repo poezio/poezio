@@ -834,7 +834,7 @@ class ChatTab(Tab):
         if message_count == 0:
             self.text_win.scroll_up(len(self.text_win.built_lines))
         self.core.refresh_window()
-    
+
     @command_args_parser.quoted(0, 2)
     def command_sb(self, args):
         """
