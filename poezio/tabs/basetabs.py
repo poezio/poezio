@@ -26,12 +26,15 @@ from poezio.core.structs import Command, Completion, Status
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
+from poezio import poopt
+from math import ceil, log10
+from poezio.windows.funcs import truncate_nick, parse_attrs
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
-from poezio.theming import get_theme, dump_tuple
+from poezio.theming import to_curses_attr, get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
@@ -491,6 +494,11 @@ class ChatTab(Tab):
             usage='<message>',
             shortdesc='Send the message.')
         self.register_command(
+            'sb',
+            self.command_sb,
+            usage="end home clear status goto <+|-linecount>|<linenum>|<timestamp>",
+            shortdesc='Scrollback to the given line number, message, or clear the buffer.')
+        self.register_command(
             'xhtml',
             self.command_xhtml,
             usage='<custom xhtml>',
@@ -781,6 +789,132 @@ class ChatTab(Tab):
     @command_args_parser.raw
     def command_say(self, line, correct=False):
         pass
+
+    def goto_build_lines(self, new_date):
+        text_buffer = self._text_buffer
+        built_lines = []
+        message_count = 0
+        for message in text_buffer.messages:
+            # Build lines of a message
+            txt = message.txt
+            timestamp = config.get('show_timestamps')
+            nick_size = config.get('max_nick_length')
+            nick = truncate_nick(message.nickname, nick_size)
+            offset = 0
+            theme = get_theme()
+            if message.ack:
+                if message.ack > 0:
+                    offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
+                else:
+                    offset += poopt.wcswidth(theme.CHAR_NACK) + 1
+            if nick:
+                offset += poopt.wcswidth(nick) + 2
+            if message.revisions > 0:
+                offset += ceil(log10(message.revisions + 1))
+            if message.me:
+                offset += 1
+            if timestamp:
+                if message.str_time:
+                    offset += 1 + len(message.str_time)
+                if theme.CHAR_TIME_LEFT and message.str_time:
+                    offset += 1
+                if theme.CHAR_TIME_RIGHT and message.str_time:
+                    offset += 1
+            lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
+            for line in lines:
+                built_lines.append(line)
+            # Find the message with timestamp less than or equal to the queried
+            # timestamp and goto that location in the tab.
+            if message.time <= new_date:
+                message_count += 1
+                if len(self.text_win.built_lines) - self.text_win.height >= len(built_lines):
+                    self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - len(built_lines) + 1
+                else:
+                    self.text_win.pos = 0
+        if message_count == 0:
+            self.text_win.scroll_up(len(self.text_win.built_lines))
+        self.core.refresh_window()
+
+    @command_args_parser.quoted(0, 2)
+    def command_sb(self, args):
+        """
+        /sb clear
+        /sb home
+        /sb end
+        /sb goto <+|-linecount>|<linenum>|<timestamp>
+        The format of timestamp must be ‘[dd[.mm]-<days ago>] hh:mi[:ss]’
+        """
+        if args is None or len(args) == 0:
+            args = ['end']
+        if len(args) == 1:
+            if args[0] == 'end':
+                self.text_win.scroll_down(len(self.text_win.built_lines))
+                self.core.refresh_window()
+                return
+            elif args[0] == 'home':
+                self.text_win.scroll_up(len(self.text_win.built_lines))
+                self.core.refresh_window()
+                return
+            elif args[0] == 'clear':
+                self._text_buffer.messages = []
+                self.text_win.rebuild_everything(self._text_buffer)
+                self.core.refresh_window()
+                return
+            elif args[0] == 'status':
+                self.core.information('Total %s lines in this tab.' % len(self.text_win.built_lines), 'Info')
+                return
+        elif len(args) == 2 and args[0] == 'goto':
+            for fmt in ('%d %H:%M', '%d %H:%M:%S', '%d:%m %H:%M', '%d:%m %H:%M:%S', '%H:%M', '%H:%M:%S'):
+                try:
+                    new_date = datetime.strptime(args[1], fmt)
+                    if 'd' in fmt and 'm' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year)
+                    elif 'd' in fmt:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month)
+                    else:
+                        new_date = new_date.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+                except ValueError:
+                    pass
+            if args[1].startswith('-'):
+                # Check if the user is giving argument of type goto <-linecount> or goto [-<days ago>] hh:mi[:ss]
+                if ' ' in args[1]:
+                    new_args = args[1].split(' ')
+                    new_args[0] = new_args[0].strip('-')
+                    new_date = datetime.now()
+                    if new_args[0].isdigit():
+                        new_date = new_date.replace(day=new_date.day - int(new_args[0]))
+                    for fmt in ('%H:%M', '%H:%M:%S'):
+                        try:
+                            arg_date = datetime.strptime(new_args[1], fmt)
+                            new_date = new_date.replace(hour=arg_date.hour, minute=arg_date.minute, second=arg_date.second)
+                        except ValueError:
+                            pass
+                else:
+                    scroll_len = args[1].strip('-')
+                    if scroll_len.isdigit():
+                        self.text_win.scroll_down(int(scroll_len))
+                        self.core.refresh_window()
+                        return
+            elif args[1].startswith('+'):
+                scroll_len = args[1].strip('+')
+                if scroll_len.isdigit():
+                    self.text_win.scroll_up(int(scroll_len))
+                    self.core.refresh_window()
+                    return
+            # Check for the argument of type goto <linenum>
+            elif args[1].isdigit():
+                if len(self.text_win.built_lines) - self.text_win.height >= int(args[1]):
+                    self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height - int(args[1])
+                    self.core.refresh_window()
+                    return
+                else:
+                    self.text_win.pos = 0
+                    self.core.refresh_window()
+                    return
+            elif args[1] == '0':
+                args = ['home']
+            # new_date is the timestamp for which the user has queried.
+            self.goto_build_lines(new_date)
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
