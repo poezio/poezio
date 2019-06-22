@@ -495,7 +495,7 @@ class ChatTab(Tab):
             shortdesc='Send the message.')
         self.register_command(
             'sb',
-            self.command_sb,
+            self.command_scrollback,
             usage="end home clear status goto <+|-linecount>|<linenum>|<timestamp>",
             shortdesc='Scrollback to the given line number, message, or clear the buffer.')
         self.register_command(
@@ -836,7 +836,7 @@ class ChatTab(Tab):
         self.core.refresh_window()
 
     @command_args_parser.quoted(0, 2)
-    def command_sb(self, args):
+    def command_scrollback(self, args):
         """
         /sb clear
         /sb home
