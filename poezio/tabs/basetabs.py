@@ -494,10 +494,11 @@ class ChatTab(Tab):
             usage='<message>',
             shortdesc='Send the message.')
         self.register_command(
-            'sb',
+            'scrollback',
             self.command_scrollback,
             usage="end home clear status goto <+|-linecount>|<linenum>|<timestamp>",
             shortdesc='Scrollback to the given line number, message, or clear the buffer.')
+        self.commands['sb'] = self.commands['scrollback']
         self.register_command(
             'xhtml',
             self.command_xhtml,
