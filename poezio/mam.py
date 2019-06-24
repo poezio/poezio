@@ -6,13 +6,9 @@
     XEP-0313: Message Archive Management(MAM).
 """
 
-from getpass import getpass
-from argparse import ArgumentParser
-
-import slixmpp
+import asyncio
 from datetime import datetime, timezone
 from poezio.theming import get_theme
-from slixmpp.exceptions import XMPPError
 from poezio.text_buffer import Message, TextBuffer
 
 
@@ -38,28 +34,21 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str):
     )
 
 
-class MAM(slixmpp.ClientXMPP):
+class MAM:
     """
     A basic client fetching mam archive messages
     """
 
     def __init__(self, jid, password, remote_jid, start, end, tab):
-        slixmpp.ClientXMPP.__init__(self, jid, password)
         self.remote_jid = remote_jid
         self.start_date = start
         self.end_date = end
         self.tab = tab
+        asyncio.ensure_future(self.start())
 
-        self.add_event_handler("session_start", self.start)
-
-    async def start(self, *args):
-        """
-        Fetches mam results for the specified JID.
-        """
-
+    async def start(self):
         text_buffer = self.tab._text_buffer
-
-        results = self.plugin['xep_0313'].retrieve(jid=self.remote_jid,
+        results = self.tab.core.xmpp.plugin['xep_0313'].retrieve(jid=self.remote_jid,
         iterator=True, start=self.start_date, end=self.end_date)
         async for rsm in results:
             for msg in rsm['mam']['results']:
@@ -70,4 +59,3 @@ class MAM(slixmpp.ClientXMPP):
 
         self.tab.text_win.pos = 0
         self.tab.core.refresh_window()
-        self.disconnect()
