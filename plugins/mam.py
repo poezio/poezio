@@ -41,6 +41,9 @@ class Plugin(BasePlugin):
         tab = self.api.current_tab()
         jid = config.get('jid')
         password = config.get('password')
+        eval_password = config.get('eval_password')
+        if not password:
+            password = eval_password
         remote_jid = tab.jid
         end = datetime.now()
         end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -64,6 +67,4 @@ class Plugin(BasePlugin):
             except ValueError:
                 pass
 
-        xmpp = MAM(jid, password, remote_jid, start, end, tab)
-        xmpp.register_plugin('xep_0313')
-        xmpp.connect()
+        MAM(jid, password, remote_jid, start, end, tab)
