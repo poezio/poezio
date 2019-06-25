@@ -16,7 +16,7 @@ revolving around chats.
 import logging
 import string
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -29,6 +29,7 @@ from poezio import xhtml
 from poezio import poopt
 from math import ceil, log10
 from poezio.windows.funcs import truncate_nick, parse_attrs
+from poezio.mam import MAM
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
@@ -498,6 +499,11 @@ class ChatTab(Tab):
             self.command_scrollback,
             usage="end home clear status goto <+|-linecount>|<linenum>|<timestamp>",
             shortdesc='Scrollback to the given line number, message, or clear the buffer.')
+        self.register_command(
+            'mam',
+            self.command_mam,
+            usage="[start_timestamp] [end_timestamp]",
+            shortdesc='Query and control an archive of messages using MAM.')
         self.commands['sb'] = self.commands['scrollback']
         self.register_command(
             'xhtml',
@@ -916,6 +922,36 @@ class ChatTab(Tab):
                 args = ['home']
             # new_date is the timestamp for which the user has queried.
             self.goto_build_lines(new_date)
+
+    @command_args_parser.quoted(0, 2)
+    def command_mam(self, args):
+        """Define mam command"""
+
+        tab = self.core.tabs.current_tab
+        remote_jid = tab.jid
+        end = datetime.now()
+        end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
+        start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
+        # Default start date is 10 days past the current day.
+        start = start + timedelta(days=-10)
+        start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+        # Format for start and end timestamp is [dd:mm:yyyy]
+        if len(args) == 1:
+            try:
+                start = datetime.strptime(args[0], '%d:%m:%Y')
+                start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                pass
+        elif len(args) == 2:
+            try:
+                start = datetime.strptime(args[0], '%d:%m:%Y')
+                start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+                end = datetime.strptime(args[1], '%d:%m:%Y')
+                end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                pass
+
+        MAM(remote_jid, start, end, tab)
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
