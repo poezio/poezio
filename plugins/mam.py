@@ -14,7 +14,6 @@ import slixmpp
 
 from datetime import datetime
 from datetime import timedelta
-from poezio.config import config
 from poezio.plugin import BasePlugin
 from poezio.decorators import command_args_parser
 from poezio import tabs
@@ -39,11 +38,6 @@ class Plugin(BasePlugin):
         """Define mam command"""
 
         tab = self.api.current_tab()
-        jid = config.get('jid')
-        password = config.get('password')
-        eval_password = config.get('eval_password')
-        if not password:
-            password = eval_password
         remote_jid = tab.jid
         end = datetime.now()
         end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -67,4 +61,4 @@ class Plugin(BasePlugin):
             except ValueError:
                 pass
 
-        MAM(jid, password, remote_jid, start, end, tab)
+        MAM(remote_jid, start, end, tab)
