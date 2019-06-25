@@ -39,7 +39,7 @@ class MAM:
     A basic client fetching mam archive messages
     """
 
-    def __init__(self, jid, password, remote_jid, start, end, tab):
+    def __init__(self, remote_jid, start, end, tab):
         self.remote_jid = remote_jid
         self.start_date = start
         self.end_date = end
