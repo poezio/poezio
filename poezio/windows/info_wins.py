@@ -60,6 +60,29 @@ class XMLInfoWin(InfoWin):
         self.finish_line(get_theme().COLOR_INFORMATION_BAR)
         self._refresh()
 
+class MAMInfoWin(InfoWin):
+    """
+    The line above the information window, displaying information
+    about the searched JID.
+    """
+
+    __slots__ = ()
+
+    def __init__(self):
+        InfoWin.__init__(self)
+
+    def refresh(self, remote_jid='', window=None):
+        log.debug('Refresh: %s', self.__class__.__name__)
+        self._win.erase()
+        bar = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
+        if not remote_jid:
+            self.addstr('[Query for messages of any JID]', bar)
+        else:
+            info = '[%s]' % (remote_jid)
+            self.addstr(info, bar)
+        self.print_scroll_position(window)
+        self.finish_line(get_theme().COLOR_INFORMATION_BAR)
+        self._refresh()
 
 class PrivateInfoWin(InfoWin):
     """
