@@ -1065,6 +1065,15 @@ class CommandCore:
             self.core.add_tab(tab, True)
             self.core.xml_tab = tab
 
+    @command_args_parser.ignored
+    def mam_tab(self):
+        """/mam_tab"""
+        mam_tab = self.core.focus_tab_named('MAMTab', tabs.MAMTab)
+        if not mam_tab:
+            tab = tabs.MAMTab(self.core)
+            self.core.add_tab(tab, True)
+            self.core.mam_tab = tab
+
     @command_args_parser.quoted(1)
     def adhoc(self, args):
         if not args:
