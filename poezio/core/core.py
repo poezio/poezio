@@ -104,7 +104,6 @@ class Core:
         self.xml_tab = None
         self.mam_tab = None
         self.xml_buffer = TextBuffer()
-        self.mam_buffer = TextBuffer()
 
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
