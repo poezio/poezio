@@ -56,6 +56,7 @@ class MAM:
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
                 add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']))
+                self.tab.core.refresh_window()
 
         self.tab.text_win.pos = 0
         self.tab.core.refresh_window()
