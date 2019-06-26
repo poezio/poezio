@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from poezio.mam import MAM
 from poezio.tabs import Tab
 
-from poezio import text_buffer
+from poezio.text_buffer import TextBuffer
 from poezio import windows
 from poezio.xhtml import clean_text
 from poezio.decorators import command_args_parser, refresh_wrapper
@@ -24,7 +24,7 @@ class MAMTab(Tab):
         self.state = 'normal'
         self.name = 'MAMTab'
 
-        self._text_buffer = self.core.mam_buffer
+        self._text_buffer = TextBuffer()
 
         self.info_header = windows.MAMInfoWin()
         self.text_win = windows.TextWin()
@@ -186,7 +186,7 @@ class MAMTab(Tab):
     def on_close(self):
         super().on_close()
         self.command_clear()
-        self.core.xml_tab = False
+        self.core.mam_tab = False
 
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
