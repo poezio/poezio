@@ -101,7 +101,9 @@ class Core:
         self.tab_win = windows.GlobalInfoBar(self)
         # Whether the XML tab is opened
         self.xml_tab = None
+        self.mam_tab = None
         self.xml_buffer = TextBuffer()
+        self.mam_buffer = TextBuffer()
 
         self.plugins_autoloaded = False
         self.plugin_manager = PluginManager(self)
@@ -1928,6 +1930,9 @@ class Core:
             completion=self.completion.remove_bookmark)
         self.register_command(
             'xml_tab', self.command.xml_tab, shortdesc='Open an XML tab.')
+        self.register_command(
+            'mam_tab', self.command.mam_tab,
+            shortdesc='Open a tab to query an archive of messages using MAM.')
         self.register_command(
             'runkey',
             self.command.runkey,
