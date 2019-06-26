@@ -684,3 +684,19 @@ XML tab commands
         **Usage:** ``/filter_from <jid>``
 
         Filter by JID for ``from`` attribute.
+
+.. _mamtab-commands:
+
+MAM tab commands
+~~~~~~~~~~~~~~~~
+
+.. glossary::
+    :sorted:
+
+    /clear [MAM tab version]
+        Clear the current buffer.
+
+    /mam
+        **Usage:** ``/mam <jid> [start_timestamp] [end_timestamp]``
+
+        Query an archive of messages using MAM.
