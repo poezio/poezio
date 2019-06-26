@@ -8,7 +8,7 @@ from poezio.windows.data_forms import FormWin
 from poezio.windows.bookmark_forms import BookmarksWin
 from poezio.windows.confirm import Dialog
 from poezio.windows.info_bar import GlobalInfoBar, VerticalGlobalInfoBar
-from poezio.windows.info_wins import InfoWin, XMLInfoWin, PrivateInfoWin, MucListInfoWin, \
+from poezio.windows.info_wins import InfoWin, XMLInfoWin, MAMInfoWin, PrivateInfoWin, MucListInfoWin, \
         ConversationInfoWin, DynamicConversationInfoWin, MucInfoWin, \
         ConversationStatusMessageWin, BookmarksInfoWin, ConfirmStatusWin
 from poezio.windows.input_placeholders import HelpText
@@ -22,7 +22,7 @@ from poezio.windows.image import ImageWin
 
 __all__ = [
     'Win', 'FormWin', 'BookmarksWin', 'Dialog', 'GlobalInfoBar',
-    'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin',
+    'VerticalGlobalInfoBar', 'InfoWin', 'PrivateInfoWin', 'XMLInfoWin', 'MAMInfoWin'
     'MucListInfoWin', 'ConversationInfoWin', 'MucInfoWin',
     'DynamicConversationInfoWin', 'ConversationStatusMessageWin',
     'BookmarksInfoWin', 'ConfirmStatusWin', 'HelpText', 'Input',
