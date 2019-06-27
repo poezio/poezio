@@ -34,6 +34,9 @@ class Plugin(E2EEPlugin):
     encryption_short_name = 'b64'
     eme_ns = 'urn:xmpps:base64:0'
 
+    # This encryption mechanism is using <body/> as a container
+    replace_body_with_eme = False
+
     def decrypt(self, message: Message, _tab) -> None:
         """
             Decrypt base64
