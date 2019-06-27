@@ -41,6 +41,10 @@ class E2EEPlugin(BasePlugin):
     stanza_encryption = False
 
     # Whitelist applied to messages when `stanza_encryption` is False.
+    # This might need to be changed depending on the encryption mechanism.
+    # Some encrypt directly content in <body/> for example, some use a
+    # different element like <payload/> and thus <body/> is a generic EME
+    # message.
     tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
         (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
