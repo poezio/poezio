@@ -41,18 +41,15 @@ class E2EEPlugin(BasePlugin):
     stanza_encryption = False
 
     # Whitelist applied to messages when `stanza_encryption` is False.
-    # This might need to be changed depending on the encryption mechanism.
-    # Some encrypt directly content in <body/> for example, some use a
-    # different element like <payload/> and thus <body/> is a generic EME
-    # message.
     tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
-        (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
         (HINTS_NS, 'store'),
         (HINTS_NS, 'no-copy'),
         (HINTS_NS, 'no-store'),
         (HINTS_NS, 'no-permanent-store'),
     ]))
+
+    replace_body_with_eme = True
 
     # At least one of encryption_name and encryption_short_name must be set
     encryption_name = None  # type: Optional[str]
@@ -183,6 +180,11 @@ class E2EEPlugin(BasePlugin):
             for elem in message.xml[:]:
                 if elem.tag not in self.tag_whitelist:
                     message.xml.remove(elem)
+
+        if self.replace_body_with_eme:
+            body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body'))
+            if body is not None:
+                self.core.xmpp['xep_0380'].replace_body_with_eme(message)
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
