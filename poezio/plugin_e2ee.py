@@ -186,7 +186,7 @@ class E2EEPlugin(BasePlugin):
             if body is not None:
                 self.core.xmpp['xep_0380'].replace_body_with_eme(message)
 
-        log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
+        log.debug('Encrypted %s message: %r', self.encryption_name, message['body'])
         return None
 
     def decrypt(self, _message: Message, tab: ChatTabs):
