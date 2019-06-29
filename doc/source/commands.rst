@@ -218,7 +218,7 @@ These commands work in *any* tab.
     /invitations
         Show the pending invitations.
 
-   /impromptu
+    /impromptu
         **Usage:** ``/impromptu <jid> [jid ..]``
 
         Invite specified JIDs into a newly created room.
