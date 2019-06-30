@@ -169,22 +169,30 @@ class E2EEPlugin(BasePlugin):
 
         log.debug('Sending %s message: %r', self.encryption_name, message['body'])
 
-        message['eme']['namespace'] = self.eme_ns
-        message['eme']['name'] = self.encryption_name
+        has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
         # Call the enabled encrypt method
         self._enabled_tabs[jid](message, tab)
+
+        if has_body:
+            # Only add EME tag if the message has a body.
+            # Per discussion in jdev@:
+            # The receiving client needs to know the message contains
+            # meaningful information or not to display notifications to the
+            # user, and not display anything when it's e.g., a chatstate.
+            # This does leak the fact that the encrypted payload contains a
+            # message.
+            message['eme']['namespace'] = self.eme_ns
+            message['eme']['name'] = self.encryption_name
+
+            if self.replace_body_with_eme:
+                self.core.xmpp['xep_0380'].replace_body_with_eme(message)
 
         # Filter stanza with the whitelist if we don't do stanza encryption
         if not self.stanza_encryption:
             for elem in message.xml[:]:
                 if elem.tag not in self.tag_whitelist:
                     message.xml.remove(elem)
-
-        if self.replace_body_with_eme:
-            body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body'))
-            if body is not None:
-                self.core.xmpp['xep_0380'].replace_body_with_eme(message)
 
         log.debug('Encrypted %s message: %r', self.encryption_name, message['body'])
         return None
