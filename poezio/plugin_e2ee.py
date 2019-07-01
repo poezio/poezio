@@ -179,6 +179,11 @@ class E2EEPlugin(BasePlugin):
         return jid in self._enabled_tabs and self._enabled_tabs[jid] == self.encrypt
 
     def _decrypt(self, message: Message, tab: ChatTabs) -> None:
+
+        # TODO: Not all encrypted messages will contain EME. EME is typically
+        # used only when a message contains `<body/>`. Find a way to have the
+        # plugin register an element/ns to check for etc.
+
         if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is None:
             return None
 
