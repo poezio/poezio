@@ -1,5 +1,5 @@
-SleekXMPP classes
-=================
+Slixmpp classes
+===============
 
 .. module:: slixmpp
 
