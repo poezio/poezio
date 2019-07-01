@@ -56,10 +56,10 @@ class E2EEPlugin(BasePlugin):
     """
 
     #: Specifies that the encryption mechanism does more than encrypting
-    #: <body/>.
+    #: `<body/>`.
     stanza_encryption = False
 
-    #: Whitelist applied to messages when `stanza_encryption` is False.
+    #: Whitelist applied to messages when `stanza_encryption` is `False`.
     tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
         (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
@@ -71,9 +71,9 @@ class E2EEPlugin(BasePlugin):
     ]))
 
     #: Replaces body with `eme <https://xmpp.org/extensions/xep-0380.html>`_
-    #: if set. Should be suitable for most plugins except those using <body/>
-    #: directly as their encryption container, like OTR, or the example base64
-    #: plugin in poezio.
+    #: if set. Should be suitable for most plugins except those using
+    #: `<body/>` directly as their encryption container, like OTR, or the
+    #: example base64 plugin in poezio.
     replace_body_with_eme = True
 
     #: Encryption name, used in command descriptions, and logs. At least one
@@ -85,7 +85,7 @@ class E2EEPlugin(BasePlugin):
     #: `encryption_short_name` must be set.
     encryption_short_name = None  # type: Optional[str]
 
-    #: Required.
+    #: Required. <https://xmpp.org/extensions/xep-0380.html>_.
     eme_ns = None  # type: Optional[str]
 
     # Static map, to be able to limit to one encryption mechanism per tab at a

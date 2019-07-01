@@ -8,11 +8,8 @@ E2EEPlugin
 
 
 .. autoclass:: E2EEPlugin
-  :members:
+  :members: decrypt, encrypt, encryption_name, encryption_short_name, eme_ns, replace_body_with_eme, stanza_encryption, tag_whitelist
 
-Builds on top of :py:class:`~BasePlugin` and requires the developer to
-implement two methods, `decrypt` and `encrypt`, as well as the
-`encryption_name` and `eme_ns` attribute.
 
 Please refer to :py:class:`~BasePlugin` for more information on how to
 write plugins.
