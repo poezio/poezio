@@ -207,11 +207,11 @@ class E2EEPlugin(BasePlugin):
             if self.replace_body_with_eme:
                 self.core.xmpp['xep_0380'].replace_body_with_eme(message)
 
-        # Filter stanza with the whitelist if we don't do stanza encryption
-        if not self.stanza_encryption:
-            for elem in message.xml[:]:
-                if elem.tag not in self.tag_whitelist:
-                    message.xml.remove(elem)
+        # Filter stanza with the whitelist. Plugins doing stanza encryption
+        # will have to include these in their encrypted container beforehand.
+        for elem in message.xml[:]:
+            if elem.tag not in self.tag_whitelist:
+                message.xml.remove(elem)
 
         log.debug('Encrypted %s message: %r', self.encryption_name, message['body'])
         return message
