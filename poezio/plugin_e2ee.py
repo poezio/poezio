@@ -175,7 +175,7 @@ class E2EEPlugin(BasePlugin):
         if not self._encryption_enabled(jid):
             return message
 
-        log.debug('Sending %s message: %r', self.encryption_name, message['body'])
+        log.debug('Sending %s message: %r', self.encryption_name, message)
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
@@ -213,7 +213,7 @@ class E2EEPlugin(BasePlugin):
             if elem.tag not in self.tag_whitelist:
                 message.xml.remove(elem)
 
-        log.debug('Encrypted %s message: %r', self.encryption_name, message['body'])
+        log.debug('Encrypted %s message: %r', self.encryption_name, message)
         return message
 
     def decrypt(self, _message: Message, tab: ChatTabs):
