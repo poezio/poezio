@@ -251,8 +251,12 @@ class E2EEPlugin(BasePlugin):
 
         # Filter stanza with the whitelist. Plugins doing stanza encryption
         # will have to include these in their encrypted container beforehand.
+        whitelist = self.tag_whitelist
+        if self.encrypted_tags is not None:
+            whitelist += self.encrypted_tags
+
         for elem in message.xml[:]:
-            if elem.tag not in self.tag_whitelist:
+            if elem.tag not in whitelist:
                 message.xml.remove(elem)
 
         log.debug('Encrypted %s message: %r', self.encryption_name, message)
