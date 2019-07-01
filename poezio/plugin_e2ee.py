@@ -85,7 +85,7 @@ class E2EEPlugin(BasePlugin):
     #: `encryption_short_name` must be set.
     encryption_short_name = None  # type: Optional[str]
 
-    #: Required. <https://xmpp.org/extensions/xep-0380.html>_.
+    #: Required. https://xmpp.org/extensions/xep-0380.html.
     eme_ns = None  # type: Optional[str]
 
     # Static map, to be able to limit to one encryption mechanism per tab at a
