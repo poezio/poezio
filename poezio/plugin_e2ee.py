@@ -179,6 +179,17 @@ class E2EEPlugin(BasePlugin):
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
+        # Drop all messages that don't contain a body if the plugin doesn't do
+        # Stanza Encryption
+        if not self.stanza_encryption and not has_body:
+            log.debug(
+                '%s plugin: Dropping message as it contains no body, and is '
+                'not doesn\'t do stanza encryption: %r',
+                self.encryption_name,
+                message,
+            )
+            return None
+
         # Call the enabled encrypt method
         self._enabled_tabs[jid](message, tab)
 
