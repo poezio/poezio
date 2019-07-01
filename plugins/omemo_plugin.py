@@ -10,222 +10,184 @@
 """
 
 import os
-import asyncio
 import logging
-from typing import Callable, List, Optional, Set, Tuple, Union
 
-from poezio.plugin import BasePlugin
-from poezio.tabs import DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab
+from poezio.plugin_e2ee import E2EEPlugin
 from poezio.xdg import DATA_HOME
 
-from slixmpp import JID
-from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
+from slixmpp.stanza import Message
+from slixmpp_omemo import PluginCouldNotLoad, MissingOwnKey, NoAvailableSession
+from slixmpp_omemo import UndecidedException, UntrustedException, EncryptionPrepareException
+import slixmpp_omemo
 
 log = logging.getLogger(__name__)
 
 
-class Plugin(BasePlugin):
+class Plugin(E2EEPlugin):
     """OMEMO (XEP-0384) Plugin"""
-    _enabled_jids = set()  # type: Set[JID]
 
-    def init(self):
+    encryption_name = 'omemo'
+    eme_ns = slixmpp_omemo.OMEMO_BASE_NS
+    replace_body_with_eme = True
+    stanza_encryption = False
+
+    encrypted_tags = [
+        (slixmpp_omemo.OMEMO_BASE_NS, 'payload'),
+    ]
+
+    def init(self) -> None:
+        super().init()
+
         self.info = lambda i: self.api.information(i, 'Info')
-        self.xmpp = self.core.xmpp
 
         data_dir = os.path.join(DATA_HOME, 'omemo')
         os.makedirs(data_dir, exist_ok=True)
 
-        self.xmpp.register_plugin(
-            'xep_0384', {
-                'data_dir': data_dir,
-            })
+        try:
+            self.core.xmpp.register_plugin(
+                'xep_0384', {
+                    'data_dir': data_dir,
+                },
+                module=slixmpp_omemo,
+            ) # OMEMO
+        except (PluginCouldNotLoad,):
+            log.exception('And error occured when loading the omemo plugin.')
 
-        self.api.add_command(
-            'omemo',
-            self.command_status,
-            help='Display contextual information',
-        )
+#     def send_message(self, _args):
+#         asyncio.ensure_future(
+#             self._send_encrypted_message(
+#                 "Hello Encrypted World!",
+#                 [JID('pep@bouah.net'), JID('test@bouah.net')],
+#                 mto=JID('test@bouah.net'),
+#                 mtype='chat',
+#             ),
+#         )
+# 
+#     async def _send_encrypted_message(
+#         self,
+#         payload: str,
+#         recipients: List[JID],
+#         mto: Optional[JID] = None,
+#         mtype: Optional[str] = 'chat',
+#     ) -> None:
+#         try:
+#             encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
+#         except EncryptionPrepareException as e:
+#             log.debug('Failed to encrypt message: %r', e)
+#             return None
+#         msg = self.core.xmpp.make_message(mto, mtype=mtype)
+#         msg['body'] = 'This message is encrypted with Legacy OMEMO (eu.siacs.conversations.axolotl)'
+#         msg['eme']['namespace'] = 'eu.siacs.conversations.axolotl'
+#         msg.append(encrypted)
+#         log.debug('BAR: message: %r', msg)
+#         msg.send()
+#         return None
+# 
+#     def on_conversation_say_after(
+#         self,
+#         message: Message,
+#         tabs: Union[DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab],
+#     ) -> None:
+#         """
+#         Outbound messages
+#         """
+# 
+#         # Check encryption status with the contact, if enabled, add
+#         # ['omemo_encrypt'] attribute to message and send. Maybe delete
+#         # ['body'] and tab.add_message ourselves to specify typ=0 so messages
+#         # are not logged.
+# 
+#         fromjid = message['from']
+#         if fromjid not in self._enabled_jids:
+#             return None
+# 
+#         self.xmpp['xep_0384'].encrypt_message(message)
+#         return None
 
-        ConversationTab.add_information_element('omemo', self.display_encryption_status)
-        MucTab.add_information_element('omemo', self.display_encryption_status)
+    def display_error(self, txt) -> None:
+        self.api.information(txt, 'Error')
 
-        self.api.add_command(
-            'omemo_enable',
-            self.command_enable,
-            help='Enable OMEMO encryption',
-        )
+    def decrypt(self, message: Message, tab, allow_untrusted=False) -> None:
 
-        self.api.add_command(
-            'omemo_disable',
-            self.command_disable,
-            help='Disable OMEMO encryption',
-        )
+        body = None
+        allow_untrusted = False
+        try:
+            body = self.core.xmpp['xep_0384'].decrypt_message(message, allow_untrusted)
+        except (MissingOwnKey,):
+            # The message is missing our own key, it was not encrypted for
+            # us, and we can't decrypt it.
+            self.display_error(
+                'I can\'t decrypt this message as it is not encrypted for me.'
+            )
+        except (NoAvailableSession,) as exn:
+            # We received a message from that contained a session that we
+            # don't know about (deleted session storage, etc.). We can't
+            # decrypt the message, and it's going to be lost.
+            # Here, as we need to initiate a new encrypted session, it is
+            # best if we send an encrypted message directly. XXX: Is it
+            # where we talk about self-healing messages?
+            self.display_error(
+                'I can\'t decrypt this message as it uses an encrypted '
+                'session I don\'t know about.',
+            )
+        except (UndecidedException, UntrustedException) as exn:
+            # We received a message from an untrusted device. We can
+            # choose to decrypt the message nonetheless, with the
+            # `allow_untrusted` flag on the `decrypt_message` call, which
+            # we will do here. This is only possible for decryption,
+            # encryption will require us to decide if we trust the device
+            # or not. Clients _should_ indicate that the message was not
+            # trusted, or in undecided state, if they decide to decrypt it
+            # anyway.
+            self.display_error(
+                "Your device '%s' is not in my trusted devices." % exn.device,
+            )
+            # We resend, setting the `allow_untrusted` parameter to True.
+            self.decrypt(message, tab, allow_untrusted=True)
+        except (EncryptionPrepareException,):
+            # Slixmpp tried its best, but there were errors it couldn't
+            # resolve. At this point you should have seen other exceptions
+            # and given a chance to resolve them already.
+            self.display_error('I was not able to decrypt the message.')
+        except (Exception,) as exn:
+            self.display_error('An error occured while attempting decryption.\n%r' % exn)
+            raise
 
-        self.api.add_command(
-            'encrypted_message',
-            self.send_message,
-            help='Send OMEMO encrypted message',
-        )
+        if body is not None:
+            message['body'] = body
 
-        self.api.add_event_handler(
-            'conversation_say_after',
-            self.on_conversation_say_after,
-        )
+    async def encrypt(self, message: Message, _tab) -> None:
+        mto = message['from']
+        mtype = message['type']
+        body = message['body']
 
-        self.api.add_event_handler(
-            'conversation_msg',
-            self.on_conversation_msg,
-        )
-
-    def cleanup(self) -> None:
-        ConversationTab.remove_information_element('omemo')
-        MucTab.remove_information_element('omemo')
-
-    def display_encryption_status(self, jid: JID) -> str:
-        """
-            Return information to display in the infobar if OMEMO is enabled
-            for the JID.
-        """
-
-        if jid in self._enabled_jids:
-            return " OMEMO"
-        return ""
-
-    def command_status(self, _args):
-        """Display contextual information depending on currenttab."""
-        tab = self.api.current_tab()
-        self.info('OMEMO!')
-        self.info("My device id: %d" % self.xmpp['xep_0384'].my_device_id())
-
-    def _jid_from_context(self, jid: Optional[Union[str, JID]]) -> Tuple[Optional[JID], bool]:
-        """
-            Get bare JID from context if not specified
-
-            Return a tuple with the JID and a bool specifying that the JID
-            corresponds to the current tab.
-        """
-
-        tab = self.api.current_tab()
-
-        tab_jid = None
-        chat_tabs = (DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab)
-        if isinstance(tab, chat_tabs):
-            tab_jid = JID(tab.name).bare
-
-        # If current tab has a JID, use it if none is specified
-        if not jid and tab_jid is not None:
-            jid = tab_jid
-
-        # We might not have found a JID at this stage. No JID provided and not
-        # in a tab with a JID (InfoTab etc.).
-        # If we do, make we
-        if jid:
-            # XXX: Ugly. We don't know if 'jid' is a str or a JID. And we want
-            # to return a bareJID. We could change the JID API to allow us to
-            # clear the resource one way or another.
-            jid = JID(JID(jid).bare)
-        else:
-            jid = None
-
-        return (jid, tab_jid is not None and tab_jid == jid)
-
-    def command_enable(self, jid: Optional[str]) -> None:
-        """
-            Enable JID to use OMEMO with.
-
-            Use current tab JID is none is specified. Refresh the tab if JID
-            corresponds to the one being added.
-        """
-
-        jid, current_tab = self._jid_from_context(jid)
-        if jid is None:
-            return None
-
-        if jid not in self._enabled_jids:
-            self.info('OMEMO enabled for %s' % jid)
-        self._enabled_jids.add(jid)
-
-        # Refresh tab if JID matches
-        if current_tab:
-            self.api.current_tab().refresh()
-
-        return None
-
-    def command_disable(self, jid: Optional[str]) -> None:
-        """
-            Enable JID to use OMEMO with.
-
-            Use current tab JID is none is specified. Refresh the tab if JID
-            corresponds to the one being added.
-        """
-
-        jid, current_tab = self._jid_from_context(jid)
-        if jid is None:
-            return None
-
-        if jid in self._enabled_jids:
-            self.info('OMEMO disabled for %s' % jid)
-        self._enabled_jids.remove(jid)
-
-        # Refresh tab if JID matches
-        if current_tab:
-            self.api.current_tab().refresh()
-
-        return None
-
-    def send_message(self, _args):
-        asyncio.ensure_future(
-            self._send_message(
-                "Hello Encrypted World!",
-                [JID('some@jid')],
-                mto=JID('some@jid'),
-                mtype='chat',
-            ),
-        )
-
-    async def _send_message(
-        self,
-        payload: str,
-        recipients: List[JID],
-        mto: Optional[JID] = None,
-        mtype: Optional[str] = 'chat',
-    ) -> None:
-        encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
-        msg = self.core.xmpp.make_message(mto, mtype=mtype)
-        msg['body'] = 'This message is encrypted with Legacy OMEMO (eu.siacs.conversations.axolotl)'
-        msg['eme']['namespace'] = 'eu.siacs.conversations.axolotl'
-        msg.append(encrypted)
-        log.debug('BAR: message: %r', msg)
-        msg.send()
-
-    def on_conversation_say_after(self, message, tab):
-        """
-        Outbound messages
-        """
-
-        # Check encryption status globally and to the contact, if enabled, add
-        # ['omemo_encrypt'] attribute to message and send. Maybe delete
-        # ['body'] and tab.add_message ourselves to specify typ=0 so messages
-        # are not logged.
-
-        fromjid = message['from']
-        self.xmpp['xep_0384'].encrypt_message(message)
-
-    def on_conversation_msg(self, message, _tab):
-        """
-        Inbound messages
-        """
-
-        # Check if encrypted, and if so replace message['body'] with
-        # plaintext.
-
-        self.info('Foo2')
-        if self.xmpp['xep_0384'].is_encrypted(message):
+        while True:
             try:
-                body = self.xmpp['xep_0384'].decrypt_message(message)
-            except (MissingOwnKey,):
-                log.debug("The following message is missing our key;"
-                          "Couldn't decrypt: %r", message)
-                return None
-            message['body'] = body.decode("utf8")
-            return None
+                # `encrypt_message` excepts the plaintext to be sent, a list of
+                # bare JIDs to encrypt to, and optionally a dict of problems to
+                # expect per bare JID.
+                #
+                # Note that this function returns an `<encrypted/>` object,
+                # and not a full Message stanza. This combined with the
+                # `recipients` parameter that requires for a list of JIDs,
+                # allows you to encrypt for 1:1 as well as groupchats (MUC).
+                #
+                # TODO: Document expect_problems
+                # TODO: Handle multiple recipients (MUCs)
+                recipients = [mto]
+                encrypt = await self.core.xmpp['xep_0384'].encrypt_message(body, recipients)
+                message.append(encrypt)
+            except UndecidedException as exn:
+                # The library prevents us from sending a message to an
+                # untrusted/undecided barejid, so we need to make a decision here.
+                # This is where you prompt your user to ask what to do. In
+                # this bot we will automatically trust undecided recipients.
+                self.core.xmpp['xep_0384'].trust(exn.bare_jid, exn.device, exn.ik)
+            # TODO: catch NoEligibleDevicesException and MissingBundleException
+            except Exception as exn:
+                await self.display_error(
+                    'An error occured while attempting to encrypt.\n%r' % exn,
+                )
+                raise
+
+        return None
