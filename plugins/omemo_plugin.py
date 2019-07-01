@@ -19,7 +19,9 @@ from poezio.tabs import DynamicConversationTab, StaticConversationTab, Conversat
 from poezio.xdg import DATA_HOME
 
 from slixmpp import JID
-from slixmpp.plugins.xep_0384.plugin import MissingOwnKey
+from slixmpp.stanza import Message
+from slixmpp_omemo import PluginCouldNotLoad, MissingOwnKey, EncryptionPrepareException
+import slixmpp_omemo
 
 log = logging.getLogger(__name__)
 
@@ -35,10 +37,16 @@ class Plugin(BasePlugin):
         data_dir = os.path.join(DATA_HOME, 'omemo')
         os.makedirs(data_dir, exist_ok=True)
 
-        self.xmpp.register_plugin(
-            'xep_0384', {
-                'data_dir': data_dir,
-            })
+        try:
+            self.xmpp.register_plugin(
+                'xep_0384', {
+                    'data_dir': data_dir,
+                },
+                module=slixmpp_omemo,
+            ) # OMEMO
+        except (PluginCouldNotLoad,):
+            log.exception('And error occured when loading the omemo plugin.')
+            return None
 
         self.api.add_command(
             'omemo',
@@ -94,7 +102,6 @@ class Plugin(BasePlugin):
     def command_status(self, _args):
         """Display contextual information depending on currenttab."""
         tab = self.api.current_tab()
-        self.info('OMEMO!')
         self.info("My device id: %d" % self.xmpp['xep_0384'].my_device_id())
 
     def _jid_from_context(self, jid: Optional[Union[str, JID]]) -> Tuple[Optional[JID], bool]:
@@ -175,43 +182,56 @@ class Plugin(BasePlugin):
 
     def send_message(self, _args):
         asyncio.ensure_future(
-            self._send_message(
+            self._send_encrypted_message(
                 "Hello Encrypted World!",
-                [JID('some@jid')],
-                mto=JID('some@jid'),
+                [JID('pep@bouah.net'), JID('test@bouah.net')],
+                mto=JID('test@bouah.net'),
                 mtype='chat',
             ),
         )
 
-    async def _send_message(
+    async def _send_encrypted_message(
         self,
         payload: str,
         recipients: List[JID],
         mto: Optional[JID] = None,
         mtype: Optional[str] = 'chat',
     ) -> None:
-        encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
+        try:
+            encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
+        except EncryptionPrepareException as e:
+            log.debug('Failed to encrypt message: %r', e)
+            return None
         msg = self.core.xmpp.make_message(mto, mtype=mtype)
         msg['body'] = 'This message is encrypted with Legacy OMEMO (eu.siacs.conversations.axolotl)'
         msg['eme']['namespace'] = 'eu.siacs.conversations.axolotl'
         msg.append(encrypted)
         log.debug('BAR: message: %r', msg)
         msg.send()
+        return None
 
-    def on_conversation_say_after(self, message, tab):
+    def on_conversation_say_after(
+        self,
+        message: Message,
+        tabs: Union[DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab],
+    ) -> None:
         """
         Outbound messages
         """
 
-        # Check encryption status globally and to the contact, if enabled, add
+        # Check encryption status with the contact, if enabled, add
         # ['omemo_encrypt'] attribute to message and send. Maybe delete
         # ['body'] and tab.add_message ourselves to specify typ=0 so messages
         # are not logged.
 
         fromjid = message['from']
-        self.xmpp['xep_0384'].encrypt_message(message)
+        if fromjid not in self._enabled_jids:
+            return None
 
-    def on_conversation_msg(self, message, _tab):
+        self.xmpp['xep_0384'].encrypt_message(message)
+        return None
+
+    def on_conversation_msg(self, message, _tab) -> None:
         """
         Inbound messages
         """
@@ -228,4 +248,4 @@ class Plugin(BasePlugin):
                           "Couldn't decrypt: %r", message)
                 return None
             message['body'] = body.decode("utf8")
-            return None
+        return None
