@@ -14,6 +14,7 @@ About plugins
    :maxdepth: 2
 
    plugin
+   e2ee
    events
    slix
    xep

@@ -35,13 +35,31 @@ HINTS_NS = 'urn:xmpp:hints'
 
 
 class E2EEPlugin(BasePlugin):
-    """Interface for E2EE plugins"""
+    """Interface for E2EE plugins.
 
-    # Specifies that the encryption mechanism does more than encrypting
-    # <body/>.
+        This is a wrapper built on top of BasePlugin. It provides a base for
+        End-to-end Encryption mechanisms in poezio.
+
+        Plugin developers are excepted to implement the `decrypt` and
+        `encrypt` function, provide an encryption name (and/or short name),
+        and an eme namespace.
+
+        Once loaded, the plugin will attempt to decrypt any message that
+        contains an EME message that matches the one set.
+
+        The plugin will also register a command (using the short name) to
+        enable encryption per tab. It is only possible to have one encryption
+        mechanism per tab, even if multiple e2ee plugins are loaded.
+
+        The encryption status will be displayed in the status bar, using the
+        plugin short name, alongside the JID, nickname etc.
+    """
+
+    #: Specifies that the encryption mechanism does more than encrypting
+    #: <body/>.
     stanza_encryption = False
 
-    # Whitelist applied to messages when `stanza_encryption` is False.
+    #: Whitelist applied to messages when `stanza_encryption` is False.
     tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
         (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
@@ -52,13 +70,22 @@ class E2EEPlugin(BasePlugin):
         # TODO: Add other encryption mechanisms tags here
     ]))
 
+    #: Replaces body with `eme <https://xmpp.org/extensions/xep-0380.html>`_
+    #: if set. Should be suitable for most plugins except those using <body/>
+    #: directly as their encryption container, like OTR, or the example base64
+    #: plugin in poezio.
     replace_body_with_eme = True
 
-    # At least one of encryption_name and encryption_short_name must be set
+    #: Encryption name, used in command descriptions, and logs. At least one
+    #: of `encryption_name` and `encryption_short_name` must be set.
     encryption_name = None  # type: Optional[str]
+
+    #: Encryption short name, used as command name, and also to display
+    #: encryption status in a tab. At least one of `encryption_name` and
+    #: `encryption_short_name` must be set.
     encryption_short_name = None  # type: Optional[str]
 
-    # Required.
+    #: Required.
     eme_ns = None  # type: Optional[str]
 
     # Static map, to be able to limit to one encryption mechanism per tab at a
@@ -217,9 +244,29 @@ class E2EEPlugin(BasePlugin):
         return message
 
     def decrypt(self, _message: Message, tab: ChatTabs):
-        """Decryption method"""
+        """Decryption method
+
+        This is a method the plugin must implement.  It is expected that this
+        method will edit the received message and return nothing.
+
+        :param message: Message to be decrypted.
+        :param tab: Tab the message is coming from.
+
+        :returns: None
+        """
+
         raise NotImplementedError
 
     def encrypt(self, _message: Message, tab: ChatTabs):
-        """Encryption method"""
+        """Encryption method
+
+        This is a method the plugin must implement.  It is expected that this
+        method will edit the received message and return nothing.
+
+        :param message: Message to be encrypted.
+        :param tab: Tab the message is going to.
+
+        :returns: None
+        """
+
         raise NotImplementedError
