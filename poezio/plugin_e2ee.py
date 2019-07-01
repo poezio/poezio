@@ -13,6 +13,7 @@
 from typing import Callable, Dict, Optional, Union
 
 from slixmpp import InvalidJID, JID, Message
+from slixmpp.xmlstream import StanzaBase
 from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab, MucTab
 from poezio.plugin import BasePlugin
 
@@ -42,11 +43,13 @@ class E2EEPlugin(BasePlugin):
 
     # Whitelist applied to messages when `stanza_encryption` is False.
     tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
+        (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
         (HINTS_NS, 'store'),
         (HINTS_NS, 'no-copy'),
         (HINTS_NS, 'no-store'),
         (HINTS_NS, 'no-permanent-store'),
+        # TODO: Add other encryption mechanisms tags here
     ]))
 
     replace_body_with_eme = True
@@ -82,9 +85,9 @@ class E2EEPlugin(BasePlugin):
 
         # Ensure encryption is done after everything, so that whatever can be
         # encrypted is encrypted, and no plain element slips in.
-        self.api.add_event_handler('muc_say', self._encrypt, priority=100)
-        self.api.add_event_handler('conversation_say', self._encrypt, priority=100)
-        self.api.add_event_handler('private_say', self._encrypt, priority=100)
+        # Using a stream filter might be a bit too much, but at least we're
+        # sure poezio is not sneaking anything past us.
+        self.core.xmpp.add_filter('out', self._encrypt)
 
         for tab_t in (DynamicConversationTab, PrivateTab, MucTab):
             self.api.add_tab_command(
@@ -162,10 +165,15 @@ class E2EEPlugin(BasePlugin):
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
 
-    def _encrypt(self, message: Message, tab: ChatTabs):
+    def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
+        if not isinstance(stanza, Message):
+            return stanza
+        message = stanza
+
+        tab = self.api.current_tab()
         jid = tab.jid
         if not self._encryption_enabled(jid):
-            return None
+            return message
 
         log.debug('Sending %s message: %r', self.encryption_name, message['body'])
 
@@ -195,7 +203,7 @@ class E2EEPlugin(BasePlugin):
                     message.xml.remove(elem)
 
         log.debug('Encrypted %s message: %r', self.encryption_name, message['body'])
-        return None
+        return message
 
     def decrypt(self, _message: Message, tab: ChatTabs):
         """Decryption method"""
