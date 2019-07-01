@@ -207,7 +207,7 @@ class E2EEPlugin(BasePlugin):
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
 
-    def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
+    async def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
         if not isinstance(stanza, Message) or stanza['type'] not in ('chat', 'groupchat'):
             return stanza
         message = stanza
@@ -262,7 +262,7 @@ class E2EEPlugin(BasePlugin):
         log.debug('Encrypted %s message: %r', self.encryption_name, message)
         return message
 
-    def decrypt(self, _message: Message, tab: ChatTabs):
+    async def decrypt(self, _message: Message, tab: ChatTabs):
         """Decryption method
 
         This is a method the plugin must implement.  It is expected that this
@@ -276,7 +276,7 @@ class E2EEPlugin(BasePlugin):
 
         raise NotImplementedError
 
-    def encrypt(self, _message: Message, tab: ChatTabs):
+    async def encrypt(self, _message: Message, tab: ChatTabs):
         """Encryption method
 
         This is a method the plugin must implement.  It is expected that this
