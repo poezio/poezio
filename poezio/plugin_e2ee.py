@@ -88,6 +88,11 @@ class E2EEPlugin(BasePlugin):
     #: Required. https://xmpp.org/extensions/xep-0380.html.
     eme_ns = None  # type: Optional[str]
 
+    #: Used to figure out what messages to attempt decryption for. Also used
+    #: in combination with `tag_whitelist` to avoid removing encrypted tags
+    #: before sending.
+    encrypted_tags = None  # type: Optional[List[Tuple[str, str]]]
+
     # Static map, to be able to limit to one encryption mechanism per tab at a
     # time
     _enabled_tabs = {}  # type: Dict[JID, Callable]
@@ -180,14 +185,19 @@ class E2EEPlugin(BasePlugin):
 
     def _decrypt(self, message: Message, tab: ChatTabs) -> None:
 
-        # TODO: Not all encrypted messages will contain EME. EME is typically
-        # used only when a message contains `<body/>`. Find a way to have the
-        # plugin register an element/ns to check for etc.
+        has_eme = False
+        if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
+            message['eme']['namespace'] == self.eme_ns:
+            has_eme = True
 
-        if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is None:
-            return None
+        has_encrypted_tag = False
+        if not has_eme and self.encrypted_tags is not None:
+            for (namespace, tag) in self.encrypted_tags:
+                if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
+                    has_encrypted_tag = True
+                    break
 
-        if message['eme']['namespace'] != self.eme_ns:
+        if not has_eme and not has_encrypted_tag:
             return None
 
         log.debug('Received %s message: %r', self.encryption_name, message['body'])
