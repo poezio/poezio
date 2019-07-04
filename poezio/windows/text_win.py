@@ -340,6 +340,25 @@ class TextWin(BaseTextWin):
                 self.built_lines.pop(0)
         return len(lines)
 
+    def build_message_at_the_top(self,
+                          message: Message,
+                          history=None,
+                          timestamp: bool = False,
+                          nick_size: int = 10) -> int:
+        """
+        Take one message, build it and add it to the top of the list.
+        Return the number of lines that are built for the given
+        message.
+        """
+        lines = self.build_message(
+            message, timestamp=timestamp, nick_size=nick_size)
+        lines.reverse()
+        for line in lines:
+            self.built_lines.insert(0, line)
+        if not lines or not lines[0]:
+            return 0
+        return len(lines)
+
     def build_message(self, message: Optional[Message], timestamp: bool = False, nick_size: int = 10) -> List[Union[None, Line]]:
         """
         Build a list of lines from a message, without adding it
