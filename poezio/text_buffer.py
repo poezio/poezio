@@ -143,6 +143,7 @@ class TextBuffer:
                     history: bool = False,
                     user: Optional[str] = None,
                     highlight: bool = False,
+                    top: Optional[bool] = False,
                     identifier: Optional[str] = None,
                     str_time: Optional[str] = None,
                     jid: Optional[str] = None,
@@ -172,16 +173,27 @@ class TextBuffer:
         nick_size = config.get('max_nick_length')
         for window in self._windows:  # make the associated windows
             # build the lines from the new message
-            nb = window.build_new_message(
+            if top == True:
+                nb = window.build_message_at_the_top(
                 msg,
                 history=history,
-                highlight=highlight,
                 timestamp=show_timestamps,
                 nick_size=nick_size)
-            if ret_val == 0:
-                ret_val = nb
-            if window.pos != 0:
-                window.scroll_up(nb)
+                if ret_val == 0:
+                    ret_val = nb
+                if window.pos != 0:
+                    window.scroll_up(nb)
+            else:
+                nb = window.build_new_message(
+                    msg,
+                    history=history,
+                    highlight=highlight,
+                    timestamp=show_timestamps,
+                    nick_size=nick_size)
+                if ret_val == 0:
+                    ret_val = nb
+                if window.pos != 0:
+                    window.scroll_up(nb)
 
         return min(ret_val, 1)
 
