@@ -85,7 +85,7 @@ async def MAM(self, remote_jid, start, end, top):
     self.start_date = start
     self.end_date = end
     text_buffer = self._text_buffer
-    results = self.core.xmpp.plugin['xep_0313'].retrieve(jid=self.remote_jid,
+    results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
     iterator=True, reverse=top, start=self.start_date, end=self.end_date)
     msg_count = 0
     msgs = []
