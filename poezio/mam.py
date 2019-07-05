@@ -54,7 +54,7 @@ async def MAM(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-                add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']), top)
+                add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.text_win.scroll_up(len(self.text_win.built_lines))
                 self.core.refresh_window()
         else:
