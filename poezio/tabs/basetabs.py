@@ -933,6 +933,7 @@ class ChatTab(Tab):
         """
 
         remote_jid = self.jid
+        top = False
         end = datetime.now()
         end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
         start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -950,7 +951,7 @@ class ChatTab(Tab):
             except ValueError:
                 self.core.information("Please enter a valid JID in [dd:mm:yyyy] format.", "Error")
 
-        asyncio.ensure_future(mam.MAM(self, remote_jid, start, end))
+        asyncio.ensure_future(mam.MAM(self, remote_jid, start, end, top))
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
