@@ -33,7 +33,7 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
         None,  # Jid
     )
 
-async def MAM(self, remote_jid, start, end, top):
+async def query(self, remote_jid, start, end, top):
     self.remote_jid = remote_jid
     self.start_date = start
     self.end_date = end
@@ -80,4 +80,4 @@ def mam_scroll(self):
     start = start + timedelta(days=-10)
     start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
     top = True
-    asyncio.ensure_future(MAM(self, remote_jid, start, end, top))
+    asyncio.ensure_future(query(self, remote_jid, start, end, top))
