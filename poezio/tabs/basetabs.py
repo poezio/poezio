@@ -503,8 +503,8 @@ class ChatTab(Tab):
         self.register_command(
             'mam',
             self.command_mam,
-            usage="[start_timestamp] [end_timestamp]",
-            shortdesc='Query and control an archive of messages using MAM.')
+            usage="[start_timestamp [end_timestamp]]",
+            shortdesc='Query an archive of messages using MAM.')
         self.commands['sb'] = self.commands['scrollback']
         self.register_command(
             'xhtml',
@@ -927,9 +927,8 @@ class ChatTab(Tab):
     @command_args_parser.quoted(0, 2)
     def command_mam(self, args):
         """
-        /mam
-        /mam [start-timestamp] (current timestamp is taken as end-timestamp)
-        /mam [start-timestamp] [end-timestamp]
+        Query an archive of messages using MAM.
+        /mam [start_timestamp [end_timestamp]]
         """
 
         remote_jid = self.jid
