@@ -312,7 +312,7 @@ class TextWin(BaseTextWin):
     # TODO: figure out the type of history.
     def build_new_message(self,
                           message: Message,
-                          history=None,
+                          history: bool = False,
                           clean: bool = True,
                           highlight: bool = False,
                           timestamp: bool = False,
