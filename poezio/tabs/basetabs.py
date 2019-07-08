@@ -951,7 +951,7 @@ class ChatTab(Tab):
             except ValueError:
                 self.core.information("Please enter a valid JID in [dd:mm:yyyy] format.", "Error")
 
-        asyncio.ensure_future(mam.MAM(self, remote_jid, start, end, top))
+        asyncio.ensure_future(mam.query(self, remote_jid, start, end, top))
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
