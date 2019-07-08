@@ -49,6 +49,7 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
     )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 class MAM:
     """
@@ -81,6 +82,9 @@ async def MAM(self, remote_jid, start, end):
 =======
 async def MAM(self, remote_jid, start, end, top):
 >>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
+=======
+async def query(self, remote_jid, start, end, top):
+>>>>>>> 96271ed2... Changed the name of MAM function.
     self.remote_jid = remote_jid
     self.start_date = start
     self.end_date = end
@@ -153,5 +157,9 @@ def mam_scroll(self):
     start = start + timedelta(days=-10)
     start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
     top = True
+<<<<<<< HEAD
     asyncio.ensure_future(MAM(self, remote_jid, start, end, top))
 >>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
+=======
+    asyncio.ensure_future(query(self, remote_jid, start, end, top))
+>>>>>>> 96271ed2... Changed the name of MAM function.
