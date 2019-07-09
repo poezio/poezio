@@ -52,6 +52,8 @@ async def query(self, remote_jid, start, end, top):
             for msg in rsm['mam']['results']:
                 msgs.append(msg)
                 if msg_count == 10:
+                    timestamp = datetime.now()
+                    add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
                     return
                 msg_count += 1
             msgs.reverse()
@@ -87,4 +89,11 @@ def mam_scroll(self):
     start = start + timedelta(days=-10)
     start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
     top = True
-    asyncio.ensure_future(query(self, remote_jid, start, end, top))
+    pos = self.text_win.pos
+    self.text_win.pos += self.text_win.height - 1
+    if self.text_win.pos + self.text_win.height > len(self.text_win.built_lines):
+        asyncio.ensure_future(query(self, remote_jid, start, end, top))
+        self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height
+        if self.text_win.pos < 0:
+            self.text_win.pos = 0
+    return self.text_win.pos != pos
