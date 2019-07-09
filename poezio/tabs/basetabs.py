@@ -959,13 +959,7 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        self.text_win.pos += self.text_win.height - 1
-        pos = len(self.text_win.built_lines) - self.text_win.height - self.text_win.pos
-        if pos < 0:
-            mam.mam_scroll(self)
-            self.text_win.pos = 0
-        else:
-            return self.text_win.scroll_up(self.text_win.height - 1)
+        return mam.mam_scroll(self)
 
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height - 1)
