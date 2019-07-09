@@ -23,12 +23,20 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
     time = datetime.strftime(str_time, '%Y-%m-%d %H:%M:%S')
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
 <<<<<<< HEAD
+<<<<<<< HEAD
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     nick = nick.split('/')[1]
     color = get_theme().COLOR_OWN_NICK
 =======
     nick = nick.split('/')[1]
     color = get_theme().COLOR_OWN_NICK
+=======
+    if '/' in nick:
+        nick = nick.split('/')[1]
+        color = get_theme().COLOR_OWN_NICK
+    else:
+        color = get_theme().COLOR_ME_MESSAGE
+>>>>>>> e3238d4a... Added messages when the query is starting and ending.
     top = top
 >>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
     text_buffer.add_message(
@@ -93,6 +101,8 @@ async def query(self, remote_jid, start, end, top):
     iterator=True, reverse=top, start=self.start_date, end=self.end_date)
     msg_count = 0
     msgs = []
+    timestamp = datetime.now()
+    add_line(text_buffer, 'Start of MAM query: ', timestamp, 'MAM', top)
     async for rsm in results:
 <<<<<<< HEAD
         for msg in rsm['mam']['results']:
@@ -141,6 +151,8 @@ async def query(self, remote_jid, start, end, top):
                 message = forwarded['stanza']
                 add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.core.refresh_window()
+    timestamp = datetime.now()
+    add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
 
 
 def mam_scroll(self):
