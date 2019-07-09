@@ -54,6 +54,7 @@ async def query(self, remote_jid, start, end, top):
                 if msg_count == 10:
                     timestamp = datetime.now()
                     add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
+                    self.core.refresh_window()
                     return
                 msg_count += 1
             msgs.reverse()
@@ -63,7 +64,6 @@ async def query(self, remote_jid, start, end, top):
                 message = forwarded['stanza']
                 add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.text_win.scroll_up(len(self.text_win.built_lines))
-                self.core.refresh_window()
         else:
             for msg in rsm['mam']['results']:
                 forwarded = msg['mam_result']['forwarded']
