@@ -97,6 +97,10 @@ async def query(self, remote_jid, start, end, top):
     self.start_date = start
     self.end_date = end
     text_buffer = self._text_buffer
+    def callback(iq):
+        if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
+            return self.core.information("This MUC doesn't support MAM.", "Error")
+    self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid, callback=callback)
     results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
     iterator=True, reverse=top, start=self.start_date, end=self.end_date)
     msg_count = 0
