@@ -90,7 +90,7 @@ def mam_scroll(self):
     end = end + timedelta(seconds=-1)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
     start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
-    start = start + timedelta(days=-10)
+    start = start + timedelta(days=-360)
     start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
     top = True
     pos = self.text_win.pos
