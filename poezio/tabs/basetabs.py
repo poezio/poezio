@@ -795,11 +795,11 @@ class ChatTab(Tab):
         text_buffer = self._text_buffer
         built_lines = []
         message_count = 0
+        timestamp = config.get('show_timestamps')
+        nick_size = config.get('max_nick_length')
         for message in text_buffer.messages:
             # Build lines of a message
             txt = message.txt
-            timestamp = config.get('show_timestamps')
-            nick_size = config.get('max_nick_length')
             nick = truncate_nick(message.nickname, nick_size)
             offset = 0
             theme = get_theme()
