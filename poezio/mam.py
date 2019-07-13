@@ -34,11 +34,16 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
     if '/' in nick:
         nick = nick.split('/')[1]
         color = get_theme().COLOR_OWN_NICK
+        time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
+        time = time.replace(tzinfo=None)
     else:
         color = get_theme().COLOR_ME_MESSAGE
+<<<<<<< HEAD
 >>>>>>> e3238d4a... Added messages when the query is starting and ending.
     top = top
 >>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
+=======
+>>>>>>> 0e6ea079... Fixed timestamp
     text_buffer.add_message(
         text,
         time,
@@ -170,6 +175,9 @@ def mam_scroll(self):
         if time < end:
             end = time
     end = end + timedelta(seconds=-1)
+    tzone = datetime.now().astimezone().tzinfo
+    end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+    end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
     start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
     start = start + timedelta(days=-360)
