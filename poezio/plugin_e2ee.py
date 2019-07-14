@@ -10,7 +10,7 @@
     Interface for E2EE (End-to-end Encryption) plugins.
 """
 
-from typing import Callable, Dict, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
