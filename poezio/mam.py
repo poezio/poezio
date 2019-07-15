@@ -143,6 +143,7 @@ async def query(self, remote_jid, start, end, top):
             for msg in rsm['mam']['results']:
                 msgs.append(msg)
                 if msg_count == 10:
+                    self.query_id = 0
                     timestamp = datetime.now()
                     add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
                     self.core.refresh_window()
@@ -167,6 +168,7 @@ async def query(self, remote_jid, start, end, top):
                 message = forwarded['stanza']
                 add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.core.refresh_window()
+    self.query_id = 0
     timestamp = datetime.now()
     add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
 
@@ -200,6 +202,7 @@ def mam_scroll(self):
     self.text_win.pos += self.text_win.height - 1
     if self.text_win.pos + self.text_win.height > len(self.text_win.built_lines):
         asyncio.ensure_future(query(self, remote_jid, start, end, top))
+        self.query_id = 1
         self.text_win.pos = len(self.text_win.built_lines) - self.text_win.height
         if self.text_win.pos < 0:
             self.text_win.pos = 0
