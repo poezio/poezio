@@ -67,10 +67,8 @@ async def query(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-<<<<<<< HEAD
                 add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']))
                 self.tab.core.refresh_window()
-=======
                 add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.text_win.scroll_up(len(self.text_win.built_lines))
         else:
@@ -83,7 +81,6 @@ async def query(self, remote_jid, start, end, top):
     timestamp = datetime.now()
     add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
 
->>>>>>> origin/mam
 
 def mam_scroll(self):
     remote_jid = self.jid
