@@ -153,6 +153,11 @@ async def query(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
+<<<<<<< HEAD
+=======
+                add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']))
+                self.tab.core.refresh_window()
+>>>>>>> 3de40ea3... Merged changes from mam branchg
                 add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
                 self.text_win.scroll_up(len(self.text_win.built_lines))
         else:
