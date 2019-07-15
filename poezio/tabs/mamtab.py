@@ -8,7 +8,8 @@ import curses
 import os
 from datetime import datetime, timedelta
 
-from poezio.mam import MAM
+import asyncio
+from poezio import mam
 from poezio.tabs import Tab
 
 from poezio.text_buffer import TextBuffer
@@ -84,11 +85,10 @@ class MAMTab(Tab):
     def command_mam(self, args):
         """Define mam command"""
 
-        tab = self.core.tabs.current_tab
         if len(args) == 0:
             return self.core.information('Please enter a JID.', 'Error')
 
-        self.remote_jid = safeJID(args[0])
+        remote_jid = safeJID(args[0])
         end = datetime.now()
         end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
         start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -111,7 +111,7 @@ class MAMTab(Tab):
             except ValueError:
                 pass
 
-        MAM(self.remote_jid, start, end, tab)
+        asyncio.ensure_future(mam.query(self, remote_jid, start, end, top=False))
 
     @command_args_parser.ignored
     def command_clear(self):
