@@ -16,6 +16,7 @@ revolving around chats.
 import logging
 import string
 import time
+import asyncio
 from datetime import datetime, timedelta
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -29,7 +30,7 @@ from poezio import xhtml
 from poezio import poopt
 from math import ceil, log10
 from poezio.windows.funcs import truncate_nick, parse_attrs
-from poezio.mam import MAM
+from poezio import mam
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
@@ -502,8 +503,8 @@ class ChatTab(Tab):
         self.register_command(
             'mam',
             self.command_mam,
-            usage="[start_timestamp] [end_timestamp]",
-            shortdesc='Query and control an archive of messages using MAM.')
+            usage="[start_timestamp [end_timestamp]]",
+            shortdesc='Query an archive of messages using MAM.')
         self.commands['sb'] = self.commands['scrollback']
         self.register_command(
             'xhtml',
@@ -925,10 +926,13 @@ class ChatTab(Tab):
 
     @command_args_parser.quoted(0, 2)
     def command_mam(self, args):
-        """Define mam command"""
+        """
+        Query an archive of messages using MAM.
+        /mam [start_timestamp [end_timestamp]]
+        """
 
-        tab = self.core.tabs.current_tab
-        remote_jid = tab.jid
+        remote_jid = self.jid
+        top = False
         end = datetime.now()
         end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
         start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -936,22 +940,17 @@ class ChatTab(Tab):
         start = start + timedelta(days=-10)
         start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
         # Format for start and end timestamp is [dd:mm:yyyy]
-        if len(args) == 1:
+        if len(args) >= 1:
             try:
                 start = datetime.strptime(args[0], '%d:%m:%Y')
                 start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+                if len(args) == 2:
+                    end = datetime.strptime(args[1], '%d:%m:%Y')
+                    end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
             except ValueError:
-                pass
-        elif len(args) == 2:
-            try:
-                start = datetime.strptime(args[0], '%d:%m:%Y')
-                start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
-                end = datetime.strptime(args[1], '%d:%m:%Y')
-                end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-            except ValueError:
-                pass
+                self.core.information("Please enter a valid JID in [dd:mm:yyyy] format.", "Error")
 
-        MAM(remote_jid, start, end, tab)
+        asyncio.ensure_future(mam.query(self, remote_jid, start, end, top))
 
     def on_line_up(self):
         return self.text_win.scroll_up(1)
@@ -960,7 +959,7 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        return self.text_win.scroll_up(self.text_win.height - 1)
+        return mam.mam_scroll(self)
 
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height - 1)
