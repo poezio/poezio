@@ -46,8 +46,12 @@ async def query(self, remote_jid, start, end, top):
         if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
             return self.core.information("This MUC doesn't support MAM.", "Error")
     self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid, callback=callback)
-    results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
-    iterator=True, reverse=top, start=self.start_date, end=self.end_date)
+    if top:
+        results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
+        iterator=True, reverse=top, end=self.end_date)
+    else:
+        results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
+        iterator=True, reverse=top, start=self.start_date, end=self.end_date)
     msg_count = 0
     msgs = []
     timestamp = datetime.now()
@@ -95,9 +99,7 @@ def mam_scroll(self):
     end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-    start = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
-    start = start + timedelta(days=-360)
-    start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+    start = False
     top = True
     pos = self.text_win.pos
     self.text_win.pos += self.text_win.height - 1
