@@ -97,7 +97,7 @@ app_mapping = {
 
 class Plugin(BasePlugin):
     def init(self):
-        for _class in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
+        for _class in (tabs.MucTab, tabs.PrivateTab, tabs.DynamicConversationTab, tabs.StaticConversationsTab):
             self.api.add_tab_command(
                 _class,
                 'link',
