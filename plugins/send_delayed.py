@@ -28,7 +28,7 @@ from poezio import timed_events
 
 class Plugin(BasePlugin):
     def init(self):
-        for _class in (tabs.PrivateTab, tabs.ConversationTab, tabs.MucTab):
+        for _class in (tabs.PrivateTab, tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.MucTab):
             self.api.add_tab_command(
                 _class,
                 'send_delayed',

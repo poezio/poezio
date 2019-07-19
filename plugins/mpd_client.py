@@ -57,7 +57,7 @@ import mpd
 
 class Plugin(BasePlugin):
     def init(self):
-        for _class in (tabs.ConversationTab, tabs.MucTab, tabs.PrivateTab):
+        for _class in (tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.MucTab, tabs.PrivateTab):
             self.api.add_tab_command(
                 _class,
                 'mpd',

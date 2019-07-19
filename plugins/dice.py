@@ -64,7 +64,7 @@ class Plugin(BasePlugin):
     default_config = {"dice": {"refresh": 0.5, "default_duration": 5}}
 
     def init(self):
-        for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
+        for tab_t in [tabs.MucTab, tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab]:
             self.api.add_tab_command(
                 tab_t,
                 'roll',

@@ -37,7 +37,7 @@ class Plugin(BasePlugin):
     """Lastlog Plugin"""
 
     def init(self):
-        for tab in tabs.ConversationTab, tabs.PrivateTab, tabs.MucTab:
+        for tab in tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab, tabs.MucTab:
             self.api.add_tab_command(
                 tab,
                 'lastlog',

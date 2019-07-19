@@ -56,7 +56,7 @@ class Plugin(BasePlugin):
     }
 
     def init(self):
-        for tab_t in [tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab]:
+        for tab_t in [tabs.MucTab, tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab]:
             self.add_tab_command(
                 tab_t, 'marquee', self.command_marquee,
                 'Replicate the <marquee/> behavior in a message')

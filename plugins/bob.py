@@ -37,7 +37,7 @@ class Plugin(BasePlugin):
     default_config = {'bob': {'max_size': 2048, 'max_age': 86400}}
 
     def init(self):
-        for tab in tabs.ConversationTab, tabs.PrivateTab, tabs.MucTab:
+        for tab in tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab, tabs.MucTab:
             self.api.add_tab_command(
                 tab,
                 'bob',

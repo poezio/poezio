@@ -56,7 +56,7 @@ log = logging.getLogger(__name__)
 
 class Plugin(BasePlugin):
     def init(self):
-        for _class in (tabs.MucTab, tabs.ConversationTab, tabs.PrivateTab):
+        for _class in (tabs.MucTab, tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab):
             self.api.add_tab_command(
                 _class,
                 'quote',

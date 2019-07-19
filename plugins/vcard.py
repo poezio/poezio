@@ -61,7 +61,7 @@ class Plugin(BasePlugin):
             help='Send an XMPP vcard request to jid (see XEP-0054).',
             short='Send a vcard request.',
             completion=self.completion_vcard)
-        for _class in (tabs.PrivateTab, tabs.ConversationTab):
+        for _class in (tabs.PrivateTab, tabs.DynamicConversationTab, tabs.StaticConversationTab):
             self.api.add_tab_command(
                 _class,
                 'vcard',

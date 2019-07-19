@@ -29,7 +29,7 @@ from poezio import tabs
 
 class Plugin(BasePlugin):
     def init(self):
-        for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.ConversationTab):
+        for tab_type in (tabs.MucTab, tabs.PrivateTab, tabs.DynamicConversationTab, tabs.StaticConversationTab):
             self.api.add_tab_command(
                 tab_type,
                 'display_corrections',

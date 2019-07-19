@@ -58,7 +58,7 @@ class Plugin(BasePlugin):
             help='Send an XMPP ping to jid (see XEP-0199).',
             short='Send a ping.',
             completion=self.completion_ping)
-        for _class in (tabs.PrivateTab, tabs.ConversationTab):
+        for _class in (tabs.PrivateTab, tabs.DynamicConversationTab, tabs.StaticConversationTab):
             self.api.add_tab_command(
                 _class,
                 'ping',
