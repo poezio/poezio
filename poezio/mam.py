@@ -160,7 +160,8 @@ async def query(self, remote_jid, start, end, top):
 =======
         if top:
             for msg in rsm['mam']['results']:
-                msgs.append(msg)
+                if msg['mam_result']['forwarded']['stanza']['body'] is not '':
+                    msgs.append(msg)
                 if msg_count == 10:
                     self.query_id = 0
                     timestamp = datetime.now()
