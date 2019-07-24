@@ -33,6 +33,8 @@ class MAMTab(Tab):
         self.default_help_message = windows.HelpText("/ to enter a command")
 
         self.register_command('close', self.close, shortdesc="Close this tab.")
+        self.register_command('mam_preferences', self.mam_preferences,
+            shortdesc='Get the current MAM preferences')
         self.register_command('mam', self.command_mam,
             usage="<jid> [start_timestamp] [end_timestamp]",
             shortdesc='Query an archive of messages using MAM.')
@@ -80,6 +82,14 @@ class MAMTab(Tab):
 
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height - 1)
+
+    @command_args_parser.quoted(0, 2)
+    def mam_preferences(self, args):
+        """A command to get current MAM preferences and change them."""
+        def callback(iq):
+            return self.core.information(str(iq), 'Info')
+        if len(args) == 0:
+            self.core.xmpp.plugin['xep_0313'].get_preferences(callback=callback)
 
     @command_args_parser.quoted(0, 3)
     def command_mam(self, args):
