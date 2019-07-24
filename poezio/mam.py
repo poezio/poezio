@@ -8,6 +8,7 @@
 
 import asyncio
 from datetime import datetime, timedelta, timezone
+from slixmpp.exceptions import IqError, IqTimeout
 from poezio.theming import get_theme
 from poezio import tabs
 from poezio.text_buffer import Message, TextBuffer
@@ -110,17 +111,27 @@ async def query(self, remote_jid, start, end, top):
     self.start_date = start
     self.end_date = end
     text_buffer = self._text_buffer
-    iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
+    try:
+        iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
+    except (IqError, IqTimeout):
+        return self.information('Failed to retrieve messages', 'Error')
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
         return self.core.information("This MUC doesn't support MAM.", "Error")
     if top:
         if isinstance(self, tabs.MucTab):
-            results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
-            iterator=True, reverse=top, end=self.end_date)
+            try:
+                results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
+                iterator=True, reverse=top, end=self.end_date)
+            except (IqError, IqTimeout):
+                return self.information('Failed to retrieve messages', 'Error')
         else:
-            results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
-            iterator=True, reverse=top, end=self.end_date)
+            try:
+                results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
+                iterator=True, reverse=top, end=self.end_date)
+            except (IqError, IqTimeout):
+                return self.information('Failed to retrieve messages', 'Error')
     else:
+<<<<<<< HEAD
         if 'muc' in str(self.remote_jid):
             results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
             iterator=True, reverse=top, start=self.start_date, end=self.end_date)
@@ -128,6 +139,20 @@ async def query(self, remote_jid, start, end, top):
             results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
             iterator=True, reverse=top, start=self.start_date, end=self.end_date)
 
+=======
+        if isinstance(self, tabs.MucTab):
+            try:
+                results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
+                iterator=True, reverse=top, start=self.start_date, end=self.end_date)
+            except (IqError, IqTimeout):
+                return self.information('Failed to retrieve messages', 'Error')
+        else:
+            try:
+                results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
+                iterator=True, reverse=top, start=self.start_date, end=self.end_date)
+            except (IqError, IqTimeout):
+                return self.information('Failed to retrieve messages', 'Error')
+>>>>>>> e8332f51... Added a check for IqError and IqTimeout exceptions, while doing mam and disco query.
     msg_count = 0
     msgs = []
     timestamp = datetime.now()
