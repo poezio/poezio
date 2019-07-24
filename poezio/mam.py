@@ -121,12 +121,13 @@ async def query(self, remote_jid, start, end, top):
             results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
             iterator=True, reverse=top, end=self.end_date)
     else:
-        if isinstance(self, tabs.MucTab):
+        if 'muc' in str(self.remote_jid):
             results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
             iterator=True, reverse=top, start=self.start_date, end=self.end_date)
         else:
             results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
             iterator=True, reverse=top, start=self.start_date, end=self.end_date)
+
     msg_count = 0
     msgs = []
     timestamp = datetime.now()
