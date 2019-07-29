@@ -256,6 +256,9 @@ class Core:
             ('roster_update', self.handler.on_roster_update),
             ('session_start', self.handler.on_session_start),
             ('session_start', self.handler.on_session_start_features),
+            ('session_end', self.handler.on_session_end),
+            ('sm_failed', self.handler.on_session_end),
+            ('session_resumed', self.handler.on_session_resumed),
             ('ssl_cert', self.handler.validate_ssl),
             ('ssl_invalid_chain', self.handler.ssl_invalid_chain),
             ('stream_error', self.handler.on_stream_error),
@@ -832,16 +835,12 @@ class Core:
         parts of the client (for example, set the MucTabs as not joined, etc)
         """
         self.legitimate_disconnect = True
-        for tab in self.get_tabs(tabs.MucTab):
-            tab.command_part(msg)
-        self.xmpp.disconnect()
         if reconnect:
-            # Add a one-time event to reconnect as soon as we are
-            # effectively disconnected
-            self.xmpp.add_event_handler(
-                'disconnected',
-                lambda event: self.xmpp.connect(),
-                disposable=True)
+            self.xmpp.reconnect(wait=0.0, reason=msg)
+        else:
+            for tab in self.get_tabs(tabs.MucTab):
+                tab.command_part(msg)
+            self.xmpp.disconnect(reason=msg)
 
     def send_message(self, msg: str) -> bool:
         """

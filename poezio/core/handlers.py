@@ -1152,20 +1152,32 @@ class HandlerCore:
         self.core.information(
             "Connection to remote server failed: %s" % (error, ), 'Error')
 
+    def on_session_end(self, event):
+        """
+        Called when a session is terminated (e.g. due to a manual disconnect or a 0198 resume fail)
+        """
+        roster.connected = 0
+        roster.modified()
+        for tab in self.core.get_tabs(tabs.MucTab):
+            tab.disconnect()
+
+    def on_session_resumed(self, event):
+        """
+        Called when a session is successfully resumed by 0198
+        """
+        self.core.information("Resumed session as %s" % self.core.xmpp.boundjid.full, 'Info')
+        self.core.xmpp.plugin['xep_0199'].enable_keepalive()
+
     async def on_disconnected(self, event):
         """
         When we are disconnected from remote server
         """
         if 'disconnect' in config.get('beep_on').split():
             curses.beep()
-        roster.connected = 0
         # Stop the ping plugin. It would try to send stanza on regular basis
         self.core.xmpp.plugin['xep_0199'].disable_keepalive()
-        roster.modified()
-        for tab in self.core.get_tabs(tabs.MucTab):
-            tab.disconnect()
         msg_typ = 'Error' if not self.core.legitimate_disconnect else 'Info'
-        self.core.information("Disconnected from server.", msg_typ)
+        self.core.information("Disconnected from server%s." % (event and ": %s" % event or ""), msg_typ)
         if self.core.legitimate_disconnect or not config.get(
                 'auto_reconnect', True):
             return
