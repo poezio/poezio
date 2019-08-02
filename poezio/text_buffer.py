@@ -47,16 +47,12 @@ class Message:
                                       txt[4:])
         else:
             me = False
+        str_time = time.strftime("%H:%M:%S")
         if history:
             txt = txt.replace(
                 '\x19o',
                 '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
             str_time = time.strftime("%Y-%m-%d %H:%M:%S")
-        else:
-            if str_time is None:
-                str_time = time.strftime("%H:%M:%S")
-            else:
-                str_time = str_time.strftime("%Y-%m-%d %H:%M:%S")
 
         self.txt = txt.replace('\t', '    ') + '\x19o'
         self.nick_color = nick_color
