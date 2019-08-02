@@ -50,6 +50,7 @@ class MAMTab(Tab):
         self.resize()
         # Used to display the infobar
         self.remote_jid = ''
+        self.iq = self.core.xmpp.Iq()
 
     def on_freeze(self):
         """
@@ -87,9 +88,48 @@ class MAMTab(Tab):
     def mam_preferences(self, args):
         """A command to get current MAM preferences and change them."""
         def callback(iq):
-            return self.core.information(str(iq), 'Info')
+            self.iq = iq
+            return self.core.information(str(iq['mam_prefs']), 'Info')
         if len(args) == 0:
-            self.core.xmpp.plugin['xep_0313'].get_preferences(callback=callback)
+            return self.core.xmpp.plugin['xep_0313'].get_preferences(callback=callback)
+        elif len(args) == 2 and args[0] == 'default':
+            if args[1] is 'always' or 'roster' or 'never':
+                iq = self.iq
+                always = iq['mam_prefs']['always']
+                never = iq['mam_prefs']['never']
+                self.core.xmpp.plugin['xep_0313'].set_preferences(default=args[1], always=always,
+                never=never, callback=callback)
+        elif len(args) == 2 and args[0] == 'always':
+            jid = safeJID(args[1])
+            iq = self.iq
+            default = iq['mam_prefs']['default']
+            always = iq['mam_prefs']['always']
+            always = list(always)
+            if args[1] == 'clear':
+                always = []
+            else:
+                always = always
+                jid = safeJID(args[1])
+                always.append(jid)
+            never = iq['mam_prefs']['never']
+            self.core.xmpp.plugin['xep_0313'].set_preferences(default=default, always=always,
+            never=never, callback=callback)
+        elif len(args) == 2 and args[0] == 'never':
+            jid = safeJID(args[1])
+            iq = self.iq
+            default = iq['mam_prefs']['default']
+            always = iq['mam_prefs']['always']
+            never = iq['mam_prefs']['never']
+            if args[1] == 'clear':
+                never = []
+            else:
+                never = never
+                jid = safeJID(args[1])
+                never.append(jid)
+            self.core.xmpp.plugin['xep_0313'].set_preferences(default=default, always=always,
+            never=never, callback=callback)
+        else:
+            self.core.information('Please enter a correct command', 'Error')
 
     @command_args_parser.quoted(0, 3)
     def command_mam(self, args):
