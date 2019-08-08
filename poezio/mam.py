@@ -13,35 +13,13 @@ from poezio.theming import get_theme
 from poezio import tabs
 from poezio.text_buffer import Message, TextBuffer
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str):
-=======
-def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
->>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
-=======
 def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
->>>>>>> ef48615c... Added a check for tabs (because there is a different way to query messages for MUC and any other type of tab)
     """Adds a textual entry in the TextBuffer"""
 
     time = datetime.strftime(str_time, '%Y-%m-%d %H:%M:%S')
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
-    nick = nick.split('/')[1]
-    color = get_theme().COLOR_OWN_NICK
-=======
-    nick = nick.split('/')[1]
-    color = get_theme().COLOR_OWN_NICK
-=======
-=======
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
->>>>>>> e1461b4e... Aligned the timestamp of MAM start/end messages, added info message if no more messages are left.
     if '/' in nick:
         if isinstance(self, tabs.MucTab):
             nick = nick.split('/')[1]
@@ -50,12 +28,6 @@ def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str,
         color = get_theme().COLOR_OWN_NICK
     else:
         color = get_theme().COLOR_ME_MESSAGE
-<<<<<<< HEAD
->>>>>>> e3238d4a... Added messages when the query is starting and ending.
-    top = top
->>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
-=======
->>>>>>> 0e6ea079... Fixed timestamp
     text_buffer.add_message(
         text,
         time,
@@ -64,52 +36,13 @@ def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str,
         True,  # History
         None,  # User
         False,  # Highlight
-<<<<<<< HEAD
-=======
         top, #Top
->>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
         None,  # Identifier
         None,  # str_time
         None,  # Jid
     )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-class MAM:
-    """
-    A basic client fetching mam archive messages
-    """
-
-    def __init__(self, remote_jid, start, end, tab):
-        self.remote_jid = remote_jid
-        self.start_date = start
-        self.end_date = end
-        self.tab = tab
-        asyncio.ensure_future(self.start())
-
-    async def start(self):
-        text_buffer = self.tab._text_buffer
-        results = self.tab.core.xmpp.plugin['xep_0313'].retrieve(jid=self.remote_jid,
-        iterator=True, start=self.start_date, end=self.end_date)
-        async for rsm in results:
-            for msg in rsm['mam']['results']:
-                forwarded = msg['mam_result']['forwarded']
-                timestamp = forwarded['delay']['stamp']
-                message = forwarded['stanza']
-                add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']))
-                self.tab.core.refresh_window()
-
-        self.tab.text_win.pos = 0
-        self.tab.core.refresh_window()
-=======
-async def MAM(self, remote_jid, start, end):
-=======
-async def MAM(self, remote_jid, start, end, top):
->>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
-=======
 async def query(self, remote_jid, start, end, top):
->>>>>>> 96271ed2... Changed the name of MAM function.
     self.remote_jid = remote_jid
     self.start_date = start
     self.end_date = end
@@ -134,15 +67,6 @@ async def query(self, remote_jid, start, end, top):
             except (IqError, IqTimeout):
                 return self.core.information('Failed to retrieve messages', 'Error')
     else:
-<<<<<<< HEAD
-        if 'muc' in str(self.remote_jid):
-            results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
-            iterator=True, reverse=top, start=self.start_date, end=self.end_date)
-        else:
-            results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
-            iterator=True, reverse=top, start=self.start_date, end=self.end_date)
-
-=======
         if isinstance(self, tabs.MucTab):
             try:
                 results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
@@ -154,41 +78,10 @@ async def query(self, remote_jid, start, end, top):
                 results = self.core.xmpp['xep_0313'].retrieve(with_jid=self.remote_jid,
                 iterator=True, reverse=top, start=self.start_date, end=self.end_date)
             except (IqError, IqTimeout):
-<<<<<<< HEAD
-                return self.information('Failed to retrieve messages', 'Error')
->>>>>>> e8332f51... Added a check for IqError and IqTimeout exceptions, while doing mam and disco query.
-=======
                 return self.core.information('Failed to retrieve messages', 'Error')
->>>>>>> e1461b4e... Aligned the timestamp of MAM start/end messages, added info message if no more messages are left.
     msg_count = 0
     msgs = []
     async for rsm in results:
-<<<<<<< HEAD
-        for msg in rsm['mam']['results']:
-            forwarded = msg['mam_result']['forwarded']
-            timestamp = forwarded['delay']['stamp']
-            message = forwarded['stanza']
-            text = str(message['body'])
-            time = datetime.strftime(timestamp, '%Y-%m-%d %H:%M:%S')
-            time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-            time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
-            nick = str(message['from']).split('/')[1]
-            color = get_theme().COLOR_OWN_NICK
-            text_buffer.add_message(
-                text,
-                time,
-                nick,
-                color,
-                True,  # History
-                None,  # User
-                False,  # Highlight
-                None,  # Identifier
-                None,  # str_time
-                None,  # Jid
-            )
-            self.core.refresh_window()
->>>>>>> 208c814d... Removed MAM class and changed it into function.
-=======
         if top:
             for msg in rsm['mam']['results']:
                 if msg['mam_result']['forwarded']['stanza'].xml.find(
@@ -207,22 +100,10 @@ async def query(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-                add_line(text_buffer, '%s' % message['body'], timestamp, str(message['from']))
-                self.tab.core.refresh_window()
->>>>>>> 3de40ea3... Merged changes from mam branchg
-                add_line(text_buffer, message['body'], timestamp, str(message['from']), top)
-=======
                 add_line(self, text_buffer, message['body'], timestamp, str(message['from']), top)
-<<<<<<< HEAD
->>>>>>> ef48615c... Added a check for tabs (because there is a different way to query messages for MUC and any other type of tab)
-=======
                 if msg is msgs[len(msgs)-1]:
                     timestamp = msg['mam_result']['forwarded']['delay']['stamp']
                     add_line(self, text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
->>>>>>> e1461b4e... Aligned the timestamp of MAM start/end messages, added info message if no more messages are left.
                 self.text_win.scroll_up(len(self.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
@@ -250,14 +131,6 @@ def mam_scroll(self):
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
     start = False
     top = True
-<<<<<<< HEAD
-<<<<<<< HEAD
-    asyncio.ensure_future(MAM(self, remote_jid, start, end, top))
->>>>>>> dcdcc963... Added fuction for infinite scroll, limited number of messages per request to 10.
-=======
-    asyncio.ensure_future(query(self, remote_jid, start, end, top))
->>>>>>> 96271ed2... Changed the name of MAM function.
-=======
     pos = self.text_win.pos
     self.text_win.pos += self.text_win.height - 1
     if self.text_win.pos + self.text_win.height > len(self.text_win.built_lines):
@@ -267,4 +140,3 @@ def mam_scroll(self):
         if self.text_win.pos < 0:
             self.text_win.pos = 0
     return self.text_win.pos != pos
->>>>>>> 1e61af98... Fixed scroll up
