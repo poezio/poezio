@@ -81,7 +81,9 @@ async def query(self, remote_jid, start, end, top):
     async for rsm in results:
         if top:
             for msg in rsm['mam']['results']:
-                if msg['mam_result']['forwarded']['stanza']['body'] is not '':
+                #if msg['mam_result']['forwarded']['stanza']['body'] is not '':
+                if msg['mam_result']['forwarded']['stanza'].xml.find(
+                    '{%s}%s' % ('jabber:client', 'body')) is not None:
                     msgs.append(msg)
                 if msg_count == 10:
                     self.query_id = 0
