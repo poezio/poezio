@@ -21,7 +21,7 @@ def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str,
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
     if '/' in nick:
-        if isinstance(self, tabs.MucTab):
+        if isinstance(self, tabs.MucTab) or self.chat_category == 'conference':
             nick = nick.split('/')[1]
         else:
             nick = nick.split('/')[0]
@@ -46,6 +46,7 @@ async def query(self, remote_jid, start, end, top):
     self.remote_jid = remote_jid
     self.start_date = start
     self.end_date = end
+    self.chat_category = 'account'
     text_buffer = self._text_buffer
     try:
         iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
@@ -67,7 +68,8 @@ async def query(self, remote_jid, start, end, top):
             except (IqError, IqTimeout):
                 return self.core.information('Failed to retrieve messages', 'Error')
     else:
-        if isinstance(self, tabs.MucTab):
+        if 'conference' in list(iq['disco_info']['identities'])[0]:
+            self.chat_category = 'conference'
             try:
                 results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
                 iterator=True, reverse=top, start=self.start_date, end=self.end_date)
