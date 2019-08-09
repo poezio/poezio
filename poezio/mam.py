@@ -20,14 +20,10 @@ def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str,
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-    if '/' in nick:
-        if isinstance(self, tabs.MucTab) or self.chat_category == 'conference':
-            nick = nick.split('/')[1]
-        else:
-            nick = nick.split('/')[0]
-        color = get_theme().COLOR_OWN_NICK
-    else:
+    if nick is 'MAM':
         color = get_theme().COLOR_ME_MESSAGE
+    else:
+        color = get_theme().COLOR_OWN_NICK
     text_buffer.add_message(
         text,
         time,
@@ -46,7 +42,6 @@ async def query(self, remote_jid, start, end, top):
     self.remote_jid = remote_jid
     self.start_date = start
     self.end_date = end
-    self.chat_category = 'account'
     text_buffer = self._text_buffer
     try:
         iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
@@ -69,7 +64,6 @@ async def query(self, remote_jid, start, end, top):
                 return self.core.information('Failed to retrieve messages', 'Error')
     else:
         if 'conference' in list(iq['disco_info']['identities'])[0]:
-            self.chat_category = 'conference'
             try:
                 results = self.core.xmpp['xep_0313'].retrieve(jid=self.remote_jid,
                 iterator=True, reverse=top, start=self.start_date, end=self.end_date)
@@ -102,7 +96,12 @@ async def query(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-                add_line(self, text_buffer, message['body'], timestamp, str(message['from']), top)
+                nick = str(message['from'])
+                if isinstance(self, tabs.MucTab):
+                    nick = nick.split('/')[1]
+                else:
+                    nick = nick.split('/')[0]
+                add_line(self, text_buffer, message['body'], timestamp, nick, top)
                 if msg is msgs[len(msgs)-1]:
                     timestamp = msg['mam_result']['forwarded']['delay']['stamp']
                     add_line(self, text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
@@ -112,7 +111,12 @@ async def query(self, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-                add_line(self, text_buffer, message['body'], timestamp, str(message['from']), top)
+                nick = str(message['from'])
+                if 'conference' in list(iq['disco_info']['identities'])[0]:
+                    nick = nick.split('/')[1]
+                else:
+                    nick = nick.split('/')[0]
+                add_line(self, text_buffer, message['body'], timestamp, nick, top)
                 self.core.refresh_window()
     if len(msgs) == 0:
         return self.core.information('No more messages left to retrieve', 'Info')
