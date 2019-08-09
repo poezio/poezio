@@ -13,7 +13,7 @@ from poezio.theming import get_theme
 from poezio import tabs
 from poezio.text_buffer import Message, TextBuffer
 
-def add_line(self, text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
+def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
     """Adds a textual entry in the TextBuffer"""
 
     time = datetime.strftime(str_time, '%Y-%m-%d %H:%M:%S')
@@ -92,7 +92,7 @@ async def query(self, remote_jid, start, end, top):
             for msg in msgs:
                 if msg is msgs[0]:
                     timestamp = msg['mam_result']['forwarded']['delay']['stamp']
-                    add_line(self, text_buffer, 'Start of MAM query: ', timestamp, 'MAM', top)
+                    add_line(text_buffer, 'Start of MAM query: ', timestamp, 'MAM', top)
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
@@ -101,10 +101,10 @@ async def query(self, remote_jid, start, end, top):
                     nick = nick.split('/')[1]
                 else:
                     nick = nick.split('/')[0]
-                add_line(self, text_buffer, message['body'], timestamp, nick, top)
+                add_line(text_buffer, message['body'], timestamp, nick, top)
                 if msg is msgs[len(msgs)-1]:
                     timestamp = msg['mam_result']['forwarded']['delay']['stamp']
-                    add_line(self, text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
+                    add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
                 self.text_win.scroll_up(len(self.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
@@ -116,7 +116,7 @@ async def query(self, remote_jid, start, end, top):
                     nick = nick.split('/')[1]
                 else:
                     nick = nick.split('/')[0]
-                add_line(self, text_buffer, message['body'], timestamp, nick, top)
+                add_line(text_buffer, message['body'], timestamp, nick, top)
                 self.core.refresh_window()
     if len(msgs) == 0:
         return self.core.information('No more messages left to retrieve', 'Info')
