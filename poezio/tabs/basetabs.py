@@ -927,8 +927,9 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
+        tab = self
         if self.query_id == 0:
-            return mam.mam_scroll(self)
+            return mam.mam_scroll(tab)
         else:
             return self.text_win.scroll_up(self.text_win.height - 1)
 
