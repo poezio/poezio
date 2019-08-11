@@ -38,7 +38,7 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
         None,  # Jid
     )
 
-async def query(tab, remote_jid, start, end, top):
+async def query(tab, remote_jid, top, start=None, end=None, before=None):
     tab.remote_jid = remote_jid
     tab.start_date = start
     tab.end_date = end
@@ -52,14 +52,22 @@ async def query(tab, remote_jid, start, end, top):
     if top:
         if isinstance(tab, tabs.MucTab):
             try:
-                results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
-                iterator=True, reverse=top, end=tab.end_date)
+                if before:
+                    results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
+                    iterator=True, reverse=top, before=before)
+                else:
+                    results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
+                    iterator=True, reverse=top, end=tab.end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
-                results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
-                iterator=True, reverse=top, end=tab.end_date)
+                if before:
+                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
+                    iterator=True, reverse=top, before=before)
+                else:
+                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
+                    iterator=True, reverse=top, end=tab.end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     else:
@@ -96,6 +104,7 @@ async def query(tab, remote_jid, start, end, top):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
+                tab.stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
                 if isinstance(tab, tabs.MucTab):
                     nick = nick.split('/')[1]
@@ -125,13 +134,11 @@ async def query(tab, remote_jid, start, end, top):
 def mam_scroll(tab):
     remote_jid = tab.jid
     text_buffer = tab._text_buffer
-    end = datetime.now()
-    for message in text_buffer.messages:
-        time = message.time
-        if time < end:
-            end = time
-    end = end + timedelta(seconds=-1)
-    tzone = datetime.now().astimezone().tzinfo
+    try:
+        before = tab.stanza_id
+    except:
+        before = False
+        end = datetime.now()
     end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
@@ -140,7 +147,7 @@ def mam_scroll(tab):
     pos = tab.text_win.pos
     tab.text_win.pos += tab.text_win.height - 1
     if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
-        asyncio.ensure_future(query(tab, remote_jid, start, end, top))
+        asyncio.ensure_future(query(tab, remote_jid, top, start, end, before))
         tab.query_id = 1
         tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
         if tab.text_win.pos < 0:
