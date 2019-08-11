@@ -29,6 +29,7 @@ from poezio import decorators
 from poezio import events
 from poezio import multiuserchat as muc
 from poezio import tabs
+from poezio import mam
 from poezio import theming
 from poezio import timed_events
 from poezio import windows
@@ -1997,6 +1998,7 @@ class Core:
             if not tab:
                 self.open_new_room(
                     bm.jid, nick, focus=False, password=bm.password)
+            tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
             self.initial_joins.append(bm.jid)
             # do not join rooms that do not have autojoin
             # but display them anyway
@@ -2008,6 +2010,7 @@ class Core:
                     passwd=bm.password,
                     status=self.status.message,
                     show=self.status.show)
+                mam.mam_scroll(tab)
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features

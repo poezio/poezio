@@ -13,7 +13,6 @@ slix plugin
 from xml.etree import cElementTree as ET
 
 from poezio.common import safeJID
-from poezio import mam
 from slixmpp import JID
 from slixmpp.exceptions import IqError, IqTimeout
 import logging
@@ -124,11 +123,11 @@ def join_groupchat(core,
             history = ET.Element('{http://jabber.org/protocol/muc}history')
             history.attrib['seconds'] = str(0)
             x.append(history)
-            mam.mam_scroll(core.tabs.current_tab)
-        elif seconds is not None:
-            history = ET.Element('{http://jabber.org/protocol/muc}history')
-            history.attrib['seconds'] = str(seconds)
-            x.append(history)
+        else:
+            if seconds is not None:
+                history = ET.Element('{http://jabber.org/protocol/muc}history')
+                history.attrib['seconds'] = str(seconds)
+                x.append(history)
         stanza.append(x)
         core.events.trigger('joining_muc', stanza)
         to = stanza["to"]
