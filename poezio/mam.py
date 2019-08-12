@@ -39,9 +39,6 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
     )
 
 async def query(tab, remote_jid, top, start=None, end=None, before=None):
-    tab.remote_jid = remote_jid
-    tab.start_date = start
-    tab.end_date = end
     text_buffer = tab._text_buffer
     try:
         iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
@@ -53,34 +50,34 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
         if isinstance(tab, tabs.MucTab):
             try:
                 if before:
-                    results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
+                    results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                     iterator=True, reverse=top, before=before)
                 else:
-                    results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
-                    iterator=True, reverse=top, end=tab.end_date)
+                    results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
+                    iterator=True, reverse=top, end=end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
                 if before:
-                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
+                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                     iterator=True, reverse=top, before=before)
                 else:
-                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
-                    iterator=True, reverse=top, end=tab.end_date)
+                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
+                    iterator=True, reverse=top, end=end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     else:
         if 'conference' in list(iq['disco_info']['identities'])[0]:
             try:
-                results = tab.core.xmpp['xep_0313'].retrieve(jid=tab.remote_jid,
-                iterator=True, reverse=top, start=tab.start_date, end=tab.end_date)
+                results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
+                iterator=True, reverse=top, start=start_date, end=end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
-                results = tab.core.xmpp['xep_0313'].retrieve(with_jid=tab.remote_jid,
-                iterator=True, reverse=top, start=tab.start_date, end=tab.end_date)
+                results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
+                iterator=True, reverse=top, start=start_date, end=end_date)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     msg_count = 0
