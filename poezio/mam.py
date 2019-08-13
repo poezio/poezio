@@ -56,7 +56,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
     except (IqError, IqTimeout):
         return tab.information('Failed to retrieve messages', 'Error')
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
-        return tab.core.information("This MUC doesn't support MAM.", "Error")
+        return tab.core.information("%s doesn't support MAM." % remote_jid, "Error")
     if top:
         if isinstance(tab, tabs.MucTab):
             try:
