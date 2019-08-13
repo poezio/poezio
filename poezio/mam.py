@@ -7,20 +7,34 @@
 """
 
 import asyncio
+import random
 from datetime import datetime, timedelta, timezone
 from slixmpp.exceptions import IqError, IqTimeout
 from poezio.theming import get_theme
 from poezio import tabs
+from poezio import xhtml
+from poezio.config import config
 from poezio.text_buffer import Message, TextBuffer
 
-def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
+def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
     """Adds a textual entry in the TextBuffer"""
 
     time = datetime.strftime(str_time, '%Y-%m-%d %H:%M:%S')
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-    color = get_theme().COLOR_OWN_NICK
+    if isinstance(tab, tabs.MucTab):
+        nick = nick.split('/')[1]
+        user = tab.get_user_by_name(nick)
+        if user:
+            color = user.color
+        else:
+            color = random.choice(list(xhtml.colors))
+            color = xhtml.colors.get(color)
+            color = (color, -1)
+    else:
+        nick = nick.split('/')[0]
+        color = get_theme().COLOR_OWN_NICK
     text_buffer.add_message(
         text,
         time,
@@ -97,11 +111,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 message = forwarded['stanza']
                 tab.stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
-                if isinstance(tab, tabs.MucTab):
-                    nick = nick.split('/')[1]
-                else:
-                    nick = nick.split('/')[0]
-                add_line(text_buffer, message['body'], timestamp, nick, top)
+                add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.text_win.scroll_up(len(tab.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
@@ -109,11 +119,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
                 nick = str(message['from'])
-                if 'conference' in list(iq['disco_info']['identities'])[0]:
-                    nick = nick.split('/')[1]
-                else:
-                    nick = nick.split('/')[0]
-                add_line(text_buffer, message['body'], timestamp, nick, top)
+                add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.core.refresh_window()
     if len(msgs) == 0:
         return tab.core.information('No more messages left to retrieve', 'Info')
