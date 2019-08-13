@@ -20,10 +20,7 @@ def add_line(text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: 
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-    if nick is 'MAM':
-        color = get_theme().COLOR_ME_MESSAGE
-    else:
-        color = get_theme().COLOR_OWN_NICK
+    color = get_theme().COLOR_OWN_NICK
     text_buffer.add_message(
         text,
         time,
@@ -95,9 +92,6 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 msg_count += 1
             msgs.reverse()
             for msg in msgs:
-                if msg is msgs[0]:
-                    timestamp = msg['mam_result']['forwarded']['delay']['stamp']
-                    add_line(text_buffer, 'Start of MAM query: ', timestamp, 'MAM', top)
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
@@ -108,9 +102,6 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 else:
                     nick = nick.split('/')[0]
                 add_line(text_buffer, message['body'], timestamp, nick, top)
-                if msg is msgs[len(msgs)-1]:
-                    timestamp = msg['mam_result']['forwarded']['delay']['stamp']
-                    add_line(text_buffer, 'End of MAM query: ', timestamp, 'MAM', top)
                 tab.text_win.scroll_up(len(tab.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
