@@ -133,6 +133,11 @@ def mam_scroll(tab):
     except:
         before = None
         end = datetime.now()
+        for message in text_buffer.messages:
+            time = message.time
+            if time < end:
+                end = time
+        end = end + timedelta(seconds=-1)
         tzone = datetime.now().astimezone().tzinfo
         end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
         end = end.replace(tzinfo=None)
