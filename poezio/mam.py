@@ -56,13 +56,13 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
     except (IqError, IqTimeout):
         return tab.information('Failed to retrieve messages', 'Error')
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
-        return tab.core.information("%s doesn't support MAM." % remote_jid, "Error")
+        return tab.core.information("%s doesn't support MAM." % remote_jid, "Info")
     if top:
         if isinstance(tab, tabs.MucTab):
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, before=before)
+                    iterator=True, reverse=before, rsm={'before':before})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                     iterator=True, reverse=top, end=end)
@@ -72,7 +72,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, before=before)
+                    iterator=True, reverse=before, rsm={'before':before})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                     iterator=True, reverse=top, end=end)
