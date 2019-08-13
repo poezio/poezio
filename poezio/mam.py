@@ -49,35 +49,35 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
     if top:
         if isinstance(tab, tabs.MucTab):
             try:
-                if before:
+                if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                     iterator=True, reverse=top, before=before)
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, end=end_date)
+                    iterator=True, reverse=top, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
-                if before:
+                if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                     iterator=True, reverse=top, before=before)
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, end=end_date)
+                    iterator=True, reverse=top, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     else:
         if 'conference' in list(iq['disco_info']['identities'])[0]:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                iterator=True, reverse=top, start=start_date, end=end_date)
+                iterator=True, reverse=top, start=start_date, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                iterator=True, reverse=top, start=start_date, end=end_date)
+                iterator=True, reverse=top, start=start_date, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     msg_count = 0
@@ -134,17 +134,20 @@ def mam_scroll(tab):
     try:
         before = tab.stanza_id
     except:
-        before = False
+        before = None
         end = datetime.now()
-    end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
-    end = end.replace(tzinfo=None)
-    end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-    start = False
+        tzone = datetime.now().astimezone().tzinfo
+        end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+        end = end.replace(tzinfo=None)
+        end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
     top = True
     pos = tab.text_win.pos
     tab.text_win.pos += tab.text_win.height - 1
     if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
-        asyncio.ensure_future(query(tab, remote_jid, top, start, end, before))
+        if before is None:
+            asyncio.ensure_future(query(tab, remote_jid, top, end=end))
+        else:
+            asyncio.ensure_future(query(tab, remote_jid, top, before=before))
         tab.query_id = 1
         tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
         if tab.text_win.pos < 0:
