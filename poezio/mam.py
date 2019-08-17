@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from slixmpp.exceptions import IqError, IqTimeout
 from poezio.theming import get_theme
 from poezio import tabs
-from poezio import xhtml
+from poezio import xhtml, colors
 from poezio.config import config
 from poezio.text_buffer import Message, TextBuffer
 
@@ -23,11 +23,24 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
+    deterministic = config.get_by_tabname('deterministic_nick_colors',
+                                              tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
         nick = nick.split('/')[1]
         user = tab.get_user_by_name(nick)
-        if user:
-            color = user.color
+        if deterministic:
+            if user:
+                color = user.color
+            else:
+                theme = get_theme()
+                if theme.ccg_palette:
+                    fg_color = colors.ccg_text_to_color(theme.ccg_palette, nick)
+                    color = fg_color, -1
+                else:
+                    mod = len(theme.LIST_COLOR_NICKNAMES)
+                    nick_pos = int(md5(nick.encode('utf-8')).hexdigest(),
+                                16) % mod
+                    color = theme.LIST_COLOR_NICKNAMES[nick_pos]
         else:
             color = random.choice(list(xhtml.colors))
             color = xhtml.colors.get(color)
