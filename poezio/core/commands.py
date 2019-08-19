@@ -344,8 +344,8 @@ class CommandCore:
             # check if the current room's name has a server
             if room.find('@') == -1 and not server_root:
                 tab = self.core.tabs.current_tab
-                if isinstance(tab, tabs.MucTab) and tab.domain:
-                    room += '@%s' % tab.domain
+                if isinstance(tab, tabs.MucTab) and tab.jid.domain:
+                    room += '@%s' % tab.jid.domain
         return (room, set_nick)
 
     @command_args_parser.quoted(0, 2)
