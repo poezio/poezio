@@ -141,21 +141,18 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
 def mam_scroll(tab):
     remote_jid = tab.jid
     text_buffer = tab._text_buffer
-    try:
-        before = tab.stanza_id
-    except:
-        before = None
-        end = datetime.now()
-        if isinstance(tab, tabs.MucTab) is False:
-            for message in text_buffer.messages:
-                time = message.time
-                if time < end:
-                    end = time
+    before = tab.stanza_id
+    end = datetime.now()
+    if isinstance(tab, tabs.MucTab) is False:
+        for message in text_buffer.messages:
+            time = message.time
+            if time < end:
+                end = time
         end = end + timedelta(seconds=-1)
-        tzone = datetime.now().astimezone().tzinfo
-        end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
-        end = end.replace(tzinfo=None)
-        end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
+    tzone = datetime.now().astimezone().tzinfo
+    end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+    end = end.replace(tzinfo=None)
+    end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
     top = True
     pos = tab.text_win.pos
     tab.text_win.pos += tab.text_win.height - 1
