@@ -1996,9 +1996,8 @@ class Core:
             tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
             nick = bm.nick if bm.nick else self.own_nick
             if not tab:
-                self.open_new_room(
+                tab = self.open_new_room(
                     bm.jid, nick, focus=False, password=bm.password)
-            tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
             self.initial_joins.append(bm.jid)
             # do not join rooms that do not have autojoin
             # but display them anyway

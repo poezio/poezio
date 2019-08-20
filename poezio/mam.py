@@ -153,14 +153,13 @@ def mam_scroll(tab):
     end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-    top = True
     pos = tab.text_win.pos
     tab.text_win.pos += tab.text_win.height - 1
     if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
         if before is None:
-            asyncio.ensure_future(query(tab, remote_jid, top, end=end))
+            asyncio.ensure_future(query(tab, remote_jid, top=True, end=end))
         else:
-            asyncio.ensure_future(query(tab, remote_jid, top, before=before))
+            asyncio.ensure_future(query(tab, remote_jid, top=True, before=before))
         tab.query_id = 1
         tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
         if tab.text_win.pos < 0:

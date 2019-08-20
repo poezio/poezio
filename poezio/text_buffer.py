@@ -169,12 +169,12 @@ class TextBuffer:
         nick_size = config.get('max_nick_length')
         for window in self._windows:  # make the associated windows
             # build the lines from the new message
-            if top == True:
+            if top:
                 nb = window.build_message_at_the_top(
-                msg,
-                history=history,
-                timestamp=show_timestamps,
-                nick_size=nick_size)
+                    msg,
+                    history=history,
+                    timestamp=show_timestamps,
+                    nick_size=nick_size)
                 if ret_val == 0:
                     ret_val = nb
                 if window.pos != 0:
