@@ -475,6 +475,7 @@ class ChatTab(Tab):
         assert jid.domain
         self._jid = jid
         self.query_id = 0
+        self.stanza_id = None
 
         self._name = jid.full  # type: Optional[str]
         self.text_win = None
