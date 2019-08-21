@@ -29,6 +29,7 @@ from poezio import xhtml
 from poezio import poopt
 from math import ceil, log10
 from poezio.windows.funcs import truncate_nick, parse_attrs
+from poezio import mam
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import refresh_wrapper
@@ -472,6 +473,8 @@ class ChatTab(Tab):
             jid = JID(jid)
         assert jid.domain
         self._jid = jid
+        self.query_status = False
+        self.last_stanza_id = None
 
         self._name = jid.full  # type: Optional[str]
         self.text_win = None
@@ -924,7 +927,10 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        return self.text_win.scroll_up(self.text_win.height - 1)
+        if self.query_status:
+            return self.text_win.scroll_up(self.text_win.height - 1)
+        else:
+            return mam.mam_scroll(tab=self)
 
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height - 1)

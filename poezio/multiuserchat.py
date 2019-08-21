@@ -118,16 +118,27 @@ def join_groupchat(core,
         passelement = ET.Element('password')
         passelement.text = passwd
         x.append(passelement)
-    if seconds is not None:
-        history = ET.Element('{http://jabber.org/protocol/muc}history')
-        history.attrib['seconds'] = str(seconds)
-        x.append(history)
-    stanza.append(x)
-    core.events.trigger('joining_muc', stanza)
-    to = stanza["to"]
-    stanza.send()
-    xmpp.plugin['xep_0045'].rooms[jid] = {}
-    xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
+    def on_disco(iq):
+        if 'urn:xmpp:mam:2' in iq['disco_info'].get_features():
+            history = ET.Element('{http://jabber.org/protocol/muc}history')
+            history.attrib['seconds'] = str(0)
+            x.append(history)
+        else:
+            if seconds is not None:
+                history = ET.Element('{http://jabber.org/protocol/muc}history')
+                history.attrib['seconds'] = str(seconds)
+                x.append(history)
+        stanza.append(x)
+        core.events.trigger('joining_muc', stanza)
+        to = stanza["to"]
+        stanza.send()
+        xmpp.plugin['xep_0045'].rooms[jid] = {}
+        xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
+
+    try:
+        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
+    except (IqError, IqTimeout):
+        return core.information('Failed to retrieve messages', 'Error')
 
 
 def leave_groupchat(xmpp, jid, own_nick, msg):

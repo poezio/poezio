@@ -23,6 +23,7 @@ from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
 from poezio import fixes
+from poezio import mam
 from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
@@ -156,6 +157,7 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
+        mam.mam_scroll(self)
 
     def leave_room(self, message: str):
         if self.joined:

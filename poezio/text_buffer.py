@@ -139,6 +139,7 @@ class TextBuffer:
                     history: bool = False,
                     user: Optional[str] = None,
                     highlight: bool = False,
+                    top: Optional[bool] = False,
                     identifier: Optional[str] = None,
                     str_time: Optional[str] = None,
                     jid: Optional[str] = None,
@@ -173,6 +174,7 @@ class TextBuffer:
                 history=history,
                 highlight=highlight,
                 timestamp=show_timestamps,
+                top=top,
                 nick_size=nick_size)
             if ret_val == 0:
                 ret_val = nb

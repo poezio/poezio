@@ -312,10 +312,11 @@ class TextWin(BaseTextWin):
     # TODO: figure out the type of history.
     def build_new_message(self,
                           message: Message,
-                          history=None,
+                          history: bool = False,
                           clean: bool = True,
                           highlight: bool = False,
                           timestamp: bool = False,
+                          top: Optional[bool] = False,
                           nick_size: int = 10) -> int:
         """
         Take one message, build it and add it to the list
@@ -324,10 +325,15 @@ class TextWin(BaseTextWin):
         """
         lines = self.build_message(
             message, timestamp=timestamp, nick_size=nick_size)
-        if self.lock:
-            self.lock_buffer.extend(lines)
+        if top:
+            lines.reverse()
+            for line in lines:
+                self.built_lines.insert(0, line)
         else:
-            self.built_lines.extend(lines)
+            if self.lock:
+                self.lock_buffer.extend(lines)
+            else:
+                self.built_lines.extend(lines)
         if not lines or not lines[0]:
             return 0
         if highlight:
