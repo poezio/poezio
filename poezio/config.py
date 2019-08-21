@@ -20,7 +20,6 @@ from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 from shutil import copy2
 from typing import Callable, Dict, List, Optional, Union, Tuple
-from slixmpp import JID
 
 from poezio.args import parse_args
 from poezio import xdg
@@ -225,6 +224,7 @@ class Config(RawConfigParser):
         in the section, we search for the global option if fallback is
         True. And we return `default` as a fallback as a last resort.
         """
+        from slixmpp import JID
         if isinstance(tabname, JID):
             tabname = tabname.full
         if self.default and (not default) and fallback:
