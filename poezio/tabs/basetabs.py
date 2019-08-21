@@ -16,8 +16,7 @@ revolving around chats.
 import logging
 import string
 import time
-import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Union
 
