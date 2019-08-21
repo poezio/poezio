@@ -67,7 +67,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
     try:
         iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
     except (IqError, IqTimeout):
-        return tab.information('Failed to retrieve messages', 'Error')
+        return tab.core.information('Failed to retrieve messages', 'Error')
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
         return tab.core.information("%s doesn't support MAM." % remote_jid, "Info")
     if top:
@@ -113,7 +113,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                     '{%s}%s' % ('jabber:client', 'body')) is not None:
                     msgs.append(msg)
                 if msg_count == 10:
-                    tab.query_id = 0
+                    tab.query_status = False
                     tab.core.refresh_window()
                     return
                 msg_count += 1
@@ -136,7 +136,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 tab.core.refresh_window()
     if len(msgs) == 0:
         return tab.core.information('No more messages left to retrieve', 'Info')
-    tab.query_id = 0
+    tab.query_status = False
 
 def mam_scroll(tab):
     remote_jid = tab.jid
@@ -160,7 +160,7 @@ def mam_scroll(tab):
             asyncio.ensure_future(query(tab, remote_jid, top=True, end=end))
         else:
             asyncio.ensure_future(query(tab, remote_jid, top=True, before=before))
-        tab.query_id = 1
+        tab.query_status = True
         tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
         if tab.text_win.pos < 0:
             tab.text_win.pos = 0
