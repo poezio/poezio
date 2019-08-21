@@ -122,7 +122,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 forwarded = msg['mam_result']['forwarded']
                 timestamp = forwarded['delay']['stamp']
                 message = forwarded['stanza']
-                tab.stanza_id = msg['mam_result']['id']
+                tab.last_stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.text_win.scroll_up(len(tab.text_win.built_lines))
@@ -141,7 +141,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
 def mam_scroll(tab):
     remote_jid = tab.jid
     text_buffer = tab._text_buffer
-    before = tab.stanza_id
+    before = tab.last_stanza_id
     end = datetime.now()
     if isinstance(tab, tabs.MucTab) is False:
         for message in text_buffer.messages:
