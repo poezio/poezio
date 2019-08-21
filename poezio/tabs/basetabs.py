@@ -474,7 +474,7 @@ class ChatTab(Tab):
             jid = JID(jid)
         assert jid.domain
         self._jid = jid
-        self.query_id = 0
+        self.query_status = False
         self.last_stanza_id = None
 
         self._name = jid.full  # type: Optional[str]
@@ -928,10 +928,10 @@ class ChatTab(Tab):
         return self.text_win.scroll_down(1)
 
     def on_scroll_up(self):
-        if self.query_id == 0:
-            return mam.mam_scroll(tab=self)
-        else:
+        if self.query_status:
             return self.text_win.scroll_up(self.text_win.height - 1)
+        else:
+            return mam.mam_scroll(tab=self)
 
     def on_scroll_down(self):
         return self.text_win.scroll_down(self.text_win.height - 1)
