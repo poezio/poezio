@@ -49,17 +49,17 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
         nick = nick.split('/')[0]
         color = get_theme().COLOR_OWN_NICK
     text_buffer.add_message(
-        text,
-        time,
-        nick,
-        color,
-        True,  # History
-        None,  # User
-        False,  # Highlight
-        top, #Top
-        None,  # Identifier
-        None,  # str_time
-        None,  # Jid
+        txt=text,
+        time=time,
+        nickname=nick,
+        nick_color=color,
+        history=True,
+        user=None,
+        highlight=False,
+        top=top,
+        identifier=None,
+        str_time=None,
+        jid=None,
     )
 
 async def query(tab, remote_jid, top, start=None, end=None, before=None):
