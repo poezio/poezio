@@ -108,7 +108,7 @@ class Plugin(E2EEPlugin):
             message['body'] = body
 
     async def encrypt(self, message: Message, _tab) -> None:
-        mto = message['from']
+        mto = message['to']
         mtype = message['type']
         body = message['body']
 
