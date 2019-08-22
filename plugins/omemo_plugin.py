@@ -32,7 +32,7 @@ class Plugin(E2EEPlugin):
     stanza_encryption = False
 
     encrypted_tags = [
-        (slixmpp_omemo.OMEMO_BASE_NS, 'payload'),
+        (slixmpp_omemo.OMEMO_BASE_NS, 'encrypted'),
     ]
 
     def init(self) -> None:
@@ -53,56 +53,6 @@ class Plugin(E2EEPlugin):
         except (PluginCouldNotLoad,):
             log.exception('And error occured when loading the omemo plugin.')
 
-#     def send_message(self, _args):
-#         asyncio.ensure_future(
-#             self._send_encrypted_message(
-#                 "Hello Encrypted World!",
-#                 [JID('pep@bouah.net'), JID('test@bouah.net')],
-#                 mto=JID('test@bouah.net'),
-#                 mtype='chat',
-#             ),
-#         )
-# 
-#     async def _send_encrypted_message(
-#         self,
-#         payload: str,
-#         recipients: List[JID],
-#         mto: Optional[JID] = None,
-#         mtype: Optional[str] = 'chat',
-#     ) -> None:
-#         try:
-#             encrypted = await self.xmpp['xep_0384'].encrypt_message(payload, recipients)
-#         except EncryptionPrepareException as e:
-#             log.debug('Failed to encrypt message: %r', e)
-#             return None
-#         msg = self.core.xmpp.make_message(mto, mtype=mtype)
-#         msg['body'] = 'This message is encrypted with Legacy OMEMO (eu.siacs.conversations.axolotl)'
-#         msg['eme']['namespace'] = 'eu.siacs.conversations.axolotl'
-#         msg.append(encrypted)
-#         log.debug('BAR: message: %r', msg)
-#         msg.send()
-#         return None
-# 
-#     def on_conversation_say_after(
-#         self,
-#         message: Message,
-#         tabs: Union[DynamicConversationTab, StaticConversationTab, ConversationTab, MucTab],
-#     ) -> None:
-#         """
-#         Outbound messages
-#         """
-# 
-#         # Check encryption status with the contact, if enabled, add
-#         # ['omemo_encrypt'] attribute to message and send. Maybe delete
-#         # ['body'] and tab.add_message ourselves to specify typ=0 so messages
-#         # are not logged.
-# 
-#         fromjid = message['from']
-#         if fromjid not in self._enabled_jids:
-#             return None
-# 
-#         self.xmpp['xep_0384'].encrypt_message(message)
-#         return None
 
     def display_error(self, txt) -> None:
         self.api.information(txt, 'Error')
@@ -110,7 +60,6 @@ class Plugin(E2EEPlugin):
     def decrypt(self, message: Message, tab, allow_untrusted=False) -> None:
 
         body = None
-        allow_untrusted = False
         try:
             body = self.core.xmpp['xep_0384'].decrypt_message(message, allow_untrusted)
         except (MissingOwnKey,):
@@ -177,6 +126,7 @@ class Plugin(E2EEPlugin):
                 recipients = [mto]
                 encrypt = await self.core.xmpp['xep_0384'].encrypt_message(body, recipients)
                 message.append(encrypt)
+                return None
             except UndecidedException as exn:
                 # The library prevents us from sending a message to an
                 # untrusted/undecided barejid, so we need to make a decision here.
@@ -185,7 +135,7 @@ class Plugin(E2EEPlugin):
                 self.core.xmpp['xep_0384'].trust(exn.bare_jid, exn.device, exn.ik)
             # TODO: catch NoEligibleDevicesException and MissingBundleException
             except Exception as exn:
-                await self.display_error(
+                self.display_error(
                     'An error occured while attempting to encrypt.\n%r' % exn,
                 )
                 raise
