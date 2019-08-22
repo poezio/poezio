@@ -19,7 +19,7 @@ from poezio.theming import get_theme, dump_tuple
 
 class Message:
     __slots__ = ('txt', 'nick_color', 'time', 'str_time', 'nickname', 'user',
-                 'identifier', 'highlight', 'me', 'old_message', 'revisions',
+                 'identifier', 'top', 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
 
     def __init__(self,
@@ -30,6 +30,7 @@ class Message:
                  history: bool,
                  user: Optional[str],
                  identifier: Optional[str],
+                 top: Optional[bool] = False,
                  str_time: Optional[str] = None,
                  highlight: bool = False,
                  old_message: Optional['Message'] = None,
@@ -61,6 +62,7 @@ class Message:
         self.nickname = nickname
         self.user = user
         self.identifier = identifier
+        self.top = top
         self.highlight = highlight
         self.me = me
         self.old_message = old_message
@@ -155,6 +157,7 @@ class TextBuffer:
             history,
             user,
             identifier,
+            top,
             str_time=str_time,
             highlight=highlight,
             jid=jid,

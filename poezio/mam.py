@@ -95,13 +95,13 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
         if 'conference' in list(iq['disco_info']['identities'])[0]:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                iterator=True, reverse=top, start=start_date, end=end)
+                iterator=True, reverse=top, start=start, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                iterator=True, reverse=top, start=start_date, end=end)
+                iterator=True, reverse=top, start=start, end=end)
             except (IqError, IqTimeout):
                 return tab.core.information('Failed to retrieve messages', 'Error')
     msg_count = 0
