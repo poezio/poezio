@@ -75,7 +75,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=before, rsm={'before':before})
+                    iterator=True, reverse=top, rsm={'before':before})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                     iterator=True, reverse=top, end=end)
@@ -85,7 +85,7 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=before, rsm={'before':before})
+                    iterator=True, reverse=top, rsm={'before':before})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                     iterator=True, reverse=top, end=end)
