@@ -63,6 +63,7 @@ class Plugin(E2EEPlugin):
         body = None
         try:
             body = self.core.xmpp['xep_0384'].decrypt_message(message, allow_untrusted)
+            body = body.decode('utf-8')
         except (MissingOwnKey,):
             # The message is missing our own key, it was not encrypted for
             # us, and we can't decrypt it.
