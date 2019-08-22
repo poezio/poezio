@@ -164,6 +164,7 @@ class BaseTextWin(Win):
             self.build_new_message(
                 message,
                 clean=False,
+                top=message.top,
                 timestamp=with_timestamps,
                 nick_size=nick_size)
             if self.separator_after is message:
