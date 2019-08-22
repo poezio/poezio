@@ -161,7 +161,7 @@ class MAMTab(Tab):
             except ValueError:
                 pass
 
-        asyncio.ensure_future(mam.query(self, remote_jid, start, end, top=False))
+        asyncio.ensure_future(mam.query(self, remote_jid, top=False, start=start, end=end))
 
     @command_args_parser.ignored
     def command_clear(self):

@@ -23,9 +23,9 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-    deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
+        deterministic = config.get_by_tabname('deterministic_nick_colors',
+                                              tab.jid.bare)
         nick = nick.split('/')[1]
         user = tab.get_user_by_name(nick)
         if deterministic:
