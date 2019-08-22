@@ -21,12 +21,7 @@ from typing import (
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
-from poezio.tabs import (
-    ConversationTab,
-    DynamicConversationTab,
-    PrivateTab,
-    MucTab,
-)
+from poezio.tabs import ConversationTab, DynamicConversationTab, StaticConversationTab, PrivateTab, MucTab
 from poezio.plugin import BasePlugin
 
 import logging
@@ -36,6 +31,7 @@ log = logging.getLogger(__name__)
 ChatTabs = Union[
     MucTab,
     DynamicConversationTab,
+    StaticConversationTab,
     PrivateTab,
 ]
 
@@ -133,7 +129,7 @@ class E2EEPlugin(BasePlugin):
         # sure poezio is not sneaking anything past us.
         self.core.xmpp.add_filter('out', self._encrypt)
 
-        for tab_t in (DynamicConversationTab, PrivateTab, MucTab):
+        for tab_t in (DynamicConversationTab, StaticConversationTab, PrivateTab, MucTab):
             self.api.add_tab_command(
                 tab_t,
                 self.encryption_short_name,
