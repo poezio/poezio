@@ -17,6 +17,8 @@ from slixmpp.xmlstream import StanzaBase
 from poezio.tabs import ConversationTab, DynamicConversationTab, StaticConversationTab, PrivateTab, MucTab
 from poezio.plugin import BasePlugin
 
+from asyncio import iscoroutinefunction
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -234,7 +236,11 @@ class E2EEPlugin(BasePlugin):
             return None
 
         # Call the enabled encrypt method
-        self._enabled_tabs[jid](message, tab)
+        func = self._enabled_tabs[jid]
+        if iscoroutinefunction(func):
+            await func(message, tab)
+        else:
+            func(message, tab)
 
         if has_body:
             # Only add EME tag if the message has a body.
