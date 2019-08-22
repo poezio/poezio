@@ -3,6 +3,7 @@ Define the PluginConfig and Plugin classes, plus the SafetyMetaclass.
 These are used in the plugin system added in poezio 0.7.5
 (see plugin_manager.py)
 """
+from asyncio import iscoroutinefunction
 from functools import partial
 from configparser import RawConfigParser
 from poezio.timed_events import TimedEvent, DelayedEvent
@@ -84,8 +85,21 @@ class SafetyMetaclass(type):
                     SafetyMetaclass.core.information(traceback.format_exc(),
                                                      'Error')
                     return None
-
+        async def async_helper(*args, **kwargs):
+            try:
+                return await f(*args, **kwargs)
+            except:
+                if inspect.stack()[1][1] == inspect.getfile(f):
+                    raise
+                elif SafetyMetaclass.core:
+                    log.error('Error in a plugin', exc_info=True)
+                    SafetyMetaclass.core.information(traceback.format_exc(),
+                                                     'Error')
+                    return None
+        if iscoroutinefunction(f):
+            return async_helper
         return helper
+
 
     def __new__(meta, name, bases, class_dict):
         for k, v in class_dict.items():
