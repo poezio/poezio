@@ -40,7 +40,7 @@ class Plugin(E2EEPlugin):
 
         self.info = lambda i: self.api.information(i, 'Info')
 
-        data_dir = os.path.join(DATA_HOME, 'omemo')
+        data_dir = os.path.join(DATA_HOME, 'omemo', self.core.xmpp.boundjid.bare)
         os.makedirs(data_dir, exist_ok=True)
 
         try:
