@@ -144,12 +144,16 @@ class PrivateTab(OneToOneTab):
             and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
+    @refresh_wrapper.always
     @command_args_parser.raw
     def command_say(self, line, attention=False, correct=False):
         if not self.on:
             return
         echo_message = self.jid.resource != self.own_nick
-        msg = self.core.xmpp.make_message(self.jid.full)
+        msg = self.core.xmpp.make_message(
+            mto=self.jid.full,
+            mfrom=self.core.xmpp.boundjid
+        )
         msg['type'] = 'chat'
         msg['body'] = line
         # trigger the event BEFORE looking for colors.
@@ -157,27 +161,11 @@ class PrivateTab(OneToOneTab):
         # be converted in xhtml.
         self.core.events.trigger('private_say', msg, self)
         if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
             return
         user = self.parent_muc.get_user_by_name(self.own_nick)
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if (config.get_by_tabname('group_corrections', self.jid.full)
-                    and echo_message):
-                try:
-                    self.modify_message(
-                        msg['body'],
-                        self.last_sent_message['id'],
-                        msg['id'],
-                        user=user,
-                        jid=self.core.xmpp.boundjid,
-                        nickname=self.own_nick)
-                    replaced = True
-                except:
-                    log.error('Unable to correct a message', exc_info=True)
         else:
             del msg['replace']
 
@@ -192,26 +180,12 @@ class PrivateTab(OneToOneTab):
             msg['attention'] = True
         self.core.events.trigger('private_say_after', msg, self)
         if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
             return
-        if not replaced and echo_message:
-            self.add_message(
-                msg['body'],
-                nickname=self.own_nick or self.core.own_nick,
-                forced_user=user,
-                nick_color=get_theme().COLOR_OWN_NICK,
-                identifier=msg['id'],
-                jid=self.core.xmpp.boundjid,
-                typ=1)
-
         self.last_sent_message = msg
+        self.core.handler.on_normal_message(msg)
         msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
-        self.text_win.refresh()
-        self.input.refresh()
 
     @command_args_parser.quoted(0, 1)
     def command_version(self, args):
