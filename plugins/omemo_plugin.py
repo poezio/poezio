@@ -17,6 +17,7 @@ from poezio.xdg import DATA_HOME
 
 from omemo.exceptions import MissingBundleException
 from slixmpp.stanza import Message
+from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp_omemo import PluginCouldNotLoad, MissingOwnKey, NoAvailableSession
 from slixmpp_omemo import UndecidedException, UntrustedException, EncryptionPrepareException
 import slixmpp_omemo
@@ -144,6 +145,11 @@ class Plugin(E2EEPlugin):
                 )
                 device_list = expect_problems.setdefault(exn.bare_jid, [])
                 device_list.append(exn.device)
+            except (IqError, IqTimeout) as exn:
+                self.display_error(
+                    'An error occured while fetching information on a recipient.\n%r' % exn,
+                )
+                return None
             except Exception as exn:
                 self.display_error(
                     'An error occured while attempting to encrypt.\n%r' % exn,
