@@ -70,7 +70,7 @@ class E2EEPlugin(BasePlugin):
     stanza_encryption = False
 
     #: Whitelist applied to messages when `stanza_encryption` is `False`.
-    tag_whitelist = list(map(lambda x: '{%s}%s' % (x[0], x[1]), [
+    tag_whitelist = [
         (JCLIENT_NS, 'body'),
         (EME_NS, EME_TAG),
         (HINTS_NS, 'store'),
@@ -78,7 +78,7 @@ class E2EEPlugin(BasePlugin):
         (HINTS_NS, 'no-store'),
         (HINTS_NS, 'no-permanent-store'),
         # TODO: Add other encryption mechanisms tags here
-    ]))
+    ]
 
     #: Replaces body with `eme <https://xmpp.org/extensions/xep-0380.html>`_
     #: if set. Should be suitable for most plugins except those using
@@ -268,6 +268,8 @@ class E2EEPlugin(BasePlugin):
         whitelist = self.tag_whitelist
         if self.encrypted_tags is not None:
             whitelist += self.encrypted_tags
+
+        whitelist = {'{%s}%s' % tag for tag in whitelist}
 
         for elem in message.xml[:]:
             if elem.tag not in whitelist:
