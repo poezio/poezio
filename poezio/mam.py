@@ -38,9 +38,9 @@ def add_line(
     # Convert to local timezone
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-
-    deterministic = config.get_by_tabname('deterministic_nick_colors', tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
+        deterministic = config.get_by_tabname('deterministic_nick_colors',
+                                              tab.jid.bare)
         nick = nick.split('/')[1]
         user = tab.get_user_by_name(nick)
         if deterministic:
@@ -59,6 +59,9 @@ def add_line(
             color = random.choice(list(xhtml.colors))
             color = xhtml.colors.get(color)
             color = (color, -1)
+    elif isinstance(tab, tabs.MAMTab):
+        nick = nick.split('/')[1]
+        color = get_theme().COLOR_OWN_NICK
     else:
         nick = nick.split('/')[0]
         color = get_theme().COLOR_OWN_NICK
@@ -112,9 +115,9 @@ async def query(
         else:
             args['end'] = end
     else:
-        args['rsm']['start'] = start
+        args['start'] = start
         if before is not None:
-            args['rsm']['end'] = end
+            args['end'] = end
     try:
         results = core.xmpp['xep_0313'].retrieve(**args)
     except (IqError, IqTimeout):
