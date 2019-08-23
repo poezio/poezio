@@ -23,6 +23,7 @@ from poezio.tabs import (
     StaticConversationTab,
 )
 from poezio.plugin import BasePlugin
+from poezio.theming import get_theme, dump_tuple
 
 from asyncio import iscoroutinefunction
 
@@ -42,6 +43,12 @@ EME_TAG = 'encryption'
 
 JCLIENT_NS = 'jabber:client'
 HINTS_NS = 'urn:xmpp:hints'
+
+class NothingToEncrypt(Exception):
+    """
+    Exception to raise inside the _encrypt filter on stanzas that do not need
+    to be processed.
+    """
 
 
 class E2EEPlugin(BasePlugin):
@@ -129,7 +136,7 @@ class E2EEPlugin(BasePlugin):
         # encrypted is encrypted, and no plain element slips in.
         # Using a stream filter might be a bit too much, but at least we're
         # sure poezio is not sneaking anything past us.
-        self.core.xmpp.add_filter('out', self._encrypt)
+        self.core.xmpp.add_filter('out', self._encrypt_wrapper)
 
         for tab_t in (DynamicConversationTab, StaticConversationTab, PrivateTab, MucTab):
             self.api.add_tab_command(
@@ -193,6 +200,27 @@ class E2EEPlugin(BasePlugin):
     def _encryption_enabled(self, jid: JID) -> bool:
         return jid in self._enabled_tabs and self._enabled_tabs[jid] == self.encrypt
 
+    async def _encrypt_wrapper(self, stanza: StanzaBase) -> Optional[StanzaBase]:
+        """
+        Wrapper around _encrypt() to handle errors and display the message after encryption.
+        """
+        try:
+            result = await self._encrypt(stanza, passthrough=True)
+        except NothingToEncrypt:
+            return stanza
+        except Exception as exc:
+            jid = stanza['to']
+            tab = self.core.tabs.by_name_and_class(jid, ChatTab)
+            msg = ' \n\x19%s}Could not send message: %s' % (
+                    dump_tuple(get_theme().COLOR_CHAR_NACK),
+                    exc,
+            )
+            tab.nack_message(msg, stanza['id'], stanza['from'])
+            # TODO: display exceptions to the user properly
+            log.error('Exception in encrypt:', exc_info=True)
+            return None
+        return result
+
     def _decrypt(self, message: Message, tab: ChatTabs) -> None:
 
         has_eme = False
@@ -219,13 +247,13 @@ class E2EEPlugin(BasePlugin):
 
     async def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
         if not isinstance(stanza, Message) or stanza['type'] not in ('chat', 'groupchat'):
-            return stanza
+            raise NothingToEncrypt()
         message = stanza
 
         jid = stanza['to']
         tab = self.core.tabs.by_name_and_class(jid, ChatTab)
         if not self._encryption_enabled(jid):
-            return message
+            raise NothingToEncrypt()
 
         log.debug('Sending %s message: %r', self.encryption_name, message)
 
