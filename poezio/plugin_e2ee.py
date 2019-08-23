@@ -245,9 +245,9 @@ class E2EEPlugin(BasePlugin):
         # Call the enabled encrypt method
         func = self._enabled_tabs[jid]
         if iscoroutinefunction(func):
-            await func(message, tab)
+            await func(message, tab, passthrough=True)
         else:
-            func(message, tab)
+            func(message, tab, passthrough=True)
 
         if has_body:
             # Only add EME tag if the message has a body.

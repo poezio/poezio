@@ -75,9 +75,12 @@ class SafetyMetaclass(type):
     @staticmethod
     def safe_func(f):
         def helper(*args, **kwargs):
+            passthrough = kwargs.pop('passthrough', False)
             try:
                 return f(*args, **kwargs)
             except:
+                if passthrough:
+                    raise
                 if inspect.stack()[1][1] == inspect.getfile(f):
                     raise
                 elif SafetyMetaclass.core:
@@ -86,9 +89,12 @@ class SafetyMetaclass(type):
                                                      'Error')
                     return None
         async def async_helper(*args, **kwargs):
+            passthrough = kwargs.pop('passthrough', False)
             try:
                 return await f(*args, **kwargs)
             except:
+                if passthrough:
+                    raise
                 if inspect.stack()[1][1] == inspect.getfile(f):
                     raise
                 elif SafetyMetaclass.core:
