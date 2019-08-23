@@ -45,6 +45,9 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
             color = random.choice(list(xhtml.colors))
             color = xhtml.colors.get(color)
             color = (color, -1)
+    elif isinstance(tab, tabs.MAMTab):
+        nick = nick.split('/')[1]
+        color = get_theme().COLOR_OWN_NICK
     else:
         nick = nick.split('/')[0]
         color = get_theme().COLOR_OWN_NICK
