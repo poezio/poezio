@@ -138,13 +138,13 @@ class Plugin(E2EEPlugin):
                 # This is where you prompt your user to ask what to do. In
                 # this bot we will automatically trust undecided recipients.
                 self.core.xmpp['xep_0384'].trust(exn.bare_jid, exn.device, exn.ik)
-            # TODO: catch NoEligibleDevicesException and MissingBundleException
             except MissingBundleException as exn:
                 self.display_error(
                     'Could not find keys for device "%d" of recipient "%s". Skipping.' % (exn.device, exn.bare_jid),
                 )
                 device_list = expect_problems.setdefault(exn.bare_jid, [])
                 device_list.append(exn.device)
+            # TODO: catch NoEligibleDevicesException
             except (IqError, IqTimeout) as exn:
                 self.display_error(
                     'An error occured while fetching information on a recipient.\n%r' % exn,
