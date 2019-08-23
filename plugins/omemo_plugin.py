@@ -55,7 +55,9 @@ class Plugin(E2EEPlugin):
         except (PluginCouldNotLoad,):
             log.exception('And error occured when loading the omemo plugin.')
 
-        self.core.xmpp['xep_0384'].session_start(self.core.xmpp.boundjid)
+        asyncio.ensure_future(
+            self.core.xmpp['xep_0384'].session_start(self.core.xmpp.boundjid)
+        )
 
     def display_error(self, txt) -> None:
         self.api.information(txt, 'Error')
