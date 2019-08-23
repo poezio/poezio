@@ -197,7 +197,7 @@ class E2EEPlugin(BasePlugin):
 
         has_eme = False
         if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
-            message['eme']['namespace'] == self.eme_ns:
+                message['eme']['namespace'] == self.eme_ns:
             has_eme = True
 
         has_encrypted_tag = False
