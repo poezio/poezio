@@ -15,6 +15,7 @@ import logging
 from poezio.plugin_e2ee import E2EEPlugin
 from poezio.xdg import DATA_HOME
 
+from omemo.exceptions import MissingBundleException
 from slixmpp.stanza import Message
 from slixmpp_omemo import PluginCouldNotLoad, MissingOwnKey, NoAvailableSession
 from slixmpp_omemo import UndecidedException, UntrustedException, EncryptionPrepareException
@@ -111,6 +112,7 @@ class Plugin(E2EEPlugin):
         mto = message['to']
         mtype = message['type']
         body = message['body']
+        expect_problems = {}  # type: Optional[Dict[JID, List[int]]]
 
         while True:
             try:
@@ -126,7 +128,7 @@ class Plugin(E2EEPlugin):
                 # TODO: Document expect_problems
                 # TODO: Handle multiple recipients (MUCs)
                 recipients = [mto]
-                encrypt = await self.core.xmpp['xep_0384'].encrypt_message(body, recipients)
+                encrypt = await self.core.xmpp['xep_0384'].encrypt_message(body, recipients, expect_problems)
                 message.append(encrypt)
                 return None
             except UndecidedException as exn:
@@ -136,6 +138,12 @@ class Plugin(E2EEPlugin):
                 # this bot we will automatically trust undecided recipients.
                 self.core.xmpp['xep_0384'].trust(exn.bare_jid, exn.device, exn.ik)
             # TODO: catch NoEligibleDevicesException and MissingBundleException
+            except MissingBundleException as exn:
+                self.display_error(
+                    'Could not find keys for device "%d" of recipient "%s". Skipping.' % (exn.device, exn.bare_jid),
+                )
+                device_list = expect_problems.setdefault(exn.bare_jid, [])
+                device_list.append(exn.device)
             except Exception as exn:
                 self.display_error(
                     'An error occured while attempting to encrypt.\n%r' % exn,
