@@ -103,9 +103,13 @@ class ConversationTab(OneToOneTab):
     def completion(self):
         self.complete_commands(self.input)
 
+    @refresh_wrapper.always
     @command_args_parser.raw
     def command_say(self, line, attention=False, correct=False):
-        msg = self.core.xmpp.make_message(self.get_dest_jid())
+        msg = self.core.xmpp.make_message(
+            mto=self.get_dest_jid(),
+            mfrom=self.core.xmpp.boundjid
+        )
         msg['type'] = 'chat'
         msg['body'] = line
         if not self.nick_sent:
@@ -117,24 +121,10 @@ class ConversationTab(OneToOneTab):
         # be converted in xhtml.
         self.core.events.trigger('conversation_say', msg, self)
         if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
             return
         replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']
-            if config.get_by_tabname('group_corrections', self.jid.full):
-                try:
-                    self.modify_message(
-                        msg['body'],
-                        self.last_sent_message['id'],
-                        msg['id'],
-                        jid=self.core.xmpp.boundjid,
-                        nickname=self.core.own_nick)
-                    replaced = True
-                except CorrectionError:
-                    log.error('Unable to correct a message', exc_info=True)
         else:
             del msg['replace']
         if msg['body'].find('\x19') != -1:
@@ -148,25 +138,12 @@ class ConversationTab(OneToOneTab):
             msg['attention'] = True
         self.core.events.trigger('conversation_say_after', msg, self)
         if not msg['body']:
-            self.cancel_paused_delay()
-            self.text_win.refresh()
-            self.input.refresh()
             return
-        if not replaced:
-            self.add_message(
-                msg['body'],
-                nickname=self.core.own_nick,
-                nick_color=get_theme().COLOR_OWN_NICK,
-                identifier=msg['id'],
-                jid=self.core.xmpp.boundjid,
-                typ=1)
-
         self.last_sent_message = msg
+        self.core.handler.on_normal_message(msg)
         msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
-        self.text_win.refresh()
-        self.input.refresh()
 
     @command_args_parser.quoted(0, 1)
     def command_last_activity(self, args):
