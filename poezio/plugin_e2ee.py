@@ -14,7 +14,14 @@ from typing import Callable, Dict, List, Optional, Union
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
-from poezio.tabs import ConversationTab, DynamicConversationTab, StaticConversationTab, PrivateTab, MucTab
+from poezio.tabs import (
+    ChatTab,
+    ConversationTab,
+    DynamicConversationTab,
+    MucTab,
+    PrivateTab,
+    StaticConversationTab,
+)
 from poezio.plugin import BasePlugin
 
 from asyncio import iscoroutinefunction
@@ -215,8 +222,8 @@ class E2EEPlugin(BasePlugin):
             return stanza
         message = stanza
 
-        tab = self.api.current_tab()
-        jid = tab.jid
+        jid = stanza['to']
+        tab = self.core.tabs.by_name_and_class(jid, ChatTab)
         if not self._encryption_enabled(jid):
             return message
 
