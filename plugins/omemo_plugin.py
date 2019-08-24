@@ -117,7 +117,6 @@ class Plugin(E2EEPlugin):
 
     async def encrypt(self, message: Message, _tab) -> None:
         mto = message['to']
-        mtype = message['type']
         body = message['body']
         expect_problems = {}  # type: Optional[Dict[JID, List[int]]]
 
