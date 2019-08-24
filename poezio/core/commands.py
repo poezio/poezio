@@ -1088,7 +1088,7 @@ class CommandCore:
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
                 '\nYour default nickname is %s\nYou are running poezio %s' %
                 (jid, message if message else '', show
-                 if show else 'available', nick, config_opts.version))
+                 if show else 'available', nick, config_opts.custom_version))
         self.core.information(info, 'Info')
 
     @command_args_parser.ignored
