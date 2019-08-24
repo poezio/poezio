@@ -639,13 +639,13 @@ class Core:
         """
         if isinstance(roster_row, Contact):
             if not self.get_conversation_by_jid(roster_row.bare_jid, False):
-                self.open_conversation_window(roster_row.bare_jid)
+                self.open_conversation_window(JID(roster_row.bare_jid))
             else:
                 self.focus_tab_named(roster_row.bare_jid)
         if isinstance(roster_row, Resource):
             if not self.get_conversation_by_jid(
                     roster_row.jid, False, fallback_barejid=False):
-                self.open_conversation_window(roster_row.jid)
+                self.open_conversation_window(JID(roster_row.jid))
             else:
                 self.focus_tab_named(roster_row.jid)
         self.refresh_window()
@@ -1038,7 +1038,7 @@ class Core:
                     # nothing was found (and we lock it to the resource
                     # later)
                     conversation = self.open_conversation_window(
-                        jid.bare, False)
+                        JID(jid.bare), False)
                 else:
                     conversation = None
         return conversation

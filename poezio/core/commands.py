@@ -1040,7 +1040,7 @@ class CommandCore:
             jid.full, False, fallback_barejid=False)
         muc = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
         if not tab and not muc:
-            tab = self.core.open_conversation_window(jid.full, focus=True)
+            tab = self.core.open_conversation_window(JID(jid.full), focus=True)
         elif muc:
             if jid.resource:
                 tab = self.core.tabs.by_name_and_class(jid.full,
