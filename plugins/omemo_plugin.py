@@ -39,8 +39,8 @@ class Plugin(E2EEPlugin):
     encrypted_tags = [
         (slixmpp_omemo.OMEMO_BASE_NS, 'encrypted'),
     ]
-    trust_state = {'accepted': {'verified', 'unverified'}, 'rejected': {'untrusted'}}
-    supported_tab_types = [DynamicConversationTab, StaticConversationTab, MucTab]
+    trust_states = {'accepted': {'verified', 'unverified'}, 'rejected': {'untrusted'}}
+    supported_tab_types = (DynamicConversationTab, StaticConversationTab, MucTab)
 
     def init(self) -> None:
         super().init()
