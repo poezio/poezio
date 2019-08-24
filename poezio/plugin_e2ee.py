@@ -242,18 +242,36 @@ class E2EEPlugin(BasePlugin):
     def __command_set_state_global(self, args, state='') -> None:
         jid, fpr = args
         if state not in self._all_trust_states:
-            self.api.information('Unknown state for plugin %s: %s' % (self.encryption_short_name, state), 'Error')
+            self.api.information(
+                'Unknown state for plugin %s: %s' % (
+                    self.encryption_short_name, state),
+                'Error'
+            )
             return
         self.store_trust(jid, state, fpr)
 
     @command_args_parser.quoted(1)
     def __command_set_state_local(self, args, state='') -> None:
         if isinstance(self.api.current_tab(), MucTab):
+            self.api.information(
+                'You can only trust each participant of a MUC individually.',
+                'Info',
+            )
             return
-        jid = self.api.get_current_tab().name
+        jid = self.api.current_tab().name
+        if not args:
+            self.api.information(
+                'No fingerprint provided to the command..',
+                'Error',
+            )
+            return
         fpr = args[0]
         if state not in self._all_trust_states:
-            self.api.information('Unknown state for plugin %s: %s' % (self.encryption_short_name, state), 'Error')
+            self.api.information(
+                'Unknown state for plugin %s: %s' % (
+                    self.encryption_short_name, state),
+                'Error',
+            )
             return
         self.store_trust(jid, state, fpr)
 
