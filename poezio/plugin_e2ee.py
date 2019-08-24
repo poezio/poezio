@@ -290,8 +290,8 @@ class E2EEPlugin(BasePlugin):
             jid = stanza['to']
             tab = self.core.tabs.by_name_and_class(jid, ChatTab)
             msg = ' \n\x19%s}Could not send message: %s' % (
-                    dump_tuple(get_theme().COLOR_CHAR_NACK),
-                    exc,
+                dump_tuple(get_theme().COLOR_CHAR_NACK),
+                exc,
             )
             tab.nack_message(msg, stanza['id'], stanza['from'])
             # TODO: display exceptions to the user properly
@@ -375,10 +375,10 @@ class E2EEPlugin(BasePlugin):
         if self.encrypted_tags is not None:
             whitelist += self.encrypted_tags
 
-        whitelist = {'{%s}%s' % tag for tag in whitelist}
+        tag_whitelist = {'{%s}%s' % tag for tag in whitelist}
 
         for elem in message.xml[:]:
-            if elem.tag not in whitelist:
+            if elem.tag not in tag_whitelist:
                 message.xml.remove(elem)
 
         log.debug('Encrypted %s message: %r', self.encryption_name, message)
