@@ -155,10 +155,5 @@ class Plugin(E2EEPlugin):
                     'An error occured while fetching information on a recipient.\n%r' % exn,
                 )
                 return None
-            except Exception as exn:
-                self.display_error(
-                    'An error occured while attempting to encrypt.\n%r' % exn,
-                )
-                raise
 
         return None
