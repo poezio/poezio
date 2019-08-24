@@ -178,6 +178,14 @@ class E2EEPlugin(BasePlugin):
                 help=trust_msg.format(name=self.encryption_short_name, state=state),
             )
 
+        self.api.add_command(
+            self.encryption_short_name + '_fingerprint',
+            self._command_show_fingerprints,
+            usage='[jid]',
+            short='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
+            help='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
+        )
+
         ConversationTab.add_information_element(
             self.encryption_short_name,
             self._display_encryption_status,
@@ -237,6 +245,33 @@ class E2EEPlugin(BasePlugin):
                 '{} encryption enabled for {}'.format(self.encryption_name, jid),
                 'Info',
             )
+
+    def _show_fingerprints(self, jid: JID) -> None:
+        """Display encryption fingerprints for a JID."""
+        fprs = self.get_fingerprints(jid)
+        if len(fprs) == 1:
+            self.api.information(
+                'Fingerprint for %s: %s' % (jid, fprs[0]),
+                'Info',
+            )
+        elif fprs:
+            self.api.information(
+                'Fingerprints for %s:\n\t%s' % (jid, '\n\t'.join(fprs)),
+                'Info',
+            )
+        else:
+            self.api.information(
+                'No fingerprints to display',
+                'Info',
+            )
+
+    @command_args_parser.quoted(0, 1)
+    def _command_show_fingerprints(self, args: List[str]) -> None:
+        if not args and isinstance(self.api.current_tab(), self.supported_tab_types):
+            jid = self.api.current_tab().name
+        else:
+            jid = args[0]
+        self._show_fingerprints(jid)
 
     @command_args_parser.quoted(2)
     def __command_set_state_global(self, args, state='') -> None:
@@ -422,3 +457,12 @@ class E2EEPlugin(BasePlugin):
         """
 
         raise NotImplementedError
+
+    def get_fingerprints(self, jid: JID) -> List[str]:
+        """Show fingerprint(s) for this encryption method and JID.
+
+        To overload in plugins.
+
+        :returns: A list of fingerprints to display
+        """
+        return []
