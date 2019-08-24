@@ -18,6 +18,7 @@ from poezio.xdg import DATA_HOME
 from poezio.tabs import DynamicConversationTab, StaticConversationTab, MucTab
 
 from omemo.exceptions import MissingBundleException
+from slixmpp import JID
 from slixmpp.stanza import Message
 from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp_omemo import PluginCouldNotLoad, MissingOwnKey, NoAvailableSession
@@ -143,13 +144,18 @@ class Plugin(E2EEPlugin):
                 # This is where you prompt your user to ask what to do. In
                 # this bot we will automatically trust undecided recipients.
                 self.core.xmpp['xep_0384'].trust(exn.bare_jid, exn.device, exn.ik)
-            except MissingBundleException as exn:
-                self.display_error(
-                    'Could not find keys for device "%d" of recipient "%s". Skipping.' % (exn.device, exn.bare_jid),
-                )
-                device_list = expect_problems.setdefault(exn.bare_jid, [])
-                device_list.append(exn.device)
             # TODO: catch NoEligibleDevicesException
+            except EncryptionPrepareException as exn:
+                log.debug('FOO: EncryptionPrepareException: %r', exn.errors)
+                for error in exn.errors:
+                    if isinstance(error, MissingBundleException):
+                        self.display_error(
+                            'Could not find keys for device "%d" of recipient "%s". Skipping.' %
+                            (error.device, error.bare_jid),
+                        )
+                        jid = JID(error.bare_jid)
+                        device_list = expect_problems.setdefault(jid, [])
+                        device_list.append(error.device)
             except (IqError, IqTimeout) as exn:
                 self.display_error(
                     'An error occured while fetching information on a recipient.\n%r' % exn,
