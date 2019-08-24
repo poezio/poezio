@@ -117,7 +117,7 @@ class E2EEPlugin(BasePlugin):
     _enabled_tabs = {}  # type: Dict[JID, Callable]
 
     # Tabs that support this encryption mechanism
-    supported_tab_types = []  # type: List[ChatTabs]
+    supported_tab_types = tuple()  # type: Tuple[ChatTabs]
 
     # States for each remote entity
     trust_states = {'accepted': set(), 'rejected': set()}  # type: Dict[str, Set[str]]
