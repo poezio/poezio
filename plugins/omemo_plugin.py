@@ -15,6 +15,7 @@ import logging
 
 from poezio.plugin_e2ee import E2EEPlugin
 from poezio.xdg import DATA_HOME
+from poezio.tabs import DynamicConversationTab, StaticConversationTab, MucTab
 
 from omemo.exceptions import MissingBundleException
 from slixmpp.stanza import Message
@@ -37,6 +38,8 @@ class Plugin(E2EEPlugin):
     encrypted_tags = [
         (slixmpp_omemo.OMEMO_BASE_NS, 'encrypted'),
     ]
+    trust_state = {'accepted': {'verified', 'unverified'}, 'rejected': {'untrusted'}}
+    supported_tab_types = [DynamicConversationTab, StaticConversationTab, MucTab]
 
     def init(self) -> None:
         super().init()
