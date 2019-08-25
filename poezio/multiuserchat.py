@@ -109,7 +109,8 @@ def join_groupchat(core,
                    passwd='',
                    status=None,
                    show=None,
-                   seconds=None):
+                   seconds=None,
+                   tab=None):
     xmpp = core.xmpp
     stanza = xmpp.make_presence(
         pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
@@ -119,7 +120,7 @@ def join_groupchat(core,
         passelement.text = passwd
         x.append(passelement)
     def on_disco(iq):
-        if 'urn:xmpp:mam:2' in iq['disco_info'].get_features():
+        if 'urn:xmpp:mam:2' in iq['disco_info'].get_features() or tab._text_buffer.last_message:
             history = ET.Element('{http://jabber.org/protocol/muc}history')
             history.attrib['seconds'] = str(0)
             x.append(history)
