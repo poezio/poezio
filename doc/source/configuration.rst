@@ -892,14 +892,6 @@ Options related to logging.
 .. glossary::
     :sorted:
 
-    load_log
-
-        **Default value:** ``10``
-
-        The number of line to preload in a chat buffer when it opens. The lines are
-        loaded from the log files.
-        ``0`` or a negative value here disable that option.
-
     log_dir
 
         **Default value:** ``[empty]``
@@ -1176,16 +1168,6 @@ found.
         **Default value:** ``false``
 
         Ignore private messages sent from this room.
-
-    load_log
-
-        **Default value:** ``10``
-
-        The number of line to preload in a chat buffer when it opens. The lines are
-        loaded from the log files.
-        ``0`` or a negative value here disable that option.
-
-        No value makes poezio fall back to the global value.
 
     password
 

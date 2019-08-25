@@ -104,10 +104,6 @@ class PrivateTab(OneToOneTab):
     def remove_information_element(plugin_name):
         del PrivateTab.additional_information[plugin_name]
 
-    def load_logs(self, log_nb):
-        logs = logger.get_logs(self.jid.full.replace('/', '\\'), log_nb)
-        return logs
-
     def log_message(self, txt, nickname, time=None, typ=1):
         """
         Log the messages in the archives.

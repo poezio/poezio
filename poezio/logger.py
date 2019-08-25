@@ -132,52 +132,6 @@ class Logger:
                 'Unable to open the log file (%s)', filename, exc_info=True)
         return None
 
-    def get_logs(self, jid: str,
-                 nb: int = 10) -> Optional[List[Dict[str, Any]]]:
-        """
-        Get the nb last messages from the log history for the given jid.
-        Note that a message may be more than one line in these files, so
-        this function is a little bit more complicated than “read the last
-        nb lines”.
-        """
-        if config.get_by_tabname('load_log', jid) <= 0:
-            return None
-
-        if not config.get_by_tabname('use_log', jid):
-            return None
-
-        if nb <= 0:
-            return None
-
-        self._check_and_create_log_dir(jid, open_fd=False)
-
-        filename = log_dir / jid
-        try:
-            fd = filename.open('rb')
-        except FileNotFoundError:
-            log.info('Non-existing log file (%s)', filename, exc_info=True)
-            return None
-        except OSError:
-            log.error(
-                'Unable to open the log file (%s)', filename, exc_info=True)
-            return None
-        if not fd:
-            return None
-
-        # read the needed data from the file, we just search nb messages by
-        # searching "\nM" nb times from the end of the file.  We use mmap to
-        # do that efficiently, instead of seek()s and read()s which are costly.
-        with fd:
-            try:
-                lines = _get_lines_from_fd(fd, nb=nb)
-            except Exception:  # file probably empty
-                log.error(
-                    'Unable to mmap the log file for (%s)',
-                    filename,
-                    exc_info=True)
-                return None
-        return parse_log_lines(lines, jid)
-
     def log_message(self,
                     jid: str,
                     nick: str,

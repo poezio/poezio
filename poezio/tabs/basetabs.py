@@ -519,14 +519,6 @@ class ChatTab(Tab):
         self.update_commands()
         self.update_keys()
 
-        # Get the logs
-        log_nb = config.get('load_log')
-        logs = self.load_logs(log_nb)
-
-        if logs:
-            for message in logs:
-                self._text_buffer.add_message(**message)
-
     @property
     def name(self) -> str:
         if self._name is not None:
@@ -561,9 +553,6 @@ class ChatTab(Tab):
     @property
     def general_jid(self) -> JID:
         raise NotImplementedError
-
-    def load_logs(self, log_nb: int) -> Optional[List[Dict[str, Any]]]:
-        return logger.get_logs(self.jid.bare, log_nb)
 
     def log_message(self,
                     txt: str,

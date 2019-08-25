@@ -90,7 +90,6 @@ DEFAULT_CONFIG = {
         'keyfile': '',
         'lang': 'en',
         'lazy_resize': True,
-        'load_log': 10,
         'log_dir': '',
         'log_errors': True,
         'max_lines_in_memory': 2048,
