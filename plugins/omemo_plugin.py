@@ -12,6 +12,7 @@
 import os
 import asyncio
 import logging
+from typing import List
 
 from poezio.plugin_e2ee import E2EEPlugin
 from poezio.xdg import DATA_HOME
@@ -66,6 +67,20 @@ class Plugin(E2EEPlugin):
 
     def display_error(self, txt) -> None:
         self.api.information(txt, 'Error')
+
+    def get_fingerprints(self, jid: JID) -> List[str]:
+        devices = self.core.xmpp['xep_0384'].get_trust_for_jid(jid)
+
+        # XXX: What to do with did -> None entries?
+        # XXX: What to do with the active/inactive devices differenciation?
+        # For now I'll merge both. We should probably display them separately
+        # later on.
+        devices['active'].update(devices['inactive'])
+        return [
+            trust['fingerprint']
+            for trust in devices['active'].values()
+            if trust is not None
+        ]
 
     def decrypt(self, message: Message, tab, allow_untrusted=False) -> None:
 
