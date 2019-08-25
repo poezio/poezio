@@ -801,7 +801,7 @@ class HandlerCore:
                 jid=message['from'],
                 typ=1)
         if sent:
-            tab.last_sent_message = msg
+            tab.last_sent_message = message
         else:
             tab.last_remote_message = datetime.now()
 

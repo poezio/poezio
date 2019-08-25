@@ -86,9 +86,9 @@ class PrivateTab(OneToOneTab):
         return self.get_nick()
 
     def ack_message(self, msg_id: str, msg_jid: JID):
-        # special case when talking to oneself
-        if msg_jid == self.core.xmpp.boundjid:
-            msg_jid = self.jid.full
+        if JID(msg_jid).bare == self.core.xmpp.boundjid.bare:
+            msg_jid = JID(self.jid.bare)
+            msg_jid.resource = self.own_nick
         super().ack_message(msg_id, msg_jid)
 
     @staticmethod
@@ -149,10 +149,11 @@ class PrivateTab(OneToOneTab):
     def command_say(self, line, attention=False, correct=False):
         if not self.on:
             return
-        echo_message = self.jid.resource != self.own_nick
+        our_jid = JID(self.jid.bare)
+        our_jid.resource = self.own_nick
         msg = self.core.xmpp.make_message(
             mto=self.jid.full,
-            mfrom=self.core.xmpp.boundjid
+            mfrom=our_jid,
         )
         msg['type'] = 'chat'
         msg['body'] = line
@@ -182,7 +183,7 @@ class PrivateTab(OneToOneTab):
         if not msg['body']:
             return
         self.last_sent_message = msg
-        self.core.handler.on_normal_message(msg)
+        self.core.handler.on_groupchat_private_message(msg, sent=True)
         msg._add_receipt = True
         msg.send()
         self.cancel_paused_delay()
