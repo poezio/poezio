@@ -271,7 +271,7 @@ class E2EEPlugin(BasePlugin):
             jid = self.api.current_tab().name
         else:
             jid = args[0]
-        self._show_fingerprints(jid)
+        self._show_fingerprints(JID(jid))
 
     @command_args_parser.quoted(2)
     def __command_set_state_global(self, args, state='') -> None:
