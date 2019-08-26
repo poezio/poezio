@@ -2008,8 +2008,10 @@ class Core:
                     nick,
                     passwd=bm.password,
                     status=self.status.message,
-                    show=self.status.show)
-                mam.mam_scroll(tab, action='query')
+                    show=self.status.show,
+                    tab=tab)
+                if tab._text_buffer.last_message is None:
+                    mam.mam_scroll(tab, action='query')
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features
