@@ -840,7 +840,7 @@ class Core:
             self.xmpp.reconnect(wait=0.0, reason=msg)
         else:
             for tab in self.get_tabs(tabs.MucTab):
-                tab.command_part(msg)
+                tab.leave_room(msg)
             self.xmpp.disconnect(reason=msg)
 
     def send_message(self, msg: str) -> bool:
