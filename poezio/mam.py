@@ -62,13 +62,13 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
         jid=None,
     )
 
-async def query(tab, remote_jid, top, start=None, end=None, before=None):
+async def query(tab, remote_jid, action, top, start=None, end=None, before=None):
     text_buffer = tab._text_buffer
     try:
         iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
     except (IqError, IqTimeout):
         return tab.core.information('Failed to retrieve messages', 'Error')
-    if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
+    if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features() and action is 'scroll':
         return tab.core.information("%s doesn't support MAM." % remote_jid, "Info")
     if top:
         if isinstance(tab, tabs.MucTab):
@@ -80,7 +80,8 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                     iterator=True, reverse=top, end=end)
             except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+                if action is 'scroll':
+                    return tab.core.information('Failed to retrieve messages', 'Error')
         else:
             try:
                 if before is not None:
@@ -90,7 +91,8 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                     iterator=True, reverse=top, end=end)
             except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+                if action is 'scroll':
+                    return tab.core.information('Failed to retrieve messages', 'Error')
     else:
         if 'conference' in list(iq['disco_info']['identities'])[0]:
             try:
@@ -125,7 +127,8 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 tab.last_stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
-                tab.text_win.scroll_up(len(tab.text_win.built_lines))
+                if action is 'scroll':
+                    tab.text_win.scroll_up(len(tab.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
                 forwarded = msg['mam_result']['forwarded']
@@ -134,11 +137,11 @@ async def query(tab, remote_jid, top, start=None, end=None, before=None):
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.core.refresh_window()
-    if len(msgs) == 0:
+    if len(msgs) == 0 and action is 'scroll':
         return tab.core.information('No more messages left to retrieve', 'Info')
     tab.query_status = False
 
-def mam_scroll(tab):
+def mam_scroll(tab, action):
     remote_jid = tab.jid
     text_buffer = tab._text_buffer
     before = tab.last_stanza_id
@@ -157,9 +160,9 @@ def mam_scroll(tab):
     tab.text_win.pos += tab.text_win.height - 1
     if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
         if before is None:
-            asyncio.ensure_future(query(tab, remote_jid, top=True, end=end))
+            asyncio.ensure_future(query(tab, remote_jid, action, top=True, end=end))
         else:
-            asyncio.ensure_future(query(tab, remote_jid, top=True, before=before))
+            asyncio.ensure_future(query(tab, remote_jid, action, top=True, before=before))
         tab.query_status = True
         tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
         if tab.text_win.pos < 0:
