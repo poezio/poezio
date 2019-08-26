@@ -157,7 +157,7 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
-        mam.mam_scroll(self)
+        mam.mam_scroll(self, action='query')
 
     def leave_room(self, message: str):
         if self.joined:

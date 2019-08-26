@@ -2009,7 +2009,7 @@ class Core:
                     passwd=bm.password,
                     status=self.status.message,
                     show=self.status.show)
-                mam.mam_scroll(tab)
+                mam.mam_scroll(tab, action='query')
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features
