@@ -77,7 +77,7 @@ class Plugin(E2EEPlugin):
         # later on.
         devices['active'].update(devices['inactive'])
         return [
-            trust['fingerprint']
+            slixmpp_omemo.fp_from_ik(trust['key'])
             for trust in devices['active'].values()
             if trust is not None
         ]
