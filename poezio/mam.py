@@ -67,7 +67,8 @@ async def query(tab, remote_jid, action, amount, top, start=None, end=None, befo
     try:
         iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
     except (IqError, IqTimeout):
-        return tab.core.information('Failed to retrieve messages', 'Error')
+        if action is 'scroll':
+            return tab.core.information('%s : Failed to retrieve messages' % remote_jid, 'Error')
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features() and action is 'scroll':
         return tab.core.information("%s doesn't support MAM." % remote_jid, "Info")
     if top:
@@ -81,7 +82,7 @@ async def query(tab, remote_jid, action, amount, top, start=None, end=None, befo
                     iterator=True, reverse=top, end=end, rsm={'max':amount})
             except (IqError, IqTimeout):
                 if action is 'scroll':
-                    return tab.core.information('Failed to retrieve messages', 'Error')
+                    return tab.core.information('%s : Failed to retrieve messages' % remote_jid, 'Error')
         else:
             try:
                 if before is not None:
@@ -92,20 +93,20 @@ async def query(tab, remote_jid, action, amount, top, start=None, end=None, befo
                     iterator=True, reverse=top, end=end, rsm={'max':amount})
             except (IqError, IqTimeout):
                 if action is 'scroll':
-                    return tab.core.information('Failed to retrieve messages', 'Error')
+                    return tab.core.information('%s : Failed to retrieve messages' % remote_jid, 'Error')
     else:
         if 'conference' in list(iq['disco_info']['identities'])[0]:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
                 iterator=True, reverse=top, start=start, end=end)
             except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+                return tab.core.information('%s : Failed to retrieve messages' % remote_jid, 'Error')
         else:
             try:
                 results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
                 iterator=True, reverse=top, start=start, end=end)
             except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+                return tab.core.information('%s : Failed to retrieve messages' % remote_jid, 'Error')
     msg_count = 0
     msgs = []
     async for rsm in results:
