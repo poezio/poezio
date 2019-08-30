@@ -62,7 +62,7 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
         jid=None,
     )
 
-async def query(tab, remote_jid, action, top, start=None, end=None, before=None):
+async def query(tab, remote_jid, action, amount, top, start=None, end=None, before=None):
     text_buffer = tab._text_buffer
     try:
         iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
@@ -75,10 +75,10 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, rsm={'before':before})
+                    iterator=True, reverse=top, rsm={'before':before, 'max':amount})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, end=end)
+                    iterator=True, reverse=top, end=end, rsm={'max':amount})
             except (IqError, IqTimeout):
                 if action is 'scroll':
                     return tab.core.information('Failed to retrieve messages', 'Error')
@@ -86,10 +86,10 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
             try:
                 if before is not None:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, rsm={'before':before})
+                    iterator=True, reverse=top, rsm={'before':before, 'max':amount})
                 else:
                     results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, end=end)
+                    iterator=True, reverse=top, end=end, rsm={'max':amount})
             except (IqError, IqTimeout):
                 if action is 'scroll':
                     return tab.core.information('Failed to retrieve messages', 'Error')
@@ -114,7 +114,7 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
                 if msg['mam_result']['forwarded']['stanza'].xml.find(
                     '{%s}%s' % ('jabber:client', 'body')) is not None:
                     msgs.append(msg)
-                if msg_count == 10:
+                if msg_count == amount:
                     tab.query_status = False
                     tab.core.refresh_window()
                     return
@@ -127,8 +127,6 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
                 tab.last_stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
-                if action is 'scroll':
-                    tab.text_win.scroll_up(len(tab.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
                 forwarded = msg['mam_result']['forwarded']
@@ -137,8 +135,6 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.core.refresh_window()
-    if len(msgs) == 0 and action is 'scroll':
-        return tab.core.information('No more messages left to retrieve', 'Info')
     tab.query_status = False
 
 def mam_scroll(tab, action):
@@ -156,15 +152,14 @@ def mam_scroll(tab, action):
     end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-    pos = tab.text_win.pos
-    tab.text_win.pos += tab.text_win.height - 1
-    if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
-        if before is None:
-            asyncio.ensure_future(query(tab, remote_jid, action, top=True, end=end))
-        else:
-            asyncio.ensure_future(query(tab, remote_jid, action, top=True, before=before))
-        tab.query_status = True
-        tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
-        if tab.text_win.pos < 0:
-            tab.text_win.pos = 0
-    return tab.text_win.pos != pos
+    if action is 'scroll':
+        amount = tab.text_win.height
+    else:
+        amount = 2 * tab.text_win.height
+    if amount >= 100:
+        amount = 99
+    if before is None:
+        asyncio.ensure_future(query(tab, remote_jid, action, amount, top=True, end=end))
+    else:
+        asyncio.ensure_future(query(tab, remote_jid, action, amount, top=True, before=before))
+    tab.query_status = True
