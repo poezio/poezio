@@ -181,7 +181,7 @@ class TextBuffer:
                 nick_size=nick_size)
             if ret_val == 0:
                 ret_val = nb
-            if window.pos != 0:
+            if window.pos != 0 and top is False:
                 window.scroll_up(nb)
 
         return min(ret_val, 1)
