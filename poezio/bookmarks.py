@@ -32,9 +32,8 @@ import functools
 import logging
 from typing import Optional, List, Union
 
-from slixmpp import JID
+from slixmpp import InvalidJID, JID
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
-from poezio.common import safeJID
 from poezio.config import config
 
 log = logging.getLogger(__name__)
@@ -288,7 +287,10 @@ class BookmarkList:
             return
         rooms = rooms.split(':')
         for room in rooms:
-            jid = safeJID(room)
+            try:
+                jid = JID(room)
+            except InvalidJID:
+                continue
             if jid.bare == '':
                 continue
             if jid.resource != '':

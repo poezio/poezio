@@ -13,8 +13,7 @@ from collections import defaultdict
 import logging
 from typing import Dict, Iterator, List, Optional, Union
 
-from poezio.common import safeJID
-from slixmpp import JID
+from slixmpp import InvalidJID, JID
 
 log = logging.getLogger(__name__)
 
@@ -134,8 +133,12 @@ class Contact:
         return self.__item['subscription']
 
     def __contains__(self, value):
-        return value in self.__item.resources or safeJID(
-            value).resource in self.__item.resources
+        try:
+            resource = JID(value).resource
+        except InvalidJID:
+            resource = None
+        return value in self.__item.resources or \
+            (resource is not None and resource in self.__item.resources)
 
     def __len__(self) -> int:
         """Number of resources"""
@@ -147,7 +150,10 @@ class Contact:
 
     def __getitem__(self, key) -> Optional[Resource]:
         """Return the corresponding Resource object, or None"""
-        res = safeJID(key).resource
+        try:
+            res = JID(key).resource
+        except InvalidJID:
+            return None
         resources = self.__item.resources
         item = resources.get(res, None) or resources.get(key, None)
         return Resource(key, item) if item else None

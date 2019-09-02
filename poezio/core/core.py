@@ -35,7 +35,6 @@ from poezio import timed_events
 from poezio import windows
 
 from poezio.bookmarks import BookmarkList
-from poezio.common import safeJID
 from poezio.config import config, firstrun
 from poezio.contact import Contact, Resource
 from poezio.daemon import Executor
@@ -1019,7 +1018,7 @@ class Core:
         If fallback_barejid is True, then this method will seek other
         tabs with the same barejid, instead of searching only by fulljid.
         """
-        jid = safeJID(jid)
+        jid = JID(jid)
         # We first check if we have a static conversation opened
         # with this precise resource
         conversation = self.tabs.by_name_and_class(jid.full,
@@ -1164,7 +1163,7 @@ class Core:
         provided, we open a StaticConversationTab, else a
         DynamicConversationTab
         """
-        if safeJID(jid).resource:
+        if jid.resource:
             new_tab = tabs.StaticConversationTab(self, jid)
         else:
             new_tab = tabs.DynamicConversationTab(self, jid)
