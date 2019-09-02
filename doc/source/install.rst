@@ -15,8 +15,7 @@ using one of these.
 
 - **Archlinux**: poezio_ and poezio-git_ packages are in the AUR
   (use your favourite AUR wrapper to install them)
-- **Gentoo**: It’s uncertain, but the bgo-overlay_ appears to contain poezio
-  and slixmpp packages.
+- **Gentoo**:  `net-im/poezio`_
 - **Fedora**: The stable poezio package was out of date for a long time in
   Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
   the repos since F19.
@@ -242,3 +241,4 @@ image from the Dockerfile at the root of the git repository.
 .. _port: http://ports.su/net/poezio
 .. _poezio/poezio: https://hub.docker.com/r/poezio/poezio/
 .. _buster: https://packages.debian.org/buster/poezio
+.. _net-im/poezio: https://packages.gentoo.org/packages/net-im/poezio
