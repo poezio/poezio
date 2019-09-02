@@ -456,7 +456,7 @@ class MucTab(ChatTab):
         if presence['type'] == 'error':
             self.core.room_error(presence, self.jid.bare)
         elif not self.joined:
-            own = '110' in status_codes or self.own_nick == presence['from'].resource
+            own = '110' in status_codes
             if own or len(self.presence_buffer) >= 10:
                 self.process_presence_buffer(presence, own)
             else:
