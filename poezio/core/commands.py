@@ -857,8 +857,16 @@ class CommandCore:
             return self.help('invite')
 
         reason = args[2]
-        to = safeJID(args[0])
-        room = safeJID(args[1]).bare
+        try:
+            to = JID(args[0])
+        except InvalidJID:
+            self.core.information('Invalid JID specified for invite: %s' % args[0], 'Error')
+            return None
+        try:
+            room = JID(args[1]).bare
+        except InvalidJID:
+            self.core.information('Invalid room JID specified to invite: %s' % args[1], 'Error')
+            return None
         self.core.invite(to.full, room, reason=reason)
         self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
