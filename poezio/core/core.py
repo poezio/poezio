@@ -2010,7 +2010,7 @@ class Core:
                     show=self.status.show,
                     tab=tab)
                 if tab._text_buffer.last_message is None:
-                    mam.mam_scroll(tab, action='query')
+                    asyncio.ensure_future(mam.on_tab_open(tab))
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features

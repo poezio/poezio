@@ -15,6 +15,7 @@ revolving around chats.
 
 import logging
 import string
+import asyncio
 import time
 from datetime import datetime
 from xml.etree import cElementTree as ET
@@ -917,7 +918,7 @@ class ChatTab(Tab):
 
     def on_scroll_up(self):
         if not self.query_status:
-            mam.mam_scroll(tab=self, action='scroll')
+            asyncio.ensure_future(mam.on_scroll_up(tab=self))
         return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):

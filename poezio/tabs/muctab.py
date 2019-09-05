@@ -10,6 +10,7 @@ user list, and updates private tabs when necessary.
 import bisect
 import curses
 import logging
+import asyncio
 import os
 import random
 import re
@@ -157,7 +158,7 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
-        mam.mam_scroll(self, action='query')
+        asyncio.ensure_future(mam.on_tab_open(self))
 
     def leave_room(self, message: str):
         if self.joined:
