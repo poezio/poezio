@@ -20,7 +20,6 @@ from poezio.tabs import OneToOneTab, MucTab, Tab
 
 from poezio import windows
 from poezio import xhtml
-from poezio.common import safeJID
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
