@@ -9,12 +9,20 @@
 import asyncio
 import random
 from datetime import datetime, timedelta, timezone
+from slixmpp import JID
 from slixmpp.exceptions import IqError, IqTimeout
 from poezio.theming import get_theme
 from poezio import tabs
 from poezio import xhtml, colors
 from poezio.config import config
 from poezio.text_buffer import Message, TextBuffer
+from typing import List, Optional, Callable
+
+
+class DiscoInfoException(Exception): pass
+class MAMQueryException(Exception): pass
+class NoMAMSupportException(Exception): pass
+
 
 def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
     """Adds a textual entry in the TextBuffer"""
@@ -62,62 +70,68 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
         jid=None,
     )
 
-async def query(tab, remote_jid, action, top, start=None, end=None, before=None):
-    text_buffer = tab._text_buffer
+async def query(
+        core,
+        groupchat: bool,
+        remote_jid: JID,
+        amount: int,
+        reverse: bool,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+        before: Optional[str] = None,
+        callback: Optional[Callable] = None,
+    ) -> None:
     try:
-        iq = await tab.core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
+        iq = await core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
     except (IqError, IqTimeout):
-        return tab.core.information('Failed to retrieve messages', 'Error')
-    if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features() and action is 'scroll':
-        return tab.core.information("%s doesn't support MAM." % remote_jid, "Info")
-    if top:
-        if isinstance(tab, tabs.MucTab):
-            try:
-                if before is not None:
-                    results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, rsm={'before':before})
-                else:
-                    results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                    iterator=True, reverse=top, end=end)
-            except (IqError, IqTimeout):
-                if action is 'scroll':
-                    return tab.core.information('Failed to retrieve messages', 'Error')
-        else:
-            try:
-                if before is not None:
-                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, rsm={'before':before})
-                else:
-                    results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                    iterator=True, reverse=top, end=end)
-            except (IqError, IqTimeout):
-                if action is 'scroll':
-                    return tab.core.information('Failed to retrieve messages', 'Error')
+        raise DiscoInfoException
+    if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
+        raise NoMAMSupportException
+
+    args = {
+        'iterator': True,
+        'reverse': reverse,
+    }
+
+    if groupchat:
+        args['jid'] = remote_jid
     else:
-        if 'conference' in list(iq['disco_info']['identities'])[0]:
-            try:
-                results = tab.core.xmpp['xep_0313'].retrieve(jid=remote_jid,
-                iterator=True, reverse=top, start=start, end=end)
-            except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+        args['with_jid'] = remote_jid
+
+    args['rsm'] = {'max': amount}
+    if reverse:
+        if before is not None:
+            args['rsm']['before'] = before
         else:
-            try:
-                results = tab.core.xmpp['xep_0313'].retrieve(with_jid=remote_jid,
-                iterator=True, reverse=top, start=start, end=end)
-            except (IqError, IqTimeout):
-                return tab.core.information('Failed to retrieve messages', 'Error')
+            args['end'] = end
+    else:
+        args['rsm']['start'] = start
+        if before is not None:
+            args['rsm']['end'] = end
+    try:
+        results = core.xmpp['xep_0313'].retrieve(**args)
+    except (IqError, IqTimeout):
+        raise MAMQueryException
+    if callback is not None:
+        callback(results)
+
+    return results
+
+async def add_messages_to_buffer(tab, top: bool, results, amount: int) -> None:
+    """Prepends or appends messages to the tab text_buffer"""
+
+    text_buffer = tab._text_buffer
     msg_count = 0
     msgs = []
     async for rsm in results:
         if top:
             for msg in rsm['mam']['results']:
-                if msg['mam_result']['forwarded']['stanza'].xml.find(
-                    '{%s}%s' % ('jabber:client', 'body')) is not None:
+                if msg['mam_result']['forwarded']['stanza'] \
+                .xml.find('{%s}%s' % ('jabber:client', 'body')) is not None:
                     msgs.append(msg)
-                if msg_count == 10:
-                    tab.query_status = False
+                if msg_count == amount:
                     tab.core.refresh_window()
-                    return
+                    return False
                 msg_count += 1
             msgs.reverse()
             for msg in msgs:
@@ -127,8 +141,6 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
                 tab.last_stanza_id = msg['mam_result']['id']
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
-                if action is 'scroll':
-                    tab.text_win.scroll_up(len(tab.text_win.built_lines))
         else:
             for msg in rsm['mam']['results']:
                 forwarded = msg['mam_result']['forwarded']
@@ -137,34 +149,47 @@ async def query(tab, remote_jid, action, top, start=None, end=None, before=None)
                 nick = str(message['from'])
                 add_line(tab, text_buffer, message['body'], timestamp, nick, top)
                 tab.core.refresh_window()
-    if len(msgs) == 0 and action is 'scroll':
-        return tab.core.information('No more messages left to retrieve', 'Info')
-    tab.query_status = False
+    return False
 
-def mam_scroll(tab, action):
+async def fetch_history(tab, end: Optional[datetime] = None, amount: Optional[int] = None):
     remote_jid = tab.jid
-    text_buffer = tab._text_buffer
     before = tab.last_stanza_id
-    end = datetime.now()
-    if isinstance(tab, tabs.MucTab) is False:
-        for message in text_buffer.messages:
-            time = message.time
-            if time < end:
-                end = time
-        end = end + timedelta(seconds=-1)
+    if end is None:
+        end = datetime.now()
     tzone = datetime.now().astimezone().tzinfo
     end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     end = end.replace(tzinfo=None)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
-    pos = tab.text_win.pos
-    tab.text_win.pos += tab.text_win.height - 1
-    if tab.text_win.pos + tab.text_win.height > len(tab.text_win.built_lines):
-        if before is None:
-            asyncio.ensure_future(query(tab, remote_jid, action, top=True, end=end))
-        else:
-            asyncio.ensure_future(query(tab, remote_jid, action, top=True, before=before))
-        tab.query_status = True
-        tab.text_win.pos = len(tab.text_win.built_lines) - tab.text_win.height
-        if tab.text_win.pos < 0:
-            tab.text_win.pos = 0
-    return tab.text_win.pos != pos
+
+    if amount >= 100:
+        amount = 99
+
+    groupchat = isinstance(tab, tabs.MucTab)
+
+    results = await query(tab.core, groupchat, remote_jid, amount, reverse=True, end=end, before=before)
+    query_status = await add_messages_to_buffer(tab, True, results, amount)
+    tab.query_status = query_status
+
+async def on_tab_open(tab) -> None:
+    amount = 2 * tab.text_win.height
+    end = datetime.now()
+    for message in tab._text_buffer.messages:
+        time = message.time
+        if time < end:
+            end = time
+    end = end + timedelta(seconds=-1)
+    try:
+        await fetch_history(tab, end=end, amount=amount)
+    except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
+        return None
+
+async def on_scroll_up(tab) -> None:
+    amount = tab.text_win.height
+    try:
+        await fetch_history(tab, amount=amount)
+    except NoMAMSupportException:
+        tab.core.information('MAM not supported for %r' % tab.jid, 'Info')
+        return None
+    except (MAMQueryException, DiscoInfoException):
+        tab.core.information('An error occured when fetching MAM for %r' % tab.jid, 'Error')
+        return None
