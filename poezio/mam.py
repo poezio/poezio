@@ -198,9 +198,9 @@ async def on_tab_open(tab) -> None:
 async def on_scroll_up(tab) -> None:
     tw = tab.text_win
 
-    # If position in the tab is <= two pages, then fetch MAM, so that we keep
-    # some prefetched margin. A first page should also be prefetched on join
-    # if not already available.
+    # If position in the tab is < two screen pages, then fetch MAM, so that we
+    # keep some prefetched margin. A first page should also be prefetched on
+    # join if not already available.
     total, pos, height = len(tw.built_lines), tw.pos, tw.height
     rest = (total - pos) // height
 
