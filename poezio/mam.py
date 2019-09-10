@@ -6,17 +6,18 @@
     XEP-0313: Message Archive Management(MAM).
 """
 
-import asyncio
 import random
 from datetime import datetime, timedelta, timezone
+from hashlib import md5
+from typing import Optional, Callable
+
 from slixmpp import JID
 from slixmpp.exceptions import IqError, IqTimeout
 from poezio.theming import get_theme
 from poezio import tabs
 from poezio import xhtml, colors
 from poezio.config import config
-from poezio.text_buffer import Message, TextBuffer
-from typing import List, Optional, Callable
+from poezio.text_buffer import TextBuffer
 
 
 class DiscoInfoException(Exception): pass
