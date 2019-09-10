@@ -32,8 +32,7 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
     time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
-    deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              tab.jid.bare)
+    deterministic = config.get_by_tabname('deterministic_nick_colors', tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
         nick = nick.split('/')[1]
         user = tab.get_user_by_name(nick)
@@ -47,8 +46,7 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
                     color = fg_color, -1
                 else:
                     mod = len(theme.LIST_COLOR_NICKNAMES)
-                    nick_pos = int(md5(nick.encode('utf-8')).hexdigest(),
-                                16) % mod
+                    nick_pos = int(md5(nick.encode('utf-8')).hexdigest(), 16) % mod
                     color = theme.LIST_COLOR_NICKNAMES[nick_pos]
         else:
             color = random.choice(list(xhtml.colors))
@@ -70,6 +68,7 @@ def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, 
         str_time=None,
         jid=None,
     )
+
 
 async def query(
         core,
@@ -118,6 +117,7 @@ async def query(
 
     return results
 
+
 async def add_messages_to_buffer(tab, top: bool, results, amount: int) -> None:
     """Prepends or appends messages to the tab text_buffer"""
 
@@ -152,6 +152,7 @@ async def add_messages_to_buffer(tab, top: bool, results, amount: int) -> None:
                 tab.core.refresh_window()
     return False
 
+
 async def fetch_history(tab, end: Optional[datetime] = None, amount: Optional[int] = None):
     remote_jid = tab.jid
     before = tab.last_stanza_id
@@ -167,9 +168,18 @@ async def fetch_history(tab, end: Optional[datetime] = None, amount: Optional[in
 
     groupchat = isinstance(tab, tabs.MucTab)
 
-    results = await query(tab.core, groupchat, remote_jid, amount, reverse=True, end=end, before=before)
+    results = await query(
+        tab.core,
+        groupchat,
+        remote_jid,
+        amount,
+        reverse=True,
+        end=end,
+        before=before,
+    )
     query_status = await add_messages_to_buffer(tab, True, results, amount)
     tab.query_status = query_status
+
 
 async def on_tab_open(tab) -> None:
     amount = 2 * tab.text_win.height
@@ -183,6 +193,7 @@ async def on_tab_open(tab) -> None:
         await fetch_history(tab, end=end, amount=amount)
     except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
         return None
+
 
 async def on_scroll_up(tab) -> None:
     amount = tab.text_win.height
