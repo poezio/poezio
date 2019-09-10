@@ -118,7 +118,7 @@ async def query(
     return results
 
 
-async def add_messages_to_buffer(tab, top: bool, results, amount: int) -> None:
+async def add_messages_to_buffer(tab, top: bool, results, amount: int) -> bool:
     """Prepends or appends messages to the tab text_buffer"""
 
     text_buffer = tab._text_buffer
