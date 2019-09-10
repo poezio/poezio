@@ -474,6 +474,7 @@ class ChatTab(Tab):
             jid = JID(jid)
         assert jid.domain
         self._jid = jid
+        #: Is the tab currently requesting MAM data?
         self.query_status = False
         self.last_stanza_id = None
 
