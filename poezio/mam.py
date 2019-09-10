@@ -196,9 +196,22 @@ async def on_tab_open(tab) -> None:
 
 
 async def on_scroll_up(tab) -> None:
-    amount = tab.text_win.height
+    tw = tab.text_win
+
+    # If position in the tab is <= two pages, then fetch MAM, so that we keep
+    # some prefetched margin. A first page should also be prefetched on join
+    # if not already available.
+    total, pos, height = len(tw.built_lines), tw.pos, tw.height
+    rest = (total - pos) // height
+
+    if rest > 1:
+        return None
+
     try:
-        await fetch_history(tab, amount=amount)
+        # XXX: Do we want to fetch a possibly variable number of messages?
+        # (InfoTab changes height depending on the type of messages, see
+        # `information_buffer_popup_on`).
+        await fetch_history(tab, amount=height)
     except NoMAMSupportException:
         tab.core.information('MAM not supported for %r' % tab.jid, 'Info')
         return None
