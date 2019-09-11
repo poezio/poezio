@@ -25,13 +25,20 @@ class MAMQueryException(Exception): pass
 class NoMAMSupportException(Exception): pass
 
 
-def add_line(tab, text_buffer: TextBuffer, text: str, str_time: str, nick: str, top: bool):
+def add_line(
+        tab,
+        text_buffer: TextBuffer,
+        text: str,
+        time: datetime,
+        nick: str,
+        top: bool,
+    ) -> None:
     """Adds a textual entry in the TextBuffer"""
 
-    time = datetime.strftime(str_time, '%Y-%m-%d %H:%M:%S')
-    time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+    # Convert to local timezone
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
+
     deterministic = config.get_by_tabname('deterministic_nick_colors', tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
         nick = nick.split('/')[1]
