@@ -191,6 +191,7 @@ async def fetch_history(tab, end: Optional[datetime] = None, amount: Optional[in
 async def on_tab_open(tab) -> None:
     amount = 2 * tab.text_win.height
     end = datetime.now()
+    tab.query_status = True
     for message in tab._text_buffer.messages:
         time = message.time
         if time < end:
@@ -199,6 +200,7 @@ async def on_tab_open(tab) -> None:
     try:
         await fetch_history(tab, end=end, amount=amount)
     except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
+        tab.query_status = False
         return None
 
 
@@ -210,6 +212,7 @@ async def on_scroll_up(tab) -> None:
     # join if not already available.
     total, pos, height = len(tw.built_lines), tw.pos, tw.height
     rest = (total - pos) // height
+    tab.query_status = True
 
     if rest > 1:
         return None
