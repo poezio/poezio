@@ -30,7 +30,7 @@ class Plugin(BasePlugin):
 
     def embed_image_url(self, args):
         tab = self.api.current_tab()
-        message = self.core.xmpp.make_message(tab.name)
+        message = self.core.xmpp.make_message(tab.jid)
         message['body'] = args
         message['oob']['url'] = args
         if isinstance(tab, tabs.MucTab):
