@@ -85,6 +85,9 @@ def main():
     config.setup_logging()
     config.post_logging_setup()
 
+    import logging
+    logging.raiseExceptions = False
+
     from poezio.config import options
 
     if options.check_config:
