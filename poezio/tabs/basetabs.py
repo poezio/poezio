@@ -31,7 +31,13 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from poezio import mam, poopt, timed_events, xhtml, windows
+from poezio import (
+    mam,
+    poopt,
+    timed_events,
+    xhtml,
+    windows
+)
 from poezio.core.structs import Command, Completion, Status
 from poezio.common import safeJID
 from poezio.config import config
