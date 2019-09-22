@@ -9,26 +9,14 @@ from math import ceil, log10
 from typing import Optional, List, Union
 
 from poezio.windows.base_wins import Win, FORMAT_CHAR
-from poezio.windows.funcs import truncate_nick, parse_attrs
+from poezio.ui.funcs import truncate_nick, parse_attrs
 
 from poezio import poopt
 from poezio.config import config
 from poezio.theming import to_curses_attr, get_theme, dump_tuple
-from poezio.text_buffer import Message
+from poezio.ui.types import Line, Message
 
 log = logging.getLogger(__name__)
-
-
-# msg is a reference to the corresponding Message object. text_start and
-# text_end are the position delimiting the text in this line.
-class Line:
-    __slots__ = ('msg', 'start_pos', 'end_pos', 'prepend')
-
-    def __init__(self, msg: Message, start_pos: int, end_pos: int, prepend: str) -> None:
-        self.msg = msg
-        self.start_pos = start_pos
-        self.end_pos = end_pos
-        self.prepend = prepend
 
 
 class BaseTextWin(Win):
@@ -360,55 +348,7 @@ class TextWin(BaseTextWin):
         """
         if message is None:  # line separator
             return [None]
-        txt = message.txt
-        if not txt:
-            return []
-        theme = get_theme()
-        if len(message.str_time) > 8:
-            default_color = (
-                FORMAT_CHAR + dump_tuple(theme.COLOR_LOG_MSG) + '}')  # type: Optional[str]
-        else:
-            default_color = None
-        ret = []  # type: List[Union[None, Line]]
-        nick = truncate_nick(message.nickname, nick_size)
-        offset = 0
-        if message.ack:
-            if message.ack > 0:
-                offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
-            else:
-                offset += poopt.wcswidth(theme.CHAR_NACK) + 1
-        if nick:
-            offset += poopt.wcswidth(nick) + 2  # + nick + '> ' length
-        if message.revisions > 0:
-            offset += ceil(log10(message.revisions + 1))
-        if message.me:
-            offset += 1  # '* ' before and ' ' after
-        if timestamp:
-            if message.str_time:
-                offset += 1 + len(message.str_time)
-            if theme.CHAR_TIME_LEFT and message.str_time:
-                offset += 1
-            if theme.CHAR_TIME_RIGHT and message.str_time:
-                offset += 1
-        lines = poopt.cut_text(txt, self.width - offset - 1)
-        prepend = default_color if default_color else ''
-        attrs = []  # type: List[str]
-        for line in lines:
-            saved = Line(
-                msg=message,
-                start_pos=line[0],
-                end_pos=line[1],
-                prepend=prepend)
-            attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
-            if attrs:
-                prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
-            else:
-                if default_color:
-                    prepend = default_color
-                else:
-                    prepend = ''
-            ret.append(saved)
-        return ret
+        return message.render(self.width, timestamp, nick_size)
 
     def refresh(self) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
