@@ -488,7 +488,7 @@ def convert_simple_to_full_colors(text: str) -> str:
     a \x19n} formatted one.
     """
     # TODO, have a single list of this. This is some sort of
-    # duplicate from windows.format_chars
+    # duplicate from ui.consts.FORMAT_CHARS
     mapping = str.maketrans({
         '\x0E': '\x19b',
         '\x0F': '\x19o',
