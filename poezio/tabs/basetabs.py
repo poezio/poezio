@@ -23,7 +23,13 @@ from datetime import datetime
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from poezio import mam, poopt, timed_events, xhtml, windows
+from poezio import (
+    mam,
+    poopt,
+    timed_events,
+    xhtml,
+    windows
+)
 from poezio.core.structs import Command, Completion, Status
 from poezio.common import safeJID
 from poezio.config import config
