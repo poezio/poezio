@@ -4,14 +4,14 @@ Standalone functions used by the modules
 
 import string
 from typing import Optional, List
-from poezio.windows.base_wins import FORMAT_CHAR, format_chars
+from poezio.ui.consts import FORMAT_CHAR, FORMAT_CHARS
 
 DIGITS = string.digits + '-'
 
 
 def find_first_format_char(text: str,
                            chars: str = None) -> int:
-    to_find = chars or format_chars
+    to_find = chars or FORMAT_CHARS 
     pos = -1
     for char in to_find:
         p = text.find(char)
