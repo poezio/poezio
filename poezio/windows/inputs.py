@@ -10,8 +10,9 @@ from typing import List, Dict, Callable, Optional
 from poezio import keyboard
 from poezio import common
 from poezio import poopt
-from poezio.windows.base_wins import Win, format_chars
-from poezio.windows.funcs import find_first_format_char
+from poezio.windows.base_wins import Win
+from poezio.ui.consts import FORMAT_CHARS
+from poezio.ui.funcs import find_first_format_char
 from poezio.config import config
 from poezio.theming import to_curses_attr
 
@@ -487,7 +488,7 @@ class Input(Win):
         (\x0E to \x19 instead of \x19 + attr). We do not use any }
         char in this version
         """
-        chars = format_chars + '\n'
+        chars = FORMAT_CHARS + '\n'
         if y is not None and x is not None:
             self.move(y, x)
         format_char = find_first_format_char(text, chars)
@@ -497,7 +498,7 @@ class Input(Win):
             if text[format_char] == '\n':
                 attr_char = '|'
             else:
-                attr_char = self.text_attributes[format_chars.index(
+                attr_char = self.text_attributes[FORMAT_CHARS.index(
                     text[format_char])]
             self.addstr(text[:format_char])
             self.addstr(attr_char, curses.A_REVERSE)
@@ -695,7 +696,7 @@ class MessageInput(HistoryInput):
 
         def cb(attr_char):
             if attr_char in self.text_attributes:
-                char = format_chars[self.text_attributes.index(attr_char)]
+                char = FORMAT_CHARS[self.text_attributes.index(attr_char)]
                 self.do_command(char, False)
                 self.rewrite_text()
 

@@ -29,7 +29,7 @@ from poezio import windows
 from poezio import xhtml
 from poezio import poopt
 from math import ceil, log10
-from poezio.windows.funcs import truncate_nick, parse_attrs
+from poezio.ui.funcs import truncate_nick, parse_attrs
 from poezio import mam
 from poezio.common import safeJID
 from poezio.config import config
