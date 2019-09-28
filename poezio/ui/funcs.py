@@ -22,12 +22,14 @@ def find_first_format_char(text: str,
     return pos
 
 
-def truncate_nick(nick: Optional[str], size=10) -> Optional[str]:
+def truncate_nick(nick: Optional[str], size=10) -> str:
     if size < 1:
         size = 1
-    if nick and len(nick) > size:
-        return nick[:size] + '…'
-    return nick
+    if nick:
+        if len(nick) > size:
+            return nick[:size] + '…'
+        return nick
+    return ''
 
 
 def parse_attrs(text: str, previous: Optional[List[str]] = None) -> List[str]:

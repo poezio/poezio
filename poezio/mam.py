@@ -72,7 +72,6 @@ def add_line(
         highlight=False,
         top=top,
         identifier=None,
-        str_time=None,
         jid=None,
     )
 
