@@ -1348,7 +1348,10 @@ class Core:
         colors = get_theme().INFO_COLORS
         color = colors.get(typ.lower(), colors.get('default', None))
         nb_lines = self.information_buffer.add_message(
-            msg, nickname=typ, nick_color=color)
+            txt=msg,
+            nickname=typ,
+            nick_color=color
+        )
         popup_on = config.get('information_buffer_popup_on').split()
         if isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
             self.refresh_window()

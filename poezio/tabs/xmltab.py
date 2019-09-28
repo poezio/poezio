@@ -262,7 +262,10 @@ class XMLTab(Tab):
         else:
             xml = self.core_buffer.messages[:]
         text = '\n'.join(
-            ('%s %s %s' % (msg.str_time, msg.nickname, clean_text(msg.txt))
+            ('%s %s %s' % (
+                msg.time.strftime('%H:%M:%S'),
+                msg.nickname,
+                clean_text(msg.txt))
              for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
