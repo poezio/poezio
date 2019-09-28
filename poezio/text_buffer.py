@@ -61,7 +61,6 @@ class TextBuffer:
                     highlight: bool = False,
                     top: Optional[bool] = False,
                     identifier: Optional[str] = None,
-                    str_time: Optional[str] = None,
                     jid: Optional[str] = None,
                     ack: int = 0) -> int:
         """
@@ -69,14 +68,13 @@ class TextBuffer:
         """
         msg = Message(
             txt,
-            time,
-            nickname,
-            nick_color,
-            history,
-            user,
-            identifier,
-            top,
-            str_time=str_time,
+            time=time,
+            nickname=nickname,
+            nick_color=nick_color,
+            history=history,
+            user=user,
+            identifier=identifier,
+            top=top,
             highlight=highlight,
             jid=jid,
             ack=ack)
@@ -168,7 +166,7 @@ class TextBuffer:
 
         if msg.user and msg.user is not user:
             raise CorrectionError("Different users")
-        elif len(msg.str_time) > 8:  # ugly
+        elif msg.history:
             raise CorrectionError("Delayed message")
         elif not msg.user and (msg.jid is None or jid is None):
             raise CorrectionError('Could not check the '
@@ -181,13 +179,13 @@ class TextBuffer:
         if not time:
             time = msg.time
         message = Message(
-            txt,
-            time,
-            msg.nickname,
-            msg.nick_color,
-            False,
-            msg.user,
-            new_id,
+            txt=txt,
+            time=time,
+            nickname=msg.nickname,
+            nick_color=msg.nick_color,
+            history=False,
+            user=msg.user,
+            identifier=new_id,
             highlight=highlight,
             old_message=msg,
             revisions=msg.revisions + 1,
