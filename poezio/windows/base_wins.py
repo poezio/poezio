@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
+from contextlib import contextmanager
 from typing import Optional, Tuple
 
 from poezio.theming import to_curses_attr, read_tuple
@@ -72,6 +73,19 @@ class Win:
             # more specifically, when the added string reaches the end
             # of the screen.
             pass
+
+    @contextmanager
+    def colored_text(self, color: Optional[Tuple]=None, attr: Optional[int]=None):
+        """Context manager which sets up an attr/color when inside"""
+        if attr is None:
+            if color is not None:
+                attr = to_curses_attr(color)
+            else:
+                yield None
+                return
+        self._win.attron(attr)
+        yield None
+        self._win.attroff(attr)
 
     def addstr(self, *args) -> None:
         """
