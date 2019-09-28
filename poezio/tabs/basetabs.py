@@ -38,6 +38,7 @@ from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
 from poezio.theming import to_curses_attr, get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+from poezio.ui.consts import LONG_FORMAT_LENGTH
 
 log = logging.getLogger(__name__)
 
@@ -809,12 +810,8 @@ class ChatTab(Tab):
             if message.me:
                 offset += 1
             if timestamp:
-                if message.str_time:
-                    offset += 1 + len(message.str_time)
-                if theme.CHAR_TIME_LEFT and message.str_time:
-                    offset += 1
-                if theme.CHAR_TIME_RIGHT and message.str_time:
-                    offset += 1
+                if message.history:
+                    offset += 1 + LONG_FORMAT_LENGTH
             lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
             for line in lines:
                 built_lines.append(line)
