@@ -14,7 +14,8 @@ from poezio.ui.funcs import truncate_nick, parse_attrs
 from poezio import poopt
 from poezio.config import config
 from poezio.theming import to_curses_attr, get_theme, dump_tuple
-from poezio.ui.types import Line, Message
+from poezio.ui.types import Message
+from poezio.ui.render import Line, build_lines, write_pre
 
 log = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class BaseTextWin(Win):
         Build a list of lines from a message, without adding it
         to a list
         """
-        return []
+        return build_lines(message, self.width, timestamp, nick_size)
 
     def refresh(self) -> None:
         pass
@@ -116,20 +117,6 @@ class BaseTextWin(Win):
         write the text of a line.
         """
         self.addstr_colored(txt, y, x)
-
-    def write_time(self, time: str) -> int:
-        """
-        Write the date on the yth line of the window
-        """
-        if time:
-            color = get_theme().COLOR_TIME_STRING
-            curses_color = to_curses_attr(color)
-            self._win.attron(curses_color)
-            self.addstr(time)
-            self._win.attroff(curses_color)
-            self.addstr(' ')
-            return poopt.wcswidth(time) + 1
-        return 0
 
     # TODO: figure out the type of room.
     def resize(self, height: int, width: int, y: int, x: int, room=None) -> None:
@@ -341,15 +328,6 @@ class TextWin(BaseTextWin):
                 self.built_lines.pop(0)
         return len(lines)
 
-    def build_message(self, message: Optional[Message], timestamp: bool = False, nick_size: int = 10) -> List[Union[None, Line]]:
-        """
-        Build a list of lines from a message, without adding it
-        to a list
-        """
-        if message is None:  # line separator
-            return [None]
-        return message.render(self.width, timestamp, nick_size)
-
     def refresh(self) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         if self.height <= 0:
@@ -367,11 +345,10 @@ class TextWin(BaseTextWin):
             if line:
                 msg = line.msg
                 if line.start_pos == 0:
-                    offset = self.write_pre_msg(msg, with_timestamps,
-                                                nick_size)
+                    offset = write_pre(msg, self, with_timestamps, nick_size)
                 elif y == 0:
-                    offset = self.compute_offset(msg, with_timestamps,
-                                                 nick_size)
+                    offset = msg.compute_offset(with_timestamps,
+                                                nick_size)
                 self.write_text(
                     y, offset,
                     line.prepend + line.msg.txt[line.start_pos:line.end_pos])
@@ -382,120 +359,11 @@ class TextWin(BaseTextWin):
         self._win.attrset(0)
         self._refresh()
 
-    def compute_offset(self, msg, with_timestamps, nick_size) -> int:
-        offset = 0
-        if with_timestamps and msg.str_time:
-            offset += poopt.wcswidth(msg.str_time) + 1
-
-        if not msg.nickname:  # not a message, nothing to do afterwards
-            return offset
-
-        nick = truncate_nick(msg.nickname, nick_size)
-        offset += poopt.wcswidth(nick)
-        if msg.ack:
-            theme = get_theme()
-            if msg.ack > 0:
-                offset += poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
-            else:
-                offset += poopt.wcswidth(theme.CHAR_NACK) + 1
-        if msg.me:
-            offset += 3
-        else:
-            offset += 2
-        if msg.revisions:
-            offset += ceil(log10(msg.revisions + 1))
-        offset += self.write_revisions(msg)
-        return offset
-
-    def write_pre_msg(self, msg, with_timestamps, nick_size) -> int:
-        offset = 0
-        if with_timestamps:
-            offset += self.write_time(msg.str_time)
-
-        if not msg.nickname:  # not a message, nothing to do afterwards
-            return offset
-
-        nick = truncate_nick(msg.nickname, nick_size)
-        offset += poopt.wcswidth(nick)
-        if msg.nick_color:
-            color = msg.nick_color
-        elif msg.user:
-            color = msg.user.color
-        else:
-            color = None
-        if msg.ack:
-            if msg.ack > 0:
-                offset += self.write_ack()
-            else:
-                offset += self.write_nack()
-        if msg.me:
-            self._win.attron(to_curses_attr(get_theme().COLOR_ME_MESSAGE))
-            self.addstr('* ')
-            self.write_nickname(nick, color, msg.highlight)
-            offset += self.write_revisions(msg)
-            self.addstr(' ')
-            offset += 3
-        else:
-            self.write_nickname(nick, color, msg.highlight)
-            offset += self.write_revisions(msg)
-            self.addstr('> ')
-            offset += 2
-        return offset
-
-    def write_revisions(self, msg) -> int:
-        if msg.revisions:
-            self._win.attron(
-                to_curses_attr(get_theme().COLOR_REVISIONS_MESSAGE))
-            self.addstr('%d' % msg.revisions)
-            self._win.attrset(0)
-            return ceil(log10(msg.revisions + 1))
-        return 0
-
     def write_line_separator(self, y) -> None:
         theme = get_theme()
         char = theme.CHAR_NEW_TEXT_SEPARATOR
         self.addnstr(y, 0, char * (self.width // len(char) - 1), self.width,
                      to_curses_attr(theme.COLOR_NEW_TEXT_SEPARATOR))
-
-    def write_ack(self) -> int:
-        theme = get_theme()
-        color = theme.COLOR_CHAR_ACK
-        self._win.attron(to_curses_attr(color))
-        self.addstr(theme.CHAR_ACK_RECEIVED)
-        self._win.attroff(to_curses_attr(color))
-        self.addstr(' ')
-        return poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
-
-    def write_nack(self) -> int:
-        theme = get_theme()
-        color = theme.COLOR_CHAR_NACK
-        self._win.attron(to_curses_attr(color))
-        self.addstr(theme.CHAR_NACK)
-        self._win.attroff(to_curses_attr(color))
-        self.addstr(' ')
-        return poopt.wcswidth(theme.CHAR_NACK) + 1
-
-    def write_nickname(self, nickname, color, highlight=False) -> None:
-        """
-        Write the nickname, using the user's color
-        and return the number of written characters
-        """
-        if not nickname:
-            return
-        if highlight:
-            hl_color = get_theme().COLOR_HIGHLIGHT_NICK
-            if hl_color == "reverse":
-                self._win.attron(curses.A_REVERSE)
-            else:
-                color = hl_color
-        if color:
-            self._win.attron(to_curses_attr(color))
-        self.addstr(nickname)
-        if color:
-            self._win.attroff(to_curses_attr(color))
-        if highlight and hl_color == "reverse":
-            self._win.attroff(curses.A_REVERSE)
-
     def modify_message(self, old_id, message) -> None:
         """
         Find a message, and replace it with a new one
@@ -544,28 +412,12 @@ class XMLTextWin(BaseTextWin):
             if line:
                 msg = line.msg
                 if line.start_pos == 0:
-                    if msg.nickname == theme.CHAR_XML_OUT:
-                        color = theme.COLOR_XML_OUT
-                    elif msg.nickname == theme.CHAR_XML_IN:
-                        color = theme.COLOR_XML_IN
-                    self.write_time(msg.str_time)
-                    self.write_prefix(msg.nickname, color)
-                    self.addstr(' ')
+                    offset = write_pre(msg, self, True, 10)
             if y != self.height - 1:
                 self.addstr('\n')
         self._win.attrset(0)
         for y, line in enumerate(lines):
-            offset = 0
-            # Offset for the timestamp (if any) plus a space after it
-            offset += len(line.msg.str_time)
-            # space
-            offset += 1
-
-            # Offset for the prefix
-            offset += poopt.wcswidth(truncate_nick(line.msg.nickname))
-            # space
-            offset += 1
-
+            offset = msg.compute_offset(True, 10)
             self.write_text(
                 y, offset,
                 line.prepend + line.msg.txt[line.start_pos:line.end_pos])
@@ -573,43 +425,3 @@ class XMLTextWin(BaseTextWin):
                 self.addstr('\n')
         self._win.attrset(0)
         self._refresh()
-
-    def build_message(self, message: Message, timestamp: bool = False, nick_size: int = 10) -> List[Line]:
-        txt = message.txt
-        ret = []
-        default_color = None
-        nick = truncate_nick(message.nickname, nick_size)
-        offset = 0
-        if nick:
-            offset += poopt.wcswidth(nick) + 1  # + nick + ' ' length
-        if message.str_time:
-            offset += 1 + len(message.str_time)
-        theme = get_theme()
-        if theme.CHAR_TIME_LEFT and message.str_time:
-            offset += 1
-        if theme.CHAR_TIME_RIGHT and message.str_time:
-            offset += 1
-        lines = poopt.cut_text(txt, self.width - offset - 1)
-        prepend = default_color if default_color else ''
-        attrs = []  # type: List[str]
-        for line in lines:
-            saved = Line(
-                msg=message,
-                start_pos=line[0],
-                end_pos=line[1],
-                prepend=prepend)
-            attrs = parse_attrs(message.txt[line[0]:line[1]], attrs)
-            if attrs:
-                prepend = FORMAT_CHAR + FORMAT_CHAR.join(attrs)
-            else:
-                if default_color:
-                    prepend = default_color
-                else:
-                    prepend = ''
-            ret.append(saved)
-        return ret
-
-    def write_prefix(self, nickname, color) -> None:
-        self._win.attron(to_curses_attr(color))
-        self.addstr(truncate_nick(nickname))
-        self._win.attroff(to_curses_attr(color))
