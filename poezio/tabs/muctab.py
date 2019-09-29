@@ -1052,13 +1052,15 @@ class MucTab(ChatTab):
         """
         return self.topic.replace('\n', '|')
 
-    def log_message(self, txt, nickname, time=None, typ=1):
+    def log_message(self, msg: Message, typ=1):
         """
         Log the messages in the archives, if it needs
         to be
         """
-        if time is None and self.joined:  # don't log the history messages
-            if not logger.log_message(self.jid.bare, nickname, txt, typ=typ):
+        if not isinstance(msg, Message):
+            return
+        if not msg.history and self.joined:  # don't log the history messages
+            if not logger.log_message(self.jid.bare, msg.nickname, msg.txt, typ=typ):
                 self.core.information('Unable to write in the log file',
                                       'Error')
 
@@ -1071,54 +1073,25 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def add_message(self, txt, time=None, nickname=None, **kwargs):
+    def add_message(self, msg: BaseMessage, typ=1):
         """
         Note that user can be None even if nickname is not None. It happens
         when we receive an history message said by someone who is not
         in the room anymore
         Return True if the message highlighted us. False otherwise.
         """
-
         # reset self-ping interval
         if self.self_ping_event:
             self.enable_self_ping_event()
-
-        self.log_message(txt, nickname, time=time, typ=kwargs.get('typ', 1))
-        args = dict()
-        for key, value in kwargs.items():
-            if key not in ('typ', 'forced_user'):
-                args[key] = value
-        if nickname is not None:
-            user = self.get_user_by_name(nickname)
-        else:
-            user = None
-
-        if user:
-            user.set_last_talked(datetime.now())
-            args['user'] = user
-        if not user and kwargs.get('forced_user'):
-            args['user'] = kwargs['forced_user']
-
-        if (not time and nickname and nickname != self.own_nick
-                and self.state != 'current'):
-            if (self.state != 'highlight'
-                    and config.get_by_tabname('notify_messages', self.jid.bare)):
-                self.state = 'message'
-        if time and not txt.startswith('/me'):
-            txt = '\x19%(info_col)s}%(txt)s' % {
-                'txt': txt,
-                'info_col': dump_tuple(get_theme().COLOR_LOG_MSG)
-            }
-        elif not nickname:
-            txt = '\x19%(info_col)s}%(txt)s' % {
-                'txt': txt,
-                'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            }
-        elif not kwargs.get('highlight'):  # TODO
-            args['highlight'] = self.do_highlight(txt, time, nickname)
-        time = time or datetime.now()
-        self._text_buffer.add_message(txt, time, nickname, **args)
-        return args.get('highlight', False)
+        super().add_message(msg, typ=typ)
+        if not isinstance(msg, Message):
+            return
+        if msg.user:
+            msg.user.set_last_talked(msg.time)
+        if config.get_by_tabname('notify_messages', self.jid.bare) and self.state != 'current':
+            self.state = 'message'
+        msg.highlight = self.do_highlight(msg.txt, msg.time, msg.nickname)
+        return msg.highlight
 
     def modify_message(self,
                        txt,
