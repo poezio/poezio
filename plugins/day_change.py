@@ -4,11 +4,12 @@ date has changed.
 
 """
 
-from gettext import gettext as _
-from poezio.plugin import BasePlugin
 import datetime
-from poezio import tabs
-from poezio import timed_events
+from gettext import gettext as _
+
+from poezio import timed_events, tabs
+from poezio.plugin import BasePlugin
+from poezio.ui.types import InfoMessage
 
 
 class Plugin(BasePlugin):
@@ -30,7 +31,7 @@ class Plugin(BasePlugin):
 
         for tab in self.core.tabs:
             if isinstance(tab, tabs.ChatTab):
-                tab.add_message(msg)
+                tab.add_message(InfoMessage(msg))
 
         self.core.refresh_window()
         self.schedule_event()
