@@ -97,7 +97,8 @@ class User:
         """
         time: datetime object
         """
-        self.last_talked = time
+        if time > self.last_talked:
+            self.last_talked = time
 
     def has_talked_since(self, t: int) -> bool:
         """
