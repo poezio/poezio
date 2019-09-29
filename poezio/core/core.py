@@ -53,8 +53,15 @@ from poezio.core.completions import CompletionCore
 from poezio.core.tabs import Tabs
 from poezio.core.commands import CommandCore
 from poezio.core.handlers import HandlerCore
-from poezio.core.structs import POSSIBLE_SHOW, DEPRECATED_ERRORS, \
-        ERROR_AND_STATUS_CODES, Command, Status
+from poezio.core.structs import (
+    Command,
+    Status,
+    DEPRECATED_ERRORS,
+    ERROR_AND_STATUS_CODES,
+    POSSIBLE_SHOW,
+)
+
+from poezio.ui.types import Message, InfoMessage
 
 log = logging.getLogger(__name__)
 
@@ -1316,7 +1323,7 @@ class Core:
         """
         tab = self.tabs.by_name_and_class(jid, tabs.ConversationTab)
         if tab is not None:
-            tab.add_message(msg, typ=2)
+            tab.add_message(InfoMessage(msg), typ=2)
             if self.tabs.current_tab is tab:
                 self.refresh_window()
 
@@ -1348,9 +1355,11 @@ class Core:
         colors = get_theme().INFO_COLORS
         color = colors.get(typ.lower(), colors.get('default', None))
         nb_lines = self.information_buffer.add_message(
-            txt=msg,
-            nickname=typ,
-            nick_color=color
+            Message(
+                txt=msg,
+                nickname=typ,
+                nick_color=color
+            )
         )
         popup_on = config.get('information_buffer_popup_on').split()
         if isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
@@ -1580,17 +1589,6 @@ class Core:
         elif not self.size.core_degrade_y:
             self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
             self.left_tab_win = None
-
-    def add_message_to_text_buffer(self, buff, txt, nickname=None):
-        """
-        Add the message to the room if possible, else, add it to the Info window
-        (in the Info tab of the info window in the RosterTab)
-        """
-        if not buff:
-            self.information('Trying to add a message in no room: %s' % txt,
-                             'Error')
-            return
-        buff.add_message(txt, nickname=nickname)
 
     def full_screen_redraw(self):
         """
@@ -2063,15 +2061,18 @@ class Core:
             return
         error_message = self.get_error_message(error)
         tab.add_message(
-            error_message,
-            highlight=True,
-            nickname='Error',
-            nick_color=get_theme().COLOR_ERROR_MSG,
-            typ=2)
+            Message(
+                error_message,
+                highlight=True,
+                nickname='Error',
+                nick_color=get_theme().COLOR_ERROR_MSG,
+            ),
+            typ=2,
+        )
         code = error['error']['code']
         if code == '401':
             msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
-            tab.add_message(msg, typ=2)
+            tab.add_message(InfoMessage(msg), typ=2)
         if code == '409':
             if config.get('alternative_nickname') != '':
                 if not tab.joined:
@@ -2080,8 +2081,12 @@ class Core:
             else:
                 if not tab.joined:
                     tab.add_message(
-                        'You can join the room with an other nick, by typing "/join /other_nick"',
-                        typ=2)
+                        InfoMessage(
+                            'You can join the room with another nick, '
+                            'by typing "/join /other_nick"'
+                        ),
+                        typ=2,
+                    )
         self.refresh_window()
 
 

@@ -37,6 +37,7 @@ from poezio.logger import logger
 from poezio.roster import roster
 from poezio.text_buffer import CorrectionError, AckError
 from poezio.theming import dump_tuple, get_theme
+from poezio.ui.types import XMLLog, Message as PMessage, BaseMessage, InfoMessage
 
 from poezio.core.commands import dumb_callback
 
@@ -305,7 +306,7 @@ class HandlerCore:
         error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
                                     error_msg)
         if not tab.nack_message('\n' + error, message['id'], message['to']):
-            tab.add_message(error, typ=0)
+            tab.add_message(InfoMessage(error), typ=0)
             self.core.refresh_window()
 
     def on_normal_message(self, message):
@@ -400,14 +401,17 @@ class HandlerCore:
 
         if not try_modify():
             conversation.add_message(
-                body,
-                date,
-                nickname=remote_nick,
-                nick_color=color,
-                history=delayed,
-                identifier=message['id'],
-                jid=jid,
-                typ=1)
+                PMessage(
+                    txt=body,
+                    time=date,
+                    nickname=remote_nick,
+                    nick_color=color,
+                    history=delayed,
+                    identifier=message['id'],
+                    jid=jid,
+                ),
+                typ=1,
+            )
 
         if not own and 'private' in config.get('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
@@ -739,12 +743,15 @@ class HandlerCore:
                 except CorrectionError:
                     log.debug('Unable to correct a message', exc_info=True)
         if not replaced and tab.add_message(
-                body,
-                date,
-                nick_from,
-                history=delayed,
-                identifier=message['id'],
-                jid=message['from'],
+                PMessage(
+                    txt=body,
+                    time=date,
+                    nickname=nick_from,
+                    history=delayed,
+                    identifier=message['id'],
+                    jid=message['from'],
+                    user=user,
+                ),
                 typ=1):
             self.core.events.trigger('highlight', message, tab)
 
@@ -830,14 +837,16 @@ class HandlerCore:
                     log.debug('Unable to correct a message', exc_info=True)
         if not replaced:
             tab.add_message(
-                body,
-                time=None,
-                nickname=sender_nick,
-                nick_color=get_theme().COLOR_OWN_NICK if sent else None,
-                forced_user=user,
-                identifier=message['id'],
-                jid=message['from'],
-                typ=1)
+                PMessage(
+                    txt=body,
+                    nickname=sender_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK if sent else None,
+                    user=user,
+                    identifier=message['id'],
+                    jid=message['from'],
+                ),
+                typ=1,
+            )
         if sent:
             tab.last_sent_message = message
         else:
@@ -1322,36 +1331,52 @@ class HandlerCore:
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: A configuration change not privacy-related occurred.' % info_col,
+                    InfoMessage(
+                        'Info: A configuration change not privacy-related occurred.'
+                    ),
                     typ=2)
                 modif = True
             if show_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now shown.' % info_col,
+                    InfoMessage(
+                        'Info: The unavailable members are now shown.'
+                    ),
                     typ=2)
             elif hide_unavailable:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The unavailable members are now hidden.' % info_col,
+                    InfoMessage(
+                        'Info: The unavailable members are now hidden.',
+                    ),
                     typ=2)
             if non_anon:
                 tab.add_message(
-                    '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col,
+                    InfoMessage(
+                        '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col
+                    ),
                     typ=2)
             elif semi_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now semi-anonymous. (moderators-only JID)' % info_col,
+                    InfoMessage(
+                        'Info: The room is now semi-anonymous. (moderators-only JID)',
+                    ),
                     typ=2)
             elif full_anon:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: The room is now fully anonymous.' % info_col,
+                    InfoMessage(
+                        'Info: The room is now fully anonymous.',
+                    ),
                     typ=2)
             if logging_on:
                 tab.add_message(
-                    '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col,
+                    InfoMessage(
+                        '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col
+                    ),
                     typ=2)
             elif logging_off:
                 tab.add_message(
-                    '\x19%(info_col)s}Info: This room is not logged anymore.' % info_col,
+                    InfoMessage(
+                        'Info: This room is not logged anymore.',
+                    ),
                     typ=2)
             if modif:
                 self.core.refresh_window()
@@ -1395,15 +1420,17 @@ class HandlerCore:
 
             if nick_from:
                 tab.add_message(
-                    "%(user)s set the subject to: \x19%(text_col)s}%(subject)s"
-                    % fmt,
-                    str_time=time,
+                    InfoMessage(
+                        "%(user)s set the subject to: \x19%(text_col)s}%(subject)s" % fmt,
+                        time=time,
+                    ),
                     typ=2)
             else:
                 tab.add_message(
-                    "\x19%(info_col)s}The subject is: \x19%(text_col)s}%(subject)s"
-                    % fmt,
-                    str_time=time,
+                    InfoMessage(
+                        "The subject is: \x19%(text_col)s}%(subject)s" % fmt,
+                        time=time,
+                    ),
                     typ=2)
         tab.topic = subject
         tab.topic_from = nick_from
@@ -1467,18 +1494,15 @@ class HandlerCore:
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = str(stanza)
-            char = get_theme().CHAR_XML_OUT
-            self.core.add_message_to_text_buffer(
-                self.core.xml_buffer,
-                poezio_colored,
-                nickname=char)
+            self.core.xml_buffer.add_message(
+                XMLLog(txt=poezio_colored, incoming=False),
+            )
             try:
                 if self.core.xml_tab.match_stanza(
                         ElementBase(ET.fromstring(stanza))):
-                    self.core.add_message_to_text_buffer(
-                        self.core.xml_tab.filtered_buffer,
-                        poezio_colored,
-                        nickname=char)
+                    self.core.xml_tab.filtered_buffer.add_message(
+                        XMLLog(txt=poezio_colored, incoming=False),
+                    )
             except:
                 log.debug('', exc_info=True)
 
@@ -1497,17 +1521,14 @@ class HandlerCore:
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
                 poezio_colored = str(stanza)
-            char = get_theme().CHAR_XML_IN
-            self.core.add_message_to_text_buffer(
-                self.core.xml_buffer,
-                poezio_colored,
-                nickname=char)
+            self.core.xml_buffer.add_message(
+                XMLLog(txt=poezio_colored, incoming=True),
+            )
             try:
                 if self.core.xml_tab.match_stanza(stanza):
-                    self.core.add_message_to_text_buffer(
-                        self.core.xml_tab.filtered_buffer,
-                        poezio_colored,
-                        nickname=char)
+                    self.core.xml_tab.filtered_buffer.add_message(
+                        XMLLog(txt=poezio_colored, incoming=True),
+                    )
             except:
                 log.debug('', exc_info=True)
             if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
