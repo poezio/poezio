@@ -18,6 +18,7 @@ from poezio import tabs
 from poezio import xhtml, colors
 from poezio.config import config
 from poezio.text_buffer import TextBuffer
+from poezio.ui.types import Message
 
 
 class DiscoInfoException(Exception): pass
@@ -63,16 +64,15 @@ def add_line(
         nick = nick.split('/')[0]
         color = get_theme().COLOR_OWN_NICK
     text_buffer.add_message(
-        txt=text,
-        time=time,
-        nickname=nick,
-        nick_color=color,
-        history=True,
-        user=None,
-        highlight=False,
-        top=top,
-        identifier=None,
-        jid=None,
+        Message(
+            txt=text,
+            time=time,
+            nickname=nick,
+            nick_color=color,
+            history=True,
+            user=None,
+            top=top,
+        )
     )
 
 
