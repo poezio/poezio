@@ -27,6 +27,7 @@ from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Command, Completion
 from poezio.tabs import Tab
+from poezio.ui.types import InfoMessage
 
 log = logging.getLogger(__name__)
 
@@ -414,11 +415,11 @@ class RosterInfoTab(Tab):
         if not tab:
             log.debug('Received message from nonexistent tab: %s',
                       message['from'])
-        message = '\x19%(info_col)s}Cannot send message to %(jid)s: contact blocked' % {
+        message = 'Cannot send message to %(jid)s: contact blocked' % {
             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
             'jid': message['from'],
         }
-        tab.add_message(message)
+        tab.add_message(InfoMessage(message), typ=0)
 
     @command_args_parser.quoted(0, 1)
     def command_block(self, args):

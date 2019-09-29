@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 from typing import Union, Optional, List, Tuple
 from datetime import datetime
 from poezio.config import config
-from poezio.ui.types import Message
+from poezio.ui.types import Message, BaseMessage
 
 
 
@@ -38,7 +38,7 @@ class TextBuffer:
             messages_nb_limit = config.get('max_messages_in_memory')
         self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
-        self.messages = []  # type: List[Message]
+        self.messages = []  # type: List[BaseMessage]
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
@@ -51,33 +51,10 @@ class TextBuffer:
     def last_message(self) -> Optional[Message]:
         return self.messages[-1] if self.messages else None
 
-    def add_message(self,
-                    txt: str,
-                    time: Optional[datetime] = None,
-                    nickname: Optional[str] = None,
-                    nick_color: Optional[Tuple] = None,
-                    history: bool = False,
-                    user: Optional[str] = None,
-                    highlight: bool = False,
-                    top: Optional[bool] = False,
-                    identifier: Optional[str] = None,
-                    jid: Optional[str] = None,
-                    ack: int = 0) -> int:
+    def add_message(self, msg: BaseMessage):
         """
         Create a message and add it to the text buffer
         """
-        msg = Message(
-            txt,
-            time=time,
-            nickname=nickname,
-            nick_color=nick_color,
-            history=history,
-            user=user,
-            identifier=identifier,
-            top=top,
-            highlight=highlight,
-            jid=jid,
-            ack=ack)
         self.messages.append(msg)
 
         while len(self.messages) > self._messages_nb_limit:
@@ -90,13 +67,11 @@ class TextBuffer:
             # build the lines from the new message
             nb = window.build_new_message(
                 msg,
-                history=history,
-                highlight=highlight,
                 timestamp=show_timestamps,
-                top=top,
                 nick_size=nick_size)
             if ret_val == 0:
                 ret_val = nb
+            top = isinstance(msg, Message) and msg.top
             if window.pos != 0 and top is False:
                 window.scroll_up(nb)
 
@@ -149,7 +124,7 @@ class TextBuffer:
                        highlight: bool = False,
                        time: Optional[datetime] = None,
                        user: Optional[str] = None,
-                       jid: Optional[str] = None):
+                       jid: Optional[str] = None) -> Message:
         """
         Correct a message in a text buffer.
         """
