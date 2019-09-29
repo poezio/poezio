@@ -28,6 +28,7 @@ from poezio.roster import roster
 from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+from poezio.ui.types import InfoMessage
 
 log = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class ConversationTab(OneToOneTab):
                     (' and their last status was %s' % status)
                     if status else '',
                 )
-            self.add_message(msg)
+            self.add_message(InfoMessage(msg), typ=0)
             self.core.refresh_window()
 
         self.core.xmpp.plugin['xep_0012'].get_last_activity(
@@ -200,17 +201,21 @@ class ConversationTab(OneToOneTab):
         if resource:
             status = (
                 'Status: %s' % resource.status) if resource.status else ''
-            self._text_buffer.add_message(
-                "\x19%(info_col)s}Show: %(show)s, %(status)s\x19o" % {
-                    'show': resource.presence or 'available',
-                    'status': status,
-                    'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-                })
+            self.add_message(
+                InfoMessage(
+                    "Show: %(show)s, %(status)s" % {
+                        'show': resource.presence or 'available',
+                        'status': status,
+                    }
+                ),
+                typ=0,
+            )
             return True
         else:
-            self._text_buffer.add_message(
-                "\x19%(info_col)s}No information available\x19o" %
-                {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)})
+            self.add_message(
+                InfoMessage("No information available"),
+                typ=0,
+            )
             return True
 
     @command_args_parser.quoted(0, 1)
