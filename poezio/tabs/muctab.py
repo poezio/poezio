@@ -40,6 +40,7 @@ from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
 from poezio.core.structs import Completion, Status
+from poezio.ui.types import BaseMessage, Message, InfoMessage, StatusMessage
 
 log = logging.getLogger(__name__)
 
@@ -197,8 +198,7 @@ class MucTab(ChatTab):
                            'color_spec': spec_col,
                            'nick': self.own_nick,
                        }
-
-            self.add_message(msg, typ=2)
+            self.add_message(InfoMessage(msg), typ=2)
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.jid.bare, self.own_nick,
                                 message)
@@ -301,7 +301,7 @@ class MucTab(ChatTab):
                     'role': user.role or 'None',
                     'status': '\n%s' % user.status if user.status else ''
                 }
-        self.add_message(info, typ=0)
+        self.add_message(InfoMessage(info), typ=0)
         return True
 
     def change_topic(self, topic: str):
@@ -327,9 +327,13 @@ class MucTab(ChatTab):
         else:
             user_string = ''
 
-        self._text_buffer.add_message(
-            "\x19%s}The subject of the room is: \x19%s}%s %s" %
-            (info_text, norm_text, self.topic, user_string))
+        self.add_message(
+            InfoMessage(
+                "The subject of the room is: \x19%s}%s %s" %
+                (norm_text, self.topic, user_string),
+            ),
+            typ=0,
+        )
 
     @refresh_wrapper.always
     def recolor(self, random_colors=False):
@@ -558,28 +562,32 @@ class MucTab(ChatTab):
                               'nick_col': color,
                               'info_col': info_col,
                           }
-        self.add_message(enable_message, typ=2)
+        self.add_message(InfoMessage(enable_message), typ=2)
         self.core.enable_private_tabs(self.jid.bare, enable_message)
         if '201' in status_codes:
             self.add_message(
-                '\x19%(info_col)s}Info: The room '
-                'has been created' % {'info_col': info_col},
-                typ=0)
+                InfoMessage('Info: The room has been created'),
+                typ=0
+            )
         if '170' in status_codes:
             self.add_message(
-                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                ' This room is publicly logged' % {
-                    'info_col': info_col,
-                    'warn_col': warn_col
-                },
+                InfoMessage(
+                    '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                    ' This room is publicly logged' % {
+                        'info_col': info_col,
+                        'warn_col': warn_col
+                    },
+                ),
                 typ=0)
         if '100' in status_codes:
             self.add_message(
-                '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
-                ' This room is not anonymous.' % {
-                    'info_col': info_col,
-                    'warn_col': warn_col
-                },
+                InfoMessage(
+                    '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
+                    ' This room is not anonymous.' % {
+                        'info_col': info_col,
+                        'warn_col': warn_col
+                    },
+                ),
                 typ=0)
 
     def handle_presence_joined(self, presence, status_codes):
@@ -635,18 +643,20 @@ class MucTab(ChatTab):
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
         self.add_message(
-            '\x19%(info_col)s}You have been kicked because you '
-            'are not a member and the room is now members-only.' %
-            {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+            InfoMessage(
+                'You have been kicked because you '
+                'are not a member and the room is now members-only.'
+            ),
             typ=2)
         self.disconnect()
 
     def on_muc_shutdown(self):
         """We have been kicked because the MUC service is shutting down"""
         self.add_message(
-            '\x19%(info_col)s}You have been kicked because the'
-            ' MUC service is shutting down.' %
-            {'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)},
+            InfoMessage(
+                'You have been kicked because the'
+                ' MUC service is shutting down.'
+            ),
             typ=2)
         self.disconnect()
 
@@ -693,7 +703,7 @@ class MucTab(ChatTab):
                            'jid_color': dump_tuple(theme.COLOR_MUC_JID),
                            'color_spec': spec_col,
                        }
-            self.add_message(msg, typ=2)
+            self.add_message(InfoMessage(msg), typ=2)
         self.core.on_user_rejoined_private_conversation(self.jid.bare, from_nick)
 
     def on_user_nick_change(self, presence, user, from_nick, from_room):
@@ -723,14 +733,16 @@ class MucTab(ChatTab):
             old_color = color = 3
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
         self.add_message(
-            '\x19%(old_color)s}%(old)s\x19%(info_col)s} is'
-            ' now known as \x19%(color)s}%(new)s' % {
-                'old': from_nick,
-                'new': new_nick,
-                'color': color,
-                'old_color': old_color,
-                'info_col': info_col
-            },
+            InfoMessage(
+                '\x19%(old_color)s}%(old)s\x19%(info_col)s} is'
+                ' now known as \x19%(color)s}%(new)s' % {
+                    'old': from_nick,
+                    'new': new_nick,
+                    'color': color,
+                    'old_color': old_color,
+                    'info_col': info_col
+                },
+            ),
             typ=2)
         # rename the private tabs if needed
         self.core.rename_private_tabs(self.jid.bare, from_nick, user)
@@ -814,7 +826,7 @@ class MucTab(ChatTab):
                              'reason': reason.text,
                              'info_col': info_col
                          }
-        self.add_message(kick_msg, typ=2)
+        self.add_message(InfoMessage(kick_msg), typ=2)
 
     def on_user_kicked(self, presence, user, from_nick):
         """
@@ -892,7 +904,7 @@ class MucTab(ChatTab):
                              'reason': reason.text,
                              'info_col': info_col
                          }
-        self.add_message(kick_msg, typ=2)
+        self.add_message(InfoMessage(kick_msg), typ=2)
 
     def on_user_leave_groupchat(self,
                                 user: User,
@@ -957,7 +969,7 @@ class MucTab(ChatTab):
                              }
             if status:
                 leave_msg += ' (\x19o%s\x19%s})' % (status, info_col)
-            self.add_message(leave_msg, typ=2)
+            self.add_message(InfoMessage(leave_msg), typ=2)
         self.core.on_user_left_private_conversation(from_room, user, status)
 
     def on_user_change_status(self, user, from_nick, from_room, affiliation,
@@ -1016,7 +1028,7 @@ class MucTab(ChatTab):
              or show != user.show or status != user.status)) or (
                  affiliation != user.affiliation or role != user.role):
             # display the message in the room
-            self._text_buffer.add_message(msg)
+            self.add_message(InfoMessage(msg))
         self.core.on_user_changed_status_in_private(
             '%s/%s' % (from_room, from_nick), Status(show, status))
         self.users.remove(user)
@@ -1118,7 +1130,6 @@ class MucTab(ChatTab):
                        nickname=None,
                        user=None,
                        jid=None):
-        self.log_message(txt, nickname, time=time, typ=1)
         highlight = self.do_highlight(txt, time, nickname, corrected=True)
         message = self._text_buffer.modify_message(
             txt,
@@ -1129,6 +1140,7 @@ class MucTab(ChatTab):
             user=user,
             jid=jid)
         if message:
+            self.log_message(message, typ=1)
             self.text_win.modify_message(old_id, message)
             return highlight
         return False
@@ -1192,9 +1204,11 @@ class MucTab(ChatTab):
     def on_self_ping_failed(self, iq):
         if not self.lagged:
             self.lagged = True
-            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
             self._text_buffer.add_message(
-                "\x19%s}MUC service not responding." % info_text)
+                InfoMessage(
+                    "MUC service not responding."
+                ),
+            )
             self._state = 'disconnected'
             self.core.refresh_window()
         self.enable_self_ping_event()
@@ -1202,9 +1216,9 @@ class MucTab(ChatTab):
     def reset_lag(self):
         if self.lagged:
             self.lagged = False
-            info_text = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
-            self._text_buffer.add_message(
-                "\x19%s}MUC service is responding again." % info_text)
+            self.add_message(
+                InfoMessage("MUC service is responding again.")
+            )
             if self != self.core.tabs.current_tab:
                 self._state = 'joined'
             else:
@@ -1551,7 +1565,7 @@ class MucTab(ChatTab):
         buff.append('\n')
         message = ' '.join(buff)
 
-        self._text_buffer.add_message(message)
+        self.add_message(InfoMessage(message), typ=0)
         self.text_win.refresh()
         self.input.refresh()
 
