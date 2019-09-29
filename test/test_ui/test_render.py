@@ -51,74 +51,84 @@ def test_write_pre_basemsg(buffer):
     str_time = '10:11:12'
     time = datetime.strptime(str_time, '%H:%M:%S')
     msg = BaseMessage(txt='coucou', time=time)
-
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 '
+    assert size == len(buffer.text)
 
 def test_write_pre_message_simple(buffer, time):
     msg = Message(txt='coucou', nickname='toto', time=time)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 toto> '
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_simple_history(buffer, time):
     msg = Message(txt='coucou', nickname='toto', time=time, history=True)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '2019-09-27 10:11:12 toto> '
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_highlight(buffer, time):
     msg = Message(txt='coucou', nickname='toto', time=time, highlight=True)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 toto> '
+    assert size == len(buffer.text)
 
 def test_write_pre_message_no_timestamp(buffer):
     msg = Message(txt='coucou', nickname='toto')
-    write_pre(msg, buffer, False, 10)
+    size = write_pre(msg, buffer, False, 10)
     assert buffer.text == 'toto> '
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_me(buffer, time):
     msg = Message(txt='/me coucou', nickname='toto', time=time)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 * toto '
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_revisions(buffer, time):
     msg = Message(txt='coucou', nickname='toto', time=time, revisions=5)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 toto5> '
-
+    assert size == len(buffer.text)
 
 def test_write_pre_message_revisions_me(buffer, time):
     msg = Message(txt='/me coucou', nickname='toto', time=time, revisions=5)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '10:11:12 * toto5 '
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_ack(buffer, time):
     ack = get_theme().CHAR_ACK_RECEIVED
     expected = '10:11:12 %s toto> ' % ack
     msg = Message(txt='coucou', nickname='toto', time=time, ack=1)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == expected
+    assert size == len(buffer.text)
 
 
 def test_write_pre_message_nack(buffer, time):
     nack = get_theme().CHAR_NACK
     expected = '10:11:12 %s toto> ' % nack
     msg = Message(txt='coucou', nickname='toto', time=time, ack=-1)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == expected
+    assert size == len(buffer.text)
 
 
 def test_write_pre_xmllog_in(buffer):
     msg = XMLLog(txt="coucou", incoming=True)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '%s IN  ' % msg.time.strftime('%H:%M:%S')
+    assert size == len(buffer.text)
 
 
 def test_write_pre_xmllog_out(buffer):
     msg = XMLLog(txt="coucou", incoming=False)
-    write_pre(msg, buffer, True, 10)
+    size = write_pre(msg, buffer, True, 10)
     assert buffer.text == '%s OUT ' % msg.time.strftime('%H:%M:%S')
+    assert size == len(buffer.text)

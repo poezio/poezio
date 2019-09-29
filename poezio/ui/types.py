@@ -48,13 +48,12 @@ class XMLLog(BaseMessage):
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
         offset = 0
         theme = get_theme()
-        IN, OUT = theme.CHAR_XML_IN, theme.CHAR_XML_OUT
         if with_timestamps:
             offset += 1 + SHORT_FORMAT_LENGTH
         if self.incoming:
-            nick = IN
+            nick = theme.CHAR_XML_IN
         else:
-            nick = OUT
+            nick = theme.CHAR_XML_OUT
         nick = truncate_nick(nick, nick_size) or ''
         offset += 1 + len(nick)
         return offset
