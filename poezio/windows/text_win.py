@@ -10,24 +10,26 @@ from typing import Optional, List, Union
 
 from poezio.windows.base_wins import Win, FORMAT_CHAR
 from poezio.ui.funcs import truncate_nick, parse_attrs
+from poezio.text_buffer import TextBuffer
 
 from poezio import poopt
 from poezio.config import config
 from poezio.theming import to_curses_attr, get_theme, dump_tuple
-from poezio.ui.types import Message
+from poezio.ui.types import Message, BaseMessage
 from poezio.ui.render import Line, build_lines, write_pre
 
 log = logging.getLogger(__name__)
 
 
-class BaseTextWin(Win):
+class TextWin(Win):
     __slots__ = ('lines_nb_limit', 'pos', 'built_lines', 'lock', 'lock_buffer',
-                 'separator_after')
+                 'separator_after', 'highlights', 'hl_pos',
+                 'nb_of_highlights_after_separator')
 
     def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
+        Win.__init__(self)
         if lines_nb_limit is None:
             lines_nb_limit = config.get('max_lines_in_memory')
-        Win.__init__(self)
         self.lines_nb_limit = lines_nb_limit  # type: int
         self.pos = 0
         # Each new message is built and kept here.
@@ -37,6 +39,17 @@ class BaseTextWin(Win):
         self.lock = False
         self.lock_buffer = []  # type: List[Union[None, Line]]
         self.separator_after = None  # type: Optional[Line]
+        # the Lines of the highlights in that buffer
+        self.highlights = []  # type: List[Line]
+        # the current HL position in that list NaN means that we’re not on
+        # an hl. -1 is a valid position (it's before the first hl of the
+        # list. i.e the separator, in the case where there’s no hl before
+        # it.)
+        self.hl_pos = float('nan')
+
+        # Keep track of the number of hl after the separator.
+        # This is useful to make “go to next highlight“ work after a “move to separator”.
+        self.nb_of_highlights_after_separator = 0
 
     def toggle_lock(self) -> bool:
         if self.lock:
@@ -69,25 +82,21 @@ class BaseTextWin(Win):
             self.pos = 0
         return self.pos != pos
 
-    # TODO: figure out the type of history.
     def build_new_message(self,
-                          message: Message,
-                          history=None,
+                          message: BaseMessage,
                           clean: bool = True,
                           highlight: bool = False,
                           timestamp: bool = False,
-                          top: Optional[bool] = False,
                           nick_size: int = 10) -> int:
         """
         Take one message, build it and add it to the list
         Return the number of lines that are built for the given
         message.
         """
-        #pylint: disable=assignment-from-no-return
-        lines = self.build_message(
-            message, timestamp=timestamp, nick_size=nick_size)
-        if top:
-            lines.reverse()
+        lines = build_lines(
+            message, self.width, timestamp=timestamp, nick_size=nick_size
+        )
+        if isinstance(message, Message) and message.top:
             for line in lines:
                 self.built_lines.insert(0, line)
         else:
@@ -97,20 +106,46 @@ class BaseTextWin(Win):
                 self.built_lines.extend(lines)
         if not lines or not lines[0]:
             return 0
+        if highlight:
+            self.highlights.append(lines[0])
+            self.nb_of_highlights_after_separator += 1
+            log.debug("Number of highlights after separator is now %s",
+                      self.nb_of_highlights_after_separator)
         if clean:
             while len(self.built_lines) > self.lines_nb_limit:
                 self.built_lines.pop(0)
         return len(lines)
 
-    def build_message(self, message: Message, timestamp: bool = False, nick_size: int = 10) -> List[Union[None, Line]]:
-        """
-        Build a list of lines from a message, without adding it
-        to a list
-        """
-        return build_lines(message, self.width, timestamp, nick_size)
-
     def refresh(self) -> None:
-        pass
+        log.debug('Refresh: %s', self.__class__.__name__)
+        if self.height <= 0:
+            return
+        if self.pos == 0:
+            lines = self.built_lines[-self.height:]
+        else:
+            lines = self.built_lines[-self.height - self.pos:-self.pos]
+        with_timestamps = config.get("show_timestamps")
+        nick_size = config.get("max_nick_length")
+        self._win.move(0, 0)
+        self._win.erase()
+        offset = 0
+        for y, line in enumerate(lines):
+            if line:
+                msg = line.msg
+                if line.start_pos == 0:
+                    offset = write_pre(msg, self, with_timestamps, nick_size)
+                elif y == 0:
+                    offset = msg.compute_offset(with_timestamps,
+                                                nick_size)
+                self.write_text(
+                    y, offset,
+                    line.prepend + line.msg.txt[line.start_pos:line.end_pos])
+            else:
+                self.write_line_separator(y)
+            if y != self.height - 1:
+                self.addstr('\n')
+        self._win.attrset(0)
+        self._refresh()
 
     def write_text(self, y: int, x: int, txt: str) -> None:
         """
@@ -118,8 +153,7 @@ class BaseTextWin(Win):
         """
         self.addstr_colored(txt, y, x)
 
-    # TODO: figure out the type of room.
-    def resize(self, height: int, width: int, y: int, x: int, room=None) -> None:
+    def resize(self, height: int, width: int, y: int, x: int, room: TextBuffer=None) -> None:
         if hasattr(self, 'width'):
             old_width = self.width
         else:
@@ -136,8 +170,7 @@ class BaseTextWin(Win):
             if self.pos < 0:
                 self.pos = 0
 
-    # TODO: figure out the type of room.
-    def rebuild_everything(self, room) -> None:
+    def rebuild_everything(self, room: TextBuffer) -> None:
         self.built_lines = []
         with_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
@@ -145,37 +178,46 @@ class BaseTextWin(Win):
             self.build_new_message(
                 message,
                 clean=False,
-                top=message.top,
                 timestamp=with_timestamps,
                 nick_size=nick_size)
             if self.separator_after is message:
-                self.build_new_message(None)
+                self.built_lines.append(None)
         while len(self.built_lines) > self.lines_nb_limit:
             self.built_lines.pop(0)
+
+    def remove_line_separator(self) -> None:
+        """
+        Remove the line separator
+        """
+        log.debug('remove_line_separator')
+        if None in self.built_lines:
+            self.built_lines.remove(None)
+            self.separator_after = None
+
+    def add_line_separator(self, room: TextBuffer = None) -> None:
+        """
+        add a line separator at the end of messages list
+        room is a textbuffer that is needed to get the previous message
+        (in case of resize)
+        """
+        if None not in self.built_lines:
+            self.built_lines.append(None)
+            self.nb_of_highlights_after_separator = 0
+            log.debug("Resetting number of highlights after separator")
+            if room and room.messages:
+                self.separator_after = room.messages[-1]
+
+
+    def write_line_separator(self, y) -> None:
+        theme = get_theme()
+        char = theme.CHAR_NEW_TEXT_SEPARATOR
+        self.addnstr(y, 0, char * (self.width // len(char) - 1), self.width,
+                     to_curses_attr(theme.COLOR_NEW_TEXT_SEPARATOR))
 
     def __del__(self) -> None:
         log.debug('** TextWin: deleting %s built lines',
                   (len(self.built_lines)))
         del self.built_lines
-
-
-class TextWin(BaseTextWin):
-    __slots__ = ('highlights', 'hl_pos', 'nb_of_highlights_after_separator')
-
-    def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
-        BaseTextWin.__init__(self, lines_nb_limit)
-
-        # the Lines of the highlights in that buffer
-        self.highlights = []  # type: List[Line]
-        # the current HL position in that list NaN means that we’re not on
-        # an hl. -1 is a valid position (it's before the first hl of the
-        # list. i.e the separator, in the case where there’s no hl before
-        # it.)
-        self.hl_pos = float('nan')
-
-        # Keep track of the number of hl after the separator.
-        # This is useful to make “go to next highlight“ work after a “move to separator”.
-        self.nb_of_highlights_after_separator = 0
 
     def next_highlight(self) -> None:
         """
@@ -268,102 +310,6 @@ class TextWin(BaseTextWin):
             self.highlights) - self.nb_of_highlights_after_separator - 1
         log.debug("self.hl_pos = %s", self.hl_pos)
 
-    def remove_line_separator(self) -> None:
-        """
-        Remove the line separator
-        """
-        log.debug('remove_line_separator')
-        if None in self.built_lines:
-            self.built_lines.remove(None)
-            self.separator_after = None
-
-    # TODO: figure out the type of room.
-    def add_line_separator(self, room=None) -> None:
-        """
-        add a line separator at the end of messages list
-        room is a textbuffer that is needed to get the previous message
-        (in case of resize)
-        """
-        if None not in self.built_lines:
-            self.built_lines.append(None)
-            self.nb_of_highlights_after_separator = 0
-            log.debug("Resetting number of highlights after separator")
-            if room and room.messages:
-                self.separator_after = room.messages[-1]
-
-    # TODO: figure out the type of history.
-    def build_new_message(self,
-                          message: Message,
-                          history: bool = False,
-                          clean: bool = True,
-                          highlight: bool = False,
-                          timestamp: bool = False,
-                          top: Optional[bool] = False,
-                          nick_size: int = 10) -> int:
-        """
-        Take one message, build it and add it to the list
-        Return the number of lines that are built for the given
-        message.
-        """
-        lines = self.build_message(
-            message, timestamp=timestamp, nick_size=nick_size)
-        if top:
-            lines.reverse()
-            for line in lines:
-                self.built_lines.insert(0, line)
-        else:
-            if self.lock:
-                self.lock_buffer.extend(lines)
-            else:
-                self.built_lines.extend(lines)
-        if not lines or not lines[0]:
-            return 0
-        if highlight:
-            self.highlights.append(lines[0])
-            self.nb_of_highlights_after_separator += 1
-            log.debug("Number of highlights after separator is now %s",
-                      self.nb_of_highlights_after_separator)
-        if clean:
-            while len(self.built_lines) > self.lines_nb_limit:
-                self.built_lines.pop(0)
-        return len(lines)
-
-    def refresh(self) -> None:
-        log.debug('Refresh: %s', self.__class__.__name__)
-        if self.height <= 0:
-            return
-        if self.pos == 0:
-            lines = self.built_lines[-self.height:]
-        else:
-            lines = self.built_lines[-self.height - self.pos:-self.pos]
-        with_timestamps = config.get("show_timestamps")
-        nick_size = config.get("max_nick_length")
-        self._win.move(0, 0)
-        self._win.erase()
-        offset = 0
-        for y, line in enumerate(lines):
-            if line:
-                msg = line.msg
-                if line.start_pos == 0:
-                    offset = write_pre(msg, self, with_timestamps, nick_size)
-                elif y == 0:
-                    offset = msg.compute_offset(with_timestamps,
-                                                nick_size)
-                self.write_text(
-                    y, offset,
-                    line.prepend + line.msg.txt[line.start_pos:line.end_pos])
-            else:
-                self.write_line_separator(y)
-            if y != self.height - 1:
-                self.addstr('\n')
-        self._win.attrset(0)
-        self._refresh()
-
-    def write_line_separator(self, y) -> None:
-        theme = get_theme()
-        char = theme.CHAR_NEW_TEXT_SEPARATOR
-        self.addnstr(y, 0, char * (self.width // len(char) - 1), self.width,
-                     to_curses_attr(theme.COLOR_NEW_TEXT_SEPARATOR))
     def modify_message(self, old_id, message) -> None:
         """
         Find a message, and replace it with a new one
@@ -378,50 +324,10 @@ class TextWin(BaseTextWin):
                     self.built_lines.pop(index)
                     index -= 1
                 index += 1
-                lines = self.build_message(
-                    message, timestamp=with_timestamps, nick_size=nick_size)
+                lines = build_lines(
+                    message, self.width, timestamp=with_timestamps, nick_size=nick_size
+                )
                 for line in lines:
                     self.built_lines.insert(index, line)
                     index += 1
                 break
-
-    def __del__(self) -> None:
-        log.debug('** TextWin: deleting %s built lines',
-                  (len(self.built_lines)))
-        del self.built_lines
-
-
-class XMLTextWin(BaseTextWin):
-    __slots__ = ()
-
-    def __init__(self) -> None:
-        BaseTextWin.__init__(self)
-
-    def refresh(self) -> None:
-        log.debug('Refresh: %s', self.__class__.__name__)
-        theme = get_theme()
-        if self.height <= 0:
-            return
-        if self.pos == 0:
-            lines = self.built_lines[-self.height:]
-        else:
-            lines = self.built_lines[-self.height - self.pos:-self.pos]
-        self._win.move(0, 0)
-        self._win.erase()
-        for y, line in enumerate(lines):
-            if line:
-                msg = line.msg
-                if line.start_pos == 0:
-                    offset = write_pre(msg, self, True, 10)
-            if y != self.height - 1:
-                self.addstr('\n')
-        self._win.attrset(0)
-        for y, line in enumerate(lines):
-            offset = msg.compute_offset(True, 10)
-            self.write_text(
-                y, offset,
-                line.prepend + line.msg.txt[line.start_pos:line.end_pos])
-            if y != self.height - 1:
-                self.addstr('\n')
-        self._win.attrset(0)
-        self._refresh()
