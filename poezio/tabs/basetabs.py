@@ -47,6 +47,7 @@ from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.consts import LONG_FORMAT_LENGTH
+from poezio.ui.types import BaseMessage, InfoMessage
 
 from slixmpp import JID, InvalidJID, Message
 
@@ -572,40 +573,19 @@ class ChatTab(Tab):
     def general_jid(self) -> JID:
         raise NotImplementedError
 
-    def log_message(self,
-                    txt: str,
-                    nickname: str,
-                    time: Optional[datetime] = None,
-                    typ=1):
+    def log_message(self, message: BaseMessage, typ=1):
         """
         Log the messages in the archives.
         """
         name = self.jid.bare
-        if not logger.log_message(name, nickname, txt, date=time, typ=typ):
+        if not isinstance(message, Message):
+            return
+        if not logger.log_message(name, message.nickname, message.txt, date=message.time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
-    def add_message(self,
-                    txt,
-                    time=None,
-                    nickname=None,
-                    forced_user=None,
-                    nick_color=None,
-                    identifier=None,
-                    jid=None,
-                    history=None,
-                    typ=1,
-                    highlight=False):
-        self.log_message(txt, nickname, time=time, typ=typ)
-        self._text_buffer.add_message(
-            txt,
-            time=time,
-            nickname=nickname,
-            highlight=highlight,
-            nick_color=nick_color,
-            history=history,
-            user=forced_user,
-            identifier=identifier,
-            jid=jid)
+    def add_message(self, message: BaseMessage, typ=1):
+        self.log_message(message, typ=typ)
+        self._text_buffer.add_message(message)
 
     def modify_message(self,
                        txt,
@@ -614,10 +594,10 @@ class ChatTab(Tab):
                        user=None,
                        jid=None,
                        nickname=None):
-        self.log_message(txt, nickname, typ=1)
         message = self._text_buffer.modify_message(
-            txt, old_id, new_id, time=time, user=user, jid=jid)
+            txt, old_id, new_id, user=user, jid=jid)
         if message:
+            self.log_message(message, typ=1)
             self.text_win.modify_message(message.identifier, message)
             self.core.refresh_window()
             return True
@@ -1010,7 +990,10 @@ class OneToOneTab(ChatTab):
             msg += 'status: %s, ' % status.message
         if status.show in SHOW_NAME:
             msg += 'show: %s, ' % SHOW_NAME[status.show]
-        self.add_message(msg[:-2], typ=2)
+        self.add_message(
+            InfoMessage(txt=msg[:-2]),
+            typ=2,
+        )
 
     def ack_message(self, msg_id: str, msg_jid: JID):
         """
@@ -1042,11 +1025,14 @@ class OneToOneTab(ChatTab):
             message.send()
             body = xhtml.xhtml_to_poezio_colors(xhtml_data, force=True)
             self._text_buffer.add_message(
-                body,
-                nickname=self.core.own_nick,
-                nick_color=get_theme().COLOR_OWN_NICK,
-                identifier=message['id'],
-                jid=self.core.xmpp.boundjid)
+                Message(
+                    body,
+                    nickname=self.core.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=message['id'],
+                    jid=self.core.xmpp.boundjid,
+                )
+            )
             self.refresh()
 
     def check_features(self):
