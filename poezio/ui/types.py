@@ -27,6 +27,12 @@ class BaseMessage:
         return SHORT_FORMAT_LENGTH + 1
 
 
+class InfoMessage(BaseMessage):
+    def __init__(self, txt: str, identifier: str = '', time: Optional[datetime] = None):
+        txt = ('\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)) + txt
+        super().__init__(txt=txt, identifier=identifier, time=time)
+
+
 class XMLLog(BaseMessage):
     """XML Log message"""
     __slots__ = ('txt', 'time', 'identifier', 'incoming')
@@ -57,6 +63,25 @@ class XMLLog(BaseMessage):
         nick = truncate_nick(nick, nick_size) or ''
         offset += 1 + len(nick)
         return offset
+
+
+class StatusMessage(BaseMessage):
+    __slots__ = ('txt', 'time', 'identifier', 'format_string', 'format_args')
+
+    def __init__(self, format_string: str, format_args: dict):
+        BaseMessage.__init__(
+            self,
+            txt='',
+        )
+        self.format_string = format_string
+        self.format_args = format_args
+        self.rebuild()
+
+    def rebuild(self):
+        real_args = {}
+        for key, func in self.format_args.items():
+            real_args[key] = func()
+        self.txt = self.format_string.format(**real_args)
 
 
 class Message(BaseMessage):

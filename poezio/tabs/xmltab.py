@@ -65,7 +65,7 @@ class XMLTab(Tab):
         self.filtered_buffer = text_buffer.TextBuffer()
 
         self.info_header = windows.XMLInfoWin()
-        self.text_win = windows.XMLTextWin()
+        self.text_win = windows.TextWin()
         self.core_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
 

@@ -3,10 +3,14 @@ import curses
 
 from datetime import datetime
 from functools import singledispatch
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from math import ceil, log10
 
 from poezio import poopt
+from poezio.theming import (
+    get_theme,
+)
+from poezio.windows import Win
 from poezio.ui.consts import (
     FORMAT_CHAR,
     LONG_FORMAT,
@@ -16,12 +20,10 @@ from poezio.ui.funcs import (
     truncate_nick,
     parse_attrs,
 )
-from poezio.theming import (
-    get_theme,
-)
 from poezio.ui.types import (
     BaseMessage,
     Message,
+    StatusMessage,
     XMLLog,
 )
 
@@ -86,6 +88,17 @@ def build_message(msg: Message, width: int, timestamp: bool, nick_size: int = 10
         return []
     offset = msg.compute_offset(timestamp, nick_size)
     lines = poopt.cut_text(txt, width - offset - 1)
+    generated_lines = generate_lines(lines, msg, default_color='')
+    if msg.top:
+        generated_lines.reverse()
+    return generated_lines
+
+
+@build_lines.register(StatusMessage)
+def build_status(msg: StatusMessage, width: int, timestamp: bool, nick_size: int = 10) -> List[Line]:
+    msg.rebuild()
+    offset = msg.compute_offset(timestamp, nick_size)
+    lines = poopt.cut_text(msg.txt, width - offset - 1)
     return generate_lines(lines, msg, default_color='')
 
 
@@ -97,7 +110,7 @@ def build_xmllog(msg: XMLLog, width: int, timestamp: bool, nick_size: int = 10) 
 
 
 @singledispatch
-def write_pre(msg: BaseMessage, win, with_timestamps: bool, nick_size: int) -> int:
+def write_pre(msg: BaseMessage, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before text (only the timestamp)"""
     if with_timestamps:
         return PreMessageHelpers.write_time(win, False, msg.time)
@@ -105,7 +118,7 @@ def write_pre(msg: BaseMessage, win, with_timestamps: bool, nick_size: int) -> i
 
 
 @write_pre.register(Message)
-def write_pre_message(msg: Message, win, with_timestamps: bool, nick_size: int) -> int:
+def write_pre_message(msg: Message, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before the body:
         - timestamp (short or long)
         - ack/nack
@@ -149,7 +162,7 @@ def write_pre_message(msg: Message, win, with_timestamps: bool, nick_size: int) 
 
 
 @write_pre.register(XMLLog)
-def write_pre_xmllog(msg: XMLLog, win, with_timestamps: bool, nick_size: int) -> int:
+def write_pre_xmllog(msg: XMLLog, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before the stanza (timestamp + IN/OUT)"""
     offset = 0
     if with_timestamps:
@@ -170,7 +183,7 @@ def write_pre_xmllog(msg: XMLLog, win, with_timestamps: bool, nick_size: int) ->
 class PreMessageHelpers:
 
     @staticmethod
-    def write_revisions(buffer, msg: Message) -> int:
+    def write_revisions(buffer: Win, msg: Message) -> int:
         if msg.revisions:
             color = get_theme().COLOR_REVISIONS_MESSAGE
             with buffer.colored_text(color=color):
@@ -179,7 +192,7 @@ class PreMessageHelpers:
         return 0
 
     @staticmethod
-    def write_ack(buffer) -> int:
+    def write_ack(buffer: Win) -> int:
         theme = get_theme()
         color = theme.COLOR_CHAR_ACK
         with buffer.colored_text(color=color):
@@ -188,7 +201,7 @@ class PreMessageHelpers:
         return poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
 
     @staticmethod
-    def write_nack(buffer) -> int:
+    def write_nack(buffer: Win) -> int:
         theme = get_theme()
         color = theme.COLOR_CHAR_NACK
         with buffer.colored_text(color=color):
@@ -197,7 +210,7 @@ class PreMessageHelpers:
         return poopt.wcswidth(theme.CHAR_NACK) + 1
 
     @staticmethod
-    def write_nickname(buffer, nickname: str, color, highlight=False) -> None:
+    def write_nickname(buffer: Win, nickname: str, color, highlight=False) -> None:
         """
         Write the nickname, using the user's color
         and return the number of written characters
@@ -215,7 +228,7 @@ class PreMessageHelpers:
             buffer.addstr(nickname)
 
     @staticmethod
-    def write_time(buffer, history: bool, time: datetime) -> int:
+    def write_time(buffer: Win, history: bool, time: datetime) -> int:
         """
         Write the date on the yth line of the window
         """
