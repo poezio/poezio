@@ -4,7 +4,7 @@ from datetime import datetime
 from poezio.theming import get_theme
 from poezio.ui.render import build_lines, Line, write_pre
 from poezio.ui.consts import SHORT_FORMAT
-from poezio.ui.types import BaseMessage, Message, XMLLog
+from poezio.ui.types import BaseMessage, Message, StatusMessage, XMLLog
 
 def test_simple_build_basemsg():
     msg = BaseMessage(txt='coucou')
@@ -27,6 +27,17 @@ def test_simple_render_xmllog():
 def test_simple_render_separator():
     line = build_lines(None, 100, True, 10)[0]
     assert line is None
+
+
+def test_simple_render_status():
+    class Obj:
+        name = 'toto'
+    msg = StatusMessage("Coucou {name}", {'name': lambda: Obj.name})
+    assert msg.txt == "Coucou toto"
+    Obj.name = 'titi'
+    build_lines(msg, 100, True, 10)[0]
+    assert msg.txt == "Coucou titi"
+
 
 class FakeBuffer:
     def __init__(self):
