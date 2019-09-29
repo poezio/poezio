@@ -1475,17 +1475,16 @@ class HandlerCore:
         """
         jid_from = message['from']
         self.core.information('%s requests your attention!' % jid_from, 'Info')
-        for tab in self.core.tabs:
-            if tab.jid == jid_from:
-                tab.state = 'attention'
-                self.core.refresh_tab_win()
-                return
-        for tab in self.core.tabs:
-            if tab.jid.bare == jid_from.bare:
-                tab.state = 'attention'
-                self.core.refresh_tab_win()
-                return
-        self.core.information('%s tab not found.' % jid_from, 'Error')
+        tab = (
+            self.core.tabs.by_name_and_class(
+                jid_from.full, tabs.ChatTab
+            ) or self.core.tabs.by_name_and_class(
+                jid_from.bare, tabs.ChatTab
+            )
+        )
+        if tab and tab is not self.core.tabs.current_tab:
+            tab.state = "attention"
+            self.core.refresh_tab_win()
 
     def outgoing_stanza(self, stanza):
         """
