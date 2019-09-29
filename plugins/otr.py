@@ -205,6 +205,7 @@ from poezio.tabs import StaticConversationTab, PrivateTab
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
+from poezio.ui.types import InfoMessage, Message
 
 POLICY_FLAGS = {
     'ALLOW_V1': False,
@@ -385,25 +386,30 @@ class PoezioContext(Context):
                 log.debug('OTR conversation with %s refreshed', self.peer)
                 if self.getCurrentTrust():
                     msg = OTR_REFRESH_TRUSTED % format_dict
-                    tab.add_message(msg, typ=self.log)
+                    tab.add_message(InfoMessage(msg), typ=self.log)
                 else:
                     msg = OTR_REFRESH_UNTRUSTED % format_dict
-                    tab.add_message(msg, typ=self.log)
+                    tab.add_message(InfoMessage(msg), typ=self.log)
                 hl(tab)
             elif newstate == STATE_FINISHED or newstate == STATE_PLAINTEXT:
                 log.debug('OTR conversation with %s finished', self.peer)
                 if tab:
-                    tab.add_message(OTR_END % format_dict, typ=self.log)
+                    tab.add_message(InfoMessage(OTR_END % format_dict), typ=self.log)
                     hl(tab)
         elif newstate == STATE_ENCRYPTED and tab:
             if self.getCurrentTrust():
-                tab.add_message(OTR_START_TRUSTED % format_dict, typ=self.log)
+                tab.add_message(InfoMessage(OTR_START_TRUSTED % format_dict), typ=self.log)
             else:
                 format_dict['our_fpr'] = self.user.getPrivkey()
                 format_dict['remote_fpr'] = self.getCurrentKey()
-                tab.add_message(OTR_TUTORIAL % format_dict, typ=0)
                 tab.add_message(
-                    OTR_START_UNTRUSTED % format_dict, typ=self.log)
+                    InfoMessage(OTR_TUTORIAL % format_dict),
+                    typ=0
+                )
+                tab.add_message(
+                    InfoMessage(OTR_START_UNTRUSTED % format_dict),
+                    typ=self.log,
+                )
             hl(tab)
 
         log.debug('Set encryption state of %s to %s', self.peer,
@@ -639,7 +645,7 @@ class Plugin(BasePlugin):
             # Received an OTR error
             proto_error = err.args[0].error  #  pylint: disable=no-member
             format_dict['err'] = proto_error.decode('utf-8', errors='replace')
-            tab.add_message(OTR_ERROR % format_dict, typ=0)
+            tab.add_message(InfoMessage(OTR_ERROR % format_dict), typ=0)
             del msg['body']
             del msg['html']
             hl(tab)
@@ -649,7 +655,7 @@ class Plugin(BasePlugin):
             # Encrypted message received, but unreadable as we do not have
             # an OTR session in place.
             text = MESSAGE_UNREADABLE % format_dict
-            tab.add_message(text, jid=msg['from'], typ=0)
+            tab.add_message(InfoMessage(text), typ=0)
             hl(tab)
             del msg['body']
             del msg['html']
@@ -658,7 +664,7 @@ class Plugin(BasePlugin):
         except crypt.InvalidParameterError:
             # Malformed OTR payload and stuff
             text = MESSAGE_INVALID % format_dict
-            tab.add_message(text, jid=msg['from'], typ=0)
+            tab.add_message(InfoMessage(text), typ=0)
             hl(tab)
             del msg['body']
             del msg['html']
@@ -669,7 +675,7 @@ class Plugin(BasePlugin):
             import traceback
             exc = traceback.format_exc()
             format_dict['exc'] = exc
-            tab.add_message(POTR_ERROR % format_dict, typ=0)
+            tab.add_message(InfoMessage(POTR_ERROR % format_dict), typ=0)
             log.error('Unspecified error in the OTR plugin', exc_info=True)
             return
         # No error, proceed with the message
@@ -688,10 +694,10 @@ class Plugin(BasePlugin):
         abort = get_tlv(tlvs, potr.proto.SMPABORTTLV)
         if abort:
             ctx.reset_smp()
-            tab.add_message(SMP_ABORTED_PEER % format_dict, typ=0)
+            tab.add_message(InfoMessage(SMP_ABORTED_PEER % format_dict), typ=0)
         elif ctx.in_smp and not ctx.smpIsValid():
             ctx.reset_smp()
-            tab.add_message(SMP_ABORTED % format_dict, typ=0)
+            tab.add_message(InfoMessage(SMP_ABORTED % format_dict), typ=0)
         elif smp1 or smp1q:
             # Received an SMP request (with a question or not)
             if smp1q:
@@ -709,22 +715,22 @@ class Plugin(BasePlugin):
             # we did not initiate it
             ctx.smp_own = False
             format_dict['q'] = question
-            tab.add_message(SMP_REQUESTED % format_dict, typ=0)
+            tab.add_message(InfoMessage(SMP_REQUESTED % format_dict), typ=0)
         elif smp2:
             # SMP reply received
             if not ctx.in_smp:
                 ctx.reset_smp()
             else:
-                tab.add_message(SMP_PROGRESS % format_dict, typ=0)
+                tab.add_message(InfoMessage(SMP_PROGRESS % format_dict), typ=0)
         elif smp3 or smp4:
             # Type 4 (SMP message 3) or 5 (SMP message 4) TLVs received
             # in both cases it is the final message of the SMP exchange
             if ctx.smpIsSuccess():
-                tab.add_message(SMP_SUCCESS % format_dict, typ=0)
+                tab.add_message(InfoMessage(SMP_SUCCESS % format_dict), typ=0)
                 if not ctx.getCurrentTrust():
-                    tab.add_message(SMP_RECIPROCATE % format_dict, typ=0)
+                    tab.add_message(InfoMessage(SMP_RECIPROCATE % format_dict), typ=0)
             else:
-                tab.add_message(SMP_FAIL % format_dict, typ=0)
+                tab.add_message(InfoMessage(SMP_FAIL % format_dict), typ=0)
             ctx.reset_smp()
         hl(tab)
         self.core.refresh_window()
@@ -780,12 +786,15 @@ class Plugin(BasePlugin):
             if decode_newlines:
                 body = body.replace('<br/>', '\n').replace('<br>', '\n')
         tab.add_message(
-            body,
-            nickname=tab.nick,
-            jid=msg['from'],
-            forced_user=user,
+            Message(
+                body,
+                nickname=tab.nick,
+                jid=msg['from'],
+                user=user,
+                nick_color=nick_color
+            ),
             typ=ctx.log,
-            nick_color=nick_color)
+        )
         hl(tab)
         self.core.refresh_window()
         del msg['body']
@@ -826,19 +835,22 @@ class Plugin(BasePlugin):
                 tab.send_chat_state('inactive', always_send=True)
 
             tab.add_message(
-                msg['body'],
-                nickname=self.core.own_nick or tab.own_nick,
-                nick_color=get_theme().COLOR_OWN_NICK,
-                identifier=msg['id'],
-                jid=self.core.xmpp.boundjid,
-                typ=ctx.log)
+                Message(
+                    msg['body'],
+                    nickname=self.core.own_nick or tab.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=msg['id'],
+                    jid=self.core.xmpp.boundjid,
+                ),
+                typ=ctx.log
+            )
             # remove everything from the message so that it doesn’t get sent
             del msg['body']
             del msg['replace']
             del msg['html']
         elif is_relevant(tab) and ctx and ctx.getPolicy('REQUIRE_ENCRYPTION'):
             warning_msg = MESSAGE_NOT_SENT % format_dict
-            tab.add_message(warning_msg, typ=0)
+            tab.add_message(InfoMessage(warning_msg), typ=0)
             del msg['body']
             del msg['replace']
             del msg['html']
@@ -856,7 +868,7 @@ class Plugin(BasePlugin):
                     ('\n - /message %s' % jid) for jid in res)
             format_dict['help'] = help_msg
             warning_msg = INCOMPATIBLE_TAB % format_dict
-            tab.add_message(warning_msg, typ=0)
+            tab.add_message(InfoMessage(warning_msg), typ=0)
             del msg['body']
             del msg['replace']
             del msg['html']
@@ -900,22 +912,22 @@ class Plugin(BasePlugin):
             self.otr_start(tab, name, format_dict)
         elif action == 'ourfpr':
             format_dict['fpr'] = self.account.getPrivkey()
-            tab.add_message(OTR_OWN_FPR % format_dict, typ=0)
+            tab.add_message(InfoMessage(OTR_OWN_FPR % format_dict), typ=0)
         elif action == 'fpr':
             if name in self.contexts:
                 ctx = self.contexts[name]
                 if ctx.getCurrentKey() is not None:
                     format_dict['fpr'] = ctx.getCurrentKey()
-                    tab.add_message(OTR_REMOTE_FPR % format_dict, typ=0)
+                    tab.add_message(InfoMessage(OTR_REMOTE_FPR % format_dict), typ=0)
                 else:
-                    tab.add_message(OTR_NO_FPR % format_dict, typ=0)
+                    tab.add_message(InfoMessage(OTR_NO_FPR % format_dict), typ=0)
         elif action == 'drop':
             # drop the privkey (and obviously, end the current conversations before that)
             for context in self.contexts.values():
                 if context.state not in (STATE_FINISHED, STATE_PLAINTEXT):
                     context.disconnect()
             self.account.drop_privkey()
-            tab.add_message(KEY_DROPPED % format_dict, typ=0)
+            tab.add_message(InfoMessage(KEY_DROPPED % format_dict), typ=0)
         elif action == 'trust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -927,7 +939,7 @@ class Plugin(BasePlugin):
                 format_dict['key'] = key
                 ctx.setTrust(fpr, 'verified')
                 self.account.saveTrusts()
-                tab.add_message(TRUST_ADDED % format_dict, typ=0)
+                tab.add_message(InfoMessage(TRUST_ADDED % format_dict), typ=0)
         elif action == 'untrust':
             ctx = self.get_context(name)
             key = ctx.getCurrentKey()
@@ -939,7 +951,7 @@ class Plugin(BasePlugin):
                 format_dict['key'] = key
                 ctx.setTrust(fpr, '')
                 self.account.saveTrusts()
-                tab.add_message(TRUST_REMOVED % format_dict, typ=0)
+                tab.add_message(InfoMessage(TRUST_REMOVED % format_dict), typ=0)
         self.core.refresh_window()
 
     def otr_start(self, tab, name, format_dict):
@@ -954,7 +966,7 @@ class Plugin(BasePlugin):
             if otr.state != STATE_ENCRYPTED:
                 format_dict['secs'] = secs
                 text = OTR_NOT_ENABLED % format_dict
-                tab.add_message(text, typ=0)
+                tab.add_message(InfoMessage(text), typ=0)
                 self.core.refresh_window()
 
         if secs > 0:
@@ -962,7 +974,7 @@ class Plugin(BasePlugin):
             self.api.add_timed_event(event)
         body = self.get_context(name).sendMessage(0, b'?OTRv?').decode()
         self.core.xmpp.send_message(mto=name, mtype='chat', mbody=body)
-        tab.add_message(OTR_REQUEST % format_dict, typ=0)
+        tab.add_message(InfoMessage(OTR_REQUEST % format_dict), typ=0)
 
     @staticmethod
     def completion_otr(the_input):
@@ -1012,13 +1024,13 @@ class Plugin(BasePlugin):
                 ctx.smpInit(secret, question)
             else:
                 ctx.smpInit(secret)
-            tab.add_message(SMP_INITIATED % format_dict, typ=0)
+            tab.add_message(InfoMessage(SMP_INITIATED % format_dict), typ=0)
         elif action == 'answer':
             ctx.smpGotSecret(secret)
         elif action == 'abort':
             if ctx.in_smp:
                 ctx.smpAbort()
-                tab.add_message(SMP_ABORTED % format_dict, typ=0)
+                tab.add_message(InfoMessage(SMP_ABORTED % format_dict), typ=0)
         self.core.refresh_window()
 
     @staticmethod
