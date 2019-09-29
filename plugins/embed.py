@@ -16,6 +16,7 @@ Usage
 from poezio import tabs
 from poezio.plugin import BasePlugin
 from poezio.theming import get_theme
+from poezio.ui.types import Message
 
 
 class Plugin(BasePlugin):
@@ -37,11 +38,13 @@ class Plugin(BasePlugin):
         if not isinstance(tab, tabs.MucTab):
             message['type'] = 'chat'
             tab.add_message(
-                message['body'],
-                nickname=tab.core.own_nick,
-                nick_color=get_theme().COLOR_OWN_NICK,
-                identifier=message['id'],
-                jid=tab.core.xmpp.boundjid,
+                Message(
+                    message['body'],
+                    nickname=tab.core.own_nick,
+                    nick_color=get_theme().COLOR_OWN_NICK,
+                    identifier=message['id'],
+                    jid=tab.core.xmpp.boundjid,
+                ),
                 typ=1,
             )
         message.send()
