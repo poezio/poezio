@@ -14,23 +14,13 @@
 import re
 from poezio.plugin import BasePlugin
 from poezio import tabs
-from poezio.text_buffer import Message, TextBuffer
+from poezio.text_buffer import TextBuffer
+from poezio.ui.types import InfoMessage
 
 
 def add_line(text_buffer: TextBuffer, text: str) -> None:
     """Adds a textual entry in the TextBuffer"""
-    text_buffer.add_message(
-        text,
-        None,  # Time
-        None,  # Nickname
-        None,  # Nick Color
-        False,  # History
-        None,  # User
-        False,  # Highlight
-        None,  # Identifier
-        None,  # str_time
-        None,  # Jid
-    )
+    text_buffer.add_message(InfoMessage(text))
 
 
 class Plugin(BasePlugin):
