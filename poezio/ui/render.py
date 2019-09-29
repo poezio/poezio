@@ -100,7 +100,7 @@ def build_xmllog(msg: XMLLog, width: int, timestamp: bool, nick_size: int = 10) 
 def write_pre(msg: BaseMessage, win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before text (only the timestamp)"""
     if with_timestamps:
-        return 1 + PreMessageHelpers.write_time(win, False, msg.time)
+        return PreMessageHelpers.write_time(win, False, msg.time)
     return 0
 
 
@@ -153,7 +153,7 @@ def write_pre_xmllog(msg: XMLLog, win, with_timestamps: bool, nick_size: int) ->
     """Write the part before the stanza (timestamp + IN/OUT)"""
     offset = 0
     if with_timestamps:
-        offset += PreMessageHelpers.write_time(win, False, msg.time)
+        offset += 1 + PreMessageHelpers.write_time(win, False, msg.time)
     theme = get_theme()
     if msg.incoming:
         char = theme.CHAR_XML_IN
