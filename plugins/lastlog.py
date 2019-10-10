@@ -12,16 +12,23 @@
 """
 
 import re
+from typing import Optional
+from datetime import datetime
+
 from poezio.plugin import BasePlugin
 from poezio import tabs
 from poezio.text_buffer import Message, TextBuffer
 
 
-def add_line(text_buffer: TextBuffer, text: str) -> None:
+def add_line(
+        text_buffer: TextBuffer,
+        text: str,
+        datetime: Optional[datetime] = None,
+    ) -> None:
     """Adds a textual entry in the TextBuffer"""
     text_buffer.add_message(
         text,
-        None,  # Time
+        datetime,  # Time
         None,  # Nickname
         None,  # Nick Color
         False,  # History
@@ -58,7 +65,7 @@ class Plugin(BasePlugin):
             if message.nickname is not None and \
                search_re.search(message.txt) is not None:
                 res.append(message)
-                add_line(text_buffer, "%s" % (message.txt))
+                add_line(text_buffer, "%s> %s" % (message.nickname, message.txt), message.time)
         add_line(text_buffer, "End of Lastlog")
         self.api.current_tab().text_win.pos = 0
         self.api.current_tab().core.refresh_window()
