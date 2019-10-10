@@ -149,7 +149,7 @@ class HandlerCore:
         if is_muc_pm:
             log.debug('%s sent a MUC-PM, ignoring carbon', recv['from'])
             return
-        if is_muc_pm == None:
+        if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
                 recv['from'].server,
