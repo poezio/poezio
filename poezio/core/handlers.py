@@ -117,15 +117,16 @@ class HandlerCore:
         if with_jid.bare in roster and roster[with_jid.bare].subscription != 'none':
             return False
         # then, check bookmarks
-        if with_jid.bare in self.core.bookmarks:
-            log.debug('MUC-PM from %s in bookmarks', with_jid)
-            return True
+        jid_bare = with_jid.bare
+        for bm in self.core.bookmarks:
+            if bm.jid.bare == jid_bare:
+                log.debug('MUC-PM from %s in bookmarks', with_jid)
+                return True
         # then, look whether we know the MUC JID
         for tab in self.core.get_tabs(tabs.MucTab):
-            if tab.jid.bare == with_jid.bare:
+            if tab.jid.bare == jid_bare:
                 if with_jid.resource:
-                    log.debug('MUC-PM from %s in known MucTab',
-                            with_jid)
+                    log.debug('MUC-PM from %s in known MucTab', with_jid)
                     return True
         return None
 
