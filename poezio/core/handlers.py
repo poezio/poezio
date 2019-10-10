@@ -19,7 +19,7 @@ from os import path
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 import pyasn1_modules.rfc2459
-from slixmpp import InvalidJID
+from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
@@ -102,7 +102,7 @@ class HandlerCore:
             self.core.xmpp['xep_0030'].get_info_from_domain(),
         )
 
-    def is_known_muc_pm(self, message, with_jid):
+    def is_known_muc_pm(self, message: Message, with_jid: JID):
         """
         Try to determine whether a given message is a MUC-PM, without a roundtrip. Returns None when it's not clear
         """
