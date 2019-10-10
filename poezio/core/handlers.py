@@ -102,6 +102,33 @@ class HandlerCore:
             self.core.xmpp['xep_0030'].get_info_from_domain(),
         )
 
+    def is_known_muc_pm(self, message, with_jid):
+        """
+        Try to determine whether a given message is a MUC-PM, without a roundtrip. Returns None when it's not clear
+        """
+        # first, look for the x (XEP-0045 version 1.28)
+        if message.xml.find(
+                '{http://jabber.org/protocol/muc#user}x'
+        ) is not None:
+            log.debug('MUC-PM from %s with <x>',
+                      with_jid)
+            return True
+        # then, look in the roster
+        if with_jid.bare in roster and roster[with_jid.bare].subscription != 'none':
+            return False
+        # then, check bookmarks
+        if with_jid.bare in self.core.bookmarks:
+            log.debug('MUC-PM from %s in bookmarks', with_jid)
+            return True
+        # then, look whether we know the MUC JID
+        for tab in self.core.get_tabs(tabs.MucTab):
+            if tab.jid.bare == with_jid.bare:
+                if with_jid.resource:
+                    log.debug('MUC-PM from %s in known MucTab',
+                            with_jid)
+                    return True
+        return None
+
     def on_carbon_received(self, message):
         """
         Carbon <received/> received
@@ -118,8 +145,11 @@ class HandlerCore:
             self.on_normal_message(recv)
 
         recv = message['carbon_received']
-        if (recv['from'].bare not in roster
-                or roster[recv['from'].bare].subscription == 'none'):
+        is_muc_pm = self.is_known_muc_pm(recv, recv['from'])
+        if is_muc_pm:
+            log.debug('%s sent a MUC-PM, ignoring carbon', recv['from'])
+            return
+        if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
                 recv['from'].server,
@@ -143,10 +173,11 @@ class HandlerCore:
             self.on_normal_message(sent)
 
         sent = message['carbon_sent']
-        # todo: implement proper MUC detection logic
-        if (sent['to'].resource
-                and (sent['to'].bare not in roster
-                     or roster[sent['to'].bare].subscription == 'none')):
+        is_muc_pm = self.is_known_muc_pm(sent, sent['to'])
+        if is_muc_pm:
+            groupchat_private_message(sent)
+            return
+        if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
                 sent['to'].server,
@@ -233,12 +264,9 @@ class HandlerCore:
         if message['type'] == 'groupchat':
             return
         # Differentiate both type of messages, and call the appropriate handler.
-        jid_from = message['from']
-        for tab in self.core.get_tabs(tabs.MucTab):
-            if tab.jid.bare == jid_from.bare:
-                if jid_from.resource:
-                    self.on_groupchat_private_message(message, sent=False)
-                    return
+        if self.is_known_muc_pm(message, message['from']):
+            self.on_groupchat_private_message(message, sent=False)
+            return
         self.on_normal_message(message)
 
     def on_error_message(self, message):
