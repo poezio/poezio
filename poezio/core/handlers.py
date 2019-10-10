@@ -177,7 +177,7 @@ class HandlerCore:
         if is_muc_pm:
             groupchat_private_message(sent)
             return
-        if is_muc_pm == None:
+        if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
                 sent['to'].server,
