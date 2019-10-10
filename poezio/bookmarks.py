@@ -41,13 +41,20 @@ log = logging.getLogger(__name__)
 
 class Bookmark:
     def __init__(self,
-                 jid: JID,
+                 jid: Union[JID, str],
                  name: Optional[str] = None,
                  autojoin=False,
                  nick: Optional[str] = None,
                  password: Optional[str] = None,
                  method='local') -> None:
-        self.jid = jid
+        try:
+            if isinstance(jid, JID):
+                self.jid = jid
+            else:
+                self.jid = JID(jid)
+        except InvalidJID:
+            log.debug('Invalid JID %r provided for bookmark %r', jid, name)
+            raise
         self.name = name or jid
         self.autojoin = autojoin
         self.nick = nick
