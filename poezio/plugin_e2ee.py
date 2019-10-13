@@ -268,7 +268,7 @@ class E2EEPlugin(BasePlugin):
     @command_args_parser.quoted(0, 1)
     def _command_show_fingerprints(self, args: List[str]) -> None:
         if not args and isinstance(self.api.current_tab(), self.supported_tab_types):
-            jid = self.api.current_tab().name
+            jid = self.api.current_tab().jid
         else:
             jid = args[0]
         self._show_fingerprints(JID(jid))
@@ -293,7 +293,7 @@ class E2EEPlugin(BasePlugin):
                 'Info',
             )
             return
-        jid = self.api.current_tab().name
+        jid = self.api.current_tab().jid
         if not args:
             self.api.information(
                 'No fingerprint provided to the command..',
