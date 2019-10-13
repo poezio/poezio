@@ -40,6 +40,8 @@ class Plugin(E2EEPlugin):
     encrypted_tags = [
         (slixmpp_omemo.OMEMO_BASE_NS, 'encrypted'),
     ]
+    # TODO: Make "unverified" state depend on a config option that includes it
+    # either in accepted or rejected states.
     trust_states = {'accepted': {'verified', 'unverified'}, 'rejected': {'untrusted'}}
     supported_tab_types = (DynamicConversationTab, StaticConversationTab, MucTab)
 
