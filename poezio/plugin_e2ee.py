@@ -269,8 +269,15 @@ class E2EEPlugin(BasePlugin):
     def _command_show_fingerprints(self, args: List[str]) -> None:
         if not args and isinstance(self.api.current_tab(), self.supported_tab_types):
             jid = self.api.current_tab().jid
-        else:
+        elif args:
             jid = args[0]
+        else:
+            self.api.information(
+                '%s_fingerprint: Couldn\'t deduce JID from context' % (
+                    self.encryption_short_name),
+                'Error',
+            )
+            return None
         self._show_fingerprints(JID(jid))
 
     @command_args_parser.quoted(2)
