@@ -231,7 +231,7 @@ class E2EEPlugin(BasePlugin):
     def _toggle_tab(self, _input: str) -> None:
         jid = self.api.current_tab().jid  # type: JID
 
-        if self._enabled_tabs.get(jid) == self.encrypt:
+        if self._encryption_enabled(jid):
             del self._enabled_tabs[jid]
             config.remove_and_save('encryption', section=jid)
             self.api.information(
@@ -311,7 +311,7 @@ class E2EEPlugin(BasePlugin):
         self.store_trust(jid, state, fpr)
 
     def _encryption_enabled(self, jid: JID) -> bool:
-        return jid in self._enabled_tabs and self._enabled_tabs[jid] == self.encrypt
+        return self._enabled_tabs.get(jid) == self.encrypt
 
     async def _encrypt_wrapper(self, stanza: StanzaBase) -> Optional[StanzaBase]:
         """
