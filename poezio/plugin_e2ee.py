@@ -432,8 +432,7 @@ class E2EEPlugin(BasePlugin):
         config.silent_set(option=option_name, value=state, section=jid)
 
     def fetch_trust(self, jid: JID, fingerprint: str) -> str:
-        """Fetch trust of a fingerprint and a jid.
-        """
+        """Fetch trust of a fingerprint and a jid."""
         option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
         return config.get(option=option_name, section=jid)
 
