@@ -26,7 +26,6 @@ from slixmpp import InvalidJID, JID
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
-from poezio.common import safeJID
 from poezio.contact import Contact, Resource
 from poezio.core.structs import Completion
 from poezio import tabs
@@ -73,7 +72,10 @@ class Plugin(BasePlugin):
     def command_ping(self, arg):
         if not arg:
             return self.core.command.help('ping')
-        jid = safeJID(arg)
+        try:
+            jid = JID(arg)
+        except InvalidJID:
+            return self.api.information('Invalid JID: %s' % arg, 'Error')
         start = time.time()
 
         def callback(iq):
