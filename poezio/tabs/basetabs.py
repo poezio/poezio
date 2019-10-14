@@ -17,27 +17,22 @@ import logging
 import string
 import asyncio
 import time
+from math import ceil, log10
 from datetime import datetime
 from xml.etree import cElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from slixmpp import JID, InvalidJID, Message
-
+from poezio import mam, poopt, timed_events, xhtml, windows
 from poezio.core.structs import Command, Completion, Status
-from poezio import timed_events
-from poezio import windows
-from poezio import xhtml
-from poezio import poopt
-from math import ceil, log10
-from poezio.windows.funcs import truncate_nick, parse_attrs
-from poezio import mam
 from poezio.common import safeJID
 from poezio.config import config
-from poezio.decorators import refresh_wrapper
+from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
-from poezio.theming import to_curses_attr, get_theme, dump_tuple
-from poezio.decorators import command_args_parser
+from poezio.theming import get_theme, dump_tuple
+from poezio.windows.funcs import truncate_nick
+
+from slixmpp import JID, InvalidJID, Message
 
 log = logging.getLogger(__name__)
 
