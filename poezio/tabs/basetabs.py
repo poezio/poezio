@@ -13,6 +13,7 @@ This module also defines ChatTabs, the parent class for all tabs
 revolving around chats.
 """
 
+import copy
 import logging
 import string
 import asyncio
@@ -538,7 +539,7 @@ class ChatTab(Tab):
 
     @property
     def jid(self) -> JID:
-        return self._jid
+        return copy.copy(self._jid)
 
     @jid.setter
     def jid(self, value: JID) -> None:
