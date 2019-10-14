@@ -92,7 +92,7 @@ class Bookmark:
 
     def local(self) -> str:
         """Generate a str for local storage"""
-        local = self.jid
+        local = str(self.jid)
         if self.nick:
             local += '/%s' % self.nick
         local += ':'
