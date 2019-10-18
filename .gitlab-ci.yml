@@ -41,6 +41,7 @@ pytest-3.5:
   image: python:3.5
   script:
     - apt-get update && apt-get install -y libidn11-dev
+    - pip install 'aiohttp<4.0'
     - git clone git://git.louiz.org/slixmpp
     - pip3 install pytest pyasn1-modules cffi --upgrade
     - cd slixmpp
