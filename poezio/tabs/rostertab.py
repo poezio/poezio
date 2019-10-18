@@ -914,7 +914,7 @@ class RosterInfoTab(Tab):
             log.error('Unable to correct a message', exc_info=True)
             return
         for jid in lines:
-            self.command.command_add(jid.lstrip('\n'))
+            self.core.command.command_add(jid.lstrip('\n'))
         self.core.information('Contacts imported from %s' % filepath, 'Info')
 
     @deny_anonymous

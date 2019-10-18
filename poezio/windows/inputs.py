@@ -601,6 +601,7 @@ class HistoryInput(Input):
         self.key_func['^R'] = self.toggle_search
         self.search = False
         if config.get('separate_history'):
+            # pylint: disable=assigning-non-slot
             self.history = []  # type: List[str]
 
     def toggle_search(self) -> None:
