@@ -1,5 +1,6 @@
 git+https://github.com/afflux/pure-python-otr.git#egg=python-potr
 pyinotify
 python-mpd2
-aiohttp
+aiohttp<4 ; python_version <= '3.5'
+aiohttp ; python_version > '3.5'
 pygments
