@@ -55,7 +55,7 @@ class Bookmark:
         except InvalidJID:
             log.debug('Invalid JID %r provided for bookmark %r', jid, name)
             raise
-        self.name = name or jid
+        self.name = name or str(jid)
         self.autojoin = autojoin
         self.nick = nick
         self.password = password
