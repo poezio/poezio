@@ -49,17 +49,33 @@ class Bookmark:
                  method='local') -> None:
         try:
             if isinstance(jid, JID):
-                self.jid = jid
+                self._jid = jid
             else:
-                self.jid = JID(jid)
+                self._jid = JID(jid)
         except InvalidJID:
-            log.debug('Invalid JID %r provided for bookmark %r', jid, name)
+            log.debug('Invalid JID %r provided for bookmark', jid)
             raise
-        self.name = name or str(jid)
+        self.name = name or str(self.jid)
         self.autojoin = autojoin
         self.nick = nick
         self.password = password
         self._method = method
+
+    @property
+    def jid(self) -> JID:
+        """Jid getter"""
+        return self._jid
+
+    @jid.setter
+    def jid(self, jid: JID) -> None:
+        try:
+            if isinstance(jid, JID):
+                self._jid = jid
+            else:
+                self._jid = JID(jid)
+        except InvalidJID:
+            log.debug('Invalid JID %r provided for bookmark', jid)
+            raise
 
     @property
     def method(self) -> str:
