@@ -11,6 +11,8 @@ from poezio.core.structs import Command
 from poezio.tabs import Tab
 from poezio.common import safeJID
 
+from slixmpp import JID
+
 log = logging.getLogger(__name__)
 
 
@@ -50,7 +52,7 @@ class BookmarksTab(Tab):
 
     def add_bookmark(self):
         new_bookmark = Bookmark(
-            safeJID('room@example.tld/nick'), method='local')
+            JID('room@example.tld/nick'), method='local')
         self.new_bookmarks.append(new_bookmark)
         self.bookmarks_win.add_bookmark(new_bookmark)
 
