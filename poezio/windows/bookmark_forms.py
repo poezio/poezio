@@ -15,7 +15,7 @@ from poezio.bookmarks import Bookmark, BookmarkList
 
 
 class BookmarkNameInput(FieldInput, Input):
-    def __init__(self, field) -> None:
+    def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         self.text = field.name
@@ -30,7 +30,7 @@ class BookmarkNameInput(FieldInput, Input):
 
 
 class BookmarkJIDInput(FieldInput, Input):
-    def __init__(self, field) -> None:
+    def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         jid = safeJID(field.jid)
@@ -49,7 +49,7 @@ class BookmarkJIDInput(FieldInput, Input):
 
 
 class BookmarkMethodInput(FieldInputMixin):
-    def __init__(self, field) -> None:
+    def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Win.__init__(self)
         self.options = ('local', 'remote')
@@ -89,7 +89,7 @@ class BookmarkMethodInput(FieldInputMixin):
 
 
 class BookmarkPasswordInput(FieldInput, Input):
-    def __init__(self, field) -> None:
+    def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
         self.text = field.password or ''
@@ -119,7 +119,7 @@ class BookmarkPasswordInput(FieldInput, Input):
 
 
 class BookmarkAutojoinWin(FieldInputMixin):
-    def __init__(self, field) -> None:
+    def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Win.__init__(self)
         self.last_key = 'KEY_RIGHT'
@@ -190,11 +190,13 @@ class BookmarksWin(Win):
                            BookmarkPasswordInput(bookmark),
                            BookmarkAutojoinWin(bookmark),
                            BookmarkMethodInput(bookmark)))
-        self.lines[self.current_input][
-            self.current_horizontal_input].set_color(
-                get_theme().COLOR_NORMAL_TEXT)
+        if len(self.lines) > 1:
+            self.lines[self.current_input][
+                self.current_horizontal_input].set_color(
+                    get_theme().COLOR_NORMAL_TEXT)
         self.current_horizontal_input = 0
-        self.current_input = len(self.lines) - 1
+        if len(self.lines) > 1:
+            self.current_input = len(self.lines) - 1
         if self.current_input - self.scroll_pos > self.height - 1:
             self.scroll_pos = self.current_input - self.height + 1
         self.refresh()
