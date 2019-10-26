@@ -10,11 +10,23 @@
     Interface for E2EE (End-to-end Encryption) plugins.
 """
 
-from typing import Callable, Dict, List, Optional, Union
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+    Tuple,
+)
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
-from poezio.tabs import ConversationTab, DynamicConversationTab, PrivateTab, MucTab
+from poezio.tabs import (
+    ConversationTab,
+    DynamicConversationTab,
+    PrivateTab,
+    MucTab,
+)
 from poezio.plugin import BasePlugin
 
 import logging
