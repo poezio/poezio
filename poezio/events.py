@@ -98,7 +98,7 @@ class EventHandler:
                             priority.remove(callback)
         else:
             callbacks = self.events[name]
-            for priority in callbacks.entries():
+            for priority in callbacks.values():
                 for entry in priority[:]:
                     if entry == callback:
                         priority.remove(callback)
