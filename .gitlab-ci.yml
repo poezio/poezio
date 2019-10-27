@@ -65,6 +65,20 @@ pytest-3.6:
     - python3 setup.py install
     - py.test -v test/
 
+pytest-3.7:
+  stage: test
+  image: python:3.7
+  script:
+    - apt-get update && apt-get install -y libidn11-dev
+    - git clone git://git.louiz.org/slixmpp
+    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - cd slixmpp
+    - python3 setup.py install
+    - cd ..
+    - python3 setup.py install
+    - py.test -v test/
+
+
 pytest-latest:
   stage: test
   image: python:3
