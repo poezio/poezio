@@ -11,11 +11,19 @@ independently by their TextWins.
 import logging
 log = logging.getLogger(__name__)
 
-from typing import Union, Optional, List, Tuple
+from typing import (
+    List,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 from datetime import datetime
 from poezio.config import config
 from poezio.ui.types import Message, BaseMessage
 
+if TYPE_CHECKING:
+    from poezio.windows.text_win import TextWin
 
 
 class CorrectionError(Exception):
@@ -42,13 +50,13 @@ class TextBuffer:
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self._windows = []
+        self._windows = []  # type: List[TextWin]
 
     def add_window(self, win) -> None:
         self._windows.append(win)
 
     @property
-    def last_message(self) -> Optional[Message]:
+    def last_message(self) -> Optional[BaseMessage]:
         return self.messages[-1] if self.messages else None
 
     def add_message(self, msg: BaseMessage):
@@ -106,6 +114,8 @@ class TextBuffer:
         if i == -1:
             return None
         msg = self.messages[i]
+        if not isinstance(msg, Message):
+            return None
         if msg.ack == 1:  # Message was already acked
             return False
         if msg.jid != jid:
@@ -138,7 +148,8 @@ class TextBuffer:
             raise CorrectionError("nothing to replace")
 
         msg = self.messages[i]
-
+        if not isinstance(msg, Message):
+            raise CorrectionError('Wrong message type')
         if msg.user and msg.user is not user:
             raise CorrectionError("Different users")
         elif msg.history:
