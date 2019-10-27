@@ -1,4 +1,5 @@
 stages:
+  - lint
   - test
   - build
 
@@ -31,7 +32,7 @@ build-ubuntu:
     - master
 
 security-check:
-  stage: test
+  stage: lint
   image: python:3
   script:
     - pip3 install safety
@@ -78,7 +79,7 @@ pytest-latest:
     - py.test -v test/
 
 pylint-latest:
-  stage: test
+  stage: lint
   image: python:3
   script:
     - apt-get update && apt-get install -y libidn11-dev
@@ -91,7 +92,7 @@ pylint-latest:
     - pylint -E poezio
 
 pylint-plugins:
-  stage: test
+  stage: lint
   image: python:3
   allow_failure: true
   script:
@@ -101,3 +102,11 @@ pylint-plugins:
     - pip3 install -r requirements-plugins.txt
     - python3 setup.py install
     - pylint -E plugins
+
+mypyc:
+  stage: lint
+  image: python:3
+  allow_failure: true
+  script:
+    - pip3 install mypy
+    - mypyc --ignore-missing-imports ./poezio
