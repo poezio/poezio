@@ -318,11 +318,17 @@ class TextWin(Win):
         with_timestamps = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
         for i in range(len(self.built_lines) - 1, -1, -1):
-            if self.built_lines[i] and self.built_lines[i].msg.identifier == old_id:
+            current = self.built_lines[i]
+            if current is not None and current.msg.identifier == old_id:
                 index = i
-                while index >= 0 and self.built_lines[index] and self.built_lines[index].msg.identifier == old_id:
+                while (
+                        index >= 0
+                        and current is not None
+                        and current.msg.identifier == old_id
+                        ):
                     self.built_lines.pop(index)
                     index -= 1
+                current = self.built_lines[index]
                 index += 1
                 lines = build_lines(
                     message, self.width, timestamp=with_timestamps, nick_size=nick_size
