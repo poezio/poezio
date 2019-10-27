@@ -7,7 +7,7 @@ the text window, the roster window, etc.
 A Tab (see the poezio.tabs module) is composed of multiple Windows
 """
 
-TAB_WIN = None
+TAB_WIN = None  # type: _CursesWindow
 
 import logging
 log = logging.getLogger(__name__)
@@ -15,7 +15,8 @@ log = logging.getLogger(__name__)
 import curses
 import string
 
-from typing import Optional, Tuple
+from contextlib import contextmanager
+from typing import Optional, Tuple, TYPE_CHECKING
 
 from poezio.theming import to_curses_attr, read_tuple
 
@@ -23,6 +24,9 @@ FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,
 # I guess. But maybe we can find better chars that are even less risky.
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x1A'
+
+if TYPE_CHECKING:
+    from _curses import _CursesWindow
 
 
 class DummyWin:
@@ -40,7 +44,7 @@ class Win:
     __slots__ = ('_win', 'height', 'width', 'y', 'x')
 
     def __init__(self) -> None:
-        self._win = None
+        self._win = None  # type: _CursesWindow
         self.height, self.width = 0, 0
 
     def _resize(self, height: int, width: int, y: int, x: int) -> None:

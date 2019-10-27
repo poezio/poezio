@@ -21,7 +21,15 @@ import time
 from math import ceil, log10
 from datetime import datetime
 from xml.etree import cElementTree as ET
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+    TYPE_CHECKING,
+)
 
 from poezio import mam, poopt, timed_events, xhtml, windows
 from poezio.core.structs import Command, Completion, Status
@@ -34,6 +42,9 @@ from poezio.theming import get_theme, dump_tuple
 from poezio.windows.funcs import truncate_nick
 
 from slixmpp import JID, InvalidJID, Message
+
+if TYPE_CHECKING:
+    from _curses import _CursesWindow
 
 log = logging.getLogger(__name__)
 
@@ -176,7 +187,7 @@ class Tab:
             self._state = 'normal'
 
     @staticmethod
-    def resize(scr):
+    def resize(scr: '_CursesWindow'):
         Tab.height, Tab.width = scr.getmaxyx()
         windows.base_wins.TAB_WIN = scr
 
