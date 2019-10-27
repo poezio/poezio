@@ -26,7 +26,7 @@ FORMAT_CHAR = '\x19'
 format_chars = '\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x1A'
 
 if TYPE_CHECKING:
-    from _curses import _CursesWindow
+    from _curses import _CursesWindow  # pylint: disable=E0611
 
 
 class DummyWin:

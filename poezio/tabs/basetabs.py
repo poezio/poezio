@@ -44,7 +44,7 @@ from poezio.windows.funcs import truncate_nick
 from slixmpp import JID, InvalidJID, Message
 
 if TYPE_CHECKING:
-    from _curses import _CursesWindow
+    from _curses import _CursesWindow  # pylint: disable=E0611
 
 log = logging.getLogger(__name__)
 
