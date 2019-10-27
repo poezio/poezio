@@ -679,7 +679,7 @@ LOGGING_CONFIG = {
 firstrun = False
 
 # Global config object. Is setup in poezio.py
-config = None  # type: Optional[Config]
+config = None  # type: Config
 
 # The logger object for this module
 log = None  # type: Optional[logging.Logger]

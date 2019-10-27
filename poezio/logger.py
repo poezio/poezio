@@ -306,4 +306,4 @@ def create_logger() -> None:
     logger = Logger()
 
 
-logger = None  # type: Optional[Logger]
+logger = None  # type: Logger
