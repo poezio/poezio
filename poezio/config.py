@@ -308,7 +308,7 @@ class Config(RawConfigParser):
             begin, end = sections[section]
             pos = find_line(result_lines, begin, end, option)
 
-            if pos is -1:
+            if pos == -1:
                 result_lines.insert(end, '%s = %s' % (option, value))
             else:
                 result_lines[pos] = '%s = %s' % (option, value)
@@ -334,7 +334,7 @@ class Config(RawConfigParser):
             begin, end = sections[section]
             pos = find_line(result_lines, begin, end, option)
 
-            if pos is -1:
+            if pos == -1:
                 log.error(
                     'Tried to remove a non-existing option %s'
                     ' from section %s', option, section)

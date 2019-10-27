@@ -1040,7 +1040,7 @@ class OneToOneTab(ChatTab):
     @command_args_parser.raw
     def command_attention(self, message):
         """/attention [message]"""
-        if message is not '':
+        if message != '':
             self.command_say(message, attention=True)
         else:
             msg = self.core.xmpp.make_message(self.get_dest_jid())

@@ -714,7 +714,7 @@ class HandlerCore:
         replaced = False
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
-            if replaced_id is not '' and config.get_by_tabname(
+            if replaced_id != '' and config.get_by_tabname(
                     'group_corrections', message['from'].bare):
                 try:
                     delayed_date = date or datetime.now()
@@ -806,7 +806,7 @@ class HandlerCore:
         user = tab.parent_muc.get_user_by_name(with_nick)
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
-            if replaced_id is not '' and config.get_by_tabname(
+            if replaced_id != '' and config.get_by_tabname(
                     'group_corrections', room_from):
                 try:
                     tab.modify_message(
