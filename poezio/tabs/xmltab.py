@@ -264,7 +264,7 @@ class XMLTab(Tab):
         text = '\n'.join(
             ('%s %s %s' % (
                 msg.time.strftime('%H:%M:%S'),
-                msg.nickname,
+                'IN' if msg.incoming else 'OUT',
                 clean_text(msg.txt))
              for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
