@@ -17,6 +17,6 @@ class Plugin(BasePlugin):
         # ref_src, ref_url: twitter
         # Others exist but are excluded because they are not common.
         # See https://en.wikipedia.org/wiki/UTM_parameters
-        msg['body'] = re.sub('&?(fbclid|dclid|ncid|utm_source|utm_medium|utm_campaign|utm_term|utm_content|ref_src|ref_url)=[^ &#]*',
-                             '',
+        msg['body'] = re.sub('(https?://[^ ]+)&?(fbclid|dclid|ncid|utm_source|utm_medium|utm_campaign|utm_term|utm_content|ref_src|ref_url)=[^ &#]*',
+                             r'\1',
                              msg['body'])
