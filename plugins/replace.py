@@ -91,7 +91,7 @@ def replace_time(message, tab):
 
 
 def replace_date(message, tab):
-    return datetime.datetime.now().strftime("%x")
+    return datetime.datetime.now().strftime("%Y-%m-%d")
 
 
 def replace_datetime(message, tab):
