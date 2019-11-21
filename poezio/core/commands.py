@@ -2,13 +2,10 @@
 Global commands which are to be linked to the Core class
 """
 
-import logging
-
-log = logging.getLogger(__name__)
-
 import asyncio
 from xml.etree import cElementTree as ET
 from typing import List, Optional, Tuple
+import logging
 
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError
@@ -25,13 +22,14 @@ from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio import multiuserchat as muc
 from poezio.contact import Contact
-from poezio import windows
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
 from poezio.decorators import command_args_parser
-
 from poezio.core.structs import Command, POSSIBLE_SHOW
+
+
+log = logging.getLogger(__name__)
 
 
 class CommandCore:
@@ -940,19 +938,25 @@ class CommandCore:
             "disconnected", self.core.exit, disposable=True)
 
     @command_args_parser.quoted(0, 1, [''])
-    def destroy_room(self, args):
+    def destroy_room(self, args: List[str]) -> None:
         """
         /destroy_room [JID]
         """
-        room = safeJID(args[0]).bare
-        if room:
-            muc.destroy_room(self.core.xmpp, room)
-        elif isinstance(self.core.tabs.current_tab,
-                        tabs.MucTab) and not args[0]:
+        if not args[0] and isinstance(self.core.tabs.current_tab, tabs.MucTab):
             muc.destroy_room(self.core.xmpp,
                              self.core.tabs.current_tab.general_jid)
-        else:
-            self.core.information('Invalid JID: "%s"' % args[0], 'Error')
+            return None
+
+        try:
+            room = JID(args[0]).bare
+            if room:
+                muc.destroy_room(self.core.xmpp, room)
+                return None
+        except InvalidJID:
+            pass
+
+        self.core.information('Invalid JID: "%s"' % args[0], 'Error')
+        return None
 
     @command_args_parser.quoted(1, 1, [''])
     def bind(self, args):
