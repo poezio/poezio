@@ -940,19 +940,25 @@ class CommandCore:
             "disconnected", self.core.exit, disposable=True)
 
     @command_args_parser.quoted(0, 1, [''])
-    def destroy_room(self, args):
+    def destroy_room(self, args: List[str]) -> None:
         """
         /destroy_room [JID]
         """
-        room = safeJID(args[0]).bare
-        if room:
-            muc.destroy_room(self.core.xmpp, room)
-        elif isinstance(self.core.tabs.current_tab,
-                        tabs.MucTab) and not args[0]:
+        if not args[0] and isinstance(self.core.tabs.current_tab, tabs.MucTab):
             muc.destroy_room(self.core.xmpp,
                              self.core.tabs.current_tab.general_jid)
-        else:
-            self.core.information('Invalid JID: "%s"' % args[0], 'Error')
+            return None
+
+        try:
+            room = JID(args[0]).bare
+            if room:
+                muc.destroy_room(self.core.xmpp, room)
+                return None
+        except InvalidJID:
+            pass
+
+        self.core.information('Invalid JID: "%s"' % args[0], 'Error')
+        return None
 
     @command_args_parser.quoted(1, 1, [''])
     def bind(self, args):
