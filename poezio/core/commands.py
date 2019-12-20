@@ -7,7 +7,7 @@ from xml.etree import cElementTree as ET
 from typing import List, Optional, Tuple
 import logging
 
-from slixmpp import JID, InvalidJID
+from slixmpp import Iq, JID, InvalidJID
 from slixmpp.exceptions import XMPPError
 from slixmpp.xmlstream.xmlstream import NotConnectedError
 from slixmpp.xmlstream.stanzabase import StanzaBase
@@ -21,7 +21,7 @@ from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio import multiuserchat as muc
-from poezio.contact import Contact
+from poezio.contact import Contact, Resource
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
@@ -898,6 +898,76 @@ class CommandCore:
         del self.core.pending_invites[jid.bare]
         self.core.xmpp.plugin['xep_0045'].decline_invite(
             jid.bare, self.core.pending_invites[jid.bare], reason)
+
+    @command_args_parser.quoted(0, 1)
+    def block(self, args: List[str]) -> None:
+        """
+        /block [jid]
+
+        If a JID is specified, use it. Otherwise if in RosterInfoTab, use the
+        selected JID, if in ConversationsTab use the Tab's JID.
+        """
+
+        jid = None
+        if args:
+            try:
+                jid = JID(args[0]).full
+            except InvalidJID:
+                self.core.information('Invalid JID %s' % args, 'Error')
+
+        current_tab = self.core.tabs.current_tab
+        if jid is None:
+            if isinstance(current_tab, tabs.RosterInfoTab):
+                roster_win = self.core.tabs.by_name_and_class(
+                    'Roster',
+                    tabs.RosterInfoTab,
+                )
+                item = roster_win.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+                elif isinstance(item, Resource):
+                    jid = item.jid
+
+            chattabs = (
+                tabs.ConversationTab,
+                tabs.StaticConversationTab,
+                tabs.DynamicConversationTab,
+            )
+            if isinstance(current_tab, chattabs):
+                jid = current_tab.jid.bare
+
+        def callback(iq: Iq) -> None:
+            if iq['type'] == 'error':
+                return self.core.information(
+                    'Could not block %s.' % jid, 'Error',
+                )
+            if iq['type'] == 'result':
+                return self.core.information('Blocked %s.' % jid, 'Info')
+            return None
+
+        self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
+
+    @command_args_parser.quoted(0, 1)
+    def unblock(self, args):
+        """
+        /unblock [jid]
+        """
+
+        def callback(iq):
+            if iq['type'] == 'error':
+                return self.core.information('Could not unblock the contact.',
+                                             'Error')
+            elif iq['type'] == 'result':
+                return self.core.information('Contact unblocked.', 'Info')
+
+        item = self.roster_win.selected_row
+        if args:
+            jid = safeJID(args[0])
+        elif isinstance(item, Contact):
+            jid = item.bare_jid
+        elif isinstance(item, Resource):
+            jid = item.jid.bare
+        self.core.xmpp.plugin['xep_0191'].unblock(jid, callback=callback)
 
 
 ### Commands without a completion in this class ###

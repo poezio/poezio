@@ -171,18 +171,6 @@ class RosterInfoTab(Tab):
     def check_blocking(self, features):
         if 'urn:xmpp:blocking' in features and not self.core.xmpp.anon:
             self.register_command(
-                'block',
-                self.command_block,
-                usage='[jid]',
-                shortdesc='Prevent a JID from talking to you.',
-                completion=self.completion_block)
-            self.register_command(
-                'unblock',
-                self.command_unblock,
-                usage='[jid]',
-                shortdesc='Allow a JID to talk to you.',
-                completion=self.completion_unblock)
-            self.register_command(
                 'list_blocks',
                 self.command_list_blocks,
                 shortdesc='Show the blocked contacts.')
@@ -419,74 +407,6 @@ class RosterInfoTab(Tab):
             'jid': message['from'],
         }
         tab.add_message(message)
-
-    @command_args_parser.quoted(0, 1)
-    def command_block(self, args):
-        """
-        /block [jid]
-        """
-        item = self.roster_win.selected_row
-        if args:
-            jid = safeJID(args[0])
-        elif isinstance(item, Contact):
-            jid = item.bare_jid
-        elif isinstance(item, Resource):
-            jid = item.jid.bare
-
-        def callback(iq):
-            if iq['type'] == 'error':
-                return self.core.information('Could not block %s.' % jid,
-                                             'Error')
-            elif iq['type'] == 'result':
-                return self.core.information('Blocked %s.' % jid, 'Info')
-
-        self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
-
-    def completion_block(self, the_input):
-        """
-        Completion for /block
-        """
-        if the_input.get_argument_position() == 1:
-            jids = roster.jids()
-            return Completion(
-                the_input.new_completion, jids, 1, '', quotify=False)
-
-    @command_args_parser.quoted(0, 1)
-    def command_unblock(self, args):
-        """
-        /unblock [jid]
-        """
-
-        def callback(iq):
-            if iq['type'] == 'error':
-                return self.core.information('Could not unblock the contact.',
-                                             'Error')
-            elif iq['type'] == 'result':
-                return self.core.information('Contact unblocked.', 'Info')
-
-        item = self.roster_win.selected_row
-        if args:
-            jid = safeJID(args[0])
-        elif isinstance(item, Contact):
-            jid = item.bare_jid
-        elif isinstance(item, Resource):
-            jid = item.jid.bare
-        self.core.xmpp.plugin['xep_0191'].unblock(jid, callback=callback)
-
-    def completion_unblock(self, the_input):
-        """
-        Completion for /unblock
-        """
-
-        def on_result(iq):
-            if iq['type'] == 'error':
-                return
-            l = sorted(str(item) for item in iq['blocklist']['items'])
-            return Completion(the_input.new_completion, l, 1, quotify=False)
-
-        if the_input.get_argument_position():
-            self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
-        return True
 
     @command_args_parser.ignored
     def command_list_blocks(self):

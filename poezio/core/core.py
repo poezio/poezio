@@ -1984,6 +1984,22 @@ class Core:
                 shortdesc='Send your gaming activity.',
                 completion=None)
 
+    def check_blocking(self, features):
+        if 'urn:xmpp:blocking' in features and not self.xmpp.anon:
+            self.register_command(
+                'block',
+                self.command.block,
+                usage='[jid]',
+                shortdesc='Prevent a JID from talking to you.',
+                completion=self.completion.block)
+            self.register_command(
+                'unblock',
+                self.command.unblock,
+                usage='[jid]',
+                shortdesc='Allow a JID to talk to you.',
+                completion=self.completion.unblock)
+
+            self.xmpp.del_event_handler('session_start', self.check_blocking)
 
 ####################### Random things to move #################################
 

@@ -89,6 +89,7 @@ class HandlerCore:
                 'Roster', tabs.RosterInfoTab)
             rostertab.check_blocking(features)
             rostertab.check_saslexternal(features)
+            self.core.check_blocking(features)
             if (config.get('enable_carbons')
                     and 'urn:xmpp:carbons:2' in features):
                 self.core.xmpp.plugin['xep_0280'].enable()

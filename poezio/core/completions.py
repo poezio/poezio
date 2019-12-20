@@ -461,3 +461,38 @@ class CompletionCore:
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.append('*')
         return Completion(the_input.new_completion, muc_list, 1, quotify=True)
+
+    def block(self, the_input):
+        """
+        Completion for /block
+        """
+        if the_input.get_argument_position() == 1:
+
+            current_tab = self.core.tabs.current_tab
+            chattabs = (
+                tabs.ConversationTab,
+                tabs.StaticConversationTab,
+                tabs.DynamicConversationTab,
+            )
+            if isinstance(current_tab, chattabs):
+                tabjid = current_tab.jid.bare
+
+            jids = roster.jids() + tabjid
+            return Completion(
+                the_input.new_completion, jids, 1, '', quotify=False)
+        return False
+
+    def unblock(self, the_input):
+        """
+        Completion for /unblock
+        """
+
+        def on_result(iq):
+            if iq['type'] == 'error':
+                return
+            l = sorted(str(item) for item in iq['blocklist']['items'])
+            return Completion(the_input.new_completion, l, 1, quotify=False)
+
+        if the_input.get_argument_position():
+            self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
+        return True
