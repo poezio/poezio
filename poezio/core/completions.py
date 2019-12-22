@@ -2,12 +2,15 @@
 Completions for the global commands
 """
 import logging
+from typing import List, Optional
 
 log = logging.getLogger(__name__)
 
 import os
 from pathlib import Path
 from functools import reduce
+
+from slixmpp import JID
 
 from poezio import common
 from poezio import pep
@@ -461,3 +464,40 @@ class CompletionCore:
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.append('*')
         return Completion(the_input.new_completion, muc_list, 1, quotify=True)
+
+    def block(self, the_input) -> Optional[Completion]:
+        """
+        Completion for /block
+        """
+        if the_input.get_argument_position() == 1:
+
+            current_tab = self.core.tabs.current_tab
+            chattabs = (
+                tabs.ConversationTab,
+                tabs.StaticConversationTab,
+                tabs.DynamicConversationTab,
+            )
+            tabjid = []  # type: List[JID]
+            if isinstance(current_tab, chattabs):
+                tabjid = [current_tab.jid.bare]
+
+            jids = roster.jids()
+            jids += tabjid
+            return Completion(
+                the_input.new_completion, jids, 1, '', quotify=False)
+        return None
+
+    def unblock(self, the_input) -> Optional[Completion]:
+        """
+        Completion for /unblock
+        """
+
+        def on_result(iq):
+            if iq['type'] == 'error':
+                return None
+            l = sorted(str(item) for item in iq['blocklist']['items'])
+            return Completion(the_input.new_completion, l, 1, quotify=False)
+
+        if the_input.get_argument_position():
+            self.core.xmpp.plugin['xep_0191'].get_blocked(callback=on_result)
+        return None
