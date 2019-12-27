@@ -5,10 +5,11 @@ the API together. Defines also a bunch of variables related to the
 plugin env.
 """
 
-import os
-from os import path
-from pathlib import Path
 import logging
+import os
+from importlib import import_module, machinery
+from pathlib import Path
+from os import path
 
 from poezio import tabs, xdg
 from poezio.core.structs import Command, Completion
@@ -44,7 +45,6 @@ class PluginManager:
         self.tab_keys = {}
         self.roster_elements = {}
 
-        from importlib import machinery
         self.finder = machinery.PathFinder()
 
         self.initial_set_plugins_dir()
@@ -57,7 +57,7 @@ class PluginManager:
         for plugin in set(self.plugins.keys()):
             self.unload(plugin, notify=False)
 
-    def load(self, name, notify=True):
+    def load(self, name: str, notify=True):
         """
         Load a plugin.
         """
@@ -67,11 +67,17 @@ class PluginManager:
         try:
             module = None
             loader = self.finder.find_module(name, self.load_path)
-            if not loader:
+            if loader:
+                module = loader.load_module()
+            else:
+                try:
+                    module = import_module('poezio_plugins.%s' % name)
+                except ModuleNotFoundError:
+                    pass
+            if not module:
                 self.core.information('Could not find plugin: %s' % name,
                                       'Error')
                 return
-            module = loader.load_module()
         except Exception as e:
             log.debug("Could not load plugin %s", name, exc_info=True)
             self.core.information("Could not load plugin %s: %s" % (name, e),
@@ -88,7 +94,7 @@ class PluginManager:
         self.event_handlers[name] = []
         try:
             self.plugins[name] = None
-            self.plugins[name] = module.Plugin(self.plugin_api, self.core,
+            self.plugins[name] = module.Plugin(name, self.plugin_api, self.core,
                                                self.plugins_conf_dir)
         except Exception as e:
             log.error('Error while loading the plugin %s', name, exc_info=True)
@@ -100,7 +106,7 @@ class PluginManager:
             if notify:
                 self.core.information('Plugin %s loaded' % name, 'Info')
 
-    def unload(self, name, notify=True):
+    def unload(self, name: str, notify=True):
         if name in self.plugins:
             try:
                 for command in self.commands[name].keys():
@@ -387,11 +393,3 @@ class PluginManager:
 
         if os.access(str(self.plugins_dir), os.R_OK | os.X_OK):
             self.load_path.append(str(self.plugins_dir))
-
-        try:
-            import poezio_plugins
-        except:
-            pass
-        else:
-            if poezio_plugins.__path__:
-                self.load_path.append(list(poezio_plugins.__path__)[0])
