@@ -395,17 +395,18 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
 
     default_config = None
 
-    def __init__(self, plugin_api, core, plugins_conf_dir):
+    def __init__(self, name, plugin_api, core, plugins_conf_dir):
+        self.__name = name
         self.core = core
         # More hack; luckily we'll never have more than one core object
         SafetyMetaclass.core = core
-        conf = plugins_conf_dir / (self.__module__ + '.cfg')
+        conf = plugins_conf_dir / (self.__name + '.cfg')
         try:
             self.config = PluginConfig(
-                conf, self.__module__, default=self.default_config)
+                conf, self.__name, default=self.default_config)
         except Exception:
             log.debug('Error while creating the plugin config', exc_info=True)
-            self.config = PluginConfig(conf, self.__module__)
+            self.config = PluginConfig(conf, self.__name)
         self._api = plugin_api[self.name]
         self.init()
 
@@ -414,7 +415,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         """
         Get the name (module name) of the plugin.
         """
-        return self.__module__
+        return self.__name
 
     @property
     def api(self):
