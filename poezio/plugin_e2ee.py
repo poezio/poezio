@@ -325,6 +325,7 @@ class E2EEPlugin(BasePlugin):
         Wrapper around _encrypt() to handle errors and display the message after encryption.
         """
         try:
+            # pylint: disable=unexpected-keyword-arg
             result = await self._encrypt(stanza, passthrough=True)
         except NothingToEncrypt:
             return stanza
