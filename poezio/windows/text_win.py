@@ -328,7 +328,8 @@ class TextWin(Win):
                         ):
                     self.built_lines.pop(index)
                     index -= 1
-                current = self.built_lines[index]
+                    if index >= 0:
+                        current = self.built_lines[index]
                 index += 1
                 lines = build_lines(
                     message, self.width, timestamp=with_timestamps, nick_size=nick_size
