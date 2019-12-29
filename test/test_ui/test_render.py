@@ -15,7 +15,7 @@ def test_simple_build_basemsg():
 def test_simple_render_message():
     msg = Message(txt='coucou', nickname='toto')
     line = build_lines(msg, 100, True, 10)[0]
-    assert (line.start_pos, line.end_pos) == (0, 8)
+    assert (line.start_pos, line.end_pos) == (0, 6)
 
 
 def test_simple_render_xmllog():
