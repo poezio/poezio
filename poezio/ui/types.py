@@ -119,6 +119,7 @@ class Message(BaseMessage):
                                       txt[4:])
         else:
             me = False
+        self.txt = txt
         self.history = history
         self.nickname = nickname
         self.nick_color = nick_color
