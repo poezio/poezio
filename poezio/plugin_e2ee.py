@@ -395,8 +395,10 @@ class E2EEPlugin(BasePlugin):
         # Call the enabled encrypt method
         func = self._enabled_tabs[jid]
         if iscoroutinefunction(func):
+            # pylint: disable=unexpected-keyword-arg
             await func(message, tab, passthrough=True)
         else:
+            # pylint: disable=unexpected-keyword-arg
             func(message, tab, passthrough=True)
 
         if has_body:
