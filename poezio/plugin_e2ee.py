@@ -353,6 +353,7 @@ class E2EEPlugin(BasePlugin):
         if not has_eme and self.encrypted_tags is not None:
             for (namespace, tag) in self.encrypted_tags:
                 if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
+                    # TODO: count all encrypted tags.
                     has_encrypted_tag = True
                     break
 
