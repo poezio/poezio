@@ -26,6 +26,7 @@ disabled.
 
 from typing import List, Dict, Type, Optional, Union
 from collections import defaultdict
+from slixmpp import JID
 from poezio import tabs
 from poezio.events import EventHandler
 
@@ -38,6 +39,7 @@ class Tabs:
         '_current_index',
         '_current_tab',
         '_tabs',
+        '_tab_jids',
         '_tab_types',
         '_tab_names',
         '_previous_tab',
@@ -56,6 +58,7 @@ class Tabs:
 
         self._previous_tab = None  # type: Optional[tabs.Tab]
         self._tabs = []  # type: List[tabs.Tab]
+        self._tab_jids = dict()  # type: Dict[JID, tabs.Tab]
         self._tab_types = defaultdict(
             list)  # type: Dict[Type[tabs.Tab], List[tabs.Tab]]
         self._tab_names = dict()  # type: Dict[str, tabs.Tab]
@@ -111,6 +114,10 @@ class Tabs:
         """Return the tab list"""
         return self._tabs
 
+    def by_jid(self, jid: JID) -> Optional[tabs.Tab]:
+        """Get a tab with a specific jid"""
+        return self._tab_jids.get(jid)
+
     def by_name(self, name: str) -> Optional[tabs.Tab]:
         """Get a tab with a specific name"""
         return self._tab_names.get(name)
@@ -142,11 +149,14 @@ class Tabs:
         return None
 
     def _rebuild(self):
+        self._tab_jids = dict()
         self._tab_types = defaultdict(list)
         self._tab_names = dict()
         for tab in self._tabs:
             for cls in _get_tab_types(tab):
                 self._tab_types[cls].append(tab)
+            if hasattr(tab, 'jid'):
+                self._tab_jids[tab.jid] = tab
             self._tab_names[tab.name] = tab
         self._update_numbers()
 
@@ -206,6 +216,8 @@ class Tabs:
         self._tabs.append(tab)
         for cls in _get_tab_types(tab):
             self._tab_types[cls].append(tab)
+        if hasattr(tab, 'jid'):
+            self._tab_jids[tab.jid] = tab
         self._tab_names[tab.name] = tab
 
     def delete(self, tab: tabs.Tab, gap=False):
@@ -222,6 +234,8 @@ class Tabs:
 
         for cls in _get_tab_types(tab):
             self._tab_types[cls].remove(tab)
+        if hasattr(tab, 'jid'):
+            del self._tab_jids[tab.jid]
         del self._tab_names[tab.name]
 
         if gap:
