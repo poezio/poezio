@@ -336,7 +336,9 @@ class E2EEPlugin(BasePlugin):
                 dump_tuple(get_theme().COLOR_CHAR_NACK),
                 exc,
             )
-            tab.nack_message(msg, stanza['id'], stanza['from'])
+            # XXX: check before commit. Do we not nack in MUCs?
+            if not isinstance(tab, MucTab):
+                tab.nack_message(msg, stanza['id'], stanza['from'])
             # TODO: display exceptions to the user properly
             log.error('Exception in encrypt:', exc_info=True)
             return None
@@ -362,7 +364,24 @@ class E2EEPlugin(BasePlugin):
 
         log.debug('Received %s message: %r', self.encryption_name, message['body'])
 
-        self.decrypt(message, tab)
+        # Get the original JID of the sender. The JID might be None if it
+        # comes from a semi-anonymous MUC for example. Some plugins might be
+        # fine with this so let them handle it.
+        jid = message['from']
+        muctab = tab
+
+        if isinstance(muctab, PrivateTab):
+            muctab = tab.parent_muc
+            jid = None
+
+        if isinstance(muctab, MucTab):
+            nick = message['from'].resource
+            for user in muctab.users:
+                if user.nick == nick:
+                    jid = user.jid or None
+                    break
+
+        self.decrypt(message, jid, tab)
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
@@ -372,9 +391,46 @@ class E2EEPlugin(BasePlugin):
             raise NothingToEncrypt()
         message = stanza
 
-        jid = stanza['to']
-        tab = self.core.tabs.by_name_and_class(jid, ChatTab)
-        if not self._encryption_enabled(jid):
+        # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
+        # It is possible that we are not able to find a jid (e.g., semi-anon
+        # MUCs). Let the plugin decide what to do with this information.
+        jids = [message['to']]  # type: Optional[List[JID]]
+        tab = self.core.tabs.by_jid(message['to'])
+        if tab is None:  # When does that ever happen?
+            log.debug('Attempting to encrypt a message to \'%s\' '
+                      'that is not attached to a Tab. ?! Aborting '
+                      'encryption.', message['to'])
+            return None
+
+        parent = None
+        if isinstance(tab, PrivateTab):
+            parent = tab.parent_muc
+            nick = tab.jid.resource
+            jids = None
+
+            for user in parent.users:
+                if user.nick == nick:
+                    jids = user.jid or None
+                    break
+
+        if isinstance(tab, MucTab):
+            jids = []
+            for user in tab.users:
+                # If the JID of a user is None, assume all others are None and
+                # we are in a (at least) semi-anon room. TODO: Really check if
+                # the room is semi-anon. Currently a moderator of a semi-anon
+                # room will possibly encrypt to everybody, leaking their
+                # public key/identity, and they wouldn't be able to decrypt it
+                # anyway if they don't know the moderator's JID.
+                # TODO: Change MUC to give easier access to this information.
+                if user.jid is None:
+                    jids = None
+                    break
+                # If we encrypt to all of these JIDs is up to the plugin, we
+                # just tell it who is in the room.
+                jids.append(user.jid)
+
+        if not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
         log.debug('Sending %s message: %r', self.encryption_name, message)
@@ -393,13 +449,13 @@ class E2EEPlugin(BasePlugin):
             return None
 
         # Call the enabled encrypt method
-        func = self._enabled_tabs[jid]
+        func = self._enabled_tabs[tab.jid]
         if iscoroutinefunction(func):
             # pylint: disable=unexpected-keyword-arg
-            await func(message, tab, passthrough=True)
+            await func(message, jids, tab, passthrough=True)
         else:
             # pylint: disable=unexpected-keyword-arg
-            func(message, tab, passthrough=True)
+            func(message, jids, tab, passthrough=True)
 
         if has_body:
             # Only add EME tag if the message has a body.
@@ -440,13 +496,16 @@ class E2EEPlugin(BasePlugin):
         option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
         return config.get(option=option_name, section=jid)
 
-    async def decrypt(self, _message: Message, tab: ChatTabs):
+    async def decrypt(self, message: Message, jid: Optional[JID], tab: ChatTab):
         """Decryption method
 
         This is a method the plugin must implement.  It is expected that this
         method will edit the received message and return nothing.
 
         :param message: Message to be decrypted.
+        :param jid: Real Jid of the sender if available. We might be
+                    talking through a semi-anonymous MUC where real JIDs are
+                    not available.
         :param tab: Tab the message is coming from.
 
         :returns: None
@@ -454,13 +513,14 @@ class E2EEPlugin(BasePlugin):
 
         raise NotImplementedError
 
-    async def encrypt(self, _message: Message, tab: ChatTabs):
+    async def encrypt(self, message: Message, jids: Optional[List[JID]], tab: ChatTabs):
         """Encryption method
 
         This is a method the plugin must implement.  It is expected that this
         method will edit the received message and return nothing.
 
         :param message: Message to be encrypted.
+        :param jids: Real Jids of all possible recipients.
         :param tab: Tab the message is going to.
 
         :returns: None
