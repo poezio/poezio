@@ -368,7 +368,7 @@ class E2EEPlugin(BasePlugin):
         return None
 
     async def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
-        if not isinstance(stanza, Message) or stanza['type'] not in ('chat', 'groupchat'):
+        if not isinstance(stanza, Message) or stanza['type'] not in ('normal', 'chat', 'groupchat'):
             raise NothingToEncrypt()
         message = stanza
 
