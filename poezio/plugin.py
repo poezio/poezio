@@ -84,7 +84,6 @@ class SafetyMetaclass(type):
                 if inspect.stack()[1][1] == inspect.getfile(f):
                     raise
                 elif SafetyMetaclass.core:
-                    log.error('Error in a plugin', exc_info=True)
                     SafetyMetaclass.core.information(traceback.format_exc(),
                                                      'Error')
                     return None
@@ -99,7 +98,6 @@ class SafetyMetaclass(type):
                 if inspect.stack()[1][1] == inspect.getfile(f):
                     raise
                 elif SafetyMetaclass.core:
-                    log.error('Error in a plugin', exc_info=True)
                     SafetyMetaclass.core.information(traceback.format_exc(),
                                                      'Error')
                     return None
