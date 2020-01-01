@@ -91,6 +91,7 @@ class SafetyMetaclass(type):
         async def async_helper(*args, **kwargs):
             passthrough = kwargs.pop('passthrough', False)
             try:
+                log.debug('FOO: %r, %r', args, kwargs)
                 return await f(*args, **kwargs)
             except:
                 if passthrough:
