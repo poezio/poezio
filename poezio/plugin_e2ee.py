@@ -428,7 +428,10 @@ class E2EEPlugin(BasePlugin):
                     break
                 # If we encrypt to all of these JIDs is up to the plugin, we
                 # just tell it who is in the room.
-                jids.append(user.jid)
+                # XXX: user.jid shouldn't be empty. That's a MucTab/slixmpp
+                # bug.
+                if user.jid.bare:
+                    jids.append(user.jid)
 
         if not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
