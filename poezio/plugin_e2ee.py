@@ -428,12 +428,15 @@ class E2EEPlugin(BasePlugin):
                     break
                 # If we encrypt to all of these JIDs is up to the plugin, we
                 # just tell it who is in the room.
-                jids.append(user.jid)
+                # XXX: user.jid shouldn't be empty. That's a MucTab/slixmpp
+                # bug.
+                if user.jid.bare:
+                    jids.append(user.jid)
 
         if not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
-        log.debug('Sending %s message: %r', self.encryption_name, message)
+        log.debug('Sending %s message', self.encryption_name)
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
@@ -441,10 +444,9 @@ class E2EEPlugin(BasePlugin):
         # Stanza Encryption
         if not self.stanza_encryption and not has_body:
             log.debug(
-                '%s plugin: Dropping message as it contains no body, and is '
-                'not doesn\'t do stanza encryption: %r',
+                '%s plugin: Dropping message as it contains no body, and '
+                'not doesn\'t do stanza encryption',
                 self.encryption_name,
-                message,
             )
             return None
 
@@ -483,7 +485,7 @@ class E2EEPlugin(BasePlugin):
             if elem.tag not in tag_whitelist:
                 message.xml.remove(elem)
 
-        log.debug('Encrypted %s message: %r', self.encryption_name, message)
+        log.debug('Encrypted %s message', self.encryption_name)
         return message
 
     def store_trust(self, jid: JID, state: str, fingerprint: str) -> None:
