@@ -175,7 +175,7 @@ class HandlerCore:
         if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
-                recv['from'].server,
+                recv['from'].bare,
                 identity='conference',
                 on_true=functools.partial(ignore_message, recv),
                 on_false=functools.partial(receive_message, recv))
