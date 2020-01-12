@@ -5,6 +5,8 @@ XMPP-related handlers for the Core class
 import logging
 log = logging.getLogger(__name__)
 
+from typing import Optional
+
 import asyncio
 import curses
 import functools
@@ -103,7 +105,7 @@ class HandlerCore:
             self.core.xmpp['xep_0030'].get_info_from_domain(),
         )
 
-    def is_known_muc_pm(self, message: Message, with_jid: JID):
+    def is_known_muc_pm(self, message: Message, with_jid: JID) -> Optional[bool]:
         """
         Try to determine whether a given message is a MUC-PM, without a roundtrip. Returns None when it's not clear
         """
