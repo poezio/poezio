@@ -136,15 +136,22 @@ class HandlerCore:
         Carbon <received/> received
         """
 
-        def ignore_message(recv):
-            log.debug('%s has category conference, ignoring carbon',
-                      recv['from'].server)
-
         def receive_message(recv):
             recv['to'] = self.core.xmpp.boundjid.full
             if recv['receipt']:
                 return self.on_receipt(recv)
             self.on_normal_message(recv)
+
+        def maybe_ignore_message(recv):
+            # If the message comes from a regular MUC, there should be a
+            # resource. If there is no resource, assume this is coming from
+            # biboumi and don't ignore. Biboumi users can be considered real
+            # users, just that the component is declared as 'conference'.
+            if not recv['to'].resource:
+                receive_message(recv)
+            else:
+                log.debug('%s has category conference, ignoring carbon',
+                          recv['from'].server)
 
         recv = message['carbon_received']
         is_muc_pm = self.is_known_muc_pm(recv, recv['from'])
@@ -156,7 +163,7 @@ class HandlerCore:
                 self.core.xmpp,
                 recv['from'].server,
                 identity='conference',
-                on_true=functools.partial(ignore_message, recv),
+                on_true=functools.partial(maybe_ignore_message, recv),
                 on_false=functools.partial(receive_message, recv))
             return
         else:
