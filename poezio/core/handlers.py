@@ -797,7 +797,9 @@ class HandlerCore:
             if body and not ignore:
                 tab = self.core.open_private_window(room_from, with_nick,
                                                     False)
-        sender_nick = (tab.own_nick
+        # Tab can still be None here, when receiving carbons of a MUC-PM for
+        # example
+        sender_nick = (tab and tab.own_nick
                        or self.core.own_nick) if sent else with_nick
         if ignore and not sent:
             self.core.events.trigger('ignored_private', message, tab)
