@@ -114,7 +114,7 @@ The aiodns library is required in order to properly resolve XMPP domains (with S
 
 .. code-block:: bash
 
-    pip install --user aiodns
+    pip3 install --user aiodns
 
 This will also install pycares, which aiodns uses.
 
