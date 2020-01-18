@@ -69,6 +69,18 @@ Packages required for building poezio and deps:
 - libidn and libidn-dev, only if you want to use cython_ (see below)
 - python3-devel (or equivalent)
 - python3-setuptools
+- python3-pip
+- python3-venv
+- libffi-dev (for pycares, needed by slixmpp)
+- pyasn1 and pyasn1-modules (needed by slixmpp)
+
+On Debian, you can install the dependencies as follows:
+
+.. code-block:: bash
+
+    apt install python3-dev make gcc python3-setuptools python3-pip python3-venv libffi-dev
+    pip3 install --user pyasn1 pyasn1-modules
+
 
 Then you can run ``make`` to build it the poezio C extension module.
 If you downloaded the standalone stable package, you are finished here and can skip
