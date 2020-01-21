@@ -136,6 +136,9 @@ class Plugin(BasePlugin):
             short='Invite a user',
             help='Generate a XEP-0401 invitation on your server or on <server> and display a QR code')
 
+    def unload(self):
+        self.cleanup()
+
     def command_qr(self, msg):
         t = QrTab(self.core, msg)
         self.core.add_tab(t, True)
