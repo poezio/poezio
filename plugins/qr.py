@@ -34,7 +34,9 @@ class QrWindow(Win):
         code.add_data(self.qr)
         out = io.StringIO()
         code.print_ascii(out, invert=self.inverted)
-        self.addstr("   " + self.qr + "\n" + out.getvalue() + "   ")
+        self.addstr("   " + self.qr + "\n")
+        self.addstr(out.getvalue(), to_curses_attr((15, 0)))
+        self.addstr("   ")
 
         col = to_curses_attr(get_theme().COLOR_TAB_NORMAL)
 
