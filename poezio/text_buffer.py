@@ -152,7 +152,7 @@ class TextBuffer:
             raise CorrectionError('Wrong message type')
         if msg.user and msg.user is not user:
             raise CorrectionError("Different users")
-        elif msg.history:
+        elif msg.delayed:
             raise CorrectionError("Delayed message")
         elif not msg.user and (msg.jid is None or jid is None):
             raise CorrectionError('Could not check the '
@@ -169,7 +169,6 @@ class TextBuffer:
             time=time,
             nickname=msg.nickname,
             nick_color=msg.nick_color,
-            history=False,
             user=msg.user,
             identifier=new_id,
             highlight=highlight,
