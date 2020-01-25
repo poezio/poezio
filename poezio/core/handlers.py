@@ -745,6 +745,11 @@ class HandlerCore:
 
         old_state = tab.state
         delayed, date = common.find_delayed_tag(message)
+
+        history = (tab.last_message_was_history is None and delayed) or \
+            (tab.last_message_was_history and delayed)
+        tab.last_message_was_history = history
+
         replaced = False
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
             replaced_id = message['replace']['id']
@@ -769,6 +774,7 @@ class HandlerCore:
                     txt=body,
                     time=date,
                     nickname=nick_from,
+                    history=history,
                     delayed=delayed,
                     identifier=message['id'],
                     jid=message['from'],
