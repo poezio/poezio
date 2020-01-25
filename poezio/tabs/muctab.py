@@ -1092,7 +1092,7 @@ class MucTab(ChatTab):
             msg.user.set_last_talked(msg.time)
         if config.get_by_tabname('notify_messages', self.jid.bare) and self.state != 'current':
             self.state = 'message'
-        msg.highlight = self.do_highlight(msg.txt, msg.time, msg.nickname)
+        msg.highlight = self.do_highlight(msg.txt, msg.nickname, msg.delayed)
         return msg.highlight
 
     def modify_message(self,
@@ -1100,10 +1100,11 @@ class MucTab(ChatTab):
                        old_id,
                        new_id,
                        time=None,
+                       delayed: bool = False,
                        nickname=None,
                        user=None,
                        jid=None):
-        highlight = self.do_highlight(txt, time, nickname, corrected=True)
+        highlight = self.do_highlight(txt, nickname, delayed, corrected=True)
         message = self._text_buffer.modify_message(
             txt,
             old_id,
@@ -1310,28 +1311,38 @@ class MucTab(ChatTab):
     def build_highlight_regex(self, nickname):
         return re.compile(r"(^|\W)" + re.escape(nickname) + r"(\W|$)", re.I)
 
-    def is_highlight(self, txt, time, nickname, own_nick, highlight_on,
-                     corrected=False):
+    def is_highlight(self, txt: str, nick: str, highlight_on: List[str],
+                     delayed, corrected: bool = False):
+        """
+        Highlight algorithm for MUC tabs
+        """
+
         highlighted = False
-        if (not time or corrected) and nickname and nickname != own_nick:
-            if self.build_highlight_regex(own_nick).search(txt):
+        if not delayed and not corrected:
+            if self.build_highlight_regex(nick).search(txt):
                 highlighted = True
             else:
-                highlight_words = highlight_on.split(':')
-                for word in highlight_words:
+                for word in highlight_on:
                     if word and word.lower() in txt.lower():
                         highlighted = True
                         break
         return highlighted
 
-    def do_highlight(self, txt, time, nickname, corrected=False):
+    def do_highlight(self, txt, nickname, delayed, corrected=False):
         """
         Set the tab color and returns the nick color
         """
         own_nick = self.own_nick
-        highlight_on = config.get_by_tabname('highlight_on', self.general_jid)
-        highlighted = self.is_highlight(txt, time, nickname, own_nick,
-                                        highlight_on, corrected)
+        highlight_on = config.get_by_tabname(
+            'highlight_on',
+            self.general_jid,
+        ).split(':')
+
+        # Don't highlight on info message or our own messages
+        if not nickname or nickname == own_nick:
+            return False
+
+        highlighted = self.is_highlight(txt, own_nick, highlight_on, delayed, corrected)
         if highlighted and self.joined:
             if self.state != 'current':
                 self.state = 'highlight'
