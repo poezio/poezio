@@ -766,6 +766,7 @@ class HandlerCore:
                             replaced_id,
                             message['id'],
                             time=delayed_date,
+                            delayed=delayed,
                             nickname=nick_from,
                             user=user):
                         self.core.events.trigger('highlight', message, tab)
@@ -777,7 +778,7 @@ class HandlerCore:
                     txt=body,
                     time=date,
                     nickname=nick_from,
-                    history=delayed,
+                    delayed=delayed,
                     identifier=message['id'],
                     jid=message['from'],
                     user=user,
