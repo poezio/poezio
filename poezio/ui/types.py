@@ -85,7 +85,7 @@ class StatusMessage(BaseMessage):
 
 
 class Message(BaseMessage):
-    __slots__ = ('txt', 'nick_color', 'time', 'nickname', 'user', 'history',
+    __slots__ = ('txt', 'nick_color', 'time', 'nickname', 'user', 'delayed', 'history',
                  'identifier', 'top', 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
 
@@ -94,6 +94,7 @@ class Message(BaseMessage):
                  nickname: Optional[str],
                  time: Optional[datetime] = None,
                  nick_color: Optional[Tuple] = None,
+                 delayed: bool = False,
                  history: bool = False,
                  user: Optional[User] = None,
                  identifier: Optional[str] = '',
@@ -120,6 +121,7 @@ class Message(BaseMessage):
         else:
             me = False
         self.txt = txt
+        self.delayed = delayed or history
         self.history = history
         self.nickname = nickname
         self.nick_color = nick_color
