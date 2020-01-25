@@ -1093,7 +1093,8 @@ class MucTab(ChatTab):
         if msg.user:
             msg.user.set_last_talked(msg.time)
         if config.get_by_tabname('notify_messages', self.jid.bare) and self.state != 'current':
-            self.state = 'message'
+            if msg.nickname != self.own_nick and not msg.history:
+                self.state = 'message'
         msg.highlight = self.do_highlight(msg.txt, msg.nickname, msg.delayed)
         return msg.highlight
 
