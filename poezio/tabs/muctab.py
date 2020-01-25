@@ -76,6 +76,8 @@ class MucTab(ChatTab):
         self.users = []  # type: List[User]
         # private conversations
         self.privates = []  # type: List[Tab]
+        # Used to check if we are still receiving muc history
+        self.last_message_was_history = None  # type: Optional[bool]
         self.topic = ''
         self.topic_from = ''
         # Self ping event, so we can cancel it when we leave the room
