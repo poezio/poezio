@@ -1115,11 +1115,17 @@ class CommandCore:
                 exc_info=True)
 
     @command_args_parser.quoted(1, 256)
-    def load(self, args):
+    def load(self, args: List[str]) -> None:
         """
         /load <plugin> [<otherplugin> …]
         # TODO: being able to load more than 256 plugins at once, hihi.
         """
+
+        usage = '/load <plugin> [<otherplugin> …]'
+        if not args:
+            self.core.information(usage, 'Error')
+            return
+
         for plugin in args:
             self.core.plugin_manager.load(plugin)
 
@@ -1128,6 +1134,12 @@ class CommandCore:
         """
         /unload <plugin> [<otherplugin> …]
         """
+
+        usage = '/unload <plugin> [<otherplugin> …]'
+        if not args:
+            self.core.information(usage, 'Error')
+            return
+
         for plugin in args:
             self.core.plugin_manager.unload(plugin)
 
