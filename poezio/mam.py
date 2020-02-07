@@ -89,7 +89,8 @@ async def query(
         callback: Optional[Callable] = None,
     ) -> None:
     try:
-        iq = await core.xmpp.plugin['xep_0030'].get_info(jid=remote_jid)
+        query_jid = remote_jid if groupchat else JID(core.xmpp.boundjid.bare)
+        iq = await core.xmpp.plugin['xep_0030'].get_info(jid=query_jid)
     except (IqError, IqTimeout):
         raise DiscoInfoException
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
