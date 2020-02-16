@@ -145,6 +145,14 @@ Plugin index
         Sends the current song (and optionally the progress inside the song) to
         the current (chat) tab.
 
+    OMEMO
+        *Not distributed with Poezio.* See https://lab.louiz.org/poezio/poezio-omemo.
+
+        `Documentation <https://lab.louiz.org/poezio/poezio-omemo>`_
+
+        Allows for end-to-end encrypted exchanges using the OMEMO
+        mechanism.
+
     OTR
         :ref:`Documentation <otr-plugin>`
 
