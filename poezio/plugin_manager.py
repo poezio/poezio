@@ -10,6 +10,7 @@ import os
 from importlib import import_module, machinery
 from pathlib import Path
 from os import path
+import pkg_resources
 
 from poezio import tabs, xdg
 from poezio.core.structs import Command, Completion
@@ -74,6 +75,14 @@ class PluginManager:
                     module = import_module('poezio_plugins.%s' % name)
                 except ModuleNotFoundError:
                     pass
+            for entry in pkg_resources.iter_entry_points('poezio_plugins'):
+                if entry.name == name:
+                    try:
+                        module = entry.load()
+                    except ImportError:
+                        pass
+                    finally:
+                        break
             if not module:
                 self.core.information('Could not find plugin: %s' % name,
                                       'Error')
