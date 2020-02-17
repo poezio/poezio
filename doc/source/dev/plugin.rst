@@ -1,6 +1,26 @@
 Plugin API documentation
 ========================
 
+External plugins
+----------------
+
+It is possible to create external plugins easily using `setuptools'
+entry_point
+<https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_
+feature. You can register your plugin against the ``poezio_plugins`` entry
+group with the following snippet in your project ``setup.py``:
+
+.. code-block:: python
+
+    setup(
+        ..
+        packages=['yourmodule'],
+        entry_points{'poezio_plugins': 'yourplugin = yourmodule'},
+        ..
+    )
+
+The plugin will then be available as ``yourplugin`` at runtime.
+
 BasePlugin
 ----------
 
