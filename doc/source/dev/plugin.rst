@@ -15,7 +15,7 @@ group with the following snippet in your project ``setup.py``:
     setup(
         ..
         packages=['yourmodule'],
-        entry_points{'poezio_plugins': 'yourplugin = yourmodule'},
+        entry_points={'poezio_plugins': 'yourplugin = yourmodule'},
         ..
     )
 
