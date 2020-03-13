@@ -117,6 +117,8 @@ def parse_runtime_tablist(tablist):
 
 
 class Plugin(BasePlugin):
+    """reorder plugin"""
+
     def init(self):
         self.api.add_command(
             'reorder',
@@ -129,20 +131,24 @@ class Plugin(BasePlugin):
             help='Save the current tab layout')
 
     @command_args_parser.ignored
-    def command_save_order(self):
+    def command_save_order(self) -> None:
+        """
+        /save_order
+        """
         conf = parse_runtime_tablist(self.core.tabs)
         for key, value in conf:
             self.config.set(key, value)
         self.api.information('Tab order saved', 'Info')
 
     @command_args_parser.ignored
-    def command_reorder(self):
+    def command_reorder(self) -> None:
         """
         /reorder
         """
         tabs_spec = parse_config(self.config)
         if not tabs_spec:
-            return self.api.information('Invalid reorder config', 'Error')
+            self.api.information('Invalid reorder config', 'Error')
+            return None
 
         old_tabs = self.core.tabs.get_tabs()
         roster = old_tabs.pop(0)
@@ -173,3 +179,5 @@ class Plugin(BasePlugin):
 
         self.core.tabs.replace_tabs(new_tabs)
         self.core.refresh_window()
+
+        return None
