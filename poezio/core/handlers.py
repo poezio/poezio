@@ -1504,7 +1504,8 @@ class HandlerCore:
                         poezio_colored,
                         nickname=char)
             except:
-                log.debug('', exc_info=True)
+                log.debug('Couldn\'t deserialize stanza. '
+                          'Possible whitespace keepalive.')
 
             if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
                 self.core.tabs.current_tab.refresh()
