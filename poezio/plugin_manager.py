@@ -69,7 +69,10 @@ class PluginManager:
             module = None
             loader = self.finder.find_module(name, self.load_path)
             if loader:
+                log.debug('Found candidate loader for plugin %s: %r', name, loader)
                 module = loader.load_module()
+                if module is None:
+                    log.debug('Failed to load plugin %s from loader', name)
             else:
                 try:
                     module = import_module('poezio_plugins.%s' % name)
@@ -77,16 +80,19 @@ class PluginManager:
                     pass
             for entry in pkg_resources.iter_entry_points('poezio_plugins'):
                 if entry.name == name:
+                    log.debug('Found candidate entry for plugin %s: %r', name, entry)
                     try:
                         module = entry.load()
-                    except ImportError:
-                        pass
+                    except ImportError as exn:
+                        log.debug('Failed to import plugin: %s\n%r', name,
+                                  exn, exc_info=True)
                     finally:
                         break
             if not module:
                 self.core.information('Could not find plugin: %s' % name,
                                       'Error')
                 return
+            log.debug('Plugin %s loaded from "%s"', name, module.__file__)
         except Exception as e:
             log.debug("Could not load plugin %s", name, exc_info=True)
             self.core.information("Could not load plugin %s: %s" % (name, e),
