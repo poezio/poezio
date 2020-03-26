@@ -16,6 +16,7 @@ Usage
 """
 
 from poezio.plugin import BasePlugin
+from poezio.decorators import command_args_parser
 from slixmpp.jid import InvalidJID
 
 
@@ -24,7 +25,7 @@ class Plugin(BasePlugin):
         self.api.add_command(
             'disco',
             self.command_disco,
-            usage='<JID>',
+            usage='<JID> [node]',
             short='Get the disco#info of a JID',
             help='Get the disco#info of a JID')
 
@@ -53,9 +54,18 @@ class Plugin(BasePlugin):
         if server_info:
             self.api.information('\n'.join(server_info), title)
 
-    def command_disco(self, jid):
+    @command_args_parser.quoted(1, 2)
+    def command_disco(self, args):
+        if args is None:
+            self.core.command.help('disco')
+            return
+        if len(args) == 1:
+            jid, = args
+            node = None
+        else:
+            jid, node = args
         try:
             self.core.xmpp.plugin['xep_0030'].get_info(
-                jid=jid, cached=False, callback=self.on_disco)
+                jid=jid, node=node, cached=False, callback=self.on_disco)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')
