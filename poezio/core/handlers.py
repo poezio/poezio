@@ -1250,6 +1250,12 @@ class HandlerCore:
         self.core.information("Auto-reconnecting.", 'Info')
         self.core.xmpp.start()
 
+    async def on_reconnect_delay(self, event):
+        """
+        When the reconnection is delayed
+        """
+        self.core.information("Reconnecting in %d seconds..." % (event), 'Info')
+
     def on_stream_error(self, event):
         """
         When we receive a stream error
