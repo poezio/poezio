@@ -227,6 +227,7 @@ class Core:
             ('connected', self.handler.on_connected),
             ('connection_failed', self.handler.on_failed_connection),
             ('disconnected', self.handler.on_disconnected),
+            ('reconnect_delay', self.handler.on_reconnect_delay),
             ('failed_all_auth', self.handler.on_failed_all_auth),
             ('got_offline', self.handler.on_got_offline),
             ('got_online', self.handler.on_got_online),
