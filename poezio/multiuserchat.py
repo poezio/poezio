@@ -10,7 +10,7 @@ Add some facilities that are not available on the XEP_0045
 slix plugin
 """
 
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 
 from poezio.common import safeJID
 from slixmpp import JID
