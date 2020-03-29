@@ -1035,9 +1035,9 @@ class CommandCore:
             self.core.xmpp.plugin['xep_0196'].stop()
         self.core.save_config()
         self.core.plugin_manager.disable_plugins()
-        self.core.disconnect(msg)
         self.core.xmpp.add_event_handler(
             "disconnected", self.core.exit, disposable=True)
+        self.core.disconnect(msg)
 
     @command_args_parser.quoted(0, 1, [''])
     def destroy_room(self, args: List[str]) -> None:
