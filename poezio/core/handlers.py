@@ -1510,6 +1510,10 @@ class HandlerCore:
                         poezio_colored,
                         nickname=char)
             except:
+                # Most of the time what gets logged is whitespace pings. Skip.
+                # And also skip tab updates.
+                if stanza.strip() != '':
+                    return None
                 log.debug('', exc_info=True)
 
             if isinstance(self.core.tabs.current_tab, tabs.XMLTab):
