@@ -20,7 +20,7 @@ import asyncio
 import time
 from math import ceil, log10
 from datetime import datetime
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 from typing import (
     Any,
     Callable,

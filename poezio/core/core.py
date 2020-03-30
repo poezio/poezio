@@ -16,7 +16,7 @@ import time
 import uuid
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Set, Tuple, Type
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 from functools import partial
 
 from slixmpp import JID, InvalidJID

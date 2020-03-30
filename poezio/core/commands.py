@@ -3,7 +3,7 @@ Global commands which are to be linked to the Core class
 """
 
 import asyncio
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 from typing import List, Optional, Tuple
 import logging
 
