@@ -175,9 +175,15 @@ class Plugin(BasePlugin):
                 new_tabs.append(tab)
                 old_tabs.remove(tab)
             else:
-                self.api.information('Tab %s not found' % jid, 'Warning')
-                if create_gaps:
-                    new_tabs.append(tabs.GapTab(self.core))
+                self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
+                # TODO: Add support for MucTab. Requires nickname.
+                if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
+                    try:
+                        new_tab = cls(self.core, jid)
+                        new_tabs.append(new_tab)
+                    except:
+                        self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
+                        continue
             last = pos
 
         for tab in old_tabs:
