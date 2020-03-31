@@ -167,25 +167,22 @@ class Plugin(BasePlugin):
             cls, jid = tabs_spec[pos]
             try:
                 jid = JID(jid)
-            except InvalidJID:
-                self.api.information('Reorder: Invalid JID \'%s\'.' % jid, 'Warning')
-                continue
-            tab = self.core.tabs.by_name_and_class(str(jid), cls=cls)
-            if tab and tab in old_tabs:
-                new_tabs.append(tab)
-                old_tabs.remove(tab)
-            else:
-                self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
-                # TODO: Add support for MucTab. Requires nickname.
-                if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
-                    try:
+                tab = self.core.tabs.by_name_and_class(str(jid), cls=cls)
+                if tab and tab in old_tabs:
+                    new_tabs.append(tab)
+                    old_tabs.remove(tab)
+                else:
+                    self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
+                    # TODO: Add support for MucTab. Requires nickname.
+                    if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
                         new_tab = cls(self.core, jid)
                         new_tabs.append(new_tab)
-                    except:
-                        self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
-                        if create_gaps:
-                            new_tabs.append(tabs.GapTab(self.core))
-            last = pos
+            except:
+                self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
+                if create_gaps:
+                    new_tabs.append(tabs.GapTab(self.core))
+            finally:
+                last = pos
 
         for tab in old_tabs:
             if tab:
