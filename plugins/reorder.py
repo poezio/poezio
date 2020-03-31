@@ -59,6 +59,8 @@ And finally, the ``[tab name]`` must be:
 - For a type ``static``, the full JID of the contact
 """
 
+from slixmpp import InvalidJID, JID
+
 from poezio import tabs
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
@@ -162,13 +164,18 @@ class Plugin(BasePlugin):
                 new_tabs += [
                     tabs.GapTab(self.core) for i in range(pos - last - 1)
                 ]
-            cls, name = tabs_spec[pos]
-            tab = self.core.tabs.by_name_and_class(name, cls=cls)
+            cls, jid = tabs_spec[pos]
+            try:
+                jid = JID(jid)
+            except InvalidJID:
+                self.api.information('Reorder: Invalid JID \'%s\'.' % jid, 'Warning')
+                continue
+            tab = self.core.tabs.by_name_and_class(str(jid), cls=cls)
             if tab and tab in old_tabs:
                 new_tabs.append(tab)
                 old_tabs.remove(tab)
             else:
-                self.api.information('Tab %s not found' % name, 'Warning')
+                self.api.information('Tab %s not found' % jid, 'Warning')
                 if create_gaps:
                     new_tabs.append(tabs.GapTab(self.core))
             last = pos
