@@ -177,6 +177,8 @@ class Plugin(BasePlugin):
             if tab:
                 new_tabs.append(tab)
 
+        # TODO: Ensure we don't break poezio and call this with whatever
+        # tablist we have. The roster tab at least needs to be in there.
         self.core.tabs.replace_tabs(new_tabs)
         self.core.refresh_window()
 
