@@ -183,7 +183,8 @@ class Plugin(BasePlugin):
                         new_tabs.append(new_tab)
                     except:
                         self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
-                        continue
+                        if create_gaps:
+                            new_tabs.append(tabs.GapTab(self.core))
             last = pos
 
         for tab in old_tabs:
