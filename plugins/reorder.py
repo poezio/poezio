@@ -59,6 +59,8 @@ And finally, the ``[tab name]`` must be:
 - For a type ``static``, the full JID of the contact
 """
 
+from slixmpp import InvalidJID, JID
+
 from poezio import tabs
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
@@ -162,21 +164,32 @@ class Plugin(BasePlugin):
                 new_tabs += [
                     tabs.GapTab(self.core) for i in range(pos - last - 1)
                 ]
-            cls, name = tabs_spec[pos]
-            tab = self.core.tabs.by_name_and_class(name, cls=cls)
-            if tab and tab in old_tabs:
-                new_tabs.append(tab)
-                old_tabs.remove(tab)
-            else:
-                self.api.information('Tab %s not found' % name, 'Warning')
+            cls, jid = tabs_spec[pos]
+            try:
+                jid = JID(jid)
+                tab = self.core.tabs.by_name_and_class(str(jid), cls=cls)
+                if tab and tab in old_tabs:
+                    new_tabs.append(tab)
+                    old_tabs.remove(tab)
+                else:
+                    self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
+                    # TODO: Add support for MucTab. Requires nickname.
+                    if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
+                        new_tab = cls(self.core, jid)
+                        new_tabs.append(new_tab)
+            except:
+                self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
                 if create_gaps:
                     new_tabs.append(tabs.GapTab(self.core))
-            last = pos
+            finally:
+                last = pos
 
         for tab in old_tabs:
             if tab:
                 new_tabs.append(tab)
 
+        # TODO: Ensure we don't break poezio and call this with whatever
+        # tablist we have. The roster tab at least needs to be in there.
         self.core.tabs.replace_tabs(new_tabs)
         self.core.refresh_window()
 
