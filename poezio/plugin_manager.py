@@ -83,7 +83,7 @@ class PluginManager:
                     log.debug('Found candidate entry for plugin %s: %r', name, entry)
                     try:
                         module = entry.load()
-                    except ImportError as exn:
+                    except Exception as exn:
                         log.debug('Failed to import plugin: %s\n%r', name,
                                   exn, exc_info=True)
                     finally:
