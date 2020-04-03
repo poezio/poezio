@@ -1116,7 +1116,7 @@ class HandlerCore:
         if not contact:
             return
         roster.modified()
-        contact.error = presence['error']['type'] + ': ' + presence['error']['condition']
+        contact.error = presence['error']['text'] or presence['error']['type'] + ': ' + presence['error']['condition']
         # TODO:  reset chat states status on presence error
 
     def on_got_offline(self, presence):
