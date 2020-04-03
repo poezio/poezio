@@ -43,7 +43,7 @@ class Plugin(BasePlugin):
         messages = self.api.get_conversation_messages()
         if not messages:
             return None
-        for message in messages[::-1]:
+        for message in reversed(messages):
             if message.old_message:
                 if nb == 1:
                     return message
