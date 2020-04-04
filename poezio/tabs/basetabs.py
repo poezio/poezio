@@ -609,7 +609,7 @@ class ChatTab(Tab):
         message = self._text_buffer.modify_message(
             txt, old_id, new_id, time=time, user=user, jid=jid)
         if message:
-            self.text_win.modify_message(old_id, message)
+            self.text_win.modify_message(message.identifier, message)
             self.core.refresh_window()
             return True
         return False
