@@ -1512,7 +1512,7 @@ class HandlerCore:
             except:
                 # Most of the time what gets logged is whitespace pings. Skip.
                 # And also skip tab updates.
-                if stanza.strip() != '':
+                if stanza.strip() == '':
                     return None
                 log.debug('', exc_info=True)
 
