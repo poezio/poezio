@@ -1247,8 +1247,9 @@ class HandlerCore:
                     'conflict', 'host-unknown')):
             return
         await asyncio.sleep(1)
-        self.core.information("Auto-reconnecting.", 'Info')
-        self.core.xmpp.start()
+        if not self.core.xmpp.is_connecting() and not self.core.xmpp.is_connected():
+            self.core.information("Auto-reconnecting.", 'Info')
+            self.core.xmpp.start()
 
     async def on_reconnect_delay(self, event):
         """
