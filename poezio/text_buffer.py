@@ -11,7 +11,7 @@ independently by their TextWins.
 import logging
 log = logging.getLogger(__name__)
 
-from typing import Union, Optional, List, Tuple
+from typing import Dict, Union, Optional, List, Tuple
 from datetime import datetime
 from poezio.config import config
 from poezio.theming import get_theme, dump_tuple
@@ -121,6 +121,8 @@ class TextBuffer:
         self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
         self.messages = []  # type: List[Message]
+        # Correction id -> Original message id
+        self.correction_ids = {}  # type: Dict[str, str]
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
@@ -186,15 +188,20 @@ class TextBuffer:
 
         return min(ret_val, 1)
 
-    def _find_message(self, old_id: str) -> int:
+    def _find_message(self, orig_id: str) -> Tuple[str, int]:
         """
         Find a message in the text buffer from its message id
         """
+        # When looking for a message, ensure the id doesn't appear in a
+        # message we've removed from our message list. If so return the index
+        # of the corresponding id for the original message instead.
+        orig_id = self.correction_ids.get(orig_id, orig_id)
+
         for i in range(len(self.messages) - 1, -1, -1):
             msg = self.messages[i]
-            if msg.identifier == old_id:
-                return i
-        return -1
+            if msg.identifier == orig_id:
+                return (orig_id, i)
+        return (orig_id, -1)
 
     def ack_message(self, old_id: str, jid: str) -> Union[None, bool, Message]:
         """Mark a message as acked"""
@@ -211,7 +218,7 @@ class TextBuffer:
         Edit the ack status of a message, and optionally
         append some text.
         """
-        i = self._find_message(old_id)
+        _, i = self._find_message(old_id)
         if i == -1:
             return None
         msg = self.messages[i]
@@ -228,7 +235,7 @@ class TextBuffer:
 
     def modify_message(self,
                        txt: str,
-                       old_id: str,
+                       orig_id: str,
                        new_id: str,
                        highlight: bool = False,
                        time: Optional[datetime] = None,
@@ -236,14 +243,19 @@ class TextBuffer:
                        jid: Optional[str] = None):
         """
         Correct a message in a text buffer.
+
+        Version 1.1.0 of Last Message Correction (0308) added clarifications
+        that break the way poezio handles corrections. Instead of linking
+        corrections to the previous correction/message as we were doing, we
+        are now required to link all corrections to the original messages.
         """
 
-        i = self._find_message(old_id)
+        orig_id, i = self._find_message(orig_id)
 
         if i == -1:
             log.debug(
                 'Message %s not found in text_buffer, abort replacement.',
-                old_id)
+                orig_id)
             raise CorrectionError("nothing to replace")
 
         msg = self.messages[i]
@@ -258,10 +270,12 @@ class TextBuffer:
         elif not msg.user and msg.jid != jid:
             raise CorrectionError(
                 'Messages %s and %s have not been '
-                'sent by the same fullJID' % (old_id, new_id))
+                'sent by the same fullJID' % (orig_id, new_id))
 
         if not time:
             time = msg.time
+
+        self.correction_ids[new_id] = orig_id
         message = Message(
             txt,
             time,
@@ -269,13 +283,13 @@ class TextBuffer:
             msg.nick_color,
             False,
             msg.user,
-            new_id,
+            orig_id,
             highlight=highlight,
             old_message=msg,
             revisions=msg.revisions + 1,
             jid=jid)
         self.messages[i] = message
-        log.debug('Replacing message %s with %s.', old_id, new_id)
+        log.debug('Replacing message %s with %s.', orig_id, new_id)
         return message
 
     def del_window(self, win) -> None:

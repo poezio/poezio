@@ -1129,7 +1129,7 @@ class MucTab(ChatTab):
             user=user,
             jid=jid)
         if message:
-            self.text_win.modify_message(old_id, message)
+            self.text_win.modify_message(message.identifier, message)
             return highlight
         return False
 
