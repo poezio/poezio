@@ -139,7 +139,7 @@ class ConversationTab(OneToOneTab):
         self.core.events.trigger('conversation_say_after', msg, self)
         if not msg['body']:
             return
-        self.last_sent_message = msg
+        self.set_last_sent_message(msg, correct=correct)
         self.core.handler.on_normal_message(msg)
         msg._add_receipt = True
         msg.send()

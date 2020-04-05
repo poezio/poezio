@@ -748,6 +748,15 @@ class ChatTab(Tab):
             self.core.remove_timed_event(self.timed_event_not_paused)
             self.timed_event_not_paused = None
 
+    def set_last_sent_message(self, msg, correct=False):
+        """Ensure last_sent_message is set with the correct attributes"""
+        if correct:
+            # XXX: Is the copy needed. Is the object passed here reused
+            # afterwards? Who knows.
+            msg = copy.copy(msg)
+            msg['id'] = self.last_sent_message['id']
+        self.last_sent_message = msg
+
     @command_args_parser.raw
     def command_correct(self, line):
         """

@@ -1681,7 +1681,7 @@ class MucTab(ChatTab):
             self.text_win.refresh()
             self.input.refresh()
             return
-        self.last_sent_message = msg
+        self.set_last_sent_message(msg, correct=correct)
         msg.send()
         self.chat_state = needed
 

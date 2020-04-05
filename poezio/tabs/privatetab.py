@@ -177,7 +177,7 @@ class PrivateTab(OneToOneTab):
         self.core.events.trigger('private_say_after', msg, self)
         if not msg['body']:
             return
-        self.last_sent_message = msg
+        self.set_last_sent_message(msg, correct=correct)
         self.core.handler.on_groupchat_private_message(msg, sent=True)
         msg._add_receipt = True
         msg.send()

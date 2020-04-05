@@ -770,7 +770,7 @@ class HandlerCore:
             self.core.events.trigger('highlight', message, tab)
 
         if message['from'].resource == tab.own_nick:
-            tab.last_sent_message = message
+            tab.set_last_sent_message(message, correct=replaced)
 
         if tab is self.core.tabs.current_tab:
             tab.text_win.refresh()
@@ -862,7 +862,7 @@ class HandlerCore:
                 jid=message['from'],
                 typ=1)
         if sent:
-            tab.last_sent_message = message
+            tab.set_last_sent_message(message, correct=replaced)
         else:
             tab.last_remote_message = datetime.now()
 
