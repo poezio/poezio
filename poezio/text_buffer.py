@@ -188,20 +188,20 @@ class TextBuffer:
 
         return min(ret_val, 1)
 
-    def _find_message(self, old_id: str) -> Tuple[str, int]:
+    def _find_message(self, orig_id: str) -> Tuple[str, int]:
         """
         Find a message in the text buffer from its message id
         """
         # When looking for a message, ensure the id doesn't appear in a
         # message we've removed from our message list. If so return the index
         # of the corresponding id for the original message instead.
-        old_id = self.correction_ids.get(old_id, old_id)
+        orig_id = self.correction_ids.get(orig_id, orig_id)
 
         for i in range(len(self.messages) - 1, -1, -1):
             msg = self.messages[i]
-            if msg.identifier == old_id:
-                return (old_id, i)
-        return (old_id, -1)
+            if msg.identifier == orig_id:
+                return (orig_id, i)
+        return (orig_id, -1)
 
     def ack_message(self, old_id: str, jid: str) -> Union[None, bool, Message]:
         """Mark a message as acked"""
@@ -235,7 +235,7 @@ class TextBuffer:
 
     def modify_message(self,
                        txt: str,
-                       old_id: str,
+                       orig_id: str,
                        new_id: str,
                        highlight: bool = False,
                        time: Optional[datetime] = None,
@@ -250,12 +250,12 @@ class TextBuffer:
         are now required to link all corrections to the original messages.
         """
 
-        old_id, i = self._find_message(old_id)
+        orig_id, i = self._find_message(orig_id)
 
         if i == -1:
             log.debug(
                 'Message %s not found in text_buffer, abort replacement.',
-                old_id)
+                orig_id)
             raise CorrectionError("nothing to replace")
 
         msg = self.messages[i]
@@ -270,12 +270,12 @@ class TextBuffer:
         elif not msg.user and msg.jid != jid:
             raise CorrectionError(
                 'Messages %s and %s have not been '
-                'sent by the same fullJID' % (old_id, new_id))
+                'sent by the same fullJID' % (orig_id, new_id))
 
         if not time:
             time = msg.time
 
-        self.correction_ids[new_id] = old_id
+        self.correction_ids[new_id] = orig_id
         message = Message(
             txt,
             time,
@@ -283,13 +283,13 @@ class TextBuffer:
             msg.nick_color,
             False,
             msg.user,
-            old_id,
+            orig_id,
             highlight=highlight,
             old_message=msg,
             revisions=msg.revisions + 1,
             jid=jid)
         self.messages[i] = message
-        log.debug('Replacing message %s with %s.', old_id, new_id)
+        log.debug('Replacing message %s with %s.', orig_id, new_id)
         return message
 
     def del_window(self, win) -> None:
