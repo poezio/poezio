@@ -121,7 +121,7 @@ class TextBuffer:
         self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
         self.messages = []  # type: List[Message]
-        # Correction id -> Original message id
+        # COMPAT: Correction id -> Original message id.
         self.correction_ids = {}  # type: Dict[str, str]
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
