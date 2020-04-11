@@ -518,10 +518,10 @@ class Core:
         plugins = config.get('plugins_autoload')
         if ':' in plugins:
             for plugin in plugins.split(':'):
-                self.plugin_manager.load(plugin)
+                self.plugin_manager.load(plugin, unload_first=False)
         else:
             for plugin in plugins.split():
-                self.plugin_manager.load(plugin)
+                self.plugin_manager.load(plugin, unload_first=False)
         self.plugins_autoloaded = True
 
     def start(self):
