@@ -7,6 +7,7 @@ plugin env.
 
 import logging
 import os
+from typing import Dict, Set
 from importlib import import_module, machinery
 from pathlib import Path
 from os import path
@@ -26,6 +27,8 @@ class PluginManager:
     Contains all the references to the plugins
     And keeps track of everything the plugin has done through the API.
     """
+
+    rdeps: Dict[str, Set[str]] = {}
 
     def __init__(self, core):
         self.core = core
@@ -58,10 +61,25 @@ class PluginManager:
         for plugin in set(self.plugins.keys()):
             self.unload(plugin, notify=False)
 
-    def load(self, name: str, notify=True):
+    def set_rdeps(self, name):
+        """
+        Runs through plugin dependencies to build the reverse dependencies table.
+        """
+
+        if name not in self.rdeps:
+            self.rdeps[name] = set()
+        for dep in self.plugins[name].dependencies:
+            if dep not in self.rdeps:
+                self.rdeps[dep] = {name}
+            else:
+                self.rdeps[dep].add(name)
+
+    def load(self, name: str, notify=True, unload_first=True):
         """
         Load a plugin.
         """
+        if not unload_first and name in self.plugins:
+            return None
         if name in self.plugins:
             self.unload(name)
 
@@ -109,8 +127,20 @@ class PluginManager:
         self.event_handlers[name] = []
         try:
             self.plugins[name] = None
+
+            for dep in module.Plugin.dependencies:
+                self.load(dep, unload_first=False)
+                if dep not in self.plugins:
+                    log.debug(
+                        'Plugin %s couldn\'t load because of dependency %s',
+                        name, dep
+                    )
+                    return None
+
             self.plugins[name] = module.Plugin(name, self.plugin_api, self.core,
                                                self.plugins_conf_dir)
+            self.set_rdeps(name)
+
         except Exception as e:
             log.error('Error while loading the plugin %s', name, exc_info=True)
             if notify:
@@ -122,8 +152,20 @@ class PluginManager:
                 self.core.information('Plugin %s loaded' % name, 'Info')
 
     def unload(self, name: str, notify=True):
+        """
+        Unloads plugin as well as plugins depending on it.
+        """
+
         if name in self.plugins:
             try:
+                self.plugins[name]._unloading = True  # Prevents loops
+                for rdep in self.rdeps[name].copy():
+                    if rdep in self.plugins and not self.plugins[rdep]._unloading:
+                        self.unload(rdep)
+                        if rdep in self.plugins:
+                            log.debug('Failed to unload reverse dependency %s first.', rdep)
+                            return None
+
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
                 for key in self.keys[name].keys():
@@ -143,6 +185,7 @@ class PluginManager:
                 if self.plugins[name] is not None:
                     self.plugins[name].unload()
                 del self.plugins[name]
+                del self.rdeps[name]
                 del self.commands[name]
                 del self.keys[name]
                 del self.tab_commands[name]
