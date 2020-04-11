@@ -3,6 +3,8 @@ Define the PluginConfig and Plugin classes, plus the SafetyMetaclass.
 These are used in the plugin system added in poezio 0.7.5
 (see plugin_manager.py)
 """
+
+from typing import Set
 from asyncio import iscoroutinefunction
 from functools import partial
 from configparser import RawConfigParser
@@ -399,7 +401,11 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     Class that all plugins derive from.
     """
 
+    # Internal use only
+    _unloading = False
+
     default_config = None
+    dependencies: Set[str] = set()
 
     def __init__(self, name, plugin_api, core, plugins_conf_dir):
         self.__name = name
