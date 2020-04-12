@@ -27,7 +27,6 @@ BasePlugin
 .. module:: poezio.plugin
 
 .. autoclass:: BasePlugin
-    :members: init, cleanup, api, core
 
     .. method:: init(self)
 
@@ -49,6 +48,16 @@ BasePlugin
 
         The :py:class:`~PluginAPI` instance for this plugin.
 
+    .. attribute:: dependencies
+
+        Dependencies on other plugins, as a set of strings. A reference
+        to each dependency will be added in ``refs``.
+
+    .. attribute:: refs
+
+        This attribute is not to be edited by the user. It will be
+        populated when the plugin is initialized with references on each
+        plugin specified in the ``dependencies`` attribute.
 
 Each plugin inheriting :py:class:`~BasePlugin` has an ``api`` member variable, which refers
 to a :py:class:`~PluginAPI` object.
