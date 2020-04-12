@@ -136,6 +136,8 @@ class PluginManager:
                         name, dep
                     )
                     return None
+                # Add reference of the dep to the plugin's usage
+                module.Plugin.refs[dep] = self.plugins[dep]
 
             self.plugins[name] = module.Plugin(name, self.plugin_api, self.core,
                                                self.plugins_conf_dir)
