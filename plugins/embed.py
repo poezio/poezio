@@ -28,14 +28,13 @@ class Plugin(BasePlugin):
                 help='Embed an image url into the contact\'s client',
                 usage='<image_url>')
 
-    def embed_image_url(self, args):
+    def embed_image_url(self, url):
         tab = self.api.current_tab()
         message = self.core.xmpp.make_message(tab.jid)
-        message['body'] = args
-        message['oob']['url'] = args
-        if isinstance(tab, tabs.MucTab):
-            message['type'] = 'groupchat'
-        else:
+        message['body'] = url
+        message['oob']['url'] = url
+        message['type'] = 'groupchat'
+        if not isinstance(tab, tabs.MucTab):
             message['type'] = 'chat'
             tab.add_message(
                 message['body'],
@@ -46,3 +45,6 @@ class Plugin(BasePlugin):
                 typ=1,
             )
         message.send()
+        # TODO: Fix refreshing. The following doesn't work.
+        tab.refresh()
+        self.core.tab_win.refresh()
