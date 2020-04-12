@@ -136,6 +136,8 @@ class PluginManager:
                         name, dep
                     )
                     return None
+                # Add reference of the dep to the plugin's usage
+                module.Plugin.refs[dep] = self.plugins[dep]
 
             self.plugins[name] = module.Plugin(name, self.plugin_api, self.core,
                                                self.plugins_conf_dir)
@@ -158,13 +160,14 @@ class PluginManager:
 
         if name in self.plugins:
             try:
-                self.plugins[name]._unloading = True  # Prevents loops
-                for rdep in self.rdeps[name].copy():
-                    if rdep in self.plugins and not self.plugins[rdep]._unloading:
-                        self.unload(rdep)
-                        if rdep in self.plugins:
-                            log.debug('Failed to unload reverse dependency %s first.', rdep)
-                            return None
+                if self.plugins[name] is not None:
+                    self.plugins[name]._unloading = True  # Prevents loops
+                    for rdep in self.rdeps[name].copy():
+                        if rdep in self.plugins and not self.plugins[rdep]._unloading:
+                            self.unload(rdep)
+                            if rdep in self.plugins:
+                                log.debug('Failed to unload reverse dependency %s first.', rdep)
+                                return None
 
                 for command in self.commands[name].keys():
                     del self.core.commands[command]
