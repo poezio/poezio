@@ -16,6 +16,9 @@ This plugin adds a command to the chat tabs.
 
 
 """
+
+from typing import Optional
+
 import asyncio
 import traceback
 from os.path import expanduser
@@ -30,7 +33,11 @@ from poezio import tabs
 
 
 class Plugin(BasePlugin):
+    dependencies = {'embed'}
+
     def init(self):
+        self.embed = self.refs['embed']
+
         if not self.core.xmpp['xep_0363']:
             raise Exception('slixmpp XEP-0363 plugin failed to load')
         for _class in (tabs.PrivateTab, tabs.StaticConversationTab, tabs.DynamicConversationTab, tabs.MucTab):
@@ -43,18 +50,23 @@ class Plugin(BasePlugin):
                 short='Upload a file',
                 completion=self.completion_filename)
 
-    async def async_upload(self, filename):
+    async def upload(self, filename) -> Optional[str]:
         try:
             url = await self.core.xmpp['xep_0363'].upload_file(filename)
         except UploadServiceNotFound:
             self.api.information('HTTP Upload service not found.', 'Error')
-            return
+            return None
         except Exception:
             exception = traceback.format_exc()
             self.api.information('Failed to upload file: %s' % exception,
                                  'Error')
-            return
-        self.core.insert_input_text(url)
+            return None
+        return url
+
+    async def send_upload(self, filename):
+        url = await self.upload(filename)
+        if url is not None:
+            self.embed.embed_image_url(url)
 
     @command_args_parser.quoted(1)
     def command_upload(self, args):
@@ -63,7 +75,7 @@ class Plugin(BasePlugin):
             return
         filename, = args
         filename = expanduser(filename)
-        asyncio.ensure_future(self.async_upload(filename))
+        asyncio.ensure_future(self.send_upload(filename))
 
     @staticmethod
     def completion_filename(the_input):
