@@ -1626,24 +1626,59 @@ class MucTab(ChatTab):
     async def get_users_affiliations(self, jid: JID) -> None:
         MUC_ADMIN_NS = 'http://jabber.org/protocol/muc#admin'
 
-        try:
-            iqs = await asyncio.gather(
-                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'owner'),
-                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'admin'),
-                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'member'),
-                self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'outcast'),
+        iqs = await asyncio.gather(
+            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'owner'),
+            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'admin'),
+            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'member'),
+            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'outcast'),
+            return_exceptions=True,
+        )
+
+        all_errors = functools.reduce(
+            lambda acc, iq: acc and isinstance(iq, (IqError, IqTimeout)),
+            iqs,
+            True,
+        )
+
+        theme = get_theme()
+        aff_colors = {
+            'owner': theme.CHAR_AFFILIATION_OWNER,
+            'admin': theme.CHAR_AFFILIATION_ADMIN,
+            'member': theme.CHAR_AFFILIATION_MEMBER,
+            'none': theme.CHAR_AFFILIATION_NONE,
+        }
+
+        if all_errors:
+            self.add_message(
+                'Can\'t access affiliations',
+                highlight=True,
+                nickname='Error',
+                nick_color=theme.COLOR_ERROR_MSG,
+                typ=2,
             )
-        except (IqError, IqTimeout) as exn:
-            self.core.room_error(exn.iq, jid)
+            self.core.refresh_window()
             return None
 
-        self._text_buffer.add_message('Affiliations:')
+        self._text_buffer.add_message('Affiliations')
         for iq in iqs:
+            if isinstance(iq, (IqError, IqTimeout)):
+                continue
+
             query = iq.xml.find('{%s}query' % MUC_ADMIN_NS)
-            for item in query.findall('{%s}item' % MUC_ADMIN_NS):
-                self._text_buffer.add_message(
-                    '%s: %s' % (item.get('jid'), item.get('affiliation'))
-                )
+            items = query.findall('{%s}item' % MUC_ADMIN_NS)
+            if not items:  # Nobody with this affiliation
+                continue
+
+            affiliation = items[0].get('affiliation')
+            aff_char = aff_colors[affiliation]
+            self._text_buffer.add_message(
+                '  %s%s' % (aff_char, affiliation.capitalize()),
+            )
+
+            items = map(lambda i: i.get('jid'), items)
+            for ajid in sorted(items):
+                self._text_buffer.add_message('    %s' % ajid)
+
         self.core.refresh_window()
         return None
 
