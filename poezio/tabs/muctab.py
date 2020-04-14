@@ -1638,12 +1638,12 @@ class MucTab(ChatTab):
             self.core.room_error(exn.iq, jid)
             return None
 
-        self._text_buffer.add_message('Affiliations:')
+        self._text_buffer.add_message(InfoMessage('Affiliations:'))
         for iq in iqs:
             query = iq.xml.find('{%s}query' % MUC_ADMIN_NS)
             for item in query.findall('{%s}item' % MUC_ADMIN_NS):
                 self._text_buffer.add_message(
-                    '%s: %s' % (item.get('jid'), item.get('affiliation'))
+                    InfoMessage('%s: %s' % (item.get('jid'), item.get('affiliation'))),
                 )
         self.core.refresh_window()
         return None
