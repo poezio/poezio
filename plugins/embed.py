@@ -45,6 +45,4 @@ class Plugin(BasePlugin):
                 typ=1,
             )
         message.send()
-        # TODO: Fix refreshing. The following doesn't work.
-        tab.refresh()
-        self.core.tab_win.refresh()
+        self.core.refresh_window()
