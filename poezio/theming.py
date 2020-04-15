@@ -178,12 +178,13 @@ class Theme:
     CHAR_CHATSTATE_COMPOSING = 'X'
     CHAR_CHATSTATE_PAUSED = 'p'
 
-    # These characters are used for the affiliation in the user list
-    # in a MUC
+    # These characters are used for the affiliation wherever needed, e.g., in
+    # the user list in a MUC, or when displaying affiliation lists.
     CHAR_AFFILIATION_OWNER = '~'
     CHAR_AFFILIATION_ADMIN = '&'
     CHAR_AFFILIATION_MEMBER = '+'
     CHAR_AFFILIATION_NONE = '-'
+    CHAR_AFFILIATION_OUTCAST = '!'
 
     # XML Tab
     CHAR_XML_IN = 'IN '
