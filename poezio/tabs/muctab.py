@@ -1645,7 +1645,7 @@ class MucTab(ChatTab):
             'owner': theme.CHAR_AFFILIATION_OWNER,
             'admin': theme.CHAR_AFFILIATION_ADMIN,
             'member': theme.CHAR_AFFILIATION_MEMBER,
-            'none': theme.CHAR_AFFILIATION_NONE,
+            'outcast': theme.CHAR_AFFILIATION_OUTCAST,
         }
 
         if all_errors:
