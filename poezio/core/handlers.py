@@ -736,6 +736,15 @@ class HandlerCore:
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
             message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
+
+        # TODO: #3314. Is this a MUC reflection?
+        # Is this an encrypted message? Is so ignore.
+        #   It is not possible in the OMEMO case to decrypt these messages
+        #   since we don't encrypt for our own device (something something
+        #   forward secrecy), but even for non-FS encryption schemes anyway
+        #   messages shouldn't have changed after a round-trip to the room.
+        # Otherwire replace the matching message we sent.
+
         if not body:
             return
 
