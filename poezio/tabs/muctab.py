@@ -1716,6 +1716,7 @@ class MucTab(ChatTab):
             self.text_win.refresh()
             self.input.refresh()
             return
+        # TODO: #3314. Display outgoing MUC message.
         self.set_last_sent_message(msg, correct=correct)
         msg.send()
         self.chat_state = needed
