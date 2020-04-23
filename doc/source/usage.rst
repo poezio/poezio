@@ -15,19 +15,10 @@ Tab list
 
 There are two ways of showing the open tabs:
 
-Horizontal list
-^^^^^^^^^^^^^^^
-
-This is the default method.
-
-On all tabs, you get a line showing the the list of all opened tabs. Each tab
-has a number, each time you open a new tab, it gets the next available number.
-
-.. figure:: ./images/tab_bar.png
-    :alt: Example of 5 opened tabs
-
 Vertical list
 ^^^^^^^^^^^^^
+
+This is the default method.
 
 On all tabs, you get a pane on the left side of the screen that shows a list
 of the opened tabs. As stated above, each tab has a number, and each time you
@@ -36,10 +27,17 @@ open a new tab, it gets the next available number.
 .. figure:: ./images/vert_tabs.png
     :alt: Example of the vertical tab bar
 
+Horizontal list
+^^^^^^^^^^^^^^^
 
-This mode is enabled by setting the
-:term:`enable_vertical_tab_list` option to ``true`` in the
-configuration file.
+On all tabs, you get a line showing the the list of all opened tabs. Each tab
+has a number, each time you open a new tab, it gets the next available number.
+
+.. figure:: ./images/tab_bar.png
+    :alt: Example of 5 opened tabs
+
+This mode is enabled by setting the :term:`enable_vertical_tab_list`
+option to ``false`` in the configuration file.
 
 Options for the tab list
 ^^^^^^^^^^^^^^^^^^^^^^^^
