@@ -209,6 +209,11 @@ These commands work in *any* tab.
         Get the software version of the given JID (usually its XMPP
         client and Operating System).
 
+    /ad-hoc
+        **Usage:** ``/ad-hoc <jid>``
+
+        List available ad-hoc commands on the given jid.
+
     /invite
         **Usage:** ``/invite <jid> <room> [reason]``
 
