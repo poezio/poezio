@@ -697,6 +697,7 @@ class ChatTab(Tab):
                 msg['type'] = self.message_type
                 msg['chat_state'] = state
                 self.chat_state = state
+                msg['no-store'] = True
                 msg.send()
                 return True
 
