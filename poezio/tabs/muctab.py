@@ -1601,7 +1601,7 @@ class MucTab(ChatTab):
     @command_args_parser.quoted(0, 2)
     def command_affiliation(self, args) -> None:
         """
-        /affiliation [<nick or jid> [<affiliation>]]
+        /affiliation [<nick or jid> <affiliation>]
         Changes the affiliation of a user
         affiliations can be: outcast, none, member, admin, owner
         """

@@ -336,11 +336,12 @@ MultiUserChat tab commands
     :sorted:
 
     /affiliation
-       **Usage:** ``/affiliation <nick> <affiliation>``
+       **Usage:** ``/affiliation [<nick or jid> <affiliation>]``
 
-       Sets the affiliation of the participant designated by **nick** to the
-       given **affiliation** (can be one of owner, admin, member, outcast
-       and none).
+       Sets the affiliation of the participant designated by **nick** or
+       **jid** to the given **affiliation** (can be one of owner, admin,
+       member, outcast and none). If not argument is provided, lists
+       room affiliations.
 
     /role
        **Usage:** ``/affiliation <nick> <role>``
