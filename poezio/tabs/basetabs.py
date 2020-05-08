@@ -48,6 +48,8 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
+
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
     'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
@@ -688,6 +690,8 @@ class ChatTab(Tab):
         """
         Send an empty chatstate message
         """
+        from poezio.tabs import PrivateTab
+
         if self.check_send_chat_state():
             if state in ('active', 'inactive',
                          'gone') and self.inactive and not always_send:
@@ -698,6 +702,9 @@ class ChatTab(Tab):
                 msg['chat_state'] = state
                 self.chat_state = state
                 msg['no-store'] = True
+                if isinstance(self, PrivateTab):
+                    x = ET.Element('{%s}x' % NS_MUC_USER)
+                    msg.append(x)
                 msg.send()
                 return True
 
