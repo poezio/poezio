@@ -13,6 +13,7 @@ the ConversationTab (such as tab-completion on nicks from the room).
 import curses
 import logging
 from typing import Dict, Callable
+from xml.etree import cElementTree as ET
 
 from slixmpp import JID
 
@@ -28,6 +29,8 @@ from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
+
+NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
 
 class PrivateTab(OneToOneTab):
@@ -152,6 +155,8 @@ class PrivateTab(OneToOneTab):
         )
         msg['type'] = 'chat'
         msg['body'] = line
+        x = ET.Element('{%s}x' % NS_MUC_USER)
+        msg.append(x)
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
         # be converted in xhtml.
