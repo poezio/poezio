@@ -30,6 +30,8 @@ from poezio.decorators import command_args_parser
 
 log = logging.getLogger(__name__)
 
+NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
+
 
 class PrivateTab(OneToOneTab):
     """
@@ -153,7 +155,7 @@ class PrivateTab(OneToOneTab):
         )
         msg['type'] = 'chat'
         msg['body'] = line
-        x = ET.Element('{http://jabber.org/protocol/muc#user}x')
+        x = ET.Element('{%s}x' % NS_MUC_USER)
         msg.append(x)
         # trigger the event BEFORE looking for colors.
         # This lets a plugin insert \x19xxx} colors, that will
