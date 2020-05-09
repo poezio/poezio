@@ -1770,14 +1770,15 @@ class Core:
             completion=self.completion.bookmark)
         self.register_command(
             'accept',
-            self.command.command_accept,
+            self.command.accept,
             usage='[jid]',
             desc='Allow the provided JID (or the selected contact '
             'in your roster), to see your presence.',
-            shortdesc='Allow a user your presence.',)
+            shortdesc='Allow a user your presence.',
+            completion=self.completion.roster_barejids)
         self.register_command(
             'add',
-            self.command.command_add,
+            self.command.add,
             usage='<jid>',
             desc='Add the specified JID to your roster, ask them to'
             ' allow you to see his presence, and allow them to'

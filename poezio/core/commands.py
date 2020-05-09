@@ -520,7 +520,7 @@ class CommandCore:
 
     @deny_anonymous
     @command_args_parser.quoted(0, 1)
-    def command_accept(self, args):
+    def accept(self, args):
         """
         Accept a JID. Authorize it AND subscribe to it
         """
@@ -557,7 +557,7 @@ class CommandCore:
 
     @deny_anonymous
     @command_args_parser.quoted(1)
-    def command_add(self, args):
+    def add(self, args):
         """
         Add the specified JID to the roster, and automatically
         accept the reverse subscription
