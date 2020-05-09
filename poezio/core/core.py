@@ -1785,6 +1785,25 @@ class Core:
             ' see your presence.',
             shortdesc='Add a user to your roster.')
         self.register_command(
+            'deny',
+            self.command.deny,
+            usage='[jid]',
+            desc='Deny your presence to the provided JID (or the '
+            'selected contact in your roster), who is asking'
+            'you to be in their roster.',
+            shortdesc='Deny a user your presence.',
+            completion=self.completion.roster_barejids)
+        self.register_command(
+            'remove',
+            self.command.remove,
+            usage='[jid]',
+            desc='Remove the specified JID from your roster. This '
+            'will unsubscribe you from its presence, cancel '
+            'its subscription to yours, and remove the item '
+            'from your roster.',
+            shortdesc='Remove a user from your roster.',
+            completion=self.completion.remove)
+        self.register_command(
             'reconnect',
             self.command.command_reconnect,
             usage="[reconnect]",

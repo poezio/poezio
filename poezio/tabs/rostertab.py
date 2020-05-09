@@ -73,15 +73,6 @@ class RosterInfoTab(Tab):
             self.key_func["S"] = self.start_search_slow
             self.key_func["n"] = self.change_contact_name
         self.register_command(
-            'deny',
-            self.command_deny,
-            usage='[jid]',
-            desc='Deny your presence to the provided JID (or the '
-            'selected contact in your roster), who is asking'
-            'you to be in their roster.',
-            shortdesc='Deny a user your presence.',
-            completion=self.completion_deny)
-        self.register_command(
             'name',
             self.command_name,
             usage='<jid> [name]',
@@ -108,16 +99,6 @@ class RosterInfoTab(Tab):
             desc='Remove the given JID from the given group.',
             shortdesc='Remove a user from a group.',
             completion=self.completion_groupremove)
-        self.register_command(
-            'remove',
-            self.command_remove,
-            usage='[jid]',
-            desc='Remove the specified JID from your roster. This '
-            'will unsubscribe you from its presence, cancel '
-            'its subscription to yours, and remove the item '
-            'from your roster.',
-            shortdesc='Remove a user from your roster.',
-            completion=self.completion_remove)
         self.register_command(
             'export',
             self.command_export,
@@ -559,31 +540,6 @@ class RosterInfoTab(Tab):
         self.core.xmpp.plugin['xep_0077'].change_password(
             args[0], callback=callback)
 
-    @deny_anonymous
-    @command_args_parser.quoted(0, 1)
-    def command_deny(self, args):
-        """
-        /deny [jid]
-        Denies a JID from our roster
-        """
-        if not args:
-            item = self.roster_win.selected_row
-            if isinstance(item, Contact):
-                jid = item.bare_jid
-            else:
-                self.core.information('No subscription to deny', 'Warning')
-                return
-        else:
-            jid = safeJID(args[0]).bare
-            if jid not in [jid for jid in roster.jids()]:
-                self.core.information('No subscription to deny', 'Warning')
-                return
-
-        contact = roster[jid]
-        if contact:
-            contact.unauthorize()
-            self.core.information('Subscription to %s was revoked' % jid,
-                                  'Roster')
 
     @deny_anonymous
     @command_args_parser.quoted(1, 1)
@@ -781,25 +737,6 @@ class RosterInfoTab(Tab):
 
     @deny_anonymous
     @command_args_parser.quoted(0, 1)
-    def command_remove(self, args):
-        """
-        Remove the specified JID from the roster. i.e.: unsubscribe
-        from its presence, and cancel its subscription to our.
-        """
-        if args:
-            jid = safeJID(args[0]).bare
-        else:
-            item = self.roster_win.selected_row
-            if isinstance(item, Contact):
-                jid = item.bare_jid
-            else:
-                self.core.information('No roster item to remove', 'Error')
-                return
-        roster.remove(jid)
-        del roster[jid]
-
-    @deny_anonymous
-    @command_args_parser.quoted(0, 1)
     def command_import(self, args):
         """
         Import the contacts
@@ -921,16 +858,6 @@ class RosterInfoTab(Tab):
             return Completion(
                 the_input.new_completion, groups, n, '', quotify=True)
         return False
-
-    def completion_deny(self, the_input):
-        """
-        Complete the first argument from the list of the
-        contact with ask=='subscribe'
-        """
-        jids = sorted(
-            str(contact.bare_jid) for contact in roster.contacts.values()
-            if contact.pending_in)
-        return Completion(the_input.new_completion, jids, 1, '', quotify=False)
 
     def refresh(self):
         if self.need_resize:

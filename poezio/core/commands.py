@@ -585,6 +585,56 @@ class CommandCore:
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
 
+    @deny_anonymous
+    @command_args_parser.quoted(0, 1)
+    def deny(self, args):
+        """
+        /deny [jid]
+        Denies a JID from our roster
+        """
+        jid = None
+        if not args:
+            tab = self.core.tabs.current_tab
+            if isinstance(tab, tabs.RosterInfoTab):
+                item = tab.roster_win.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+        else:
+            jid = safeJID(args[0]).bare
+            if jid not in [jid for jid in roster.jids()]:
+                jid = None
+        if jid is None:
+            self.core.information('No subscription to deny', 'Warning')
+            return
+
+        contact = roster[jid]
+        if contact:
+            contact.unauthorize()
+            self.core.information('Subscription to %s was revoked' % jid,
+                                  'Roster')
+
+    @deny_anonymous
+    @command_args_parser.quoted(0, 1)
+    def remove(self, args):
+        """
+        Remove the specified JID from the roster. i.e.: unsubscribe
+        from its presence, and cancel its subscription to our.
+        """
+        jid = None
+        if args:
+            jid = safeJID(args[0]).bare
+        else:
+            tab = self.core.tabs.current_tab
+            if isinstance(tab, tabs.RosterInfoTab):
+                item = tab.roster_win.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+        if jid is None:
+            self.core.information('No roster item to remove', 'Error')
+            return
+        roster.remove(jid)
+        del roster[jid]
+
     @command_args_parser.ignored
     def command_reconnect(self):
         """
