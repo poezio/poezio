@@ -1770,19 +1770,39 @@ class Core:
             completion=self.completion.bookmark)
         self.register_command(
             'accept',
-            self.command.command_accept,
+            self.command.accept,
             usage='[jid]',
             desc='Allow the provided JID (or the selected contact '
             'in your roster), to see your presence.',
-            shortdesc='Allow a user your presence.',)
+            shortdesc='Allow a user your presence.',
+            completion=self.completion.roster_barejids)
         self.register_command(
             'add',
-            self.command.command_add,
+            self.command.add,
             usage='<jid>',
             desc='Add the specified JID to your roster, ask them to'
             ' allow you to see his presence, and allow them to'
             ' see your presence.',
             shortdesc='Add a user to your roster.')
+        self.register_command(
+            'deny',
+            self.command.deny,
+            usage='[jid]',
+            desc='Deny your presence to the provided JID (or the '
+            'selected contact in your roster), who is asking'
+            'you to be in their roster.',
+            shortdesc='Deny a user your presence.',
+            completion=self.completion.roster_barejids)
+        self.register_command(
+            'remove',
+            self.command.remove,
+            usage='[jid]',
+            desc='Remove the specified JID from your roster. This '
+            'will unsubscribe you from its presence, cancel '
+            'its subscription to yours, and remove the item '
+            'from your roster.',
+            shortdesc='Remove a user from your roster.',
+            completion=self.completion.remove)
         self.register_command(
             'reconnect',
             self.command.command_reconnect,

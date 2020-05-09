@@ -44,6 +44,19 @@ class CompletionCore:
                 ' ',
                 quotify=False)
 
+    def roster_barejids(self, the_input):
+        """Complete roster bare jids"""
+        jids = sorted(
+            str(contact.bare_jid) for contact in roster.contacts.values()
+            if contact.pending_in
+        )
+        return Completion(the_input.new_completion, jids, 1, '', quotify=False)
+
+    def remove(self, the_input):
+        """Completion for /remove"""
+        jids = [jid for jid in roster.jids()]
+        return Completion(the_input.auto_completion, jids, '', quotify=False)
+
     def presence(self, the_input):
         """
         Completion of /presence

@@ -162,3 +162,15 @@ class CommandArgParser:
 
 
 command_args_parser = CommandArgParser()
+
+
+def deny_anonymous(func: Callable) -> Callable:
+    """Decorator to disable commands when using an anonymous account."""
+    def wrap(self: 'RosterInfoTab', *args, **kwargs):
+        if self.core.xmpp.anon:
+            return self.core.information(
+                'This command is not available for anonymous accounts.',
+                'Info'
+            )
+        return func(self, *args, **kwargs)
+    return wrap
