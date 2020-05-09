@@ -17,11 +17,12 @@ from slixmpp.xmlstream.matcher import StanzaPath
 from poezio import common
 from poezio import pep
 from poezio import tabs
+from poezio import multiuserchat as muc
 from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
-from poezio import multiuserchat as muc
 from poezio.contact import Contact, Resource
+from poezio.decorators import deny_anonymous
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
@@ -517,8 +518,9 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
-    def command_accept(self, args):
+    def accept(self, args):
         """
         Accept a JID. Authorize it AND subscribe to it
         """
@@ -553,8 +555,9 @@ class CommandCore:
                 pto=jid, ptype='subscribe', pnick=self.core.own_nick)
         self.core.information('%s is now authorized' % jid, 'Roster')
 
+    @deny_anonymous
     @command_args_parser.quoted(1)
-    def command_add(self, args):
+    def add(self, args):
         """
         Add the specified JID to the roster, and automatically
         accept the reverse subscription
@@ -581,6 +584,56 @@ class CommandCore:
         roster.add(jid)
         roster.modified()
         self.core.information('%s was added to the roster' % jid, 'Roster')
+
+    @deny_anonymous
+    @command_args_parser.quoted(0, 1)
+    def deny(self, args):
+        """
+        /deny [jid]
+        Denies a JID from our roster
+        """
+        jid = None
+        if not args:
+            tab = self.core.tabs.current_tab
+            if isinstance(tab, tabs.RosterInfoTab):
+                item = tab.roster_win.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+        else:
+            jid = safeJID(args[0]).bare
+            if jid not in [jid for jid in roster.jids()]:
+                jid = None
+        if jid is None:
+            self.core.information('No subscription to deny', 'Warning')
+            return
+
+        contact = roster[jid]
+        if contact:
+            contact.unauthorize()
+            self.core.information('Subscription to %s was revoked' % jid,
+                                  'Roster')
+
+    @deny_anonymous
+    @command_args_parser.quoted(0, 1)
+    def remove(self, args):
+        """
+        Remove the specified JID from the roster. i.e.: unsubscribe
+        from its presence, and cancel its subscription to our.
+        """
+        jid = None
+        if args:
+            jid = safeJID(args[0]).bare
+        else:
+            tab = self.core.tabs.current_tab
+            if isinstance(tab, tabs.RosterInfoTab):
+                item = tab.roster_win.selected_row
+                if isinstance(item, Contact):
+                    jid = item.bare_jid
+        if jid is None:
+            self.core.information('No roster item to remove', 'Error')
+            return
+        roster.remove(jid)
+        del roster[jid]
 
     @command_args_parser.ignored
     def command_reconnect(self):
