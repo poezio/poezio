@@ -3,3 +3,4 @@ pyinotify
 python-mpd2
 aiohttp
 pygments
+qrcode
