@@ -67,6 +67,7 @@ pytest-latest:
 
 pylint-latest:
   stage: lint
+  allow_failure: true
   image: python:3
   script:
     - apt-get update && apt-get install -y libidn11-dev
