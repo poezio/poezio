@@ -65,7 +65,7 @@ class XMLTab(Tab):
         self.filtered_buffer = text_buffer.TextBuffer()
 
         self.info_header = windows.XMLInfoWin()
-        self.text_win = windows.XMLTextWin()
+        self.text_win = windows.TextWin()
         self.core_buffer.add_window(self.text_win)
         self.default_help_message = windows.HelpText("/ to enter a command")
 
@@ -262,7 +262,10 @@ class XMLTab(Tab):
         else:
             xml = self.core_buffer.messages[:]
         text = '\n'.join(
-            ('%s %s %s' % (msg.str_time, msg.nickname, clean_text(msg.txt))
+            ('%s %s %s' % (
+                msg.time.strftime('%H:%M:%S'),
+                'IN' if msg.incoming else 'OUT',
+                clean_text(msg.txt))
              for msg in xml))
         filename = os.path.expandvars(os.path.expanduser(args[0]))
         try:
