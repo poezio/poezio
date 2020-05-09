@@ -11,93 +11,20 @@ independently by their TextWins.
 import logging
 log = logging.getLogger(__name__)
 
-from typing import Dict, Union, Optional, List, Tuple
+from typing import (
+    Dict,
+    List,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 from datetime import datetime
 from poezio.config import config
-from poezio.theming import get_theme, dump_tuple
+from poezio.ui.types import Message, BaseMessage
 
-
-class Message:
-    __slots__ = ('txt', 'nick_color', 'time', 'str_time', 'nickname', 'user',
-                 'identifier', 'top', 'highlight', 'me', 'old_message', 'revisions',
-                 'jid', 'ack')
-
-    def __init__(self,
-                 txt: str,
-                 time: Optional[datetime],
-                 nickname: Optional[str],
-                 nick_color: Optional[Tuple],
-                 history: bool,
-                 user: Optional[str],
-                 identifier: Optional[str],
-                 top: Optional[bool] = False,
-                 str_time: Optional[str] = None,
-                 highlight: bool = False,
-                 old_message: Optional['Message'] = None,
-                 revisions: int = 0,
-                 jid: Optional[str] = None,
-                 ack: int = 0) -> None:
-        """
-        Create a new Message object with parameters, check for /me messages,
-        and delayed messages
-        """
-        time = time if time is not None else datetime.now()
-        if txt.startswith('/me '):
-            me = True
-            txt = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_ME_MESSAGE),
-                                      txt[4:])
-        else:
-            me = False
-        str_time = time.strftime("%H:%M:%S")
-        if history:
-            txt = txt.replace(
-                '\x19o',
-                '\x19o\x19%s}' % dump_tuple(get_theme().COLOR_LOG_MSG))
-            str_time = time.strftime("%Y-%m-%d %H:%M:%S")
-
-        self.txt = txt.replace('\t', '    ') + '\x19o'
-        self.nick_color = nick_color
-        self.time = time
-        self.str_time = str_time
-        self.nickname = nickname
-        self.user = user
-        self.identifier = identifier
-        self.top = top
-        self.highlight = highlight
-        self.me = me
-        self.old_message = old_message
-        self.revisions = revisions
-        self.jid = jid
-        self.ack = ack
-
-    def _other_elems(self) -> str:
-        "Helper for the repr_message function"
-        acc = []
-        fields = list(self.__slots__)
-        fields.remove('old_message')
-        for field in fields:
-            acc.append('%s=%s' % (field, repr(getattr(self, field))))
-        return 'Message(%s, %s' % (', '.join(acc), 'old_message=')
-
-    def __repr__(self) -> str:
-        """
-        repr() for the Message class, for debug purposes, since the default
-        repr() is recursive, so it can stack overflow given too many revisions
-        of a message
-        """
-        init = self._other_elems()
-        acc = [init]
-        next_message = self.old_message
-        rev = 1
-        while next_message is not None:
-            acc.append(next_message._other_elems())
-            next_message = next_message.old_message
-            rev += 1
-        acc.append('None')
-        while rev:
-            acc.append(')')
-            rev -= 1
-        return ''.join(acc)
+if TYPE_CHECKING:
+    from poezio.windows.text_win import TextWin
 
 
 class CorrectionError(Exception):
@@ -120,50 +47,25 @@ class TextBuffer:
             messages_nb_limit = config.get('max_messages_in_memory')
         self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
-        self.messages = []  # type: List[Message]
+        self.messages = []  # type: List[BaseMessage]
         # COMPAT: Correction id -> Original message id.
         self.correction_ids = {}  # type: Dict[str, str]
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self._windows = []
+        self._windows = []  # type: List[TextWin]
 
     def add_window(self, win) -> None:
         self._windows.append(win)
 
     @property
-    def last_message(self) -> Optional[Message]:
+    def last_message(self) -> Optional[BaseMessage]:
         return self.messages[-1] if self.messages else None
 
-    def add_message(self,
-                    txt: str,
-                    time: Optional[datetime] = None,
-                    nickname: Optional[str] = None,
-                    nick_color: Optional[Tuple] = None,
-                    history: bool = False,
-                    user: Optional[str] = None,
-                    highlight: bool = False,
-                    top: Optional[bool] = False,
-                    identifier: Optional[str] = None,
-                    str_time: Optional[str] = None,
-                    jid: Optional[str] = None,
-                    ack: int = 0) -> int:
+    def add_message(self, msg: BaseMessage):
         """
         Create a message and add it to the text buffer
         """
-        msg = Message(
-            txt,
-            time,
-            nickname,
-            nick_color,
-            history,
-            user,
-            identifier,
-            top,
-            str_time=str_time,
-            highlight=highlight,
-            jid=jid,
-            ack=ack)
         self.messages.append(msg)
 
         while len(self.messages) > self._messages_nb_limit:
@@ -176,13 +78,11 @@ class TextBuffer:
             # build the lines from the new message
             nb = window.build_new_message(
                 msg,
-                history=history,
-                highlight=highlight,
                 timestamp=show_timestamps,
-                top=top,
                 nick_size=nick_size)
             if ret_val == 0:
                 ret_val = nb
+            top = isinstance(msg, Message) and msg.top
             if window.pos != 0 and top is False:
                 window.scroll_up(nb)
 
@@ -222,6 +122,8 @@ class TextBuffer:
         if i == -1:
             return None
         msg = self.messages[i]
+        if not isinstance(msg, Message):
+            return None
         if msg.ack == 1:  # Message was already acked
             return False
         if msg.jid != jid:
@@ -240,7 +142,7 @@ class TextBuffer:
                        highlight: bool = False,
                        time: Optional[datetime] = None,
                        user: Optional[str] = None,
-                       jid: Optional[str] = None):
+                       jid: Optional[str] = None) -> Message:
         """
         Correct a message in a text buffer.
 
@@ -259,10 +161,11 @@ class TextBuffer:
             raise CorrectionError("nothing to replace")
 
         msg = self.messages[i]
-
+        if not isinstance(msg, Message):
+            raise CorrectionError('Wrong message type')
         if msg.user and msg.user is not user:
             raise CorrectionError("Different users")
-        elif len(msg.str_time) > 8:  # ugly
+        elif msg.delayed:
             raise CorrectionError("Delayed message")
         elif not msg.user and (msg.jid is None or jid is None):
             raise CorrectionError('Could not check the '
@@ -277,13 +180,12 @@ class TextBuffer:
 
         self.correction_ids[new_id] = orig_id
         message = Message(
-            txt,
-            time,
-            msg.nickname,
-            msg.nick_color,
-            False,
-            msg.user,
-            orig_id,
+            txt=txt,
+            time=time,
+            nickname=msg.nickname,
+            nick_color=msg.nick_color,
+            user=msg.user,
+            identifier=orig_id,
             highlight=highlight,
             old_message=msg,
             revisions=msg.revisions + 1,
