@@ -17,11 +17,12 @@ from slixmpp.xmlstream.matcher import StanzaPath
 from poezio import common
 from poezio import pep
 from poezio import tabs
+from poezio import multiuserchat as muc
 from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
-from poezio import multiuserchat as muc
 from poezio.contact import Contact, Resource
+from poezio.decorators import deny_anonymous
 from poezio.plugin import PluginConfig
 from poezio.roster import roster
 from poezio.theming import dump_tuple, get_theme
@@ -517,6 +518,7 @@ class CommandCore:
             else:
                 self.core.information('No bookmark to remove', 'Info')
 
+    @deny_anonymous
     @command_args_parser.quoted(0, 1)
     def command_accept(self, args):
         """
@@ -553,6 +555,7 @@ class CommandCore:
                 pto=jid, ptype='subscribe', pnick=self.core.own_nick)
         self.core.information('%s is now authorized' % jid, 'Roster')
 
+    @deny_anonymous
     @command_args_parser.quoted(1)
     def command_add(self, args):
         """
