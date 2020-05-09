@@ -24,23 +24,12 @@ from poezio.contact import Contact, Resource
 from poezio.decorators import refresh_wrapper
 from poezio.roster import RosterGroup, roster
 from poezio.theming import get_theme, dump_tuple
-from poezio.decorators import command_args_parser
+from poezio.decorators import command_args_parser, deny_anonymous
 from poezio.core.structs import Command, Completion
 from poezio.tabs import Tab
 from poezio.ui.types import InfoMessage
 
 log = logging.getLogger(__name__)
-
-
-def deny_anonymous(func: Callable) -> Callable:
-    def wrap(self: 'RosterInfoTab', *args, **kwargs):
-        if self.core.xmpp.anon:
-            return self.core.information(
-                'This command is not available for anonymous accounts.',
-                'Info'
-            )
-        return func(self, *args, **kwargs)
-    return wrap
 
 
 class RosterInfoTab(Tab):
