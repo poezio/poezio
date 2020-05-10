@@ -209,6 +209,7 @@ class Core:
             '_show_plugins': self.command.plugins,
             '_show_xmltab': self.command.xml_tab,
             '_toggle_pane': self.toggle_left_pane,
+            "_go_to_room_name": self.go_to_room_name,
             ###### status actions ######
             '_available': lambda: self.command.status('available'),
             '_away': lambda: self.command.status('away'),
@@ -1107,6 +1108,34 @@ class Core:
                     keyboard.continuation_keys_callback = read_next_digit
 
         keyboard.continuation_keys_callback = read_next_digit
+
+    def go_to_room_name(self) -> None:
+        room_name_jump = []
+
+        def read_next_letter(s) -> None:
+            nonlocal room_name_jump
+            room_name_jump.append(s)
+            any_matched, unique_tab = self.tabs.find_by_unique_prefix(
+                "".join(room_name_jump)
+            )
+
+            if not any_matched:
+                return
+
+            if unique_tab is not None:
+                self.tabs.set_current_tab(unique_tab)
+                # NOTE: returning here means that as soon as the tab is
+                # matched, normal input resumes. If we do *not* return here,
+                # any further characters matching the prefix of the tab will
+                # be swallowed (and a lot of tab switching will happen...),
+                # until a non-matching character or escape or something is
+                # pressed.
+                # This behaviour *may* be desirable.
+                return
+
+            keyboard.continuation_keys_callback = read_next_letter
+
+        keyboard.continuation_keys_callback = read_next_letter
 
     def go_to_roster(self) -> None:
         "Select the roster as the current tab"
