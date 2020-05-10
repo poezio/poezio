@@ -12,6 +12,7 @@ from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.ui.funcs import truncate_nick
 from poezio.theming import get_theme, to_curses_attr
+from poezio.colors import ccg_text_to_color
 
 
 class InfoWin(Win):
@@ -92,6 +93,9 @@ class PrivateInfoWin(InfoWin):
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
+        # TODO: autocolour this too, but we need more info about the occupant
+        # (whether we know its real jid) and the room (whether it is
+        # anonymous) to provide correct colouring.
         jid = safeJID(name)
         room_name, nick = jid.bare, jid.resource
         theme = get_theme()
@@ -206,13 +210,23 @@ class ConversationInfoWin(InfoWin):
         """
         Write the information about the contact
         """
-        color = to_curses_attr(get_theme().COLOR_INFORMATION_BAR)
+        theme = get_theme()
+        color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        if config.get('autocolor_tab_names'):
+            name_color = (
+                ccg_text_to_color(theme.ccg_palette, str(contact.jid)),
+                -1,
+                theme.MODE_TAB_NAME,
+            )
+        else:
+            name_color = color
+
         if not contact:
             self.addstr("(contact not in roster)", color)
             return
         display_name = contact.name
         if display_name:
-            self.addstr('%s ' % (display_name), color)
+            self.addstr('%s ' % (display_name), name_color)
 
     def write_contact_jid(self, jid):
         """
@@ -220,9 +234,17 @@ class ConversationInfoWin(InfoWin):
         """
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        if config.get('autocolor_tab_names'):
+            name_color = (
+                ccg_text_to_color(theme.ccg_palette, str(contact.jid)),
+                -1,
+                theme.MODE_TAB_NAME,
+            )
+        else:
+            name_color = theme.COLOR_CONVERSATION_NAME
+
         self.addstr('[', color)
-        self.addstr(jid.full,
-                    to_curses_attr(theme.COLOR_CONVERSATION_NAME))
+        self.addstr(jid.full, to_curses_attr(name_color))
         self.addstr('] ', color)
 
     def write_chatstate(self, state):
@@ -290,9 +312,17 @@ class MucInfoWin(InfoWin):
     def write_room_name(self, room):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        label_color = theme.COLOR_GROUPCHAT_NAME
+
+        if config.get('autocolor_tab_names'):
+            label_color = ccg_text_to_color(
+                theme.ccg_palette,
+                room.jid.bare,
+            ), -1, theme.MODE_TAB_NAME
+
         self.addstr('[', color)
         self.addstr(room.name,
-                    to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
+                    to_curses_attr(label_color))
         self.addstr(']', color)
 
     def write_participants_number(self, room):
