@@ -29,6 +29,7 @@ from collections import defaultdict
 from slixmpp import JID
 from poezio import tabs
 from poezio.events import EventHandler
+from poezio.config import config
 
 
 class Tabs:
@@ -128,6 +129,14 @@ class Tabs:
 
     def find_match(self, name: str) -> Optional[tabs.Tab]:
         """Get a tab using extended matching (tab.matching_name())"""
+
+        if config.get("unique_prefix_tab_names_match"):
+            # only match by prefix!
+            for tab in self._tabs:
+                if tab.name.startswith(name):
+                    return tab
+
+            return None
 
         def transform(tab_index):
             """Wrap the value of the range around the current index"""
