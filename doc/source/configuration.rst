@@ -793,6 +793,17 @@ or the way messages are displayed.
 
         If you want to show the tab name in the bottom Tab bar, set this to ``true``.
 
+    unique_prefix_tab_names
+
+        **Default value:** ``false``
+
+        If this and :term:`show_tab_names` is set to true, only the shortest
+        unique prefix of each tab name is shown instead of the full name. This
+        can declutter the interface in an instance with many tabs shown in the
+        interface, while not having to use numbers (which may change completely due to reordering).
+
+        Takes precedence over `use_tab_nicks`.
+
     show_tab_numbers
 
         **Default value:** ``true``
