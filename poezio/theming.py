@@ -225,6 +225,11 @@ class Theme:
     COLOR_TAB_ATTENTION = (7, 1)
     COLOR_TAB_DISCONNECTED = (7, 8)
 
+    # If autocolor_tab_names is set to true, the following modes are used to
+    # distinguish tabs with normal and important messages.
+    MODE_TAB_NORMAL = ''
+    MODE_TAB_IMPORTANT = 'r'  # reverse video mode
+
     COLOR_VERTICAL_TAB_NORMAL = (4, -1)
     COLOR_VERTICAL_TAB_NONEMPTY = (4, -1)
     COLOR_VERTICAL_TAB_JOINED = (82, -1)
