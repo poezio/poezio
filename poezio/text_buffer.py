@@ -19,9 +19,15 @@ from typing import (
     Tuple,
     Union,
 )
+from dataclasses import dataclass
 from datetime import datetime
 from poezio.config import config
-from poezio.ui.types import Message, BaseMessage
+from poezio.ui.types import (
+    BaseMessage,
+    Message,
+    MucOwnJoinMessage,
+    MucOwnLeaveMessage,
+)
 
 if TYPE_CHECKING:
     from poezio.windows.text_win import TextWin
@@ -33,6 +39,15 @@ class CorrectionError(Exception):
 
 class AckError(Exception):
     pass
+
+
+@dataclass
+class HistoryGap:
+    """Class representing a period of non-presence inside a MUC"""
+    leave_message: Optional[MucOwnLeaveMessage]
+    join_message: Optional[MucOwnJoinMessage]
+    last_timestamp_before_leave: Optional[datetime]
+    first_timestamp_after_join: Optional[datetime]
 
 
 class TextBuffer:
@@ -57,6 +72,72 @@ class TextBuffer:
 
     def add_window(self, win) -> None:
         self._windows.append(win)
+
+    def find_last_gap_muc(self) -> Optional[HistoryGap]:
+        """Find the last known history gap contained in buffer"""
+        leave, join = None, None
+        for i, item in enumerate(reversed(self.messages)):
+            if isinstance(item, MucOwnLeaveMessage):
+                leave = (i, item)
+                break
+            if isinstance(item, MucOwnJoinMessage):
+                join = (i, item)
+        if join and leave:  # Skip if we find a message in the interval
+            real_leave = len(self.messages) - leave[0] - 1
+            real_join = len(self.messages) - join[0] - 1
+            for i in range(real_leave, real_join, 1):
+                if isinstance(self.messages[i], Message):
+                    return None
+        elif not (join or leave):
+            return None
+        if leave is None:
+            last_timestamp, leave_msg = None, None
+        else:
+            last_timestamp = None
+            leave_msg = leave[1]
+            for i in range(len(self.messages) - leave[0] - 1, 0, -1):
+                if isinstance(self.messages[i], Message):
+                    last_timestamp = self.messages[i].time
+                    break
+        first_timestamp = datetime.now()
+        if join is None:
+            join_msg = None
+        else:
+            join_msg = join[1]
+            for i in range(len(self.messages) - join[0], len(self.messages)):
+                msg = self.messages[i]
+                if isinstance(msg, Message) and msg.time < first_timestamp:
+                    first_timestamp = msg.time
+                    break
+        return HistoryGap(
+            leave_message=leave_msg,
+            join_message=join_msg,
+            last_timestamp_before_leave=last_timestamp,
+            first_timestamp_after_join=first_timestamp,
+        )
+
+    def get_gap_index(self, gap: HistoryGap) -> Optional[int]:
+        """Find the first index to insert into inside a gap"""
+        if gap.leave_message is None:
+            return 0
+        for i, msg in enumerate(self.messages):
+            if msg is gap.leave_message:
+                return i + 1
+        return None
+
+    def add_history_messages(self, messages: List[Message], gap: Optional[HistoryGap] = None) -> None:
+        """Insert history messages at their correct place """
+        index = 0
+        if gap is not None:
+            index = self.get_gap_index(gap)
+        if index is None:  # Not sure what happened, abort
+            return
+        for message in messages:
+            self.messages.insert(index, message)
+            index += 1
+            log.debug('inserted message: %s', message)
+        for window in self._windows:  # make the associated windows
+            window.rebuild_everything(self)
 
     @property
     def last_message(self) -> Optional[BaseMessage]:
