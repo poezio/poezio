@@ -13,6 +13,7 @@ import curses
 from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
+from poezio.colors import ccg_text_to_color
 
 
 class GlobalInfoBar(Win):
@@ -33,6 +34,7 @@ class GlobalInfoBar(Win):
         show_nums = config.get('show_tab_numbers')
         use_nicks = config.get('use_tab_nicks')
         show_inactive = config.get('show_inactive_tabs')
+        autocolor_tab_names = config.get('autocolor_tab_names')
 
         for nb, tab in enumerate(self.core.tabs):
             if not tab:
@@ -40,6 +42,22 @@ class GlobalInfoBar(Win):
             color = tab.color
             if not show_inactive and color is theme.COLOR_TAB_NORMAL:
                 continue
+            if autocolor_tab_names:
+                fgcolor, bgcolor = color
+                # this is fugly, but I’m not sure how to improve it... since
+                # apparently the state is only kept in the color -.-
+                if (color == theme.COLOR_TAB_HIGHLIGHT or
+                        color == theme.COLOR_TAB_PRIVATE):
+                    # on important messages, we color the background
+                    bgcolor = ccg_text_to_color(theme.ccg_palette, tab.name)
+                    fgcolor = -1
+                elif color == theme.COLOR_TAB_NEW_MESSAGE:
+                    # on normal messages, we color the foreground and reset
+                    # the background
+                    fgcolor = ccg_text_to_color(theme.ccg_palette, tab.name)
+                    bgcolor = -1
+
+                color = fgcolor, bgcolor
             try:
                 if show_nums or not show_names:
                     self.addstr("%s" % str(nb), to_curses_attr(color))
