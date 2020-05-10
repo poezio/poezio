@@ -6,6 +6,7 @@ The GlobalInfoBar can be either horizontal or vertical
 (VerticalGlobalInfoBar).
 """
 import logging
+import itertools
 log = logging.getLogger(__name__)
 
 import curses
@@ -13,6 +14,7 @@ import curses
 from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
+from poezio.common import unique_prefix_of
 
 
 class GlobalInfoBar(Win):
@@ -33,6 +35,32 @@ class GlobalInfoBar(Win):
         show_nums = config.get('show_tab_numbers')
         use_nicks = config.get('use_tab_nicks')
         show_inactive = config.get('show_inactive_tabs')
+        unique_prefix_tab_names = config.get('unique_prefix_tab_names')
+
+        if unique_prefix_tab_names:
+            unique_prefixes = [None] * len(self.core.tabs)
+            sorted_tab_indices = sorted(
+                (str(tab.name), i)
+                for i, tab in enumerate(self.core.tabs)
+            )
+            prev_name = ""
+            for (name, i), next_item in itertools.zip_longest(
+                    sorted_tab_indices, sorted_tab_indices[1:]):
+                name = name.lower()
+                prefix_prev = unique_prefix_of(name, prev_name)
+                if next_item is not None:
+                    prefix_next = unique_prefix_of(name, next_item[0].lower())
+                else:
+                    prefix_next = name[0]
+
+                # to be unique, we have to use the longest prefix
+                if len(prefix_next) > len(prefix_prev):
+                    prefix = prefix_next
+                else:
+                    prefix = prefix_prev
+
+                unique_prefixes[i] = prefix
+                prev_name = name
 
         for nb, tab in enumerate(self.core.tabs):
             if not tab:
@@ -46,7 +74,9 @@ class GlobalInfoBar(Win):
                     if show_names:
                         self.addstr(' ', to_curses_attr(color))
                 if show_names:
-                    if use_nicks:
+                    if unique_prefix_tab_names:
+                        self.addstr(unique_prefixes[nb], to_curses_attr(color))
+                    elif use_nicks:
                         self.addstr("%s" % str(tab.get_nick()),
                                     to_curses_attr(color))
                     else:
