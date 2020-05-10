@@ -230,6 +230,10 @@ class Theme:
     MODE_TAB_NORMAL = ''
     MODE_TAB_IMPORTANT = 'r'  # reverse video mode
 
+    # This is the mode used for the tab name in the info bar of MUC and 1:1
+    # chat tabs.
+    MODE_TAB_NAME = 'r'
+
     COLOR_VERTICAL_TAB_NORMAL = (4, -1)
     COLOR_VERTICAL_TAB_NONEMPTY = (4, -1)
     COLOR_VERTICAL_TAB_JOINED = (82, -1)
