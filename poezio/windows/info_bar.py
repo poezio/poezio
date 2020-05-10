@@ -15,6 +15,7 @@ from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 from poezio.common import unique_prefix_of
+from poezio.colors import ccg_text_to_color
 
 
 class GlobalInfoBar(Win):
@@ -36,6 +37,7 @@ class GlobalInfoBar(Win):
         use_nicks = config.get('use_tab_nicks')
         show_inactive = config.get('show_inactive_tabs')
         unique_prefix_tab_names = config.get('unique_prefix_tab_names')
+        autocolor_tab_names = config.get('autocolor_tab_names')
 
         if unique_prefix_tab_names:
             unique_prefixes = [None] * len(self.core.tabs)
@@ -70,6 +72,24 @@ class GlobalInfoBar(Win):
             color = tab.color
             if not show_inactive and color is theme.COLOR_TAB_NORMAL:
                 continue
+            if autocolor_tab_names:
+                # TODO: in case of private MUC conversations, we should try to
+                # get hold of more information to make the colour the same as
+                # the nickname colour in the MUC.
+                fgcolor, bgcolor, *flags = color
+                # this is fugly, but I’m not sure how to improve it... since
+                # apparently the state is only kept in the color -.-
+                if (color == theme.COLOR_TAB_HIGHLIGHT or
+                        color == theme.COLOR_TAB_PRIVATE):
+                    fgcolor = ccg_text_to_color(theme.ccg_palette, tab.name)
+                    bgcolor = -1
+                    flags = theme.MODE_TAB_IMPORTANT
+                elif color == theme.COLOR_TAB_NEW_MESSAGE:
+                    fgcolor = ccg_text_to_color(theme.ccg_palette, tab.name)
+                    bgcolor = -1
+                    flags = theme.MODE_TAB_NORMAL
+
+                color = (fgcolor, bgcolor) + tuple(flags)
             try:
                 if show_nums or not show_names:
                     self.addstr("%s" % str(nb), to_curses_attr(color))
