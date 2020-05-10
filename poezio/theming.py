@@ -477,6 +477,8 @@ def to_curses_attr(
                 curses, 'A_ITALIC') else curses.A_REVERSE)
         if 'a' in additional_val:
             curses_pair = curses_pair | curses.A_BLINK
+        if 'r' in additional_val:
+            curses_pair = curses_pair | curses.A_REVERSE
     return curses_pair
 
 
