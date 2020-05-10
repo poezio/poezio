@@ -136,6 +136,7 @@ DEFAULT_CONFIG = {
         'theme': 'default',
         'themes_dir': '',
         'tmp_image_dir': '',
+        'unique_prefix_tab_names_match': False,
         'use_bookmarks_method': '',
         'use_log': True,
         'use_remote_bookmarks': True,
