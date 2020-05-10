@@ -37,6 +37,7 @@ DEFAULT_CONFIG: ConfigDict = {
         'after_completion': ',',
         'alternative_nickname': '',
         'auto_reconnect': True,
+        'autocolor_tab_names': False,
         'autorejoin_delay': '5',
         'autorejoin': False,
         'beep_on': 'highlight private invite disconnect',
