@@ -12,6 +12,7 @@ from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.ui.funcs import truncate_nick
 from poezio.theming import get_theme, to_curses_attr
+from poezio.colors import ccg_text_to_color
 
 
 class InfoWin(Win):
@@ -290,9 +291,17 @@ class MucInfoWin(InfoWin):
     def write_room_name(self, room):
         theme = get_theme()
         color = to_curses_attr(theme.COLOR_INFORMATION_BAR)
+        label_color = theme.COLOR_GROUPCHAT_NAME
+
+        if config.get('autocolor_tab_names'):
+            label_color = -1, ccg_text_to_color(
+                theme.ccg_palette,
+                room.jid.bare,
+            )
+
         self.addstr('[', color)
         self.addstr(room.name,
-                    to_curses_attr(theme.COLOR_GROUPCHAT_NAME))
+                    to_curses_attr(label_color))
         self.addstr(']', color)
 
     def write_participants_number(self, room):
