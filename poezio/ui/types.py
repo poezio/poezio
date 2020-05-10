@@ -33,6 +33,14 @@ class InfoMessage(BaseMessage):
         super().__init__(txt=txt, identifier=identifier, time=time)
 
 
+class MucOwnLeaveMessage(InfoMessage):
+    """Status message displayed on our room leave/kick/ban"""
+
+
+class MucOwnJoinMessage(InfoMessage):
+    """Status message displayed on our room join"""
+
+
 class XMLLog(BaseMessage):
     """XML Log message"""
     __slots__ = ('txt', 'time', 'identifier', 'incoming')
