@@ -24,7 +24,7 @@ have become [0|1|2|3], with the tab "4" renumbered to "3" if gap tabs are
 disabled.
 """
 
-from typing import List, Dict, Type, Optional, Union
+from typing import List, Dict, Type, Optional, Union, Tuple
 from collections import defaultdict
 from slixmpp import JID
 from poezio import tabs
@@ -150,6 +150,37 @@ class Tabs:
                 if tab_name[1] and name in tab_name[1].lower():
                     return self._tabs[i]
         return None
+
+    def find_by_unique_prefix(self, prefix: str) -> Tuple[bool, Optional[tabs.Tab]]:
+        """
+        Get a tab by its unique name prefix, ignoring case.
+
+        :return: A tuple indicating the presence of any match, as well as the
+            uniquely matched tab (if any).
+
+        The first element, a boolean, in the returned tuple indicates whether
+        at least one tab matched.
+
+        The second element (a Tab) in the returned tuple is the uniquely
+        matched tab, if any. If multiple or no tabs match the prefix, the
+        second element in the tuple is :data:`None`.
+        """
+
+        # TODO: should this maybe use something smarter than .lower()?
+        # something something stringprep?
+        prefix = prefix.lower()
+        candidate = None
+        any_matched = False
+        for tab in self._tabs:
+            if not tab.name.lower().startswith(prefix):
+                continue
+            any_matched = True
+            if candidate is not None:
+                # multiple tabs match -> return None
+                return True, None
+            candidate = tab
+
+        return any_matched, candidate
 
     def by_name_and_class(self, name: str,
                           cls: Type[tabs.Tab]) -> Optional[tabs.Tab]:
