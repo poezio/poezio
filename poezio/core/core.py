@@ -1709,6 +1709,12 @@ class Core:
             usage='<number or name>',
             shortdesc='Go to the specified room',
             completion=self.completion.win)
+        self.register_command(
+            'wup',
+            self.command.wup,
+            usage='<prefix>',
+            shortdesc='Go to the tab whose name uniquely starts with prefix',
+            completion=self.completion.win)
         self.commands['w'] = self.commands['win']
         self.register_command(
             'move_tab',
