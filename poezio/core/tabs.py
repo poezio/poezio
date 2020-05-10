@@ -29,6 +29,7 @@ from collections import defaultdict
 from slixmpp import JID
 from poezio import tabs
 from poezio.events import EventHandler
+from poezio.config import config
 
 
 class Tabs:

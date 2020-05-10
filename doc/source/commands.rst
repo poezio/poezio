@@ -93,6 +93,15 @@ These commands work in *any* tab.
         Go to the matching tab.  If the argument is a number, it goes to the tab with that number.
         Otherwise, it goes to the next tab whose name contains the given string.
 
+    /wup
+
+        **Usage:** ``/wup <prefix>``
+
+        Go to the tab whose name starts with `prefix`. If multiple tabs start
+        with that prefix, no action is taken.
+
+        (Mnemonic: Window by Unique Prefix)
+
     /status
         **Usage:** ``/status <availability> [status message]``
 
