@@ -778,8 +778,12 @@ class HandlerCore:
                     replaced = True
                 except CorrectionError:
                     log.debug('Unable to correct a message', exc_info=True)
-        if not replaced and tab.add_message(
-                PMessage(
+
+        if not replaced:
+            # Messages coming from MUC barejid (Server maintenance, IRC mode
+            # changes from biboumi, etc.) are displayed as info messages.
+            if message['from'].resource:
+                ui_msg = PMessage(
                     txt=body,
                     time=date,
                     nickname=nick_from,
@@ -788,9 +792,18 @@ class HandlerCore:
                     identifier=message['id'],
                     jid=message['from'],
                     user=user,
-                ),
-                typ=1):
-            self.core.events.trigger('highlight', message, tab)
+                )
+                typ = 1
+            else:
+                ui_msg = InfoMessage(
+                    txt=body,
+                    time=date,
+                    identifier=message['id'],
+                )
+                typ = 2
+
+            if tab.add_message(ui_msg, typ):
+                self.core.events.trigger('highlight', message, tab)
 
         if message['from'].resource == tab.own_nick:
             tab.set_last_sent_message(message, correct=replaced)
