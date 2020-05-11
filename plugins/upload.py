@@ -24,7 +24,7 @@ import traceback
 from os.path import expanduser
 from glob import glob
 
-from slixmpp.plugins.xep_0363.http_upload import UploadServiceNotFound
+from slixmpp.plugins.xep_0363.http_upload import FileTooBig, HTTPError, UploadServiceNotFound
 
 from poezio.plugin import BasePlugin
 from poezio.core.structs import Completion
@@ -55,6 +55,9 @@ class Plugin(BasePlugin):
             url = await self.core.xmpp['xep_0363'].upload_file(filename)
         except UploadServiceNotFound:
             self.api.information('HTTP Upload service not found.', 'Error')
+            return None
+        except (FileTooBig, HTTPError) as exn:
+            self.api.information(str(exn), 'Error')
             return None
         except Exception:
             exception = traceback.format_exc()
