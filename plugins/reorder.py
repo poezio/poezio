@@ -177,6 +177,8 @@ class Plugin(BasePlugin):
                     if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
                         new_tab = cls(self.core, jid)
                         new_tabs.append(new_tab)
+                    else:
+                        new_tabs.append(tabs.GapTab(self.core))
             except:
                 self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
                 if create_gaps:
