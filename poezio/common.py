@@ -17,6 +17,7 @@ import subprocess
 import time
 import string
 import logging
+import itertools
 
 from slixmpp import JID, InvalidJID, Message
 from poezio.poezio_shlex import shlex
@@ -468,3 +469,22 @@ def safeJID(*args, **kwargs) -> JID:
             exc_info=True,
         )
         return JID('')
+
+
+def unique_prefix_of(a: str, b: str) -> str:
+    """
+    Return the unique prefix of `a` with `b`.
+
+    Corner cases:
+
+    * If `a` and `b` share no prefix, the first letter of `a` is returned.
+    * If `a` and `b` are equal, `a` is returned.
+    * If `a` is a prefix of `b`, `a` is returned.
+    * If `b` is a prefix of `a`, `b` plus the first letter of `a` after the
+      common prefix is returned.
+    """
+    for i, (ca, cb) in enumerate(itertools.zip_longest(a, b)):
+        if ca != cb:
+            return a[:i+1]
+    # both are equal, return a
+    return a

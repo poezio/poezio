@@ -374,6 +374,15 @@ Actions list
 
     Similar to F4.
 
+**_go_to_room_name**: Jump to a tab by unique prefix.
+
+    Similar to :term:`/wup` and the default *Alt-j*. This action will take
+    input as long as there is at least one tab name starting with the input
+    given so far. If there is exactly one tab matching, the action completes
+    and the current tab is switched over to the tab matching the input. If
+    no tab matches, the action completes without any change. This means that
+    you can typically abort the action with Escape.
+
 Status actions
 ~~~~~~~~~~~~~~
 

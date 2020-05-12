@@ -219,6 +219,20 @@ class CommandCore:
                 return
             self.core.tabs.set_current_tab(match)
 
+    @command_args_parser.quoted(1)
+    def wup(self, args):
+        """
+        /wup <prefix of name>
+        """
+        if args is None:
+            return self.help('wup')
+
+        prefix = args[0]
+        _, match = self.core.tabs.find_by_unique_prefix(prefix)
+        if match is None:
+            return
+        self.core.tabs.set_current_tab(match)
+
     @command_args_parser.quoted(2)
     def move_tab(self, args):
         """
