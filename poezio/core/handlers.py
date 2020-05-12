@@ -1784,7 +1784,7 @@ def _composing_tab_state(tab, state):
     else:
         return  # should not happen
 
-    show = config.get('show_composing_tabs')
+    show = config.get('show_composing_tabs').lower()
     show = show in values
 
     if tab.state != 'composing' and state == 'composing':
