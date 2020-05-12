@@ -183,3 +183,25 @@ def test_slice():
     tabs.append(dummy3)
 
     assert tabs[1:2][0] is dummy2
+
+def test_find_by_unique_prefix():
+    DummyTab.reset()
+    tabs = Tabs(h)
+    t1 = DummyTab()
+    t2 = DummyTab()
+    t3 = DummyTab()
+    tabs.append(t1)
+    tabs.append(t2)
+    tabs.append(t3)
+
+    t1.name = "foo"
+    t2.name = "bar"
+    t3.name = "fnord"
+
+    assert tabs.find_by_unique_prefix("f") == (True, None)
+    assert tabs.find_by_unique_prefix("b") == (True, t2)
+    assert tabs.find_by_unique_prefix("fo") == (True, t1)
+    assert tabs.find_by_unique_prefix("fn") == (True, t3)
+    assert tabs.find_by_unique_prefix("fx") == (False, None)
+    assert tabs.find_by_unique_prefix("x") == (False, None)
+    assert tabs.find_by_unique_prefix("") == (True, None)
