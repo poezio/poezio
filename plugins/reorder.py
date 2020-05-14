@@ -113,7 +113,9 @@ def parse_runtime_tablist(tablist):
     for tab in tablist[1:]:
         i += 1
         result = check_tab(tab)
-        if result:
+        if result == 'empty':
+            props.append((i, 'empty'))
+        elif result:
             props.append((i, '%s:%s' % (result, tab.jid.full)))
     return props
 
