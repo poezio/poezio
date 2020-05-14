@@ -114,7 +114,10 @@ def parse_runtime_tablist(tablist):
         i += 1
         result = check_tab(tab)
         if result:
-            props.append((i, '%s:%s' % (result, tab.jid.full)))
+            if isinstance(tab, tabs.GapTab):
+                props.append((i, '%s:empty' % result))
+            else:
+                props.append((i, '%s:%s' % (result, tab.jid.full)))
     return props
 
 
