@@ -1077,13 +1077,8 @@ class MucTab(ChatTab):
                 return user
         return None
 
-    def add_message(self, msg: BaseMessage, typ=1):
-        """
-        Note that user can be None even if nickname is not None. It happens
-        when we receive an history message said by someone who is not
-        in the room anymore
-        Return True if the message highlighted us. False otherwise.
-        """
+    def add_message(self, msg: BaseMessage, typ=1) -> None:
+        """Add a message to the text buffer and set various tab status"""
         # reset self-ping interval
         if self.self_ping_event:
             self.enable_self_ping_event()
@@ -1095,8 +1090,7 @@ class MucTab(ChatTab):
         if config.get_by_tabname('notify_messages', self.jid.bare) and self.state != 'current':
             if msg.nickname != self.own_nick and not msg.history:
                 self.state = 'message'
-        msg.highlight = self.do_highlight(msg.txt, msg.nickname, msg.delayed)
-        return msg.highlight
+        self.do_highlight(msg.txt, msg.nickname, msg.delayed)
 
     def modify_message(self,
                        txt,
@@ -1107,7 +1101,9 @@ class MucTab(ChatTab):
                        nickname=None,
                        user=None,
                        jid=None):
-        highlight = self.do_highlight(txt, nickname, delayed, corrected=True)
+        highlight = self.message_is_highlight(
+            txt, nickname, delayed, corrected=True
+        )
         message = self._text_buffer.modify_message(
             txt,
             old_id,
@@ -1314,15 +1310,19 @@ class MucTab(ChatTab):
     def build_highlight_regex(self, nickname):
         return re.compile(r"(^|\W)" + re.escape(nickname) + r"(\W|$)", re.I)
 
-    def is_highlight(self, txt: str, nick: str, highlight_on: List[str],
-                     delayed, corrected: bool = False):
-        """
-        Highlight algorithm for MUC tabs
-        """
-
+    def message_is_highlight(self, txt: str, nickname: str, delayed: bool,
+                             corrected: bool = False) -> bool:
+        """Highlight algorithm for MUC tabs"""
+        # Don't highlight on info message or our own messages
+        if not nickname or nickname == self.own_nick:
+            return False
+        highlight_on = config.get_by_tabname(
+            'highlight_on',
+            self.general_jid,
+        ).split(':')
         highlighted = False
-        if not delayed and not corrected:
-            if self.build_highlight_regex(nick).search(txt):
+        if not delayed:
+            if self.build_highlight_regex(self.own_nick).search(txt):
                 highlighted = True
             else:
                 for word in highlight_on:
@@ -1331,22 +1331,13 @@ class MucTab(ChatTab):
                         break
         return highlighted
 
-    def do_highlight(self, txt, nickname, delayed, corrected=False):
-        """
-        Set the tab color and returns the nick color
-        """
-        own_nick = self.own_nick
-        highlight_on = config.get_by_tabname(
-            'highlight_on',
-            self.general_jid,
-        ).split(':')
-
-        # Don't highlight on info message or our own messages
-        if not nickname or nickname == own_nick:
-            return False
-
-        highlighted = self.is_highlight(txt, own_nick, highlight_on, delayed, corrected)
-        if highlighted and self.joined:
+    def do_highlight(self, txt: str, nickname: str, delayed: bool,
+                     corrected: bool = False) -> bool:
+        """Set the tab color and returns the highlight state"""
+        highlighted = self.message_is_highlight(
+            txt, nickname, delayed, corrected
+        )
+        if highlighted and self.joined and not corrected:
             if self.state != 'current':
                 self.state = 'highlight'
             beep_on = config.get('beep_on').split()
