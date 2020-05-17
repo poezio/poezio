@@ -1,4 +1,3 @@
-import logging
 import curses
 
 from datetime import datetime
@@ -133,7 +132,6 @@ def write_pre_message(msg: Message, win: 'Win', with_timestamps: bool, nick_size
     """
     offset = 0
     if with_timestamps:
-        logging.debug(msg)
         offset += PreMessageHelpers.write_time(win, msg.history, msg.time)
 
     if not msg.nickname:  # not a message, nothing to do afterwards
@@ -243,7 +241,6 @@ class PreMessageHelpers:
                 format = LONG_FORMAT
             else:
                 format = SHORT_FORMAT
-            logging.debug(time)
             time_str = time.strftime(format)
             color = get_theme().COLOR_TIME_STRING
             with buffer.colored_text(color=color):
