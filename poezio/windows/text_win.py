@@ -243,7 +243,7 @@ class TextWin(Win):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                self.highlights = self.highlights[self.hl_pos + 1:]
+                del self.highlights[self.hl_pos]
                 if not self.highlights:
                     self.hl_pos = float('nan')
                     self.pos = 0
@@ -277,7 +277,7 @@ class TextWin(Win):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                self.highlights = self.highlights[self.hl_pos + 1:]
+                del self.highlights[self.hl_pos]
                 if not self.highlights:
                     self.hl_pos = float('nan')
                     self.pos = 0
