@@ -85,7 +85,6 @@ class TextWin(Win):
     def build_new_message(self,
                           message: BaseMessage,
                           clean: bool = True,
-                          highlight: bool = False,
                           timestamp: bool = False,
                           nick_size: int = 10) -> int:
         """
@@ -106,7 +105,7 @@ class TextWin(Win):
                 self.built_lines.extend(lines)
         if not lines or not lines[0]:
             return 0
-        if highlight:
+        if isinstance(message, Message) and message.highlight:
             self.highlights.append(lines[0])
             self.nb_of_highlights_after_separator += 1
             log.debug("Number of highlights after separator is now %s",

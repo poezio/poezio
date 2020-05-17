@@ -783,6 +783,7 @@ class HandlerCore:
             # Messages coming from MUC barejid (Server maintenance, IRC mode
             # changes from biboumi, etc.) are displayed as info messages.
             if message['from'].resource:
+                highlight = tab.message_is_highlight(body, nick_from, delayed)
                 ui_msg = PMessage(
                     txt=body,
                     time=date,
@@ -792,6 +793,7 @@ class HandlerCore:
                     identifier=message['id'],
                     jid=message['from'],
                     user=user,
+                    highlight=highlight,
                 )
                 typ = 1
             else:
@@ -801,8 +803,8 @@ class HandlerCore:
                     identifier=message['id'],
                 )
                 typ = 2
-
-            if tab.add_message(ui_msg, typ):
+            tab.add_message(ui_msg, typ)
+            if highlight:
                 self.core.events.trigger('highlight', message, tab)
 
         if message['from'].resource == tab.own_nick:
