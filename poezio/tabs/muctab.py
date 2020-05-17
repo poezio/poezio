@@ -1101,7 +1101,9 @@ class MucTab(ChatTab):
                        nickname=None,
                        user=None,
                        jid=None):
-        highlight = self.do_highlight(txt, nickname, delayed, corrected=True)
+        highlight = self.message_is_highlight(
+            txt, nickname, delayed, corrected=True
+        )
         message = self._text_buffer.modify_message(
             txt,
             old_id,
@@ -1319,7 +1321,7 @@ class MucTab(ChatTab):
             self.general_jid,
         ).split(':')
         highlighted = False
-        if not delayed and not corrected:
+        if not delayed:
             if self.build_highlight_regex(self.own_nick).search(txt):
                 highlighted = True
             else:
@@ -1335,7 +1337,7 @@ class MucTab(ChatTab):
         highlighted = self.message_is_highlight(
             txt, nickname, delayed, corrected
         )
-        if highlighted and self.joined:
+        if highlighted and self.joined and not corrected:
             if self.state != 'current':
                 self.state = 'highlight'
             beep_on = config.get('beep_on').split()
