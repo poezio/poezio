@@ -80,15 +80,18 @@ class Win:
     @contextmanager
     def colored_text(self, color: Optional[Tuple]=None, attr: Optional[int]=None):
         """Context manager which sets up an attr/color when inside"""
-        if attr is None:
-            if color is not None:
-                attr = to_curses_attr(color)
-            else:
-                yield None
-                return
-        self._win.attron(attr)
+        if color is None and attr is None:
+            yield None
+            return
+        if color is not None:
+            mode = to_curses_attr(color)
+            if attr is not None:
+                mode = mode | attr
+        else:
+            mode = attr
+        self._win.attron(mode)
         yield None
-        self._win.attroff(attr)
+        self._win.attroff(mode)
 
     def addstr(self, *args) -> None:
         """
