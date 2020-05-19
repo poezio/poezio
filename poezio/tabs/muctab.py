@@ -513,6 +513,9 @@ class MucTab(ChatTab):
         """
         Presence received while we are not in the room (before code=110)
         """
+        # If presence is coming from MUC barejid, ignore.
+        if not presence['from'].resource:
+            return None
         from_nick, _, affiliation, show, status, role, jid, typ = dissect_presence(
             presence)
         if typ == 'unavailable':
@@ -596,6 +599,9 @@ class MucTab(ChatTab):
         """
         Handle new presences when we are already in the room
         """
+        # If presence is coming from MUC barejid, ignore.
+        if not presence['from'].resource:
+            return None
         from_nick, from_room, affiliation, show, status, role, jid, typ = dissect_presence(
             presence)
         change_nick = '303' in status_codes
