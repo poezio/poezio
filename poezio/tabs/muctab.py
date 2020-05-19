@@ -18,9 +18,9 @@ import re
 import functools
 from copy import copy
 from datetime import datetime
-from typing import Dict, Callable, List, Optional, Union, Set
+from typing import Dict, Callable, List, Optional, Tuple, Union, Set
 
-from slixmpp import InvalidJID, JID
+from slixmpp import InvalidJID, JID, Presence
 from slixmpp.exceptions import IqError, IqTimeout
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
@@ -509,15 +509,15 @@ class MucTab(ChatTab):
             self.core.tabs.current_tab.refresh_input()
             self.core.doupdate()
 
-    def handle_presence_unjoined(self, presence, deterministic, own=False):
+    def handle_presence_unjoined(self, presence: Presence, deterministic, own=False) -> None:
         """
         Presence received while we are not in the room (before code=110)
         """
         # If presence is coming from MUC barejid, ignore.
         if not presence['from'].resource:
             return None
-        from_nick, _, affiliation, show, status, role, jid, typ = dissect_presence(
-            presence)
+        dissected_presence = dissect_presence(presence)
+        from_nick, _, affiliation, show, status, role, jid, typ = dissected_presence
         if typ == 'unavailable':
             return
         user_color = self.search_for_color(from_nick)
@@ -595,15 +595,15 @@ class MucTab(ChatTab):
                 ),
                 typ=0)
 
-    def handle_presence_joined(self, presence, status_codes):
+    def handle_presence_joined(self, presence: Presence, status_codes) -> None:
         """
         Handle new presences when we are already in the room
         """
         # If presence is coming from MUC barejid, ignore.
         if not presence['from'].resource:
             return None
-        from_nick, from_room, affiliation, show, status, role, jid, typ = dissect_presence(
-            presence)
+        dissected_presence = dissect_presence(presence)
+        from_nick, from_room, affiliation, show, status, role, jid, typ = dissected_presence
         change_nick = '303' in status_codes
         kick = '307' in status_codes and typ == 'unavailable'
         ban = '301' in status_codes and typ == 'unavailable'
@@ -2195,7 +2195,7 @@ class PresenceError(Exception):
     pass
 
 
-def dissect_presence(presence):
+def dissect_presence(presence: Presence) -> Tuple[str, str, str, str, str, str, JID, str]:
     """
     Extract relevant information from a presence
     """
