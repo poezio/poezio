@@ -94,8 +94,6 @@ def build_message(msg: Message, width: int, timestamp: bool, nick_size: int = 10
     offset = msg.compute_offset(timestamp, nick_size)
     lines = poopt.cut_text(txt, width - offset - 1)
     generated_lines = generate_lines(lines, msg, default_color='')
-    if msg.top:
-        generated_lines.reverse()
     return generated_lines
 
 

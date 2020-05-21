@@ -95,14 +95,10 @@ class TextWin(Win):
         lines = build_lines(
             message, self.width, timestamp=timestamp, nick_size=nick_size
         )
-        if isinstance(message, Message) and message.top:
-            for line in lines:
-                self.built_lines.insert(0, line)
+        if self.lock:
+            self.lock_buffer.extend(lines)
         else:
-            if self.lock:
-                self.lock_buffer.extend(lines)
-            else:
-                self.built_lines.extend(lines)
+            self.built_lines.extend(lines)
         if not lines or not lines[0]:
             return 0
         if isinstance(message, Message) and message.highlight:
