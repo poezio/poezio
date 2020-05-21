@@ -12,6 +12,7 @@ from poezio.ui.consts import (
 )
 
 
+
 class BaseMessage:
     __slots__ = ('txt', 'time', 'identifier')
 
@@ -25,6 +26,10 @@ class BaseMessage:
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
         return SHORT_FORMAT_LENGTH + 1
+
+
+class EndOfArchive(BaseMessage):
+    """Marker added to a buffer when we reach the end of a MAM archive"""
 
 
 class InfoMessage(BaseMessage):

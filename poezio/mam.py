@@ -26,7 +26,11 @@ from poezio import tabs
 from poezio import xhtml, colors
 from poezio.config import config
 from poezio.text_buffer import TextBuffer, HistoryGap
-from poezio.ui.types import BaseMessage, Message
+from poezio.ui.types import (
+    BaseMessage,
+    EndOfArchive,
+    Message,
+)
 
 
 log = logging.getLogger(__name__)
@@ -270,6 +274,13 @@ async def on_scroll_up(tab) -> None:
         # (InfoTab changes height depending on the type of messages, see
         # `information_buffer_popup_on`).
         messages = await fetch_history(tab, amount=height)
+        if tab._text_buffer.messages:
+            last_message = tab._text_buffer.messages[0]
+        else:
+            last_message = None
+        if not messages and not isinstance(last_message, EndOfArchive):
+            time = tab._text_buffer.messages[0].time
+            messages = [EndOfArchive('End of archive reached', time=time)]
         tab._text_buffer.add_history_messages(messages)
     except NoMAMSupportException:
         tab.core.information('MAM not supported for %r' % tab.jid, 'Info')
