@@ -277,6 +277,13 @@ class TextBuffer:
     def del_window(self, win) -> None:
         self._windows.remove(win)
 
+    def find_last_message(self) -> Optional[Message]:
+        """Find the last real message received in this buffer"""
+        for message in reversed(self.messages):
+            if isinstance(message, Message):
+                return message
+        return None
+
     def __del__(self):
         size = len(self.messages)
         log.debug('** Deleting %s messages from textbuffer', size)
