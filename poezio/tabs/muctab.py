@@ -170,7 +170,7 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
-        asyncio.ensure_future(mam.on_tab_open(self))
+        mam.schedule_tab_open(self)
 
     def leave_room(self, message: str):
         if self.joined:

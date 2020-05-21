@@ -32,7 +32,6 @@ from typing import (
 )
 
 from poezio import (
-    mam,
     poopt,
     timed_events,
     xhtml,
@@ -926,7 +925,8 @@ class ChatTab(Tab):
 
     def on_scroll_up(self):
         if not self.query_status:
-            asyncio.ensure_future(mam.on_scroll_up(tab=self))
+            from poezio import mam
+            mam.schedule_scroll_up(tab=self)
         return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):
