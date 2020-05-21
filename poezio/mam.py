@@ -212,7 +212,8 @@ async def fill_missing_history(tab: tabs.Tab, gap: HistoryGap) -> None:
     try:
         messages = await fetch_history(tab, start=start, end=end, amount=999)
         tab._text_buffer.add_history_messages(messages, gap=gap)
-        tab.core.refresh_window()
+        if messages:
+            tab.core.refresh_window()
     except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
         return
     finally:
@@ -230,6 +231,8 @@ async def on_new_tab_open(tab: tabs.Tab) -> None:
     try:
         messages = await fetch_history(tab, end=end, amount=amount)
         tab._text_buffer.add_history_messages(messages)
+        if messages:
+            tab.core.refresh_window()
     except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
         return None
     finally:
@@ -282,6 +285,8 @@ async def on_scroll_up(tab) -> None:
             time = tab._text_buffer.messages[0].time
             messages = [EndOfArchive('End of archive reached', time=time)]
         tab._text_buffer.add_history_messages(messages)
+        if messages:
+            tab.core.refresh_window()
     except NoMAMSupportException:
         tab.core.information('MAM not supported for %r' % tab.jid, 'Info')
         return None
