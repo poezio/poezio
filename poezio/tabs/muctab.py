@@ -161,7 +161,7 @@ class MucTab(ChatTab):
             delta = datetime.now() - self.last_connection
             seconds = delta.seconds + delta.days * 24 * 3600
         else:
-            seconds = None
+            seconds = self._text_buffer.find_last_message()
         muc.join_groupchat(
             self.core,
             self.jid.bare,
