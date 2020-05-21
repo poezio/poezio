@@ -2075,16 +2075,7 @@ class Core:
             # do not join rooms that do not have autojoin
             # but display them anyway
             if bm.autojoin:
-                muc.join_groupchat(
-                    self,
-                    bm.jid,
-                    nick,
-                    passwd=bm.password,
-                    status=self.status.message,
-                    show=self.status.show,
-                    tab=tab)
-                if tab._text_buffer.last_message is None:
-                    asyncio.ensure_future(mam.on_tab_open(tab))
+                tab.join()
 
     def check_bookmark_storage(self, features):
         private = 'jabber:iq:private' in features
