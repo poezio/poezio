@@ -12,6 +12,7 @@ import random
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from typing import (
+    Any,
     AsyncIterable,
     Callable,
     Dict,
@@ -42,7 +43,7 @@ class NoMAMSupportException(Exception): pass
 
 
 def make_line(
-        tab: tabs.Tab,
+        tab: tabs.ChatTab,
         text: str,
         time: datetime,
         nick: str,
@@ -96,8 +97,8 @@ async def get_mam_iterator(
         remote_jid: JID,
         amount: int,
         reverse: bool = True,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None,
+        start: Optional[str] = None,
+        end: Optional[str] = None,
         before: Optional[str] = None,
     ) -> AsyncIterable[Message]:
     """Get an async iterator for this mam query"""
@@ -112,7 +113,7 @@ async def get_mam_iterator(
     args = {
         'iterator': True,
         'reverse': reverse,
-    }
+    }  # type: Dict[str, Any]
 
     if groupchat:
         args['jid'] = remote_jid
@@ -138,9 +139,9 @@ def _parse_message(msg: SMessage) -> Dict:
     }
 
 
-async def retrieve_messages(tab: tabs.Tab,
+async def retrieve_messages(tab: tabs.ChatTab,
                             results: AsyncIterable[SMessage],
-                            amount: int = 100) -> List[Message]:
+                            amount: int = 100) -> List[BaseMessage]:
     """Run the MAM query and put messages in order"""
     text_buffer = tab._text_buffer
     msg_count = 0
@@ -168,10 +169,10 @@ async def retrieve_messages(tab: tabs.Tab,
         raise MAMQueryException('Query interrupted')
 
 
-async def fetch_history(tab: tabs.Tab,
+async def fetch_history(tab: tabs.ChatTab,
                         start: Optional[datetime] = None,
                         end: Optional[datetime] = None,
-                        amount: Optional[int] = None) -> None:
+                        amount: int = 100) -> List[BaseMessage]:
     remote_jid = tab.jid
     if not end:
         for msg in tab._text_buffer.messages:
@@ -182,24 +183,25 @@ async def fetch_history(tab: tabs.Tab,
     if end is None:
         end = datetime.now()
     end = to_utc(end)
-    end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
+    end_str = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
 
+    start_str = None
     if start is not None:
         start = to_utc(start)
-        start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
+        start_str = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
 
     mam_iterator = await get_mam_iterator(
         core=tab.core,
         groupchat=isinstance(tab, tabs.MucTab),
         remote_jid=remote_jid,
         amount=amount,
-        end=end,
-        start=start,
+        end=end_str,
+        start=start_str,
         reverse=True,
     )
     return await retrieve_messages(tab, mam_iterator, amount)
 
-async def fill_missing_history(tab: tabs.Tab, gap: HistoryGap) -> None:
+async def fill_missing_history(tab: tabs.ChatTab, gap: HistoryGap) -> None:
     start = gap.last_timestamp_before_leave
     end = gap.first_timestamp_after_join
     if start:
@@ -216,7 +218,7 @@ async def fill_missing_history(tab: tabs.Tab, gap: HistoryGap) -> None:
     finally:
         tab.query_status = False
 
-async def on_new_tab_open(tab: tabs.Tab) -> None:
+async def on_new_tab_open(tab: tabs.ChatTab) -> None:
     """Called when opening a new tab"""
     amount = 2 * tab.text_win.height
     end = datetime.now()
@@ -236,13 +238,13 @@ async def on_new_tab_open(tab: tabs.Tab) -> None:
         tab.query_status = False
 
 
-def schedule_tab_open(tab: tabs.Tab) -> None:
+def schedule_tab_open(tab: tabs.ChatTab) -> None:
     """Set the query status and schedule a MAM query"""
     tab.query_status = True
     asyncio.ensure_future(on_tab_open(tab))
 
 
-async def on_tab_open(tab: tabs.Tab) -> None:
+async def on_tab_open(tab: tabs.ChatTab) -> None:
     gap = tab._text_buffer.find_last_gap_muc()
     if gap is None or not gap.leave_message:
         await on_new_tab_open(tab)
@@ -250,13 +252,13 @@ async def on_tab_open(tab: tabs.Tab) -> None:
         await fill_missing_history(tab, gap)
 
 
-def schedule_scroll_up(tab: tabs.Tab) -> None:
+def schedule_scroll_up(tab: tabs.ChatTab) -> None:
     """Set query status and schedule a scroll up"""
     tab.query_status = True
     asyncio.ensure_future(on_scroll_up(tab))
 
 
-async def on_scroll_up(tab) -> None:
+async def on_scroll_up(tab: tabs.ChatTab) -> None:
     tw = tab.text_win
 
     # If position in the tab is < two screen pages, then fetch MAM, so that we
@@ -274,11 +276,11 @@ async def on_scroll_up(tab) -> None:
         # (InfoTab changes height depending on the type of messages, see
         # `information_buffer_popup_on`).
         messages = await fetch_history(tab, amount=height)
+        last_message_exists = False
         if tab._text_buffer.messages:
             last_message = tab._text_buffer.messages[0]
-        else:
-            last_message = None
-        if not messages and not isinstance(last_message, EndOfArchive):
+            last_message_exists = True
+        if not messages and last_message_exists and not isinstance(last_message, EndOfArchive):
             time = tab._text_buffer.messages[0].time
             messages = [EndOfArchive('End of archive reached', time=time)]
         tab._text_buffer.add_history_messages(messages)
