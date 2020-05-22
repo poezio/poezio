@@ -147,7 +147,6 @@ async def retrieve_messages(tab: tabs.ChatTab,
     msg_count = 0
     msgs = []
     to_add = []
-    last_stanza_id = tab.last_stanza_id
     try:
         async for rsm in results:
             for msg in rsm['mam']['results']:
