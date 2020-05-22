@@ -12,6 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from typing import (
+    cast,
     Dict,
     List,
     Optional,
@@ -59,7 +60,7 @@ class TextBuffer:
     def __init__(self, messages_nb_limit: Optional[int] = None) -> None:
 
         if messages_nb_limit is None:
-            messages_nb_limit = config.get('max_messages_in_memory')
+            messages_nb_limit = cast(int, config.get('max_messages_in_memory'))
         self._messages_nb_limit = messages_nb_limit  # type: int
         # Message objects
         self.messages = []  # type: List[BaseMessage]
@@ -75,7 +76,8 @@ class TextBuffer:
 
     def find_last_gap_muc(self) -> Optional[HistoryGap]:
         """Find the last known history gap contained in buffer"""
-        leave, join = None, None
+        leave = None  # type:Optional[Tuple[int, BaseMessage]]
+        join = None  # type:Optional[Tuple[int, BaseMessage]]
         for i, item in enumerate(reversed(self.messages)):
             if isinstance(item, MucOwnLeaveMessage):
                 leave = (len(self.messages) - i - 1, item)
@@ -92,7 +94,7 @@ class TextBuffer:
         # Identify the special case when we got disconnected from a chatroom
         # without receiving or sending the relevant presence, therefore only
         # having two joins with no leave, and messages in the middle.
-        if leave and isinstance(leave[1], MucOwnJoinMessage):
+        if leave and join and isinstance(leave[1], MucOwnJoinMessage):
             for i in range(join[0] - 1, leave[0], - 1):
                 if isinstance(self.messages[i], Message):
                     leave = (
@@ -152,10 +154,12 @@ class TextBuffer:
     def add_history_messages(self, messages: List[BaseMessage], gap: Optional[HistoryGap] = None) -> None:
         """Insert history messages at their correct place """
         index = 0
+        new_index = None
         if gap is not None:
-            index = self.get_gap_index(gap)
-        if index is None:  # Not sure what happened, abort
-            return
+            new_index = self.get_gap_index(gap)
+            if new_index is None:  # Not sure what happened, abort
+                return
+            index = new_index
         for message in messages:
             self.messages.insert(index, message)
             index += 1
@@ -177,8 +181,8 @@ class TextBuffer:
             self.messages.pop(0)
 
         ret_val = 0
-        show_timestamps = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        show_timestamps = cast(bool, config.get('show_timestamps'))
+        nick_size = cast(int, config.get('max_nick_length'))
         for window in self._windows:  # make the associated windows
             # build the lines from the new message
             nb = window.build_new_message(
