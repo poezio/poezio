@@ -8,7 +8,11 @@
 Various useful functions.
 """
 
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta,
+    timezone,
+)
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -488,3 +492,14 @@ def unique_prefix_of(a: str, b: str) -> str:
             return a[:i+1]
     # both are equal, return a
     return a
+
+
+def to_utc(time: datetime) -> datetime:
+    """Convert a datetime-aware time zone into raw UTC"""
+    tzone = datetime.now().astimezone().tzinfo
+    if time.tzinfo is not None:  # Convert to UTC
+        time = time.astimezone(tz=timezone.utc)
+    else:  # Assume local tz, convert to URC
+        time = time.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+    # Return an offset-naive datetime
+    return time.replace(tzinfo=None)
