@@ -170,7 +170,6 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
-        mam.schedule_tab_open(self)
 
     def leave_room(self, message: str):
         if self.joined:
@@ -601,6 +600,7 @@ class MucTab(ChatTab):
                     },
                 ),
                 typ=0)
+        mam.schedule_tab_open(self)
 
     def handle_presence_joined(self, presence, status_codes):
         """

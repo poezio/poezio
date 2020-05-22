@@ -44,8 +44,8 @@ class AckError(Exception):
 @dataclass
 class HistoryGap:
     """Class representing a period of non-presence inside a MUC"""
-    leave_message: Optional[MucOwnLeaveMessage]
-    join_message: Optional[MucOwnJoinMessage]
+    leave_message: Optional[BaseMessage]
+    join_message: Optional[BaseMessage]
     last_timestamp_before_leave: Optional[datetime]
     first_timestamp_after_join: Optional[datetime]
 
@@ -78,33 +78,57 @@ class TextBuffer:
         leave, join = None, None
         for i, item in enumerate(reversed(self.messages)):
             if isinstance(item, MucOwnLeaveMessage):
-                leave = (i, item)
+                leave = (len(self.messages) - i - 1, item)
+                break
+            elif join and isinstance(item, MucOwnJoinMessage):
+                leave = (len(self.messages) - i - 1, item)
                 break
             if isinstance(item, MucOwnJoinMessage):
-                join = (i, item)
-        if join and leave:  # Skip if we find a message in the interval
-            real_leave = len(self.messages) - leave[0] - 1
-            real_join = len(self.messages) - join[0] - 1
-            for i in range(real_leave, real_join, 1):
+                join = (len(self.messages) - i - 1, item)
+
+        last_timestamp = None
+        first_timestamp = datetime.now()
+
+        # Identify the special case when we got disconnected from a chatroom
+        # without receiving or sending the relevant presence, therefore only
+        # having two joins with no leave, and messages in the middle.
+        if leave and isinstance(leave[1], MucOwnJoinMessage):
+            for i in range(join[0] - 1, leave[0], - 1):
+                if isinstance(self.messages[i], Message):
+                    leave = (
+                        i,
+                        self.messages[i]
+                    )
+                    last_timestamp = self.messages[i].time
+                    break
+        # If we have a normal gap but messages inbetween, it probably
+        # already has history, so abort there without returning it.
+        if join and leave:
+            for i in range(leave[0] + 1, join[0], 1):
                 if isinstance(self.messages[i], Message):
                     return None
         elif not (join or leave):
             return None
+
+        # If a leave message is found, get the last Message timestamp
+        # before it.
         if leave is None:
-            last_timestamp, leave_msg = None, None
-        else:
-            last_timestamp = None
+            leave_msg = None
+        elif last_timestamp is None:
             leave_msg = leave[1]
-            for i in range(len(self.messages) - leave[0] - 1, 0, -1):
+            for i in range(leave[0], 0, -1):
                 if isinstance(self.messages[i], Message):
                     last_timestamp = self.messages[i].time
                     break
-        first_timestamp = datetime.now()
+        else:
+            leave_msg = leave[1]
+        # If a join message is found, get the first Message timestamp
+        # after it, or the current time.
         if join is None:
             join_msg = None
         else:
             join_msg = join[1]
-            for i in range(len(self.messages) - join[0], len(self.messages)):
+            for i in range(join[0], len(self.messages)):
                 msg = self.messages[i]
                 if isinstance(msg, Message) and msg.time < first_timestamp:
                     first_timestamp = msg.time

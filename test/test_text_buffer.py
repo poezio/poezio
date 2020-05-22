@@ -35,6 +35,13 @@ def msgs_noleave():
     msg4 = Message('4', 'f')
     return [join, msg3, msg4]
 
+@fixture(scope='function')
+def msgs_doublejoin():
+    join = MucOwnJoinMessage('join')
+    msg1 = Message('1', 'd')
+    msg2 = Message('2', 'f')
+    join2 = MucOwnJoinMessage('join')
+    return [join, msg1, msg2, join2]
 
 def test_last_message(buf2048):
     msg = BaseMessage('toto')
@@ -65,6 +72,24 @@ def test_find_gap(buf2048, msgs_noleave):
     assert gap.join_message == join
     assert gap.last_timestamp_before_leave == msg2.time
     assert gap.first_timestamp_after_join == msg3.time
+
+
+def test_find_gap_doublejoin(buf2048, msgs_doublejoin):
+    for msg in msgs_doublejoin:
+        buf2048.add_message(msg)
+    gap = buf2048.find_last_gap_muc()
+    assert gap.leave_message == msgs_doublejoin[2]
+    assert gap.join_message == msgs_doublejoin[3]
+
+
+def test_find_gap_doublejoin_no_msg(buf2048):
+    join1 = MucOwnJoinMessage('join')
+    join2 = MucOwnJoinMessage('join')
+    for msg in [join1, join2]:
+        buf2048.add_message(msg)
+    gap = buf2048.find_last_gap_muc()
+    assert gap.leave_message is join1
+    assert gap.join_message is join2
 
 
 def test_find_gap_already_filled(buf2048):
@@ -113,6 +138,22 @@ def test_get_gap_index(buf2048):
         buf2048.add_message(msg)
     gap = buf2048.find_last_gap_muc()
     assert buf2048.get_gap_index(gap) == 3
+
+
+def test_get_gap_index_doublejoin(buf2048, msgs_doublejoin):
+    for msg in msgs_doublejoin:
+        buf2048.add_message(msg)
+    gap = buf2048.find_last_gap_muc()
+    assert buf2048.get_gap_index(gap) == 3
+
+
+def test_get_gap_index_doublejoin_no_msg(buf2048):
+    join1 = MucOwnJoinMessage('join')
+    join2 = MucOwnJoinMessage('join')
+    for msg in [join1, join2]:
+        buf2048.add_message(msg)
+    gap = buf2048.find_last_gap_muc()
+    assert buf2048.get_gap_index(gap) == 1
 
 
 def test_get_gap_index_nojoin(buf2048, msgs_nojoin):
