@@ -31,7 +31,7 @@ from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
-from poezio.common import safeJID
+from poezio.common import safeJID, to_utc
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
@@ -158,7 +158,7 @@ class MucTab(ChatTab):
         """
         status = self.core.get_status()
         if self.last_connection:
-            delta = datetime.now() - self.last_connection
+            delta = to_utc(datetime.now()) - to_utc(self.last_connection)
             seconds = delta.seconds + delta.days * 24 * 3600
         else:
             seconds = self._text_buffer.find_last_message()

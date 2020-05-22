@@ -25,6 +25,7 @@ from poezio.theming import get_theme
 from poezio import tabs
 from poezio import xhtml, colors
 from poezio.config import config
+from poezio.common import to_utc
 from poezio.text_buffer import TextBuffer, HistoryGap
 from poezio.ui.types import (
     BaseMessage,
@@ -88,7 +89,6 @@ def make_line(
         history=True,
         user=None,
     )
-
 
 async def get_mam_iterator(
         core,
@@ -181,14 +181,11 @@ async def fetch_history(tab: tabs.Tab,
                 break
     if end is None:
         end = datetime.now()
-    tzone = datetime.now().astimezone().tzinfo
-    end = end.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
-    end = end.replace(tzinfo=None)
+    end = to_utc(end)
     end = datetime.strftime(end, '%Y-%m-%dT%H:%M:%SZ')
 
     if start is not None:
-        start = start.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
-        start = start.replace(tzinfo=None)
+        start = to_utc(start)
         start = datetime.strftime(start, '%Y-%m-%dT%H:%M:%SZ')
 
     mam_iterator = await get_mam_iterator(
@@ -224,7 +221,7 @@ async def on_new_tab_open(tab: tabs.Tab) -> None:
     amount = 2 * tab.text_win.height
     end = datetime.now()
     for message in tab._text_buffer.messages:
-        if isinstance(message, Message) and message.time < end:
+        if isinstance(message, Message) and to_utc(message.time) < to_utc(end):
             end = message.time
             break
     end = end - timedelta(microseconds=1)
@@ -247,6 +244,7 @@ def schedule_tab_open(tab: tabs.Tab) -> None:
 
 async def on_tab_open(tab: tabs.Tab) -> None:
     gap = tab._text_buffer.find_last_gap_muc()
+    log.debug('\n\n\nGAP: %s\n\n\n', gap)
     if gap is None or not gap.leave_message:
         await on_new_tab_open(tab)
     else:
