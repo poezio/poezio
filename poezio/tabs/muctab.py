@@ -91,8 +91,6 @@ class MucTab(ChatTab):
         self.self_ping_event = None
         # UI stuff
         self.topic_win = windows.Topic()
-        self.text_win = windows.TextWin()
-        self._text_buffer.add_window(self.text_win)
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()

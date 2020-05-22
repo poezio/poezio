@@ -495,9 +495,10 @@ class ChatTab(Tab):
         self.last_stanza_id = None
 
         self._name = jid.full  # type: Optional[str]
-        self.text_win = None
+        self.text_win = windows.TextWin()
         self.directed_presence = None
         self._text_buffer = TextBuffer()
+        self._text_buffer.add_window(self.text_win)
         self.chatstate = None  # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
