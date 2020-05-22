@@ -492,8 +492,6 @@ class ChatTab(Tab):
         self._jid = jid
         #: Is the tab currently requesting MAM data?
         self.query_status = False
-        self.last_stanza_id = None
-
         self._name = jid.full  # type: Optional[str]
         self.text_win = windows.TextWin()
         self.directed_presence = None
