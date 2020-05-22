@@ -149,7 +149,7 @@ class TextBuffer:
                 return i + 1
         return None
 
-    def add_history_messages(self, messages: List[Message], gap: Optional[HistoryGap] = None) -> None:
+    def add_history_messages(self, messages: List[BaseMessage], gap: Optional[HistoryGap] = None) -> None:
         """Insert history messages at their correct place """
         index = 0
         if gap is not None:
