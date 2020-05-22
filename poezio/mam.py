@@ -247,10 +247,10 @@ def schedule_tab_open(tab: tabs.Tab) -> None:
 
 async def on_tab_open(tab: tabs.Tab) -> None:
     gap = tab._text_buffer.find_last_gap_muc()
-    if gap is not None:
-        await fill_missing_history(tab, gap)
-    else:
+    if gap is None or not gap.leave_message:
         await on_new_tab_open(tab)
+    else:
+        await fill_missing_history(tab, gap)
 
 
 def schedule_scroll_up(tab: tabs.Tab) -> None:
