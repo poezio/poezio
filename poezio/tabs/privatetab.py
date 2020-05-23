@@ -46,8 +46,6 @@ class PrivateTab(OneToOneTab):
     def __init__(self, core, jid, nick):
         OneToOneTab.__init__(self, core, jid)
         self.own_nick = nick
-        self.text_win = windows.TextWin()
-        self._text_buffer.add_window(self.text_win)
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
         # keys
