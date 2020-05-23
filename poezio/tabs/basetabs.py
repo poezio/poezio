@@ -32,7 +32,6 @@ from typing import (
 )
 
 from poezio import (
-    mam,
     poopt,
     timed_events,
     xhtml,
@@ -493,12 +492,11 @@ class ChatTab(Tab):
         self._jid = jid
         #: Is the tab currently requesting MAM data?
         self.query_status = False
-        self.last_stanza_id = None
-
         self._name = jid.full  # type: Optional[str]
-        self.text_win = None
+        self.text_win = windows.TextWin()
         self.directed_presence = None
         self._text_buffer = TextBuffer()
+        self._text_buffer.add_window(self.text_win)
         self.chatstate = None  # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
@@ -926,7 +924,8 @@ class ChatTab(Tab):
 
     def on_scroll_up(self):
         if not self.query_status:
-            asyncio.ensure_future(mam.on_scroll_up(tab=self))
+            from poezio import mam
+            mam.schedule_scroll_up(tab=self)
         return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):

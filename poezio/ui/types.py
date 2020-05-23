@@ -12,6 +12,7 @@ from poezio.ui.consts import (
 )
 
 
+
 class BaseMessage:
     __slots__ = ('txt', 'time', 'identifier')
 
@@ -27,10 +28,22 @@ class BaseMessage:
         return SHORT_FORMAT_LENGTH + 1
 
 
+class EndOfArchive(BaseMessage):
+    """Marker added to a buffer when we reach the end of a MAM archive"""
+
+
 class InfoMessage(BaseMessage):
     def __init__(self, txt: str, identifier: str = '', time: Optional[datetime] = None):
         txt = ('\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)) + txt
         super().__init__(txt=txt, identifier=identifier, time=time)
+
+
+class MucOwnLeaveMessage(InfoMessage):
+    """Status message displayed on our room leave/kick/ban"""
+
+
+class MucOwnJoinMessage(InfoMessage):
+    """Status message displayed on our room join"""
 
 
 class XMLLog(BaseMessage):

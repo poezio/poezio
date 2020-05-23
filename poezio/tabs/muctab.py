@@ -31,7 +31,7 @@ from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
-from poezio.common import safeJID
+from poezio.common import safeJID, to_utc
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
@@ -40,7 +40,14 @@ from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
 from poezio.core.structs import Completion, Status
-from poezio.ui.types import BaseMessage, Message, InfoMessage, StatusMessage
+from poezio.ui.types import (
+    BaseMessage,
+    InfoMessage,
+    Message,
+    MucOwnJoinMessage,
+    MucOwnLeaveMessage,
+    StatusMessage,
+)
 
 log = logging.getLogger(__name__)
 
@@ -84,8 +91,6 @@ class MucTab(ChatTab):
         self.self_ping_event = None
         # UI stuff
         self.topic_win = windows.Topic()
-        self.text_win = windows.TextWin()
-        self._text_buffer.add_window(self.text_win)
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
@@ -151,10 +156,10 @@ class MucTab(ChatTab):
         """
         status = self.core.get_status()
         if self.last_connection:
-            delta = datetime.now() - self.last_connection
+            delta = to_utc(datetime.now()) - to_utc(self.last_connection)
             seconds = delta.seconds + delta.days * 24 * 3600
         else:
-            seconds = None
+            seconds = self._text_buffer.find_last_message()
         muc.join_groupchat(
             self.core,
             self.jid.bare,
@@ -163,7 +168,6 @@ class MucTab(ChatTab):
             status=status.message,
             show=status.show,
             seconds=seconds)
-        asyncio.ensure_future(mam.on_tab_open(self))
 
     def leave_room(self, message: str):
         if self.joined:
@@ -200,7 +204,7 @@ class MucTab(ChatTab):
                            'color_spec': spec_col,
                            'nick': self.own_nick,
                        }
-            self.add_message(InfoMessage(msg), typ=2)
+            self.add_message(MucOwnLeaveMessage(msg), typ=2)
             self.disconnect()
             muc.leave_groupchat(self.core.xmpp, self.jid.bare, self.own_nick,
                                 message)
@@ -567,7 +571,7 @@ class MucTab(ChatTab):
                               'nick_col': color,
                               'info_col': info_col,
                           }
-        self.add_message(InfoMessage(enable_message), typ=2)
+        self.add_message(MucOwnJoinMessage(enable_message), typ=2)
         self.core.enable_private_tabs(self.jid.bare, enable_message)
         if '201' in status_codes:
             self.add_message(
@@ -594,6 +598,7 @@ class MucTab(ChatTab):
                     },
                 ),
                 typ=0)
+        mam.schedule_tab_open(self)
 
     def handle_presence_joined(self, presence: Presence, status_codes) -> None:
         """
@@ -651,7 +656,7 @@ class MucTab(ChatTab):
     def on_non_member_kicked(self):
         """We have been kicked because the MUC is members-only"""
         self.add_message(
-            InfoMessage(
+            MucOwnLeaveMessage(
                 'You have been kicked because you '
                 'are not a member and the room is now members-only.'
             ),
@@ -661,7 +666,7 @@ class MucTab(ChatTab):
     def on_muc_shutdown(self):
         """We have been kicked because the MUC service is shutting down"""
         self.add_message(
-            InfoMessage(
+            MucOwnLeaveMessage(
                 'You have been kicked because the'
                 ' MUC service is shutting down.'
             ),
@@ -759,6 +764,7 @@ class MucTab(ChatTab):
         """
         When someone is banned from a muc
         """
+        cls = InfoMessage
         self.users.remove(user)
         by = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
                                (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
@@ -774,6 +780,7 @@ class MucTab(ChatTab):
         char_kick = theme.CHAR_KICK
 
         if from_nick == self.own_nick:  # we are banned
+            cls = MucOwnLeaveMessage
             if by:
                 kick_msg = ('\x191}%(spec)s \x193}You\x19%(info_col)s}'
                             ' have been banned by \x194}%(by)s') % {
@@ -834,12 +841,13 @@ class MucTab(ChatTab):
                              'reason': reason.text,
                              'info_col': info_col
                          }
-        self.add_message(InfoMessage(kick_msg), typ=2)
+        self.add_message(cls(kick_msg), typ=2)
 
     def on_user_kicked(self, presence, user, from_nick):
         """
         When someone is kicked from a muc
         """
+        cls = InfoMessage
         self.users.remove(user)
         actor_elem = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
                                        (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
@@ -852,6 +860,7 @@ class MucTab(ChatTab):
         if actor_elem is not None:
             by = actor_elem.get('nick') or actor_elem.get('jid')
         if from_nick == self.own_nick:  # we are kicked
+            cls = MucOwnLeaveMessage
             if by:
                 kick_msg = ('\x191}%(spec)s \x193}You\x19'
                             '%(info_col)s} have been kicked'
@@ -912,7 +921,7 @@ class MucTab(ChatTab):
                              'reason': reason.text,
                              'info_col': info_col
                          }
-        self.add_message(InfoMessage(kick_msg), typ=2)
+        self.add_message(cls(kick_msg), typ=2)
 
     def on_user_leave_groupchat(self,
                                 user: User,

@@ -48,8 +48,6 @@ class ConversationTab(OneToOneTab):
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'
-        self.text_win = windows.TextWin()
-        self._text_buffer.add_window(self.text_win)
         self.upper_bar = windows.ConversationStatusMessageWin()
         self.input = windows.MessageInput()
         # keys
