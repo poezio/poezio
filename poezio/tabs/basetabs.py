@@ -46,7 +46,7 @@ from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.consts import LONG_FORMAT_LENGTH
-from poezio.ui.types import BaseMessage, InfoMessage
+from poezio.ui.types import BaseMessage, InfoMessage, Message
 
 from slixmpp import JID, InvalidJID, Message as SMessage
 
