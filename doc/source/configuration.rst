@@ -371,12 +371,18 @@ to understand what is :ref:`carbons <carbons-details>` or
         sender intended it as such. See :ref:`Message Correction <correct-feature>` for
         more information.
 
-    bookmark_on_join
+    synchronise_open_rooms
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
-        If ``true``, poezio will bookmark automatically every room that is joined with
-        a manual ``/join`` command.
+        If ``false``, poezio will not store the state of currently open rooms,
+        so that if you leave a room and restart poezio (or start another
+        client) it will reopen it.
+
+        If ``true``, ``/join`` will create a bookmark with ``autojoin=true``,
+        and ``/leave`` will remove said bookmark.
+
+        This was previously named ``bookmark_on_join``.
 
     force_remote_bookmarks
 
