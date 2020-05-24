@@ -1484,6 +1484,17 @@ class MucTab(ChatTab):
         self.core.doupdate()
 
     @command_args_parser.raw
+    def command_leave(self, msg):
+        """
+        /leave [msg]
+        """
+        self.leave_room(msg)
+        if config.get('bookmark_on_join'):
+            self.core.bookmarks.remove(self.jid)
+            self.core.bookmarks.save(self.core.xmpp)
+        self.core.close_tab(self)
+
+    @command_args_parser.raw
     def command_close(self, msg):
         """
         /close [msg]
@@ -2073,6 +2084,13 @@ class MucTab(ChatTab):
                      ' specify an optional message.'),
             'shortdesc':
             'Leave the room.'
+        }, {
+            'name': 'leave',
+            'func': self.command_leave,
+            'usage': '[message]',
+            'desc': ('Disconnect from a room, on all of your clients. '
+                     'You can specify an optional message'),
+            'shortdesc': 'Leave the room.'
         }, {
             'name':
             'close',
