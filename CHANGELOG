@@ -2,7 +2,80 @@ This file describes the new features in each poezio release.
 For more detailed changelog, see the roadmap:
 https://dev.louiz.org/projects/poezio/roadmap
 
-* Poezio 0.13 - dev
+* Poezio 0.13
+
+# Thanks
+
+- madhur for the MAM code and various other fixes (GSoC 2019)
+- Ge0rG for fixes in the reconnect and carbons code
+- fiaxh for the nice SVG logo
+
+Zash, PS Le Stang, Karthikeyan Singaravelan, Jonas Schäfer, Célestin Matte, Andrey Utkin, root.
+
+# Meta changes
+
+- Packages: poezio is now packaged for Gentoo and Debian buster (poezio v0.12.1)
+- Source: the repository is now hosted at https://lab.louiz.org/poezio/poezio
+
+# Breaking changes
+
+- BREAKING: requires python3.7 (previously python 3.5)
+- DEPRECATION: `load_log` configuration was removed
+- DEPRECATION: `bookmark_on_join` configuration option was renamed `synchronise_open_rooms`, and now defaults to true. This makes /join automatically create a bookmark, use /leave to remove it
+
+# New features and plugins
+
+- `/impromptu <jid> [jid ..]` command to create a new chat with these persons
+- `/scrollback` to scroll back to a specific line/message in the current window
+- `/invite <jid> [jid ..]` command in single user chat does like `/impromptu` in MUC, creating a new MUC
+- `/affiliation` command now returns the list of privileged users on the current MUC when no argument is supplied
+- `default_muc_service`  configuration for replacing the server's default MUC
+- `unique_prefix_tab_names` display option to show the shorter tab name prefixes in the tab list
+- `/list` defaults to `default_muc_service` when no argument is specified
+- XEP-0392 support
+- New Plugin: OMEMO (experimental) - lives as an external plugin at https://lab.louiz.org/poezio/poezio-omemo
+- New Plugin: Contact - queries an entity for contact addresses (XEP-0157)
+- New Plugin: Upload - adds a `/upload <filename>` command in chats for HTTP upload
+- New Plugin: remove_get_trackers - Remove GET trackers from URLs in sent messages.
+- New Plugin: QR - ??
+
+
+# Under the hood
+
+- Plugin API: `E2EEPlugin` is a new experimental API for message encryption (used by the OMEMO plugin)
+- Plugin API: plugins can now declare a string list of dependencies
+- Plugin API: plugins can now be setup using a well-known setuptools entrypoint
+- Reworked Tab handling
+- Split Message rendering
+- Typing improvements
+
+# Minor changes (bugfixes)
+
+- Properly advertize gaming status
+- Improve error reporting to users
+- Add SVG support for avatars
+- Plugin: Disco - allow node to be specified
+
+# Changes (issues)
+
+- Don't always treat carbons from biboumi as MUC-PMs (#3705)
+- Read newer Last Message Correction rules while still reading older ones (#3462)
+- Allow /block and /unblock in ConversationTab (#3346)
+- Experimental: Fetch archives (MAM) on scroll up in MUC (#3052)
+- Allow /add in ConversationTab (#3395)
+- Prevent Chat State Notifications from being stored in the archive (#3518)
+- Rework MUC-PM Carbons handling (#3294)
+- /scrollback (#3481)
+- Read <delay/> in <subject/> (#3451)
+- Only use MUC <subject/> in specific cases (#3452)
+- Allow /reconnect in all tabs (#3471)
+- Allow /embed in chat tabs (#3449)
+- Allow /upload in chat tabs
+- Properly identify MUC-PMs for normal messages and chatstates (#3491)
+- /server_cycle: stricly match specified domain (#3412)
+- Breaking: -v/--version previously for internal purposes now returns version as expected (#3429)
+- Improve highlighting regex (#3433)
+- Generate static resource at first launch (#3400)
 
 * Poezio 0.12
 
