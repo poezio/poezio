@@ -4,6 +4,12 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.14 - dev
 
+* Poezio 0.13.1 - dev
+
+# Bug fixes
+
+- Contacts won’t be seen playing games or music when they actually stop doing
+  so.
 
 * Poezio 0.13
 
