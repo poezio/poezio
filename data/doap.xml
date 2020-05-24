@@ -276,7 +276,7 @@
             <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0157.html"/>
             <xmpp:status>complete</xmpp:status>
             <xmpp:version>1.0.1</xmpp:version>
-            <xmpp:since>NEXT</xmpp:since>
+            <xmpp:since>0.13</xmpp:since>
             <xmpp:note>contact plugin</xmpp:note>
         </xmpp:SupportedXep>
     </implements>
@@ -448,7 +448,7 @@
             <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0313.html"/>
             <xmpp:status>complete</xmpp:status>
             <xmpp:version>0.6.3</xmpp:version>
-            <xmpp:since>NEXT</xmpp:since>
+            <xmpp:since>0.13</xmpp:since>
         </xmpp:SupportedXep>
     </implements>
     <implements>
@@ -480,7 +480,7 @@
             <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0363.html"/>
             <xmpp:status>complete</xmpp:status>
             <xmpp:version>1.0.0</xmpp:version>
-            <xmpp:since>NEXT</xmpp:since>
+            <xmpp:since>0.13</xmpp:since>
             <xmpp:note>upload plugin</xmpp:note>
         </xmpp:SupportedXep>
     </implements>
@@ -514,8 +514,16 @@
             <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0384.html"/>
             <xmpp:status>partial</xmpp:status>
             <xmpp:version>0.3</xmpp:version>
-            <xmpp:since>NEXT</xmpp:since>
+            <xmpp:since>0.13</xmpp:since>
             <xmpp:note>Available at https://lab.louiz.org/poezio/poezio-omemo. 1:1 only</xmpp:note>
+        </xmpp:SupportedXep>
+    </implements>
+    <implements>
+        <xmpp:SupportedXep>
+            <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0392.html"/>
+            <xmpp:status>complete</xmpp:status>
+            <xmpp:version>0.5</xmpp:version>
+            <xmpp:since>0.13</xmpp:since>
         </xmpp:SupportedXep>
     </implements>
 
