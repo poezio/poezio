@@ -1667,19 +1667,10 @@ class MucTab(ChatTab):
         }
 
         if all_errors:
-            self.add_message(
-                Message(
-                    'Can\'t access affiliations',
-                    highlight=True,
-                    nickname='Error',
-                    nick_color=theme.COLOR_ERROR_MSG,
-                ),
-                typ=2,
-            )
-            self.core.refresh_window()
+            self.core.information('Can’t access affiliations', 'Error')
             return None
 
-        self._text_buffer.add_message(InfoMessage('Affiliations'))
+        lines = ['Affiliations']
         for iq in iqs:
             if isinstance(iq, (IqError, IqTimeout)):
                 continue
@@ -1691,15 +1682,13 @@ class MucTab(ChatTab):
 
             affiliation = items[0].get('affiliation')
             aff_char = aff_colors[affiliation]
-            self._text_buffer.add_message(
-                InfoMessage('  %s%s' % (aff_char, affiliation.capitalize())),
-            )
+            lines.append('  %s%s' % (aff_char, affiliation.capitalize()))
 
             items = map(lambda i: i.get('jid'), items)
             for ajid in sorted(items):
-                self._text_buffer.add_message(InfoMessage('    %s' % ajid))
+                lines.append('    %s' % ajid)
 
-        self.core.refresh_window()
+        self.core.information('\n'.join(lines), 'Info')
         return None
 
     @command_args_parser.raw
