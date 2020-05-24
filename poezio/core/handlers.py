@@ -557,7 +557,9 @@ class HandlerCore:
             return
         item = message['pubsub_event']['items']['item']
         old_gaming = contact.gaming
-        if item.xml.find('{urn:xmpp:gaming:0}game') is not None:
+        gaming = item.xml.find('{urn:xmpp:gaming:0}game')
+        # list(gaming) checks whether there are children or not.
+        if gaming is not None and list(gaming):
             item = item['gaming']
             # only name and server_address are used for now
             contact.gaming = {
