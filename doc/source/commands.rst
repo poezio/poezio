@@ -426,6 +426,24 @@ MultiUserChat tab commands
         Disconnect you from a room. You can specify an optional
         message.
 
+        This is similar to :term:`/leave`, but keeps the tab open and doesn’t
+        remove the bookmark, so restarting poezio or another client will reopen
+        this room.
+
+    /leave
+        **Usage:** ``/leave [message]``
+
+        Disconnect you from a room, on all of your clients. You can specify an
+        optional message.
+
+        This is similar to :term:`/part`, but closes the tab and removes its
+        bookmark, to make sure we don’t come back to this room the next time we
+        open poezio or another client.
+
+        This is similar to :term:`/close`, but also removes the bookmark to
+        make sure we don’t come back to this room the next time we open poezio
+        or another client.
+
     /nick
         **Usage:** ``/nick <nickname>``
 
