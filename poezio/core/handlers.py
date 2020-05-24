@@ -557,7 +557,9 @@ class HandlerCore:
             return
         item = message['pubsub_event']['items']['item']
         old_gaming = contact.gaming
-        if item.xml.find('{urn:xmpp:gaming:0}game') is not None:
+        xml_node = item.xml.find('{urn:xmpp:gaming:0}game')
+        # list(xml_node) checks whether there are children or not.
+        if xml_node is not None and list(xml_node):
             item = item['gaming']
             # only name and server_address are used for now
             contact.gaming = {
@@ -599,7 +601,9 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_mood = contact.mood
-        if item.xml.find('{http://jabber.org/protocol/mood}mood') is not None:
+        xml_node = item.xml.find('{http://jabber.org/protocol/mood}mood')
+        # list(xml_node) checks whether there are children or not.
+        if xml_node is not None and list(xml_node):
             mood = item['mood']['value']
             if mood:
                 mood = pep.MOODS.get(mood, mood)
@@ -637,8 +641,9 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_activity = contact.activity
-        if item.xml.find(
-                '{http://jabber.org/protocol/activity}activity') is not None:
+        xml_node = item.xml.find('{http://jabber.org/protocol/activity}activity')
+        # list(xml_node) checks whether there are children or not.
+        if xml_node is not None and list(xml_node):
             try:
                 activity = item['activity']['value']
             except ValueError:
@@ -683,7 +688,9 @@ class HandlerCore:
         roster.modified()
         item = message['pubsub_event']['items']['item']
         old_tune = contact.tune
-        if item.xml.find('{http://jabber.org/protocol/tune}tune') is not None:
+        xml_node = item.xml.find('{http://jabber.org/protocol/tune}tune')
+        # list(xml_node) checks whether there are children or not.
+        if xml_node is not None and list(xml_node):
             item = item['tune']
             contact.tune = {
                 'artist': item['artist'],
