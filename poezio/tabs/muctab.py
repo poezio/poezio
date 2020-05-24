@@ -1667,10 +1667,13 @@ class MucTab(ChatTab):
         }
 
         if all_errors:
-            self.core.information('Can’t access affiliations', 'Error')
+            self.core.information(
+                'Can’t access affiliations for %s' % jid.bare,
+                'Error',
+            )
             return None
 
-        lines = ['Affiliations']
+        lines = ['Affiliations for %s' % jid.bare]
         for iq in iqs:
             if isinstance(iq, (IqError, IqTimeout)):
                 continue
