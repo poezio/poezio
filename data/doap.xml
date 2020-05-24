@@ -74,8 +74,8 @@
 
     <repository>
         <GitRepository>
-            <browse rdf:resource="https://git.poez.io/poezio/"/>
-            <location rdf:resource="https://git.poez.io/poezio.git"/>
+            <browse rdf:resource="https://lab.louiz.org/poezio/poezio.git"/>
+            <location rdf:resource="https://lab.louiz.org/poezio/poezio"/>
         </GitRepository>
     </repository>
 
