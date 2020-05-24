@@ -1489,7 +1489,7 @@ class MucTab(ChatTab):
         /leave [msg]
         """
         self.leave_room(msg)
-        if config.get('bookmark_on_join'):
+        if config.get('synchronise_open_rooms'):
             self.core.bookmarks.remove(self.jid)
             self.core.bookmarks.save(self.core.xmpp)
         self.core.close_tab(self)
