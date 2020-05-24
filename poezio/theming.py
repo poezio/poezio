@@ -448,7 +448,7 @@ def to_curses_attr(
         colors = color_tuple
 
     bold = False
-    if curses.COLORS != 256:
+    if curses.COLORS < 256:
         # We are not in a term supporting 256 colors, so we convert
         # colors to numbers between -1 and 8
         colors = (color_256_to_16(colors[0]), color_256_to_16(colors[1]))

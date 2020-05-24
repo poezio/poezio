@@ -543,6 +543,12 @@ class Core:
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information('Welcome to poezio!', 'Info')
+        if curses.COLORS < 256:
+            self.information(
+                'Your terminal does not appear to support 256 colors, the UI'
+                ' colors will probably be ugly',
+                'Error',
+            )
         if firstrun:
             self.information(
                 'It seems that it is the first time you start poezio.\n'
