@@ -48,7 +48,7 @@ from poezio.ui.funcs import truncate_nick
 from poezio.ui.consts import LONG_FORMAT_LENGTH
 from poezio.ui.types import BaseMessage, InfoMessage
 
-from slixmpp import JID, InvalidJID, Message
+from slixmpp import JID, InvalidJID, Message as SMessage
 
 if TYPE_CHECKING:
     from _curses import _CursesWindow  # pylint: disable=E0611
@@ -638,7 +638,7 @@ class ChatTab(Tab):
         if message:
             message.send()
 
-    def generate_xhtml_message(self, arg: str) -> Message:
+    def generate_xhtml_message(self, arg: str) -> SMessage:
         if not arg:
             return
         try:
