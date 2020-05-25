@@ -1504,7 +1504,8 @@ class MucTab(ChatTab):
 
     def on_close(self):
         super().on_close()
-        self.leave_room('')
+        if self.joined:
+            self.leave_room('')
 
     @command_args_parser.quoted(1, 1)
     def command_query(self, args):
