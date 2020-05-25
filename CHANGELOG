@@ -12,6 +12,10 @@ https://dev.louiz.org/projects/poezio/roadmap
   so.
 - /leave now toggles off the autojoin flag instead of removing the bookmark.
 
+# Forgotten additions
+
+- Add a clean theme for light terminals, thanks Armael!
+
 * Poezio 0.13
 
 # Thanks
