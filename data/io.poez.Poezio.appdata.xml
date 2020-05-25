@@ -1,17 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2018 Emmanuel Gil Peyrot <linkmauve@linkmauve.fr> -->
+<!-- Copyright 2018-2020 Emmanuel Gil Peyrot <linkmauve@linkmauve.fr> -->
 <component type="console-application">
   <id>io.poez.Poezio</id>
   <name>Poezio</name>
   <summary>Poezio is a free console XMPP client</summary>
   <project_license>Zlib</project_license>
   <metadata_license>CC0-1.0</metadata_license>
+  <developer_name>Poezio Team</developer_name>
+  <icon type="remote">https://poez.io/img/logo.svg</icon>
 
   <url type="homepage">https://poez.io</url>
-  <url type="bugtracker">https://dev.louiz.org/projects/poezio/issues</url>
-  <url type="help">https://doc.poez.io/</url>
+  <url type="bugtracker">https://lab.louiz.org/poezio/poezio/-/issues</url>
+  <url type="help">https://doc.poez.io</url>
 
-  <icon width="80" height="80">data/poezio_80.png</icon>
+  <description>
+    <p>
+      Poezio is a free console XMPP client (the protocol on which the Jabber IM
+      network is built).
+    </p>
+    <p>
+      Its goal is to let you connect very easily (no account creation needed)
+      to the network and join various chatrooms, immediately. It tries to look
+      like the most famous IRC clients (weechat, irssi, etc). Many commands are
+      identical and you won’t be lost if you already know these clients.
+      Configuration can be made in a configuration file or directly from the
+      client.
+    </p>
+    <p>
+      You’ll find the light, fast, geeky and anonymous spirit of IRC while
+      using a powerful, standard and open protocol.
+    </p>
+
+    <p>Features</p>
+
+    <ul>
+      <li>Encryption: TLS, OTR, always chat with encryption.</li>
+      <li>Chatrooms: Discuss on your favorite topics with your friends or strangers.</li>
+      <li>Carbon copies: Switch devices while staying in the same conversations without losing messages.</li>
+      <li>Plugins: Add the features you want through official or other plugins.</li>
+
+      <li>Corrections: Fix your last sent messages.</li>
+      <li>Rich text: Send and receive messages with colors and formatting.</li>
+      <li>Chat state notifications: See the writing status of your contacts.</li>
+      <li>Anonymous: Use XMPP without an account.</li>
+    </ul>
+  </description>
+
   <screenshots>
     <screenshot type="default">
       <image>https://poez.io/img/screenshot.png</image>
@@ -24,11 +58,18 @@
     <category>InstantMessaging</category>
     <category>Network</category>
   </categories>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+
   <provides>
     <binary>poezio</binary>
   </provides>
-  <developer_name>Poezio Team</developer_name>
+
   <releases>
+    <release version="0.13" date="2020-05-24"/>
+    <release version="0.12.1" date="2018-09-12"/>
     <release version="0.12" date="2018-08-13"/>
     <release version="0.11" date="2017-01-31"/>
     <release version="0.10" date="2016-10-09"/>
