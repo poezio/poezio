@@ -58,10 +58,18 @@
     <category>InstantMessaging</category>
     <category>Network</category>
   </categories>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+
   <provides>
     <binary>poezio</binary>
   </provides>
+
   <releases>
+    <release version="0.13" date="2020-05-24"/>
+    <release version="0.12.1" date="2018-09-12"/>
     <release version="0.12" date="2018-08-13"/>
     <release version="0.11" date="2017-01-31"/>
     <release version="0.10" date="2016-10-09"/>
