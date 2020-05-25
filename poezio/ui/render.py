@@ -1,6 +1,9 @@
 import curses
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    date,
+)
 from functools import singledispatch
 from math import ceil, log10
 from typing import (
@@ -235,7 +238,7 @@ class PreMessageHelpers:
         Write the date on the yth line of the window
         """
         if time:
-            if history:
+            if history and time.date() != date.today():
                 format = LONG_FORMAT
             else:
                 format = SHORT_FORMAT
