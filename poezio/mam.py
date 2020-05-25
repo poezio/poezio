@@ -46,8 +46,9 @@ def make_line(
         tab: tabs.ChatTab,
         text: str,
         time: datetime,
-        nick: str,
+        jid: JID,
         identifier: str = '',
+        deterministic: bool = True,
     ) -> Message:
     """Adds a textual entry in the TextBuffer"""
 
@@ -55,9 +56,8 @@ def make_line(
     time = time.replace(tzinfo=timezone.utc).astimezone(tz=None)
     time = time.replace(tzinfo=None)
 
-    deterministic = config.get_by_tabname('deterministic_nick_colors', tab.jid.bare)
     if isinstance(tab, tabs.MucTab):
-        nick = nick.split('/')[1]
+        nick = jid.resource
         user = tab.get_user_by_name(nick)
         if deterministic:
             if user:
@@ -76,11 +76,12 @@ def make_line(
             color = xhtml.colors.get(color)
             color = (color, -1)
     else:
-        if nick.split('/')[0] == tab.core.xmpp.boundjid.bare:
+        if jid.bare == tab.core.xmpp.boundjid.bare:
+            nick = tab.core.own_nick
             color = get_theme().COLOR_OWN_NICK
         else:
             color = get_theme().COLOR_REMOTE_USER
-        nick = tab.get_nick()
+            nick = tab.get_nick()
     return Message(
         txt=text,
         identifier=identifier,
@@ -133,7 +134,7 @@ def _parse_message(msg: SMessage) -> Dict:
     message = forwarded['stanza']
     return {
         'time': forwarded['delay']['stamp'],
-        'nick': str(message['from']),
+        'jid': message['from'],
         'text': message['body'],
         'identifier': message['origin-id']
     }
@@ -147,13 +148,17 @@ async def retrieve_messages(tab: tabs.ChatTab,
     msg_count = 0
     msgs = []
     to_add = []
+    deterministic = config.get_by_tabname(
+        'deterministic_nick_colors',
+        tab.jid.bare
+    )
     try:
         async for rsm in results:
             for msg in rsm['mam']['results']:
                 if msg['mam_result']['forwarded']['stanza'] \
                         .xml.find('{%s}%s' % ('jabber:client', 'body')) is not None:
                     args = _parse_message(msg)
-                    msgs.append(make_line(tab, **args))
+                    msgs.append(make_line(tab, deterministic=deterministic, **args))
             for msg in reversed(msgs):
                 to_add.append(msg)
                 msg_count += 1
