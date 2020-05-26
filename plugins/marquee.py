@@ -85,6 +85,6 @@ class Plugin(BasePlugin):
         message.send()
         event = self.api.create_delayed_event(
             self.config.get("refresh"), self.delayed_event, jid, body,
-            message["id"], step + 1, duration + self.config.get("refresh"),
+            msg_id, step + 1, duration + self.config.get("refresh"),
             is_muctab)
         self.api.add_timed_event(event)
