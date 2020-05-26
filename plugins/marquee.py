@@ -41,7 +41,7 @@ from poezio.decorators import command_args_parser
 
 
 def move(text, step, spacing):
-    new_text = text + (" " * spacing)
+    new_text = text + ("\u00A0" * spacing)
     return new_text[-(step % len(new_text)):] + new_text[:-(
         step % len(new_text))]
 
@@ -85,6 +85,6 @@ class Plugin(BasePlugin):
         message.send()
         event = self.api.create_delayed_event(
             self.config.get("refresh"), self.delayed_event, jid, body,
-            message["id"], step + 1, duration + self.config.get("refresh"),
+            msg_id, step + 1, duration + self.config.get("refresh"),
             is_muctab)
         self.api.add_timed_event(event)

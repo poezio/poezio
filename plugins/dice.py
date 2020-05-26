@@ -29,6 +29,7 @@ Configuration
 """
 
 import random
+from typing import Optional
 
 from poezio import tabs
 from poezio.decorators import command_args_parser
@@ -40,17 +41,16 @@ DICE = '\u2680\u2681\u2682\u2683\u2684\u2685'
 class DiceRoll:
     __slots__ = [
         'duration', 'total_duration', 'dice_number', 'msgtype', 'jid',
-        'last_msgid', 'increments'
+        'msgid', 'increments'
     ]
 
-    def __init__(self, total_duration, dice_number, is_muc, jid, msgid,
-                 increments):
+    def __init__(self, total_duration, dice_number, msgtype, jid, msgid, increments):
         self.duration = 0
         self.total_duration = total_duration
         self.dice_number = dice_number
-        self.msgtype = "groupchat" if is_muc else "chat"
+        self.msgtype = msgtype
         self.jid = jid
-        self.last_msgid = msgid
+        self.msgid = msgid
         self.increments = increments
 
     def reroll(self):
@@ -60,8 +60,11 @@ class DiceRoll:
         return self.duration >= self.total_duration
 
 
+def roll_dice(num_dice: int) -> str:
+    return ''.join(random.choice(DICE) for _ in range(num_dice))
+
 class Plugin(BasePlugin):
-    default_config = {"dice": {"refresh": 0.5, "default_duration": 5}}
+    default_config = {"dice": {"refresh": 0.75, "default_duration": 7.5}}
 
     def init(self):
         for tab_t in [tabs.MucTab, tabs.DynamicConversationTab, tabs.StaticConversationTab, tabs.PrivateTab]:
@@ -90,13 +93,17 @@ class Plugin(BasePlugin):
                 self.core.command.help("roll")
                 return
 
-        firstroll = ''.join(random.choice(DICE) for _ in range(num_dice))
-        tab.command_say(firstroll)
-        is_muctab = isinstance(tab, tabs.MucTab)
-        msg_id = tab.last_sent_message["id"]
+        msgtype = 'groupchat' if isinstance(tab, tabs.MucTab) else 'chat'
+
+        message = self.core.xmpp.make_message(tab.jid)
+        message['type'] = msgtype
+        message['body'] = roll_dice(num_dice)
+        message.send()
+
         increment = self.config.get('refresh')
-        roll = DiceRoll(duration, num_dice, is_muctab, tab.jid, msg_id,
-                        increment)
+        msgid = message['id']
+
+        roll = DiceRoll(duration, num_dice, msgtype, tab.jid, msgid, increment)
         event = self.api.create_delayed_event(increment, self.delayed_event,
                                               roll)
         self.api.add_timed_event(event)
@@ -107,11 +114,9 @@ class Plugin(BasePlugin):
         roll.reroll()
         message = self.core.xmpp.make_message(roll.jid)
         message["type"] = roll.msgtype
-        message["body"] = ''.join(
-            random.choice(DICE) for _ in range(roll.dice_number))
-        message["replace"]["id"] = roll.last_msgid
+        message["body"] = roll_dice(roll.dice_number)
+        message["replace"]["id"] = roll.msgid
         message.send()
-        roll.last_msgid = message['id']
         event = self.api.create_delayed_event(roll.increments,
                                               self.delayed_event, roll)
         self.api.add_timed_event(event)
