@@ -25,6 +25,8 @@ Usage
 from poezio.plugin import BasePlugin
 from poezio.common import shell_split
 from poezio import tabs
+from poezio.ui.types import Message
+from poezio.ui.consts import SHORT_FORMAT
 
 
 class Plugin(BasePlugin):
@@ -44,6 +46,8 @@ class Plugin(BasePlugin):
         if not messages:
             return None
         for message in reversed(messages):
+            if not isinstance(message, Message):
+                continue
             if message.old_message:
                 if nb == 1:
                     return message
@@ -64,8 +68,9 @@ class Plugin(BasePlugin):
         if message:
             display = []
             while message:
+                str_time = message.time.strftime(SHORT_FORMAT)
                 display.append('%s %s%s%s %s' %
-                               (message.str_time, '* '
+                               (str_time, '* '
                                 if message.me else '', message.nickname, ''
                                 if message.me else '>', message.txt))
                 message = message.old_message
