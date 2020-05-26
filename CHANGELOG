@@ -11,6 +11,14 @@ https://dev.louiz.org/projects/poezio/roadmap
 - Contacts won’t be seen playing games or music when they actually stop doing
   so.
 - /leave now toggles off the autojoin flag instead of removing the bookmark.
+- /affiliation displays things in the info win instead of directly in the room,
+  and additionally displays which room it refers to.
+- List the correct required versions for package maintainers.
+- Fix the AppStream manifest to get Flathub to accept it.
+- Add a warning when the terminal doesn’t support 256color mode.
+- Display our own nick properly in messages received from MAM.
+- Only send an unavailable presence on closing a room if we are joined.
+- Don’t display the current date for history messages received today.
 
 # Forgotten additions
 
