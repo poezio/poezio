@@ -41,7 +41,7 @@ from poezio.decorators import command_args_parser
 
 
 def move(text, step, spacing):
-    new_text = text + (" " * spacing)
+    new_text = text + ("\u00A0" * spacing)
     return new_text[-(step % len(new_text)):] + new_text[:-(
         step % len(new_text))]
 
