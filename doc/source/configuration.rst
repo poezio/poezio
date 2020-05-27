@@ -1133,7 +1133,7 @@ found.
 
     display_user_color_in_join_part
 
-        **Default value:** ``false``
+        **Default value:** ``true``
 
         If set to ``true``, the color of the nick will be used in chatroom
         information messages, instead of the default color from the theme.
