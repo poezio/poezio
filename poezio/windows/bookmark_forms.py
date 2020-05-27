@@ -269,7 +269,7 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 theme.COLOR_NORMAL_TEXT)
         self.current_horizontal_input += 1
-        if self.current_horizontal_input > 3:
+        if self.current_horizontal_input > 4:
             self.current_horizontal_input = 0
         self.lines[self.current_input][
             self.current_horizontal_input].set_color(
@@ -363,7 +363,7 @@ class BookmarksWin(Win):
                 continue
             if i >= self.height + self.scroll_pos:
                 break
-            for j in range(4):
+            for j in range(5):
                 inp[j].refresh()
 
         if self.lines and self.current_input < self.height - 1:

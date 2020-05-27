@@ -21,6 +21,8 @@ https://dev.louiz.org/projects/poezio/roadmap
 - Only send an unavailable presence on closing a room if we are joined.
 - Don’t display the current date for history messages received today.
 - Fix marquee and dice plugin to use newer Last Message Correction format.
+- Bookmarks tab properly displays bookmarks method (local/remote) and allows
+  to switch between them again.
 
 # Forgotten additions
 
