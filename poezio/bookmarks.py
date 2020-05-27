@@ -171,7 +171,7 @@ class BookmarkList:
             return self.bookmarks[key]
         return None
 
-    def __in__(self, key) -> bool:
+    def __contains__(self, key) -> bool:
         if isinstance(key, (str, JID)):
             for bookmark in self.bookmarks:
                 if bookmark.jid == key:

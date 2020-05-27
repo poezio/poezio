@@ -401,7 +401,7 @@ class CommandCore:
                 tab.password = password
                 tab.join()
 
-        if config.get('synchronise_open_rooms'):
+        if config.get('synchronise_open_rooms') and room not in self.core.bookmarks:
             method = 'remote' if config.get(
                 'use_remote_bookmarks') else 'local'
             self._add_bookmark('%s/%s' % (room, nick), True, password, method)
