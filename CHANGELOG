@@ -11,6 +11,7 @@ https://dev.louiz.org/projects/poezio/roadmap
 - Contacts won’t be seen playing games or music when they actually stop doing
   so.
 - /leave now toggles off the autojoin flag instead of removing the bookmark.
+- Only add auotjoin on new bookmarks for synchronise_open_rooms on /join
 - /affiliation displays things in the info win instead of directly in the room,
   and additionally displays which room it refers to.
 - List the correct required versions for package maintainers.
