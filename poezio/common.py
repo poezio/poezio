@@ -14,7 +14,7 @@ from datetime import (
     timezone,
 )
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Any
 
 import os
 import subprocess
@@ -44,7 +44,7 @@ def _get_output_of_command(command: str) -> Optional[List[str]]:
         return None
 
 
-def _is_in_path(command: str, return_abs_path=False) -> Union[bool, str]:
+def _is_in_path(command: str, return_abs_path: bool = False) -> Union[bool, str]:
     """
     Check if *command* is in the $PATH or not.
 
@@ -111,10 +111,12 @@ def get_os_info() -> str:
                 stdout=subprocess.PIPE,
                 close_fds=True)
             process.wait()
-            output = process.stdout.readline().decode('utf-8').strip()
-            # some distros put n/a in places, so remove those
-            output = output.replace('n/a', '').replace('N/A', '')
-            return output
+            if process.stdout is not None:
+                out = process.stdout.readline().decode('utf-8').strip()
+                # some distros put n/a in places, so remove those
+                out = out.replace('n/a', '').replace('N/A', '')
+                return out
+            return ''
 
         # lsb_release executable not available, so parse files
         for distro_name in DISTRO_INFO:
@@ -287,7 +289,7 @@ def shell_split(st: str) -> List[str]:
     return ret
 
 
-def find_argument(pos: int, text: str, quoted=True) -> int:
+def find_argument(pos: int, text: str, quoted: bool = True) -> int:
     """
     Split an input into a list of arguments, return the number of the
     argument selected by pos.
@@ -342,7 +344,7 @@ def _find_argument_unquoted(pos: int, text: str) -> int:
     return argnum + 1
 
 
-def parse_str_to_secs(duration='') -> int:
+def parse_str_to_secs(duration: str = '') -> int:
     """
     Parse a string of with a number of d, h, m, s.
 
@@ -370,7 +372,7 @@ def parse_str_to_secs(duration='') -> int:
     return result
 
 
-def parse_secs_to_str(duration=0) -> str:
+def parse_secs_to_str(duration: int = 0) -> str:
     """
     Do the reverse operation of :py:func:`parse_str_to_secs`.
 
@@ -457,7 +459,7 @@ def format_gaming_string(infos: Dict[str, str]) -> str:
     return name
 
 
-def safeJID(*args, **kwargs) -> JID:
+def safeJID(*args: Any, **kwargs: Any) -> JID:
     """
     Construct a :py:class:`slixmpp.JID` object from a string.
 
