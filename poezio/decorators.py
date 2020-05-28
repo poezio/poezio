@@ -1,54 +1,68 @@
 """
 Module containing various decorators
 """
-from typing import Any, Callable, List, Optional
+from typing import (
+    cast,
+    Any,
+    Callable,
+    List,
+    Optional,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 from poezio import common
 
+if TYPE_CHECKING:
+    from poezio.tabs import RosterInfoTab
+
+T = TypeVar('T', bound=Callable[..., Any])
+
+
 
 class RefreshWrapper:
-    def __init__(self):
+    def __init__(self) -> None:
         self.core = None
 
-    def conditional(self, func: Callable) -> Callable:
+    def conditional(self, func: T) -> T:
         """
         Decorator to refresh the UI if the wrapped function
         returns True
         """
 
-        def wrap(*args, **kwargs):
+        def wrap(*args: Any, **kwargs: Any) -> Any:
             ret = func(*args, **kwargs)
             if self.core and ret:
                 self.core.refresh_window()
             return ret
 
-        return wrap
+        return cast(T, wrap)
 
-    def always(self, func: Callable) -> Callable:
+    def always(self, func: T) -> T:
         """
         Decorator that refreshs the UI no matter what after the function
         """
 
-        def wrap(*args, **kwargs):
+        def wrap(*args: Any, **kwargs: Any) -> Any:
             ret = func(*args, **kwargs)
             if self.core:
                 self.core.refresh_window()
             return ret
 
-        return wrap
+        return cast(T, wrap)
 
-    def update(self, func: Callable) -> Callable:
+    def update(self, func: T) -> T:
         """
         Decorator that only updates the screen
         """
 
-        def wrap(*args, **kwargs):
+        def wrap(*args: Any, **kwargs: Any) -> Any:
             ret = func(*args, **kwargs)
             if self.core:
                 self.core.doupdate()
             return ret
 
-        return wrap
+        return cast(T, wrap)
 
 
 refresh_wrapper = RefreshWrapper()
@@ -61,32 +75,32 @@ class CommandArgParser:
     """
 
     @staticmethod
-    def raw(func: Callable) -> Callable:
+    def raw(func: T) -> T:
         """Just call the function with a single string, which is the original string
         untouched
         """
 
-        def wrap(self, args, *a, **kw):
+        def wrap(self: Any, args: Any, *a: Any, **kw: Any) -> Any:
             return func(self, args, *a, **kw)
 
-        return wrap
+        return cast(T, wrap)
 
     @staticmethod
-    def ignored(func: Callable) -> Callable:
+    def ignored(func: T) -> T:
         """
         Call the function without any argument
         """
 
-        def wrap(self, args=None, *a, **kw):
+        def wrap(self: Any, args: Any = None, *a: Any, **kw: Any) -> Any:
             return func(self, *a, **kw)
 
-        return wrap
+        return cast(T, wrap)
 
     @staticmethod
     def quoted(mandatory: int,
-               optional=0,
+               optional: int = 0,
                defaults: Optional[List[Any]] = None,
-               ignore_trailing_arguments=False):
+               ignore_trailing_arguments: bool = False) -> Callable[[T], T]:
         """The function receives a list with a number of arguments that is between
         the numbers `mandatory` and `optional`.
 
@@ -131,8 +145,8 @@ class CommandArgParser:
         """
         default_args_outer = defaults or []
 
-        def first(func: Callable):
-            def second(self, args: str, *a, **kw):
+        def first(func: T) -> T:
+            def second(self: Any, args: str, *a: Any, **kw: Any) -> Any:
                 default_args = default_args_outer
                 if args and args.strip():
                     split_args = common.shell_split(args)
@@ -156,8 +170,7 @@ class CommandArgParser:
                     res[-1] += " " + " ".join(split_args)
                 return func(self, res, *a, **kw)
 
-            return second
-
+            return cast(T, second)
         return first
 
 
@@ -166,11 +179,11 @@ command_args_parser = CommandArgParser()
 
 def deny_anonymous(func: Callable) -> Callable:
     """Decorator to disable commands when using an anonymous account."""
-    def wrap(self: 'RosterInfoTab', *args, **kwargs):
+    def wrap(self: 'RosterInfoTab', *args: Any, **kwargs: Any) -> Any:
         if self.core.xmpp.anon:
             return self.core.information(
                 'This command is not available for anonymous accounts.',
                 'Info'
             )
         return func(self, *args, **kwargs)
-    return wrap
+    return cast(T, wrap)
