@@ -10,6 +10,8 @@ Defines the Roster and RosterGroup classes
 import logging
 log = logging.getLogger(__name__)
 
+from typing import List
+
 from poezio.config import config
 from poezio.contact import Contact
 from poezio.roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
@@ -18,6 +20,7 @@ from os import path as p
 from datetime import datetime
 from poezio.common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
+from slixmpp import JID
 
 
 class Roster:
@@ -29,6 +32,22 @@ class Roster:
     DEFAULT_FILTER = (lambda x, y: None, None)
 
     def __init__(self):
+        self.__node = None
+
+        # A tuple(function, *args) function to filter contacts
+        # on search, for example
+        self.contact_filter = self.DEFAULT_FILTER
+        self.groups = {}
+        self.contacts = {}
+        self.length = 0
+        self.connected = 0
+        self.folded_groups = []
+
+        # Used for caching roster infos
+        self.last_built = datetime.now()
+        self.last_modified = datetime.now()
+
+    def reset(self):
         """
         node: the RosterSingle from slixmpp
         """
@@ -143,7 +162,7 @@ class Roster:
         """Subscribe to a jid"""
         self.__node.subscribe(jid)
 
-    def jids(self):
+    def jids(self) -> List[JID]:
         """List of the contact JIDS"""
         l = []
         for key in self.__node.keys():
@@ -335,11 +354,6 @@ class RosterGroup:
         return len([1 for contact in self.contacts if len(contact)])
 
 
-def create_roster():
-    "Create the global roster object"
-    global roster
-    roster = Roster()
-
 
 # Shared roster object
-roster = None
+roster = Roster()
