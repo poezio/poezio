@@ -15,7 +15,17 @@ import shutil
 import time
 import uuid
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Set, Tuple, Type
+from typing import (
+    cast,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+)
 from xml.etree import ElementTree as ET
 from functools import partial
 
@@ -65,6 +75,7 @@ from poezio.ui.types import Message, InfoMessage
 
 log = logging.getLogger(__name__)
 
+T = TypeVar('T', bound=tabs.Tab)
 
 class Core:
     """
@@ -99,8 +110,10 @@ class Core:
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
-        self.information_win_size = config.get(
-            'info_win_height', section='var')
+        self.information_win_size = cast(
+            int,
+            config.get('info_win_height', section='var'),
+        )
         self.information_win = windows.TextWin(300)
         self.information_buffer.add_window(self.information_win)
         self.left_tab_win = None
@@ -813,7 +826,7 @@ class Core:
 
 ####################### XMPP-related actions ##################################
 
-    def get_status(self) -> str:
+    def get_status(self) -> Status:
         """
         Get the last status that was previously set
         """
@@ -1016,7 +1029,7 @@ class Core:
 
 ### Tab getters ###
 
-    def get_tabs(self, cls: Type[tabs.Tab] = None) -> List[tabs.Tab]:
+    def get_tabs(self, cls: Type[T] = None) -> List[T]:
         "Get all the tabs of a type"
         if cls is None:
             return self.tabs.get_tabs()
@@ -1324,7 +1337,7 @@ class Core:
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
-    def on_user_changed_status_in_private(self, jid: JID, status: str) -> None:
+    def on_user_changed_status_in_private(self, jid: JID, status: Status) -> None:
         tab = self.tabs.by_name_and_class(jid, tabs.ChatTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
@@ -1652,7 +1665,7 @@ class Core:
                 return
         else:
             scr = self.stdscr
-        tabs.Tab.resize(scr)
+        tabs.Tab.initial_resize(scr)
         self.resize_global_info_bar()
         self.resize_global_information_win()
         for tab in self.tabs:
@@ -2105,7 +2118,7 @@ class Core:
             self.bookmarks.get_remote(self.xmpp, self.information,
                                       _join_remote_only)
 
-    def room_error(self, error, room_name):
+    def room_error(self, error: IqError, room_name: str) -> None:
         """
         Display the error in the tab
         """

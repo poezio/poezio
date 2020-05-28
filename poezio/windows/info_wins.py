@@ -3,6 +3,8 @@ Module defining all the "info wins", ie the bar which is on top of the
 info buffer in normal tabs
 """
 
+from typing import Optional, Dict, TYPE_CHECKING, Any
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -12,6 +14,11 @@ from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.ui.funcs import truncate_nick
 from poezio.theming import get_theme, to_curses_attr
+
+if TYPE_CHECKING:
+    from poezio.user import User
+    from poezio.tabs import MucTab
+    from poezio.windows import TextWin
 
 
 class InfoWin(Win):
@@ -260,10 +267,16 @@ class MucInfoWin(InfoWin):
 
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self) -> None:
         InfoWin.__init__(self)
 
-    def refresh(self, room, window=None, user=None, information=None):
+    def refresh(
+        self,
+        room: 'MucTab',
+        window: Optional['TextWin'] = None,
+        user: Optional['User'] =None,
+        information: Optional[Dict[str, Any]] = None
+    ) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
         self._win.erase()
         self.write_room_name(room)

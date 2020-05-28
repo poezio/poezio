@@ -28,6 +28,7 @@ from typing import (
     List,
     Optional,
     Union,
+    Tuple,
     TYPE_CHECKING,
 )
 
@@ -52,6 +53,8 @@ from slixmpp import JID, InvalidJID, Message as SMessage
 
 if TYPE_CHECKING:
     from _curses import _CursesWindow  # pylint: disable=E0611
+    from poezio.size_manager import SizeManager
+    from poezio.core.core import Core
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +120,7 @@ class Tab:
     height = 1
     width = 1
 
-    def __init__(self, core):
+    def __init__(self, core: 'Core'):
         self.core = core
         self.nb = 0
         if not hasattr(self, 'name'):
@@ -133,7 +136,7 @@ class Tab:
         self.commands = {}  # and their own commands
 
     @property
-    def size(self) -> int:
+    def size(self) -> 'SizeManager':
         return self.core.size
 
     @staticmethod
@@ -196,7 +199,7 @@ class Tab:
             self._state = 'normal'
 
     @staticmethod
-    def resize(scr: '_CursesWindow'):
+    def initial_resize(scr: '_CursesWindow'):
         Tab.height, Tab.width = scr.getmaxyx()
         windows.base_wins.TAB_WIN = scr
 
@@ -327,7 +330,7 @@ class Tab:
         else:
             return False
 
-    def refresh_tab_win(self):
+    def refresh_tab_win(self) -> None:
         if config.get('enable_vertical_tab_list'):
             left_tab_win = self.core.left_tab_win
             if left_tab_win and not self.size.core_degrade_x:
@@ -371,12 +374,12 @@ class Tab:
         """
         pass
 
-    def update_commands(self):
+    def update_commands(self) -> None:
         for c in self.plugin_commands:
             if c not in self.commands:
                 self.commands[c] = self.plugin_commands[c]
 
-    def update_keys(self):
+    def update_keys(self) -> None:
         for k in self.plugin_keys:
             if k not in self.key_func:
                 self.key_func[k] = self.plugin_keys[k]
@@ -435,7 +438,7 @@ class Tab:
         """
         pass
 
-    def on_close(self):
+    def on_close(self) -> None:
         """
         Called when the tab is to be closed
         """
@@ -443,7 +446,7 @@ class Tab:
             self.input.on_delete()
         self.closed = True
 
-    def matching_names(self) -> List[str]:
+    def matching_names(self) -> List[Tuple[int, str]]:
         """
         Returns a list of strings that are used to name a tab with the /win
         command.  For example you could switch to a tab that returns
@@ -532,7 +535,7 @@ class ChatTab(Tab):
             desc='Fix the last message with whatever you want.',
             shortdesc='Correct the last message.',
             completion=self.completion_correct)
-        self.chat_state = None
+        self.chat_state = None  # type: Optional[str]
         self.update_commands()
         self.update_keys()
 
@@ -667,11 +670,11 @@ class ChatTab(Tab):
         self._text_buffer.messages = []
         self.text_win.rebuild_everything(self._text_buffer)
 
-    def check_send_chat_state(self):
+    def check_send_chat_state(self) -> bool:
         "If we should send a chat state"
         return True
 
-    def send_chat_state(self, state, always_send=False):
+    def send_chat_state(self, state: str, always_send: bool = False) -> None:
         """
         Send an empty chatstate message
         """
@@ -691,9 +694,8 @@ class ChatTab(Tab):
                     x = ET.Element('{%s}x' % NS_MUC_USER)
                     msg.append(x)
                 msg.send()
-                return True
 
-    def send_composing_chat_state(self, empty_after):
+    def send_composing_chat_state(self, empty_after: bool) -> None:
         """
         Send the "active" or "composing" chatstate, depending
         on the the current status of the input
@@ -729,7 +731,7 @@ class ChatTab(Tab):
         self.core.add_timed_event(new_event)
         self.timed_event_not_paused = new_event
 
-    def cancel_paused_delay(self):
+    def cancel_paused_delay(self) -> None:
         """
         Remove that event from the list and set it to None.
         Called for example when the input is emptied, or when the message
@@ -741,7 +743,7 @@ class ChatTab(Tab):
             self.core.remove_timed_event(self.timed_event_not_paused)
             self.timed_event_not_paused = None
 
-    def set_last_sent_message(self, msg, correct=False):
+    def set_last_sent_message(self, msg: SMessage, correct: bool = False) -> None:
         """Ensure last_sent_message is set with the correct attributes"""
         if correct:
             # XXX: Is the copy needed. Is the object passed here reused
@@ -751,7 +753,7 @@ class ChatTab(Tab):
         self.last_sent_message = msg
 
     @command_args_parser.raw
-    def command_correct(self, line):
+    def command_correct(self, line: str) -> None:
         """
         /correct <fixed message>
         """
@@ -777,7 +779,7 @@ class ChatTab(Tab):
         return self.core.status.show in ('xa', 'away') or\
                 (hasattr(self, 'directed_presence') and not self.directed_presence)
 
-    def move_separator(self):
+    def move_separator(self) -> None:
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         self.text_win.refresh()
@@ -786,7 +788,7 @@ class ChatTab(Tab):
     def get_conversation_messages(self):
         return self._text_buffer.messages
 
-    def check_scrolled(self):
+    def check_scrolled(self) -> None:
         if self.text_win.pos != 0:
             self.state = 'scrolled'
 

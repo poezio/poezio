@@ -32,6 +32,7 @@ from poezio.ui.types import (
 
 if TYPE_CHECKING:
     from poezio.windows.text_win import TextWin
+    from poezio.user import User
 
 
 class CorrectionError(Exception):
@@ -249,7 +250,7 @@ class TextBuffer:
                        new_id: str,
                        highlight: bool = False,
                        time: Optional[datetime] = None,
-                       user: Optional[str] = None,
+                       user: Optional['User'] = None,
                        jid: Optional[str] = None) -> Message:
         """
         Correct a message in a text buffer.

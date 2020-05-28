@@ -145,7 +145,7 @@ class PrivateTab(OneToOneTab):
 
     @refresh_wrapper.always
     @command_args_parser.raw
-    def command_say(self, line, attention=False, correct=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False) -> None:
         if not self.on:
             return
         our_jid = JID(self.jid.bare)

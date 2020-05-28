@@ -1,6 +1,8 @@
 """
 Module defining structures useful to the core class and related methods
 """
+from dataclasses import dataclass
+from typing import Any, Callable, List, Dict
 
 __all__ = [
     'ERROR_AND_STATUS_CODES', 'DEPRECATED_ERRORS', 'POSSIBLE_SHOW', 'Status',
@@ -51,23 +53,11 @@ POSSIBLE_SHOW = {
 }
 
 
+@dataclass
 class Status:
     __slots__ = ('show', 'message')
-
-    def __init__(self, show, message):
-        self.show = show
-        self.message = message
-
-
-class Command:
-    __slots__ = ('func', 'desc', 'comp', 'short_desc', 'usage')
-
-    def __init__(self, func, desc, comp, short_desc, usage):
-        self.func = func
-        self.desc = desc
-        self.comp = comp
-        self.short_desc = short_desc
-        self.usage = usage
+    show: str
+    message: str
 
 
 class Completion:
@@ -75,8 +65,13 @@ class Completion:
     A completion result essentially currying the input completion call.
     """
     __slots__ = ['func', 'args', 'kwargs', 'comp_list']
-
-    def __init__(self, func, comp_list, *args, **kwargs):
+    def __init__(
+        self,
+        func: Callable[..., Any],
+        comp_list: List[str],
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
         self.func = func
         self.comp_list = comp_list
         self.args = args
@@ -84,3 +79,12 @@ class Completion:
 
     def run(self):
         return self.func(self.comp_list, *self.args, **self.kwargs)
+
+@dataclass
+class Command:
+    __slots__ = ('func', 'desc', 'comp', 'short_desc', 'usage')
+    func: Callable[..., Any]
+    desc: str
+    comp: Callable[['windows.Input'], Completion]
+    short_desc: str
+    usage: str
