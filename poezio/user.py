@@ -55,7 +55,7 @@ class User:
             else:
                 self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
 
-    def set_deterministic_color(self):
+    def set_deterministic_color(self) -> None:
         theme = get_theme()
         if theme.ccg_palette:
             # use XEP-0392 CCG
