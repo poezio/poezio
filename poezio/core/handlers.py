@@ -789,6 +789,7 @@ class HandlerCore:
         if not replaced:
             # Messages coming from MUC barejid (Server maintenance, IRC mode
             # changes from biboumi, etc.) are displayed as info messages.
+            highlight = False
             if message['from'].resource:
                 highlight = tab.message_is_highlight(body, nick_from, delayed)
                 ui_msg = PMessage(
