@@ -95,7 +95,7 @@ class BookmarksTab(Tab):
 
         def send_cb(success):
             if success:
-                self.core.information('Bookmarks saved.', 'Info')
+                self.core.information('Bookmarks saved', 'Info')
             else:
                 self.core.information('Remote bookmarks not saved.', 'Error')
 
