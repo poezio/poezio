@@ -374,7 +374,11 @@ class CommandCore:
             return  # nothing was parsed
 
         room = room.lower()
+
+        # Has the nick been specified explicitely when joining
+        config_nick = False
         if nick == '':
+            config_nick = True
             nick = self.core.own_nick
 
         # a password is provided
@@ -404,7 +408,7 @@ class CommandCore:
         if config.get('synchronise_open_rooms') and room not in self.core.bookmarks:
             method = 'remote' if config.get(
                 'use_remote_bookmarks') else 'local'
-            self._add_bookmark('%s/%s' % (room, nick), True, password, method)
+            self._add_bookmark(room, nick if not config_nick else None, True, password, method)
 
         if tab == self.core.tabs.current_tab:
             tab.refresh()
@@ -418,10 +422,11 @@ class CommandCore:
         if not args and not isinstance(self.core.tabs.current_tab,
                                        tabs.MucTab):
             return
-        password = args[1] if len(args) > 1 else None
-        jid = args[0] if args else None
 
-        self._add_bookmark(jid, True, password, 'local')
+        room, nick = self._parse_join_jid(args[0] if args else '')
+        password = args[1] if len(args) > 1 else None
+
+        self._add_bookmark(room, nick, True, password, 'local')
 
     @command_args_parser.quoted(0, 3)
     def bookmark(self, args):
@@ -431,41 +436,73 @@ class CommandCore:
         if not args and not isinstance(self.core.tabs.current_tab,
                                        tabs.MucTab):
             return
-        jid = args[0] if args else ''
+        room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[2] if len(args) > 2 else None
 
         if not config.get('use_remote_bookmarks'):
-            return self._add_bookmark(jid, True, password, 'local')
+            return self._add_bookmark(room, nick, True, password, 'local')
 
         if len(args) > 1:
             autojoin = False if args[1].lower() != 'true' else True
         else:
             autojoin = True
 
-        self._add_bookmark(jid, autojoin, password, 'remote')
+        self._add_bookmark(room, nick, autojoin, password, 'remote')
 
-    def _add_bookmark(self, jid, autojoin, password, method):
-        nick = None
-        if not jid:
+    def _add_bookmark(
+        self,
+        room: Optional[str],
+        nick: Optional[str],
+        autojoin: bool,
+        password: str,
+        method: str,
+    ) -> None:
+        '''
+        Adds a bookmark.
+
+        Args:
+            room: room Jid.
+            nick: optional nick. Will always be added to the bookmark if
+                specified. This takes precedence over tab.own_nick which takes
+                precedence over core.own_nick (global config).
+            autojoin: set the bookmark to join automatically.
+            password: room password.
+            method: 'local' or 'remote'.
+        '''
+
+        # No room Jid was specified. A nick may have been specified. Set the
+        # room Jid to be bookmarked to the current tab bare jid.
+        if not room:
             tab = self.core.tabs.current_tab
-            roomname = tab.jid.bare
-            if tab.joined and tab.own_nick != self.core.own_nick:
-                nick = tab.own_nick
+            if not isinstance(tab, tabs.MucTab):
+                return
+            room = tab.jid.bare
             if password is None and tab.password is not None:
                 password = tab.password
-        elif jid == '*':
+        elif room == '*':
             return self._add_wildcard_bookmarks(method)
-        else:
-            info = safeJID(jid)
-            roomname, nick = info.bare, info.resource
-            if roomname == '':
-                tab = self.core.tabs.current_tab
-                if not isinstance(tab, tabs.MucTab):
-                    return
-                roomname = tab.jid.bare
-        bookmark = self.core.bookmarks[roomname]
+
+        # Once we found which room to bookmark, find corresponding tab if it
+        # exists and fill nickname if none was specified and not default.
+        tab = self.core.tabs.by_name_and_class(room, tabs.MucTab)
+        if tab and isinstance(tab, tabs.MucTab) and \
+            tab.joined and tab.own_nick != self.core.own_nick:
+            nick = nick or tab.own_nick
+
+        # Validate / Normalize
+        try:
+            if nick is None:
+                jid = JID(room)
+            else:
+                jid = JID('{}/{}'.format(room, nick))
+            room = jid.bare
+            nick = jid.resource or None
+        except InvalidJID:
+            return
+
+        bookmark = self.core.bookmarks[room]
         if bookmark is None:
-            bookmark = Bookmark(roomname)
+            bookmark = Bookmark(room)
             self.core.bookmarks.append(bookmark)
         bookmark.method = method
         bookmark.autojoin = autojoin
