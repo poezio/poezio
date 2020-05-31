@@ -19,6 +19,8 @@ except ImportError:
 
 current_dir = os.path.dirname(__file__)
 
+from poezio.version import __version__
+
 def get_relative_dir(folder, stopper):
     """
     Find the path from a directory to a pseudo-root in order to recreate
@@ -111,14 +113,14 @@ if os.path.exists(git_dir):
     except:
         version = '.dev1'
 else:
-    version = '.dev1'
+    version = ''
 
 with open('README.rst', encoding='utf-8') as readme_fd:
     LONG_DESCRIPTION = readme_fd.read()
 
 setup(
     name="poezio",
-    version="0.14" + version,
+    version=__version__ + version,
     description="A console XMPP client",
     long_description=LONG_DESCRIPTION,
     ext_modules=[module_poopt],

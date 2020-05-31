@@ -53,9 +53,9 @@ copyright = '%s, Mathieu Pasquet - Florent Le Coz - Emmanuel Gil Peyrot' % time.
 # built documents.
 #
 # The short X.Y version.
-version = '0.14'
+version = '0.13'
 # The full version, including alpha/beta/rc tags.
-release = '0.14-dev'
+release = '0.13.1'
 
 add_function_parentheses = True
 
