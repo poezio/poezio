@@ -61,7 +61,11 @@ from poezio.core.structs import (
     POSSIBLE_SHOW,
 )
 
-from poezio.ui.types import Message, InfoMessage
+from poezio.ui.types import (
+    Message,
+    InfoMessage,
+    PersistentInfoMessage,
+)
 
 log = logging.getLogger(__name__)
 
@@ -1359,7 +1363,7 @@ class Core:
         """
         tab = self.tabs.by_name_and_class(jid, tabs.ConversationTab)
         if tab is not None:
-            tab.add_message(InfoMessage(msg), typ=2)
+            tab.add_message(PersistentInfoMessage(msg))
             if self.tabs.current_tab is tab:
                 self.refresh_window()
 
@@ -2120,12 +2124,11 @@ class Core:
                 nickname='Error',
                 nick_color=get_theme().COLOR_ERROR_MSG,
             ),
-            typ=2,
         )
         code = error['error']['code']
         if code == '401':
             msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
-            tab.add_message(InfoMessage(msg), typ=2)
+            tab.add_message(PersistentInfoMessage(msg))
         if code == '409':
             if config.get('alternative_nickname') != '':
                 if not tab.joined:
@@ -2134,11 +2137,10 @@ class Core:
             else:
                 if not tab.joined:
                     tab.add_message(
-                        InfoMessage(
+                        PersistentInfoMessage(
                             'You can join the room with another nick, '
                             'by typing "/join /other_nick"'
-                        ),
-                        typ=2,
+                        )
                     )
         self.refresh_window()
 

@@ -39,7 +39,13 @@ from poezio.logger import logger
 from poezio.roster import roster
 from poezio.text_buffer import CorrectionError, AckError
 from poezio.theming import dump_tuple, get_theme
-from poezio.ui.types import XMLLog, Message as PMessage, BaseMessage, InfoMessage
+from poezio.ui.types import (
+    XMLLog,
+    Message as PMessage,
+    BaseMessage,
+    InfoMessage,
+    PersistentInfoMessage,
+)
 
 from poezio.core.commands import dumb_callback
 
@@ -327,7 +333,7 @@ class HandlerCore:
         error = '\x19%s}%s\x19o' % (dump_tuple(get_theme().COLOR_CHAR_NACK),
                                     error_msg)
         if not tab.nack_message('\n' + error, message['id'], message['to']):
-            tab.add_message(InfoMessage(error), typ=0)
+            tab.add_message(InfoMessage(error))
             self.core.refresh_window()
 
     def on_normal_message(self, message):
@@ -430,8 +436,7 @@ class HandlerCore:
                     history=delayed,
                     identifier=message['id'],
                     jid=jid,
-                ),
-                typ=1,
+                )
             )
 
         if not own and 'private' in config.get('beep_on').split():
@@ -811,7 +816,7 @@ class HandlerCore:
                     identifier=message['id'],
                 )
                 typ = 2
-            tab.add_message(ui_msg, typ)
+            tab.add_message(ui_msg)
             if highlight:
                 self.core.events.trigger('highlight', message, tab)
 
@@ -906,8 +911,7 @@ class HandlerCore:
                     user=user,
                     identifier=message['id'],
                     jid=message['from'],
-                ),
-                typ=1,
+                )
             )
         if sent:
             tab.set_last_sent_message(message, correct=replaced)
@@ -1400,53 +1404,53 @@ class HandlerCore:
             if show_unavailable or hide_unavailable or non_priv or logging_off\
                     or non_anon or semi_anon or full_anon:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: A configuration change not privacy-related occurred.'
                     ),
-                    typ=2)
+                )
                 modif = True
             if show_unavailable:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: The unavailable members are now shown.'
                     ),
-                    typ=2)
+                )
             elif hide_unavailable:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: The unavailable members are now hidden.',
                     ),
-                    typ=2)
+                )
             if non_anon:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         '\x191}Warning:\x19%(info_col)s} The room is now not anonymous. (public JID)' % info_col
                     ),
-                    typ=2)
+                )
             elif semi_anon:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: The room is now semi-anonymous. (moderators-only JID)',
                     ),
-                    typ=2)
+                )
             elif full_anon:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: The room is now fully anonymous.',
                     ),
-                    typ=2)
+                )
             if logging_on:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         '\x191}Warning: \x19%(info_col)s}This room is publicly logged' % info_col
                     ),
-                    typ=2)
+                )
             elif logging_off:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         'Info: This room is not logged anymore.',
                     ),
-                    typ=2)
+                )
             if modif:
                 self.core.refresh_window()
 
@@ -1489,18 +1493,18 @@ class HandlerCore:
 
             if nick_from:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         "%(user)s set the subject to: \x19%(text_col)s}%(subject)s" % fmt,
                         time=time,
                     ),
-                    typ=2)
+                )
             else:
                 tab.add_message(
-                    InfoMessage(
+                    PersistentInfoMessage(
                         "The subject is: \x19%(text_col)s}%(subject)s" % fmt,
                         time=time,
                     ),
-                    typ=2)
+                )
         tab.topic = subject
         tab.topic_from = nick_from
         if self.core.tabs.by_name_and_class(
