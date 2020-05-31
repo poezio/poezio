@@ -23,6 +23,8 @@ https://dev.louiz.org/projects/poezio/roadmap
 - Fix marquee and dice plugin to use newer Last Message Correction format.
 - Bookmarks tab properly displays bookmarks method (local/remote) and allows
   to switch between them again.
+- Updated manpages and added manpages built from the doc in the setup process.
+  Packagers need to run setup.py build_man to have them built.
 
 # Forgotten additions
 
