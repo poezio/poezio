@@ -18,7 +18,7 @@ from poezio import common
 from poezio import pep
 from poezio import tabs
 from poezio import multiuserchat as muc
-from poezio.bookmarks import Bookmark, Method as BookmarkMethod
+from poezio.bookmarks import Bookmark
 from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio.contact import Contact, Resource
@@ -444,7 +444,7 @@ class CommandCore:
 
         self._add_bookmark(jid, autojoin, password, 'remote')
 
-    def _add_bookmark(self, jid: str, autojoin: bool, password: str, method: BookmarkMethod) -> None:
+    def _add_bookmark(self, jid, autojoin, password, method):
         nick = None
         if not jid:
             tab = self.core.tabs.current_tab
@@ -478,7 +478,7 @@ class CommandCore:
         self.core.bookmarks.save_remote(self.core.xmpp,
                                         self.core.handler.on_bookmark_result)
 
-    def _add_wildcard_bookmarks(self, method: BookmarkMethod):
+    def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
         for tab in self.core.get_tabs(tabs.MucTab):
             bookmark = self.core.bookmarks[tab.jid.bare]

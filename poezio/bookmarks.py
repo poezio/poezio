@@ -30,7 +30,7 @@ Adding a remote bookmark:
 
 import functools
 import logging
-from typing import Optional, List, Literal, Union
+from typing import Optional, List, Union
 
 from slixmpp import InvalidJID, JID
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
@@ -39,8 +39,6 @@ from poezio.config import config
 log = logging.getLogger(__name__)
 
 
-Method = Union[Literal['local'], Literal['remote']]
-
 class Bookmark:
     def __init__(self,
                  jid: Union[JID, str],
@@ -48,7 +46,7 @@ class Bookmark:
                  autojoin=False,
                  nick: Optional[str] = None,
                  password: Optional[str] = None,
-                 method: Method = 'local') -> None:
+                 method='local') -> None:
         try:
             if isinstance(jid, JID):
                 self._jid = jid
@@ -84,7 +82,7 @@ class Bookmark:
         return self._method
 
     @method.setter
-    def method(self, value: Method):
+    def method(self, value: str):
         if value not in ('local', 'remote'):
             log.debug('Could not set bookmark storing method: %s', value)
             return
