@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
+import os
+import subprocess
+import sys
+from tempfile import TemporaryFile
 
 try:
     from setuptools import setup, Extension
 except ImportError:
     print('\nSetuptools was not found. Install setuptools for python 3.\n')
-    import sys
     sys.exit(1)
 
-import os
-import subprocess
-from tempfile import TemporaryFile
+cmdclass = {}
+try:
+    from sphinx.setup_command import BuildDoc
+    cmdclass = {'build_man': BuildDoc}
+except ImportError:
+    print('\nSphinx not found, the build_man command will be unavailable.\n')
 
 current_dir = os.path.dirname(__file__)
 
@@ -57,8 +63,30 @@ def check_include(library_name, header):
             print('%s headers not found.' % library_name)
             return False
 
+def sphinx_man():
+    expected_sphinx_files = [
+        'build/sphinx/man/poezio.cfg.7',
+        'build/sphinx/man/poezio.keys.7',
+        'build/sphinx/man/poezio.commands.7'
+    ]
+    found = []
+    for item in expected_sphinx_files:
+        if os.path.exists(item):
+            found.append(item)
+    if found:
+        return [('share/man/man7/', found)]
+    return []
+
+
+sphinx_files_found = sphinx_man()
+if not sphinx_files_found:
+    print(
+        '\nSphinx-built manpages not found. Only the '
+        'short handwritten manpages will be installed\n'
+    )
+
+
 if not check_include('python3', 'Python.h'):
-    import sys
     sys.exit(2)
 
 module_poopt = Extension('poezio.poopt',
@@ -124,17 +152,26 @@ setup(
     package_data={'poezio': ['default_config.cfg']},
     scripts=['scripts/poezio_logs'],
     entry_points={'console_scripts': ['poezio = poezio.__main__:run']},
-    data_files=([('share/man/man1/', ['data/poezio.1',
-        'data/poezio_logs.1']),
-        ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG']),
-        ('share/applications/', ['data/io.poez.Poezio.desktop']),
-        ('share/metainfo/', ['data/io.poez.Poezio.appdata.xml'])]
+    data_files=([
+            ('share/man/man1/', ['data/poezio.1', 'data/poezio_logs.1']),
+            ('share/poezio/', ['README.rst', 'COPYING', 'CHANGELOG']),
+            ('share/applications/', ['data/io.poez.Poezio.desktop']),
+            ('share/metainfo/', ['data/io.poez.Poezio.appdata.xml'])
+        ]
         + find_doc('share/doc/poezio/source', 'source')
-        + find_doc('share/doc/poezio/html', 'build/html')),
+        + find_doc('share/doc/poezio/html', 'build/html')
+        + sphinx_files_found
+    ),
     install_requires=['slixmpp>=1.5.2', 'aiodns', 'pyasn1_modules', 'pyasn1'],
     extras_require={'OTR plugin': 'python-potr>=1.0',
         'Screen autoaway plugin': 'pyinotify==0.9.4',
-        'Avoiding cython': 'cffi'}
+        'Avoiding cython': 'cffi'},
+    cmdclass=cmdclass,
+    command_options={
+        'build_man' : {
+            'builder': ('setup.py', 'man'),
+        }
+    },
 )
 
 # Remove the link afterwards
