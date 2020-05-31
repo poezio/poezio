@@ -1,45 +1,48 @@
 .\" Copyright 2010 Le Coz Florent
 .\" This man page is distributed under the GPLv3 license.
 .\" See COPYING file
-.TH "Poezio" "1" "September 26, 2011" "Poezio dev team" ""
+.TH "Poezio" "1" "May 31, 2020" "Poezio dev team" ""
 .SH "NAME"
-Poezio \- a ncurses jabber client written in python3
+Poezio \- a ncurses jabber client written in python
 .SH "SYNOPSIS"
 .B poezio [\-f \fICONFIG_FILE\fR] [\-d \fIDEBUG_FILE\fR] [\-h]
 .SH "DESCRIPTION"
 .B Poezio
-is a console jabber (XMPP) client written in Python and using ncurses to draw its interface. It aims at being similar to the most famous IRC clients, like weechat or irssi. The keyboard shortcuts are inspired from emacs. For more information on XMPP see http://xmpp.org and on Poezio see https://poez.io
+is a console jabber (XMPP) client written in Python and using ncurses to draw its interface. It aims at being similar to the most famous IRC clients, like weechat or irssi. Some keyboard shortcuts are inspired from emacs. For more information on XMPP see http://xmpp.org and on Poezio see https://poez.io
 .PP
 .SH "OPTIONS"
 .TP
 \fB\-f\fR, \fB\-\-file \fICONFIG_FILE\fR
-Run poezio using \fICONFIG_FILE\fR as the config file instead of ~/.config/poezio/poezio.cfg
+Run poezio using \fICONFIG_FILE\fR as the config file instead of ~/.config/poezio/poezio.cfg.
 .TP
 \fB\-d\fR, \fB\-\-debug \fIDEBUG_FILE\fR
-Log debug from both poezio and SleekXMPP in \fIDEBUG_FILE\fR. Debug contains incoming and outgoing stanzas in addition to various message helping poezio's debugging.
+Log debug from both poezio and slixmpp in \fIDEBUG_FILE\fR. Debug contains incoming and outgoing stanzas in addition to various message helping poezio's debugging.
 .TP
-\fB\-h\fR
-Display an help message
+\fB\-c\fR, \fB\-\-check\-config\fR
+Display the list of modified/unmodified config options, with their changes from the default.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display the poezio help message.
 
-.SH "TABS"
-A \fItab\fR, in Poezio, is the base structure of the interface. A tab may contains one or more \fIwindows\fR, and can be of different types:
+.SH "BASICS"
+
+The following sections will give you a short overview on how to use poezio. Poezio has many more options, commands and key bindings, please refer to \fIpoezio.cfg(7)\fR, \fIpoezio.commands(7)\fR, \fIpoezio.keys(7)\fR or the full documentation which should have been provided alongside the source code, or check it online at https://doc.poez.io/.
+
+A \fItab\fR, in Poezio, is the base structure of the interface. A tab may contains one or more \fIwindows\fR, the main types are:
 .RS
 .TP 6
 .I Roster \fRtab
-It contains a list of your contacts on the left, as well as an info window on the right.
+It contains a browsable list of your contacts on the left, as well as an info window on the right.
 .TP
-.I MUC \fRtab
-MUC stands for "Multi-User Chat".
+.I Chatroom \fRtab
+This tab displays the contents of a multi-user chat.
 .TP
 .I Conversation \fRtab
 It is used for one-to-one communication, usually when using a real Jabber account.
-.TP
-.I Private \fRtab
-It is used to privately communicate with someone in a MUC.
 
 .SH "KEY BINDINGS"
 While most of the keyboard shortcuts are common to all types of tabs, some of them are tab-specific.
-.SS Text edition 
+.SS Text edition
 These shortcuts work in any kind of tab; most of them are identical to emacs' ones.
 .RS
 .TP 8
@@ -146,9 +149,6 @@ The opposite of \fI/accept\fR.
 .SS MUC-specific commands
 .RS
 .TP 5
-.B /recolor
-Change the color of the nicknames in the conversation. Useful when a few people are talking and their random color happen to be the same: using this command will let you differentiate them more easily.
-.TP
 .B /kick <user>
 Kick the specified user from the room.
 .TP
@@ -165,7 +165,7 @@ View or change the topic of the room.
 Talk privately with the specified participant.
 .TP
 .B /part
-Leave the current room. 
+Leave the current room.
 
 .SH "BUGS"
 Sure.
@@ -174,8 +174,8 @@ Sure.
 If you're using a terminal multiplexer such as \fIscreen\fR or \fItmux\fR, it may be setting $TERM to "screen", which breaks 256-color support. Consider setting your $TERM to something like "screen-256color".
 
 .SH "FEEDBACK"
-You are encouraged to report bugs or feature requests on https://dev.louiz.org/projects/poezio.
-You can also find us on the Jabber chatroom poezio@muc.poez.io
+You are encouraged to report bugs or feature requests on https://lab.louiz.org/poezio/poezio.
+You can also find us on the Jabber chatroom xmpp:poezio@muc.poez.io?join
 
 .SH "AUTHORS"
 Written by Florent Le Coz <louiz@louiz.org>
