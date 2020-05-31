@@ -408,7 +408,13 @@ class CommandCore:
         if config.get('synchronise_open_rooms') and room not in self.core.bookmarks:
             method = 'remote' if config.get(
                 'use_remote_bookmarks') else 'local'
-            self._add_bookmark(room, nick if not config_nick else None, True, password, method)
+            self._add_bookmark(
+                room=room,
+                nick=nick if not config_nick else None,
+                autojoin=True,
+                password=password,
+                method=method,
+            )
 
         if tab == self.core.tabs.current_tab:
             tab.refresh()
@@ -426,7 +432,13 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[1] if len(args) > 1 else None
 
-        self._add_bookmark(room, nick, True, password, 'local')
+        self._add_bookmark(
+            room=room,
+            nick=nick,
+            autojoin=True,
+            password=password,
+            method='local',
+        )
 
     @command_args_parser.quoted(0, 3)
     def bookmark(self, args):
@@ -439,15 +451,11 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[2] if len(args) > 2 else None
 
-        if not config.get('use_remote_bookmarks'):
-            return self._add_bookmark(room, nick, True, password, 'local')
+        method = 'remote' if config.get('use_remote_bookmarks') else 'local'
+        autojoin = method == 'local' or \
+            (len(args) > 1 and args[1].lower() == 'true')
 
-        if len(args) > 1:
-            autojoin = False if args[1].lower() != 'true' else True
-        else:
-            autojoin = True
-
-        self._add_bookmark(room, nick, autojoin, password, 'remote')
+        self._add_bookmark(room, nick, autojoin, password, method)
 
     def _add_bookmark(
         self,
