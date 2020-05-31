@@ -47,7 +47,13 @@ from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.consts import LONG_FORMAT_LENGTH
-from poezio.ui.types import BaseMessage, InfoMessage, Message
+from poezio.ui.types import (
+    BaseMessage,
+    InfoMessage,
+    Message,
+    PersistentInfoMessage,
+    LoggableTrait,
+)
 
 from slixmpp import JID, InvalidJID, Message as SMessage
 
@@ -545,6 +551,11 @@ class ChatTab(Tab):
             return self._name
         return self._jid.full
 
+    @property
+    def log_name(self) -> str:
+        """Name used for the log filename"""
+        return self.jid.bare
+
     @name.setter
     def name(self, value: Union[JID, str]) -> None:
         if isinstance(value, JID):
@@ -574,18 +585,17 @@ class ChatTab(Tab):
     def general_jid(self) -> JID:
         raise NotImplementedError
 
-    def log_message(self, message: BaseMessage, typ=1):
+    def log_message(self, message: BaseMessage):
         """
         Log the messages in the archives.
         """
-        name = self.jid.bare
-        if not isinstance(message, Message):
+        if not isinstance(message, LoggableTrait):
             return
-        if not logger.log_message(name, message.nickname, message.txt, date=message.time, typ=typ):
+        if not logger.log_message(self.log_name, message):
             self.core.information('Unable to write in the log file', 'Error')
 
-    def add_message(self, message: BaseMessage, typ=1):
-        self.log_message(message, typ=typ)
+    def add_message(self, message: BaseMessage):
+        self.log_message(message)
         self._text_buffer.add_message(message)
 
     def modify_message(self,
@@ -598,7 +608,7 @@ class ChatTab(Tab):
         message = self._text_buffer.modify_message(
             txt, old_id, new_id, user=user, jid=jid)
         if message:
-            self.log_message(message, typ=1)
+            self.log_message(message)
             self.text_win.modify_message(message.identifier, message)
             self.core.refresh_window()
             return True
@@ -992,8 +1002,7 @@ class OneToOneTab(ChatTab):
         if status.show in SHOW_NAME:
             msg += 'show: %s, ' % SHOW_NAME[status.show]
         self.add_message(
-            InfoMessage(txt=msg[:-2]),
-            typ=2,
+            PersistentInfoMessage(txt=msg[:-2])
         )
 
     def ack_message(self, msg_id: str, msg_jid: JID):

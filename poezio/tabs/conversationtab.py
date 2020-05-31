@@ -178,7 +178,7 @@ class ConversationTab(OneToOneTab):
                     (' and their last status was %s' % status)
                     if status else '',
                 )
-            self.add_message(InfoMessage(msg), typ=0)
+            self.add_message(InfoMessage(msg))
             self.core.refresh_window()
 
         self.core.xmpp.plugin['xep_0012'].get_last_activity(
@@ -206,15 +206,12 @@ class ConversationTab(OneToOneTab):
                         'status': status,
                     }
                 ),
-                typ=0,
             )
             return True
-        else:
-            self.add_message(
-                InfoMessage("No information available"),
-                typ=0,
-            )
-            return True
+        self.add_message(
+            InfoMessage("No information available"),
+        )
+        return True
 
     @command_args_parser.quoted(0, 1)
     def command_version(self, args):

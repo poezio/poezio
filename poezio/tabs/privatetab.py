@@ -27,7 +27,12 @@ from poezio.decorators import refresh_wrapper
 from poezio.logger import logger
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
-from poezio.ui.types import BaseMessage, Message, InfoMessage
+from poezio.ui.types import (
+    BaseMessage,
+    InfoMessage,
+    Message,
+    PersistentInfoMessage,
+)
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +74,11 @@ class PrivateTab(OneToOneTab):
         self.update_commands()
         self.update_keys()
 
+    @property
+    def log_name(self) -> str:
+        """Overriden from ChatTab because this is a case where we want the full JID"""
+        return self.jid.full
+
     def remote_user_color(self):
         user = self.parent_muc.get_user_by_name(self.jid.resource)
         if user:
@@ -104,16 +114,6 @@ class PrivateTab(OneToOneTab):
     @refresh_wrapper.always
     def remove_information_element(plugin_name):
         del PrivateTab.additional_information[plugin_name]
-
-    def log_message(self, msg: BaseMessage, typ=1):
-        """
-        Log the messages in the archives.
-        """
-        if not isinstance(msg, Message):
-            return
-        if not logger.log_message(
-                self.jid.full, msg.nickname, msg.txt, date=msg.time, typ=typ):
-            self.core.information('Unable to write in the log file', 'Error')
 
     def on_close(self):
         super().on_close()
@@ -310,7 +310,7 @@ class PrivateTab(OneToOneTab):
         display a message.
         """
         self.add_message(
-            InfoMessage(
+            PersistentInfoMessage(
                 '\x19%(nick_col)s}%(old)s\x19%(info_col)s} is now '
                 'known as \x19%(nick_col)s}%(new)s' % {
                     'old': old_nick,
@@ -319,7 +319,7 @@ class PrivateTab(OneToOneTab):
                     'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
                 },
             ),
-            typ=2)
+        )
         new_jid = self.jid.bare + '/' + user.nick
         self.name = new_jid
         return self.core.tabs.current_tab is self
@@ -339,7 +339,7 @@ class PrivateTab(OneToOneTab):
 
         if not status_message:
             self.add_message(
-                InfoMessage(
+                PersistentInfoMessage(
                     '\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
                     '%(nick)s\x19%(info_col)s} has left the room' % {
                         'nick': user.nick,
@@ -349,10 +349,10 @@ class PrivateTab(OneToOneTab):
                         'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
                     },
                 ),
-                typ=2)
+            )
         else:
             self.add_message(
-                InfoMessage(
+                PersistentInfoMessage(
                     '\x19%(quit_col)s}%(spec)s \x19%(nick_col)s}'
                     '%(nick)s\x19%(info_col)s} has left the room'
                     ' (%(status)s)' % {
@@ -364,7 +364,7 @@ class PrivateTab(OneToOneTab):
                         'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
                     },
                 ),
-                typ=2)
+            )
         return self.core.tabs.current_tab is self
 
     @refresh_wrapper.conditional
@@ -383,7 +383,7 @@ class PrivateTab(OneToOneTab):
             if user:
                 color = dump_tuple(user.color)
         self.add_message(
-            InfoMessage(
+            PersistentInfoMessage(
                 '\x19%(join_col)s}%(spec)s \x19%(color)s}%(nick)s\x19'
                 '%(info_col)s} joined the room' % {
                     'nick': nick,
@@ -393,18 +393,18 @@ class PrivateTab(OneToOneTab):
                     'info_col': dump_tuple(theme.COLOR_INFORMATION_TEXT)
                 },
             ),
-            typ=2)
+        )
         return self.core.tabs.current_tab is self
 
     def activate(self, reason=None):
         self.on = True
         if reason:
-            self.add_message(InfoMessage(reason), typ=2)
+            self.add_message(PersistentInfoMessage(reason))
 
     def deactivate(self, reason=None):
         self.on = False
         if reason:
-            self.add_message(InfoMessage(reason), typ=2)
+            self.add_message(PersistentInfoMessage(reason))
 
     def matching_names(self):
         return [(3, self.jid.resource), (4, self.name)]
@@ -420,6 +420,5 @@ class PrivateTab(OneToOneTab):
                 nickname='Error',
                 nick_color=theme.COLOR_ERROR_MSG,
             ),
-            typ=2,
         )
         self.core.refresh_window()
