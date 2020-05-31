@@ -364,7 +364,7 @@ class RosterInfoTab(Tab):
             'info_col': dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
             'jid': message['from'],
         }
-        tab.add_message(InfoMessage(message), typ=0)
+        tab.add_message(InfoMessage(message))
 
     @command_args_parser.ignored
     async def command_list_blocks(self):

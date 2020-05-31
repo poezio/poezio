@@ -11,13 +11,14 @@ conversations and roster changes
 
 import mmap
 import re
-from typing import List, Dict, Optional, IO, Any
+from typing import List, Dict, Optional, IO, Any, Union
 from datetime import datetime
 
 from poezio import common
 from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.theming import dump_tuple, get_theme
+from poezio.ui.types import Message, BaseMessage, LoggableTrait
 
 import logging
 
@@ -134,10 +135,7 @@ class Logger:
 
     def log_message(self,
                     jid: str,
-                    nick: str,
-                    msg: str,
-                    date: Optional[datetime] = None,
-                    typ: int = 1) -> bool:
+                    msg: Union[BaseMessage, Message]) -> bool:
         """
         log the message in the appropriate jid's file
         type:
@@ -147,7 +145,16 @@ class Logger:
         """
         if not config.get_by_tabname('use_log', jid):
             return True
-        logged_msg = build_log_message(nick, msg, date=date, typ=typ)
+        if not isinstance(msg, LoggableTrait):
+            return True
+        date = msg.time
+        txt = msg.txt
+        typ = 2
+        nick = ''
+        if isinstance(msg, Message):
+            nick = msg.nickname or ''
+            typ = 1
+        logged_msg = build_log_message(nick, txt, date=date, typ=typ)
         if not logged_msg:
             return True
         jid = str(jid).replace('/', '\\')
