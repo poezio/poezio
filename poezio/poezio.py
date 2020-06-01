@@ -104,7 +104,7 @@ def main():
     logger.create_logger()
 
     from poezio import roster
-    roster.create_roster()
+    roster.roster.reset()
 
     from poezio.core.core import Core
 
