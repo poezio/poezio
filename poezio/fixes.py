@@ -5,7 +5,8 @@ upstream.
 TODO: Check that they are fixed and remove those hacks
 """
 
-from slixmpp.stanza import Message
+from typing import Callable, Any
+from slixmpp import Message, Iq, ClientXMPP
 from slixmpp.xmlstream import ET
 
 import logging
@@ -25,7 +26,7 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
     xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
 
 
-def get_room_form(xmpp, room, callback):
+def get_room_form(xmpp: ClientXMPP, room: str, callback: Callable[[Iq], Any]):
     def _cb(result):
         if result["type"] == "error":
             return callback(None)
