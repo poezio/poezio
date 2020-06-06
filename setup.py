@@ -125,7 +125,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     ext_modules=[module_poopt],
     url='https://poez.io/',
-    license='zlib',
+    license='GPL-3.0-or-later',
     download_url='https://dev.louiz.org/projects/poezio/files',
 
     author='Florent Le Coz',
@@ -139,7 +139,7 @@ setup(
         'Topic :: Internet :: XMPP',
         'Environment :: Console :: Curses',
         'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: zlib/libpng License',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Natural Language :: English',
         'Operating System :: Unix',
         'Programming Language :: Python :: 3.8',
