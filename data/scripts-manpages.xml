@@ -62,7 +62,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <para>This manual page was written for the Debian system
     (and may be used by others).</para>
   <para>Permission is granted to copy, distribute and/or modify this
-    document under the terms of the Zlib License.</para>
+    document under the terms of the GPL-3.0+ License.</para>
 </legalnotice>
 </info>
 

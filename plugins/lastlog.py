@@ -5,7 +5,7 @@
 # Copyright © 2018 Maxime “pep” Buquet
 # Copyright © 2019 Madhur Garg
 #
-# Distributed under terms of the zlib license. See the COPYING file.
+# Distributed under terms of the GPL-3.0+ license. See the COPYING file.
 
 """
     Search provided string in the buffer and return all results on the screen
