@@ -4,7 +4,7 @@
 #
 # Copyright © 2019 Maxime “pep” Buquet <pep@bouah.net>
 #
-# Distributed under terms of the zlib license. See COPYING file.
+# Distributed under terms of the GPL-3.0+ license. See COPYING file.
 
 """
     Interface for E2EE (End-to-end Encryption) plugins.

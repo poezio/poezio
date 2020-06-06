@@ -3,7 +3,7 @@
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
+# it under the terms of the GPL-3.0+ license. See the COPYING file.
 """
 Define the user class.
 A user is a MUC participant, not a roster contact (see contact.py)

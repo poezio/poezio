@@ -4,7 +4,7 @@
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
+# it under the terms of the GPL-3.0+ license. See the COPYING file.
 """
 This file is a standalone program that reads commands on
 stdin and executes them (each line should be a command).
