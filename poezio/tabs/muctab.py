@@ -1521,11 +1521,7 @@ class MucTab(ChatTab):
         """
         /leave [msg]
         """
-        self.leave_room(msg)
-        if config.get('synchronise_open_rooms'):
-            self.core.bookmarks[self.jid].autojoin = False
-            self.core.bookmarks.save(self.core.xmpp)
-        self.core.close_tab(self)
+        self.command_close(msg)
 
     @command_args_parser.raw
     def command_close(self, msg: str) -> None:
@@ -1533,6 +1529,9 @@ class MucTab(ChatTab):
         /close [msg]
         """
         self.leave_room(msg)
+        if config.get('synchronise_open_rooms'):
+            self.core.bookmarks[self.jid].autojoin = False
+            self.core.bookmarks.save(self.core.xmpp)
         self.core.close_tab(self)
 
     def on_close(self) -> None:
@@ -2130,8 +2129,7 @@ class MucTab(ChatTab):
             'name': 'leave',
             'func': self.command_leave,
             'usage': '[message]',
-            'desc': ('Disconnect from a room, on all of your clients. '
-                     'You can specify an optional message'),
+            'desc': 'Deprecated alias for /close',
             'shortdesc': 'Leave the room.'
         }, {
             'name':
@@ -2140,9 +2138,11 @@ class MucTab(ChatTab):
             self.command_close,
             'usage':
             '[message]',
-            'desc': ('Disconnect from a room and close the tab.'
-                     ' You can specify an optional message if '
-                     'you are still connected.'),
+            'desc': ('Disconnect from a room and close the tab. '
+                     'You can specify an optional message if '
+                     'you are still connected. If synchronise_open_tabs '
+                     'is true, also disconnect you from your other '
+                     'clients.'),
             'shortdesc':
             'Close the tab.'
         }, {
