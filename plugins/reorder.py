@@ -92,7 +92,11 @@ def parse_config(tab_config):
         if pos in result or pos <= 0:
             return None
 
-        typ, name = tab_config.get(option, default=':').split(':', maxsplit=1)
+        spec = tab_config.get(option, default=':').split(':', maxsplit=1)
+        # Gap tabs are recreated automatically if there's a gap in indices.
+        if spec == 'empty':
+            return None
+        typ, name = spec
         if typ not in TEXT_TO_TAB:
             return None
         result[pos] = (TEXT_TO_TAB[typ], name)
