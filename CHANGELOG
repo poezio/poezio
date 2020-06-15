@@ -4,6 +4,15 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 * Poezio 0.14 - dev
 
+# Minor Changes
+
+- Reorder: Prevent GapTabs from being serialized and ignore when serialized as
+  they're recreated automatically.
+
+# Bug fixes
+
+- Reorder: Fix traceback on serialized gap tabs.
+
 * Poezio 0.13.1
 
 # Bug fixes
