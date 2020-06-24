@@ -452,8 +452,8 @@ class CommandCore:
         password = args[2] if len(args) > 2 else None
 
         method = 'remote' if config.get('use_remote_bookmarks') else 'local'
-        autojoin = method == 'local' or \
-            (len(args) > 1 and args[1].lower() == 'true')
+        autojoin = (method == 'local' or
+                    (len(args) > 1 and args[1].lower() == 'true'))
 
         self._add_bookmark(room, nick, autojoin, password, method)
 
@@ -494,7 +494,7 @@ class CommandCore:
         # exists and fill nickname if none was specified and not default.
         tab = self.core.tabs.by_name_and_class(room, tabs.MucTab)
         if tab and isinstance(tab, tabs.MucTab) and \
-            tab.joined and tab.own_nick != self.core.own_nick:
+           tab.joined and tab.own_nick != self.core.own_nick:
             nick = nick or tab.own_nick
 
         # Validate / Normalize
