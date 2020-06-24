@@ -8,6 +8,7 @@ https://dev.louiz.org/projects/poezio/roadmap
 
 - Reorder: Prevent GapTabs from being serialized and ignore when serialized as
   they're recreated automatically.
+- Ensure bookmark is present before removing it in /close.
 
 # Bug fixes
 
