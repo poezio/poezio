@@ -99,8 +99,6 @@ class MucTab(ChatTab):
         self.users = []  # type: List[User]
         # private conversations
         self.privates = []  # type: List[Tab]
-        # Used to check if we are still receiving muc history
-        self.last_message_was_history = None  # type: Optional[bool]
         self.topic = ''
         self.topic_from = ''
         # Self ping event, so we can cancel it when we leave the room
@@ -1128,7 +1126,7 @@ class MucTab(ChatTab):
             if msg.nickname != self.own_nick and not msg.history:
                 self.state = 'message'
         if msg.txt and msg.nickname:
-            self.do_highlight(msg.txt, msg.nickname, msg.delayed)
+            self.do_highlight(msg.txt, msg.nickname, msg.history)
 
     def modify_message(self,
                        txt: str,
@@ -1348,7 +1346,7 @@ class MucTab(ChatTab):
     def build_highlight_regex(self, nickname: str) -> Pattern:
         return re.compile(r"(^|\W)" + re.escape(nickname) + r"(\W|$)", re.I)
 
-    def message_is_highlight(self, txt: str, nickname: Optional[str], delayed: bool,
+    def message_is_highlight(self, txt: str, nickname: Optional[str], history: bool,
                              corrected: bool = False) -> bool:
         """Highlight algorithm for MUC tabs"""
         # Don't highlight on info message or our own messages
@@ -1359,7 +1357,7 @@ class MucTab(ChatTab):
             self.general_jid,
         ).split(':')
         highlighted = False
-        if not delayed:
+        if not history:
             if self.build_highlight_regex(self.own_nick).search(txt):
                 highlighted = True
             else:
@@ -1369,11 +1367,11 @@ class MucTab(ChatTab):
                         break
         return highlighted
 
-    def do_highlight(self, txt: str, nickname: str, delayed: bool,
+    def do_highlight(self, txt: str, nickname: str, history: bool,
                      corrected: bool = False) -> bool:
         """Set the tab color and returns the highlight state"""
         highlighted = self.message_is_highlight(
-            txt, nickname, delayed, corrected
+            txt, nickname, history, corrected
         )
         if highlighted and self.joined and not corrected:
             if self.state != 'current':
