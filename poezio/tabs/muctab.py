@@ -1128,7 +1128,7 @@ class MucTab(ChatTab):
             if msg.nickname != self.own_nick and not msg.history:
                 self.state = 'message'
         if msg.txt and msg.nickname:
-            self.do_highlight(msg.txt, msg.nickname, msg.delayed)
+            self.do_highlight(msg.txt, msg.nickname, msg.history)
 
     def modify_message(self,
                        txt: str,
@@ -1369,11 +1369,11 @@ class MucTab(ChatTab):
                         break
         return highlighted
 
-    def do_highlight(self, txt: str, nickname: str, delayed: bool,
+    def do_highlight(self, txt: str, nickname: str, history: bool,
                      corrected: bool = False) -> bool:
         """Set the tab color and returns the highlight state"""
         highlighted = self.message_is_highlight(
-            txt, nickname, delayed, corrected
+            txt, nickname, history, corrected
         )
         if highlighted and self.joined and not corrected:
             if self.state != 'current':
