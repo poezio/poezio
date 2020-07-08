@@ -427,7 +427,7 @@ class HandlerCore:
                     time=date,
                     nickname=remote_nick,
                     nick_color=color,
-                    history=delayed,
+                    history=is_history,
                     identifier=message['id'],
                     jid=jid,
                 ),
@@ -761,10 +761,7 @@ class HandlerCore:
 
         old_state = tab.state
         delayed, date = common.find_delayed_tag(message)
-
-        history = (tab.last_message_was_history is None and delayed) or \
-            (tab.last_message_was_history and delayed)
-        tab.last_message_was_history = history
+        is_history = not tab.joined and delayed
 
         replaced = False
         if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
@@ -791,12 +788,12 @@ class HandlerCore:
             # changes from biboumi, etc.) are displayed as info messages.
             highlight = False
             if message['from'].resource:
-                highlight = tab.message_is_highlight(body, nick_from, delayed)
+                highlight = tab.message_is_highlight(body, nick_from, is_history)
                 ui_msg = PMessage(
                     txt=body,
                     time=date,
                     nickname=nick_from,
-                    history=history,
+                    history=is_history,
                     delayed=delayed,
                     identifier=message['id'],
                     jid=message['from'],
