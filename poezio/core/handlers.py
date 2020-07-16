@@ -427,7 +427,7 @@ class HandlerCore:
                     time=date,
                     nickname=remote_nick,
                     nick_color=color,
-                    history=is_history,
+                    history=delayed,
                     identifier=message['id'],
                     jid=jid,
                 ),
