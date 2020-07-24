@@ -118,6 +118,10 @@ class VerticalGlobalInfoBar(Win):
         nb_tabs = len(sorted_tabs)
         use_nicks = config.get('use_tab_nicks')
         if nb_tabs >= height:
+            # TODO: As sorted_tabs filters out gap tabs this ensures pos is
+            # always set, preventing UnboundLocalError. Now is this how this
+            # should be fixed.
+            pos = 0
             for y, tab in enumerate(sorted_tabs):
                 if tab.vertical_color == theme.COLOR_VERTICAL_TAB_CURRENT:
                     pos = y
