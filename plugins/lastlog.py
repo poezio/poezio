@@ -18,7 +18,7 @@ from datetime import datetime
 from poezio.plugin import BasePlugin
 from poezio import tabs
 from poezio.text_buffer import TextBuffer
-from poezio.ui.types import InfoMessage
+from poezio.ui.types import Message as PMessage, InfoMessage
 
 
 def add_line(
@@ -52,7 +52,7 @@ class Plugin(BasePlugin):
         res = []
         add_line(text_buffer, "Lastlog:")
         for message in text_buffer.messages:
-            if message.nickname is not None and \
+            if isinstance(message, PMessage) and \
                search_re.search(message.txt) is not None:
                 res.append(message)
                 add_line(text_buffer, "%s> %s" % (message.nickname, message.txt), message.time)
