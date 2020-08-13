@@ -6,6 +6,8 @@ import re
 
 class Plugin(BasePlugin):
     def init(self):
+        self.api.information('This plugin is deprecated and will be replaced by \'untrackme\'.', 'Warning')
+
         self.api.add_event_handler('muc_say', self.remove_get_trackers)
         self.api.add_event_handler('conversation_say', self.remove_get_trackers)
         self.api.add_event_handler('private_say', self.remove_get_trackers)
