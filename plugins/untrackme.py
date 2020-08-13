@@ -75,6 +75,13 @@ class Plugin(BasePlugin):
         self.api.add_event_handler('private_msg', self.handle_msg)
 
     def map_services(self, match: re.Match) -> str:
+        """
+            If it matches a host that we know about, change the domain for the
+            alternative service. Some hosts needs to be proxied instead (such
+            as twitter pictures), so they're url encoded and appended to the
+            proxy service.
+        """
+
         host = match.group('host')
 
         dest = SERVICES.get(host)
