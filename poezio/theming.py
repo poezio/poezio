@@ -78,6 +78,7 @@ from typing import Dict, List, Union, Tuple, Optional
 from pathlib import Path
 from os import path
 from poezio import colors, xdg
+from datetime import datetime
 
 from importlib import machinery
 finder = machinery.PathFinder()
@@ -142,6 +143,14 @@ class Theme:
         if keep in ('both', 'none', 'to', 'from'):
             return sub_mapping[sub] if sub == keep else ''
         return sub_mapping.get(sub, '')
+
+    # Short date format (only show time)
+    SHORT_TIME_FORMAT = '%H:%M:%S'
+    SHORT_TIME_FORMAT_LENGTH = len(datetime.now().strftime(SHORT_TIME_FORMAT))
+
+    # Long date format (show date and time)
+    LONG_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+    LONG_TIME_FORMAT_LENGTH = len(datetime.now().strftime(LONG_TIME_FORMAT))
 
     # Message text color
     COLOR_NORMAL_TEXT = (-1, -1)

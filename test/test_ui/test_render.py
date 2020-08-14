@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from datetime import datetime
 from poezio.theming import get_theme
 from poezio.ui.render import build_lines, Line, write_pre
-from poezio.ui.consts import SHORT_FORMAT
 from poezio.ui.types import BaseMessage, Message, StatusMessage, XMLLog
 
 def test_simple_build_basemsg():
