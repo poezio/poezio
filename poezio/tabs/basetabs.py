@@ -46,7 +46,6 @@ from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.ui.funcs import truncate_nick
-from poezio.ui.consts import LONG_FORMAT_LENGTH
 from poezio.ui.types import BaseMessage, InfoMessage, Message
 
 from slixmpp import JID, InvalidJID, Message as SMessage
@@ -802,6 +801,7 @@ class ChatTab(Tab):
         message_count = 0
         timestamp = config.get('show_timestamps')
         nick_size = config.get('max_nick_length')
+        theme = get_theme()
         for message in text_buffer.messages:
             # Build lines of a message
             txt = message.txt
@@ -821,7 +821,7 @@ class ChatTab(Tab):
                 offset += 1
             if timestamp:
                 if message.history:
-                    offset += 1 + LONG_FORMAT_LENGTH
+                    offset += 1 + theme.LONG_TIME_FORMAT_LENGTH
             lines = poopt.cut_text(txt, self.text_win.width - offset - 1)
             for line in lines:
                 built_lines.append(line)

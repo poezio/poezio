@@ -6,11 +6,6 @@ from poezio.ui.funcs import truncate_nick
 from poezio import poopt
 from poezio.user import User
 from poezio.theming import dump_tuple, get_theme
-from poezio.ui.consts import (
-    SHORT_FORMAT_LENGTH,
-    LONG_FORMAT_LENGTH,
-)
-
 
 
 class BaseMessage:
@@ -25,7 +20,8 @@ class BaseMessage:
             self.time = datetime.now()
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
-        return SHORT_FORMAT_LENGTH + 1
+        theme = get_theme()
+        return theme.SHORT_TIME_FORMAT_LENGTH + 1
 
 
 class EndOfArchive(BaseMessage):
@@ -68,7 +64,7 @@ class XMLLog(BaseMessage):
         offset = 0
         theme = get_theme()
         if with_timestamps:
-            offset += 1 + SHORT_FORMAT_LENGTH
+            offset += 1 + theme.SHORT_TIME_FORMAT_LENGTH
         if self.incoming:
             nick = theme.CHAR_XML_IN
         else:
@@ -178,11 +174,12 @@ class Message(BaseMessage):
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
         offset = 0
+        theme = get_theme()
         if with_timestamps:
             if self.history:
-                offset += 1 + LONG_FORMAT_LENGTH
+                offset += 1 + theme.LONG_TIME_FORMAT_LENGTH
             else:
-                offset += 1 + SHORT_FORMAT_LENGTH
+                offset += 1 + theme.SHORT_TIME_FORMAT_LENGTH
 
         if not self.nickname:  # not a message, nothing to do afterwards
             return offset

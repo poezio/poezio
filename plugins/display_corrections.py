@@ -26,7 +26,7 @@ from poezio.plugin import BasePlugin
 from poezio.common import shell_split
 from poezio import tabs
 from poezio.ui.types import Message
-from poezio.ui.consts import SHORT_FORMAT
+from poezio.theming import get_theme
 
 
 class Plugin(BasePlugin):
@@ -56,6 +56,7 @@ class Plugin(BasePlugin):
         return None
 
     def command_display_corrections(self, args):
+        theme = get_theme()
         args = shell_split(args)
         if len(args) == 1:
             try:
@@ -68,7 +69,7 @@ class Plugin(BasePlugin):
         if message:
             display = []
             while message:
-                str_time = message.time.strftime(SHORT_FORMAT)
+                str_time = message.time.strftime(theme.SHORT_TIME_FORMAT)
                 display.append('%s %s%s%s %s' %
                                (str_time, '* '
                                 if message.me else '', message.nickname, ''

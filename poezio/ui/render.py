@@ -18,8 +18,6 @@ from poezio.theming import (
 )
 from poezio.ui.consts import (
     FORMAT_CHAR,
-    LONG_FORMAT,
-    SHORT_FORMAT,
 )
 from poezio.ui.funcs import (
     truncate_nick,
@@ -237,11 +235,12 @@ class PreMessageHelpers:
         """
         Write the date on the yth line of the window
         """
+        theme = get_theme()
         if time:
             if history and time.date() != date.today():
-                format = LONG_FORMAT
+                format = theme.LONG_TIME_FORMAT
             else:
-                format = SHORT_FORMAT
+                format = theme.SHORT_TIME_FORMAT
             time_str = time.strftime(format)
             color = get_theme().COLOR_TIME_STRING
             with buffer.colored_text(color=color):
