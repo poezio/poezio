@@ -19,6 +19,7 @@ using one of these.
 - **Fedora**: The stable poezio package was out of date for a long time in
   Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
   the repos since F19.
+- **Flatpak**: A stable package is provided on flathub_.
 - **Debian**: A stable package is provided since buster_ thanks to debacle.
 - **Nix** (and **NixOS**): The last stable version of poezio is availalble in
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
@@ -254,3 +255,4 @@ image from the Dockerfile at the root of the git repository.
 .. _poezio/poezio: https://hub.docker.com/r/poezio/poezio/
 .. _buster: https://packages.debian.org/buster/poezio
 .. _net-im/poezio: https://packages.gentoo.org/packages/net-im/poezio
+.. _flathub: https://flathub.org/apps/details/io.poez.Poezio
