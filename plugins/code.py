@@ -41,7 +41,11 @@ class Plugin(BasePlugin):
             help='Sends syntax-highlighted code in the current tab')
 
     def command_code(self, args):
-        language, code = args.split(None, 1)
+        split = args.split(None, 1)
+        if len(split) != 2:
+            self.api.information('Usage: /code <language> <code>', 'Error')
+            return None
+        language, code = split
         lexer = get_lexer_by_name(language)
         tab = self.api.current_tab()
         code = highlight(code, lexer, FORMATTER)
