@@ -53,7 +53,7 @@ class Plugin(BasePlugin):
         'default': {
             'cleanup': True,
             'redirect': True,
-            'display_corrections': True,
+            'display_corrections': False,
         },
         'services': {
             'invidious': 'https://invidio.us',
