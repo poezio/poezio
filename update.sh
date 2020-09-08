@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Use this script to download or update all dependencies to their last
 # developpement version.
 # The dependencies will be located in a virtualenv, so you do not
@@ -6,16 +6,12 @@
 
 # Use launch.sh to start poezio directly from here
 
-cd "$(dirname "$0")"
-if [ -z "$POEZIO_VENV" ]
-then
-    POEZIO_VENV="poezio-venv"
-fi
+set -euo pipefail
 
-if [ -z "$POEZIO_PYTHON" ]
-then
-    POEZIO_PYTHON=python3
-fi
+cd "$(dirname "$0")"
+
+POEZIO_VENV=${POEZIO_VENV:-poezio-venv}
+POEZIO_PYTHON=${POEZIO_PYTHON:-python3}
 
 command -v "$POEZIO_PYTHON" > /dev/null 2>&1 || {
     echo "Python executable '$POEZIO_PYTHON' not found."
