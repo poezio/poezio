@@ -56,7 +56,7 @@ class Plugin(BasePlugin):
             'display_corrections': False,
         },
         'services': {
-            'invidious': 'https://invidio.us',
+            'invidious': 'https://invidious.snopyta.org',
             'nitter': 'https://nitter.net',
             'bibliogram': 'https://bibliogram.art',
         },
