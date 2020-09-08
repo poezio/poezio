@@ -27,6 +27,26 @@ $POEZIO_PYTHON -c 'import venv' &> /dev/null || {
     exit 1
 }
 
+# XXX: Migration from master branch to main
+branch=$(git rev-parse --abbrev-ref HEAD)
+changes=$(git status --porcelain | grep -v "^??")
+if [ "$branch" == "master" ]; then
+  echo "! WARNING !"
+  echo "We are changing our default branch to 'main' and we have detected"
+  echo "you are still using 'master'."
+  echo
+
+  if [ -n "$changes" ]; then
+    echo "! Manual action required !"
+    echo "There are uncommited changes in your staging area. Please sort this"
+    echo "out and then manually checkout the 'main' branch using 'git checkout main'."
+    exit 1
+  fi
+
+  git checkout main
+  echo "Automatically switched to 'main' branch."
+fi
+
 echo 'Updating poezio'
 git pull --ff-only origin master || {
     echo "The script failed to update poezio."

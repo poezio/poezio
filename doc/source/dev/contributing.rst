@@ -38,8 +38,8 @@ useless merges (and polluting the commit history) when none is needed.
 .. code-block:: bash
 
     git fetch origin
-    git rebase origin/master
-    git push origin master
+    git rebase origin/main
+    git push origin main
 
 If your commit is related to an issue on our tracker_ (or fixes such an
 issue), you can use ``Fix #BUGID`` or ``References #BUGID`` to help with the
