@@ -111,13 +111,13 @@ class Plugin(BasePlugin):
         if self.config.get('redirect', section='default'):
             msg['body'] = self.redirect_url(msg['body'])
 
-        log.debug(
-            'UntrackMe in tab \'%s\':\nOriginal: %s\nModified: %s',
-            tab.name, orig, msg['body'],
-        )
-
         if self.config.get('display_corrections', section='default') and \
            msg['body'] != orig:
+            log.debug(
+                'UntrackMe in tab \'%s\':\nOriginal: %s\nModified: %s',
+                tab.name, orig, msg['body'],
+            )
+
             self.api.information(
                 'UntrackMe in tab \'{}\':\nOriginal: {}\nModified: {}'.format(
                     tab.name, orig, msg['body']
