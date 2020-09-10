@@ -6,7 +6,6 @@ stages:
 build-doc:
   stage: build
   only:
-    - master@poezio/poezio
     - main@poezio/poezio
   tags:
     - www
@@ -30,7 +29,6 @@ build-ubuntu:
     paths:
       - dist/
   only:
-    - master
     - main
 
 security-check:
