@@ -48,7 +48,7 @@ if [ "$branch" == "master" ]; then
 fi
 
 echo 'Updating poezio'
-git pull --ff-only origin master || {
+git pull --ff-only origin main || {
     echo "The script failed to update poezio."
     exit 1
 }
