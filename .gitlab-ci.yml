@@ -7,6 +7,7 @@ build-doc:
   stage: build
   only:
     - master@poezio/poezio
+    - main@poezio/poezio
   tags:
     - www
   image: python:3
@@ -30,6 +31,7 @@ build-ubuntu:
       - dist/
   only:
     - master
+    - main
 
 security-check:
   stage: lint
