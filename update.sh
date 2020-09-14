@@ -30,7 +30,7 @@ $POEZIO_PYTHON -c 'import venv' &> /dev/null || {
 # XXX: Migration from master branch to main
 branch=$(git rev-parse --abbrev-ref HEAD)
 changes=$(git status --porcelain | grep -v "^??")
-if [ "$branch" == "master" ]; then
+if [ "$branch" = "master" ]; then
   echo "! WARNING !"
   echo "We are changing our default branch to 'main' and we have detected"
   echo "you are still using 'master'."
