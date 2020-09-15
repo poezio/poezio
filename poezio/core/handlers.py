@@ -204,7 +204,7 @@ class HandlerCore:
         if is_muc_pm is None:
             fixes.has_identity(
                 self.core.xmpp,
-                sent['to'].server,
+                sent['to'].bare,
                 identity='conference',
                 on_true=functools.partial(groupchat_private_message, sent),
                 on_false=functools.partial(send_message, sent))
