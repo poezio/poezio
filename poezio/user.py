@@ -83,17 +83,15 @@ class User:
         self.nick = nick
 
     def change_color(self, color_name: Optional[str], deterministic=False):
-        if color_name is None:
+        color = xhtml.colors.get(color_name or '')
+        if color is None:
             if deterministic:
                 self.set_deterministic_color()
             else:
+                log.error('Unknown color "%s"', color_name)
                 self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
         else:
-            color = xhtml.colors.get(color_name)
-            if color is None:
-                log.error('Unknown color "%s"', color_name)
-            else:
-                self.color = (color, -1)
+            self.color = (color, -1)
 
     def set_last_talked(self, time: datetime):
         """
