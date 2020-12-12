@@ -26,8 +26,8 @@ class RosterWin(Win):
         Win.__init__(self)
         self.pos = 0  # cursor position in the contact list
         self.start_pos = 1  # position of the start of the display
-        self.selected_row = None  # type: Optional[Row]
-        self.roster_cache = []  # type: List[Row]
+        self.selected_row: Optional[Row] = None
+        self.roster_cache: List[Row] = []
 
     @property
     def roster_len(self) -> int:

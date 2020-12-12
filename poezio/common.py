@@ -250,7 +250,7 @@ def find_delayed_tag(message: Message) -> Tuple[bool, Optional[datetime]]:
 
     find_delay = message.xml.find
     delay_tag = find_delay('{urn:xmpp:delay}delay')
-    date = None  # type: Optional[datetime]
+    date: Optional[datetime] = None
     if delay_tag is not None:
         delayed = True
         date = _datetime_tuple(delay_tag.attrib['stamp'])

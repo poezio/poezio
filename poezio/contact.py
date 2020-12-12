@@ -29,8 +29,8 @@ class Resource:
         data: the dict to use as a source
         """
         # Full JID
-        self._jid = jid  # type: str
-        self._data = data  # type: Dict[str, Union[str, int]]
+        self._jid: str = jid
+        self._data: Dict[str, Union[str, int]] = data
 
     @property
     def jid(self) -> str:
@@ -69,12 +69,12 @@ class Contact:
         item: a slixmpp RosterItem pointing to that contact
         """
         self.__item = item
-        self.folded_states = defaultdict(lambda: True)  # type: Dict[str, bool]
+        self.folded_states: Dict[str, bool] = defaultdict(lambda: True)
         self._name = ''
         self.avatar = None
         self.error = None
-        self.tune = {}  # type: Dict[str, str]
-        self.gaming = {}  # type: Dict[str, str]
+        self.tune: Dict[str, str] = {}
+        self.gaming: Dict[str, str] = {}
         self.mood = ''
         self.activity = ''
 

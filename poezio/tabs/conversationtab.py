@@ -38,9 +38,9 @@ class ConversationTab(OneToOneTab):
     The tab containing a normal conversation (not from a MUC)
     Must not be instantiated, use Static or Dynamic version only.
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
-    additional_information = {}  # type: Dict[str, Callable[[str], str]]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
+    additional_information: Dict[str, Callable[[str], str]] = {}
     message_type = 'chat'
 
     def __init__(self, core, jid):
@@ -377,8 +377,8 @@ class DynamicConversationTab(ConversationTab):
     bad idea so it has been removed.
     Only one DynamicConversationTab can be opened for a given jid.
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, jid, resource=None):
         self.locked_resource = None
@@ -447,8 +447,8 @@ class StaticConversationTab(ConversationTab):
     A conversation tab associated with one Full JID. It cannot be locked to
     an different resource or unlocked.
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, jid):
         ConversationTab.__init__(self, core, jid)

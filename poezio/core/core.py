@@ -1171,7 +1171,7 @@ class Core:
         """
         # shortcut
         priority = tabs.STATE_PRIORITY
-        tab_refs = {}  # type: Dict[str, List[tabs.Tab]]
+        tab_refs: Dict[str, List[tabs.Tab]] = {}
         # put all the active tabs in a dict of lists by state
         for tab in self.tabs.get_tabs():
             if not tab:
