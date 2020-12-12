@@ -31,7 +31,6 @@ log = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from poezio.core import Core
     from poezio.tabs import Tab
-    from slixmpp.plugins.xep_0004 import Form
 
 
 NS_MUC_ADMIN = 'http://jabber.org/protocol/muc#admin'
