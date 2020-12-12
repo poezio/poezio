@@ -45,6 +45,7 @@ from poezio import timed_events
 from poezio import windows
 
 from poezio.bookmarks import BookmarkList
+from poezio.common import get_error_message
 from poezio.config import config, firstrun
 from poezio.contact import Contact, Resource
 from poezio.daemon import Executor
@@ -66,8 +67,6 @@ from poezio.core.handlers import HandlerCore
 from poezio.core.structs import (
     Command,
     Status,
-    DEPRECATED_ERRORS,
-    ERROR_AND_STATUS_CODES,
     POSSIBLE_SHOW,
 )
 
@@ -988,42 +987,6 @@ class Core:
 
         for jid in jids:
             self.invite(jid, room)
-
-    def get_error_message(self, stanza, deprecated: bool = False):
-        """
-        Takes a stanza of the form <message type='error'><error/></message>
-        and return a well formed string containing error information
-        """
-        sender = stanza['from']
-        msg = stanza['error']['type']
-        condition = stanza['error']['condition']
-        code = stanza['error']['code']
-        body = stanza['error']['text']
-        if not body:
-            if deprecated:
-                if code in DEPRECATED_ERRORS:
-                    body = DEPRECATED_ERRORS[code]
-                else:
-                    body = condition or 'Unknown error'
-            else:
-                if code in ERROR_AND_STATUS_CODES:
-                    body = ERROR_AND_STATUS_CODES[code]
-                else:
-                    body = condition or 'Unknown error'
-        if code:
-            message = '%(from)s: %(code)s - %(msg)s: %(body)s' % {
-                'from': sender,
-                'msg': msg,
-                'body': body,
-                'code': code
-            }
-        else:
-            message = '%(from)s: %(msg)s: %(body)s' % {
-                'from': sender,
-                'msg': msg,
-                'body': body
-            }
-        return message
 
 ####################### Tab logic-related things ##############################
 
@@ -2125,7 +2088,7 @@ class Core:
         tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
         if not tab:
             return
-        error_message = self.get_error_message(error)
+        error_message = get_error_message(error)
         tab.add_message(
             Message(
                 error_message,
