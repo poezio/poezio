@@ -54,16 +54,15 @@ class Tabs:
         once. Otherwise, mayhem is expected.
         """
         # cursor
-        self._current_index = 0  # type: int
-        self._current_tab = None  # type: Optional[tabs.Tab]
+        self._current_index: int = 0
+        self._current_tab: Optional[tabs.Tab] = None
 
-        self._previous_tab = None  # type: Optional[tabs.Tab]
-        self._tabs = []  # type: List[tabs.Tab]
-        self._tab_jids = dict()  # type: Dict[JID, tabs.Tab]
-        self._tab_types = defaultdict(
-            list)  # type: Dict[Type[tabs.Tab], List[tabs.Tab]]
-        self._tab_names = dict()  # type: Dict[str, tabs.Tab]
-        self._events = events  # type: EventHandler
+        self._previous_tab: Optional[tabs.Tab] = None
+        self._tabs: List[tabs.Tab] = []
+        self._tab_jids: Dict[JID, tabs.Tab] = dict()
+        self._tab_types: Dict[Type[tabs.Tab], List[tabs.Tab]] = defaultdict(list)
+        self._tab_names: Dict[str, tabs.Tab] = dict()
+        self._events: EventHandler = events
 
     def __len__(self):
         return len(self._tabs)

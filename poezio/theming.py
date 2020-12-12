@@ -291,7 +291,7 @@ class Theme:
             (224, -1), (225, -1), (226, -1), (227, -1)]
     # XEP-0392 consistent color generation palette placeholder
     # it’s generated on first use when accessing the ccg_palette property
-    CCG_PALETTE = None  # type: Optional[Dict[float, int]]
+    CCG_PALETTE: Optional[Dict[float, int]] = None
     CCG_Y = 0.5**0.45
 
     # yapf: enable
@@ -393,8 +393,7 @@ theme = Theme()
 # Each time we use a color tuple, we check if it has already been used.
 # If not we create a new color_pair and keep it in that dict, to use it
 # the next time.
-curses_colors_dict = {
-}  # type: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int]
+curses_colors_dict: Dict[Union[Tuple[int, int], Tuple[int, int, str]], int] = {}
 
 # yapf: disable
 
@@ -418,7 +417,7 @@ table_256_to_16 = [
 ]
 # yapf: enable
 
-load_path = []  # type: List[str]
+load_path: List[str] = []
 
 
 def color_256_to_16(color):

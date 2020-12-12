@@ -7,7 +7,9 @@ the text window, the roster window, etc.
 A Tab (see the poezio.tabs module) is composed of multiple Windows
 """
 
-TAB_WIN = None  # type: _CursesWindow
+from __future__ import annotations
+
+TAB_WIN: _CursesWindow = None
 
 import logging
 log = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ class Win:
     __slots__ = ('_win', 'height', 'width', 'y', 'x')
 
     def __init__(self) -> None:
-        self._win = None  # type: _CursesWindow
+        self._win: _CursesWindow = None
         self.height, self.width = 0, 0
 
     def _resize(self, height: int, width: int, y: int, x: int) -> None:

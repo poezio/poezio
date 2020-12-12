@@ -41,12 +41,12 @@ class User:
                  deterministic=True,
                  color='') -> None:
         # The oldest possible time
-        self.last_talked = datetime(1, 1, 1)  # type: datetime
+        self.last_talked: datetime = datetime(1, 1, 1)
         self.update(affiliation, show, status, role)
         self.change_nick(nick)
-        self.jid = jid  # type: JID
-        self.chatstate = None  # type: Optional[str]
-        self.color = (1, 1)  # type: Tuple[int, int]
+        self.jid: JID = jid
+        self.chatstate: Optional[str] = None
+        self.color: Tuple[int, int] = (1, 1)
         if color != '':
             self.change_color(color, deterministic)
         else:

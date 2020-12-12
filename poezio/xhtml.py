@@ -32,7 +32,7 @@ digits = '0123456789'  # never trust the modules
 XHTML_NS = 'http://www.w3.org/1999/xhtml'
 
 # HTML named colors
-colors = {
+colors: Dict[str, int] = {
     'aliceblue': 231,
     'antiquewhite': 231,
     'aqua': 51,
@@ -180,7 +180,7 @@ colors = {
     'whitesmoke': 255,
     'yellow': 226,
     'yellowgreen': 149
-}  # type: Dict[str, int]
+}
 
 whitespace_re = re.compile(r'\s+')
 
@@ -302,11 +302,11 @@ def get_hash(data: bytes) -> str:
 class XHTMLHandler(sax.ContentHandler):
     def __init__(self, force_ns=False,
                  tmp_image_dir: Optional[Path] = None) -> None:
-        self.builder = []  # type: List[str]
-        self.formatting = []  # type: List[str]
-        self.attrs = []  # type: List[Dict[str, str]]
-        self.list_state = []  #  type: List[Union[str, int]]
-        self.cids = {}  #  type: Dict[str, Optional[str]]
+        self.builder: List[str] = []
+        self.formatting: List[str] = []
+        self.attrs: List[Dict[str, str]] = []
+        self.list_state: List[Union[str, int]] = []
+        self.cids: Dict[str, Optional[str]] = {}
         self.is_pre = False
         self.a_start = 0
         # do not care about xhtml-in namespace
@@ -512,7 +512,7 @@ def convert_simple_to_full_colors(text: str) -> str:
     return re.sub(xhtml_simple_attr_re, add_curly_bracket, text)
 
 
-number_to_color_names = {
+number_to_color_names: Dict[int, str] = {
     1: 'red',
     2: 'green',
     3: 'yellow',
@@ -520,7 +520,7 @@ number_to_color_names = {
     5: 'violet',
     6: 'turquoise',
     7: 'white'
-}  # type: Dict[int, str]
+}
 
 
 def format_inline_css(_dict: Dict[str, str]) -> str:
@@ -535,7 +535,7 @@ def poezio_colors_to_html(string: str) -> str:
     # Maintain a list of the current css attributes used
     # And check if a tag is open (by design, we only open
     # spans tag, and they cannot be nested.
-    current_attrs = {}  # type: Dict[str, str]
+    current_attrs: Dict[str, str] = {}
     tag_open = False
     next_attr_char = string.find('\x19')
     build = ["<body xmlns='http://www.w3.org/1999/xhtml'><p>"]

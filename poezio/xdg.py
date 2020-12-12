@@ -15,11 +15,11 @@ from os import environ
 from typing import Dict
 
 # $HOME has already been checked to not be None in test_env().
-DEFAULT_PATHS = {
+DEFAULT_PATHS: Dict[str, Path] = {
     'XDG_CONFIG_HOME': Path.home() / '.config',
     'XDG_DATA_HOME': Path.home() / '.local' / 'share',
     'XDG_CACHE_HOME': Path.home() / '.cache',
-}  # type: Dict[str, Path]
+}
 
 
 def _get_directory(variable: str) -> Path:

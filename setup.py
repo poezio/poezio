@@ -142,6 +142,7 @@ setup(
         'License :: OSI Approved :: zlib/libpng License',
         'Natural Language :: English',
         'Operating System :: Unix',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3 :: Only'],

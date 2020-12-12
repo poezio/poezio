@@ -10,6 +10,8 @@ Add some facilities that are not available on the XEP_0045
 slix plugin
 """
 
+from __future__ import annotations
+
 from xml.etree import ElementTree as ET
 from typing import (
     Callable,
@@ -31,7 +33,6 @@ log = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from poezio.core import Core
     from poezio.tabs import Tab
-    from slixmpp.plugins.xep_0004 import Form
 
 
 NS_MUC_ADMIN = 'http://jabber.org/protocol/muc#admin'
@@ -104,7 +105,7 @@ def change_subject(xmpp: ClientXMPP, jid: JID, subject: str) -> None:
 
 
 def change_nick(
-    core: 'Core',
+    core: Core,
     jid: JID,
     nick: str,
     status: Optional[str] = None,
@@ -121,14 +122,14 @@ def change_nick(
 
 
 def join_groupchat(
-    core: 'Core',
+    core: Core,
     jid: JID,
     nick: str,
     passwd: str = '',
     status: Optional[str] = None,
     show: Optional[str] = None,
     seconds: Optional[int] = None,
-    tab: Optional['Tab'] = None
+    tab: Optional[Tab] = None
 ) -> None:
     xmpp = core.xmpp
     stanza = xmpp.make_presence(

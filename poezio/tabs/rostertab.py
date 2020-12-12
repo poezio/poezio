@@ -36,8 +36,8 @@ class RosterInfoTab(Tab):
     """
     A tab, split in two, containing the roster and infos
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core):
         Tab.__init__(self, core)

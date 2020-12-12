@@ -7,6 +7,8 @@ It keeps track of many things such as part/joins, maintains an
 user list, and updates private tabs when necessary.
 """
 
+from __future__ import annotations
+
 import asyncio
 import bisect
 import curses
@@ -78,38 +80,38 @@ class MucTab(ChatTab):
     It contains a userlist, an input, a topic, an information and a chat zone
     """
     message_type = 'groupchat'
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable[..., Any]]
-    additional_information = {}  # type: Dict[str, Callable[[str], str]]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable[..., Any]] = {}
+    additional_information: Dict[str, Callable[[str], str]] = {}
     lagged = False
 
-    def __init__(self, core: 'Core', jid: JID, nick: str, password: Optional[str] = None) -> None:
+    def __init__(self, core: Core, jid: JID, nick: str, password: Optional[str] = None) -> None:
         ChatTab.__init__(self, core, jid)
         self.joined = False
         self._state = 'disconnected'
         # our nick in the MUC
         self.own_nick = nick
         # self User object
-        self.own_user = None  # type: Optional[User]
+        self.own_user: Optional[User] = None
         self.password = password
         # buffered presences
-        self.presence_buffer = []  # type: List[Presence]
+        self.presence_buffer: List[Presence] = []
         # userlist
-        self.users = []  # type: List[User]
+        self.users: List[User] = []
         # private conversations
-        self.privates = []  # type: List[Tab]
+        self.privates: List[Tab] = []
         self.topic = ''
         self.topic_from = ''
         # Self ping event, so we can cancel it when we leave the room
-        self.self_ping_event = None  # type: Optional[timed_events.DelayedEvent]
+        self.self_ping_event: Optional[timed_events.DelayedEvent] = None
         # UI stuff
         self.topic_win = windows.Topic()
         self.v_separator = windows.VerticalSeparator()
         self.user_win = windows.UserList()
         self.info_header = windows.MucInfoWin()
-        self.input = windows.MessageInput()  # type: windows.MessageInput
+        self.input: windows.MessageInput = windows.MessageInput()
         # List of ignored users
-        self.ignores = []  # type: List[User]
+        self.ignores: List[User] = []
         # keys
         self.register_keys()
         self.update_keys()
@@ -149,14 +151,14 @@ class MucTab(ChatTab):
         """
         del MucTab.additional_information[plugin_name]
 
-    def cancel_config(self, form: 'Form') -> None:
+    def cancel_config(self, form: Form) -> None:
         """
         The user do not want to send their config, send an iq cancel
         """
         asyncio.ensure_future(self.core.xmpp['xep_0045'].cancel_config(self.jid.bare))
         self.core.close_tab()
 
-    def send_config(self, form: 'Form') -> None:
+    def send_config(self, form: Form) -> None:
         """
         The user sends their config to the server
         """
@@ -1406,7 +1408,7 @@ class MucTab(ChatTab):
         /configure
         """
 
-        def on_form_received(form: 'Form') -> None:
+        def on_form_received(form: Form) -> None:
             if not form:
                 self.core.information(
                     'Could not retrieve the configuration form', 'Error')

@@ -20,8 +20,8 @@ class MucListTab(ListTab):
     A tab listing rooms from a specific server, displaying various information,
     scrollable, and letting the user join them, etc
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, server):
         ListTab.__init__(self, core, server.full, "“j”: join room.",

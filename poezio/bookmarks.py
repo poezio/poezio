@@ -152,7 +152,7 @@ class Bookmark:
 
 class BookmarkList:
     def __init__(self):
-        self.bookmarks = []  # type: List[Bookmark]
+        self.bookmarks: List[Bookmark] = []
         preferred = config.get('use_bookmarks_method').lower()
         if preferred not in ('pep', 'privatexml'):
             preferred = 'privatexml'

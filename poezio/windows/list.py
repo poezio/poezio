@@ -24,10 +24,10 @@ class ListWin(Win):
 
     def __init__(self, columns: Dict[str, int], with_headers: bool = True) -> None:
         Win.__init__(self)
-        self._columns = columns  # type: Dict[str, int]
-        self._columns_sizes = {}  # type: Dict[str, int]
+        self._columns: Dict[str, int] = columns
+        self._columns_sizes: Dict[str, int] = {}
         self.sorted_by = (None, None)  # for example: ('name', '↑')
-        self.lines = []  # type: List[str]
+        self.lines: List[str] = []
         self._selected_row = 0
         self._starting_pos = 0  # The column number from which we start the refresh
 
@@ -173,7 +173,7 @@ class ColumnHeaderWin(Win):
     def __init__(self, columns: List[str]) -> None:
         Win.__init__(self)
         self._columns = columns
-        self._columns_sizes = {}  # type: Dict[str, int]
+        self._columns_sizes: Dict[str, int] = {}
         self._column_sel = ''
         self._column_order = ''
         self._column_order_asc = False

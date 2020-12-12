@@ -37,7 +37,7 @@ class SimpleTextWin(Win):
     def __init__(self, text) -> None:
         Win.__init__(self)
         self._text = text
-        self.built_lines = []  # type: List[str]
+        self.built_lines: List[str] = []
 
     def rebuild_text(self) -> None:
         """

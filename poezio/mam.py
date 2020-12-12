@@ -111,10 +111,10 @@ async def get_mam_iterator(
     if 'urn:xmpp:mam:2' not in iq['disco_info'].get_features():
         raise NoMAMSupportException()
 
-    args = {
+    args: Dict[str, Any] = {
         'iterator': True,
         'reverse': reverse,
-    }  # type: Dict[str, Any]
+    }
 
     if groupchat:
         args['jid'] = remote_jid

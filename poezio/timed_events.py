@@ -32,11 +32,11 @@ class DelayedEvent:
         :param function callback: The handler that will be executed.
         :param args: Optional arguments passed to the handler.
         """
-        self.callback = callback  # type: Callable
-        self.args = args  # type: Tuple[Any, ...]
-        self.delay = delay  # type: Union[int, float]
+        self.callback: Callable = callback
+        self.args: Tuple[Any, ...] = args
+        self.delay: Union[int, float] = delay
         # An asyncio handler, as returned by call_later() or call_at()
-        self.handler = None  # type: Optional[Handle]
+        self.handler: Optional[Handle] = None
 
 
 class TimedEvent(DelayedEvent):

@@ -5,7 +5,7 @@ extracted directly from the XEP
 
 from typing import Dict
 
-MOODS = {
+MOODS: Dict[str, str] = {
     'afraid': 'Afraid',
     'amazed': 'Amazed',
     'angry': 'Angry',
@@ -86,9 +86,9 @@ MOODS = {
     'undefined': 'Undefined',
     'weak': 'Weak',
     'worried': 'Worried'
-}  # type: Dict[str, str]
+}
 
-ACTIVITIES = {
+ACTIVITIES: Dict[str, Dict[str, str]] = {
     'doing_chores': {
         'category': 'Doing_chores',
         'buying_groceries': 'Buying groceries',
@@ -204,4 +204,4 @@ ACTIVITIES = {
         'studying': 'Studying',
         'other': 'Other',
     }
-}  # type: Dict[str, Dict[str, str]]
+}
