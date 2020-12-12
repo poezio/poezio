@@ -31,7 +31,7 @@ from poezio import pep
 from poezio import tabs
 from poezio import xhtml
 from poezio import multiuserchat as muc
-from poezio.common import safeJID
+from poezio.common import safeJID, get_error_message
 from poezio.config import config, get_image_cache
 from poezio.core.structs import Status
 from poezio.contact import Resource
@@ -304,7 +304,7 @@ class HandlerCore:
                 if jid_from.full == jid_from.bare:
                     self.core.room_error(message, jid_from.bare)
                 else:
-                    text = self.core.get_error_message(message)
+                    text = get_error_message(message)
                     p_tab = self.core.tabs.by_name_and_class(
                         jid_from.full, tabs.PrivateTab)
                     if p_tab:
@@ -313,7 +313,7 @@ class HandlerCore:
                         self.core.information(text, 'Error')
                 return
         tab = self.core.get_conversation_by_jid(message['from'], create=False)
-        error_msg = self.core.get_error_message(message, deprecated=True)
+        error_msg = get_error_message(message, deprecated=True)
         if not tab:
             self.core.information(error_msg, 'Error')
             return
@@ -1749,7 +1749,7 @@ class HandlerCore:
 
     def adhoc_error(self, iq, adhoc_session):
         self.core.xmpp.plugin['xep_0050'].terminate_command(adhoc_session)
-        error_message = self.core.get_error_message(iq)
+        error_message = get_error_message(iq)
         self.core.information(
             "An error occurred while executing the command: %s" %
             (error_message), 'Error')
