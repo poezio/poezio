@@ -112,7 +112,7 @@ class HandlerCore:
         """
 
         # first, look for the x (XEP-0045 version 1.28)
-        if message.xml.find('{http://jabber.org/protocol/muc#user}x') is not None:
+        if message.match('message/muc'):
             log.debug('MUC-PM from %s with <x>', with_jid)
             return True
 
@@ -220,12 +220,7 @@ class HandlerCore:
         jid = message['from']
         if jid.bare in self.core.pending_invites:
             return
-        # there are 2 'x' tags in the messages, making message['x'] useless
-        invite = StanzaBase(
-            self.core.xmpp,
-            xml=message.xml.find(
-                '{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'
-            ))
+        invite = message['muc']['invite']
         # TODO: find out why pylint thinks "inviter" is a list
         #pylint: disable=no-member
         inviter = invite['from']
@@ -281,9 +276,7 @@ class HandlerCore:
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
         """
-        if message.xml.find(
-                '{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}invite'
-        ) is not None:
+        if message.match('message/muc/invite'):
             return
         if message['type'] == 'groupchat':
             return
@@ -1128,8 +1121,7 @@ class HandlerCore:
     ### Presence-related handlers ###
 
     def on_presence(self, presence):
-        if presence.match('presence/muc') or presence.xml.find(
-                '{http://jabber.org/protocol/muc#user}x') is not None:
+        if presence.match('presence/muc'):
             return
         jid = presence['from']
         contact = roster[jid.bare]
@@ -1168,8 +1160,7 @@ class HandlerCore:
         """
         A JID got offline
         """
-        if presence.match('presence/muc') or presence.xml.find(
-                '{http://jabber.org/protocol/muc#user}x') is not None:
+        if presence.match('presence/muc'):
             return
         jid = presence['from']
         status = presence['status']
@@ -1201,8 +1192,7 @@ class HandlerCore:
         """
         A JID got online
         """
-        if presence.match('presence/muc') or presence.xml.find(
-                '{http://jabber.org/protocol/muc#user}x') is not None:
+        if presence.match('presence/muc'):
             return
         jid = presence['from']
         contact = roster[jid.bare]

@@ -68,7 +68,6 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
-STATUS_XPATH = '{%s}x/{%s}status' % (NS_MUC_USER, NS_MUC_USER)
 
 COMPARE_USERS_LAST_TALKED = lambda x: x.last_talked
 
@@ -154,14 +153,14 @@ class MucTab(ChatTab):
         """
         The user do not want to send their config, send an iq cancel
         """
-        muc.cancel_config(self.core.xmpp, self.jid.bare)
+        asyncio.ensure_future(self.core.xmpp['xep_0045'].cancel_config(self.jid.bare))
         self.core.close_tab()
 
     def send_config(self, form: 'Form') -> None:
         """
         The user sends their config to the server
         """
-        muc.configure_room(self.core.xmpp, self.jid.bare, form)
+        asyncio.ensure_future(self.core.xmpp['xep_0045'].set_room_config(self.jid.bare, form))
         self.core.close_tab()
 
     def join(self) -> None:
@@ -483,13 +482,11 @@ class MucTab(ChatTab):
     def handle_presence(self, presence: Presence) -> None:
         """Handle MUC presence"""
         self.reset_lag()
-        status_codes = set()
-        for status_code in presence.xml.findall(STATUS_XPATH):
-            status_codes.add(status_code.attrib['code'])
+        status_codes = presence['muc']['status_codes']
         if presence['type'] == 'error':
             self.core.room_error(presence, self.jid.bare)
         elif not self.joined:
-            own = '110' in status_codes
+            own = 110 in status_codes
             if own or len(self.presence_buffer) >= 10:
                 self.process_presence_buffer(presence, own)
             else:
@@ -550,12 +547,10 @@ class MucTab(ChatTab):
         self.users.append(new_user)
         self.core.events.trigger('muc_join', presence, self)
         if own:
-            status_codes = set()
-            for status_code in presence.xml.findall(STATUS_XPATH):
-                status_codes.add(status_code.attrib['code'])
+            status_codes = presence['muc']['status_codes']
             self.own_join(from_nick, new_user, status_codes)
 
-    def own_join(self, from_nick: str, new_user: User, status_codes: Set[str]) -> None:
+    def own_join(self, from_nick: str, new_user: User, status_codes: Set[int]) -> None:
         """
         Handle the last presence we received, entering the room
         """
@@ -593,12 +588,12 @@ class MucTab(ChatTab):
                           }
         self.add_message(MucOwnJoinMessage(enable_message), typ=2)
         self.core.enable_private_tabs(self.jid.bare, enable_message)
-        if '201' in status_codes:
+        if 201 in status_codes:
             self.add_message(
                 InfoMessage('Info: The room has been created'),
                 typ=0
             )
-        if '170' in status_codes:
+        if 170 in status_codes:
             self.add_message(
                 InfoMessage(
                     '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
@@ -608,7 +603,7 @@ class MucTab(ChatTab):
                     },
                 ),
                 typ=0)
-        if '100' in status_codes:
+        if 100 in status_codes:
             self.add_message(
                 InfoMessage(
                     '\x19%(warn_col)s}Warning:\x19%(info_col)s}'
@@ -620,7 +615,7 @@ class MucTab(ChatTab):
                 typ=0)
         mam.schedule_tab_open(self)
 
-    def handle_presence_joined(self, presence: Presence, status_codes: Set[str]) -> None:
+    def handle_presence_joined(self, presence: Presence, status_codes: Set[int]) -> None:
         """
         Handle new presences when we are already in the room
         """
@@ -629,12 +624,12 @@ class MucTab(ChatTab):
             return None
         dissected_presence = dissect_presence(presence)
         from_nick, from_room, affiliation, show, status, role, jid, typ = dissected_presence
-        change_nick = '303' in status_codes
-        kick = '307' in status_codes and typ == 'unavailable'
-        ban = '301' in status_codes and typ == 'unavailable'
-        shutdown = '332' in status_codes and typ == 'unavailable'
-        server_initiated = '333' in status_codes and typ == 'unavailable'
-        non_member = '322' in status_codes and typ == 'unavailable'
+        change_nick = 303 in status_codes
+        kick = 307 in status_codes and typ == 'unavailable'
+        ban = 301 in status_codes and typ == 'unavailable'
+        shutdown = 332 in status_codes and typ == 'unavailable'
+        server_initiated = 333 in status_codes and typ == 'unavailable'
+        non_member = 322 in status_codes and typ == 'unavailable'
         user = self.get_user_by_name(from_nick)
         # New user
         if not user and typ != "unavailable":
@@ -740,8 +735,7 @@ class MucTab(ChatTab):
         self.core.on_user_rejoined_private_conversation(self.jid.bare, from_nick)
 
     def on_user_nick_change(self, presence: Presence, user: User, from_nick: str) -> None:
-        new_nick = presence.xml.find(
-            '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)).attrib['nick']
+        new_nick = presence['muc']['nick']
         old_color = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
