@@ -37,6 +37,14 @@ class CommandCore:
     def __init__(self, core):
         self.core = core
 
+    @command_args_parser.ignored
+    def rotate_rooms_left(self, args=None):
+        self.core.rotate_rooms_left()
+
+    @command_args_parser.ignored
+    def rotate_rooms_right(self, args=None):
+        self.core.rotate_rooms_right()
+
     @command_args_parser.quoted(0, 1)
     def help(self, args):
         """
