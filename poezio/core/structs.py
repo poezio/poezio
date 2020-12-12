@@ -5,8 +5,10 @@ from dataclasses import dataclass
 from typing import Any, Callable, List, Dict
 
 __all__ = [
-    'POSSIBLE_SHOW', 'Status',
-    'Command', 'Completion'
+    'Command',
+    'Completion'
+    'POSSIBLE_SHOW',
+    'Status',
 ]
 
 POSSIBLE_SHOW = {
