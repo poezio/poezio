@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 # shortcuts or inserting text in the current output.  The callback
 # is always reset to None afterwards (to resume the normal
 # processing of keys)
-continuation_keys_callback = None  # type: Optional[Callable]
+continuation_keys_callback: Optional[Callable] = None
 
 
 def get_next_byte(s) -> Tuple[Optional[int], Optional[bytes]]:
@@ -46,7 +46,7 @@ def get_next_byte(s) -> Tuple[Optional[int], Optional[bytes]]:
 
 
 def get_char_list(s) -> List[str]:
-    ret_list = []  # type: List[str]
+    ret_list: List[str] = []
     while True:
         try:
             key = s.get_wch()

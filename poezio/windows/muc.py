@@ -33,7 +33,7 @@ class UserList(Win):
     def __init__(self) -> None:
         Win.__init__(self)
         self.pos = 0
-        self.cache = []  # type: List[CachedUser]
+        self.cache: List[CachedUser] = []
 
     def scroll_up(self) -> bool:
         self.pos += self.height - 1

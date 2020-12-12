@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import curses
 
 from datetime import (
@@ -52,7 +54,7 @@ LinePos = Tuple[int, int]
 
 def generate_lines(lines: List[LinePos], msg: BaseMessage, default_color: str = '') -> List[Line]: 
     line_objects = []
-    attrs = []  # type: List[str]
+    attrs: List[str] = []
     prepend = default_color if default_color else ''
     for line in lines:
         saved = Line(
@@ -114,7 +116,7 @@ def build_xmllog(msg: XMLLog, width: int, timestamp: bool, nick_size: int = 10) 
 
 
 @singledispatch
-def write_pre(msg: BaseMessage, win: 'Win', with_timestamps: bool, nick_size: int) -> int:
+def write_pre(msg: BaseMessage, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before text (only the timestamp)"""
     if with_timestamps:
         return PreMessageHelpers.write_time(win, False, msg.time)
@@ -122,7 +124,7 @@ def write_pre(msg: BaseMessage, win: 'Win', with_timestamps: bool, nick_size: in
 
 
 @write_pre.register(Message)
-def write_pre_message(msg: Message, win: 'Win', with_timestamps: bool, nick_size: int) -> int:
+def write_pre_message(msg: Message, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before the body:
         - timestamp (short or long)
         - ack/nack
@@ -165,7 +167,7 @@ def write_pre_message(msg: Message, win: 'Win', with_timestamps: bool, nick_size
 
 
 @write_pre.register(XMLLog)
-def write_pre_xmllog(msg: XMLLog, win: 'Win', with_timestamps: bool, nick_size: int) -> int:
+def write_pre_xmllog(msg: XMLLog, win: Win, with_timestamps: bool, nick_size: int) -> int:
     """Write the part before the stanza (timestamp + IN/OUT)"""
     offset = 0
     if with_timestamps:
@@ -186,7 +188,7 @@ def write_pre_xmllog(msg: XMLLog, win: 'Win', with_timestamps: bool, nick_size: 
 class PreMessageHelpers:
 
     @staticmethod
-    def write_revisions(buffer: 'Win', msg: Message) -> int:
+    def write_revisions(buffer: Win, msg: Message) -> int:
         if msg.revisions:
             color = get_theme().COLOR_REVISIONS_MESSAGE
             with buffer.colored_text(color=color):
@@ -195,7 +197,7 @@ class PreMessageHelpers:
         return 0
 
     @staticmethod
-    def write_ack(buffer: 'Win') -> int:
+    def write_ack(buffer: Win) -> int:
         theme = get_theme()
         color = theme.COLOR_CHAR_ACK
         with buffer.colored_text(color=color):
@@ -204,7 +206,7 @@ class PreMessageHelpers:
         return poopt.wcswidth(theme.CHAR_ACK_RECEIVED) + 1
 
     @staticmethod
-    def write_nack(buffer: 'Win') -> int:
+    def write_nack(buffer: Win) -> int:
         theme = get_theme()
         color = theme.COLOR_CHAR_NACK
         with buffer.colored_text(color=color):
@@ -213,7 +215,7 @@ class PreMessageHelpers:
         return poopt.wcswidth(theme.CHAR_NACK) + 1
 
     @staticmethod
-    def write_nickname(buffer: 'Win', nickname: str, color, highlight=False) -> None:
+    def write_nickname(buffer: Win, nickname: str, color, highlight=False) -> None:
         """
         Write the nickname, using the user's color
         and return the number of written characters
@@ -231,7 +233,7 @@ class PreMessageHelpers:
             buffer.addstr(nickname)
 
     @staticmethod
-    def write_time(buffer: 'Win', history: bool, time: datetime) -> int:
+    def write_time(buffer: Win, history: bool, time: datetime) -> int:
         """
         Write the date on the yth line of the window
         """

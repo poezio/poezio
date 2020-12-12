@@ -161,7 +161,7 @@ class BookmarksWin(Win):
         self._current_input = 0
         self.current_horizontal_input = 0
         self._bookmarks = list(bookmarks)
-        self.lines = []  # type: List[Tuple[BookmarkNameInput, BookmarkJIDInput, BookmarkPasswordInput, BookmarkAutojoinWin, BookmarkMethodInput]]
+        self.lines: List[Tuple[BookmarkNameInput, BookmarkJIDInput, BookmarkPasswordInput, BookmarkAutojoinWin, BookmarkMethodInput]] = []
         for bookmark in sorted(self._bookmarks, key=lambda x: str(x.jid)):
             self.lines.append((BookmarkNameInput(bookmark),
                                BookmarkJIDInput(bookmark),

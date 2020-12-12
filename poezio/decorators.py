@@ -1,6 +1,9 @@
 """
 Module containing various decorators
 """
+
+from __future__ import annotations
+
 from typing import (
     cast,
     Any,
@@ -179,7 +182,7 @@ command_args_parser = CommandArgParser()
 
 def deny_anonymous(func: Callable) -> Callable:
     """Decorator to disable commands when using an anonymous account."""
-    def wrap(self: 'RosterInfoTab', *args: Any, **kwargs: Any) -> Any:
+    def wrap(self: RosterInfoTab, *args: Any, **kwargs: Any) -> Any:
         if self.core.xmpp.anon:
             return self.core.information(
                 'This command is not available for anonymous accounts.',

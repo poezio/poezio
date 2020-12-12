@@ -35,10 +35,10 @@ class PrivateTab(OneToOneTab):
     """
     The tab containing a private conversation (someone from a MUC)
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
     message_type = 'chat'
-    additional_information = {}  # type: Dict[str, Callable[[str], str]]
+    additional_information: Dict[str, Callable[[str], str]] = {}
 
     def __init__(self, core, jid, nick):
         OneToOneTab.__init__(self, core, jid)

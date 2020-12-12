@@ -18,8 +18,8 @@ log = logging.getLogger(__name__)
 
 
 class ListTab(Tab):
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, name, help_message, header_text, cols):
         """Parameters:

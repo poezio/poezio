@@ -3,6 +3,8 @@ Module defining all the "info wins", ie the bar which is on top of the
 info buffer in normal tabs
 """
 
+from __future__ import annotations
+
 from typing import Optional, Dict, TYPE_CHECKING, Any
 
 import logging
@@ -272,9 +274,9 @@ class MucInfoWin(InfoWin):
 
     def refresh(
         self,
-        room: 'MucTab',
-        window: Optional['TextWin'] = None,
-        user: Optional['User'] = None,
+        room: MucTab,
+        window: Optional[TextWin] = None,
+        user: Optional[User] = None,
         information: Optional[Dict[str, Any]] = None
     ) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)

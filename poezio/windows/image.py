@@ -69,10 +69,10 @@ class ImageWin(Win):
     __slots__ = ('_image', '_display_avatar')
 
     def __init__(self) -> None:
-        self._image = None  # type: Optional[Image.Image]
+        self._image: Optional[Image.Image] = None
         Win.__init__(self)
         if config.get('image_use_half_blocks'):
-            self._display_avatar = self._display_avatar_half_blocks  # type: Callable[[int, int], None]
+            self._display_avatar: Callable[[int, int], None] = self._display_avatar_half_blocks
         else:
             self._display_avatar = self._display_avatar_full_blocks
 

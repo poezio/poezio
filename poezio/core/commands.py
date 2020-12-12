@@ -335,7 +335,7 @@ class CommandCore:
         except InvalidJID:
             return (None, None)
 
-        set_nick = ''  # type: Optional[str]
+        set_nick: Optional[str] = ''
         if len(jid_string) > 1 and jid_string.startswith('/'):
             set_nick = jid_string[1:]
         elif info.resource:

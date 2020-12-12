@@ -97,30 +97,30 @@ class E2EEPlugin(BasePlugin):
 
     #: Encryption name, used in command descriptions, and logs. At least one
     #: of `encryption_name` and `encryption_short_name` must be set.
-    encryption_name = None  # type: Optional[str]
+    encryption_name: Optional[str] = None
 
     #: Encryption short name, used as command name, and also to display
     #: encryption status in a tab. At least one of `encryption_name` and
     #: `encryption_short_name` must be set.
-    encryption_short_name = None  # type: Optional[str]
+    encryption_short_name: Optional[str] = None
 
     #: Required. https://xmpp.org/extensions/xep-0380.html.
-    eme_ns = None  # type: Optional[str]
+    eme_ns: Optional[str] = None
 
     #: Used to figure out what messages to attempt decryption for. Also used
     #: in combination with `tag_whitelist` to avoid removing encrypted tags
     #: before sending.
-    encrypted_tags = None  # type: Optional[List[Tuple[str, str]]]
+    encrypted_tags: Optional[List[Tuple[str, str]]] = None
 
     # Static map, to be able to limit to one encryption mechanism per tab at a
     # time
-    _enabled_tabs = {}  # type: Dict[JID, Callable]
+    _enabled_tabs: Dict[JID, Callable] = {}
 
     # Tabs that support this encryption mechanism
-    supported_tab_types = tuple()  # type: Tuple[ChatTabs]
+    supported_tab_types: Tuple[ChatTabs] = tuple()
 
     # States for each remote entity
-    trust_states = {'accepted': set(), 'rejected': set()}  # type: Dict[str, Set[str]]
+    trust_states: Dict[str, Set[str]] = {'accepted': set(), 'rejected': set()}
 
     def init(self):
         self._all_trust_states = self.trust_states['accepted'].union(
@@ -229,7 +229,7 @@ class E2EEPlugin(BasePlugin):
         return ""
 
     def _toggle_tab(self, _input: str) -> None:
-        jid = self.api.current_tab().jid  # type: JID
+        jid: JID = self.api.current_tab().jid
 
         if self._encryption_enabled(jid):
             del self._enabled_tabs[jid]
@@ -394,7 +394,7 @@ class E2EEPlugin(BasePlugin):
         # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
         # It is possible that we are not able to find a jid (e.g., semi-anon
         # MUCs). Let the plugin decide what to do with this information.
-        jids = [message['to']]  # type: Optional[List[JID]]
+        jids: Optional[List[JID]] = [message['to']]
         tab = self.core.tabs.by_jid(message['to'])
         if tab is None:  # When does that ever happen?
             log.debug('Attempting to encrypt a message to \'%s\' '

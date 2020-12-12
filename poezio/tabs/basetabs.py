@@ -13,6 +13,8 @@ This module also defines ChatTabs, the parent class for all tabs
 revolving around chats.
 """
 
+from __future__ import annotations
+
 import copy
 import logging
 import string
@@ -111,13 +113,13 @@ SHOW_NAME = {
 
 
 class Tab:
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
     # Placeholder values, set on resize
     height = 1
     width = 1
 
-    def __init__(self, core: 'Core'):
+    def __init__(self, core: Core):
         self.core = core
         self.nb = 0
         if not hasattr(self, 'name'):
@@ -133,7 +135,7 @@ class Tab:
         self.commands = {}  # and their own commands
 
     @property
-    def size(self) -> 'SizeManager':
+    def size(self) -> SizeManager:
         return self.core.size
 
     @staticmethod
@@ -196,7 +198,7 @@ class Tab:
             self._state = 'normal'
 
     @staticmethod
-    def initial_resize(scr: '_CursesWindow'):
+    def initial_resize(scr: _CursesWindow):
         Tab.height, Tab.width = scr.getmaxyx()
         windows.base_wins.TAB_WIN = scr
 
@@ -479,8 +481,8 @@ class ChatTab(Tab):
     Also, ^M is already bound to on_enter
     And also, add the /say command
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
     message_type = 'chat'
 
     def __init__(self, core, jid: Union[JID, str]):
@@ -492,7 +494,7 @@ class ChatTab(Tab):
         self._jid = jid
         #: Is the tab currently requesting MAM data?
         self.query_status = False
-        self._name = jid.full  # type: Optional[str]
+        self._name: Optional[str] = jid.full
         self.text_win = windows.TextWin()
         self.directed_presence = None
         self._text_buffer = TextBuffer()
@@ -532,7 +534,7 @@ class ChatTab(Tab):
             desc='Fix the last message with whatever you want.',
             shortdesc='Correct the last message.',
             completion=self.completion_correct)
-        self.chat_state = None  # type: Optional[str]
+        self.chat_state: Optional[str] = None
         self.update_commands()
         self.update_keys()
 

@@ -30,17 +30,17 @@ class TextWin(Win):
         Win.__init__(self)
         if lines_nb_limit is None:
             lines_nb_limit = config.get('max_lines_in_memory')
-        self.lines_nb_limit = lines_nb_limit  # type: int
+        self.lines_nb_limit: int = lines_nb_limit
         self.pos = 0
         # Each new message is built and kept here.
         # on resize, we rebuild all the messages
-        self.built_lines = []  # type: List[Union[None, Line]]
+        self.built_lines: List[Union[None, Line]] = []
 
         self.lock = False
-        self.lock_buffer = []  # type: List[Union[None, Line]]
-        self.separator_after = None  # type: Optional[Line]
+        self.lock_buffer: List[Union[None, Line]] = []
+        self.separator_after: Optional[Line] = None
         # the Lines of the highlights in that buffer
-        self.highlights = []  # type: List[Line]
+        self.highlights: List[Line] = []
         # the current HL position in that list NaN means that we’re not on
         # an hl. -1 is a valid position (it's before the first hl of the
         # list. i.e the separator, in the case where there’s no hl before

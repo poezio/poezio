@@ -37,7 +37,7 @@ def ncurses_color_to_rgb(color: int) -> Tuple[float, float, float]:
 
 def generate_ccg_palette(curses_palette: List[int],
                          reference_y: float) -> Palette:
-    cbcr_palette = {}  # type: Dict[float, Tuple[float, int]]
+    cbcr_palette: Dict[float, Tuple[float, int]] = {}
     for curses_color in curses_palette:
         r, g, b = ncurses_color_to_rgb(curses_color)
         # drop grayscale
