@@ -17,8 +17,8 @@ class DataFormsTab(Tab):
     A tab containing various window type, displaying
     a form that the user needs to fill.
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, form, on_cancel, on_send, kwargs):
         Tab.__init__(self, core)

@@ -21,15 +21,15 @@ class BookmarksTab(Tab):
     A tab displaying lines of bookmarks, each bookmark having
     a 4 widgets to set the jid/password/autojoin/storage method
     """
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, bookmarks: BookmarkList):
         Tab.__init__(self, core)
         self.name = "Bookmarks"
         self.bookmarks = bookmarks
-        self.new_bookmarks = []  # type: List[Bookmark]
-        self.removed_bookmarks = []  # type: List[Bookmark]
+        self.new_bookmarks: List[Bookmark] = []
+        self.removed_bookmarks: List[Bookmark] = []
         self.header_win = windows.ColumnHeaderWin(
             ('name', 'room@server/nickname', 'password', 'autojoin',
              'storage'))

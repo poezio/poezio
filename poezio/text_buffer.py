@@ -8,6 +8,8 @@ Each text buffer can be linked to multiple windows, that will be rendered
 independently by their TextWins.
 """
 
+from __future__ import annotations
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -62,23 +64,23 @@ class TextBuffer:
 
         if messages_nb_limit is None:
             messages_nb_limit = cast(int, config.get('max_messages_in_memory'))
-        self._messages_nb_limit = messages_nb_limit  # type: int
+        self._messages_nb_limit: int = messages_nb_limit
         # Message objects
-        self.messages = []  # type: List[BaseMessage]
+        self.messages: List[BaseMessage] = []
         # COMPAT: Correction id -> Original message id.
-        self.correction_ids = {}  # type: Dict[str, str]
+        self.correction_ids: Dict[str, str] = {}
         # we keep track of one or more windows
         # so we can pass the new messages to them, as they are added, so
         # they (the windows) can build the lines from the new message
-        self._windows = []  # type: List[TextWin]
+        self._windows: List[TextWin] = []
 
     def add_window(self, win) -> None:
         self._windows.append(win)
 
     def find_last_gap_muc(self) -> Optional[HistoryGap]:
         """Find the last known history gap contained in buffer"""
-        leave = None  # type:Optional[Tuple[int, BaseMessage]]
-        join = None  # type:Optional[Tuple[int, BaseMessage]]
+        leave: Optional[Tuple[int, BaseMessage]] = None
+        join: Optional[Tuple[int, BaseMessage]] = None
         for i, item in enumerate(reversed(self.messages)):
             if isinstance(item, MucOwnLeaveMessage):
                 leave = (len(self.messages) - i - 1, item)
@@ -250,7 +252,7 @@ class TextBuffer:
                        new_id: str,
                        highlight: bool = False,
                        time: Optional[datetime] = None,
-                       user: Optional['User'] = None,
+                       user: Optional[User] = None,
                        jid: Optional[str] = None) -> Message:
         """
         Correct a message in a text buffer.

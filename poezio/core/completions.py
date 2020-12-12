@@ -490,7 +490,7 @@ class CompletionCore:
                 tabs.StaticConversationTab,
                 tabs.DynamicConversationTab,
             )
-            tabjid = []  # type: List[JID]
+            tabjid: List[JID] = []
             if isinstance(current_tab, chattabs):
                 tabjid = [current_tab.jid.bare]
 

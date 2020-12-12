@@ -16,8 +16,8 @@ log = logging.getLogger(__name__)
 
 
 class AdhocCommandsListTab(ListTab):
-    plugin_commands = {}  # type: Dict[str, Command]
-    plugin_keys = {}  # type: Dict[str, Callable]
+    plugin_commands: Dict[str, Command] = {}
+    plugin_keys: Dict[str, Callable] = {}
 
     def __init__(self, core, jid):
         ListTab.__init__(

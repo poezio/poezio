@@ -23,7 +23,7 @@ class HelpText(Win):
 
     def __init__(self, text: str = '') -> None:
         Win.__init__(self)
-        self.txt = text  # type: str
+        self.txt: str = text
 
     def refresh(self, txt: Optional[str] = None) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)

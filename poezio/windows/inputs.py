@@ -41,7 +41,7 @@ class Input(Win):
 
     # it easy cut and paste text between various input
     def __init__(self) -> None:
-        self.key_func = {
+        self.key_func: Dict[str, Callable] = {
             "KEY_LEFT": self.key_left,
             "KEY_RIGHT": self.key_right,
             "KEY_END": self.key_end,
@@ -66,7 +66,7 @@ class Input(Win):
             '^?': self.key_backspace,
             "M-^?": self.delete_word,
             # '^J': self.add_line_break,
-        }  # type: Dict[str, Callable]
+        }
         Win.__init__(self)
         self.text = ''
         self.pos = 0  # The position of the “cursor” in the text
@@ -76,8 +76,8 @@ class Input(Win):
         # screen
         self.on_input = DEFAULT_ON_INPUT  # callback called on any key pressed
         self.color = None  # use this color on addstr
-        self.last_completion = None  # type: Optional[str]
-        self.hit_list = []  # type: List[str]
+        self.last_completion: Optional[str] = None
+        self.hit_list: List[str] = []
 
     def on_delete(self) -> None:
         """
@@ -592,7 +592,7 @@ class HistoryInput(Input):
     """
     __slots__ = ('help_message', 'histo_pos', 'current_completed', 'search')
 
-    history = []  # type: List[str]
+    history: List[str] = []
 
     def __init__(self) -> None:
         Input.__init__(self)
@@ -603,7 +603,7 @@ class HistoryInput(Input):
         self.search = False
         if config.get('separate_history'):
             # pylint: disable=assigning-non-slot
-            self.history = []  # type: List[str]
+            self.history: List[str] = []
 
     def toggle_search(self) -> None:
         if self.help_message:
@@ -680,7 +680,7 @@ class MessageInput(HistoryInput):
     Also letting the user enter colors or other text markups
     """
     # The history is common to all MessageInput
-    history = []  # type: List[str]
+    history: List[str] = []
 
     def __init__(self) -> None:
         HistoryInput.__init__(self)
@@ -726,7 +726,7 @@ class CommandInput(HistoryInput):
     HelpMessage when a command is started
     The on_input callback
     """
-    history = []  # type: List[str]
+    history: List[str] = []
 
     def __init__(self, help_message: str, on_abort, on_success, on_input=None) -> None:
         HistoryInput.__init__(self)

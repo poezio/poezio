@@ -76,7 +76,7 @@ class Logger:
     def __init__(self):
         self._roster_logfile = None  # Optional[IO[Any]]
         # a dict of 'groupchatname': file-object (opened)
-        self._fds = {}  # type: Dict[str, IO[Any]]
+        self._fds: Dict[str, IO[Any]] = {}
 
     def __del__(self):
         for opened_file in self._fds.values():
@@ -306,4 +306,4 @@ def create_logger() -> None:
     logger = Logger()
 
 
-logger = None  # type: Logger
+logger: Logger = None

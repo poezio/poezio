@@ -48,7 +48,7 @@ class EventHandler:
             'ignored_private',
             'tab_change',
         ]
-        self.events = {}  # type: Dict[str, OrderedDict[int, List[Callable]]]
+        self.events: Dict[str, OrderedDict[int, List[Callable]]] = {}
         for event in events:
             self.events[event] = OrderedDict()
 

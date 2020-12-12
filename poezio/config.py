@@ -383,8 +383,8 @@ class Config(RawConfigParser):
         if file_ok(self.file_name):
             try:
                 with self.file_name.open('r', encoding='utf-8') as df:
-                    lines_before = [line.strip()
-                                    for line in df]  # type: List[str]
+                    lines_before: List[str] = [line.strip()
+                                    for line in df]
             except OSError:
                 log.error(
                     'Unable to read the config file %s',
@@ -394,7 +394,7 @@ class Config(RawConfigParser):
         else:
             lines_before = []
 
-        sections = {}  # type: Dict[str, List[int]]
+        sections: Dict[str, List[int]] = {}
         duplicate_section = False
         current_section = ''
         current_line = 0
@@ -680,16 +680,16 @@ LOGGING_CONFIG = {
 firstrun = False
 
 # Global config object. Is setup in poezio.py
-config = None  # type: Config
+config: Config = None
 
 # The logger object for this module
-log = None  # type: Optional[logging.Logger]
+log: Optional[logging.Logger] = None
 
 # The command-line options
 options = None
 
 # delayed import from common.py
-safeJID = None  # type: Optional[Callable]
+safeJID: Optional[Callable] = None
 
 # the global log dir
 LOG_DIR = Path()
