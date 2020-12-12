@@ -57,8 +57,6 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
-
 # getters for tab colors (lambdas, so that they are dynamic)
 STATE_COLORS = {
     'disconnected': lambda: get_theme().COLOR_TAB_DISCONNECTED,
@@ -690,8 +688,7 @@ class ChatTab(Tab):
                 self.chat_state = state
                 msg['no-store'] = True
                 if isinstance(self, PrivateTab):
-                    x = ET.Element('{%s}x' % NS_MUC_USER)
-                    msg.append(x)
+                    msg.enable('muc')
                 msg.send()
 
     def send_composing_chat_state(self, empty_after: bool) -> None:
