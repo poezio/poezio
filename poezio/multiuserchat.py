@@ -240,24 +240,3 @@ def set_user_affiliation(
     iq = xmpp.make_iq_set(query)
     iq['to'] = muc_jid
     iq.send(callback=callback)
-
-
-def cancel_config(xmpp: ClientXMPP, room: str) -> None:
-    query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
-    x = ET.Element('{jabber:x:data}x', type='cancel')
-    query.append(x)
-    iq = xmpp.make_iq_set(query)
-    iq['to'] = room
-    iq.send()
-
-
-def configure_room(xmpp: ClientXMPP, room: str, form: 'Form') -> None:
-    if form is None:
-        return
-    iq = xmpp.make_iq_set()
-    iq['to'] = room
-    query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
-    form['type'] = 'submit'
-    query.append(form.xml)
-    iq.append(query)
-    iq.send()

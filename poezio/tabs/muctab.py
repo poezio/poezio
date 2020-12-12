@@ -153,14 +153,14 @@ class MucTab(ChatTab):
         """
         The user do not want to send their config, send an iq cancel
         """
-        muc.cancel_config(self.core.xmpp, self.jid.bare)
+        asyncio.ensure_future(self.core.xmpp['xep_0045'].cancel_config(self.jid.bare))
         self.core.close_tab()
 
     def send_config(self, form: 'Form') -> None:
         """
         The user sends their config to the server
         """
-        muc.configure_room(self.core.xmpp, self.jid.bare, form)
+        asyncio.ensure_future(self.core.xmpp['xep_0045'].set_room_config(self.jid.bare, form))
         self.core.close_tab()
 
     def join(self) -> None:
