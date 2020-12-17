@@ -865,7 +865,8 @@ class HandlerCore:
                 self.core.xmpp.send_message(
                     mto=jid.full, mbody=msg, mtype='chat')
             return
-        self.core.events.trigger('private_msg', message, tab)
+        if not sent:
+            self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(
             message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body or not tab:
