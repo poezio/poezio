@@ -380,15 +380,15 @@ class HandlerCore:
                       tabs.DynamicConversationTab) and conv_jid.resource:
             conversation.lock(conv_jid.resource)
 
-        if not own and not conversation.nick:
-            conversation.nick = remote_nick
-        elif not own:
-            remote_nick = conversation.get_nick()
-
         if not own:
-            conversation.last_remote_message = datetime.now()
+            if not conversation.nick:
+                conversation.nick = remote_nick
+            else:
+                remote_nick = conversation.get_nick()
 
-        self.core.events.trigger('conversation_msg', message, conversation)
+            conversation.last_remote_message = datetime.now()
+            self.core.events.trigger('conversation_msg', message, conversation)
+
         if not message['body']:
             return
         body = xhtml.get_body_from_message_stanza(
@@ -865,7 +865,8 @@ class HandlerCore:
                 self.core.xmpp.send_message(
                     mto=jid.full, mbody=msg, mtype='chat')
             return
-        self.core.events.trigger('private_msg', message, tab)
+        if not sent:
+            self.core.events.trigger('private_msg', message, tab)
         body = xhtml.get_body_from_message_stanza(
             message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body or not tab:
