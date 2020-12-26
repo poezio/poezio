@@ -14,8 +14,8 @@
     <homepage rdf:resource="https://poez.io/"/>
     <!-- TODO: https://github.com/ewilderj/doap/issues/51 -->
     <!--<doc rdf:resource="https://doc.poez.io/"/>-->
-    <download-page rdf:resource="https://dev.louiz.org/projects/poezio/files"/>
-    <bug-database rdf:resource="https://dev.louiz.org/projects/poezio/issues"/>
+    <download-page rdf:resource="https://poez.io/#download"/>
+    <bug-database rdf:resource="https://lab.louiz.org/poezio/poezio/-/issues"/>
     <!-- See https://github.com/ewilderj/doap/issues/53 -->
     <developer-forum rdf:resource="xmpp:poezio@muc.poez.io?join"/>
     <support-forum rdf:resource="xmpp:poezio@muc.poez.io?join"/>
@@ -529,12 +529,26 @@
 
     <release>
         <Version>
+            <revision>0.13.1</revision>
+            <created>2020-05-31</created>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.13.1/poezio-v0.13.1.tar.gz"/>
+        </Version>
+    </release>
+    <!-- TODO: https://github.com/ewilderj/doap/issues/52 -->
+    <release>
+        <Version>
+            <revision>0.13</revision>
+            <created>2020-05-24</created>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.13/poezio-v0.13.tar.gz"/>
+        </Version>
+    </release>
+    <release>
+        <Version>
             <revision>0.12.1</revision>
             <created>2018-09-12</created>
             <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.12.1/poezio-v0.12.1.tar.gz"/>
         </Version>
     </release>
-    <!-- TODO: https://github.com/ewilderj/doap/issues/52 -->
     <release>
         <Version>
             <revision>0.12</revision>
@@ -546,35 +560,35 @@
         <Version>
             <revision>0.11</revision>
             <created>2017-01-31</created>
-            <file-release rdf:resource="https://dev.louiz.org/attachments/118/poezio-0.11.tar.gz"/>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.11/poezio-v0.11.tar.gz"/>
         </Version>
     </release>
     <release>
         <Version>
             <revision>0.10</revision>
             <created>2016-10-09</created>
-            <file-release rdf:resource="https://dev.louiz.org/attachments/102/poezio-0.10.tar.gz"/>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.10/poezio-v0.10.tar.gz"/>
         </Version>
     </release>
     <release>
         <Version>
             <revision>0.9</revision>
             <created>2015-07-31</created>
-            <file-release rdf:resource="https://dev.louiz.org/attachments/91/poezio-0.9.tar.xz"/>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.9/poezio-v0.9.tar.gz"/>
         </Version>
     </release>
     <release>
         <Version>
             <revision>0.8.1</revision>
             <created>2014-03-20</created>
-            <file-release rdf:resource="https://dev.louiz.org/attachments/52/poezio-0.8.1.tar.xz"/>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.8.1/poezio-v0.8.1.tar.gz"/>
         </Version>
     </release>
     <release>
         <Version>
             <revision>0.8</revision>
             <created>2014-02-22</created>
-            <file-release rdf:resource="https://dev.louiz.org/attachments/43/poezio-0.8.tar.xz"/>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.8/poezio-v0.8.tar.gz"/>
         </Version>
     </release>
     <release>
