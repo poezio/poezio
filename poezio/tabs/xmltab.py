@@ -25,7 +25,7 @@ from poezio.decorators import command_args_parser, refresh_wrapper
 
 
 class MatchJID:
-    def __init__(self, jid, dest=''):
+    def __init__(self, jid: JID, dest: str = ''):
         self.jid = jid
         self.dest = dest
 
@@ -173,7 +173,7 @@ class XMLTab(Tab):
         self.text_win.toggle_lock()
         self.refresh()
 
-    def match_stanza(self, stanza):
+    def match_stanza(self, stanza) -> bool:
         for matcher_ in self.filters:
             if not matcher_.match(stanza):
                 return False
@@ -232,7 +232,7 @@ class XMLTab(Tab):
         self.refresh()
 
     @command_args_parser.raw
-    def command_filter_xpath(self, xpath):
+    def command_filter_xpath(self, xpath: str):
         """/filter_xpath <xpath>"""
         try:
             self.update_filters(
@@ -289,7 +289,7 @@ class XMLTab(Tab):
         self.input.do_command("/")  # we add the slash
 
     @refresh_wrapper.always
-    def reset_help_message(self, _=None):
+    def reset_help_message(self, _=None) -> bool:
         if self.closed:
             return True
         if self.core.tabs.current_tab is self:
@@ -297,10 +297,10 @@ class XMLTab(Tab):
         self.input = self.default_help_message
         return True
 
-    def on_scroll_up(self):
+    def on_scroll_up(self) -> bool:
         return self.text_win.scroll_up(self.text_win.height - 1)
 
-    def on_scroll_down(self):
+    def on_scroll_down(self) -> bool:
         return self.text_win.scroll_down(self.text_win.height - 1)
 
     @command_args_parser.ignored
@@ -314,7 +314,7 @@ class XMLTab(Tab):
         self.refresh()
         self.core.doupdate()
 
-    def execute_slash_command(self, txt):
+    def execute_slash_command(self, txt: str) -> bool:
         if txt.startswith('/'):
             self.input.key_enter()
             self.execute_command(txt)
