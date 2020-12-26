@@ -64,4 +64,4 @@ account and submit it again.
 If you have already submitted some code and plan to do more, you can ask us
  direct commit access on the main repo.
 
-.. _tracker: https://dev.louiz.org/project/poezio/bugs
+.. _tracker: https://lab.louiz.org/poezio/poezio/-/issues

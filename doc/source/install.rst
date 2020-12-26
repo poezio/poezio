@@ -242,8 +242,7 @@ that should be created beforehand:
 If you don’t trust images distributed on the docker hub, you can rebuild the
 image from the Dockerfile at the root of the git repository.
 
-.. _stable sources: https://dev.louiz.org/project/poezio/download
-.. _slixmpp: https://dev.louiz.org/projects/slixmpp
+.. _slixmpp: https://lab.louiz.org/poezio/slixmpp
 .. _aiodns: https://github.com/saghul/aiodns
 .. _poezio: https://aur.archlinux.org/packages/poezio/
 .. _poezio-git: https://aur.archlinux.org/packages/poezio-git/

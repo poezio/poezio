@@ -14,7 +14,7 @@ Usage
 
 .. note:: Can create fun things when used with :ref:`The figlet plugin <figlet-plugin>`.
 
-.. _#3273: https://dev.louiz.org/issues/3273
+.. _#3273: https://lab.louiz.org/poezio/poezio/-/issues/3273
 """
 from poezio.plugin import BasePlugin
 from poezio import xhtml

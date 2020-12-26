@@ -126,7 +126,7 @@ setup(
     ext_modules=[module_poopt],
     url='https://poez.io/',
     license='zlib',
-    download_url='https://dev.louiz.org/projects/poezio/files',
+    download_url='https://poez.io/#download',
 
     author='Florent Le Coz',
     author_email='louiz@louiz.org',
