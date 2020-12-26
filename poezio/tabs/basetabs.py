@@ -647,9 +647,9 @@ class ChatTab(Tab):
             body = xhtml.clean_text(
                 xhtml.xhtml_to_poezio_colors(arg, force=True))
             ET.fromstring(arg)
-        except:
+        except xml.sax._exceptions.SAXParseException:
             self.core.information('Could not send custom xhtml', 'Error')
-            log.error('/xhtml: Unable to send custom xhtml', exc_info=True)
+            log.error('/xhtml: Unable to send custom xhtml')
             return
 
         msg = self.core.xmpp.make_message(self.get_dest_jid())
