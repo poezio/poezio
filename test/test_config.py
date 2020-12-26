@@ -10,7 +10,7 @@ import pytest
 
 from poezio import config
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def config_obj():
     file_ = tempfile.NamedTemporaryFile(delete=False)
     conf = config.Config(file_name=Path(file_.name))
