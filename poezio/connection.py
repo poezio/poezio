@@ -18,6 +18,7 @@ import base64
 import random
 
 import slixmpp
+from slixmpp import JID, InvalidJID
 from slixmpp.xmlstream import ET
 from slixmpp.plugins.xep_0184 import XEP_0184
 from slixmpp.plugins.xep_0030 import DiscoInfo
@@ -26,7 +27,6 @@ from slixmpp.util import FileSystemCache
 from poezio import common
 from poezio import fixes
 from poezio import xdg
-from poezio.common import safeJID
 from poezio.config import config, options
 
 
@@ -81,7 +81,11 @@ class Connection(slixmpp.ClientXMPP):
             self.anon = True
             jid = config.get('server')
             password = None
-        jid = safeJID(jid)
+        try:
+            jid = JID(jid)
+        except InvalidJID:
+            sys.stderr.write('Invalid jid option: "%s" is not a valid JID\n' % jid)
+            sys.exit(1)
         jid.resource = '%s-%s' % (
             jid.resource,
             device_id) if jid.resource else 'poezio-%s' % device_id
