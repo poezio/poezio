@@ -276,12 +276,6 @@ class MucTab(ChatTab):
         Change the role of a nick
         """
 
-        def callback(iq: Iq) -> None:
-            if iq['type'] == 'error':
-                self.core.information(
-                    "Could not set role '%s' for '%s'." % (role, nick),
-                    "Warning")
-
         valid_roles = ('none', 'visitor', 'participant', 'moderator')
 
         if not self.joined or role not in valid_roles:
@@ -296,8 +290,15 @@ class MucTab(ChatTab):
             self.core.information('Invalid nick', 'Info')
             return
 
-        muc.set_user_role(
-            self.core.xmpp, self.jid.bare, nick, reason, role, callback=callback)
+        async def do_set_role(room: JID, nick: str, role: str, reason: str):
+            try:
+                await self.core.xmpp['xep_0045'].set_role(room, nick, role, reason=reason)
+            except (IqError, IqTimeout) as e:
+                self.core.information(
+                    "Could not set role '%s' for '%s': %s" % (role, nick, e),
+                    "Warning")
+
+        asyncio.ensure_future(do_set_role(self.jid.bare, nick, role, reason))
 
     @refresh_wrapper.conditional
     def print_info(self, nick: str) -> bool:

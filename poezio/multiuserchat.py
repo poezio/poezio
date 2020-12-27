@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 from typing import (
-    Callable,
     Optional,
     TYPE_CHECKING,
 )
@@ -33,10 +32,6 @@ log = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from poezio.core import Core
     from poezio.tabs import Tab
-
-
-NS_MUC_ADMIN = 'http://jabber.org/protocol/muc#admin'
-NS_MUC_OWNER = 'http://jabber.org/protocol/muc#owner'
 
 
 def change_show(
@@ -143,29 +138,3 @@ def leave_groupchat(
             "muc.leave_groupchat: could not leave the room %s",
             jid,
             exc_info=True)
-
-
-def set_user_role(
-    xmpp: ClientXMPP,
-    jid: JID,
-    nick: str,
-    reason: str,
-    role: str,
-    callback: Callable[[Iq], None]
-) -> None:
-    """
-    (try to) Set the role of a MUC user
-    (role = 'none': eject user)
-    """
-    jid = safeJID(jid)
-    iq = xmpp.make_iq_set()
-    query = ET.Element('{%s}query' % NS_MUC_ADMIN)
-    item = ET.Element('{%s}item' % NS_MUC_ADMIN, {'nick': nick, 'role': role})
-    if reason:
-        reason_el = ET.Element('{%s}reason' % NS_MUC_ADMIN)
-        reason_el.text = reason
-        item.append(reason_el)
-    query.append(item)
-    iq.append(query)
-    iq['to'] = jid
-    iq.send(callback=callback)
