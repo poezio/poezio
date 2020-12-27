@@ -241,12 +241,6 @@ class MucTab(ChatTab):
         Change the affiliation of a nick or JID
         """
 
-        def callback(iq: Iq) -> None:
-            if iq['type'] == 'error':
-                self.core.information(
-                    "Could not set affiliation '%s' for '%s'." %
-                    (affiliation, nick_or_jid), "Warning")
-
         if not self.joined:
             return
 
@@ -257,21 +251,25 @@ class MucTab(ChatTab):
                 ', '.join(valid_affiliations), 'Error')
             return
         if nick_or_jid in [user.nick for user in self.users]:
-            muc.set_user_affiliation(
-                self.core.xmpp,
-                self.jid.bare,
-                affiliation,
-                nick=nick_or_jid,
-                callback=callback,
-                reason=reason)
+            nick = nick_or_jid
+            jid = None
         else:
-            muc.set_user_affiliation(
-                self.core.xmpp,
-                self.jid.bare,
-                affiliation,
-                jid=safeJID(nick_or_jid),
-                callback=callback,
-                reason=reason)
+            nick = None
+            try:
+                jid = JID(nick_or_jid)
+            except InvalidJID:
+                self.core.information('Invalid JID or missing occupant: %s' % nick_or_jid, 'Error')
+                return
+
+        async def do_set_affiliation(room: JID, jid: Optional[JID], nick: Optional[str], affiliation: str, reason: str):
+            try:
+                await self.core.xmpp['xep_0045'].set_affiliation(room, jid, nick, affiliation=affiliation, reason=reason)
+            except (IqError, IqTimeout) as e:
+                self.core.information(
+                    "Could not set affiliation '%s' for '%s': %s" %
+                    (affiliation, nick_or_jid, e), "Warning")
+
+        asyncio.ensure_future(do_set_affiliation(self.jid.bare, jid, nick, affiliation, reason))
 
     def change_role(self, nick: str, role: str, reason: str = '') -> None:
         """
