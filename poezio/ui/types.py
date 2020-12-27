@@ -44,7 +44,7 @@ class MucOwnJoinMessage(InfoMessage):
 
 class XMLLog(BaseMessage):
     """XML Log message"""
-    __slots__ = ('txt', 'time', 'identifier', 'incoming')
+    __slots__ = ('incoming')
 
     def __init__(
             self,
@@ -75,7 +75,7 @@ class XMLLog(BaseMessage):
 
 
 class StatusMessage(BaseMessage):
-    __slots__ = ('txt', 'time', 'identifier', 'format_string', 'format_args')
+    __slots__ = ('format_string', 'format_args')
 
     def __init__(self, format_string: str, format_args: dict):
         BaseMessage.__init__(
@@ -94,8 +94,8 @@ class StatusMessage(BaseMessage):
 
 
 class Message(BaseMessage):
-    __slots__ = ('txt', 'nick_color', 'time', 'nickname', 'user', 'delayed', 'history',
-                 'identifier', 'top', 'highlight', 'me', 'old_message', 'revisions',
+    __slots__ = ('nick_color', 'nickname', 'user', 'delayed', 'history',
+                 'top', 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
 
     def __init__(self,
