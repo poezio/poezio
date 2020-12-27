@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple
 import logging
 
 from slixmpp import Iq, JID, InvalidJID
-from slixmpp.exceptions import XMPPError
+from slixmpp.exceptions import XMPPError, IqError, IqTimeout
 from slixmpp.xmlstream.xmlstream import NotConnectedError
 from slixmpp.xmlstream.stanzabase import StanzaBase
 from slixmpp.xmlstream.handler import Callback
@@ -1151,26 +1151,43 @@ class CommandCore:
             "disconnected", self.core.exit, disposable=True)
         self.core.disconnect(msg)
 
-    @command_args_parser.quoted(0, 1, [''])
-    def destroy_room(self, args: List[str]) -> None:
+    @command_args_parser.quoted(0, 3, ['', '', ''])
+    def destroy_room(self, args: List[str]):
         """
-        /destroy_room [JID]
+        /destroy_room [JID [reason [alternative room JID]]]
         """
+        async def do_destroy(room: JID, reason: str, altroom: JID):
+            try:
+                await self.core.xmpp['xep_0045'].destroy(room, reason, altroom)
+            except (IqError, IqTimeout) as e:
+                xmpp.core.information('Unable to destroy room %s: %s' % (room, e), 'Info')
+            else:
+                xmpp.core.information('Room %s destroyed' % room, 'Info')
+
         if not args[0] and isinstance(self.core.tabs.current_tab, tabs.MucTab):
-            muc.destroy_room(self.core.xmpp,
-                             self.core.tabs.current_tab.general_jid)
-            return None
+            room = self.core.tabs.current_tab.general_jid
+        else:
+            try:
+                room = JID(args[0])
+            except InvalidJID:
+                room = None
+            else:
+                if room.resource:
+                    room = None
 
-        try:
-            room = JID(args[0]).bare
-            if room:
-                muc.destroy_room(self.core.xmpp, room)
-                return None
-        except InvalidJID:
-            pass
+        if room is None:
+            self.core.information('Invalid room JID: "%s"' % args[0], 'Error')
+            return
 
-        self.core.information('Invalid JID: "%s"' % args[0], 'Error')
-        return None
+        reason = args[1]
+        if args[2]:
+            try:
+                altroom = JID(args[2])
+            except InvalidJID:
+                self.core.information('Invalid alternative room JID: "%s"' % args[2], 'Error')
+                return
+
+        asyncio.ensure_future(do_destroy(room, reason, altroom))
 
     @command_args_parser.quoted(1, 1, [''])
     def bind(self, args):
