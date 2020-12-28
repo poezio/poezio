@@ -10,7 +10,8 @@ log = logging.getLogger(__name__)
 
 import curses
 import os
-from slixmpp.xmlstream import matcher
+from slixmpp import JID, InvalidJID
+from slixmpp.xmlstream import matcher, StanzaBase
 from slixmpp.xmlstream.tostring import tostring
 from slixmpp.xmlstream.stanzabase import ElementBase
 from xml.etree import ElementTree as ET
@@ -21,17 +22,16 @@ from poezio import text_buffer
 from poezio import windows
 from poezio.xhtml import clean_text
 from poezio.decorators import command_args_parser, refresh_wrapper
-from poezio.common import safeJID
 
 
 class MatchJID:
-    def __init__(self, jid, dest=''):
+    def __init__(self, jid: JID, dest: str = ''):
         self.jid = jid
         self.dest = dest
 
-    def match(self, xml):
-        from_ = safeJID(xml['from'])
-        to_ = safeJID(xml['to'])
+    def match(self, xml: StanzaBase):
+        from_ = xml['from']
+        to_ = xml['to']
         if self.jid.full == self.jid.bare:
             from_ = from_.bare
             to_ = to_.bare
@@ -173,7 +173,7 @@ class XMLTab(Tab):
         self.text_win.toggle_lock()
         self.refresh()
 
-    def match_stanza(self, stanza):
+    def match_stanza(self, stanza) -> bool:
         for matcher_ in self.filters:
             if not matcher_.match(stanza):
                 return False
@@ -190,33 +190,36 @@ class XMLTab(Tab):
             self.command_filter_reset()
 
     @command_args_parser.raw
-    def command_filter_to(self, jid):
+    def command_filter_to(self, jid_str: str):
         """/filter_jid_to <jid>"""
-        jid_obj = safeJID(jid)
-        if not jid_obj:
+        try:
+            jid = JID(jid_str)
+        except InvalidJID:
             return self.core.information('Invalid JID: %s' % jid, 'Error')
 
-        self.update_filters(MatchJID(jid_obj, dest='to'))
+        self.update_filters(MatchJID(jid, dest='to'))
         self.refresh()
 
     @command_args_parser.raw
-    def command_filter_from(self, jid):
+    def command_filter_from(self, jid_str: str):
         """/filter_jid_from <jid>"""
-        jid_obj = safeJID(jid)
-        if not jid_obj:
+        try:
+            jid = JID(jid_str)
+        except InvalidJID:
             return self.core.information('Invalid JID: %s' % jid, 'Error')
 
-        self.update_filters(MatchJID(jid_obj, dest='from'))
+        self.update_filters(MatchJID(jid, dest='from'))
         self.refresh()
 
     @command_args_parser.raw
-    def command_filter_jid(self, jid):
+    def command_filter_jid(self, jid_str: str):
         """/filter_jid <jid>"""
-        jid_obj = safeJID(jid)
-        if not jid_obj:
+        try:
+            jid = JID(jid_str)
+        except InvalidJID:
             return self.core.information('Invalid JID: %s' % jid, 'Error')
 
-        self.update_filters(MatchJID(jid_obj))
+        self.update_filters(MatchJID(jid))
         self.refresh()
 
     @command_args_parser.quoted(1)
@@ -229,7 +232,7 @@ class XMLTab(Tab):
         self.refresh()
 
     @command_args_parser.raw
-    def command_filter_xpath(self, xpath):
+    def command_filter_xpath(self, xpath: str):
         """/filter_xpath <xpath>"""
         try:
             self.update_filters(
@@ -286,7 +289,7 @@ class XMLTab(Tab):
         self.input.do_command("/")  # we add the slash
 
     @refresh_wrapper.always
-    def reset_help_message(self, _=None):
+    def reset_help_message(self, _=None) -> bool:
         if self.closed:
             return True
         if self.core.tabs.current_tab is self:
@@ -294,10 +297,10 @@ class XMLTab(Tab):
         self.input = self.default_help_message
         return True
 
-    def on_scroll_up(self):
+    def on_scroll_up(self) -> bool:
         return self.text_win.scroll_up(self.text_win.height - 1)
 
-    def on_scroll_down(self):
+    def on_scroll_down(self) -> bool:
         return self.text_win.scroll_down(self.text_win.height - 1)
 
     @command_args_parser.ignored
@@ -311,7 +314,7 @@ class XMLTab(Tab):
         self.refresh()
         self.core.doupdate()
 
-    def execute_slash_command(self, txt):
+    def execute_slash_command(self, txt: str) -> bool:
         if txt.startswith('/'):
             self.input.key_enter()
             self.execute_command(txt)

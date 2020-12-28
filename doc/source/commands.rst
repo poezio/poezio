@@ -56,7 +56,7 @@ These commands work in *any* tab.
         - ``/join / password``
 
     /destroy_room
-        **Usage:** ``/destroy_room [room JID]``
+        **Usage:** ``/destroy_room [room JID [reason [alternative venue]]]``
 
         Try to destroy the room given as a parameter, or the current room
         is not parameter is given and the current tab is a chatroom.
