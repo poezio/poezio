@@ -12,8 +12,8 @@
     <description xml:lang="fr">Client console XMPP libre et moderne, écrit en Python avec la bibliothèque ncurses</description>
 
     <homepage rdf:resource="https://poez.io/"/>
-    <!-- TODO: https://github.com/ewilderj/doap/issues/51 -->
-    <!--<doc rdf:resource="https://doc.poez.io/"/>-->
+    <!-- Until https://github.com/ewilderj/doap/issues/51 is done, this property lives at https://linkmauve.fr/ns/xmpp-doap#documentation -->
+    <documentation rdf:resource="https://doc.poez.io/"/>
     <download-page rdf:resource="https://poez.io/#download"/>
     <bug-database rdf:resource="https://lab.louiz.org/poezio/poezio/-/issues"/>
     <!-- See https://github.com/ewilderj/doap/issues/53 -->
@@ -25,10 +25,10 @@
     <!-- See https://github.com/ewilderj/doap/issues/49 -->
     <language>en</language>
 
-    <!-- TODO: https://github.com/ewilderj/doap/issues/40 -->
-    <!--<logo rdf:resource="https://poez.io/img/logo.png"/>-->
-    <!-- TODO: https://github.com/ewilderj/doap/issues/50 -->
-    <!--<screenshot rdf:resource="https://poez.io/img/screenshot.png"/>-->
+    <!-- Until https://github.com/ewilderj/doap/pull/68 is merged, this property lives at https://linkmauve.fr/ns/xmpp-doap#logo -->
+    <logo rdf:resource="https://poez.io/img/logo.svg"/>
+    <!-- Same here, https://github.com/ewilderj/doap/issues/50 currently lives at https://linkmauve.fr/ns/xmpp-doap#screenshot -->
+    <screenshot rdf:resource="https://poez.io/img/screenshot.png"/>
 
     <programming-language>Python</programming-language>
 
