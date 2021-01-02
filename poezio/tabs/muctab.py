@@ -736,7 +736,9 @@ class MucTab(ChatTab):
         self.core.on_user_rejoined_private_conversation(self.jid.bare, from_nick)
 
     def on_user_nick_change(self, presence: Presence, user: User, from_nick: str) -> None:
-        new_nick = presence['muc']['nick']
+        new_nick = presence.xml.find(
+            '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
+        ).attrib['nick']
         old_color = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
