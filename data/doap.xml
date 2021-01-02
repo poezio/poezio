@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-<Project xmlns="http://usefulinc.com/ns/doap#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:xmpp="https://linkmauve.fr/ns/xmpp-doap#">
+<Project xmlns="http://usefulinc.com/ns/doap#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:xmpp="https://linkmauve.fr/ns/xmpp-doap#" xmlns:schema="https://schema.org/">
     <name>poezio</name>
 
     <created>2010-01-10</created>
@@ -12,8 +12,8 @@
     <description xml:lang="fr">Client console XMPP libre et moderne, écrit en Python avec la bibliothèque ncurses</description>
 
     <homepage rdf:resource="https://poez.io/"/>
-    <!-- Until https://github.com/ewilderj/doap/issues/51 is done, this property lives at https://linkmauve.fr/ns/xmpp-doap#documentation -->
-    <xmpp:documentation rdf:resource="https://doc.poez.io/"/>
+    <!-- Until https://github.com/ewilderj/doap/issues/51 is done, we’ll use schema.org instead. -->
+    <schema:documentation rdf:resource="https://doc.poez.io/"/>
     <download-page rdf:resource="https://poez.io/#download"/>
     <bug-database rdf:resource="https://lab.louiz.org/poezio/poezio/-/issues"/>
     <!-- See https://github.com/ewilderj/doap/issues/53 -->
@@ -25,10 +25,10 @@
     <!-- See https://github.com/ewilderj/doap/issues/49 -->
     <language>en</language>
 
-    <!-- Until https://github.com/ewilderj/doap/pull/68 is merged, this property lives at https://linkmauve.fr/ns/xmpp-doap#logo -->
-    <xmpp:logo rdf:resource="https://poez.io/img/logo.svg"/>
-    <!-- Same here, https://github.com/ewilderj/doap/issues/50 currently lives at https://linkmauve.fr/ns/xmpp-doap#screenshot -->
-    <xmpp:screenshot rdf:resource="https://poez.io/img/screenshot.png"/>
+    <!-- Until https://github.com/ewilderj/doap/pull/68 is merged, we’ll use schema.org instead. -->
+    <schema:logo rdf:resource="https://poez.io/img/logo.svg"/>
+    <!-- Same here, see https://github.com/ewilderj/doap/issues/50 -->
+    <schema:screenshot rdf:resource="https://poez.io/img/screenshot.png"/>
 
     <programming-language>Python</programming-language>
 
