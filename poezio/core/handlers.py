@@ -387,7 +387,7 @@ class HandlerCore:
                 remote_nick = conversation.get_nick()
 
             conversation.last_remote_message = datetime.now()
-            self.core.events.trigger('conversation_msg', message, conversation)
+        self.core.events.trigger('conversation_msg', message, conversation)
 
         if not message['body']:
             return
