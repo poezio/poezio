@@ -32,25 +32,25 @@ class Plugin(BasePlugin):
             self.api.information(message, 'Error')
             return
         info = iq['disco_info']
-        title = 'Contact Info'
         contacts = []
-        for field in info['form']:
-            var = field['var']
-            if field['type'] == 'hidden' and var == 'FORM_TYPE':
-                form_type = field['value'][0]
-                if form_type != 'http://jabber.org/network/serverinfo':
-                    self.api.information('Not a server: “%s”: %s' % (iq['from'], form_type), 'Error')
-                    return
-                continue
-            if not var.endswith('-addresses'):
-                continue
-            var = var[:-10] # strip '-addresses'
-            sep = '\n  ' + len(var) * ' '
-            field_value = field.get_value(convert=False)
-            value = sep.join(field_value) if isinstance(field_value, list) else field_value
-            contacts.append('%s: %s' % (var, value))
+        self.api.information('Got forms: %d' % len(info), 'DEBUG')
+        # iterate all data forms, in case there are multiple
+        for form in iq['disco_info']:
+            values = form.get_values()
+            self.api.information('Got form: %s' % values['FORM_TYPE'], 'Info')
+            if values['FORM_TYPE'][0] == 'http://jabber.org/network/serverinfo':
+                for var in values:
+                    self.api.information('%s -> %s' % (var, values[var]), 'Info')
+                    if not var.endswith('-addresses'):
+                        continue
+                    title = var[:-10] # strip '-addresses'
+                    sep = '\n  ' + len(title) * ' '
+                    field_value = values[var]
+                    if field_value:
+                        value = sep.join(field_value) if isinstance(field_value, list) else field_value
+                        contacts.append('%s: %s' % (title, value))
         if contacts:
-            self.api.information('\n'.join(contacts), title)
+            self.api.information('\n'.join(contacts), 'Contact Info')
         else:
             self.api.information('No Contact Addresses for %s' % iq['from'], 'Error')
 
