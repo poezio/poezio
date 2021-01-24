@@ -1525,10 +1525,9 @@ class MucTab(ChatTab):
         """
         self.leave_room(msg)
         if config.get('synchronise_open_rooms'):
-            if self.jid not in self.core.bookmarks:
-                return
-            self.core.bookmarks[self.jid].autojoin = False
-            self.core.bookmarks.save(self.core.xmpp)
+            if self.jid in self.core.bookmarks:
+                self.core.bookmarks[self.jid].autojoin = False
+                self.core.bookmarks.save(self.core.xmpp)
         self.core.close_tab(self)
 
     def on_close(self) -> None:
