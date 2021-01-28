@@ -37,6 +37,14 @@ class CommandCore:
     def __init__(self, core):
         self.core = core
 
+    @command_args_parser.ignored
+    def rotate_rooms_left(self, args=None):
+        self.core.rotate_rooms_left()
+
+    @command_args_parser.ignored
+    def rotate_rooms_right(self, args=None):
+        self.core.rotate_rooms_right()
+
     @command_args_parser.quoted(0, 1)
     def help(self, args):
         """
@@ -1160,9 +1168,9 @@ class CommandCore:
             try:
                 await self.core.xmpp['xep_0045'].destroy(room, reason, altroom)
             except (IqError, IqTimeout) as e:
-                xmpp.core.information('Unable to destroy room %s: %s' % (room, e), 'Info')
+                self.core.information('Unable to destroy room %s: %s' % (room, e), 'Info')
             else:
-                xmpp.core.information('Room %s destroyed' % room, 'Info')
+                self.core.information('Room %s destroyed' % room, 'Info')
 
         if not args[0] and isinstance(self.core.tabs.current_tab, tabs.MucTab):
             room = self.core.tabs.current_tab.general_jid

@@ -505,3 +505,75 @@ def to_utc(time: datetime) -> datetime:
         time = time.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     # Return an offset-naive datetime
     return time.replace(tzinfo=None)
+
+
+# http://xmpp.org/extensions/xep-0045.html#errorstatus
+ERROR_AND_STATUS_CODES = {
+    '401': 'A password is required',
+    '403': 'Permission denied',
+    '404': 'The room doesn’t exist',
+    '405': 'Your are not allowed to create a new room',
+    '406': 'A reserved nick must be used',
+    '407': 'You are not in the member list',
+    '409': 'This nickname is already in use or has been reserved',
+    '503': 'The maximum number of users has been reached',
+}
+
+
+# http://xmpp.org/extensions/xep-0086.html
+DEPRECATED_ERRORS = {
+    '302': 'Redirect',
+    '400': 'Bad request',
+    '401': 'Not authorized',
+    '402': 'Payment required',
+    '403': 'Forbidden',
+    '404': 'Not found',
+    '405': 'Not allowed',
+    '406': 'Not acceptable',
+    '407': 'Registration required',
+    '408': 'Request timeout',
+    '409': 'Conflict',
+    '500': 'Internal server error',
+    '501': 'Feature not implemented',
+    '502': 'Remote server error',
+    '503': 'Service unavailable',
+    '504': 'Remote server timeout',
+    '510': 'Disconnected',
+}
+
+
+def get_error_message(stanza: Message, deprecated: bool = False) -> str:
+    """
+    Takes a stanza of the form <message type='error'><error/></message>
+    and return a well formed string containing error information
+    """
+    sender = stanza['from']
+    msg = stanza['error']['type']
+    condition = stanza['error']['condition']
+    code = stanza['error']['code']
+    body = stanza['error']['text']
+    if not body:
+        if deprecated:
+            if code in DEPRECATED_ERRORS:
+                body = DEPRECATED_ERRORS[code]
+            else:
+                body = condition or 'Unknown error'
+        else:
+            if code in ERROR_AND_STATUS_CODES:
+                body = ERROR_AND_STATUS_CODES[code]
+            else:
+                body = condition or 'Unknown error'
+    if code:
+        message = '%(from)s: %(code)s - %(msg)s: %(body)s' % {
+            'from': sender,
+            'msg': msg,
+            'body': body,
+            'code': code
+        }
+    else:
+        message = '%(from)s: %(msg)s: %(body)s' % {
+            'from': sender,
+            'msg': msg,
+            'body': body
+        }
+    return message
