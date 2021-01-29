@@ -1,8 +1,18 @@
+from typing import Callable, List
+
 from poezio.core.commands import CommandCore
 from poezio.core.completions import CompletionCore
 from poezio.plugin_manager import PluginManager
 
-from typing import TypedDict, Callable, List
+
+try:
+    from typing_extensions import TypedDict
+except ImportError:
+    from sys import version_info
+    if version_info < (3, 9):
+        raise
+    from typing import TypedDict
+
 
 CommandDict = TypedDict(
     "CommandDict",
