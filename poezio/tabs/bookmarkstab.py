@@ -2,8 +2,11 @@
 Defines the data-forms Tab
 """
 
+import asyncio
 import logging
 from typing import Dict, Callable, List
+
+from slixmpp.exceptions import IqError, IqTimeout
 
 from poezio import windows
 from poezio.bookmarks import Bookmark, BookmarkList
@@ -89,17 +92,21 @@ class BookmarksTab(Tab):
                     'Error')
                 return
 
+
         for bm in self.removed_bookmarks:
             if bm in self.bookmarks:
                 self.bookmarks.remove(bm)
 
-        def send_cb(success):
-            if success:
-                self.core.information('Bookmarks saved', 'Info')
-            else:
-                self.core.information('Remote bookmarks not saved.', 'Error')
+        asyncio.ensure_future(
+            self.save_routine()
+        )
 
-        self.bookmarks.save(self.core.xmpp, callback=send_cb)
+    async def save_routine(self):
+        try:
+            await self.bookmarks.save(self.core.xmpp)
+            self.core.information('Bookmarks saved', 'Info')
+        except (IqError, IqTimeout):
+            self.core.information('Remote bookmarks not saved.', 'Error')
         self.core.close_tab(self)
         return True
 
