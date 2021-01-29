@@ -44,7 +44,10 @@ from poezio import theming
 from poezio import timed_events
 from poezio import windows
 
-from poezio.bookmarks import BookmarkList
+from poezio.bookmarks import (
+    BookmarkList,
+    Bookmark,
+)
 from poezio.common import get_error_message
 from poezio.config import config, firstrun
 from poezio.contact import Contact, Resource
@@ -1710,7 +1713,7 @@ class Core:
                 shortdesc='Send your gaming activity.',
                 completion=None)
 
-    def check_blocking(self, features):
+    def check_blocking(self, features: List[str]):
         if 'urn:xmpp:blocking' in features and not self.xmpp.anon:
             self.register_command(
                 'block',
@@ -1729,7 +1732,7 @@ class Core:
 
 ####################### Random things to move #################################
 
-    def join_initial_rooms(self, bookmarks):
+    def join_initial_rooms(self, bookmarks: List[Bookmark]):
         """Join all rooms given in the iterator `bookmarks`"""
         for bm in bookmarks:
             if not (bm.autojoin or config.get('open_all_bookmarks')):
@@ -1745,14 +1748,16 @@ class Core:
             if bm.autojoin:
                 tab.join()
 
-    def check_bookmark_storage(self, features):
+    async def check_bookmark_storage(self, features: List[str]):
         private = 'jabber:iq:private' in features
         pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
         self.bookmarks.available_storage['private'] = private
         self.bookmarks.available_storage['pep'] = pep_
 
-        def _join_remote_only(iq):
-            if iq['type'] == 'error':
+        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
+            try:
+                await self.bookmarks.get_remote(self.xmpp, self.information)
+            except IqError as iq:
                 type_ = iq['error']['type']
                 condition = iq['error']['condition']
                 if not (type_ == 'cancel' and condition == 'item-not-found'):
@@ -1762,10 +1767,6 @@ class Core:
                 return
             remote_bookmarks = self.bookmarks.remote()
             self.join_initial_rooms(remote_bookmarks)
-
-        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
-            self.bookmarks.get_remote(self.xmpp, self.information,
-                                      _join_remote_only)
 
     def room_error(self, error: IqError, room_name: str) -> None:
         """
