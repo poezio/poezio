@@ -165,7 +165,7 @@ setup(
         + find_doc('share/doc/poezio/html', 'build/html')
         + sphinx_files_found
     ),
-    install_requires=['slixmpp>=1.6.0', 'aiodns', 'pyasn1_modules', 'pyasn1'],
+    install_requires=['slixmpp>=1.6.0', 'aiodns', 'pyasn1_modules', 'pyasn1', 'typing_extensions'],
     extras_require={'OTR plugin': 'python-potr>=1.0',
         'Screen autoaway plugin': 'pyinotify==0.9.4',
         'Avoiding cython': 'cffi'},
