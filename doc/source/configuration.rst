@@ -384,13 +384,6 @@ to understand what is :ref:`carbons <carbons-details>` or
 
         This was previously named ``bookmark_on_join``.
 
-    force_remote_bookmarks
-
-        **Default value:** ``false``
-
-        Try to retrieve your remote bookmarks, even when your server doesn’t advertise
-        support.
-
     use_bookmark_method
 
         **Default value:** ``[empty]``
