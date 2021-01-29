@@ -440,12 +440,14 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[1] if len(args) > 1 else None
 
-        self._add_bookmark(
-            room=room,
-            nick=nick,
-            autojoin=True,
-            password=password,
-            method='local',
+        asyncio.ensure_future(
+            self._add_bookmark(
+                room=room,
+                nick=nick,
+                autojoin=True,
+                password=password,
+                method='local',
+            )
         )
 
     @command_args_parser.quoted(0, 3)
@@ -463,9 +465,11 @@ class CommandCore:
         autojoin = (method == 'local' or
                     (len(args) > 1 and args[1].lower() == 'true'))
 
-        self._add_bookmark(room, nick, autojoin, password, method)
+        asyncio.ensure_future(
+            self._add_bookmark(room, nick, autojoin, password, method)
+        )
 
-    def _add_bookmark(
+    async def _add_bookmark(
         self,
         room: Optional[str],
         nick: Optional[str],
@@ -496,7 +500,7 @@ class CommandCore:
             if password is None and tab.password is not None:
                 password = tab.password
         elif room == '*':
-            return self._add_wildcard_bookmarks(method)
+            return await self._add_wildcard_bookmarks(method)
 
         # Once we found which room to bookmark, find corresponding tab if it
         # exists and fill nickname if none was specified and not default.
@@ -528,10 +532,15 @@ class CommandCore:
             bookmark.password = password
 
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp,
-                                        self.core.handler.on_bookmark_result)
+        try:
+            result = await self.core.bookmarks.save_remote(
+                self.core.xmpp,
+            )
+            self.core.handler.on_bookmark_result(result)
+        except (IqError, IqTimeout) as iq:
+            self.core.handler.on_bookmark_result(iq)
 
-    def _add_wildcard_bookmarks(self, method):
+    async def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
         for tab in self.core.get_tabs(tabs.MucTab):
             bookmark = self.core.bookmarks[tab.jid.bare]
@@ -545,8 +554,11 @@ class CommandCore:
         new_bookmarks.extend(self.core.bookmarks.bookmarks)
         self.core.bookmarks.set(new_bookmarks)
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp,
-                                        self.core.handler.on_bookmark_result)
+        try:
+            iq = await self.core.bookmarks.save_remote(self.core.xmpp)
+            self.core.handler.on_bookmark_result(iq)
+        except IqError as iq:
+            self.core.handler.on_bookmark_result(iq)
 
     @command_args_parser.ignored
     def bookmarks(self):
