@@ -16,6 +16,8 @@ from os import getenv, path
 from pathlib import Path
 from typing import Dict, Callable
 
+from slixmpp.exceptions import IqError, IqTimeout
+
 from poezio import common
 from poezio import windows
 from poezio.common import safeJID, shell_split
@@ -201,46 +203,36 @@ class RosterInfoTab(Tab):
         return self.roster_win.get_selected_row()
 
     @command_args_parser.ignored
-    def command_certs(self):
+    async def command_certs(self):
         """
         /certs
         """
+        try:
+            iq = await self.core.xmpp.plugin['xep_0257'].get_certs(timeout=3)
+        except (IqError, IqTimeout):
+            self.core.information(
+                'Unable to retrieve the certificate list.', 'Error')
+            return
+        certs = []
+        for item in iq['sasl_certs']['items']:
+            users = '\n'.join(item['users'])
+            certs.append((item['name'], users))
 
-        def cb(iq):
-            if iq['type'] == 'error':
-                self.core.information(
-                    'Unable to retrieve the certificate list.', 'Error')
-                return
-            certs = []
-            for item in iq['sasl_certs']['items']:
-                users = '\n'.join(item['users'])
-                certs.append((item['name'], users))
-
-            if not certs:
-                return self.core.information('No certificates found', 'Info')
-            msg = 'Certificates:\n'
-            msg += '\n'.join(
-                (('  %s%s' % (item[0] + (': ' if item[1] else ''), item[1]))
-                 for item in certs))
-            self.core.information(msg, 'Info')
-
-        self.core.xmpp.plugin['xep_0257'].get_certs(callback=cb, timeout=3)
+        if not certs:
+            return self.core.information('No certificates found', 'Info')
+        msg = 'Certificates:\n'
+        msg += '\n'.join(
+            (('  %s%s' % (item[0] + (': ' if item[1] else ''), item[1]))
+             for item in certs))
+        self.core.information(msg, 'Info')
 
     @command_args_parser.quoted(2, 1)
-    def command_cert_add(self, args):
+    async def command_cert_add(self, args):
         """
         /cert_add <name> <certfile> [cert-management]
         """
         if not args or len(args) < 2:
             return self.core.command.help('cert_add')
-
-        def cb(iq):
-            if iq['type'] == 'error':
-                self.core.information('Unable to add the certificate.',
-                                      'Error')
-            else:
-                self.core.information('Certificate added.', 'Info')
-
         name = args[0]
 
         try:
@@ -266,8 +258,17 @@ class RosterInfoTab(Tab):
         else:
             management = True
 
-        self.core.xmpp.plugin['xep_0257'].add_cert(
-            name, crt, callback=cb, allow_management=management)
+        try:
+            await self.core.xmpp.plugin['xep_0257'].add_cert(
+                name,
+                crt,
+                allow_management=management
+            )
+            self.core.information('Certificate added.', 'Info')
+        except (IqError, IqTimeout):
+            self.core.information('Unable to add the certificate.',
+                                  'Error')
+
 
     def completion_cert_add(self, the_input):
         """
@@ -283,76 +284,62 @@ class RosterInfoTab(Tab):
             return Completion(the_input.new_completion, ['true', 'false'], n)
 
     @command_args_parser.quoted(1)
-    def command_cert_disable(self, args):
+    async def command_cert_disable(self, args):
         """
         /cert_disable <name>
         """
         if not args:
             return self.core.command.help('cert_disable')
-
-        def cb(iq):
-            if iq['type'] == 'error':
-                self.core.information('Unable to disable the certificate.',
-                                      'Error')
-            else:
-                self.core.information('Certificate disabled.', 'Info')
-
         name = args[0]
-
-        self.core.xmpp.plugin['xep_0257'].disable_cert(name, callback=cb)
+        try:
+            await self.core.xmpp.plugin['xep_0257'].disable_cert(name)
+            self.core.information('Certificate disabled.', 'Info')
+        except (IqError, IqTimeout):
+            self.core.information('Unable to disable the certificate.',
+                                  'Error')
 
     @command_args_parser.quoted(1)
-    def command_cert_revoke(self, args):
+    async def command_cert_revoke(self, args):
         """
         /cert_revoke <name>
         """
         if not args:
             return self.core.command.help('cert_revoke')
-
-        def cb(iq):
-            if iq['type'] == 'error':
-                self.core.information('Unable to revoke the certificate.',
-                                      'Error')
-            else:
-                self.core.information('Certificate revoked.', 'Info')
-
         name = args[0]
-
-        self.core.xmpp.plugin['xep_0257'].revoke_cert(name, callback=cb)
+        try:
+            await self.core.xmpp.plugin['xep_0257'].revoke_cert(name)
+            self.core.information('Certificate revoked.', 'Info')
+        except (IqError, IqTimeout):
+            self.core.information('Unable to revoke the certificate.',
+                                  'Error')
 
     @command_args_parser.quoted(2)
-    def command_cert_fetch(self, args):
+    async def command_cert_fetch(self, args):
         """
         /cert_fetch <name> <path>
         """
         if not args or len(args) < 2:
             return self.core.command.help('cert_fetch')
-
-        def cb(iq):
-            if iq['type'] == 'error':
-                self.core.information('Unable to fetch the certificate.',
-                                      'Error')
-                return
-
-            cert = None
-            for item in iq['sasl_certs']['items']:
-                if item['name'] == name:
-                    cert = base64.b64decode(item['x509cert'])
-                    break
-
-            if not cert:
-                return self.core.information('Certificate not found.', 'Info')
-
-            cert = ssl.DER_cert_to_PEM_cert(cert)
-            with open(path, 'w') as fd:
-                fd.write(cert)
-
-            self.core.information('File stored at %s' % path, 'Info')
-
         name = args[0]
         path = args[1]
 
-        self.core.xmpp.plugin['xep_0257'].get_certs(callback=cb)
+        try:
+            iq = await self.core.xmpp.plugin['xep_0257'].get_certs()
+        except (IqError, IqTimeout):
+            self.core.information('Unable to fetch the certificate.',
+                                  'Error')
+            return
+        cert = None
+        for item in iq['sasl_certs']['items']:
+            if item['name'] == name:
+                cert = base64.b64decode(item['x509cert'])
+                break
+        if not cert:
+            return self.core.information('Certificate not found.', 'Info')
+        cert = ssl.DER_cert_to_PEM_cert(cert)
+        with open(path, 'w') as fd:
+            fd.write(cert)
+        self.core.information('File stored at %s' % path, 'Info')
 
     def completion_cert_fetch(self, the_input):
         """
@@ -380,25 +367,23 @@ class RosterInfoTab(Tab):
         tab.add_message(InfoMessage(message), typ=0)
 
     @command_args_parser.ignored
-    def command_list_blocks(self):
+    async def command_list_blocks(self):
         """
         /list_blocks
         """
-
-        def callback(iq):
-            if iq['type'] == 'error':
-                return self.core.information(
-                    'Could not retrieve the blocklist.', 'Error')
-            s = 'List of blocked JIDs:\n'
-            items = (str(item) for item in iq['blocklist']['items'])
-            jids = '\n'.join(items)
-            if jids:
-                s += jids
-            else:
-                s = 'No blocked JIDs.'
-            self.core.information(s, 'Info')
-
-        self.core.xmpp.plugin['xep_0191'].get_blocked(callback=callback)
+        try:
+            iq = await self.core.xmpp.plugin['xep_0191'].get_blocked()
+        except (IqError, IqTimeout) as iq:
+            return self.core.information(
+                'Could not retrieve the blocklist.', 'Error')
+        s = 'List of blocked JIDs:\n'
+        items = (str(item) for item in iq['blocklist']['items'])
+        jids = '\n'.join(items)
+        if jids:
+            s += jids
+        else:
+            s = 'No blocked JIDs.'
+        self.core.information(s, 'Info')
 
     @command_args_parser.ignored
     def command_disconnect(self):
@@ -523,36 +508,27 @@ class RosterInfoTab(Tab):
 
     @deny_anonymous
     @command_args_parser.quoted(1)
-    def command_password(self, args):
+    async def command_password(self, args):
         """
         /password <password>
         """
-
-        def callback(iq):
-            if iq['type'] == 'result':
-                self.core.information('Password updated', 'Account')
-                if config.get('password'):
-                    config.silent_set('password', args[0])
-            else:
-                self.core.information('Unable to change the password',
-                                      'Account')
-
-        self.core.xmpp.plugin['xep_0077'].change_password(
-            args[0], callback=callback)
-
+        try:
+            await self.core.xmpp.plugin['xep_0077'].change_password(
+                args[0]
+            )
+            self.core.information('Password updated', 'Account')
+            if config.get('password'):
+                config.silent_set('password', args[0])
+        except (IqError, IqTimeout):
+            self.core.information('Unable to change the password',
+                                  'Account')
 
     @deny_anonymous
     @command_args_parser.quoted(1, 1)
-    def command_name(self, args):
+    async def command_name(self, args):
         """
         Set a name for the specified JID in your roster
         """
-
-        def callback(iq):
-            if not iq:
-                self.core.information('The name could not be set.', 'Error')
-                log.debug('Error in /name:\n%s', iq)
-
         if args is None:
             return self.core.command.help('name')
         jid = safeJID(args[0]).bare
@@ -567,16 +543,19 @@ class RosterInfoTab(Tab):
         if 'none' in groups:
             groups.remove('none')
         subscription = contact.subscription
-        self.core.xmpp.update_roster(
-            jid,
-            name=name,
-            groups=groups,
-            subscription=subscription,
-            callback=callback)
+        try:
+            await self.core.xmpp.update_roster(
+                jid,
+                name=name,
+                groups=groups,
+                subscription=subscription
+            )
+        except (IqError, IqTimeout):
+            self.core.information('The name could not be set.', 'Error')
 
     @deny_anonymous
     @command_args_parser.quoted(1, 1)
-    def command_groupadd(self, args):
+    async def command_groupadd(self, args):
         """
         Add the specified JID to the specified group
         """
@@ -615,23 +594,21 @@ class RosterInfoTab(Tab):
         name = contact.name
         subscription = contact.subscription
 
-        def callback(iq):
-            if iq:
-                roster.update_contact_groups(jid)
-            else:
-                self.core.information('The group could not be set.', 'Error')
-                log.debug('Error in groupadd:\n%s', iq)
 
-        self.core.xmpp.update_roster(
-            jid,
-            name=name,
-            groups=new_groups,
-            subscription=subscription,
-            callback=callback)
+        try:
+            await self.core.xmpp.update_roster(
+                jid,
+                name=name,
+                groups=new_groups,
+                subscription=subscription,
+            )
+            roster.update_contact_groups(jid)
+        except (IqError, IqTimeout):
+            self.core.information('The group could not be set.', 'Error')
 
     @deny_anonymous
     @command_args_parser.quoted(3)
-    def command_groupmove(self, args):
+    async def command_groupmove(self, args):
         """
         Remove the specified JID from the first specified group and add it to the second one
         """
@@ -674,24 +651,20 @@ class RosterInfoTab(Tab):
         new_groups.remove(group_from)
         name = contact.name
         subscription = contact.subscription
-
-        def callback(iq):
-            if iq:
-                roster.update_contact_groups(contact)
-            else:
-                self.core.information('The group could not be set', 'Error')
-                log.debug('Error in groupmove:\n%s', iq)
-
-        self.core.xmpp.update_roster(
-            jid,
-            name=name,
-            groups=new_groups,
-            subscription=subscription,
-            callback=callback)
+        try:
+            await self.core.xmpp.update_roster(
+                jid,
+                name=name,
+                groups=new_groups,
+                subscription=subscription,
+            )
+            roster.update_contact_groups(contact)
+        except (IqError, IqTimeout):
+            self.core.information('The group could not be set', 'Error')
 
     @deny_anonymous
     @command_args_parser.quoted(2)
-    def command_groupremove(self, args):
+    async def command_groupremove(self, args):
         """
         Remove the specified JID from the specified group
         """
@@ -720,20 +693,16 @@ class RosterInfoTab(Tab):
         new_groups.remove(group)
         name = contact.name
         subscription = contact.subscription
-
-        def callback(iq):
-            if iq:
-                roster.update_contact_groups(jid)
-            else:
-                self.core.information('The group could not be set')
-                log.debug('Error in groupremove:\n%s', iq)
-
-        self.core.xmpp.update_roster(
-            jid,
-            name=name,
-            groups=new_groups,
-            subscription=subscription,
-            callback=callback)
+        try:
+            self.core.xmpp.update_roster(
+                jid,
+                name=name,
+                groups=new_groups,
+                subscription=subscription,
+            )
+            roster.update_contact_groups(jid)
+        except (IqError, IqTimeout):
+            self.core.information('The group could not be set')
 
     @deny_anonymous
     @command_args_parser.quoted(0, 1)
