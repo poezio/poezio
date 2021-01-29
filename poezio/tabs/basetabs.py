@@ -324,7 +324,10 @@ class Tab:
             if func:
                 if hasattr(self.input, "reset_completion"):
                     self.input.reset_completion()
-                func(arg)
+                if asyncio.iscoroutinefunction(func):
+                    asyncio.ensure_future(func(arg))
+                else:
+                    func(arg)
             return True
         else:
             return False
