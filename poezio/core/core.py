@@ -885,25 +885,36 @@ class Core:
         self.tabs.current_tab.command_say(msg)
         return True
 
-    def invite(self, jid: JID, room: JID, reason: Optional[str] = None) -> None:
+    async def invite(self, jid: JID, room: JID, reason: Optional[str] = None, force_mediated: bool = False) -> bool:
         """
         Checks if the sender supports XEP-0249, then send an invitation,
         or a mediated one if it does not.
         TODO: allow passwords
         """
+        features = set()
 
-        def callback(iq):
-            if not iq:
-                return
-            if 'jabber:x:conference' in iq['disco_info'].get_features():
-                self.xmpp.plugin['xep_0249'].send_invitation(
-                    jid, room, reason=reason)
-            else:  # fallback
-                self.xmpp.plugin['xep_0045'].invite(
-                    room, jid, reason=reason or '')
-
-        self.xmpp.plugin['xep_0030'].get_info(
-            jid=jid, timeout=5, callback=callback)
+        # force mediated: act as if the other entity does not
+        # support direct invites
+        if not force_mediated:
+            try:
+                iq = await self.xmpp.plugin['xep_0030'].get_info(
+                    jid=jid,
+                    timeout=5,
+                )
+                features = iq['disco_info'].get_features()
+            except (IqError, IqTimeout):
+                pass
+        supports_direct = 'jabber:x:conference' in features
+        if supports_direct:
+            invite = self.xmpp.plugin['xep_0249'].send_invitation
+        else:  # fallback
+            invite = self.xmpp.plugin['xep_0045'].invite
+        invite(
+            jid=jid,
+            room=room,
+            reason=reason
+        )
+        return True
 
     def _impromptu_room_form(self, room):
         fields = [
@@ -990,7 +1001,7 @@ class Core:
         self.information('Room %s created' % room, 'Info')
 
         for jid in jids:
-            self.invite(jid, room)
+            await self.invite(jid, room, force_mediated=True)
 
 ####################### Tab logic-related things ##############################
 

@@ -996,7 +996,7 @@ class CommandCore:
             name=name, server_address=address, callback=dumb_callback)
 
     @command_args_parser.quoted(2, 1, [None])
-    def invite(self, args):
+    async def invite(self, args):
         """/invite <to> <room> [reason]"""
 
         if args is None:
@@ -1013,8 +1013,9 @@ class CommandCore:
         except InvalidJID:
             self.core.information('Invalid room JID specified to invite: %s' % args[1], 'Error')
             return None
-        self.core.invite(to.full, room, reason=reason)
-        self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
+        result = await self.core.invite(to.full, room, reason=reason)
+        if result:
+            self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
     @command_args_parser.quoted(1, 0)
     def impromptu(self, args: str) -> None:
