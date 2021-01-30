@@ -1404,19 +1404,19 @@ class MucTab(ChatTab):
             self.core.information("Unknown user: %s" % nick, "Error")
 
     @command_args_parser.quoted(0)
-    def command_configure(self, ignored: Any) -> None:
+    async def command_configure(self, ignored: Any) -> None:
         """
         /configure
         """
 
-        def on_form_received(form: Form) -> None:
-            if not form:
-                self.core.information(
-                    'Could not retrieve the configuration form', 'Error')
-                return
+        try:
+            form = await self.core.xmpp.plugin['xep_0045'].get_room_config(
+                self.jid.bare
+            )
             self.core.open_new_form(form, self.cancel_config, self.send_config)
-
-        fixes.get_room_form(self.core.xmpp, self.jid.bare, on_form_received)
+        except (IqError, IqTimeout, ValueError):
+            self.core.information(
+                'Could not retrieve the configuration form', 'Error')
 
     @command_args_parser.raw
     def command_cycle(self, msg: str) -> None:
