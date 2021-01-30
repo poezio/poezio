@@ -217,19 +217,19 @@ class ConversationTab(OneToOneTab):
             return True
 
     @command_args_parser.quoted(0, 1)
-    def command_version(self, args):
+    async def command_version(self, args):
         """
         /version [jid]
         """
         if args:
-            return self.core.command.version(args[0])
+            return await self.core.command.version(args[0])
         jid = self.jid
         if not jid.resource:
             if jid in roster:
                 resource = roster[jid].get_highest_priority_resource()
                 jid = resource.jid if resource else jid
-        self.core.xmpp.plugin['xep_0092'].get_version(
-            jid, callback=self.core.handler.on_version_result)
+        iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+        self.core.handler.on_version_result(iq)
 
     def resize(self):
         self.need_resize = False
