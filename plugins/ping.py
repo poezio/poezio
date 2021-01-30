@@ -21,8 +21,10 @@ Command
         In a private or a direct conversation, you can do ``/ping`` to ping
         the current interlocutor.
 """
+import asyncio
 
 from slixmpp import InvalidJID, JID
+from slixmpp.exceptions import IqTimeout
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
@@ -69,7 +71,7 @@ class Plugin(BasePlugin):
                 completion=self.completion_ping)
 
     @command_args_parser.raw
-    def command_ping(self, arg):
+    async def command_ping(self, arg):
         if not arg:
             return self.core.command.help('ping')
         try:
@@ -78,7 +80,10 @@ class Plugin(BasePlugin):
             return self.api.information('Invalid JID: %s' % arg, 'Error')
         start = time.time()
 
-        def callback(iq):
+        try:
+            iq = await self.core.xmpp.plugin['xep_0199'].send_ping(
+                jid=jid, timeout=10
+            )
             delay = time.time() - start
             error = False
             reply = ''
@@ -101,13 +106,11 @@ class Plugin(BasePlugin):
                 message = '%s responded to ping after %ss%s' % (
                     jid, round(delay, 4), reply)
             self.api.information(message, 'Info')
-
-        def timeout(iq):
+        except IqTimeout:
             self.api.information(
-                '%s did not respond to ping after 10s: timeout' % jid, 'Info')
-
-        self.core.xmpp.plugin['xep_0199'].send_ping(
-            jid=jid, callback=callback, timeout=10, timeout_callback=timeout)
+                '%s did not respond to ping after 10s: timeout' % jid,
+                'Info'
+            )
 
     def completion_muc_ping(self, the_input):
         users = [user.nick for user in self.api.current_tab().users]
@@ -117,9 +120,12 @@ class Plugin(BasePlugin):
 
     @command_args_parser.raw
     def command_private_ping(self, arg):
-        if arg:
-            return self.command_ping(arg)
-        self.command_ping(self.api.current_tab().jid)
+        jid = arg
+        if not arg:
+            jid = self.api.current_tab().jid
+        asyncio.ensure_future(
+            self.command_ping(jid)
+        )
 
     @command_args_parser.raw
     def command_muc_ping(self, arg):
@@ -134,20 +140,25 @@ class Plugin(BasePlugin):
                 jid = JID(arg)
             except InvalidJID:
                 return self.api.information('Invalid JID: %s' % arg, 'Error')
-        self.command_ping(jid.full)
+        asyncio.ensure_future(
+            self.command_ping(jid.full)
+        )
 
     @command_args_parser.raw
     def command_roster_ping(self, arg):
         if arg:
-            self.command_ping(arg)
+            jid = arg
         else:
             current = self.api.current_tab().selected_row
             if isinstance(current, Resource):
-                self.command_ping(current.jid)
+                jid = current.jid
             elif isinstance(current, Contact):
                 res = current.get_highest_priority_resource()
                 if res is not None:
-                    self.command_ping(res.jid)
+                    jid =res.jid
+        asyncio.ensure_future(
+            self.command_ping(jid)
+        )
 
     def resources(self):
         l = []
