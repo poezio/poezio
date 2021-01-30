@@ -301,27 +301,40 @@ class CommandCore:
             jid = self.core.tabs.current_tab.jid
         if jid is None or not jid.domain:
             return None
+        asyncio.ensure_future(
+            self._list_async(jid)
+        )
+
+    async def _list_async(self, jid: JID):
         jid = JID(jid.domain)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
-        cb = list_tab.on_muc_list_item_received
-        self.core.xmpp.plugin['xep_0030'].get_items(jid=jid, callback=cb)
+        iq = await self.core.xmpp.plugin['xep_0030'].get_items(jid=jid)
+        list_tab.on_muc_list_item_received(iq)
 
     @command_args_parser.quoted(1)
-    def version(self, args):
+    async def version(self, args):
         """
         /version <jid>
         """
         if args is None:
             return self.help('version')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information(
+                'Invalid JID for /version: %s' % args[0],
+                'Error'
+            )
         if jid.resource or jid not in roster or not roster[jid].resources:
-            self.core.xmpp.plugin['xep_0092'].get_version(
-                jid, callback=self.core.handler.on_version_result)
+            iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+            self.core.handler.on_version_result(iq)
         elif jid in roster:
             for resource in roster[jid].resources:
-                self.core.xmpp.plugin['xep_0092'].get_version(
-                    resource.jid, callback=self.core.handler.on_version_result)
+                iq = await self.core.xmpp.plugin['xep_0092'].get_version(
+                    resource.jid
+                )
+                self.core.handler.on_version_result(iq)
 
     def _empty_join(self):
         tab = self.core.tabs.current_tab
@@ -1049,6 +1062,7 @@ class CommandCore:
                 jid = JID(args[0]).full
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
+                return
 
         current_tab = self.core.tabs.current_tab
         if jid is None:
@@ -1071,20 +1085,20 @@ class CommandCore:
             if isinstance(current_tab, chattabs):
                 jid = current_tab.jid.bare
 
-        def callback(iq: Iq) -> None:
-            if iq['type'] == 'error':
-                return self.core.information(
-                    'Could not block %s.' % jid, 'Error',
-                )
-            if iq['type'] == 'result':
-                return self.core.information('Blocked %s.' % jid, 'Info')
-            return None
-
-
-        if jid is not None:
-            self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
-        else:
+        if jid is None:
             self.core.information('No specified JID to block', 'Error')
+        else:
+            asyncio.ensure_future(self._block_async(jid))
+
+    async def _block_async(self, jid: JID):
+        """Block a JID, asynchronously"""
+        try:
+            await self.core.xmpp.plugin['xep_0191'].block(jid)
+            return self.core.information('Blocked %s.' % jid, 'Info')
+        except (IqError, IqTimeout):
+            return self.core.information(
+                'Could not block %s.' % jid, 'Error',
+            )
 
     @command_args_parser.quoted(0, 1)
     def unblock(self, args: List[str]) -> None:
@@ -1103,6 +1117,7 @@ class CommandCore:
                 jid = JID(args[0]).full
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
+                return
 
         current_tab = self.core.tabs.current_tab
         if jid is None:
@@ -1126,16 +1141,20 @@ class CommandCore:
                 jid = current_tab.jid.bare
 
         if jid is not None:
-            def callback(iq: Iq):
-                if iq['type'] == 'error':
-                    return self.core.information('Could not unblock the contact.',
-                                                 'Error')
-                elif iq['type'] == 'result':
-                    return self.core.information('Unblocked %s.' % jid, 'Info')
-
-            self.core.xmpp.plugin['xep_0191'].unblock(jid, callback=callback)
+            asyncio.ensure_future(
+                self._unblock_async(jid)
+            )
         else:
             self.core.information('No specified JID to unblock', 'Error')
+
+    async def _unblock_async(self, jid: JID):
+        """Unblock a JID, asynchrously"""
+        try:
+            await self.core.xmpp.plugin['xep_0191'].unblock(jid)
+            return self.core.information('Unblocked %s.' % jid, 'Info')
+        except (IqError, IqTimeout):
+            return self.core.information('Could not unblock the contact.',
+                                         'Error')
 
 ### Commands without a completion in this class ###
 
@@ -1344,15 +1363,23 @@ class CommandCore:
             self.core.xml_tab = tab
 
     @command_args_parser.quoted(1)
-    def adhoc(self, args):
+    async def adhoc(self, args):
         if not args:
             return self.help('ad-hoc')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information(
+                'Invalid JID for ad-hoc command: %s' % args[0],
+                'Error',
+            )
         list_tab = tabs.AdhocCommandsListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
-        cb = list_tab.on_list_received
-        self.core.xmpp.plugin['xep_0050'].get_commands(
-            jid=jid, local=False, callback=cb)
+        iq = await self.core.xmpp.plugin['xep_0050'].get_commands(
+            jid=jid,
+            local=False
+        )
+        list_tab.on_list_received(iq)
 
     @command_args_parser.ignored
     def self_(self):
