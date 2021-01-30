@@ -25,15 +25,16 @@ Command
         vcard from the current interlocutor, and in the contact list to do it
         on the currently selected contact.
 """
+import asyncio
 
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
-from poezio.common import safeJID
 from poezio.contact import Contact, Resource
 from poezio.core.structs import Completion
 from poezio import tabs
 from slixmpp.jid import JID, InvalidJID
+from slixmpp.exceptions import IqTimeout
 
 
 class Plugin(BasePlugin):
@@ -240,19 +241,18 @@ class Plugin(BasePlugin):
         on_cancel = lambda form: self.core.close_tab()
         self.core.open_new_form(form, on_cancel, on_validate)
 
-    def _get_vcard(self, jid):
+    async def _get_vcard(self, jid):
         '''Send an iq to ask the vCard.'''
-
-        def timeout_cb(iq):
+        try:
+            vcard = await self.core.xmpp.plugin['xep_0054'].get_vcard(
+                jid=jid,
+                timeout=30,
+            )
+            self._handle_vcard(vcard)
+        except IqTimeout:
             self.api.information('Timeout while retrieving vCard for %s' % jid,
                                  'Error')
-            return
 
-        self.core.xmpp.plugin['xep_0054'].get_vcard(
-            jid=jid,
-            timeout=30,
-            callback=self._handle_vcard,
-            timeout_callback=timeout_cb)
 
     @command_args_parser.raw
     def command_vcard(self, arg):
@@ -266,7 +266,9 @@ class Plugin(BasePlugin):
             self.api.information('Invalid JID: %s' % arg, 'Error')
             return
 
-        self._get_vcard(jid)
+        asyncio.ensure_future(
+            self._get_vcard(jid)
+        )
 
     @command_args_parser.raw
     def command_private_vcard(self, arg):
@@ -285,10 +287,12 @@ class Plugin(BasePlugin):
             jid = self.api.current_tab().jid.bare + '/' + user.nick
         else:
             try:
-                jid = safeJID(arg)
+                jid = JID(arg)
             except InvalidJID:
                 return self.api.information('Invalid JID: %s' % arg, 'Error')
-        self._get_vcard(jid)
+        asyncio.ensure_future(
+            self._get_vcard(jid)
+        )
 
     @command_args_parser.raw
     def command_roster_vcard(self, arg):
@@ -297,9 +301,13 @@ class Plugin(BasePlugin):
             return
         current = self.api.current_tab().selected_row
         if isinstance(current, Resource):
-            self._get_vcard(JID(current.jid).bare)
+            asyncio.ensure_future(
+                self._get_vcard(JID(current.jid).bare)
+            )
         elif isinstance(current, Contact):
-            self._get_vcard(current.bare_jid)
+            asyncio.ensure_future(
+                self._get_vcard(current.bare_jid)
+            )
 
     def completion_vcard(self, the_input):
         contacts = [contact.bare_jid for contact in roster.get_contacts()]
