@@ -955,7 +955,6 @@ class OneToOneTab(ChatTab):
 
         # Set to true once the first disco is done
         self.__initial_disco = False
-        self.check_features()
         self.register_command(
             'unquery', self.command_unquery, shortdesc='Close the tab.')
         self.register_command(
@@ -1038,14 +1037,6 @@ class OneToOneTab(ChatTab):
             )
             self.refresh()
 
-    def check_features(self):
-        "check the features supported by the other party"
-        if safeJID(self.get_dest_jid()).resource:
-            self.core.xmpp.plugin['xep_0030'].get_info(
-                jid=self.get_dest_jid(),
-                timeout=5,
-                callback=self.features_checked)
-
     @command_args_parser.raw
     def command_attention(self, message):
         """/attention [message]"""
@@ -1082,7 +1073,3 @@ class OneToOneTab(ChatTab):
         msg = msg % (self.name, feature, command_name)
         self.core.information(msg, 'Info')
         return True
-
-    def features_checked(self, iq):
-        "Features check callback"
-        features = iq['disco_info'].get_features() or []
