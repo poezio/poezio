@@ -1,5 +1,5 @@
 #!/bin/sh
-cd $(dirname "$0")
+cd $(dirname "$(readlink -f "$0")")
 if [ -z "$POEZIO_VENV" ]
 then
     POEZIO_VENV="poezio-venv"
