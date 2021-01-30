@@ -369,7 +369,6 @@ class PrivateTab(OneToOneTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
-        self.check_features()
         tab = self.parent_muc
         theme = get_theme()
         color = dump_tuple(theme.COLOR_REMOTE_USER)
