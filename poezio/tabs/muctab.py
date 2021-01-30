@@ -1457,7 +1457,7 @@ class MucTab(ChatTab):
             self.set_nick_color(nick, color)
 
     @command_args_parser.quoted(1)
-    def command_version(self, args: List[str]) -> None:
+    async def command_version(self, args: List[str]) -> None:
         """
         /version <jid or nick>
         """
@@ -1466,7 +1466,7 @@ class MucTab(ChatTab):
             return
         nick = args[0]
         try:
-            if nick in [user.nick for user in self.users]:
+            if nick in {user.nick for user in self.users}:
                 jid = copy(self.jid)
                 jid.resource = nick
             else:
@@ -1474,8 +1474,8 @@ class MucTab(ChatTab):
         except InvalidJID:
             self.core.information('Invalid jid or nick %r' % nick, 'Error')
             return
-        self.core.xmpp.plugin['xep_0092'].get_version(
-            jid, callback=self.core.handler.on_version_result)
+        iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+        self.core.handler.on_version_result(iq)
 
     @command_args_parser.quoted(1)
     def command_nick(self, args: List[str]) -> None:
