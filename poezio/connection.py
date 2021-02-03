@@ -165,20 +165,8 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0198')
         self.register_plugin('xep_0199')
 
-        if config.get('enable_user_tune'):
-            self.register_plugin('xep_0118')
-
         if config.get('enable_user_nick'):
             self.register_plugin('xep_0172')
-
-        if config.get('enable_user_mood'):
-            self.register_plugin('xep_0107')
-
-        if config.get('enable_user_activity'):
-            self.register_plugin('xep_0108')
-
-        if config.get('enable_user_gaming'):
-            self.register_plugin('xep_0196')
 
         if config.get('send_poezio_info'):
             info = {'name': 'poezio', 'version': options.custom_version}

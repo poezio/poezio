@@ -15,7 +15,6 @@ from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
 
 from poezio import common
-from poezio import pep
 from poezio import tabs
 from poezio import multiuserchat as muc
 from poezio.bookmarks import Bookmark
@@ -938,71 +937,6 @@ class CommandCore:
                 if status else '')
         self.core.information(msg, 'Info')
 
-    @command_args_parser.quoted(0, 2)
-    def mood(self, args):
-        """
-        /mood [<mood> [text]]
-        """
-        if not args:
-            return self.core.xmpp.plugin['xep_0107'].stop()
-
-        mood = args[0]
-        if mood not in pep.MOODS:
-            return self.core.information(
-                '%s is not a correct value for a mood.' % mood, 'Error')
-        if len(args) == 2:
-            text = args[1]
-        else:
-            text = None
-        self.core.xmpp.plugin['xep_0107'].publish_mood(
-            mood, text, callback=dumb_callback)
-
-    @command_args_parser.quoted(0, 3)
-    def activity(self, args):
-        """
-        /activity [<general> [specific] [text]]
-        """
-        length = len(args)
-        if not length:
-            return self.core.xmpp.plugin['xep_0108'].stop()
-
-        general = args[0]
-        if general not in pep.ACTIVITIES:
-            return self.core.information(
-                '%s is not a correct value for an activity' % general, 'Error')
-        specific = None
-        text = None
-        if length == 2:
-            if args[1] in pep.ACTIVITIES[general]:
-                specific = args[1]
-            else:
-                text = args[1]
-        elif length == 3:
-            specific = args[1]
-            text = args[2]
-        if specific and specific not in pep.ACTIVITIES[general]:
-            return self.core.information(
-                '%s is not a correct value '
-                'for an activity' % specific, 'Error')
-        self.core.xmpp.plugin['xep_0108'].publish_activity(
-            general, specific, text, callback=dumb_callback)
-
-    @command_args_parser.quoted(0, 2)
-    def gaming(self, args):
-        """
-        /gaming [<game name> [server address]]
-        """
-        if not args:
-            return self.core.xmpp.plugin['xep_0196'].stop()
-
-        name = args[0]
-        if len(args) > 1:
-            address = args[1]
-        else:
-            address = None
-        return self.core.xmpp.plugin['xep_0196'].publish_gaming(
-            name=name, server_address=address, callback=dumb_callback)
-
     @command_args_parser.quoted(2, 1, [None])
     async def invite(self, args):
         """/invite <to> <room> [reason]"""
@@ -1200,12 +1134,6 @@ class CommandCore:
             return
 
         msg = args[0]
-        if config.get('enable_user_mood'):
-            self.core.xmpp.plugin['xep_0107'].stop()
-        if config.get('enable_user_activity'):
-            self.core.xmpp.plugin['xep_0108'].stop()
-        if config.get('enable_user_gaming'):
-            self.core.xmpp.plugin['xep_0196'].stop()
         self.core.save_config()
         self.core.plugin_manager.disable_plugins()
         self.core.xmpp.add_event_handler(

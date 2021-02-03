@@ -11,7 +11,14 @@ the roster.
 
 from collections import defaultdict
 import logging
-from typing import Dict, Iterator, List, Optional, Union
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Union,
+)
 
 from slixmpp import InvalidJID, JID
 
@@ -73,10 +80,7 @@ class Contact:
         self._name = ''
         self.avatar = None
         self.error = None
-        self.tune: Dict[str, str] = {}
-        self.gaming: Dict[str, str] = {}
-        self.mood = ''
-        self.activity = ''
+        self.rich_presence: Dict[str, Any] = defaultdict(lambda: None)
 
     @property
     def groups(self) -> List[str]:
