@@ -19,7 +19,6 @@ from poezio import pep
 from poezio import tabs
 from poezio import multiuserchat as muc
 from poezio.bookmarks import Bookmark
-from poezio.common import safeJID
 from poezio.config import config, DEFAULT_CONFIG, options as config_opts
 from poezio.contact import Contact, Resource
 from poezio.decorators import deny_anonymous
@@ -631,9 +630,12 @@ class CommandCore:
                 else:
                     return self.core.information('No subscription to accept', 'Warning')
         else:
-            jid = safeJID(args[0]).bare
-        nodepart = safeJID(jid).user
-        jid = safeJID(jid)
+            try:
+                jid = JID(args[0]).bare
+            except InvalidJID:
+                return self.core.information('Invalid JID for /accept: %s' % args[0], 'Error')
+        jid = JID(jid)
+        nodepart = jid.user
         # crappy transports putting resources inside the node part
         if '\\2f' in nodepart:
             jid.user = nodepart.split('\\2f')[0]
@@ -669,11 +671,10 @@ class CommandCore:
                 return self.core.information('%s was added to the roster' % jid, 'Roster')
             else:
                 return self.core.information('No JID specified', 'Error')
-        jid = safeJID(safeJID(args[0]).bare)
-        if not str(jid):
-            self.core.information(
-                'The provided JID (%s) is not valid' % (args[0], ), 'Error')
-            return
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            return self.core.information('Invalid JID for /add: %s' % args[0], 'Error')
         if jid in roster and roster[jid].subscription in ('to', 'both'):
             return self.core.information('Already subscribed.', 'Roster')
         roster.add(jid)
@@ -695,7 +696,10 @@ class CommandCore:
                 if isinstance(item, Contact):
                     jid = item.bare_jid
         else:
-            jid = safeJID(args[0]).bare
+            try:
+                jid = JID(args[0]).bare
+            except InvalidJID:
+                return self.core.information('Invalid JID for /deny: %s' % args[0], 'Error')
             if jid not in [jid for jid in roster.jids()]:
                 jid = None
         if jid is None:
@@ -717,7 +721,10 @@ class CommandCore:
         """
         jid = None
         if args:
-            jid = safeJID(args[0]).bare
+            try:
+                jid = JID(args[0]).bare
+            except InvalidJID:
+                return self.core.information('Invalid JID for /remove: %s' % args[0], 'Error')
         else:
             tab = self.core.tabs.current_tab
             if isinstance(tab, tabs.RosterInfoTab):
@@ -914,7 +921,7 @@ class CommandCore:
             seconds = iq['last_activity']['seconds']
             status = iq['last_activity']['status']
             from_ = iq['from']
-            if not safeJID(from_).user:
+            if not from_.user:
                 msg = 'The uptime of %s is %s.' % (
                     from_, common.parse_secs_to_str(seconds))
             else:
@@ -926,7 +933,10 @@ class CommandCore:
 
         if args is None:
             return self.help('last_activity')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information('Invalid JID for /last_activity: %s' % args[0], 'Error')
         self.core.xmpp.plugin['xep_0012'].get_last_activity(
             jid, callback=callback)
 
@@ -1030,7 +1040,11 @@ class CommandCore:
             jids.add(current_tab.general_jid)
 
         for jid in common.shell_split(' '.join(args)):
-            jids.add(safeJID(jid).bare)
+            try:
+                bare = JID(jid).bare
+            except InvalidJID:
+                return self.core.information('Invalid JID for /impromptu: %s' % args[0], 'Error')
+            jids.add(bare)
 
         asyncio.ensure_future(self.core.impromptu(jids))
         self.core.information('Invited %s to a random room' % (', '.join(jids)), 'Info')
@@ -1040,7 +1054,10 @@ class CommandCore:
         """/decline <room@server.tld> [reason]"""
         if args is None:
             return self.help('decline')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information('Invalid JID for /decline: %s' % args[0], 'Error')
         if jid.bare not in self.core.pending_invites:
             return
         reason = args[1]
@@ -1162,15 +1179,18 @@ class CommandCore:
     @command_args_parser.ignored
     def invitations(self):
         """/invitations"""
-        build = ""
+        build = []
         for invite in self.core.pending_invites:
-            build += "%s by %s" % (
-                invite, safeJID(self.core.pending_invites[invite]).bare)
-        if self.core.pending_invites:
-            build = "You are invited to the following rooms:\n" + build
+            try:
+                bare = JID(self.core.pending_invites[invite]).bare
+            except InvalidJID:
+                self.core.information('Invalid JID found in /invitations: %s' % args[0], 'Error')
+            build.append('%s by %s' % (invite, bare))
+        if build:
+            message = 'You are invited to the following rooms:\n' + ','.join(build)
         else:
-            build = "You do not have any pending invitations."
-        self.core.information(build, 'Info')
+            message = 'You do not have any pending invitations.'
+        self.core.information(message, 'Info')
 
     @command_args_parser.quoted(0, 1, [None])
     def quit(self, args):
@@ -1331,7 +1351,10 @@ class CommandCore:
         """
         if args is None:
             return self.help('message')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information('Invalid JID for /message: %s' % args[0], 'Error')
         if not jid.user and not jid.domain and not jid.resource:
             return self.core.information('Invalid JID.', 'Error')
         tab = self.core.get_conversation_by_jid(
