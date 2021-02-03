@@ -297,22 +297,9 @@ class Core:
                                         self.handler.on_vcard_avatar)
             self.xmpp.add_event_handler("avatar_metadata_publish",
                                         self.handler.on_0084_avatar)
-        if config.get('enable_user_tune'):
-            self.xmpp.add_event_handler("user_tune_publish",
-                                        self.handler.on_tune_event)
         if config.get('enable_user_nick'):
             self.xmpp.add_event_handler("user_nick_publish",
                                         self.handler.on_nick_received)
-        if config.get('enable_user_mood'):
-            self.xmpp.add_event_handler("user_mood_publish",
-                                        self.handler.on_mood_event)
-        if config.get('enable_user_activity'):
-            self.xmpp.add_event_handler("user_activity_publish",
-                                        self.handler.on_activity_event)
-        if config.get('enable_user_gaming'):
-            self.xmpp.add_event_handler("user_gaming_publish",
-                                        self.handler.on_gaming_event)
-
         all_stanzas = Callback('custom matcher', connection.MatchAll(None),
                                self.handler.incoming_stanza)
         self.xmpp.register_handler(all_stanzas)
@@ -525,12 +512,6 @@ class Core:
         }
 
         log.error("%s received. Exiting…", signals[sig])
-        if config.get('enable_user_mood'):
-            self.xmpp.plugin['xep_0107'].stop()
-        if config.get('enable_user_activity'):
-            self.xmpp.plugin['xep_0108'].stop()
-        if config.get('enable_user_gaming'):
-            self.xmpp.plugin['xep_0196'].stop()
         self.plugin_manager.disable_plugins()
         self.disconnect('%s received' % signals.get(sig))
         self.xmpp.add_event_handler("disconnected", self.exit, disposable=True)
@@ -1692,37 +1673,6 @@ class Core:
         """
         for command in get_commands(self.command, self.completion, self.plugin_manager):
             self.register_command(**command)
-
-        if config.get('enable_user_activity'):
-            self.register_command(
-                'activity',
-                self.command.activity,
-                usage='[<general> [specific] [text]]',
-                desc='Send your current activity to your contacts '
-                '(use the completion). Nothing means '
-                '"stop broadcasting an activity".',
-                shortdesc='Send your activity.',
-                completion=self.completion.activity)
-        if config.get('enable_user_mood'):
-            self.register_command(
-                'mood',
-                self.command.mood,
-                usage='[<mood> [text]]',
-                desc='Send your current mood to your contacts '
-                '(use the completion). Nothing means '
-                '"stop broadcasting a mood".',
-                shortdesc='Send your mood.',
-                completion=self.completion.mood)
-        if config.get('enable_user_gaming'):
-            self.register_command(
-                'gaming',
-                self.command.gaming,
-                usage='[<game name> [server address]]',
-                desc='Send your current gaming activity to '
-                'your contacts. Nothing means "stop '
-                'broadcasting a gaming activity".',
-                shortdesc='Send your gaming activity.',
-                completion=None)
 
     def check_blocking(self, features: List[str]):
         if 'urn:xmpp:blocking' in features and not self.xmpp.anon:

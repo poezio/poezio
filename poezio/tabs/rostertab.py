@@ -1012,15 +1012,6 @@ class RosterInfoTab(Tab):
                     '%s connected resource%s' % (len(cont), ''
                                                  if len(cont) == 1 else 's'))
                 acc.append('Current status: %s' % res.status)
-            if cont.tune:
-                acc.append('Tune: %s' % common.format_tune_string(cont.tune))
-            if cont.mood:
-                acc.append('Mood: %s' % cont.mood)
-            if cont.activity:
-                acc.append('Activity: %s' % cont.activity)
-            if cont.gaming:
-                acc.append(
-                    'Game: %s' % (common.format_gaming_string(cont.gaming)))
             msg = '\n'.join(acc)
         elif isinstance(selected_row, Resource):
             res = selected_row

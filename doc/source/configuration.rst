@@ -324,36 +324,11 @@ to understand what is :ref:`carbons <carbons-details>` or
         as mobile networks). It can however increase bandwidth usage.
         It also requires server support.
 
-    enable_user_activity
-
-        **Default value:** ``true``
-
-        Set this to ``false`` if you don’t want to receive the activity of your contacts.
-
-    enable_user_gaming
-
-        **Default value:** ``true``
-
-        Set this to ``false`` if you don’t want to receive the gaming activity of your contacts.
-
-    enable_user_mood
-
-        **Default value:** ``true``
-
-        Set this to ``false`` if you don’t want to receive the mood of your contacts.
-
     enable_user_nick
 
         **Default value:** ``true``
 
         Set to ``false`` if you don’t want your contacts to hint you their identity.
-
-    enable_user_tune
-
-        **Default value:** ``true``
-
-        If this is set to ``false``, you will no longer be subscribed to tune events,
-        and the :term:`display_tune_notifications` option will be ignored.
 
     go_to_previous_tab_on_alt_number
 
@@ -405,34 +380,6 @@ to understand what is :ref:`carbons <carbons-details>` or
 
         Use this option to force the use of local bookmarks if needed.
         Anything but "false" will be counted as true.
-
-    display_gaming_notifications
-
-        **Default value:** ``false``
-
-        If set to true, notifications about the games your are playing
-        will be displayed in the info buffer as 'Gaming' messages.
-
-    display_tune_notifications
-
-        **Default value:** ``false``
-
-        If set to true, notifications about the music your contacts listen to
-        will be displayed in the info buffer as 'Tune' messages.
-
-    display_mood_notifications
-
-        **Default value:** ``false``
-
-        If set to true, notifications about the mood of your contacts
-        will be displayed in the info buffer as 'Mood' messages.
-
-    display_activity_notifications
-
-        **Default value:** ``false``
-
-        If set to true, notifications about the current activity of your contacts
-        will be displayed in the info buffer as 'Activity' messages.
 
     enable_xhtml_im
 

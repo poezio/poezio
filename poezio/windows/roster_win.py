@@ -268,14 +268,6 @@ class RosterWin(Win):
             added += len(theme.CHAR_ROSTER_ASKED)
         if show_s2s_errors and contact.error:
             added += len(theme.CHAR_ROSTER_ERROR)
-        if contact.tune:
-            added += len(theme.CHAR_ROSTER_TUNE)
-        if contact.mood:
-            added += len(theme.CHAR_ROSTER_MOOD)
-        if contact.activity:
-            added += len(theme.CHAR_ROSTER_ACTIVITY)
-        if contact.gaming:
-            added += len(theme.CHAR_ROSTER_GAMING)
         if show_roster_sub in ('all', 'incomplete', 'to', 'from', 'both',
                                'none'):
             added += len(
@@ -309,18 +301,6 @@ class RosterWin(Win):
         if show_s2s_errors and contact.error:
             self.addstr(theme.CHAR_ROSTER_ERROR,
                         to_curses_attr(theme.COLOR_ROSTER_ERROR))
-        if contact.tune:
-            self.addstr(theme.CHAR_ROSTER_TUNE,
-                        to_curses_attr(theme.COLOR_ROSTER_TUNE))
-        if contact.activity:
-            self.addstr(theme.CHAR_ROSTER_ACTIVITY,
-                        to_curses_attr(theme.COLOR_ROSTER_ACTIVITY))
-        if contact.mood:
-            self.addstr(theme.CHAR_ROSTER_MOOD,
-                        to_curses_attr(theme.COLOR_ROSTER_MOOD))
-        if contact.gaming:
-            self.addstr(theme.CHAR_ROSTER_GAMING,
-                        to_curses_attr(theme.COLOR_ROSTER_GAMING))
         self.finish_line()
 
     def draw_resource_line(self, y: int, resource: Resource, colored: bool) -> None:
@@ -391,32 +371,6 @@ class ContactInfoWin(Win):
         if contact.error:
             self.addstr(i, 0, 'Error: %s' % contact.error,
                         to_curses_attr(theme.COLOR_ROSTER_ERROR))
-            self.finish_line()
-            i += 1
-
-        if contact.tune:
-            self.addstr(i, 0,
-                        'Tune: %s' % common.format_tune_string(contact.tune),
-                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
-            self.finish_line()
-            i += 1
-
-        if contact.mood:
-            self.addstr(i, 0, 'Mood: %s' % contact.mood,
-                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
-            self.finish_line()
-            i += 1
-
-        if contact.activity:
-            self.addstr(i, 0, 'Activity: %s' % contact.activity,
-                        to_curses_attr(theme.COLOR_NORMAL_TEXT))
-            self.finish_line()
-            i += 1
-
-        if contact.gaming:
-            self.addstr(
-                i, 0, 'Game: %s' % common.format_gaming_string(contact.gaming),
-                to_curses_attr(theme.COLOR_NORMAL_TEXT))
             self.finish_line()
             i += 1
 
