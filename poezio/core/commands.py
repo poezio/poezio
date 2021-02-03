@@ -902,34 +902,10 @@ class CommandCore:
                 tab.join()
 
     @command_args_parser.quoted(1)
-    def last_activity(self, args):
+    async def last_activity(self, args):
         """
         /last_activity <jid>
         """
-
-        def callback(iq):
-            "Callback for the last activity"
-            if iq['type'] != 'result':
-                if iq['error']['type'] == 'auth':
-                    self.core.information(
-                        'You are not allowed to see the '
-                        'activity of this contact.', 'Error')
-                else:
-                    self.core.information('Error retrieving the activity',
-                                          'Error')
-                return
-            seconds = iq['last_activity']['seconds']
-            status = iq['last_activity']['status']
-            from_ = iq['from']
-            if not from_.user:
-                msg = 'The uptime of %s is %s.' % (
-                    from_, common.parse_secs_to_str(seconds))
-            else:
-                msg = 'The last activity of %s was %s ago%s' % (
-                    from_, common.parse_secs_to_str(seconds),
-                    (' and their last status was %s' % status)
-                    if status else '')
-            self.core.information(msg, 'Info')
 
         if args is None:
             return self.help('last_activity')
@@ -937,8 +913,30 @@ class CommandCore:
             jid = JID(args[0])
         except InvalidJID:
             return self.core.information('Invalid JID for /last_activity: %s' % args[0], 'Error')
-        self.core.xmpp.plugin['xep_0012'].get_last_activity(
-            jid, callback=callback)
+
+        try:
+            await self.core.xmpp.plugin['xep_0012'].get_last_activity(jid)
+        except IqError as error:
+            if error.etype == 'auth':
+                msg = 'You are not allowed to see the activity of %s' % jid
+            else:
+                msg = 'Error retrieving the activity of %s: %s' % (jid, error)
+            return self.core.information(msg, 'Error')
+        except IqTimeout:
+            return self.core.information('Timeout while retrieving the last activity of %s' % jid, 'Error')
+
+        seconds = iq['last_activity']['seconds']
+        status = iq['last_activity']['status']
+        from_ = iq['from']
+        if not from_.user:
+            msg = 'The uptime of %s is %s.' % (
+                from_, common.parse_secs_to_str(seconds))
+        else:
+            msg = 'The last activity of %s was %s ago%s' % (
+                from_, common.parse_secs_to_str(seconds),
+                (' and their last status was %s' % status)
+                if status else '')
+        self.core.information(msg, 'Info')
 
     @command_args_parser.quoted(0, 2)
     def mood(self, args):
